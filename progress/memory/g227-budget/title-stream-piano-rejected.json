@@ -1,0 +1,2256 @@
+{
+  "protocol": "Mac WebKit phone-tier media-source capture, silent worklet output. Diagnostic only; no production change and no native saving credit.",
+  "genre": "piano",
+  "spec": {
+    "full": "title-3d1f713a.m4a",
+    "bpm": 75.666,
+    "beatsPerBar": 4,
+    "loopStart": 27.3995,
+    "loopEnd": 59.118,
+    "duration": 62.2933
+  },
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "recording": {
+    "rate": 48000,
+    "start": 0.276,
+    "offset": 58.518,
+    "seeks": [
+      {
+        "context": 1.1573333333333333,
+        "from": 59.12160575043018,
+        "to": 27.40310575043018
+      }
+    ],
+    "clock": [
+      {
+        "context": 0.17866666666666667,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.17866666666666667,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.18133333333333335,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.18133333333333335,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.184,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.18933333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.19733333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.20533333333333334,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.21333333333333335,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.22133333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.22933333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.23733333333333334,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.24533333333333332,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.25333333333333335,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.2613333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.2693333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.2773333333333333,
+        "media": 58.518,
+        "seeking": false
+      },
+      {
+        "context": 0.2853333333333333,
+        "media": 58.525359000388534,
+        "seeking": false
+      },
+      {
+        "context": 0.29333333333333333,
+        "media": 58.533324000269175,
+        "seeking": false
+      },
+      {
+        "context": 0.30133333333333334,
+        "media": 58.541358416277916,
+        "seeking": false
+      },
+      {
+        "context": 0.30933333333333335,
+        "media": 58.549107041519136,
+        "seeking": false
+      },
+      {
+        "context": 0.31733333333333336,
+        "media": 58.557349916391075,
+        "seeking": false
+      },
+      {
+        "context": 0.3253333333333333,
+        "media": 58.56515112503618,
+        "seeking": false
+      },
+      {
+        "context": 0.3333333333333333,
+        "media": 58.573349374655635,
+        "seeking": false
+      },
+      {
+        "context": 0.3413333333333333,
+        "media": 58.58136129130796,
+        "seeking": false
+      },
+      {
+        "context": 0.34933333333333333,
+        "media": 58.58930879163742,
+        "seeking": false
+      },
+      {
+        "context": 0.35733333333333334,
+        "media": 58.597368291422725,
+        "seeking": false
+      },
+      {
+        "context": 0.36533333333333334,
+        "media": 58.60537012464553,
+        "seeking": false
+      },
+      {
+        "context": 0.37333333333333335,
+        "media": 58.61337541633472,
+        "seeking": false
+      },
+      {
+        "context": 0.38133333333333336,
+        "media": 58.62136950002238,
+        "seeking": false
+      },
+      {
+        "context": 0.3893333333333333,
+        "media": 58.629368249636144,
+        "seeking": false
+      },
+      {
+        "context": 0.3973333333333333,
+        "media": 58.63710912487656,
+        "seeking": false
+      },
+      {
+        "context": 0.4053333333333333,
+        "media": 58.64496604151279,
+        "seeking": false
+      },
+      {
+        "context": 0.41333333333333333,
+        "media": 58.65328383336961,
+        "seeking": false
+      },
+      {
+        "context": 0.42133333333333334,
+        "media": 58.66138104147464,
+        "seeking": false
+      },
+      {
+        "context": 0.42933333333333334,
+        "media": 58.66937379150838,
+        "seeking": false
+      },
+      {
+        "context": 0.43733333333333335,
+        "media": 58.677373458009214,
+        "seeking": false
+      },
+      {
+        "context": 0.44533333333333336,
+        "media": 58.68536741643399,
+        "seeking": false
+      },
+      {
+        "context": 0.4533333333333333,
+        "media": 58.693368916243315,
+        "seeking": false
+      },
+      {
+        "context": 0.4613333333333333,
+        "media": 58.70136504139006,
+        "seeking": false
+      },
+      {
+        "context": 0.4693333333333333,
+        "media": 58.70912483365461,
+        "seeking": false
+      },
+      {
+        "context": 0.47733333333333333,
+        "media": 58.71736666684225,
+        "seeking": false
+      },
+      {
+        "context": 0.48533333333333334,
+        "media": 58.725361791748554,
+        "seeking": false
+      },
+      {
+        "context": 0.49333333333333335,
+        "media": 58.73322124949843,
+        "seeking": false
+      },
+      {
+        "context": 0.5013333333333333,
+        "media": 58.74136716670543,
+        "seeking": false
+      },
+      {
+        "context": 0.5093333333333333,
+        "media": 58.749113167013974,
+        "seeking": false
+      },
+      {
+        "context": 0.5173333333333333,
+        "media": 58.757360791631044,
+        "seeking": false
+      },
+      {
+        "context": 0.5253333333333333,
+        "media": 58.76536754130572,
+        "seeking": false
+      },
+      {
+        "context": 0.5333333333333333,
+        "media": 58.77336433374509,
+        "seeking": false
+      },
+      {
+        "context": 0.5413333333333333,
+        "media": 58.781370000291616,
+        "seeking": false
+      },
+      {
+        "context": 0.5493333333333333,
+        "media": 58.789363916341216,
+        "seeking": false
+      },
+      {
+        "context": 0.5573333333333333,
+        "media": 58.79736604153365,
+        "seeking": false
+      },
+      {
+        "context": 0.5653333333333334,
+        "media": 58.805382582668216,
+        "seeking": false
+      },
+      {
+        "context": 0.5733333333333334,
+        "media": 58.813361833646894,
+        "seeking": false
+      },
+      {
+        "context": 0.5813333333333334,
+        "media": 58.82135324956104,
+        "seeking": false
+      },
+      {
+        "context": 0.5893333333333334,
+        "media": 58.829365958303214,
+        "seeking": false
+      },
+      {
+        "context": 0.5973333333333334,
+        "media": 58.83711570811644,
+        "seeking": false
+      },
+      {
+        "context": 0.6053333333333333,
+        "media": 58.84494729138166,
+        "seeking": false
+      },
+      {
+        "context": 0.6133333333333333,
+        "media": 58.85329045805335,
+        "seeking": false
+      },
+      {
+        "context": 0.6213333333333333,
+        "media": 58.86136245805025,
+        "seeking": false
+      },
+      {
+        "context": 0.6293333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6373333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6453333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6533333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6613333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6693333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6773333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6853333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.6933333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7013333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7093333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7173333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7253333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7333333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7413333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7493333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7573333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7653333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7733333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7813333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7893333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.7973333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8053333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8133333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8213333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8293333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8373333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8453333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8533333333333334,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8613333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8693333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8773333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8853333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.8933333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.9013333333333333,
+        "media": 58.86935354148224,
+        "seeking": false
+      },
+      {
+        "context": 0.9093333333333333,
+        "media": 58.87334854190666,
+        "seeking": false
+      },
+      {
+        "context": 0.9173333333333333,
+        "media": 58.8816308755191,
+        "seeking": false
+      },
+      {
+        "context": 0.9253333333333333,
+        "media": 58.88959812547508,
+        "seeking": false
+      },
+      {
+        "context": 0.9333333333333333,
+        "media": 58.89759854215625,
+        "seeking": false
+      },
+      {
+        "context": 0.9413333333333334,
+        "media": 58.90559441660634,
+        "seeking": false
+      },
+      {
+        "context": 0.9493333333333334,
+        "media": 58.91359891667134,
+        "seeking": false
+      },
+      {
+        "context": 0.9573333333333334,
+        "media": 58.921588834087466,
+        "seeking": false
+      },
+      {
+        "context": 0.9653333333333334,
+        "media": 58.92958262533984,
+        "seeking": false
+      },
+      {
+        "context": 0.9733333333333334,
+        "media": 58.93730450066841,
+        "seeking": false
+      },
+      {
+        "context": 0.9813333333333333,
+        "media": 58.945618834058855,
+        "seeking": false
+      },
+      {
+        "context": 0.9893333333333333,
+        "media": 58.95359020884252,
+        "seeking": false
+      },
+      {
+        "context": 0.9973333333333333,
+        "media": 58.96134204202435,
+        "seeking": false
+      },
+      {
+        "context": 1.0053333333333334,
+        "media": 58.9691862922079,
+        "seeking": false
+      },
+      {
+        "context": 1.0133333333333334,
+        "media": 58.9775124166078,
+        "seeking": false
+      },
+      {
+        "context": 1.0213333333333334,
+        "media": 58.98515925015426,
+        "seeking": false
+      },
+      {
+        "context": 1.0293333333333334,
+        "media": 58.99350004195339,
+        "seeking": false
+      },
+      {
+        "context": 1.0373333333333334,
+        "media": 59.00161004205907,
+        "seeking": false
+      },
+      {
+        "context": 1.0453333333333332,
+        "media": 59.00960291642437,
+        "seeking": false
+      },
+      {
+        "context": 1.0533333333333332,
+        "media": 59.01759929209689,
+        "seeking": false
+      },
+      {
+        "context": 1.0613333333333332,
+        "media": 59.02559666707853,
+        "seeking": false
+      },
+      {
+        "context": 1.0693333333333332,
+        "media": 59.03359874989579,
+        "seeking": false
+      },
+      {
+        "context": 1.0773333333333333,
+        "media": 59.04158600046972,
+        "seeking": false
+      },
+      {
+        "context": 1.0853333333333333,
+        "media": 59.0495927501444,
+        "seeking": false
+      },
+      {
+        "context": 1.0933333333333333,
+        "media": 59.0576036674876,
+        "seeking": false
+      },
+      {
+        "context": 1.1013333333333333,
+        "media": 59.06562850065271,
+        "seeking": false
+      },
+      {
+        "context": 1.1093333333333333,
+        "media": 59.07336070853958,
+        "seeking": false
+      },
+      {
+        "context": 1.1173333333333333,
+        "media": 59.08160162530581,
+        "seeking": false
+      },
+      {
+        "context": 1.1253333333333333,
+        "media": 59.089606834107286,
+        "seeking": false
+      },
+      {
+        "context": 1.1333333333333333,
+        "media": 59.09759658341969,
+        "seeking": false
+      },
+      {
+        "context": 1.1413333333333333,
+        "media": 59.10560291705261,
+        "seeking": false
+      },
+      {
+        "context": 1.1493333333333333,
+        "media": 59.11360750093664,
+        "seeking": false
+      },
+      {
+        "context": 1.1573333333333333,
+        "media": 59.12160575043018,
+        "seeking": false
+      },
+      {
+        "context": 1.1653333333333333,
+        "media": 27.40310575043018,
+        "seeking": true
+      },
+      {
+        "context": 1.1733333333333333,
+        "media": 27.40310575043018,
+        "seeking": true
+      },
+      {
+        "context": 1.1813333333333333,
+        "media": 27.40310575043018,
+        "seeking": true
+      },
+      {
+        "context": 1.1893333333333334,
+        "media": 27.40310575043018,
+        "seeking": true
+      },
+      {
+        "context": 1.1973333333333334,
+        "media": 27.40310575043018,
+        "seeking": true
+      },
+      {
+        "context": 1.2053333333333334,
+        "media": 27.404782574700935,
+        "seeking": false
+      },
+      {
+        "context": 1.2133333333333334,
+        "media": 27.412932241412623,
+        "seeking": false
+      },
+      {
+        "context": 1.2213333333333334,
+        "media": 27.421037574841453,
+        "seeking": false
+      },
+      {
+        "context": 1.2293333333333334,
+        "media": 27.428792116309328,
+        "seeking": false
+      },
+      {
+        "context": 1.2373333333333334,
+        "media": 27.437011241524292,
+        "seeking": false
+      },
+      {
+        "context": 1.2453333333333334,
+        "media": 27.445017324837668,
+        "seeking": false
+      },
+      {
+        "context": 1.2533333333333334,
+        "media": 27.45301494941376,
+        "seeking": false
+      },
+      {
+        "context": 1.2613333333333334,
+        "media": 27.461010824966056,
+        "seeking": false
+      },
+      {
+        "context": 1.2693333333333334,
+        "media": 27.469018783031775,
+        "seeking": false
+      },
+      {
+        "context": 1.2773333333333334,
+        "media": 27.477014782915635,
+        "seeking": false
+      },
+      {
+        "context": 1.2853333333333334,
+        "media": 27.485008533655478,
+        "seeking": false
+      },
+      {
+        "context": 1.2933333333333332,
+        "media": 27.493061367033793,
+        "seeking": false
+      },
+      {
+        "context": 1.3013333333333332,
+        "media": 27.501009782853348,
+        "seeking": false
+      },
+      {
+        "context": 1.3093333333333332,
+        "media": 27.50877794957049,
+        "seeking": false
+      },
+      {
+        "context": 1.3173333333333332,
+        "media": 27.517013074907286,
+        "seeking": false
+      },
+      {
+        "context": 1.3253333333333333,
+        "media": 27.525014116040243,
+        "seeking": false
+      },
+      {
+        "context": 1.3333333333333333,
+        "media": 27.533009074705465,
+        "seeking": false
+      },
+      {
+        "context": 1.3413333333333333,
+        "media": 27.54101465836428,
+        "seeking": false
+      },
+      {
+        "context": 1.3493333333333333,
+        "media": 27.54901178282015,
+        "seeking": false
+      },
+      {
+        "context": 1.3573333333333333,
+        "media": 27.55700828282423,
+        "seeking": false
+      },
+      {
+        "context": 1.3653333333333333,
+        "media": 27.565015241580827,
+        "seeking": false
+      },
+      {
+        "context": 1.3733333333333333,
+        "media": 27.573013574893398,
+        "seeking": false
+      },
+      {
+        "context": 1.3813333333333333,
+        "media": 27.581012366882337,
+        "seeking": false
+      },
+      {
+        "context": 1.3893333333333333,
+        "media": 27.58901128273718,
+        "seeking": false
+      },
+      {
+        "context": 1.3973333333333333,
+        "media": 27.59676874157302,
+        "seeking": false
+      },
+      {
+        "context": 1.4053333333333333,
+        "media": 27.6046037413951,
+        "seeking": false
+      },
+      {
+        "context": 1.4133333333333333,
+        "media": 27.61295982504524,
+        "seeking": false
+      },
+      {
+        "context": 1.4213333333333333,
+        "media": 27.621012325010074,
+        "seeking": false
+      },
+      {
+        "context": 1.4293333333333333,
+        "media": 27.628615366837753,
+        "seeking": false
+      },
+      {
+        "context": 1.4373333333333334,
+        "media": 27.637045616361124,
+        "seeking": false
+      },
+      {
+        "context": 1.4453333333333334,
+        "media": 27.645051574877275,
+        "seeking": false
+      },
+      {
+        "context": 1.4533333333333334,
+        "media": 27.65301394935958,
+        "seeking": false
+      },
+      {
+        "context": 1.4613333333333334,
+        "media": 27.661025324913485,
+        "seeking": false
+      },
+      {
+        "context": 1.4693333333333334,
+        "media": 27.669006033411993,
+        "seeking": false
+      },
+      {
+        "context": 1.4773333333333334,
+        "media": 27.67701782480143,
+        "seeking": false
+      },
+      {
+        "context": 1.4853333333333334,
+        "media": 27.6850289493639,
+        "seeking": false
+      },
+      {
+        "context": 1.4933333333333334,
+        "media": 27.693030824961884,
+        "seeking": false
+      },
+      {
+        "context": 1.5013333333333334,
+        "media": 27.70104494978003,
+        "seeking": false
+      },
+      {
+        "context": 1.5093333333333334,
+        "media": 27.70877157485373,
+        "seeking": false
+      },
+      {
+        "context": 1.5173333333333334,
+        "media": 27.71701299174018,
+        "seeking": false
+      },
+      {
+        "context": 1.5253333333333334,
+        "media": 27.725007283112777,
+        "seeking": false
+      },
+      {
+        "context": 1.5333333333333334,
+        "media": 27.73301744934432,
+        "seeking": false
+      },
+      {
+        "context": 1.5413333333333334,
+        "media": 27.74101036701612,
+        "seeking": false
+      },
+      {
+        "context": 1.5493333333333332,
+        "media": 27.749025908375902,
+        "seeking": false
+      },
+      {
+        "context": 1.5573333333333332,
+        "media": 27.757043158246947,
+        "seeking": false
+      },
+      {
+        "context": 1.5653333333333332,
+        "media": 27.764999741765482,
+        "seeking": false
+      },
+      {
+        "context": 1.5733333333333333,
+        "media": 27.7730252003137,
+        "seeking": false
+      },
+      {
+        "context": 1.5813333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.5893333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.5973333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6053333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6133333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6213333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6293333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6373333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6453333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6533333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6613333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6693333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6773333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6853333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.6933333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7013333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7093333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7173333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7253333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7333333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7413333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7493333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7573333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7653333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7733333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7813333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7893333333333334,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.7973333333333332,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8053333333333332,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8133333333333332,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8213333333333332,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8293333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8373333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8453333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8533333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8613333333333333,
+        "media": 27.781020367129518,
+        "seeking": false
+      },
+      {
+        "context": 1.8693333333333333,
+        "media": 27.788015681046435,
+        "seeking": false
+      },
+      {
+        "context": 1.8773333333333333,
+        "media": 27.796023180901447,
+        "seeking": false
+      },
+      {
+        "context": 1.8853333333333333,
+        "media": 27.804029556076895,
+        "seeking": false
+      },
+      {
+        "context": 1.8933333333333333,
+        "media": 27.812007140453826,
+        "seeking": false
+      },
+      {
+        "context": 1.9013333333333333,
+        "media": 27.820003473751168,
+        "seeking": false
+      },
+      {
+        "context": 1.9093333333333333,
+        "media": 27.82778676514692,
+        "seeking": false
+      },
+      {
+        "context": 1.9173333333333333,
+        "media": 27.836016140498142,
+        "seeking": false
+      },
+      {
+        "context": 1.9253333333333333,
+        "media": 27.844030348203997,
+        "seeking": false
+      },
+      {
+        "context": 1.9333333333333333,
+        "media": 27.85202201510958,
+        "seeking": false
+      },
+      {
+        "context": 1.9413333333333334,
+        "media": 27.86001972303904,
+        "seeking": false
+      },
+      {
+        "context": 1.9493333333333334,
+        "media": 27.868021764878105,
+        "seeking": false
+      },
+      {
+        "context": 1.9573333333333334,
+        "media": 27.876021556176166,
+        "seeking": false
+      },
+      {
+        "context": 1.9653333333333334,
+        "media": 27.88380572301514,
+        "seeking": false
+      },
+      {
+        "context": 1.9733333333333334,
+        "media": 27.891996473625223,
+        "seeking": false
+      },
+      {
+        "context": 1.9813333333333334,
+        "media": 27.900028307076465,
+        "seeking": false
+      },
+      {
+        "context": 1.9893333333333334,
+        "media": 27.908001014503306,
+        "seeking": false
+      },
+      {
+        "context": 1.9973333333333334,
+        "media": 27.915774889296507,
+        "seeking": false
+      },
+      {
+        "context": 2.005333333333333,
+        "media": 27.923622722743666,
+        "seeking": false
+      },
+      {
+        "context": 2.013333333333333,
+        "media": 27.931950264616525,
+        "seeking": false
+      },
+      {
+        "context": 2.021333333333333,
+        "media": 27.940018139785742,
+        "seeking": false
+      },
+      {
+        "context": 2.029333333333333,
+        "media": 27.948008055804884,
+        "seeking": false
+      },
+      {
+        "context": 2.037333333333333,
+        "media": 27.956054014625614,
+        "seeking": false
+      },
+      {
+        "context": 2.0453333333333332,
+        "media": 27.964020681108003,
+        "seeking": false
+      },
+      {
+        "context": 2.0533333333333332,
+        "media": 27.97203384806088,
+        "seeking": false
+      },
+      {
+        "context": 2.0613333333333332,
+        "media": 27.980028640019363,
+        "seeking": false
+      },
+      {
+        "context": 2.0693333333333332,
+        "media": 27.988022431271737,
+        "seeking": false
+      },
+      {
+        "context": 2.0773333333333333,
+        "media": 27.996026181156402,
+        "seeking": false
+      },
+      {
+        "context": 2.0853333333333333,
+        "media": 28.00401230606638,
+        "seeking": false
+      },
+      {
+        "context": 2.0933333333333333,
+        "media": 28.012027223440036,
+        "seeking": false
+      },
+      {
+        "context": 2.1013333333333333,
+        "media": 28.020017681488916,
+        "seeking": false
+      },
+      {
+        "context": 2.1093333333333333,
+        "media": 28.027794681335017,
+        "seeking": false
+      },
+      {
+        "context": 2.1173333333333333,
+        "media": 28.036016514836028,
+        "seeking": false
+      },
+      {
+        "context": 2.1253333333333333,
+        "media": 28.04402659817986,
+        "seeking": false
+      },
+      {
+        "context": 2.1333333333333333,
+        "media": 28.052028014635816,
+        "seeking": false
+      },
+      {
+        "context": 2.1413333333333333,
+        "media": 28.06005359798126,
+        "seeking": false
+      },
+      {
+        "context": 2.1493333333333333,
+        "media": 28.0680168898163,
+        "seeking": false
+      },
+      {
+        "context": 2.1573333333333333,
+        "media": 28.076021056467816,
+        "seeking": false
+      },
+      {
+        "context": 2.1653333333333333,
+        "media": 28.08357330582492,
+        "seeking": false
+      },
+      {
+        "context": 2.1733333333333333,
+        "media": 28.092013597799614,
+        "seeking": false
+      },
+      {
+        "context": 2.1813333333333333,
+        "media": 28.10002088996969,
+        "seeking": false
+      },
+      {
+        "context": 2.1893333333333334,
+        "media": 28.108021930927936,
+        "seeking": false
+      },
+      {
+        "context": 2.1973333333333334,
+        "media": 28.11577209797368,
+        "seeking": false
+      },
+      {
+        "context": 2.2053333333333334,
+        "media": 28.123535389217142,
+        "seeking": false
+      },
+      {
+        "context": 2.2133333333333334,
+        "media": 28.131979055839185,
+        "seeking": false
+      },
+      {
+        "context": 2.2213333333333334,
+        "media": 28.140018973170374,
+        "seeking": false
+      },
+      {
+        "context": 2.2293333333333334,
+        "media": 28.148018347701584,
+        "seeking": false
+      },
+      {
+        "context": 2.2373333333333334,
+        "media": 28.155681889175032,
+        "seeking": false
+      },
+      {
+        "context": 2.2453333333333334,
+        "media": 28.164021347785894,
+        "seeking": false
+      },
+      {
+        "context": 2.2533333333333334,
+        "media": 28.172019097624872,
+        "seeking": false
+      },
+      {
+        "context": 2.2613333333333334,
+        "media": 28.180014222531174,
+        "seeking": false
+      },
+      {
+        "context": 2.2693333333333334,
+        "media": 28.188008306218837,
+        "seeking": false
+      },
+      {
+        "context": 2.2773333333333334,
+        "media": 28.196018973036264,
+        "seeking": false
+      },
+      {
+        "context": 2.2853333333333334,
+        "media": 28.204039847386905,
+        "seeking": false
+      },
+      {
+        "context": 2.2933333333333334,
+        "media": 28.212041055226603,
+        "seeking": false
+      },
+      {
+        "context": 2.3013333333333335,
+        "media": 28.219991930669078,
+        "seeking": false
+      },
+      {
+        "context": 2.3093333333333335,
+        "media": 28.227785847524085,
+        "seeking": false
+      },
+      {
+        "context": 2.3173333333333335,
+        "media": 28.235669555516818,
+        "seeking": false
+      },
+      {
+        "context": 2.3253333333333335,
+        "media": 28.244010306337753,
+        "seeking": false
+      },
+      {
+        "context": 2.3333333333333335,
+        "media": 28.252019347531625,
+        "seeking": false
+      },
+      {
+        "context": 2.3413333333333335,
+        "media": 28.260016388634124,
+        "seeking": false
+      },
+      {
+        "context": 2.3493333333333335,
+        "media": 28.26802093060864,
+        "seeking": false
+      },
+      {
+        "context": 2.3573333333333335,
+        "media": 28.27601009737877,
+        "seeking": false
+      },
+      {
+        "context": 2.3653333333333335,
+        "media": 28.284017306195476,
+        "seeking": false
+      },
+      {
+        "context": 2.3733333333333335,
+        "media": 28.292012306304553,
+        "seeking": false
+      },
+      {
+        "context": 2.3813333333333335,
+        "media": 28.300019555633792,
+        "seeking": false
+      },
+      {
+        "context": 2.3893333333333335,
+        "media": 28.307996555265273,
+        "seeking": false
+      },
+      {
+        "context": 2.3973333333333335,
+        "media": 28.315755097229268,
+        "seeking": false
+      },
+      {
+        "context": 2.4053333333333335,
+        "media": 28.323604472480948,
+        "seeking": false
+      },
+      {
+        "context": 2.4133333333333336,
+        "media": 28.33194272223511,
+        "seeking": false
+      },
+      {
+        "context": 2.421333333333333,
+        "media": 28.33999430624419,
+        "seeking": false
+      },
+      {
+        "context": 2.429333333333333,
+        "media": 28.347997013978894,
+        "seeking": false
+      },
+      {
+        "context": 2.437333333333333,
+        "media": 28.35600163930678,
+        "seeking": false
+      },
+      {
+        "context": 2.445333333333333,
+        "media": 28.363595597479726,
+        "seeking": false
+      },
+      {
+        "context": 2.453333333333333,
+        "media": 28.37200151387253,
+        "seeking": false
+      },
+      {
+        "context": 2.461333333333333,
+        "media": 28.380004680749263,
+        "seeking": false
+      },
+      {
+        "context": 2.469333333333333,
+        "media": 28.38800243058824,
+        "seeking": false
+      },
+      {
+        "context": 2.477333333333333,
+        "media": 28.395654847413535,
+        "seeking": false
+      },
+      {
+        "context": 2.485333333333333,
+        "media": 28.404030514685218,
+        "seeking": false
+      },
+      {
+        "context": 2.493333333333333,
+        "media": 28.411992222340558,
+        "seeking": false
+      },
+      {
+        "context": 2.501333333333333,
+        "media": 28.41990555570439,
+        "seeking": false
+      },
+      {
+        "context": 2.509333333333333,
+        "media": 28.427769681243007,
+        "seeking": false
+      },
+      {
+        "context": 2.517333333333333,
+        "media": 28.436004139287178,
+        "seeking": false
+      },
+      {
+        "context": 2.525333333333333,
+        "media": 28.444010556014035,
+        "seeking": false
+      },
+      {
+        "context": 2.533333333333333,
+        "media": 28.451975222481195,
+        "seeking": false
+      },
+      {
+        "context": 2.541333333333333,
+        "media": 28.460006639165584,
+        "seeking": false
+      },
+      {
+        "context": 2.5493333333333332,
+        "media": 28.46800780602709,
+        "seeking": false
+      },
+      {
+        "context": 2.5573333333333332,
+        "media": 28.47609305595026,
+        "seeking": false
+      },
+      {
+        "context": 2.5653333333333332,
+        "media": 28.484012055946295,
+        "seeking": false
+      },
+      {
+        "context": 2.5733333333333333,
+        "media": 28.492003097003106,
+        "seeking": false
+      },
+      {
+        "context": 2.5813333333333333,
+        "media": 28.50000784805954,
+        "seeking": false
+      },
+      {
+        "context": 2.5893333333333333,
+        "media": 28.508000471902193,
+        "seeking": false
+      },
+      {
+        "context": 2.5973333333333333,
+        "media": 28.51575622269243,
+        "seeking": false
+      },
+      {
+        "context": 2.6053333333333333,
+        "media": 28.52360855582461,
+        "seeking": false
+      },
+      {
+        "context": 2.6133333333333333,
+        "media": 28.531942304962428,
+        "seeking": false
+      },
+      {
+        "context": 2.6213333333333333,
+        "media": 28.54000193047628,
+        "seeking": false
+      },
+      {
+        "context": 2.6293333333333333,
+        "media": 28.54799584699154,
+        "seeking": false
+      },
+      {
+        "context": 2.6373333333333333,
+        "media": 28.556000889086278,
+        "seeking": false
+      },
+      {
+        "context": 2.6453333333333333,
+        "media": 28.563997138564588,
+        "seeking": false
+      },
+      {
+        "context": 2.6533333333333333,
+        "media": 28.572000555967094,
+        "seeking": false
+      },
+      {
+        "context": 2.6613333333333333,
+        "media": 28.579997513716222,
+        "seeking": false
+      },
+      {
+        "context": 2.6693333333333333,
+        "media": 28.588002930668296,
+        "seeking": false
+      },
+      {
+        "context": 2.6773333333333333,
+        "media": 28.596018430584223,
+        "seeking": false
+      },
+      {
+        "context": 2.6853333333333333,
+        "media": 28.604005596900638,
+        "seeking": false
+      },
+      {
+        "context": 2.6933333333333334,
+        "media": 28.61200263893446,
+        "seeking": false
+      },
+      {
+        "context": 2.7013333333333334,
+        "media": 28.619773347230907,
+        "seeking": false
+      },
+      {
+        "context": 2.7093333333333334,
+        "media": 28.62777513900986,
+        "seeking": false
+      },
+      {
+        "context": 2.7173333333333334,
+        "media": 28.636042096952256,
+        "seeking": false
+      },
+      {
+        "context": 2.7253333333333334,
+        "media": 28.643639763651695,
+        "seeking": false
+      },
+      {
+        "context": 2.7333333333333334,
+        "media": 28.652001388205495,
+        "seeking": false
+      },
+      {
+        "context": 2.7413333333333334,
+        "media": 28.659982097169664,
+        "seeking": false
+      },
+      {
+        "context": 2.7493333333333334,
+        "media": 28.66800859693652,
+        "seeking": false
+      },
+      {
+        "context": 2.7573333333333334,
+        "media": 28.676012013873365,
+        "seeking": false
+      },
+      {
+        "context": 2.7653333333333334,
+        "media": 28.684005305471178,
+        "seeking": false
+      },
+      {
+        "context": 2.7733333333333334,
+        "media": 28.692012597175594,
+        "seeking": false
+      },
+      {
+        "context": 2.7813333333333334,
+        "media": 28.700001388157066,
+        "seeking": false
+      },
+      {
+        "context": 2.7893333333333334,
+        "media": 28.70799380590949,
+        "seeking": false
+      },
+      {
+        "context": 2.7973333333333334,
+        "media": 28.715769555920694,
+        "seeking": false
+      },
+      {
+        "context": 2.8053333333333335,
+        "media": 28.723616472480778,
+        "seeking": false
+      },
+      {
+        "context": 2.8133333333333335,
+        "media": 28.73194138942096,
+        "seeking": false
+      },
+      {
+        "context": 2.8213333333333335,
+        "media": 28.740000389086042,
+        "seeking": false
+      },
+      {
+        "context": 2.8293333333333335,
+        "media": 28.74801780612949,
+        "seeking": false
+      },
+      {
+        "context": 2.8373333333333335,
+        "media": 28.756032013835345,
+        "seeking": false
+      },
+      {
+        "context": 2.8453333333333335,
+        "media": 28.764008222648833,
+        "seeking": false
+      },
+      {
+        "context": 2.8533333333333335,
+        "media": 28.772004222532694,
+        "seeking": false
+      },
+      {
+        "context": 2.8613333333333335,
+        "media": 28.780009639484767,
+        "seeking": false
+      },
+      {
+        "context": 2.8693333333333335,
+        "media": 28.78800476439107,
+        "seeking": false
+      },
+      {
+        "context": 2.8773333333333335,
+        "media": 28.7960783890802,
+        "seeking": false
+      },
+      {
+        "context": 2.8853333333333335,
+        "media": 28.80401226408416,
+        "seeking": false
+      },
+      {
+        "context": 2.8933333333333335,
+        "media": 28.81199130551526,
+        "seeking": false
+      },
+      {
+        "context": 2.9013333333333335,
+        "media": 28.819529556162745,
+        "seeking": false
+      },
+      {
+        "context": 2.9093333333333335,
+        "media": 28.827778556343258,
+        "seeking": false
+      },
+      {
+        "context": 2.917333333333333,
+        "media": 28.83584801429519,
+        "seeking": false
+      },
+      {
+        "context": 2.925333333333333,
+        "media": 28.84398738942677,
+        "seeking": false
+      },
+      {
+        "context": 2.933333333333333,
+        "media": 28.851994930725635,
+        "seeking": false
+      },
+      {
+        "context": 2.941333333333333,
+        "media": 28.8600320973956,
+        "seeking": false
+      },
+      {
+        "context": 2.949333333333333,
+        "media": 28.86799684768179,
+        "seeking": false
+      },
+      {
+        "context": 2.957333333333333,
+        "media": 28.875797389499933,
+        "seeking": false
+      },
+      {
+        "context": 2.965333333333333,
+        "media": 28.884001472458333,
+        "seeking": false
+      },
+      {
+        "context": 2.973333333333333,
+        "media": 28.891995972447187,
+        "seeking": false
+      },
+      {
+        "context": 2.981333333333333,
+        "media": 28.899991930887193,
+        "seeking": false
+      },
+      {
+        "context": 2.989333333333333,
+        "media": 28.908001013919115,
+        "seeking": false
+      },
+      {
+        "context": 2.997333333333333,
+        "media": 28.91575476329714,
+        "seeking": false
+      },
+      {
+        "context": 3.005333333333333,
+        "media": 28.923639014250934,
+        "seeking": false
+      },
+      {
+        "context": 3.013333333333333,
+        "media": 28.931946596949697,
+        "seeking": false
+      },
+      {
+        "context": 3.021333333333333,
+        "media": 28.940032472255975,
+        "seeking": false
+      },
+      {
+        "context": 3.029333333333333,
+        "media": 28.94799434754938,
+        "seeking": false
+      },
+      {
+        "context": 3.037333333333333,
+        "media": 28.955918096824885,
+        "seeking": false
+      },
+      {
+        "context": 3.0453333333333332,
+        "media": 28.964001638702452,
+        "seeking": false
+      },
+      {
+        "context": 3.0533333333333332,
+        "media": 28.972004138752222,
+        "seeking": false
+      },
+      {
+        "context": 3.0613333333333332,
+        "media": 28.980050471964628,
+        "seeking": false
+      },
+      {
+        "context": 3.0693333333333332,
+        "media": 28.98799418087989,
+        "seeking": false
+      },
+      {
+        "context": 3.0773333333333333,
+        "media": 28.995997305381447,
+        "seeking": false
+      },
+      {
+        "context": 3.0853333333333333,
+        "media": 29.004004388992097,
+        "seeking": false
+      },
+      {
+        "context": 3.0933333333333333,
+        "media": 29.011986096799728,
+        "seeking": false
+      },
+      {
+        "context": 3.1013333333333333,
+        "media": 29.019995388985034,
+        "seeking": false
+      },
+      {
+        "context": 3.1093333333333333,
+        "media": 29.027774722259846,
+        "seeking": false
+      },
+      {
+        "context": 3.1173333333333333,
+        "media": 29.035993096828815,
+        "seeking": false
+      },
+      {
+        "context": 3.1253333333333333,
+        "media": 29.044006014187243,
+        "seeking": false
+      },
+      {
+        "context": 3.1333333333333333,
+        "media": 29.051995180957373,
+        "seeking": false
+      },
+      {
+        "context": 3.1413333333333333,
+        "media": 29.060000222120788,
+        "seeking": false
+      },
+      {
+        "context": 3.1493333333333333,
+        "media": 29.067996014319714,
+        "seeking": false
+      },
+      {
+        "context": 3.1573333333333333,
+        "media": 29.07600276352873,
+        "seeking": false
+      },
+      {
+        "context": 3.1653333333333333,
+        "media": 29.08402147231659,
+        "seeking": false
+      },
+      {
+        "context": 3.1733333333333333,
+        "media": 29.09200163878536,
+        "seeking": false
+      },
+      {
+        "context": 3.1813333333333333,
+        "media": 29.100003388654795,
+        "seeking": false
+      },
+      {
+        "context": 3.1893333333333334,
+        "media": 29.10803230562106,
+        "seeking": false
+      },
+      {
+        "context": 3.1973333333333334,
+        "media": 29.115803180158586,
+        "seeking": false
+      },
+      {
+        "context": 3.2053333333333334,
+        "media": 29.123769055482448,
+        "seeking": false
+      },
+      {
+        "context": 3.2133333333333334,
+        "media": 29.131949388783873,
+        "seeking": false
+      },
+      {
+        "context": 3.2213333333333334,
+        "media": 29.140006930929125,
+        "seeking": false
+      },
+      {
+        "context": 3.2293333333333334,
+        "media": 29.1480086803329,
+        "seeking": false
+      },
+      {
+        "context": 3.2373333333333334,
+        "media": 29.155846513703914,
+        "seeking": false
+      },
+      {
+        "context": 3.2453333333333334,
+        "media": 29.163999847032578,
+        "seeking": false
+      },
+      {
+        "context": 3.2533333333333334,
+        "media": 29.171989013337047,
+        "seeking": false
+      },
+      {
+        "context": 3.2613333333333334,
+        "media": 29.17999763869539,
+        "seeking": false
+      },
+      {
+        "context": 3.2693333333333334,
+        "media": 29.187999264233262,
+        "seeking": false
+      },
+      {
+        "context": 3.2773333333333334,
+        "media": 29.19599301357612,
+        "seeking": false
+      },
+      {
+        "context": 3.2853333333333334,
+        "media": 29.204000347020862,
+        "seeking": false
+      },
+      {
+        "context": 3.2933333333333334,
+        "media": 29.21201030510181,
+        "seeking": false
+      },
+      {
+        "context": 3.3013333333333335,
+        "media": 29.22003843049222,
+        "seeking": false
+      },
+      {
+        "context": 3.3093333333333335,
+        "media": 29.227820055751888,
+        "seeking": false
+      },
+      {
+        "context": 3.3173333333333335,
+        "media": 29.23599972222635,
+        "seeking": false
+      },
+      {
+        "context": 3.3253333333333335,
+        "media": 29.244008804864077,
+        "seeking": false
+      },
+      {
+        "context": 3.3333333333333335,
+        "media": 29.25201172214636,
+        "seeking": false
+      },
+      {
+        "context": 3.3413333333333335,
+        "media": 29.259563055547712,
+        "seeking": false
+      },
+      {
+        "context": 3.3493333333333335,
+        "media": 29.26803834709042,
+        "seeking": false
+      },
+      {
+        "context": 3.3573333333333335,
+        "media": 29.276011013618497,
+        "seeking": false
+      },
+      {
+        "context": 3.3653333333333335,
+        "media": 29.28400872247928,
+        "seeking": false
+      },
+      {
+        "context": 3.3733333333333335,
+        "media": 29.292012222303836,
+        "seeking": false
+      },
+      {
+        "context": 3.3813333333333335,
+        "media": 29.30000851369166,
+        "seeking": false
+      },
+      {
+        "context": 3.3893333333333335,
+        "media": 29.308005847354956,
+        "seeking": false
+      },
+      {
+        "context": 3.3973333333333335,
+        "media": 29.315772889034427,
+        "seeking": false
+      },
+      {
+        "context": 3.4053333333333335,
+        "media": 29.323626597730048,
+        "seeking": false
+      },
+      {
+        "context": 3.4133333333333336,
+        "media": 29.33196134710831,
+        "seeking": false
+      },
+      {
+        "context": 3.421333333333333,
+        "media": 29.340012389087654,
+        "seeking": false
+      },
+      {
+        "context": 3.429333333333333,
+        "media": 29.348007597812988,
+        "seeking": false
+      },
+      {
+        "context": 3.437333333333333,
+        "media": 29.355689222776867,
+        "seeking": false
+      },
+      {
+        "context": 3.445333333333333,
+        "media": 29.364012764619268,
+        "seeking": false
+      },
+      {
+        "context": 3.453333333333333,
+        "media": 29.37204197267217,
+        "seeking": false
+      },
+      {
+        "context": 3.461333333333333,
+        "media": 29.38001530602721,
+        "seeking": false
+      },
+      {
+        "context": 3.469333333333333,
+        "media": 29.388003764526523,
+        "seeking": false
+      },
+      {
+        "context": 3.477333333333333,
+        "media": 29.396011513975985,
+        "seeking": false
+      },
+      {
+        "context": 3.485333333333333,
+        "media": 29.404014889803832,
+        "seeking": false
+      },
+      {
+        "context": 3.493333333333333,
+        "media": 29.412005264499342,
+        "seeking": false
+      },
+      {
+        "context": 3.501333333333333,
+        "media": 29.420006931015408,
+        "seeking": false
+      },
+      {
+        "context": 3.509333333333333,
+        "media": 29.42779630581022,
+        "seeking": false
+      },
+      {
+        "context": 3.517333333333333,
+        "media": 29.4360203060332,
+        "seeking": false
+      },
+      {
+        "context": 3.525333333333333,
+        "media": 29.444004431088572,
+        "seeking": false
+      },
+      {
+        "context": 3.533333333333333,
+        "media": 29.452007723228192,
+        "seeking": false
+      },
+      {
+        "context": 3.541333333333333,
+        "media": 29.46001326451183,
+        "seeking": false
+      },
+      {
+        "context": 3.5493333333333332,
+        "media": 29.46799834789813,
+        "seeking": false
+      },
+      {
+        "context": 3.5573333333333332,
+        "media": 29.47601097235561,
+        "seeking": false
+      },
+      {
+        "context": 3.5653333333333332,
+        "media": 29.484019223322278,
+        "seeking": false
+      },
+      {
+        "context": 3.5733333333333333,
+        "media": 29.492015639041668,
+        "seeking": false
+      },
+      {
+        "context": 3.5813333333333333,
+        "media": 29.500009514578736,
+        "seeking": false
+      },
+      {
+        "context": 3.5893333333333333,
+        "media": 29.508006056324582,
+        "seeking": false
+      },
+      {
+        "context": 3.5973333333333333,
+        "media": 29.51576872311626,
+        "seeking": false
+      },
+      {
+        "context": 3.6053333333333333,
+        "media": 29.523630181812685,
+        "seeking": false
+      },
+      {
+        "context": 3.6133333333333333,
+        "media": 29.53196838965733,
+        "seeking": false
+      },
+      {
+        "context": 3.6213333333333333,
+        "media": 29.540015264433812,
+        "seeking": false
+      },
+      {
+        "context": 3.6293333333333333,
+        "media": 29.547676431034695,
+        "seeking": false
+      },
+      {
+        "context": 3.6373333333333333,
+        "media": 29.556006931253712,
+        "seeking": false
+      },
+      {
+        "context": 3.6453333333333333,
+        "media": 29.564012597800236,
+        "seeking": false
+      },
+      {
+        "context": 3.6533333333333333,
+        "media": 29.572013097834777,
+        "seeking": false
+      },
+      {
+        "context": 3.6613333333333333,
+        "media": 29.580018264261078,
+        "seeking": false
+      },
+      {
+        "context": 3.6693333333333333,
+        "media": 29.58800718190242,
+        "seeking": false
+      }
+    ],
+    "alignment": {
+      "shift": 192,
+      "mse": 1.8026886548209123e-08
+    },
+    "alignmentSeconds": 0.004,
+    "beforeLoop": {
+      "samples": 12000,
+      "maxAbs": 0.0008030161261558533,
+      "rms": 0.00014581169701860034
+    },
+    "loopSeam": {
+      "samples": 21600,
+      "maxAbs": 0.03629908338189125,
+      "rms": 0.005862123107729473
+    },
+    "afterLoop": {
+      "samples": 24000,
+      "maxAbs": 0.17450030148029327,
+      "rms": 0.03721881717569177
+    },
+    "workletFrames": 170112
+  },
+  "exact": false,
+  "closed": true
+}
