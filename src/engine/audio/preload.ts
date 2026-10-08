@@ -26,8 +26,32 @@ function decodeContext(): OfflineAudioContext {
   offline ??= new OfflineAudioContext(2, 1, DECODE_RATE); // the 3-argument form: Safari's constructor
   return offline;
 }
-/** decode compressed audio into an AudioBuffer without an AudioContext (the bytes are detached) */
-export function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> { return decodeContext().decodeAudioData(bytes); }
+// Exact compressed content, independent of URL or boot/runtime decoder wrappers. Completed entries are weak:
+// retirement of the last bank/deck releases its PCM, and a later visit decodes again. Bound the metadata too.
+const decoded = new Map<string, WeakRef<AudioBuffer>>();
+const decoding = new Map<string, Promise<AudioBuffer>>();
+const DECODE_ENTRIES = 256;
+/** Decode at 48 kHz, sharing identical live recordings without retaining retired PCM (the bytes are detached on decode). */
+export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  const key = Array.from(digest, value => value.toString(16).padStart(2, '0')).join('');
+  const live = decoded.get(key)?.deref();
+  if (live) return live;
+  const pending = decoding.get(key);
+  if (pending) return pending;
+  const work = decodeContext().decodeAudioData(bytes);
+  decoding.set(key, work);
+  try {
+    const buffer = await work;
+    decoded.delete(key); decoded.set(key, new WeakRef(buffer));
+    while (decoded.size > DECODE_ENTRIES) {
+      const first = decoded.keys().next().value;
+      if (first === undefined) break;
+      decoded.delete(first);
+    }
+    return buffer;
+  } finally { if (decoding.get(key) === work) decoding.delete(key); }
+}
 
 /** the bytes of `url` from the offline cache the bar filled — a style / set switch never touches the network */
 export async function cachedBytes(url: string): Promise<ArrayBuffer> {
