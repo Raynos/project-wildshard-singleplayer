@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { prepareNativeTerrain } from './nativeWorld.mjs';
 
 const noop = () => undefined;
 
@@ -40,13 +41,14 @@ export async function visitAuthoredWorld(def, options) {
   const physics = new Physics(await loadRapier(readFileSync(resolve(ROOT, 'node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm'))));
   let levelStarted = false;
   try {
-  const ground = terrainGrid();
+  const native = options.nativeTerrain === undefined ? null : await prepareNativeTerrain(def, { root: ROOT, bytes: options.nativeTerrain });
+  const ground = native === null ? terrainGrid() : native.heights.slice();
   if (needsTerrainCollider(spec)) registerTerrain(physics, ground);
   const factory = typeof def.trees.factory === 'function' ? await (await def.trees.factory())(renderer, sky) : new TreeFactory(renderer).buildEmpty();
   const forest = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' });
   const terrain = options.createTerrain === undefined
     ? { mesh: new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2)), punch: noop }
-    : await options.createTerrain({ ground, forest });
+    : await options.createTerrain({ ground, forest, native });
   const player = { position: new THREE.Vector3(def.spawn.x, def.spawn.y ?? HF.heightAt(def.spawn.x, def.spawn.z), def.spawn.z), platforms: [] };
   const game = { app, scene, camera, renderer, level: spec, tier: 'desktop', onUpdate: noop, onFixed: noop, onLate: noop, onInput: noop,
     onRender: noop, onDispose: noop, hold: false, look: null };

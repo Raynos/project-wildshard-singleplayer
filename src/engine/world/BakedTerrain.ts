@@ -104,6 +104,13 @@ export function bakedUndergrowth(binding: HeightfieldBinding = captureHeightfiel
   return installed.get(binding)?.placement ?? null;
 }
 
+/** Install original native samples and their placement decisions into one selected binding without fetching or rebuilding. */
+export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = captureHeightfield()): void {
+  if (grid.seed !== ((binding.level.seed ?? SEED) >>> 0)) throw new Error('Baked terrain seed differs from selected level');
+  binding.install(bakedSamplers(grid));
+  installed.set(binding, { placement: grid.undergrowth });
+}
+
 /** Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk. */
 export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeightfield()): Promise<boolean> {
   const levelId = binding.level.id, seed = binding.level.seed ?? SEED;
@@ -115,8 +122,7 @@ export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeig
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
     if (!grid || grid.seed !== (seed >>> 0)) throw new Error('bad header / seed');
-    binding.install(bakedSamplers(grid));
-    installed.set(binding, { placement: grid.undergrowth });
+    installBakedGrid(grid, binding);
     return true;
   } catch (e) {
     console.warn(`[baked] terrain for ${levelId} not used (${e instanceof Error ? e.message : String(e)}); computing at launch`);

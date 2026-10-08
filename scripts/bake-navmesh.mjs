@@ -20,9 +20,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { visitAuthoredWorld } from './bake/worldHost.mjs';
+import { installBakeEnvironment } from './bake/environment.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const check = process.argv.includes('--check');
@@ -59,32 +60,7 @@ const GEN = { cellSize: 0.25, cellHeight: 0.1, tileSizeVoxels: 128, minRegionAre
 
 // ── the game's modules in Node: a DOM that draws nothing, /assets read from public/ ──────────────────────────────────
 const noop = () => undefined;
-const ctx2d = new Proxy({}, { get: (_t, k) => k === 'createImageData' || k === 'getImageData' ? (w = 1, h = 1) => ({ data: new Uint8ClampedArray(4 * w * h), width: w, height: h }) : k === 'createLinearGradient' || k === 'createRadialGradient' || k === 'createPattern' ? () => ({ addColorStop: noop }) : k === 'measureText' ? () => ({ width: 1 }) : noop, set: () => true });
-const el = () => { const listeners = new Map(); return ({ width: 1, height: 1, style: {}, classList: { add: noop, remove: noop, toggle: noop, contains: () => false }, dataset: {},
-  getContext: () => ctx2d, append: noop, appendChild: noop, remove: noop, insertBefore: noop, setAttribute: noop, addEventListener: (type, fn) => { listeners.set(type, fn); }, removeEventListener: (type) => { listeners.delete(type); },
-  get src() { return ''; },
-  set src(_value) { queueMicrotask(() => { listeners.get('load')?.call(this); }); },
-  querySelector: () => el(), querySelectorAll: () => [], parentNode: null, textContent: '', innerHTML: '' }); };
-const HOST = 'http://localhost/';
-const NodeRequest = globalThis.Request, nodeFetch = globalThis.fetch;
-Object.assign(globalThis, {
-  location: new URL(HOST), self: globalThis,
-  document: { createElement: el, createElementNS: el, getElementById: () => null, fonts: { load: () => Promise.resolve([]) }, head: el(), body: el(), addEventListener: noop, removeEventListener: noop, querySelector: () => null, querySelectorAll: () => [], pointerLockElement: null },
-  window: { setTimeout, clearTimeout, addEventListener: noop, removeEventListener: noop, devicePixelRatio: 1, innerWidth: 1600, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener: noop }), location: new URL(HOST) },
-  // three's loaders build Requests from site-relative URLs
-  Request: class extends NodeRequest { constructor(input, init) { super(typeof input === 'string' ? new URL(input, HOST).href : input, init); } },
-  fetch: (input, init) => {
-    const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, HOST);
-    // a module's own asset (`new URL('../assets/…', import.meta.url)`, a shard's declared mover scripts): the file itself
-    if (url.protocol === 'file:') { const file = fileURLToPath(url); return Promise.resolve(existsSync(file) ? new Response(readFileSync(file)) : new Response(null, { status: 404 })); }
-    if (url.origin !== new URL(HOST).origin) return nodeFetch(input, init);
-    const file = resolve(ROOT, 'public', decodeURIComponent(url.pathname).replace(/^\//, ''));
-    return Promise.resolve(existsSync(file) ? new Response(readFileSync(file)) : new Response(null, { status: 404 }));
-  },
-  createImageBitmap: () => Promise.resolve({ width: 1, height: 1, close: noop }), // textures are never drawn here
-  ProgressEvent: class extends Event { constructor(type, init = {}) { super(type); Object.assign(this, init); } },
-});
-Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', maxTouchPoints: 0, hardwareConcurrency: 8 }, configurable: true });
+const environment = installBakeEnvironment(ROOT), el = environment.element;
 const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 
 const THREE = await import('three');
@@ -343,3 +319,5 @@ const { app: bakeApp } = await src('engine/app/runtime.ts');
 bakeApp.engineScope.dispose();
 const { pageScope } = await src('engine/app/resources.ts');
 pageScope.dispose();
+
+environment.dispose();
