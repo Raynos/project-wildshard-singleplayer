@@ -32,6 +32,12 @@ export function gridFloorPlans(state, scenario) {
   return plans;
 }
 
+/** Capture a document identity alongside Safari's millisecond-quantized time origin. */
+export function gridFloorDocumentIdentity() {
+  window.__frameFloorGridDocumentToken ??= crypto.randomUUID();
+  return { timeOrigin: performance.timeOrigin, token: window.__frameFloorGridDocumentToken };
+}
+
 /** Host adapter for ledger/smoke probes: seed only a declared first approach and fence every leg to one document. */
 export async function runFloorGridRoute(page, plan, documentOrigin) {
   await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
@@ -75,8 +81,10 @@ export function gridFloorRuntimeFailure(last, diagnostic) {
 export async function stageFloorGrid(plan, documentOrigin) {
   window.__frameFloorGridStop = { leg: plan.name, phase: 'source-admission', waypoint: null, target: plan.start ?? null };
   const deadline = performance.now() + 120000;
+  const sameDocument = () => typeof documentOrigin === 'number' ? performance.timeOrigin === documentOrigin
+    : window.__frameFloorGridDocumentToken === documentOrigin.token && Math.abs(performance.timeOrigin - documentOrigin.timeOrigin) <= 1;
   const readApi = () => {
-    if (performance.timeOrigin !== documentOrigin) throw new Error('Grid floor document changed (navigation or graphics recovery)');
+    if (!sameDocument()) throw new Error('Grid floor document changed (navigation or graphics recovery)');
     return window.__wildshard;
   };
   let api = readApi();
@@ -111,10 +119,12 @@ export async function stageFloorGrid(plan, documentOrigin) {
 export async function driveFloorGrid(plan, documentOrigin) {
   window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint: 0, target: plan.waypoints[0] ?? null };
   const api = window.__wildshard;
-  if (performance.timeOrigin !== documentOrigin || !api?.world?.game || !api.shard?.grid) throw new Error('Grid floor lost its ready document before travel (navigation or graphics recovery)');
+  const sameDocument = () => typeof documentOrigin === 'number' ? performance.timeOrigin === documentOrigin
+    : window.__frameFloorGridDocumentToken === documentOrigin.token && Math.abs(performance.timeOrigin - documentOrigin.timeOrigin) <= 1;
+  if (!sameDocument() || !api?.world?.game || !api.shard?.grid) throw new Error('Grid floor lost its ready document before travel (navigation or graphics recovery)');
   const world = api.world, player = world.player, input = world.game.app.input;
   const read = () => {
-    if (performance.timeOrigin !== documentOrigin || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
+    if (!sameDocument() || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
     return { ...state, claims: api.shard.grid.residency().claims };
   };

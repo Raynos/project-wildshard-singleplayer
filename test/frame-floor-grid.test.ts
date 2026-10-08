@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { gridFloorPlans, stageFloorGrid, gridFloorWitnessFailures, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, gridFloorPlans, stageFloorGrid, gridFloorWitnessFailures, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
 
 const originalStorage = localStorage, originalLocation = location;
 function restoreGlobals(): void {
@@ -130,4 +130,26 @@ it('waits for a late Safari API in the original document and refuses a changed d
     await expect(stageFloorGrid(plan, performance.timeOrigin - 1)).rejects.toThrow('document changed');
     expect(pose).not.toHaveBeenCalled();
   } finally { restoreGlobals(); vi.useRealTimers(); }
+});
+
+
+it('accepts at most one millisecond of Safari origin quantization only with the original random document token', async () => {
+  const plan = gridFloorPlans({ home: 'home', cells }, 'runtime-travel')[0];
+  if (!plan) throw new Error('Missing route fixture');
+  const current = state('home', 0, 230), pose = vi.fn();
+  const page = { __frameFloorGridDocumentToken: undefined as string | undefined,
+    __wildshard: { world: { player: { position: { x: 0, z: 230 } }, game: { app: { input: { clear: vi.fn() } } } },
+      pose, shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } };
+  vi.stubGlobal('window', page);
+  try {
+    const identity = gridFloorDocumentIdentity();
+    expect(identity.token.length).toBeGreaterThan(20);
+    expect(gridFloorDocumentIdentity().token).toBe(identity.token);
+    for (const drift of [-1, 0, 1]) await expect(stageFloorGrid(plan, { ...identity, timeOrigin: performance.timeOrigin + drift })).resolves.toMatchObject({ inside: 'home' });
+    await expect(stageFloorGrid(plan, { ...identity, timeOrigin: performance.timeOrigin + 2 })).rejects.toThrow('document changed');
+    page.__frameFloorGridDocumentToken = crypto.randomUUID();
+    await expect(stageFloorGrid(plan, identity)).rejects.toThrow('document changed');
+    page.__frameFloorGridDocumentToken = undefined;
+    await expect(stageFloorGrid(plan, identity)).rejects.toThrow('document changed');
+  } finally { restoreGlobals(); }
 });

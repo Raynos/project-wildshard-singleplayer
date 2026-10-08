@@ -16,7 +16,9 @@ export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop'
 export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
 export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'all'): FloorGridPlan[];
-export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number): Promise<FloorGridWitness>;
-export function stageFloorGrid(plan: FloorGridPlan, documentOrigin: number): Promise<FloorGridState>;
-export function runFloorGridRoute(page: { evaluate: (expression: string) => Promise<unknown> }, plan: FloorGridPlan, documentOrigin: number): Promise<FloorGridWitness>;
+export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
+export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
+export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
+export function stageFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridState>;
+export function runFloorGridRoute(page: { evaluate: (expression: string) => Promise<unknown> }, plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
 export function gridFloorWitnessFailures(result: FloorGridWitness): string[];
