@@ -4,6 +4,7 @@ export function summarizePineAllocations(events, uploads, native, before, after 
   /** @type {{bytes:number,at:number|null,largest:Array<{id:string,bytes:number,asset?:string}>}} */
   let peak = { bytes: 0, at: null, largest: [] };
   const positive = [];
+  let entryApiPeak = { bytes: 0, at: /** @type {number | null} */ (null) };
   for (const [index, row] of events.entries()) {
     if (row.at > before) continue;
     const key = `${row.document}:${row.id}`;
@@ -17,6 +18,7 @@ export function summarizePineAllocations(events, uploads, native, before, after 
       }
     }
     if (row.op === 'end') for (const [id, resource] of live) if (resource.document === row.document) { total -= resource.bytes; live.delete(id); }
+    if (row.at >= after && total > entryApiPeak.bytes) entryApiPeak = { bytes: total, at: row.at };
     if (total > peak.bytes) { peak = { bytes: total, at: row.at, largest: [] }; peakIndex = index; }
   }
   // Replay only the peak cut, then sort once; do not sort every growing allocation during entry.
@@ -57,7 +59,7 @@ export function summarizePineAllocations(events, uploads, native, before, after 
   const processes = native.filter(row => row.type === 'sample' && Math.abs(Date.parse(row.t) / 1000 - before) <= 3)
     .map(row => ({ at: row.t, gpuBytes: row.gpu, identities: row.processIdentities ?? null }));
   return { policy: 'API allocation-state peak, sliding one-second entry maxima and five-second pre-end storage-call footprint window. Touched footprints count repeats and mip totals; they are NOT transfer bytes. Native GPU process stays separate.',
-    through: before, entryFrom: Number.isFinite(after) ? after : null, apiPeak: peak,
+    through: before, entryFrom: Number.isFinite(after) ? after : null, apiPeak: peak, entryApiPeak,
     entryOneSecondGrowth: maximumWindow(entryGrowth, row => row.increaseBytes),
     entryOneSecondStorageFootprints: maximumWindow(entryCalls, row => row.bytes),
     entryOneSecondStorageCalls: maximumWindow(entryCalls, () => 1),
@@ -66,5 +68,7 @@ export function summarizePineAllocations(events, uploads, native, before, after 
     })), lastFiveSeconds: [...seconds.values()],
     allocationBearingContexts: events.filter(row => row.op === 'context' && row.at <= before),
     largestGrowth: positive.sort((a, b) => b.increaseBytes - a.increaseBytes).slice(0, 10),
-    largestNearEvent: [...window].sort((a, b) => b.bytes - a.bytes).slice(0, 10), nativeNearEvent: processes };
+    largestNearEvent: [...window].sort((a, b) => b.bytes - a.bytes).slice(0, 10), nativeNearEvent: processes,
+    nativeNearEntryPeak: entryApiPeak.at === null ? [] : native.filter(row => row.type === 'sample' && Math.abs(Date.parse(row.t) / 1000 - entryApiPeak.at) <= 3)
+      .map(row => ({ at: row.t, gpuBytes: row.gpu, identities: row.processIdentities ?? null })) };
 }

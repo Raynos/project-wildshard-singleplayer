@@ -21,7 +21,7 @@ void test('Pine allocation summary distinguishes a live peak from repeated stora
 
 void test('successful settled entries retain their earlier sliding burst and exclude the cold boot', () => {
   const row = (at, id, bytes) => ({ at, id, bytes, document: 'game', op: 'allocation', kind: 'buffer', operation: 'bufferData', stage: 'travel' });
-  const events = [row(1, 'boot', 10000), row(10.8, 'first', 100), row(11.1, 'second', 200), row(11.9, 'third', 50), row(12, 'second', null)];
+  const events = [row(1, 'boot', 10000), row(2, 'boot', 5000), row(10.8, 'first', 100), row(11.1, 'second', 200), row(11.9, 'third', 50), row(12, 'second', null)];
   const uploads = [row(1, 'boot', 10000), row(10.8, 'first', 100), { ...row(11.1, 'second', 200), callSite: 'composer render' }, row(11.2, 'second', 200)];
   const result = summarizePineAllocations(events, uploads, [], 40, 10);
   assert.equal(result.entryOneSecondGrowth.bytes, 300);
@@ -32,5 +32,6 @@ void test('successful settled entries retain their earlier sliding burst and exc
   assert.equal(result.entryOneSecondStorageCalls.count, 3);
   assert.equal(result.lastFiveSeconds.length, 0, 'Final settle window is distinct from the upload burst');
   assert.equal(result.entryCallSites[0].callSite, 'composer render');
-  assert.equal(result.apiPeak.bytes, 10350, 'Whole-page live peak is reported independently');
+  assert.equal(result.apiPeak.bytes, 10000, 'Whole-page boot peak is reported independently');
+  assert.deepEqual(result.entryApiPeak, { bytes: 5350, at: 11.9 });
 });
