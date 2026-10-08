@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-659 members; 112 without a doc line (—).
+661 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -229,6 +229,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `QuestDataPorts` | interface | @wildshard/game/quest/declared | Platform-owned fact/reward ports; authored quests never write the profile or progress store. |
 | `QuestScriptBindings` | interface | @wildshard/game/quest/declared | Loader-resolved stable script field/event ids; actor target handles come from the session. |
 | `QuestScriptPorts` | interface | @wildshard/game/quest/declared | Hooks read atomically published script fields or queue declared events for the next script tick. |
+| `installEnteredQuestPresentation` | function | @wildshard/game/quest/presentation | Keep quest state resident while rebuilding its ordinary presentation and input in each entered cell scope. |
 | `installQuestPresentation` | function | @wildshard/game/quest/presentation | One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward. |
 | `PresentedQuestDef` | interface | @wildshard/game/quest/presentation | — |
 | `PresentedQuestStep` | interface | @wildshard/game/quest/presentation | — |
@@ -321,6 +322,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `setActiveChunk` | function | @wildshard/game/shard/registry | Select a chunk by slug. Unknown slugs fall back to the default (and warn). |
 | `shardSlugFromUrl` | function | @wildshard/game/shard/registry | — |
 | `installEnteredRuntimeAttachment` | function | @wildshard/game/shard/retainedHooks | Keep a resident HUD root's exact slot while detaching it outside the entered home. |
+| `installEnteredRuntimeInput` | function | @wildshard/game/shard/retainedHooks | Register a retained kit's input definition and binding labels only while its cell is entered. |
 | `installEnteredRuntimeObserver` | function | @wildshard/game/shard/retainedHooks | Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. |
 | `installEnteredRuntimeService` | function | @wildshard/game/shard/retainedHooks | Install a transient service for each home entry; ordinary staged contexts keep their original level scope. |
 | `installEnteredRuntimeUpdate` | function | @wildshard/game/shard/retainedHooks | Register entered-only updates on a clock that does not advance while the resident is parked. |

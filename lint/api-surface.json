@@ -14700,6 +14700,12 @@
         "from": "@wildshard/game/quest/declared"
       },
       {
+        "name": "installEnteredQuestPresentation",
+        "kind": "function",
+        "doc": "Keep quest state resident while rebuilding its ordinary presentation and input in each entered cell scope.",
+        "from": "@wildshard/game/quest/presentation"
+      },
+      {
         "name": "installQuestPresentation",
         "kind": "function",
         "doc": "One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward.",
@@ -15249,6 +15255,12 @@
         "name": "installEnteredRuntimeAttachment",
         "kind": "function",
         "doc": "Keep a resident HUD root's exact slot while detaching it outside the entered home.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
+        "name": "installEnteredRuntimeInput",
+        "kind": "function",
+        "doc": "Register a retained kit's input definition and binding labels only while its cell is entered.",
         "from": "@wildshard/game/shard/retainedHooks"
       },
       {
