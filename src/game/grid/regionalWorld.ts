@@ -19,11 +19,11 @@
  *   and blend across the edge band; it builds no sky dome or sun of its own.
  * - its light on the page's one sky (`regionLight.ts`, G223): whatever its runtime lights (the key light, fill, sun disc,
  *   shadow maps, painterly / fog uniforms, volumetric light, engine grade) is held on each entry and put back on leave.
- * - its own sky (`regionSky.ts`, G223, default-off behind Settings ▸ Debug ▸ Region look): its level's sky backdrop laid
+ * - its own sky (`regionSky.ts`, G223 / G232): its level's sky backdrop laid
  *   over the page's one sky by its owner weight, charged under its own `sim-sky:` claim beside the runtime's.
  * - its own look parts (SF63): its level's grass driver (`LookStrategy.grass`) is bound with its level frame, so its
- *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (default-off,
- *   the same Region look row) its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
+ *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
+ *   its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
  *   materials as region-keyed program variants (`render/regionLook.ts`), freed with the resident scope.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
@@ -165,7 +165,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (left()) throw new Error('Regional world left while building its forest');
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
       let world: ShardWorld | null = null;
-      // SF63 part 2: the region's scoped look (Region look B), whose per-frame parts run only while its cell is entered
+      // SF63 part 2: the region's scoped look, whose per-frame parts run only while its cell is entered
       let regionLook: ReturnType<SkyRig['scopeLevelLook']> = null;
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
@@ -180,7 +180,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           // ... which is the owner's air in the one frame, with its level's grade, while the region is resident
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
           if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level) }));
-          // G223, default-off (Settings ▸ Debug ▸ Region sky): its level's own sky backdrop laid over the one sky by its owner weight
+          // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) void (async () => {
             try {
               await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
@@ -190,7 +190,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
             } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
           })();
           view.root.add(scene); scene.updateMatrixWorld(true);
-          // SF63, default-off (the same Region look row): its level's light model and fog on its own materials only
+          // SF63 / G232: its level's light model and fog on its own materials only
           const scoped = levelLook !== null && sky instanceof SkyRig ? sky.scopeLevelLook(view.root, level, levelLook, resident, { isShared: (material) => app.assets.isAcquired(material) }) : null;
           if (scoped !== null) {
             const lookCensus = (): void => { if (scoped.sweep() > 0) console.info(`[region look] ${cell.instance}: ${scoped.patched()} materials on ${level.id}'s light and fog`); };

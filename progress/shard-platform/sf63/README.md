@@ -2,8 +2,8 @@
 
 **Jake picked B (G232).** Inside its cell a shard keeps its own sky, light model, fog and environment, and (still open)
 its colour grade. These captures compared the old Debug row **Region look**, A (one grid look) against B (the region's own),
-each beside SHARD SELECT (the shard alone) at the same pose. The boards read SHARD SELECT / grid A / grid B. The next commit
-makes B the only path and deletes the row.
+each beside SHARD SELECT (the shard alone) at the same pose. The boards read SHARD SELECT / grid A / grid B. **B is now the
+only path**: the Region look row, its option and the one-grid-look path inside a cell are deleted (debugRows 8 to 7).
 
 B was the only row where the grid looked like the shards. Nalati got its painted haze and mountains back, Pine its own sky
 instead of a black-and-orange forest, and Driftwood its toon light and day clock. Its cost: Pine's own sky is about +25 MB of

@@ -18,7 +18,6 @@ import { patchCSMShaderChunk } from './csmLightBlock';
 import type { DayCycleClock } from './dayCycle';
 import { ShadowMaps } from './shadowVariants';
 import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets, SkyDressing } from '../render/look';
-import { setting } from '../ui/Settings';
 import { PATCH_ORDER, hasProgramKey, patchShader, takeForeignHook } from '../render/shaderPatches';
 import { horizonLight } from './Horizon';
 import type { LookupTexture } from 'postprocessing';
@@ -203,12 +202,11 @@ export class SkyRig {
   }
 
   /**
-   * G223: build a level's backdrop as a layer over this sky (`layerBackdrop`), only while Settings ▸ Debug ▸ Region sky is
-   * B (the region's own): null with the row on A (the default, nothing built) or before the sky is built. The caller
-   * attaches the backdrop to the layer (`layer.attach`) once its memory is admitted, or disposes both.
+   * G223 / G232: build a level's backdrop as a layer over this sky (`layerBackdrop`): a grid region's own sky inside its
+   * cell. Null before the sky is built. The caller attaches the backdrop to the layer (`layer.attach`) once its memory is
+   * admitted, or disposes both.
    */
   async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly air?: () => THREE.Fog | null }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
-    if (setting('regionSky') !== 'own') return null;
     const layer = this.layerBackdrop(options.air === undefined ? {} : { air: options.air });
     if (layer === null) return null;
     try {
@@ -219,14 +217,13 @@ export class SkyRig {
 
   /**
    * SF63: a level's light model, fog and sky dressing (`LookStrategy.lighting` / `fog` / `sky`) on the materials under
-   * `root` only, while Settings ▸ Debug ▸ Region look is B (the region's own), as region-keyed program variants
-   * (`render/regionLook.ts`); the page's chunks and programs never change. Null with the row on A (the default) or when
-   * the level's installs change nothing on this page. `sweep` patches materials added since (call it before each frame
+   * `root` only (G232: a grid region keeps its own look inside its cell), as region-keyed program variants
+   * (`render/regionLook.ts`); the page's chunks and programs never change. Null when the level's installs change nothing
+   * on this page. `sweep` patches materials added since (call it before each frame
    * the subtree draws); `frame` runs the look's per-frame parts (its dressing's `update`, its `frame`: call it only while
    * the player is in the cell); the patches leave with `scope`.
    */
   scopeLevelLook(root: THREE.Object3D, level: { readonly id: string }, look: RegionLookParts, scope: Scope, options: LookScopeOptions = {}): ScopedLook | null {
-    if (setting('regionSky') !== 'own') return null;
     const chunks = captureLookChunks(level.id, look, { sky: this, cloudField: () => this.visual.cloudField() });
     return chunks === null ? null : scopeLookChunks(root, chunks, scope, options, look);
   }

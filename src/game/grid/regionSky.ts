@@ -1,6 +1,5 @@
 /**
- * A live grid region's own sky inside its cell (SHARD-PLATFORM G223), **default-off** behind Settings ▸ Debug ▸ Region sky
- * (A: the one grid sky, the default; B: the region's own). A region whose level's look declares a sky backdrop (a day
+ * A live grid region's own sky inside its cell (SHARD-PLATFORM G223; the only path since Jake's G232 pick, SF63). A region whose level's look declares a sky backdrop (a day
  * clock driving a key dome, a PMREM environment and the lights, fog and haze: `LookStrategy.backdrop`) has that backdrop
  * built a second time on the page's ONE sky rig as a layer (`SkyRig.layerBackdrop`, `backdropLayer.ts`): its own targets,
  * its dome drawn over the page's sky, its clock blended into the shared light by its cell's owner weight from the one frame
@@ -35,8 +34,8 @@ export interface RegionSkyLayer<B extends RegionBackdrop> {
 export interface RegionSkyRequest<B extends RegionBackdrop> {
   readonly instance: string;
   /**
-   * the level's backdrop built as a layer on the page's one sky (`SkyRig.layeredBackdrop`); null when the Debug row is on
-   * A (the default), the level's look has no backdrop, or the page sky cannot take one
+   * the level's backdrop built as a layer on the page's one sky (`SkyRig.layeredBackdrop`); null when the level's look has
+   * no backdrop or the page sky cannot take one
    */
   readonly layered: () => Promise<{ readonly layer: RegionSkyLayer<B>; readonly backdrop: B } | null>;
   readonly look: FrameLookPort | null;
@@ -45,13 +44,13 @@ export interface RegionSkyRequest<B extends RegionBackdrop> {
   readonly scope: { readonly disposed: boolean; readonly onDispose: (fn: () => void) => void };
 }
 
-/** Why a region drew no sky of its own (the readout and tests); 'drawn' when it did. */
+/** Why a region drew no sky of its own ('off': its level has no backdrop; the readout and tests); 'drawn' when it did. */
 export type RegionSkyOutcome = 'off' | 'no-frame' | 'left' | 'refused' | 'failed' | 'drawn';
 
 /** The allocator id a region's sky is charged under. */
 export const regionSkyClaimId = (instance: string): string => `sim-sky:${instance}`;
 
-/** Build the region's own sky as a layer on the page's one sky, if the row is on and its level has a backdrop. */
+/** Build the region's own sky as a layer on the page's one sky, if its level has a backdrop. */
 export async function buildRegionSky<B extends RegionBackdrop>(request: RegionSkyRequest<B>): Promise<RegionSkyOutcome> {
   const { instance, scope } = request, left = (): boolean => scope.disposed;
   const hang = request.look?.sky;
