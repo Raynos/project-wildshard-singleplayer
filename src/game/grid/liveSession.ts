@@ -64,6 +64,7 @@ import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/ru
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
 import { createRegionalWorldFoundation } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
+import { resolveLevelBounds } from '../shard/runtime';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
 export interface LiveTraveller {
@@ -685,7 +686,11 @@ export class LiveGridSession {
   fallFloor(): number {
     const feet = this.worldFeet(), cell = this.ports.assembly.at(feet.x, feet.z);
     if (cell === undefined) return -60;
-    const declared = cell.instance === this.ports.home.instance ? this.page.homeFallFloor : findShard(cell.slug)?.bounds?.floor;
+    const runtime = this.runtimeRegions.get(cell.instance);
+    const authored = findShard(cell.slug)?.bounds;
+    const declared = runtime === undefined
+      ? cell.instance === this.ports.home.instance ? this.page.homeFallFloor : authored?.floor
+      : resolveLevelBounds(authored, runtime.resident.runtime.hooks)?.floor;
     return Math.max(-CHUNK_HALF, declared ?? -CHUNK_HALF);
   }
 

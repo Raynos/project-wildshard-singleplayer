@@ -58,7 +58,10 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
   const context = shardContext(installation.context, PINE_HOLLOW, { shard: PINE_HOLLOW, runtime, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
   let worlds = 0, plays = 0, disposed = 0;
   class Runtime extends ShardPlugin {
-    override world(ctx: ShardContext): void { worlds++; ctx.piece({ id: 'runtime.deck', name: 'Deck', category: 'props', file: 'runtime/index.ts', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 2, hy: 0.5, hz: 2 }] }); }
+    override world(ctx: ShardContext): void {
+      const activeRuntime = ctx.game.runtime; if (activeRuntime === undefined) throw new Error('Missing runtime');
+      activeRuntime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
+      worlds++; ctx.piece({ id: 'runtime.deck', name: 'Deck', category: 'props', file: 'runtime/index.ts', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 2, hy: 0.5, hz: 2 }] }); }
     override kit(ctx: ShardContext): void { const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing runtime'); rt.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null }); }
     override play(): void { plays++; }
   }
@@ -102,7 +105,9 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
     for (let i = 0; i < 50 && !session.gameplayReady(); i++) await Promise.resolve();
     expect(session.gameplayReady()).toBe(true); expect([worlds, plays]).toEqual([1, 1]);
     expect(session.aimAnimals()).toBe(aimBodies);
-    traveller.position.z = -260; expect(session.aimAnimals()).not.toBe(aimBodies);
+    // The real entered bounds govern road-level landings, rather than a manifest's shipping bounds.
+    expect(session.fallFloor()).toBe(-8);
+    traveller.position.z = -260; expect(session.fallFloor()).toBe(-60); expect(session.aimAnimals()).not.toBe(aimBodies);
     traveller.position.z = 0; expect(session.aimAnimals()).toBe(aimBodies);
     expect(session.live.checkpoint(target.instance)).toBe(true);
     if (unload === 'road') {
