@@ -18,4 +18,5 @@ export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnost
 export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'all'): FloorGridPlan[];
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number): Promise<FloorGridWitness>;
 export function stageFloorGrid(plan: FloorGridPlan, documentOrigin: number): Promise<FloorGridState>;
+export function runFloorGridRoute(page: { evaluate(expression: string): Promise<unknown> }, plan: FloorGridPlan, documentOrigin: number): Promise<FloorGridWitness>;
 export function gridFloorWitnessFailures(result: FloorGridWitness): string[];

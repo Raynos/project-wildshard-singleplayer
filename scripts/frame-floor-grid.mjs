@@ -32,6 +32,12 @@ export function gridFloorPlans(state, scenario) {
   return plans;
 }
 
+/** Host adapter for ledger/smoke probes: seed only a declared first approach and fence every leg to one document. */
+export async function runFloorGridRoute(page, plan, documentOrigin) {
+  await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
+  return page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
+}
+
 /** Keep one diagnostic ledger in the browser and mirror it to the harness before a document/process can disappear. */
 export function installFloorGridProgress() {
   let last = null, sampled = -Infinity;

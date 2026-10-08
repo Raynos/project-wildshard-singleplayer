@@ -3,13 +3,7 @@ import { writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
-import { driveFloorGrid, stageFloorGrid, gridFloorPlans } from '../../../scripts/frame-floor-grid.mjs';
-
-// The first source pose is staged once; every later leg keeps the previous real crossing and original document.
-async function driveRoute(page, plan, documentOrigin) {
-  await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
-  return page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
-}
+import { driveFloorGrid, stageFloorGrid, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
 
 const [base, out] = process.argv.slice(2);
 const { TraceMap, originalPositionFor } = createRequire(import.meta.url)('@jridgewell/trace-mapping');
@@ -78,10 +72,10 @@ try {
       const plan = { ...original, requiredResidents: [original.to] };
       report.stage = `route:${plan.name}`; save();
       // Entry-edge poses first, then a real-input route into each cell centre. No diagnostic teleport across a seam.
-      report.routes.push(await driveRoute(page, plan, documentOrigin));
+      report.routes.push(await runFloorGridRoute(page, plan, documentOrigin));
       await page.waitForTimeout(5000); await snapshot(`${plan.to}-entry`);
       const cell = state.cells.find(row => row.instance === plan.to); if (!cell) throw new Error('Missing destination');
-      report.routes.push(await driveRoute(page, { name: `${plan.to}-centre`, from: plan.to, to: plan.to,
+      report.routes.push(await runFloorGridRoute(page, { name: `${plan.to}-centre`, from: plan.to, to: plan.to,
         waypoints: [{ x: cell.cell[0] * 555, z: cell.cell[1] * 555 }], requiredResidents: [plan.to] }, documentOrigin));
       await page.waitForTimeout(5000); await snapshot(`${plan.to}-centre`);
     }
