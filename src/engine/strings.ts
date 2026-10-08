@@ -501,7 +501,7 @@ export const ENGINE_STRINGS = {
   "s_be7e2f201293": "Images",
   "s_66270d61a105": "KTX2",
   "s_7dc1f00169b6": "Auto · now ⟦0⟧",
-  "s_5c0f164512c8": "E157 · KTX2 stays compressed on the GPU; auto = images until the set is cached",
+  "s_5c0f164512c8": "KTX2 stays compressed on the GPU; Auto uses memory policy, then cache readiness",
   "s_334a93884d13": "GPU textures",
   "s_51fe3ccebeb9": "E357 F9 · show hidden manifest cards",
   "s_22680ca77c43": "Hidden shards",
