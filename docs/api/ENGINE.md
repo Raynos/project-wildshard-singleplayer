@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2236 members; 835 without a doc line (—).
+2238 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -476,7 +476,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `publicBytes` | const | @wildshard/engine/boot/tables | — |
 | `sfxManifests` | const | @wildshard/engine/boot/tables | — |
 | `consumeTitleArrival` | function | @wildshard/engine/boot/titleArrival | — |
-| `setTitleArrival` | function · game only | @wildshard/engine/boot/titleArrival | — |
+| `setTitleArrival` | function · game only | @wildshard/engine/boot/titleArrival | Optional display metadata lets the first HTML paint name the destination before application modules arrive. |
 | `TitleArrival` | interface · game only | @wildshard/engine/boot/titleArrival | — |
 | `TitleArrivalMode` | type | @wildshard/engine/boot/titleArrival | One-shot intent from the renderer-free title page to the selected shard's fresh document. |
 | `enterCalibration` | function | @wildshard/engine/calibrate/entry | Run the standalone browser calibration without installing a playable level or a Developer tool. |
@@ -1785,7 +1785,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `UiLayer` | type | @wildshard/engine/ui/layers | — |
 | `UiLayers` | class | @wildshard/engine/ui/layers | A single back/input owner; resident scopes retain their own overlay entries. |
 | `UiView` | interface | @wildshard/engine/ui/layers | — |
+| `beginLoading` | function | @wildshard/engine/ui/Loading | Begin before product hydration; the session adopts this same panel and clock when its plan becomes available. |
 | `Loading` | class | @wildshard/engine/ui/Loading | the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics |
+| `LoadingAdmission` | interface | @wildshard/engine/ui/Loading | Renderer-independent admission facts; the caller owns its phases and actual byte counter. |
 | `LockOn` | class | @wildshard/engine/ui/LockOn | — |
 | `FullMap` | class | @wildshard/engine/ui/Map | — |
 | `MapPoi` | interface | @wildshard/engine/ui/Map | a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond); |

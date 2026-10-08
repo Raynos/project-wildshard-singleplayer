@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-662 members; 112 without a doc line (—).
+663 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -539,6 +539,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `CachedProduct` | interface | @wildshard/game/shardfile/product | A complete visited product is published only after every immutable asset has passed admission. |
 | `ProductCache` | interface | @wildshard/game/shardfile/product | Storage is injected so offline admission uses the same path in browsers and tests. |
 | `ProductOptions` | interface | @wildshard/game/shardfile/product | Loading is explicit about connectivity and first-party provenance, never inferred from an author field. |
+| `ProductProgress` | interface | @wildshard/game/shardfile/product | Actual admission work, before the ordinary world boot plan exists. Bytes include verified cache reads. |
 | `ProductVersions` | interface | @wildshard/game/shardfile/product | Version readers are trusted client migrations; content cannot register its own compatibility rule. |
 | `propColliderDescriptors` | function | @wildshard/game/shardfile/props | Remove absent optional fields before handing admitted shapes to the engine's exact collider descriptor port. |
 | `PropsSchema` | const | @wildshard/game/shardfile/props | Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. |

@@ -2817,7 +2817,7 @@
       {
         "name": "setTitleArrival",
         "kind": "function",
-        "doc": "",
+        "doc": "Optional display metadata lets the first HTML paint name the destination before application modules arrive.",
         "from": "@wildshard/engine/boot/titleArrival",
         "gameOnly": true
       },
@@ -10684,9 +10684,21 @@
         "from": "@wildshard/engine/ui/layers"
       },
       {
+        "name": "beginLoading",
+        "kind": "function",
+        "doc": "Begin before product hydration; the session adopts this same panel and clock when its plan becomes available.",
+        "from": "@wildshard/engine/ui/Loading"
+      },
+      {
         "name": "Loading",
         "kind": "class",
         "doc": "the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics",
+        "from": "@wildshard/engine/ui/Loading"
+      },
+      {
+        "name": "LoadingAdmission",
+        "kind": "interface",
+        "doc": "Renderer-independent admission facts; the caller owns its phases and actual byte counter.",
         "from": "@wildshard/engine/ui/Loading"
       },
       {
@@ -16626,6 +16638,12 @@
         "from": "@wildshard/game/shardfile/product"
       },
       {
+        "name": "ProductProgress",
+        "kind": "interface",
+        "doc": "Actual admission work, before the ordinary world boot plan exists. Bytes include verified cache reads.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
         "name": "ProductVersions",
         "kind": "interface",
         "doc": "Version readers are trusted client migrations; content cannot register its own compatibility rule.",
@@ -17477,6 +17495,12 @@
         "name": "declaredKitItemFamilies",
         "kind": "function",
         "doc": "Explicit built-in item family registry, injected into the full loader; importing does not install content.",
+        "from": "@wildshard/kit/items/declared"
+      },
+      {
+        "name": "ITEM_VIEW_LIFT",
+        "kind": "const",
+        "doc": "The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:",
         "from": "@wildshard/kit/items/declared"
       },
       {

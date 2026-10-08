@@ -1874,7 +1874,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2219 exports, grouped by the module to import them from.
+2221 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2180,7 +2180,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/ui/icons`: `icon`, `IconId`, `IconMap`, `iconParts`, `registerIcons`
 - `@wildshard/engine/ui/ItemCard`: `ItemCardPop`, `ItemCardSpec`, `ItemCardState`, `itemCardTile`
 - `@wildshard/engine/ui/layers`: `UiHandle`, `UiLayer`, `UiLayers`, `UiView`
-- `@wildshard/engine/ui/Loading`: `Loading`
+- `@wildshard/engine/ui/Loading`: `beginLoading`, `Loading`, `LoadingAdmission`
 - `@wildshard/engine/ui/LockOn`: `LockOn`
 - `@wildshard/engine/ui/Map`: `FullMap`, `MapPoi`, `MapQuest`, `MapZone`
 - `@wildshard/engine/ui/Menu`: `GameMenu`, `GameMenuOptions`, `KitEntry`, `MenuGroup`, `MenuTab`, `SkinRow`
@@ -2252,7 +2252,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-662 exports, grouped by the module to import them from.
+663 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2350,7 +2350,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/game/shardfile/portalLinkProof`: `PortalLinkProof`, `provePortalLinks`
 - `@wildshard/game/shardfile/portalTraversal`: `createPortalTraversal`, `PortalTransfer`, `portalTransitioning`, `PortalTraversalPorts`
 - `@wildshard/game/shardfile/preflight`: `preflightShardfile`
-- `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductVersions`
+- `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductProgress`, `ProductVersions`
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`
 - `@wildshard/game/shardfile/quests`: `parseQuestData`, `QuestData`, `questDataRules`, `QuestDataSchema`
 - `@wildshard/game/shardfile/readiness`: `criticalWireBytes`, `CriticalWireSource`
@@ -2383,14 +2383,14 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-163 exports, grouped by the module to import them from.
+164 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
 - `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
 - `@wildshard/kit/effects/starter`: `STARTER_EFFECTS`
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
-- `@wildshard/kit/items/declared`: `declaredKitItemFamilies`
+- `@wildshard/kit/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
 - `@wildshard/kit/lookApi`: `loadGrassField`, `loadParticles`
 - `@wildshard/kit/looks/fogProgram`: `fogGLSL`
 - `@wildshard/kit/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassFieldLayout`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`

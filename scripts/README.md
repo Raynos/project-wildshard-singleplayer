@@ -93,6 +93,14 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [ios-memory-watchdog.py](./ios-memory-watchdog.py)
 - [memory-report-blocks.d.mts](./memory-report-blocks.d.mts)
 - [memory-report-blocks.mjs](./memory-report-blocks.mjs)
+- [memory-report-data.d.mts](./memory-report-data.d.mts)
+- [memory-report-data.mjs](./memory-report-data.mjs)
+- [memory-report-graphic.d.mts](./memory-report-graphic.d.mts)
+- [memory-report-graphic.mjs](./memory-report-graphic.mjs)
+- [memory-report-snapshot.d.mts](./memory-report-snapshot.d.mts)
+- [memory-report-snapshot.mjs](./memory-report-snapshot.mjs)
+- [memory-report.d.mts](./memory-report.d.mts)
+- [memory-report.mjs](./memory-report.mjs)
 - [nine-dragon-gpu.mjs](./nine-dragon-gpu.mjs)
 - [nine-sim-memory.mjs](./nine-sim-memory.mjs)
 - [pine-hollow-gpu.mjs](./pine-hollow-gpu.mjs)
@@ -151,6 +159,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [pine-hollow-trees-board.mjs](./pine-hollow-trees-board.mjs)
 - [playground-cards.mjs](./playground-cards.mjs)
 - [shard-compare-sheet.py](./shard-compare-sheet.py)
+- [webkit-render-smoke.mjs](./webkit-render-smoke.mjs)
 
 ## One-off asks
 
