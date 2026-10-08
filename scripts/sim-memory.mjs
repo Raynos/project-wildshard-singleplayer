@@ -112,16 +112,24 @@ const SCENE_STATS = `JSON.stringify((() => {
   const w = window.__wildshard?.world, scene = w?.game?.scene, r = w?.game?.renderer;
   if (!scene) return null;
   const arrays = new Set(), textures = new Set();
+  let skippedAccessors = 0;
+  const stored = (object, key) => {
+    if (object === null || typeof object !== 'object') return undefined;
+    const descriptor = Object.getOwnPropertyDescriptor(object, key);
+    if (descriptor && !('value' in descriptor)) { skippedAccessors++; return undefined; }
+    return descriptor?.value;
+  };
+  const attributeArray = attribute => stored(attribute, 'array') ?? stored(stored(attribute, 'data'), 'array');
   let geometryBytes = 0, instancedBytes = 0, textureImageBytes = 0;
   const addArray = (a, inst) => { if (!a || arrays.has(a)) return; arrays.add(a); geometryBytes += a.byteLength; if (inst) instancedBytes += a.byteLength; };
   scene.traverse((o) => {
     const g = o.geometry;
     if (g?.attributes) {
-      for (const a of Object.values(g.attributes)) addArray(a.array ?? a.data?.array, a.isInstancedBufferAttribute === true);
-      addArray(g.index?.array, false);
+      for (const a of Object.values(g.attributes)) addArray(attributeArray(a), a.isInstancedBufferAttribute === true);
+      addArray(attributeArray(g.index), false);
     }
-    if (o.instanceMatrix) addArray(o.instanceMatrix.array, true);
-    if (o.instanceColor) addArray(o.instanceColor.array, true);
+    if (o.instanceMatrix) addArray(attributeArray(o.instanceMatrix), true);
+    if (o.instanceColor) addArray(attributeArray(o.instanceColor), true);
     for (const m of [o.material].flat()) {
       if (!m) continue;
       for (const v of Object.values(m)) if (v?.isTexture) textures.add(v);
@@ -129,11 +137,11 @@ const SCENE_STATS = `JSON.stringify((() => {
     }
   });
   for (const t of textures) {
-    const im = t.image, list = Array.isArray(im) ? im : [im];
+    const im = stored(stored(t, 'source'), 'data'), list = Array.isArray(im) ? im : [im];
     for (const i of list) { if (i?.data?.byteLength) textureImageBytes += i.data.byteLength; }
     for (const mm of t.mipmaps ?? []) if (mm?.data?.byteLength) textureImageBytes += mm.data.byteLength;
   }
-  return { geometryBytes, instancedBytes, textureImageBytes, arrays: arrays.size, textures: textures.size, gpu: r?.info?.memory ?? null, calls: r?.info?.render?.calls ?? null };
+  return { geometryBytes, instancedBytes, textureImageBytes, skippedAccessors, arrays: arrays.size, textures: textures.size, gpu: r?.info?.memory ?? null, calls: r?.info?.render?.calls ?? null };
 })())`;
 
 async function oneRun(udid, run, opts) {
