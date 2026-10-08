@@ -5,7 +5,7 @@
 //   node scripts/deploy-pin.mjs read                                  # prints the SHA; sha= mode= gate= to $GITHUB_OUTPUT
 //   node scripts/deploy-pin.mjs check-gate <sha>                      # exit 0 only if <sha> has gpu-gate = success
 //   node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"
-//   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # any SHA in the pin history, no gate check
+//   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # any SHA proven previously live in production
 //   node scripts/deploy-pin.mjs mode newest-green --go "<…>"          # Z4 only
 //   node scripts/deploy-pin.mjs mode newest-ci-green --go "<…>"       # the newest main whose push CI (deploy.yml) passed
 //
@@ -56,9 +56,9 @@ const readPin = () => validatePin(JSON.parse(readFileSync(FILE, 'utf8')));
 /** @param {Pin} pin */
 const writePin = (pin) => writeFileSync(FILE, `${JSON.stringify(validatePin(pin), null, 2)}\n`);
 
-/** @param {string} sha @returns {Map<string, { state: string, description: string }>} */
-function statuses(sha) {
-  const out = ghApi([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description] | @tsv']);
+/** @param {string} sha @param {(args:string[])=>string} [query] @returns {Map<string, { state: string, description: string }>} */
+function statuses(sha, query = ghApi) {
+  const out = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description] | @tsv']);
   const seen = new Map();
   for (const line of out.split('\n').filter(Boolean)) {
     const [context, state, description = ''] = line.split('\t');
@@ -72,14 +72,62 @@ export function gateGreen(sha) {
   return statuses(sha).get('gpu-gate')?.state === 'success';
 }
 
-/** The newest main commit whose push-triggered deploy.yml run (typecheck, lint, test, build) succeeded (Jake 2026-10-02:
- *  "fix the deploy, whatever it takes": gpu-gate push runs cancel each other under a stream of pushes, so newest-green
- *  never moved). @returns {string} */
-export function newestCiGreen() {
-  const sha = ghApi([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=1`,
-    '--jq', '.workflow_runs[0].head_sha // empty']).trim();
-  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('newest-ci-green: no successful push CI run on main');
-  return sha;
+/** An exact SHA must have a successful real built-dist boot. A later pending/failing run overrides an older success.
+ * @param {string} sha @param {(args:string[])=>string} [query] */
+export function bootGreen(sha, query = ghApi) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('boot-smoke requires an exact 40-hex SHA');
+  return statuses(sha, query).get('boot-smoke')?.state === 'success';
+}
+
+/** Historical successful release logs bind the full pin to a matching version actually read from production.
+ * A pin history entry, a deployment attempt, or a neighbouring short SHA alone is not proof of shipping.
+ * @param {string} sha @param {string} log */
+export function logProvesProduction(sha, log) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) return false;
+  const pins = new Set([...log.matchAll(/\bDEPLOY_SHA: ([0-9a-f]{40})\b/g)].map(match => match[1]));
+  if (pins.size !== 1 || !pins.has(sha)) return false;
+  return [...log.matchAll(/\bProduction ([0-9a-f]{7,40})-[^\s;]+; target ([0-9a-f]{7,40}); match true\b/g)]
+    .some(match => sha.startsWith(match[1]) && sha.startsWith(match[2]));
+}
+
+/** Emergency rollback proof, including releases older than the boot workflow. New releases record a durable
+ * exact-SHA status after verification; older releases are verified against successful release-job logs.
+ * @param {string} sha @param {(args:string[])=>string} [query] */
+export function productionLive(sha, query = ghApi) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('production proof requires an exact 40-hex SHA');
+  if (statuses(sha, query).get('production-live')?.state === 'success') return true;
+  for (const event of ['schedule', 'workflow_dispatch']) {
+    for (let page = 1; ; page++) {
+      const runs = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?event=${event}&status=success&per_page=100&page=${page}`,
+        '--jq', '.workflow_runs[].id']).trim().split('\n').filter(Boolean);
+      if (runs.length === 0) break;
+      for (const run of runs) {
+        if (!/^\d+$/.test(run)) throw new Error('Invalid release workflow run identity');
+        const jobs = query([`repos/${REPO}/actions/runs/${run}/jobs`, '--paginate', '--jq',
+          '.jobs[] | select(.name == "build-and-deploy" and .conclusion == "success") | .id']).trim().split('\n').filter(Boolean);
+        for (const job of jobs) {
+          if (!/^\d+$/.test(job)) throw new Error('Invalid release job identity');
+          let log;
+          try { log = query([`repos/${REPO}/actions/jobs/${job}/logs`]); } catch { continue; /* Expired logs cannot prove a release. */ }
+          if (logProvesProduction(sha, log)) return true;
+        }
+      }
+      if (runs.length < 100) break;
+    }
+  }
+  return false;
+}
+
+/** The newest successful push CI on main with a separate, successful real boot on that exact SHA. macOS boot
+ * queueing never holds push CI, and an unproven/failing boot can never become a release pin.
+ * @param {(args:string[])=>string} [query] @returns {string} */
+export function newestCiGreen(query = ghApi) {
+  const candidates = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`,
+    '--jq', '.workflow_runs[].head_sha']).trim().split('\n');
+  for (const sha of new Set(candidates)) {
+    if (/^[0-9a-f]{40}$/.test(sha) && bootGreen(sha, query)) return sha;
+  }
+  throw new Error('newest-ci-green: no successful push CI with a successful exact-SHA boot-smoke in the last 100 runs');
 }
 
 /** Every SHA the pin file has held, oldest first (R1-16). */
@@ -124,6 +172,10 @@ function main() {
       sha = found;
     }
     if (pin.mode === 'newest-ci-green') sha = newestCiGreen();
+    // An explicit emergency rollback may return to a previously live build, including pre-smoke releases.
+    if (!bootGreen(sha) && !(pin.mode === 'pinned' && productionLive(sha))) {
+      throw new Error(`release refused: ${sha} has neither a green boot-smoke nor prior production proof`);
+    }
     console.log(sha);
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\n`);
     return 0;
@@ -159,9 +211,9 @@ function main() {
     const go = arg('--go');
     if (!a1 || !go) throw new Error('rollback <sha> --go "<Jake\'s words>"');
     const sha = git('rev-parse', a1);
-    const old = history().find((p) => p.sha === sha);
-    if (!old) { console.error(`deploy-pin rollback: refused — ${sha.slice(0, 8)} was never pinned`); return 1; }
-    writePin({ ...old, milestone: `${old.milestone}-rollback`, go, set: new Date().toISOString(), by: 'E357 lead' });
+    if (!productionLive(sha)) { console.error(`deploy-pin rollback: refused — ${sha.slice(0, 8)} has no prior production proof`); return 1; }
+    const old = history().find((p) => p.sha === sha) ?? readPin();
+    writePin({ ...old, mode: 'pinned', sha, gate: 'grandfathered', milestone: `${old.milestone}-rollback`, go, set: new Date().toISOString(), by: 'E357 lead' });
     const f10 = ok(() => git('merge-base', '--is-ancestor', sha, 'HEAD')) && !ok(() => git('show', `${sha}:src/engine/saves/store.ts`));
     if (f10) console.log('NOTE: this build predates SaveStore (F10): it cannot read the v2 saves made since, so progress resets again (decision 95). Tell Jake.');
     console.log(`rolled back to ${sha.slice(0, 8)} (${old.milestone}). Commit ${FILE} alone, push, gh workflow run deploy.`);

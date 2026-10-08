@@ -1,0 +1,95 @@
+# Release gate, deliberately outside push CI: macOS queueing must not extend its critical path.
+name: boot-smoke
+on:
+  workflow_run:
+    workflows: [deploy]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact commit to prove (defaults to this workflow's SHA)
+        type: string
+        required: false
+permissions:
+  contents: read
+  actions: read
+  statuses: write
+concurrency:
+  group: boot-smoke-${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: false
+jobs:
+  boot-smoke:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: macos-15
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - name: Bind the tested commit
+        id: tested
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Mark exact-SHA proof pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: ${{ steps.tested.outputs.sha }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
+            -f context=boot-smoke -f state=pending -f description='Real built-dist title and gameplay proof running' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: boot-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium
+      - name: Build the exact commit's real products and dist
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ steps.tested.outputs.sha }}
+        run: |
+          python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && node scripts/build-shardfiles.mjs && pnpm exec vite build'
+      - name: Real title, Driftwood gameplay and Developer grid home
+        run: node scripts/parity/boot-smoke.mjs
+      - name: Record smoke queue and run timings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p boot-smoke-results
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq '{created_at, run_started_at}' > boot-smoke-results/workflow-timing.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "boot-smoke") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boot-smoke
+          path: boot-smoke-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Publish exact-SHA proof outcome
+        if: always() && steps.tested.outputs.sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: ${{ steps.tested.outputs.sha }}
+          JOB_RESULT: ${{ job.status }}
+        run: |
+          state=failure
+          if [ "$JOB_RESULT" = success ]; then state=success; fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
+            -f context=boot-smoke -f state="$state" -f description='Real built-dist title and gameplay proof' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

@@ -22,16 +22,24 @@ it('requires a real entered gameplay probe, not just a rendered title', () => {
   expect(result).toMatchObject({ ready: false, frame: -1 });
 });
 
-it('makes built-dist boot a required parallel push job, outside pre-push', () => {
+it('gates releases with an exact-SHA real boot outside push CI and pre-push', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
-  const job = workflow.split('\n  boot-smoke:')[1]?.split('\n  coverage:')[0];
-  expect(job).toBeDefined();
-  expect(job).toContain("if: github.event_name == 'push' || github.event_name == 'pull_request'");
-  expect(job).not.toMatch(/continue-on-error|needs:/u);
+  const job = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
+  expect(workflow).not.toContain('\n  boot-smoke:');
+  expect(job).toContain('workflow_run:');
+  expect(job).toContain('workflows: [deploy]');
+  expect(job).toContain("github.event.workflow_run.event == 'push'");
+  expect(job).toContain("github.event.workflow_run.conclusion == 'success'");
+  expect(job).toMatch(/ref: \$\{\{ inputs\.sha \|\| github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/u);
+  expect(job).not.toContain('continue-on-error');
   expect(job).toContain('runs-on: macos-15');
   expect(job).toContain('job-timing.json');
-  expect(job).toContain('node scripts/build-shardfiles.mjs\n          python3 scripts/heavy-lane.py build -- pnpm exec vite build');
+  expect(job).toContain('node scripts/build-shardfiles.mjs && pnpm exec vite build');
   expect(job).toContain('node scripts/parity/boot-smoke.mjs');
-  expect(readFileSync('scripts/deploy-pin.mjs', 'utf8')).toContain('event=push&status=success');
+  expect(job).toContain('-f context=boot-smoke -f state="$state"');
+  const pin = readFileSync('scripts/deploy-pin.mjs', 'utf8');
+  expect(pin).toContain('event=push&status=success');
+  expect(pin).toContain("if (!bootGreen(sha) && !(pin.mode === 'pinned' && productionLive(sha)))");
+  expect(workflow).toContain('-f context=production-live -f state=success');
   expect(readFileSync('scripts/vercel-tree-gate.sh', 'utf8')).not.toContain('boot-smoke');
 });

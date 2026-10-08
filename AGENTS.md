@@ -144,6 +144,6 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 
 ## Deploy → [docs/process/DEPLOY.md](docs/process/DEPLOY.md)
 
-- Production ships the **newest CI-green `main`** hourly (`.github/deploy-pin.json`), with a launchd backstop.
+- Production ships the **newest CI-green `main` with an exact-SHA green boot smoke** hourly (`.github/deploy-pin.json`), with a launchd backstop.
   `gh workflow run deploy` for an immediate release. Never `vercel deploy` by hand while CI is healthy.
 - After a push you are done: the local gates are the check. **Don't wait for the CI run or the deploy** (Jake, E428); CI and the hourly deploy run on their own, and a red run someone sees gets fixed then.

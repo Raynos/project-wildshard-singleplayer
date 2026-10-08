@@ -34,6 +34,13 @@ async function until(page, faults, condition, label, deadline) {
   throw new Error(`Boot deadline: ${label}; ${JSON.stringify(await page.evaluate(bootObservation))}`);
 }
 
+/** Preserve the original report behind a static-preview transport failure; no error is suppressed.
+ * @param {string} url @param {string} method @param {string|null} body @returns {unknown} */
+export function bootErrorReport(url, method, body) {
+  if (new URL(url).pathname !== '/api/errors' || method !== 'POST') return null;
+  try { return JSON.parse(body ?? 'null'); } catch { return { malformed: body }; }
+}
+
 /** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out */
 export async function bootCase(browser, base, mode, out) {
   const started = Date.now(), deadline = started + 60000;
@@ -48,6 +55,11 @@ export async function bootCase(browser, base, mode, out) {
   });
   const page = await context.newPage();
   /** @type {string[]} */ const faults = [];
+  /** @type {unknown[]} */ const reports = [];
+  page.on('request', request => {
+    const report = bootErrorReport(request.url(), request.method(), request.postData());
+    if (report !== null) reports.push(report);
+  });
   page.on('pageerror', error => faults.push(`pageerror: ${error.message}`));
   page.on('console', message => { if (message.type() === 'error') faults.push(`console: ${message.text()} ${JSON.stringify(message.location())}`); });
   page.on('crash', () => faults.push('Page crashed'));
@@ -89,13 +101,13 @@ export async function bootCase(browser, base, mode, out) {
     }, `${mode} gameplay`, deadline);
     const initial = await page.evaluate(bootObservation);
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
-    const result = { mode, telemetryPosts, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults };
+    const result = { mode, telemetryPosts, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${mode}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;
   } catch (error) {
     await page.screenshot({ path: join(out, `${mode}-failure.jpg`), type: 'jpeg', quality: 70 }).catch(() => undefined);
-    writeFileSync(join(out, `${mode}.json`), `${JSON.stringify({ mode, faults, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
+    writeFileSync(join(out, `${mode}.json`), `${JSON.stringify({ mode, faults, reports, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
     throw error;
   } finally { await context.close(); }
 }

@@ -20,7 +20,16 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   it; the log is `~/.wildshard/deploy-backstop/backstop.log`; `backstop.sh --dry-run` only reports.
 - **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The hourly
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
-  `deploy` run (typecheck, lint, test, build) passed. `gpu-gate` still reports on every push but does not hold a release
+  `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
+  `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
+  commit and drives the real title, Driftwood gameplay and Developer grid home. Fatal UI, page errors and bad asset
+  responses refuse the proof. Its macOS queue stays outside push CI's critical path. A missing, pending or failing
+  latest smoke status refuses release selection. An explicit emergency rollback may instead return to any SHA
+  proven previously live in production, even before the smoke existed: verified `production-live` status or a
+  successful historical release job's exact full pin plus matching production-version reading. Pin history alone
+  is insufficient. The OTA reader enforces the same proof. `force`
+  only bypasses the already-live check. Inspect the smoke artifact's queue/run timings when a release waits.
+  `gpu-gate` still reports on every push but does not hold a release
   (its push runs cancel each other under the agents' push stream). `mode pinned` (`deploy-pin.mjs set` / `rollback`)
   freezes production on one SHA; `mode newest-green` waits for gpu-gate.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too

@@ -33,7 +33,7 @@ concurrency:
 
 permissions:
   contents: read
-  statuses: read # the deploy pin's gate check (scripts/deploy-pin.mjs check-gate)
+  statuses: write # read release gates and mark the exact verified production SHA
   actions: read # the newest-ci-green pin reads this workflow's push runs
 
 env:
@@ -171,6 +171,16 @@ jobs:
           code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
           test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
 
+      - name: Record verified production history
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$DEPLOY_SHA" \
+            -f context=production-live -f state=success -f description='Exact pin verified live in production' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
   # Push / PR CI runs the vitest suite once, split over parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"; E454, Jake
   # 2026-10-07: CI must be fast, so 6 ways: each 3-way shard took ~4.5 min and was the run's critical path). Each
   # shard writes its istanbul coverage; the `coverage` job merges them (scripts/coverage-merge.mjs measures what one
@@ -215,59 +225,6 @@ jobs:
           path: coverage/coverage-final.json
           retention-days: 1
           if-no-files-found: error
-
-  # Required whole-run success is what newest-ci-green selects. Independent of vitest, and never pre-push.
-  boot-smoke:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: macos-15
-    timeout-minutes: 6
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-            !/docs/
-          sparse-checkout-cone-mode: false
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
-        with:
-          path: ~/Library/Caches/ms-playwright
-          key: boot-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - run: pnpm exec playwright install chromium
-      - name: Build the real products and dist
-        run: |
-          pnpm gen
-          node scripts/build-shardfiles.mjs
-          python3 scripts/heavy-lane.py build -- pnpm exec vite build
-      - name: Real title, Driftwood gameplay and Developer grid home
-        run: node scripts/parity/boot-smoke.mjs
-      # E454: retain queue/start/step timings so macOS contention cannot silently slow the CI gate.
-      - name: Record smoke queue and run timings
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p boot-smoke-results
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq '{created_at, run_started_at}' > boot-smoke-results/workflow-timing.json
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "boot-smoke") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: boot-smoke
-          path: boot-smoke-results/
-          retention-days: 7
-          if-no-files-found: warn
 
   coverage:
     needs: vitest
