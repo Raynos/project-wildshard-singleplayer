@@ -34,7 +34,8 @@ export class AssetResidencyBridge implements AssetPort {
     scope.onDispose(() => {
       this.owners.delete(scope);
       const errors: unknown[] = [];
-      for (const consumer of this.consumers) if (consumer.users.delete(scope)) {
+      for (const consumer of this.consumers) if (consumer.users.delete(scope) || consumer.users.size === 0) {
+        // Async source templates may never be drawn; with no consumer/acquisition they are safe to evict too.
         consumer.retired = true;
         try { this.evictUnused(consumer); } catch (error) { errors.push(error); }
       }

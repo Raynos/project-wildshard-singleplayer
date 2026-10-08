@@ -40,6 +40,8 @@ it('keeps a real page draw alive while evicting unused sources from a retired ru
   if (lease === null) throw new Error('fixture admission'); bridge.cover(resident, lease);
   const shared = new DataTexture(new Uint8Array(64), 4, 4), unused = new DataTexture(new Uint8Array(64), 4, 4);
   withOwner(resident, () => { assets.register('shared', shared, { retain: true, cache: true }); assets.register('unused', unused, { retain: true, cache: true }); });
+  // An asynchronous source template registers outside ambient ownership and never draws.
+  const template = new DataTexture(new Uint8Array(64), 4, 4); assets.register('template', template, { retain: true, cache: true });
   assets.observeResidency(shared, page); resident.dispose(); lease.release();
   expect(assets.retained().map(row => row.key)).toEqual(['shared']); expect(allocator.cost().accounted).toBe(128);
   page.dispose(); expect(assets.evictCached('shared')).toBe(true); expect(allocator.entries()).toEqual([]); bridge.dispose();
