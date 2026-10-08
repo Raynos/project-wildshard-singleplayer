@@ -1,0 +1,26 @@
+{
+  "purpose": "Matched first Pine entries, five fresh owned devices per pin, alternate baseline/fixed. Earlier reused-device ten is separate.",
+  "baseline": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+  "fixed": "71f385a525bf9d54f4b55ee58df04ee68c3e1e2d",
+  "sourceFingerprints": {
+    "scripts/soak/pine-rate.mjs": "3266fba952d31510bee1cad3356675e092d02a2da1223643064aef1d175f025a",
+    "scripts/soak/pine-events.mjs": "512714730f39712aabee10153dbfa1f27cb5b00f931f8403fe7159eca1c4dc03",
+    "scripts/soak/soak.mjs": "f94dff4174cb247151eac66e1831f30ad43725c861f34d67fe40a9881890de33",
+    "scripts/soak/gl.mjs": "6f3af091620853225f75a7548d640ec4a6c2fff187bfad1d09df4213bff0ea5f",
+    "scripts/soak/owned.mjs": "d10167c0963804da085b9b7191146029bda64982122f54b663443e628322eec7",
+    "scripts/soak/route.ts": "a763dc7964cea154a72a77c2dd99d436fad173fc532a895d6d94c12450173ed7",
+    "scripts/parity/glbytes.mjs": "7d9df125654bbccb62cd9d56b998c49f1b418933b4c84223cfb1370f0dd5392f",
+    "scripts/parity/resources.mjs": "fb333a3f8c2fcad4b3d3d9a7dfe92f8484acb1b334e40ce1a8395ac23cd227ed",
+    "scripts/frame-floor-grid.mjs": "6b3c14a4a45df0388ccf0bf65b6d3158eea27e89a17d9266b567b579d4de6563",
+    "scripts/debug-settings.mjs": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+    "scripts/sim-mem-phases.py": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "scripts/ios-memory-watchdog.py": "f66122e1c3e07dc230d2ef17e3340a2fc5be44753b3a2cac294857ed67c6c7bc"
+  },
+  "countPerArm": 5,
+  "settings": {
+    "developer": true,
+    "tier": "phone",
+    "renderScale": 2,
+    "mute": true
+  }
+}

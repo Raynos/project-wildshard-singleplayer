@@ -1,0 +1,1435 @@
+{
+  "table": [
+    {
+      "arm": "baseline",
+      "index": 1,
+      "device": "AE333408-F6D9-478B-A484-50FF6E6DF274",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 232691476,
+        "at": 1791459529.565
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791459527.842,
+        "through": 1791459528.535,
+        "count": 2392,
+        "bytes": 116028760,
+        "operations": {
+          "texStorage2D": 1786,
+          "bufferData": 544,
+          "texStorage3D": 62
+        },
+        "kinds": {
+          "texture": 87105684,
+          "buffer": 28923076
+        },
+        "stages": {
+          "travel": 2392
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:2047",
+          "firstAt": 1791459528.333,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4401/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4401/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4401/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4401/sf57-safari.html:77:19\n@http://127.0.0.1:4401/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4401/sf57-safari.html:83:220\nje@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:24183\n$m@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:5555\nupload@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:9613\nCt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:46012\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:29461\n@http://127.0.0.1:4401/assets/gpuLabels-zR6TGoEq.js:1:4945\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:9396\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:943:2122\n@http://127.0.0.1:4401/assets/memorySaver-Crx0HErZ.js:1:3905\nvt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:38257\n_t@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:37785\nht@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:35894\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:34250\n@http://127.0.0.1:4401/assets/ktx2-CK1siTFq.js:2:10221\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:115:3476\nrender@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:974\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:45:10878\nme@http://127.0.0.1:4401/assets/ReloadPrompt-LNdeeKuh.js:1:2182"
+        },
+        {
+          "id": "texture:2048",
+          "firstAt": 1791459528.334,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:2049",
+          "firstAt": 1791459528.334,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:2052",
+          "firstAt": 1791459528.334,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:2053",
+          "firstAt": 1791459528.334,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:2054",
+          "firstAt": 1791459528.335,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 2.000093460083008
+    },
+    {
+      "arm": "fixed",
+      "index": 1,
+      "device": "03F5A18B-0025-455D-8F13-25C497475739",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": false,
+      "entryApiPeak": {
+        "bytes": 232693780,
+        "at": 1791459744.49
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791459743.044,
+        "through": 1791459743.811,
+        "count": 2330,
+        "bytes": 114797888,
+        "operations": {
+          "texStorage2D": 1787,
+          "texStorage3D": 62,
+          "bufferData": 481
+        },
+        "kinds": {
+          "texture": 87107988,
+          "buffer": 27689900
+        },
+        "stages": {
+          "travel": 2330
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1405",
+          "firstAt": 1791459743.117,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4400/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4400/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4400/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4400/sf57-safari.html:77:19\n@http://127.0.0.1:4400/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4400/sf57-safari.html:83:220\nje@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:24183\n@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4220:55826\nz@http://127.0.0.1:4400/assets/ReloadPrompt-B5ySiUMl.js:1:8474"
+        },
+        {
+          "id": "texture:1406",
+          "firstAt": 1791459743.166,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1407",
+          "firstAt": 1791459743.184,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1413",
+          "firstAt": 1791459743.218,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1414",
+          "firstAt": 1791459743.251,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1415",
+          "firstAt": 1791459743.284,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 166.99981689453125
+    },
+    {
+      "arm": "baseline",
+      "index": 2,
+      "device": "3516869A-0521-4CC9-B61F-1F3C0F88257D",
+      "entryLoss": true,
+      "entryCompleted": false,
+      "uploadOverflow": 0,
+      "leakZero": false,
+      "rawSamplingGrade": false,
+      "entryApiPeak": {
+        "bytes": 228725762,
+        "at": 1791459898.085
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791459897.477,
+        "through": 1791459898.085,
+        "count": 2329,
+        "bytes": 114795584,
+        "operations": {
+          "texStorage2D": 1786,
+          "bufferData": 481,
+          "texStorage3D": 62
+        },
+        "kinds": {
+          "texture": 87105684,
+          "buffer": 27689900
+        },
+        "stages": {
+          "travel": 2329
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1992",
+          "firstAt": 1791459897.916,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4401/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4401/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4401/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4401/sf57-safari.html:77:19\n@http://127.0.0.1:4401/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4401/sf57-safari.html:83:220\nje@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:24183\n$m@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:5555\nupload@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:9613\nCt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:46012\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:29461\n@http://127.0.0.1:4401/assets/gpuLabels-zR6TGoEq.js:1:4945\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:9396\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:943:2122\n@http://127.0.0.1:4401/assets/memorySaver-Crx0HErZ.js:1:3905\nvt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:38257\n_t@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:37785\nht@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:35894\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:34250\n@http://127.0.0.1:4401/assets/ktx2-CK1siTFq.js:2:10221\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:115:3476\nrender@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:974\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:45:10878\nme@http://127.0.0.1:4401/assets/ReloadPrompt-LNdeeKuh.js:1:2182"
+        },
+        {
+          "id": "texture:1993",
+          "firstAt": 1791459897.916,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1994",
+          "firstAt": 1791459897.917,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1997",
+          "firstAt": 1791459897.917,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1998",
+          "firstAt": 1791459897.917,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1999",
+          "firstAt": 1791459897.917,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 1.0001659393310547
+    },
+    {
+      "arm": "fixed",
+      "index": 2,
+      "device": "4C4A92E2-EEB7-4C65-8798-890624A6E853",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 229961242,
+        "at": 1791460014.925
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460014.132,
+        "through": 1791460014.925,
+        "count": 2382,
+        "bytes": 112535820,
+        "operations": {
+          "texStorage2D": 1776,
+          "texStorage3D": 62,
+          "bufferData": 544
+        },
+        "kinds": {
+          "texture": 83612744,
+          "buffer": 28923076
+        },
+        "stages": {
+          "travel": 2382
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1405",
+          "firstAt": 1791460014.202,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4400/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4400/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4400/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4400/sf57-safari.html:77:19\n@http://127.0.0.1:4400/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4400/sf57-safari.html:83:220\nje@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:24183\n@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4220:55826\nz@http://127.0.0.1:4400/assets/ReloadPrompt-B5ySiUMl.js:1:8474"
+        },
+        {
+          "id": "texture:1406",
+          "firstAt": 1791460014.238,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1407",
+          "firstAt": 1791460014.271,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1413",
+          "firstAt": 1791460014.304,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1414",
+          "firstAt": 1791460014.338,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1415",
+          "firstAt": 1791460014.37,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 167.9999828338623
+    },
+    {
+      "arm": "baseline",
+      "index": 3,
+      "device": "735A13C8-09E9-428C-B9D4-E8F1D6005F8C",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 232693780,
+        "at": 1791460170.702
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460169.249,
+        "through": 1791460169.787,
+        "count": 2393,
+        "bytes": 116031064,
+        "operations": {
+          "texStorage2D": 1787,
+          "bufferData": 544,
+          "texStorage3D": 62
+        },
+        "kinds": {
+          "texture": 87107988,
+          "buffer": 28923076
+        },
+        "stages": {
+          "travel": 2393
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:2047",
+          "firstAt": 1791460169.615,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4401/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4401/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4401/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4401/sf57-safari.html:77:19\n@http://127.0.0.1:4401/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4401/sf57-safari.html:83:220\nje@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:24183\n$m@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:5555\nupload@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:9613\nCt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:46012\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:29461\n@http://127.0.0.1:4401/assets/gpuLabels-zR6TGoEq.js:1:4945\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:9396\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:943:2122\n@http://127.0.0.1:4401/assets/memorySaver-Crx0HErZ.js:1:3905\nvt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:38257\n_t@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:37785\nht@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:35894\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:34250\n@http://127.0.0.1:4401/assets/ktx2-CK1siTFq.js:2:10221\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:115:3476\nrender@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:974\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:45:10878\nme@http://127.0.0.1:4401/assets/ReloadPrompt-LNdeeKuh.js:1:2182"
+        },
+        {
+          "id": "texture:2048",
+          "firstAt": 1791460169.615,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:2049",
+          "firstAt": 1791460169.616,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:2052",
+          "firstAt": 1791460169.616,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:2053",
+          "firstAt": 1791460169.616,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:2054",
+          "firstAt": 1791460169.616,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 0.9999275207519531
+    },
+    {
+      "arm": "fixed",
+      "index": 3,
+      "device": "E1EB06AF-67FB-4B64-94C9-6380C0A61BE4",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 229198536,
+        "at": 1791460325
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460323.55,
+        "through": 1791460324.198,
+        "count": 2319,
+        "bytes": 111302644,
+        "operations": {
+          "texStorage2D": 1776,
+          "texStorage3D": 62,
+          "bufferData": 481
+        },
+        "kinds": {
+          "texture": 83612744,
+          "buffer": 27689900
+        },
+        "stages": {
+          "travel": 2319
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1405",
+          "firstAt": 1791460323.622,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4400/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4400/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4400/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4400/sf57-safari.html:77:19\n@http://127.0.0.1:4400/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4400/sf57-safari.html:83:220\nje@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:24183\n@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4220:55826\nz@http://127.0.0.1:4400/assets/ReloadPrompt-B5ySiUMl.js:1:8474"
+        },
+        {
+          "id": "texture:1406",
+          "firstAt": 1791460323.661,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1407",
+          "firstAt": 1791460323.69,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1413",
+          "firstAt": 1791460323.724,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1414",
+          "firstAt": 1791460323.757,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1415",
+          "firstAt": 1791460323.79,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 167.9999828338623
+    },
+    {
+      "arm": "baseline",
+      "index": 4,
+      "device": "C4113C93-4486-4641-BB5F-1FAB897684ED",
+      "entryLoss": true,
+      "entryCompleted": false,
+      "uploadOverflow": 0,
+      "leakZero": false,
+      "rawSamplingGrade": false,
+      "entryApiPeak": {
+        "bytes": 229618104,
+        "at": 1791460485.413
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460484.909,
+        "through": 1791460485.413,
+        "count": 2349,
+        "bytes": 115687926,
+        "operations": {
+          "texStorage2D": 1781,
+          "bufferData": 506,
+          "texStorage3D": 62
+        },
+        "kinds": {
+          "texture": 87102392,
+          "buffer": 28585534
+        },
+        "stages": {
+          "travel": 2349
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:2047",
+          "firstAt": 1791460485.314,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4401/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4401/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4401/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4401/sf57-safari.html:77:19\n@http://127.0.0.1:4401/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4401/sf57-safari.html:83:220\nje@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:24183\n$m@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:5555\nupload@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:9613\nCt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:46012\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:29461\n@http://127.0.0.1:4401/assets/gpuLabels-zR6TGoEq.js:1:4945\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:9396\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:943:2122\n@http://127.0.0.1:4401/assets/memorySaver-Crx0HErZ.js:1:3905\nvt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:38257\n_t@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:37785\nht@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:35894\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:34250\n@http://127.0.0.1:4401/assets/ktx2-CK1siTFq.js:2:10221\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:115:3476\nrender@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:974\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:45:10878\nme@http://127.0.0.1:4401/assets/ReloadPrompt-LNdeeKuh.js:1:2182"
+        },
+        {
+          "id": "texture:2048",
+          "firstAt": 1791460485.314,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:2049",
+          "firstAt": 1791460485.314,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:2052",
+          "firstAt": 1791460485.315,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:2053",
+          "firstAt": 1791460485.315,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:2054",
+          "firstAt": 1791460485.315,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 1.0001659393310547
+    },
+    {
+      "arm": "fixed",
+      "index": 4,
+      "device": "691056AE-2A6C-4185-93B2-18327AEAC669",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 232693780,
+        "at": 1791460597.199
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460595.743,
+        "through": 1791460596.525,
+        "count": 2330,
+        "bytes": 114797888,
+        "operations": {
+          "texStorage2D": 1787,
+          "texStorage3D": 62,
+          "bufferData": 481
+        },
+        "kinds": {
+          "texture": 87107988,
+          "buffer": 27689900
+        },
+        "stages": {
+          "travel": 2330
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1405",
+          "firstAt": 1791460595.814,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4400/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4400/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4400/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4400/sf57-safari.html:77:19\n@http://127.0.0.1:4400/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4400/sf57-safari.html:83:220\nje@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:24183\n@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4220:55826\nz@http://127.0.0.1:4400/assets/ReloadPrompt-B5ySiUMl.js:1:8474"
+        },
+        {
+          "id": "texture:1406",
+          "firstAt": 1791460595.862,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1407",
+          "firstAt": 1791460595.883,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1413",
+          "firstAt": 1791460595.916,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1414",
+          "firstAt": 1791460595.95,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1415",
+          "firstAt": 1791460595.983,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 169.00014877319336
+    },
+    {
+      "arm": "baseline",
+      "index": 5,
+      "device": "0F5702B6-D146-464D-B58A-51D1945616A0",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 232693780,
+        "at": 1791460752.076
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460750.706,
+        "through": 1791460751.181,
+        "count": 2330,
+        "bytes": 114797888,
+        "operations": {
+          "texStorage2D": 1787,
+          "bufferData": 481,
+          "texStorage3D": 62
+        },
+        "kinds": {
+          "texture": 87107988,
+          "buffer": 27689900
+        },
+        "stages": {
+          "travel": 2330
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1992",
+          "firstAt": 1791460751.084,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4401/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4401/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4401/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4401/sf57-safari.html:77:19\n@http://127.0.0.1:4401/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4401/sf57-safari.html:83:220\nje@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4196:24183\n$m@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:5555\nupload@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4118:9613\nCt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:46012\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:29461\n@http://127.0.0.1:4401/assets/gpuLabels-zR6TGoEq.js:1:4945\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:9396\n@http://127.0.0.1:4401/assets/session-uJiXatc3.js:943:2122\n@http://127.0.0.1:4401/assets/memorySaver-Crx0HErZ.js:1:3905\nvt@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:38257\n_t@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:37785\nht@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:35894\n@http://127.0.0.1:4401/assets/three.module-0SoK2Fk7.js:4220:34250\n@http://127.0.0.1:4401/assets/ktx2-CK1siTFq.js:2:10221\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:115:3476\nrender@http://127.0.0.1:4401/assets/session-uJiXatc3.js:2042:974\nrender@http://127.0.0.1:4401/assets/build-DkW1oHmj.js:45:10878\nme@http://127.0.0.1:4401/assets/ReloadPrompt-LNdeeKuh.js:1:2182"
+        },
+        {
+          "id": "texture:1993",
+          "firstAt": 1791460751.084,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1994",
+          "firstAt": 1791460751.084,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1997",
+          "firstAt": 1791460751.084,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1998",
+          "firstAt": 1791460751.096,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1999",
+          "firstAt": 1791460751.096,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 11.999845504760742
+    },
+    {
+      "arm": "fixed",
+      "index": 5,
+      "device": "62DC8337-D07D-4211-B9BB-04553DCC1297",
+      "entryLoss": false,
+      "entryCompleted": true,
+      "uploadOverflow": 0,
+      "leakZero": true,
+      "rawSamplingGrade": true,
+      "entryApiPeak": {
+        "bytes": 229958938,
+        "at": 1791460910.279
+      },
+      "entryOneSecondGrowth": {
+        "from": 1791460909.677,
+        "through": 1791460910.279,
+        "count": 2381,
+        "bytes": 112533516,
+        "operations": {
+          "texStorage2D": 1775,
+          "texStorage3D": 62,
+          "bufferData": 544
+        },
+        "kinds": {
+          "texture": 83610440,
+          "buffer": 28923076
+        },
+        "stages": {
+          "travel": 2381
+        }
+      },
+      "arrays": [
+        {
+          "id": "texture:1405",
+          "firstAt": 1791460909.748,
+          "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4",
+          "callSite": "push@http://127.0.0.1:4400/sf57-safari.html:260:53\nchanged@http://127.0.0.1:4400/sf57-safari.html:24:145\nchangedTexture@http://127.0.0.1:4400/sf57-safari.html:27:12\nsetLevel@http://127.0.0.1:4400/sf57-safari.html:77:19\n@http://127.0.0.1:4400/sf57-safari.html:103:158\nwrapped@http://127.0.0.1:4400/sf57-safari.html:83:220\nje@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:14309\nhe@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:29383\nne@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4196:24183\n@http://127.0.0.1:4400/assets/three.module-0SoK2Fk7.js:4220:55826\nz@http://127.0.0.1:4400/assets/ReloadPrompt-B5ySiUMl.js:1:8474"
+        },
+        {
+          "id": "texture:1406",
+          "firstAt": 1791460909.788,
+          "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 2505152,
+          "width": 1024,
+          "height": 1024,
+          "depth": 4,
+          "levels": 11,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1407",
+          "firstAt": 1791460909.818,
+          "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 699104,
+          "width": 512,
+          "height": 512,
+          "depth": 4,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        },
+        {
+          "id": "texture:1413",
+          "firstAt": 1791460909.852,
+          "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37844,
+          "internalFormatHex": "0x93d4"
+        },
+        {
+          "id": "texture:1414",
+          "firstAt": 1791460909.885,
+          "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 792160,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37812,
+          "internalFormatHex": "0x93b4"
+        },
+        {
+          "id": "texture:1415",
+          "firstAt": 1791460909.918,
+          "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+          "owner": "engine/loadPBRArray",
+          "bytes": 873880,
+          "width": 512,
+          "height": 512,
+          "depth": 5,
+          "levels": 10,
+          "internalFormat": 37492,
+          "internalFormatHex": "0x9274"
+        }
+      ],
+      "arrayFirstAllocationSpanMs": 170.0000762939453
+    }
+  ],
+  "crashes": [
+    {
+      "arm": "baseline",
+      "index": 2,
+      "loss": {
+        "at": 1791459898.092,
+        "document": "1791459818999:0.929431550326477",
+        "sequence": 14,
+        "kind": "contextlost",
+        "inside": "pine-hollow",
+        "current": "pine-hollow",
+        "pending": [],
+        "admitting": null,
+        "gameCanvas": true,
+        "target": {
+          "tag": "CANVAS",
+          "id": "game",
+          "connected": true
+        },
+        "status": ""
+      },
+      "sourcePath": "/Users/raynos/Library/Logs/DiagnosticReports/com.apple.WebKit.GPU-2026-10-08-064458.ips",
+      "sha256": "bde9d1b2a611867083babb4825f8f6e5525cdaa7275131f2c8063530be78ce0d",
+      "pid": 68305,
+      "captureTime": "2026-10-08 06:44:58.0936 -0500",
+      "exception": {
+        "codes": "0x0000000000000001, 0x000000014c194000",
+        "rawCodes": [
+          1,
+          5571690496
+        ],
+        "type": "EXC_BAD_ACCESS",
+        "signal": "SIGSEGV",
+        "subtype": "KERN_INVALID_ADDRESS at 0x000000014c194000"
+      },
+      "termination": {
+        "flags": 0,
+        "code": 11,
+        "namespace": "SIGNAL",
+        "indicator": "Segmentation fault: 11",
+        "byProc": "exc handler",
+        "byPid": 68305
+      },
+      "threadName": "RemoteGraphicsContextGL work queue",
+      "frames": [
+        {
+          "symbol": "_platform_memmove",
+          "image": "libsystem_platform.dylib",
+          "offset": 12700
+        },
+        {
+          "symbol": "rx::(anonymous namespace)::UploadTextureContents(gl::Context const*, angle::Format const&, MTLRegion const&, gl::LevelIndexWrapper<unsigned int> const&, unsigned int, unsigned char const*, unsigned long, unsigned long, bool, std::__1::shared_ptr<rx::mtl::Texture> const&)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1948944
+        },
+        {
+          "symbol": "rx::TextureMtl::setPerSliceSubImage(gl::Context const*, int, MTLRegion const&, gl::InternalFormat const&, unsigned int, angle::Format const&, unsigned long, unsigned long, gl::Buffer*, unsigned char const*, rx::ImageDefinitionMtl const&)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1954432
+        },
+        {
+          "symbol": "rx::TextureMtl::setSubImageImpl(gl::Context const*, gl::ImageIndex const&, gl::Box const&, gl::InternalFormat const&, unsigned int, gl::PixelUnpackState const&, gl::Buffer*, unsigned char const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1939304
+        },
+        {
+          "symbol": "rx::TextureMtl::setCompressedSubImage(gl::Context const*, gl::ImageIndex const&, gl::Box const&, unsigned int, gl::PixelUnpackState const&, unsigned long, unsigned char const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1939736
+        },
+        {
+          "symbol": "gl::Texture::setCompressedSubImage(gl::Context const*, gl::PixelUnpackState const&, gl::TextureTarget, int, gl::Box const&, unsigned int, unsigned long, unsigned char const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1919616
+        },
+        {
+          "symbol": "gl::Context::compressedTexSubImage3D(gl::TextureTarget, int, int, int, int, int, int, int, unsigned int, int, void const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 199308
+        },
+        {
+          "symbol": "GL_CompressedTexSubImage3DRobustANGLE",
+          "image": "libANGLE-shared.dylib",
+          "offset": 576380
+        },
+        {
+          "symbol": "WebKit::RemoteGraphicsContextGL::compressedTexSubImage3D0(unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)",
+          "image": "WebKit",
+          "offset": 6015004
+        },
+        {
+          "symbol": "void IPC::handleMessage<Messages::RemoteGraphicsContextGL::CompressedTexSubImage3D0, IPC::StreamServerConnection, WebKit::RemoteGraphicsContextGL, WebKit::RemoteGraphicsContextGL, void (unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)>(IPC::StreamServerConnection&, IPC::Decoder&, WebKit::RemoteGraphicsContextGL*, void (WebKit::RemoteGraphicsContextGL::*)(unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&))",
+          "image": "WebKit",
+          "offset": 3268192
+        },
+        {
+          "symbol": "WebKit::RemoteGraphicsContextGL::didReceiveStreamMessage(IPC::StreamServerConnection&, IPC::Decoder&)",
+          "image": "WebKit",
+          "offset": 3256824
+        },
+        {
+          "symbol": "IPC::StreamServerConnection::dispatchStreamMessage(IPC::Decoder&, IPC::StreamMessageReceiver&)",
+          "image": "WebKit",
+          "offset": 16448116
+        },
+        {
+          "symbol": "IPC::StreamConnectionWorkQueue::processStreams()",
+          "image": "WebKit",
+          "offset": 16443796
+        },
+        {
+          "symbol": "WTF::Detail::CallableWrapper<IPC::StreamConnectionWorkQueue::startProcessingThread()::$_0, void>::call()",
+          "image": "WebKit",
+          "offset": 16452428
+        },
+        {
+          "symbol": "WTF::Thread::entryPoint(WTF::Thread::NewThreadContext*)",
+          "image": "JavaScriptCore",
+          "offset": 717400
+        },
+        {
+          "symbol": "WTF::wtfThreadEntryPoint(void*)",
+          "image": "JavaScriptCore",
+          "offset": 731328
+        },
+        {
+          "symbol": "_pthread_start",
+          "image": "libsystem_pthread.dylib",
+          "offset": 26172
+        },
+        {
+          "symbol": "thread_start",
+          "image": "libsystem_pthread.dylib",
+          "offset": 6708
+        }
+      ]
+    },
+    {
+      "arm": "baseline",
+      "index": 4,
+      "loss": {
+        "at": 1791460485.688,
+        "document": "1791460402523:0.46393180609370877",
+        "sequence": 14,
+        "kind": "contextlost",
+        "inside": "pine-hollow",
+        "current": "pine-hollow",
+        "pending": [],
+        "admitting": null,
+        "gameCanvas": true,
+        "target": {
+          "tag": "CANVAS",
+          "id": "game",
+          "connected": true
+        },
+        "status": ""
+      },
+      "sourcePath": "/Users/raynos/Library/Logs/DiagnosticReports/com.apple.WebKit.GPU-2026-10-08-065445.ips",
+      "sha256": "3523c477d8f4b34ef620d2065c7cf82526766e1fdab61420521c1e98dd3033f8",
+      "pid": 86680,
+      "captureTime": "2026-10-08 06:54:45.4098 -0500",
+      "exception": {
+        "codes": "0x0000000000000001, 0x0000000143bf4000",
+        "rawCodes": [
+          1,
+          5431574528
+        ],
+        "type": "EXC_BAD_ACCESS",
+        "signal": "SIGSEGV",
+        "subtype": "KERN_INVALID_ADDRESS at 0x0000000143bf4000"
+      },
+      "termination": {
+        "flags": 0,
+        "code": 11,
+        "namespace": "SIGNAL",
+        "indicator": "Segmentation fault: 11",
+        "byProc": "exc handler",
+        "byPid": 86680
+      },
+      "threadName": "RemoteGraphicsContextGL work queue",
+      "frames": [
+        {
+          "symbol": "_platform_memmove",
+          "image": "libsystem_platform.dylib",
+          "offset": 12700
+        },
+        {
+          "symbol": "rx::(anonymous namespace)::UploadTextureContents(gl::Context const*, angle::Format const&, MTLRegion const&, gl::LevelIndexWrapper<unsigned int> const&, unsigned int, unsigned char const*, unsigned long, unsigned long, bool, std::__1::shared_ptr<rx::mtl::Texture> const&)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1948944
+        },
+        {
+          "symbol": "rx::TextureMtl::setPerSliceSubImage(gl::Context const*, int, MTLRegion const&, gl::InternalFormat const&, unsigned int, angle::Format const&, unsigned long, unsigned long, gl::Buffer*, unsigned char const*, rx::ImageDefinitionMtl const&)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1954432
+        },
+        {
+          "symbol": "rx::TextureMtl::setSubImageImpl(gl::Context const*, gl::ImageIndex const&, gl::Box const&, gl::InternalFormat const&, unsigned int, gl::PixelUnpackState const&, gl::Buffer*, unsigned char const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1939304
+        },
+        {
+          "symbol": "rx::TextureMtl::setCompressedSubImage(gl::Context const*, gl::ImageIndex const&, gl::Box const&, unsigned int, gl::PixelUnpackState const&, unsigned long, unsigned char const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1939736
+        },
+        {
+          "symbol": "gl::Texture::setCompressedSubImage(gl::Context const*, gl::PixelUnpackState const&, gl::TextureTarget, int, gl::Box const&, unsigned int, unsigned long, unsigned char const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 1919616
+        },
+        {
+          "symbol": "gl::Context::compressedTexSubImage3D(gl::TextureTarget, int, int, int, int, int, int, int, unsigned int, int, void const*)",
+          "image": "libANGLE-shared.dylib",
+          "offset": 199308
+        },
+        {
+          "symbol": "GL_CompressedTexSubImage3DRobustANGLE",
+          "image": "libANGLE-shared.dylib",
+          "offset": 576380
+        },
+        {
+          "symbol": "WebKit::RemoteGraphicsContextGL::compressedTexSubImage3D0(unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)",
+          "image": "WebKit",
+          "offset": 6015004
+        },
+        {
+          "symbol": "void IPC::handleMessage<Messages::RemoteGraphicsContextGL::CompressedTexSubImage3D0, IPC::StreamServerConnection, WebKit::RemoteGraphicsContextGL, WebKit::RemoteGraphicsContextGL, void (unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)>(IPC::StreamServerConnection&, IPC::Decoder&, WebKit::RemoteGraphicsContextGL*, void (WebKit::RemoteGraphicsContextGL::*)(unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&))",
+          "image": "WebKit",
+          "offset": 3268192
+        },
+        {
+          "symbol": "WebKit::RemoteGraphicsContextGL::didReceiveStreamMessage(IPC::StreamServerConnection&, IPC::Decoder&)",
+          "image": "WebKit",
+          "offset": 3256824
+        },
+        {
+          "symbol": "IPC::StreamServerConnection::dispatchStreamMessage(IPC::Decoder&, IPC::StreamMessageReceiver&)",
+          "image": "WebKit",
+          "offset": 16448116
+        },
+        {
+          "symbol": "IPC::StreamConnectionWorkQueue::processStreams()",
+          "image": "WebKit",
+          "offset": 16443796
+        },
+        {
+          "symbol": "WTF::Detail::CallableWrapper<IPC::StreamConnectionWorkQueue::startProcessingThread()::$_0, void>::call()",
+          "image": "WebKit",
+          "offset": 16452428
+        },
+        {
+          "symbol": "WTF::Thread::entryPoint(WTF::Thread::NewThreadContext*)",
+          "image": "JavaScriptCore",
+          "offset": 717400
+        },
+        {
+          "symbol": "WTF::wtfThreadEntryPoint(void*)",
+          "image": "JavaScriptCore",
+          "offset": 731328
+        },
+        {
+          "symbol": "_pthread_start",
+          "image": "libsystem_pthread.dylib",
+          "offset": 26172
+        },
+        {
+          "symbol": "thread_start",
+          "image": "libsystem_pthread.dylib",
+          "offset": 6708
+        }
+      ]
+    }
+  ],
+  "sourceAttribution": {
+    "baseline": {
+      "dist": "/private/tmp/wildshard-serve/20261008-043805-4401/dist",
+      "chunk": "assets/ReloadPrompt-LNdeeKuh.js",
+      "sample": "me@1:2182 maps to warmComposerFrame composer.render(0)",
+      "chunkSha256": "2ab1565096f4fcfba14a83f88e806bf1d58e062aaf15abf42b3cf99b03d8ddd2",
+      "sourceExcerpt": "rFrame:()=>me});async function me(e,t,n,r){if(!r())throw Error(`Entered frame left before shader warm-up`);if(await n(),!r())throw Error(`Entered frame left during shader warm-up`);let i=t.getRenderTarget();try{e.render(0)}finally{t.setRenderTarget(i)}}function k(e){let t=e.geometry,n=t?.attributes??{},r=t?.morphAttributes?Object.keys(t.morphAttributes).map(e=>`${e}${t.morphAttributes[e]?.length??0}`).join(``):``;return`${e.isBatchedMesh?`B`:``}${e.isBatchedMesh&&e."
+    },
+    "fixed": {
+      "dist": "/private/tmp/wildshard-serve/20261008-063602-4400/dist",
+      "chunk": "assets/ReloadPrompt-B5ySiUMl.js",
+      "sample": "z@1:8474 maps to runPrecompile renderer.initTexture",
+      "chunkSha256": "29ec07946f75b0eb3fa88da6288dddc12019a4bed9ad838eeb430ef902151b61",
+      "sourceExcerpt": "now());let o=r||ne===`phone`&&n instanceof v;if(o&&c(`texture:upload`,{index:t,total:a.length,name:n.name,format:n.format,mips:n.mipmaps.length,width:n.mipmaps[0]?.width??0,height:n.mipmaps[0]?.height??0}),e.initTexture(n),o){let r=e.getContext(),i=r.getError();if(i!==r.NO_ERROR)throw Error(`Graphics error ${i} after compressed texture ${t+1}/${a.length} (${n.name||n.format})`)}i?.(y+t+1,y+a.length,`${t+1} / ${a.length} textures uploaded`),(r||performance.now()-_>12"
+    }
+  },
+  "units": "Decimal MB; storage notifications include per-mip bookkeeping, not literal GL calls or transferred bytes. Native GPU process footprint is separate from WC+live GL."
+}
