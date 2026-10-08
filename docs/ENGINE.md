@@ -1825,6 +1825,11 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 `@wildshard/sdk/bake/props` merges opaque rough prop surfaces into the canonical tile grid, clips edge-crossing triangles, keeps interior scatter as `EXT_mesh_gpu_instancing` transform lists and produces a self-contained coarse/far mesh. Named panels and gear remain library GLBs. `bakeColourTexture` in `bake/texture` invokes the trusted local Basis encoder for mipmapped UASTC KTX2; the existing loader chooses ASTC on supported GPUs. Declared costs include CPU buffers, GPU buffers, instance matrices and shadow draws. Every resulting row must fit the content caps.
 
+Shader patches that inject sampler uniforms declare their borrowed textures in `patchShader(..., { textures })`
+(`@wildshard/engine/render/shaderPatches`). Warm-up includes these resources before the callback compiles;
+copying a patch chain preserves its declarations, and undo removes them without disposing content resources.
+Compressed array textures upload on separate painted slices with a graphics-error fence before the composer draw.
+
 `@wildshard/game/shardfile/props` validates file, tile, library and texture dependencies. The admitted bytes enter `installDeclaredProps` from `@wildshard/engine/world/declaredProps`; `selectedTiles` contains `lod/x/z` keys, `includeLibrary:false` skips subsequent panel/model loads, and `disposeTile(key)` removes and disposes a streamed tile. Family materials and textures come from resolved catalogues. Stable panel roots expose visibility and pose ports to admitted scripts; collision remains separate declared data.
 
 

@@ -11,6 +11,7 @@ import type { Game } from '../core/Game';
 import { chunkShadowCasters } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
+import { shaderPatchTextures } from './shaderPatches';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -264,6 +265,7 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   const add = (v: unknown): void => { if (isTexture(v) && !v.isRenderTargetTexture) out.add(v); };
   const fromMaterial = (m: THREE.Material): void => {
     for (const v of Object.values(m)) add(v);
+    for (const texture of shaderPatchTextures(m)) add(texture);
     const u = (m as THREE.Material & { uniforms?: Record<string, THREE.IUniform> }).uniforms;
     if (u) for (const uni of Object.values(u)) add(uni.value);
   };
@@ -345,7 +347,11 @@ export async function runPrecompile(
   const base = jobs.length + units;
   for (const [i, tex] of textures.entries()) {
     checkCurrent();
-    const compressed = TIER === 'phone' && tex instanceof THREE.CompressedTexture;
+    // ANGLE's compressed-array path needs an isolated painted slice and the E257
+    // GPU-process round trip before any composer draw, independent of JS upload time.
+    const compressedArray = tex instanceof THREE.CompressedArrayTexture;
+    if (compressedArray) { await frame(); checkCurrent(); tSlice = performance.now(); }
+    const compressed = compressedArray || TIER === 'phone' && tex instanceof THREE.CompressedTexture;
     if (compressed) recordBootCheckpoint('texture:upload', { index: i, total: textures.length, name: tex.name, format: tex.format,
       mips: tex.mipmaps.length, width: tex.mipmaps[0]?.width ?? 0, height: tex.mipmaps[0]?.height ?? 0 });
     renderer.initTexture(tex);
@@ -358,7 +364,7 @@ export async function runPrecompile(
       if (error !== gl.NO_ERROR) throw new Error(`Graphics error ${error} after compressed texture ${i + 1}/${textures.length} (${tex.name || tex.format})`);
     }
     onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
-    if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
+    if (compressedArray || performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
   }
   checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };

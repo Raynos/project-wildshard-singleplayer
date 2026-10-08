@@ -316,7 +316,7 @@ export class PineTreeFactory extends TreeFactory {
       map: white, normalMap: standIn([128, 128, 255, 255]), roughnessMap: white, aoMap: white,
       roughness: 1, metalness: 0, vertexColors: true, color: new THREE.Color(1.22, 1.2, 1.18),
     });
-    patchShader(this.barkMaterial, 'pine.bark-set', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk); patchBarkArrays(shader, bark); }, { mode: 'replace', key: 'bark-set' });
+    patchShader(this.barkMaterial, 'pine.bark-set', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk); patchBarkArrays(shader, bark); }, { mode: 'replace', key: 'bark-set', textures: [bark.map, bark.normalMap, bark.armMap] });
 
     const needles = (band: FadeBand, key: string): THREE.MeshStandardMaterial => {
       const m = new THREE.MeshStandardMaterial({

@@ -226,7 +226,7 @@ export function splatTerrainMaterial(layers: SplatLayers, ground: SplatGround): 
         .replace('#include <aomap_fragment>', `
           float ambientOcclusion = ( splatArm.r - 1.0 ) * 0.9 + 1.0;
           reflectedLight.indirectDiffuse *= ambientOcclusion;`);
-    }, { mode: 'replace', key: (boreal ? 'terrain-splat-boreal' : 'terrain-splat') });
+    }, { mode: 'replace', key: (boreal ? 'terrain-splat-boreal' : 'terrain-splat'), textures: [layers.map, layers.normalMap, layers.armMap] });
     return mat;
   }
 }

@@ -46,11 +46,13 @@ export interface ShaderPatchOptions {
   mode?: 'chain' | 'replace';
   /** the program-cache key after this patch; omitted: the key the material had (three's default if none) */
   key?: ShaderPatchKey;
+  /** Borrowed textures injected through shader uniforms; warm-up uploads them before the first draw. */
+  textures?: readonly THREE.Texture[];
   /** removes the patch when the scope is disposed */
   scope?: Scope;
 }
 
-interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn }
+interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn; readonly textures?: readonly THREE.Texture[] }
 interface State {
   entries: Entry[];
   /** the key function, or null for three's default (the last patch function's source text) */
@@ -121,7 +123,7 @@ export function takeForeignHook(mat: THREE.Material, install: () => void): Shade
 export function patchShader(mat: THREE.Material, id: string, order: number, fn: ShaderPatchFn, opts: ShaderPatchOptions = {}): () => void {
   const mode = opts.mode ?? 'chain';
   const state = stateOf(mat, mode);
-  const entry: Entry = { id, order, seq: seq++, fn };
+  const entry: Entry = { id, order, seq: seq++, fn, ...(opts.textures === undefined ? {} : { textures: [...opts.textures] }) };
   state.entries = [...state.entries, entry].sort((a, b) => a.order - b.order || a.seq - b.seq);
   const keyBefore = state.key, explicitBefore = state.explicitKey;
   const { key } = opts;
@@ -204,6 +206,14 @@ export function hasProgramKey(mat: THREE.Material): boolean {
 export function patchIds(mat: THREE.Material): string[] {
   const state = states.get(mat);
   return state === undefined || mat.onBeforeCompile !== state.runner ? [] : state.entries.map((e) => e.id);
+}
+
+/** Borrowed textures declared by active shader patches, deduplicated in patch order.
+ * Copy/undo follows the patch chain without running callbacks or disposing content resources. */
+export function shaderPatchTextures(mat: THREE.Material): readonly THREE.Texture[] {
+  const state = states.get(mat);
+  if (state === undefined || mat.onBeforeCompile !== state.runner) return [];
+  return [...new Set(state.entries.flatMap(entry => entry.textures ?? []))];
 }
 
 /** Every patch id used so far, with how many materials took it (Debug, the inventory). */
