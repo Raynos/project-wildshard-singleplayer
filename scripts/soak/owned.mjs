@@ -20,11 +20,12 @@ export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue') {
       movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [point], requiredResidents: [], crossroads: index < 16 ? `${point.x},${point.z}` : null })) };
   }
   const pine = state.cells.find(cell => cell.slug === 'pine-hollow'), nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
-  if (!pine || !nalati) throw new Error('Soak requires Pine and Nalati');
+  if (routeScope === 'prepared' && (!pine || !nalati)) throw new Error('Prepared soak requires Pine and Nalati');
+  const runtimes = [pine, nalati].filter(cell => cell !== undefined);
   const omitted = routeScope === 'prepared' ? state.cells.filter(cell => !['driftwood-isle', 'pine-hollow', 'nalati-grasslands', '_template'].includes(cell.slug)).map(cell => cell.instance) : [];
-  const remaining = state.cells.filter(cell => ![home.instance, pine.instance, nalati.instance, ...omitted].includes(cell.instance))
+  const remaining = state.cells.filter(cell => ![home.instance, ...runtimes.map(runtime => runtime.instance), ...omitted].includes(cell.instance))
     .sort((a, b) => Number(b.slug === '_template') - Number(a.slug === '_template') || a.instance.localeCompare(b.instance));
-  const sequence = [pine, nalati, ...remaining, home], plans = [];
+  const sequence = [...runtimes, ...remaining, home], plans = [];
   let source = home, portal = { x: h.x, z: h.z + half };
   for (const cell of sequence) {
     const s = origin(source), d = origin(cell), dx = s.x - d.x, dz = s.z - d.z;

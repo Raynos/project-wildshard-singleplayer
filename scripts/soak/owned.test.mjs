@@ -126,7 +126,11 @@ void test('SF57 borrowed previews survive cleanup; owned previews all stop even 
 
 for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every production instance and returns to one exact home baseline`, () => {
   const cells = soakCatalogue(catalogue, layout), route = ownedSoakPlans({ cells, home: 'driftwood-isle' });
-  assert.deepEqual(route.plans.slice(0, 2).map(p => p.to), ['pine-hollow', 'nalati-grasslands']);
+  if (layout === 'dev') assert.deepEqual(route.plans.slice(0, 2).map(p => p.to), ['pine-hollow', 'nalati-grasslands']);
+  else {
+    assert.ok(route.plans.slice(0, -1).every(plan => cells.find(cell => cell.instance === plan.to)?.slug === '_template'));
+    assert.throws(() => ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', 'prepared'), /requires Pine and Nalati/u);
+  }
   assert.deepEqual(route.plans.map(p => p.to).sort(), cells.map(c => c.instance).sort());
   let previous = route.reference, from = 'driftwood-isle';
   for (const plan of [...route.plans, ...route.coveragePlans]) {
