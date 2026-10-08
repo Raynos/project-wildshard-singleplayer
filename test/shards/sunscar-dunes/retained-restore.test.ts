@@ -13,6 +13,7 @@ import { Physics } from '../../../src/engine/physics/Physics';
 import { CreatureBodies } from '../../../src/engine/physics/creatures';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { SaveStore } from '../../../src/engine/saves/store';
+import { Flags } from '../../../src/engine/world/interact/flags';
 import { regionalRuntimeCheckpoint } from '../../../src/game/grid/runtimeCheckpoint';
 import { shardContext } from '../../../src/game/shard/context';
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
@@ -21,6 +22,7 @@ import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../../../src/shards/sunscar-dunes/manifest';
 import { installCreatures, RESPAWN } from '../../../src/shards/sunscar-dunes/combat/creatures';
 import { installMatriarch } from '../../../src/shards/sunscar-dunes/combat/matriarch';
+import { FLAG } from '../../../src/shards/sunscar-dunes/world/build';
 import { DUNE_RAY, DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from '../../../src/shards/sunscar-dunes/species/skitterer';
 import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/species/strider';
@@ -32,10 +34,11 @@ import { legacyDouble } from '../../fake/FakeGame';
 it('restores a cold lit save after home respawn and boss retry without changing identities or keeping native bodies', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const previousScope = app.levelScope, previousLevel = activeLevel();
-  const continuation = regionalRuntimeCheckpoint(new SaveStore({ local: new MemoryStorage(), session: null }), { id: SUNSCAR_DUNES.slug, shard: SUNSCAR_DUNES.slug }, 1);
+  const storage = new MemoryStorage();
   let savedIds: string[] = [];
   try {
     for (let visit = 0; visit < 3; visit++) {
+      const continuation = regionalRuntimeCheckpoint(new SaveStore({ local: storage, session: null }), { id: SUNSCAR_DUNES.slug, shard: SUNSCAR_DUNES.slug }, 1);
       const scope = new Scope('dunes.restore'), physics = new Physics(rapier);
       app.levelScope = scope; configureLevel(toLevelSpec(SUNSCAR_DUNES));
       try {
@@ -55,7 +58,9 @@ it('restores a cold lit save after home respawn and boss retry without changing 
             rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined }, runtime }));
           app.encounters.register({ id: 'sunscar.matriarch', displayName: 'Matriarch' }, scope);
           // First visit: homes precede the late fire summon. Cold lit save: boss precedes homes.
-          const matriarch = installMatriarch(hooks.context, new Vector3(), () => visit > 0);
+          const flags = new Flags(SUNSCAR_DUNES.slug);
+          expect(flags.has(FLAG.lit)).toBe(visit > 0);
+          const matriarch = installMatriarch(hooks.context, new Vector3(), () => flags.has(FLAG.lit));
           const creatures = installCreatures(hooks.context), home = creatures.homes.find(row => row.kind === 'sandSkitterer');
           if (home?.animal === null || home === undefined) throw new Error('Missing authored skitterer home');
           if (visit === 0) {
@@ -65,6 +70,8 @@ it('restores a cold lit save after home respawn and boss retry without changing 
             if (step === undefined) throw new Error('Missing real home respawn system');
             step.run(RESPAWN.sandSkitterer + 0.01, 0);
             expect(home.animal).not.toBe(original); expect(home.animal.entityId).toBe(original.entityId);
+            flags.set(FLAG.lit);
+            expect(new Flags(SUNSCAR_DUNES.slug).has(FLAG.lit)).toBe(true);
             matriarch.summon(); const firstBoss = matriarch.boss.body();
             matriarch.boss.devStartAt(0);
             expect(matriarch.boss.body()).not.toBe(firstBoss);
