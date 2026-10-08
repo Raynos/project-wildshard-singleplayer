@@ -2,7 +2,6 @@ import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
 import { boxDesc } from '@wildshard/engine/world/registry';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from '@wildshard/game/quest/presentation';
-import { purseSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as v from 'valibot';
@@ -15,7 +14,7 @@ import { ownPrimitives } from '../world/resources';
 import { scout, scoutNpc } from './scout';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../quests/signal';
-import { bindRuntimeLedger, bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeCoins, bindRuntimeLedger, bindRuntimeQuest, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 
 
@@ -41,7 +40,7 @@ const at = (p: Vector3, dy = 0): QuestMarker['at'] => ({ poi: 'world', x: p.x, y
  * tab carries the quest card, the places toast as they are found, and the Matriarch is the last step: the 5-coin
  * signal reward pays after her fall.
  */
-export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null; facts: RuntimeFacts } {
+export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, coins: RuntimeCoins = bindRuntimeCoins(ctx, null)): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null; facts: RuntimeFacts } {
   const { flags } = world, saves = ctx.app.saves, legacy = saves.define(LEGACY_SIGNAL);
   // SF14 / M3: Signal Dunes' feats are its shardfile's ledger rows (runtime.binds); the platform grants each achievement once.
   // The instance is the first-party placement id (the slug: Select a shard, explore and the grid share it).
@@ -62,7 +61,6 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // emits its fact on completion, and on load for a save that finished it before facts existed.
   const bound = bindRuntimeQuest(ctx, source, 'sunscar.signal', { flags, facts, place: (marker) => placed[marker.id] });
   const quest = bound.state, reward = bound.reward.coins;
-  const purse = shardSave(purseSave, slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
   const alreadyPaid = flags.has(PAID_FLAG);
   // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins,
@@ -70,7 +68,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   const pay = (): undefined => {
     if (flags.has(PAID_FLAG)) return undefined;
     flags.set(PAID_FLAG);
-    burst.spawn(player, reward, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
+    burst.spawn(player, reward, coins, () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
     return undefined;
   };
   // Sefa, the caravan scout, starts the quest on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.

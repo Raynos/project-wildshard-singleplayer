@@ -12,8 +12,11 @@ import * as v from 'valibot';
  * - `ledger`: fact → profile reward rules; the runtime emits declared facts, the platform grants once.
  * - `items`: weapon / tool rows, input contexts and the loadout; the runtime may resolve a family of its own
  *   (`<slug>.<name>`) beside the kit's, and the declared input contexts register through its entered-input path.
+ * - `spawns`: the runtime's creatures as declared rows (`runtime.spawns`, ./runtimeSpawns.ts): its homes and boss bodies,
+ *   each under a stable identity; the platform keeps the homes (respawn, retained identity), the runtime's species and
+ *   encounter scripts stay its own.
  */
-export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items'] as const;
+export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns'] as const;
 /** One section a trusted runtime binds rather than the data client. */
 export type RuntimeBoundSection = (typeof RUNTIME_BOUND_SECTIONS)[number];
 /** `runtime.binds`: the declared capability that replaces the implicit "empty apart from audio, edges and colliders" rule. */

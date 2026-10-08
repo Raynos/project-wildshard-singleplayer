@@ -1,26 +1,43 @@
-import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import { BossBrain, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
-import { bossesSave, purseSave, shardSave } from '@wildshard/game/saves';
+import { bossesSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { bindRuntimeBoss, bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import { BASIN } from '../layout';
 import { STRINGS } from '../strings';
 import { BASIN_FLOOR } from '../world/dunes';
 import { stormMaterial } from '../world/stormFx';
 import { lastLightAll } from '../look/light';
+import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../quests/signal';
+import source from '../shard.config';
+import type { SignalWorld } from '../world/build';
+
+type Flags = SignalWorld['flags'];
 
 const ID = 'sunscar.matriarch';
+/**
+ * Her record (SF50-p: no save of her own): beaten and paid are the shard's flags. A current save's old `bossesSave` entry
+ * is read once and carried over (C26), never written again.
+ */
+export function matriarchRecord(ctx: Pick<ShardContext, 'manifest'>, flags: Flags): { saved: BossSaved; persist: (value: BossSaved) => void } {
+  const legacy = shardSave(bossesSave, ctx.manifest.slug).read()[ID];
+  if (legacy?.defeated === true) flags.set(MATRIARCH_DEFEATED_FLAG);
+  if (legacy?.rewardTaken === true) flags.set(MATRIARCH_PAID_FLAG);
+  const defeated = flags.has(MATRIARCH_DEFEATED_FLAG);
+  return { saved: { defeated, rewardTaken: flags.has(MATRIARCH_PAID_FLAG), kills: defeated ? 1 : 0 },
+    persist: (value) => { if (value.defeated) flags.set(MATRIARCH_DEFEATED_FLAG); if (value.rewardTaken) flags.set(MATRIARCH_PAID_FLAG); } };
+}
 /**
  * The sand storm of phase II, over `fade` seconds: a weather fog (E390, `weatherFog`) of `dist` per metre closes in in a
  * dusty orange (at 0.03 about 40 % of her survives 30 m, so her silhouette reads inside it, R1B-17; the far dunes are
  * gone by 100 m), and two shells of blown sand (`shells`: radius metres, opacity) ride with the player and veil the distance.
  */
 export const STORM = { dist: 0.03, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.85], [22, 0.4]] } as const;
-/** The reward: coins once, on the first fall. */
+/** The reward: coins once, on the first fall (her paid flag). */
 export const MATRIARCH_REWARD = 20;
 const RISE = 3.2;
 
@@ -35,16 +52,16 @@ export class DuneMatriarch extends BossBrain {
   /** The storm's strength 0..1 and the Matriarch's body while she is up (captures and tests read them). */
   readonly weather: { storm: number };
   readonly body: () => Animal | null;
-  constructor(ctx: ShardContext, player: Vector3, spawn: (retired?: Animal) => Animal | null, retire: (a: Animal) => void, onCoin?: (share: number) => void, onDown?: () => void) {
-    const at = new Vector3(BASIN.x, BASIN_FLOOR, BASIN.z), focus = new Vector3();
+  constructor(ctx: ShardContext, player: Vector3, body: RuntimeBoss, record: ReturnType<typeof matriarchRecord>, coins: RuntimeCoins, onDown?: () => void) {
+    const at = new Vector3(body.row.at[0], BASIN_FLOOR, body.row.at[1]), focus = new Vector3(), { spawn, retire } = body;
     let animal: Animal | null = null, invulnerable = false, stormGoal = 0;
     const weather = { storm: 0 };
     let stormT = 0;
-    const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), purse = shardSave(purseSave, ctx.manifest.slug);
+    const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
     // The storm's fog (E390): made on the first update, once the level's atmosphere is installed. The level's own fog is
     // never written (loop 4: a copy of it taken here was the engine's placeholder and erased the aerial layers).
     let fog: WeatherFog | null = null, fogTried = false;
-    const saves = shardSave(bossesSave, ctx.manifest.slug), saved = saves.read()[ID] ?? { defeated: false, rewardTaken: false, kills: 0 };
+    const saved = record.saved;
     // The blown-sand sheets (P2 #11, world/stormFx.ts): streaks racing downwind over a dusty veil, pulsing in gusts.
     const shells = STORM.shells.map(([r], i) => {
       const shell = new Mesh(new SphereGeometry(r, 24, 12), stormMaterial(STORM.color, i === 1));
@@ -98,9 +115,9 @@ export class DuneMatriarch extends BossBrain {
       { events: ctx.app.events, player: { position: player }, lockInput: (on) => { ctx.game.runtime?.play?.weapons.setEnabled(!on); },
         respawn: (pos, yaw) => { const motor = ctx.game.runtime?.world?.player; if (motor) { motor.position.copy(pos); motor.yaw = yaw; } }, skipHeld: () => ctx.app.input.held('skip'),
         faceToward: (target) => { const motor = ctx.game.runtime?.world?.player; if (motor) motor.yaw = Math.atan2(motor.position.x - target.x, motor.position.z - target.z); },
-        spawnReward: () => { burst.spawn(player, MATRIARCH_REWARD, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => undefined); },
+        spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, MATRIARCH_REWARD, coins, () => undefined); },
         toast: (text) => { ctx.game.runtime?.play?.hud.toast(text); },
-        persist: (value) => { saves.write({ ...saves.read(), [ID]: { ...value } }); } }, presentation, saved);
+        persist: record.persist }, presentation, saved);
     this.at = at; this.weather = weather; this.body = () => animal;
     if (saved.defeated) onDown?.();
     ctx.scope.onDispose(() => {
@@ -109,16 +126,14 @@ export class DuneMatriarch extends BossBrain {
   }
 }
 
-/** Arms the Matriarch once the signal fire is lit (now, or on a later visit); answers the death checkpoint. */
-export function installMatriarch(ctx: ShardContext, player: Vector3, lit: () => boolean, onCoin?: (share: number) => void, onDown?: () => void): { boss: DuneMatriarch; summon: () => void } {
-  const animals = ctx.game.runtime?.play?.animals;
-  const retained = retainsRuntimeServices(ctx);
-  const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, previous => {
-    const a = retained && previous !== undefined ? animals?.replace(previous, BASIN.x, BASIN.z, 0, 'matriarch', {}) ?? null
-      : animals?.spawn('duneMatriarch', BASIN.x, BASIN.z, 0, 'matriarch', retained ? { entityId: 'sunscar.matriarch' } : undefined) ?? null;
-    if (a) lastLightAll(a.mesh, ctx.scope); return a;
-  },
-    (a) => { animals?.retire(a); }, onCoin, onDown), ctx.scope);
+/**
+ * Arms the Matriarch once the signal fire is lit (now, or on a later visit); answers the death checkpoint. Her body is the
+ * shardfile's declared boss row (`runtime.spawns`, bound by the platform under `sunscar.matriarch`); her coins go through
+ * the platform purse (`coins`, else the shard's platform purse headless).
+ */
+export function installMatriarch(ctx: ShardContext, player: Vector3, flags: Flags, lit: () => boolean, coins?: RuntimeCoins, onDown?: () => void): { boss: DuneMatriarch; summon: () => void } {
+  const body = bindRuntimeBoss(ctx, source, ID, (a) => { lastLightAll(a.mesh, ctx.scope); });
+  const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, body, matriarchRecord(ctx, flags), coins ?? bindRuntimeCoins(ctx, null), onDown), ctx.scope);
   const summon = (): void => { if (boss.state === 'dormant') { boss.arm(); ctx.game.runtime?.play?.hud.toast(STRINGS.summoned); } };
   if (lit()) boss.arm();
   ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true);

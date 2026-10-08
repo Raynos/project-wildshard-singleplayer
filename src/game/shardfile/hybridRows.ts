@@ -7,15 +7,18 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { ShardContext } from '../shard/context';
 import { installEnteredRuntimeInput, retainsRuntimeServices } from '../shard/retainedHooks';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../ledger';
+import { Purse } from '../loot/Purse';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import type { RuntimeBoundSection } from './runtimeBinds';
+import type { RuntimeBossRow, RuntimeHomeRow } from './runtimeSpawns';
 import type { Shardfile } from './schema';
 
 /**
  * The runtime-owner binding (SHARD-PLATFORM M3, E435). A hybrid shard's trusted runtime owns its world and its play scope;
  * the behaviour sections it names in `runtime.binds` stay declared data, and these installers put them into that scope
  * (the entered `runtime:<instance>` scope in a grid cell, the level scope standalone) through the template's own
- * installers: the platform `Ledger`, engine `QuestState`, `installDeclaredItems`. The runtime binds to the result; it never
+ * installers: the platform `Ledger`, engine `QuestState`, `installDeclaredItems`, the platform `Purse`, and the home keeper
+ * for its declared creatures (`runtime.spawns`). The runtime binds to the result; it never
  * rebuilds the rows. The data client installs none of a bound section (`withoutRuntimeRows`).
  */
 
@@ -145,4 +148,92 @@ export function bindRuntimeItemContexts(ctx: ShardContext, source: Shardfile): v
     if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, { rows: [] });
     else ctx.inputContext(definition);
   }
+}
+
+/** A runtime's coin port: what a declared quest or an encounter pays, in whole coins. */
+export type RuntimeCoins = (share: number) => void;
+/**
+ * Bind the coins a runtime pays (a quest's `onComplete.coins`, a boss's reward burst) to the platform purse: the level's
+ * loot purse in play, else (headless: tests, a node bake) the platform `Purse` for the shard. The runtime never writes the
+ * coin save itself, as the full client's quest coin port.
+ */
+export function bindRuntimeCoins(ctx: Pick<ShardContext, 'manifest'>, purse: Purse | null): RuntimeCoins {
+  let owner = purse;
+  return (share) => { owner ??= new Purse(ctx.manifest.slug); owner.add(share); };
+}
+
+/** The declared runtime spawn rows, refused unless the runtime binds `spawns`. */
+export function runtimeSpawnRows(source: Pick<Shardfile, 'runtime'>): NonNullable<NonNullable<Shardfile['runtime']>['spawns']> {
+  requireBound(source, 'spawns');
+  const rows = source.runtime?.spawns; if (rows === undefined) throw new Error('Runtime-bound spawns need runtime.spawns rows');
+  return rows;
+}
+type Animals = NonNullable<NonNullable<ShardContext['game']['runtime']>['play']>['animals'];
+type Animal = ReturnType<Animals['spawn']>;
+/** One kept home: its declared row's place, the creature living there now and the seconds left before it refills. */
+export interface RuntimeHome {
+  readonly id: string; readonly kind: string; readonly x: number; readonly z: number; readonly yaw: number; readonly respawn: number;
+  animal: Animal | null; wait: number;
+}
+/** What a runtime lends its declared homes. */
+export interface RuntimeHomePorts {
+  /** The keeper's update system id (the runtime's tests and captures find it by name). */
+  readonly system: string;
+  /** Each fresh body once spawned (the runtime's look on it). */
+  readonly spawned?: (animal: Animal) => void;
+}
+/** The declared homes as kept: every home, and every creature alive in one. */
+export interface RuntimeHomes { readonly homes: readonly RuntimeHome[]; readonly all: () => Animal[] }
+
+/**
+ * Keep the declared homes (`runtime.spawns.homes`) in the runtime's play scope: one creature of the row's runtime species
+ * per home, refilled `respawn` seconds after it dies. In a retained home (a grid cell) each creature carries its row's id
+ * as its identity, and a refill replaces the retired body under that identity (fresh rig, health and ordinary AI state);
+ * a portable cold restore that reapplies a dead body without replaying its death starts the authored delay. Standalone
+ * spawns allocate ordinary identities, as before. Every body retires with the scope.
+ */
+export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts): RuntimeHomes {
+  const rows = runtimeSpawnRows(source).homes, animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx);
+  const homes: RuntimeHome[] = rows.map((row: RuntimeHomeRow) => ({ id: row.id, kind: row.kind, x: row.at[0], z: row.at[1], yaw: row.yaw, respawn: row.respawn, animal: null, wait: 0 }));
+  const look = new Map(rows.map((row) => [row.id, row.look]));
+  const spawn = (home: RuntimeHome): void => {
+    const variant = look.get(home.id);
+    home.animal = retained && home.animal !== null
+      ? animals?.replace(home.animal, home.x, home.z, home.yaw, variant, {}) ?? null
+      : animals?.spawn(home.kind, home.x, home.z, home.yaw, variant, retained ? { entityId: home.id } : undefined) ?? null;
+    home.wait = 0;
+    if (home.animal) ports.spawned?.(home.animal);
+  };
+  for (const home of homes) spawn(home);
+  ctx.on('actor.died', ({ actor }) => { const home = homes.find((h) => h.animal?.combatActor() === actor); if (home) home.wait = home.respawn; });
+  ctx.system({ id: ports.system, phase: 'update', run: (dt) => {
+    for (const home of homes) {
+      if (retained && home.animal?.alive === false && home.wait <= 0) home.wait = home.respawn;
+      if (home.wait <= 0) continue;
+      home.wait -= dt;
+      if (home.wait <= 0) { if (home.animal) animals?.retire(home.animal); spawn(home); }
+    }
+  } });
+  ctx.scope.onDispose(() => { for (const home of homes) if (home.animal) animals?.retire(home.animal); });
+  return { homes, all: () => homes.flatMap((h) => h.animal ? [h.animal] : []) };
+}
+
+/** A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. */
+export interface RuntimeBoss {
+  readonly row: RuntimeBossRow;
+  /** A fresh body: under the row's identity in a retained home, replacing `retired` (a retry) when given. */
+  readonly spawn: (retired?: Animal) => Animal | null;
+  readonly retire: (animal: Animal) => void;
+}
+/** Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body. */
+export function bindRuntimeBoss(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string, spawned?: (animal: Animal) => void): RuntimeBoss {
+  const row = runtimeSpawnRows(source).bosses.find((boss) => boss.id === id); if (row === undefined) throw new Error(`Undeclared runtime boss ${id}`);
+  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx), [x, z] = row.at;
+  return { row,
+    spawn: (retired) => {
+      const a = retained && retired !== undefined ? animals?.replace(retired, x, z, row.yaw, row.look, {}) ?? null
+        : animals?.spawn(row.kind, x, z, row.yaw, row.look, retained ? { entityId: row.id } : undefined) ?? null;
+      if (a) spawned?.(a); return a;
+    },
+    retire: (a) => { animals?.retire(a); } };
 }

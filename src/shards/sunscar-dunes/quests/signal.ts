@@ -10,6 +10,9 @@ export const MATRIARCH_FLAG = 'sunscar.matriarch.down';
 export const COMPLETE_FLAG = 'sunscar.complete';
 /** Raised once the signal reward has paid (SF50-p: a quest flag in place of the old `sunscar.signal` shard save). */
 export const PAID_FLAG = 'sunscar.signal.paid';
+/** The Matriarch's record (SF50-p, in place of her old `bossesSave` entry): beaten in a fight, and her coins paid. */
+export const MATRIARCH_DEFEATED_FLAG = 'sunscar.matriarch.defeated';
+export const MATRIARCH_PAID_FLAG = 'sunscar.matriarch.paid';
 /** The ledger facts Signal Dunes emits (SF14): the platform grants their achievements once per (shard, achievement). */
 export const FACT = { signal: 'sunscar.signal', matriarch: 'sunscar.matriarch' } as const;
 
@@ -23,7 +26,7 @@ export const LATER_FLAGS = [FLAG.logbook, FLAG.oil, ...waymarks, FLAG.lit, MATRI
  * layout spot here; the trusted runtime places them on the built piece (quest/install.ts), as the world decides its height.
  */
 export const SIGNAL_QUESTS = parseQuestData({
-  flags: [SCOUT_FLAG, ...LATER_FLAGS, COMPLETE_FLAG, PAID_FLAG],
+  flags: [SCOUT_FLAG, ...LATER_FLAGS, COMPLETE_FLAG, PAID_FLAG, MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG],
   quests: [{ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: COMPLETE_FLAG, onComplete: { fact: FACT.signal, coins: 5 }, steps: [
     { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...LATER_FLAGS] },
       markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, z: SCOUT_AT.z } }] },

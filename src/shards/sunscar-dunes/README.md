@@ -23,7 +23,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `tiers` | no god rays, no AO |
 | `assets` | `public/assets/sunscar-dunes/models/` (C6: the caravan, the dry well, the waymark brazier and the dune strider, Hunyuan3D-2 GLBs, 240 KB); card art is a bundled SVG, every other model is code |
 | `dev.poses` | spawn, whip, ray, quest (standing) and the tower deck (eye only), in degrees |
-| saves | `sunscar.signal` (the quest reward was paid), the quest flags (`Flags`), the Matriarch's `bossesSave` entry |
+| saves | the quest flags only (`Flags`): the paid reward (`sunscar.signal.paid`) and the Matriarch's record (`sunscar.matriarch.defeated` / `.paid`); the old `sunscar.signal` and `bossesSave` entries are read once to carry a current save over (C26), never written. Coins go through the platform purse (`bindRuntimeCoins`) |
 | quest start | Sefa the caravan scout stands beside the spawn, 8 m to the right and behind (round 17: at 5 m the tracker dropped her distance) (`quest/scout.ts` SCOUT_AT; E407 row 9): the first look is the empty dune vista and the tower, as the mockups show; her pin and wave bring the player round to her |
 
 ## Its custom code, and why
@@ -34,7 +34,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
 | `world/places.ts`, `world/rocks.ts` | the half-buried caravan (logbook), the dry well (stone ring, windlass crank, bucket, oil jar), the waymark braziers; the yardangs, boulders and scrub as three `InstancedMesh` |
 | `world/meshes.ts`, `boot/files.ts` | C6: the generated models load once in the `world` hook (and before the roster); each builder uses its GLB when it loaded and its code model otherwise. The well's generated bucket and crank are cut away (the code ones animate); the strider's facets bind rigidly to its seven bones (legs per quadrant). Recipe: `art/sunscar-dunes/round-7-models/props.json` |
-| `combat/creatures.ts` | one creature per home (a ray, 10 skitterers in three packs, two striders), each refilled after it falls |
+| `data/spawns.ts`, `combat/creatures.ts` | the homes (a ray, 10 skitterers in three packs, two striders, `sunscar.home:<index>`) and the Matriarch's body as declared rows (`runtime.spawns`); the platform keeps them (`bindRuntimeHomes`: one creature per home, refilled after it falls), the runtime dresses each body |
 | `species/skitterer.ts`, `species/strider.ts` | `SkittererBrain` (buried → burst → hunt on a ring round the player → rear and bite → retreat; re-burrows when left), `StriderBrain` (graze → face → a pawed 13 m charge, winded after; a horn sweep up close) |
 | `species/matriarch.ts`, `combat/matriarch.ts` | the Dune Matriarch: the ray's body at 3.6×, 600 hp, a `BossBrain` with three phases (sweeping dives; a sand storm: fog to 8–62 m and two blown-sand shells round the player; grounded: tail sweep + wing buffet), BossBar, checkpoints, 20 coins once |
 | `weapons/Bullwhip.ts` | rung 3 (`extends Weapon`, `blocks.viewmodel` + `blocks.melee`): a light crack lands one 7 m narrow lash at the crosshair 0.12 s after the press; Heavy (Mouse2, or a released touch hold) is an 8 m double crack whose first lash yanks a creature of ≤ 40 hp to the player's feet and whose second staggers a bigger one; a lash that hits no creature cracks the nearest `Crackable` in its lane (the well's crank: the double crack pulls it; an oiled brazier: any crack lights it) |

@@ -3,7 +3,7 @@ import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { bindRuntimeItemContexts, bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeCoins, bindRuntimeItemContexts, bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
 import { installSilentScore } from '@wildshard/kit/audio/forest';
 import source from './shard.config';
 import { Vector3 } from 'three';
@@ -122,13 +122,14 @@ export class SignalDunesPlugin extends ShardPlugin {
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
       presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
     const places = this.places;
-    const onCoin = loot?.purse ? (share: number): void => { loot.purse?.add(share); } : undefined;
+    // SF50-p: every coin the runtime pays goes through the platform purse (the level's loot purse; headless, the shard's).
+    const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
-      const installed = installQuest(ctx, position, places, onCoin), facts = installed.facts;
+      const installed = installQuest(ctx, position, places, coins), facts = installed.facts;
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
-      const matriarch = installMatriarch(ctx, position, () => places.fire.lit, onCoin, () => { places.flags.set(MATRIARCH_FLAG); facts(FACT.matriarch, 'sunscar.matriarch'); }); this.matriarch = matriarch.boss;
+      const matriarch = installMatriarch(ctx, position, places.flags, () => places.fire.lit, coins, () => { places.flags.set(MATRIARCH_FLAG); facts(FACT.matriarch, 'sunscar.matriarch'); }); this.matriarch = matriarch.boss;
       places.fire.onLight = matriarch.summon;
     }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];

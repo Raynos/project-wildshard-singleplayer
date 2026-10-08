@@ -14,7 +14,7 @@ import { Vector3 } from 'three';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { SignalDunesPlugin } from '../../../src/shards/sunscar-dunes/plugin';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
-import { COMPLETE_FLAG, LATER_FLAGS, MATRIARCH_FLAG, PAID_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { COMPLETE_FLAG, LATER_FLAGS, MATRIARCH_DEFEATED_FLAG, MATRIARCH_FLAG, MATRIARCH_PAID_FLAG, PAID_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { LEGACY_SIGNAL } from '../../../src/shards/sunscar-dunes/quest/install';
 import { SIGNAL_LEDGER } from '../../../src/shards/sunscar-dunes/data/ledger';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
@@ -143,6 +143,7 @@ describe('Signal Dunes plugin contract', () => {
     places.flags.set(MATRIARCH_FLAG); app.events.flush('update');
     for (let i = 0; i < 90; i++) fake.advance(1 / 30);
     expect(places.flags.has(PAID_FLAG)).toBe(true); expect(legacy.read(manifest.slug)).toBe(false);
+    expect(shardSave(bossesSave, manifest.slug).read()).toEqual({}); expect(plugin.matriarch?.defeated).toBe(false); // the flag alone is no fight
     expect(achievements(app)).toEqual({ 'sunscar.signal': true }); // the flag alone, no boss fight: no Matriarch feat
     const facts = Object.keys(ledger(app).state().facts).length;
     await app.unloadLevel();
@@ -161,6 +162,9 @@ describe('Signal Dunes plugin contract', () => {
     for (let i = 0; i < 90; i++) loaded.fake.advance(1 / 30);
     expect(loaded.plugin.quest?.isComplete).toBe(true); expect(loaded.plugin.places?.flags.has(PAID_FLAG)).toBe(true);
     expect(purse.read()).toBe(25); // paid once, under the old record
+    // her old bossesSave entry is carried over as her flags (SF50-p) and never written again
+    expect([MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG].map((flag) => loaded.plugin.places?.flags.has(flag))).toEqual([true, true]);
+    expect(loaded.plugin.matriarch?.defeated).toBe(true); expect(loaded.plugin.matriarch?.rewardTaken).toBe(true);
     expect(achievements(loaded.app)).toEqual({ 'sunscar.signal': true, 'sunscar.matriarch': true });
     const facts = Object.keys(ledger(loaded.app).state().facts).length; expect(facts).toBe(2);
     await loaded.app.unloadLevel();

@@ -20,7 +20,8 @@ import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import type { ShardRuntime, ShardPlayHost } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../../../src/shards/sunscar-dunes/manifest';
-import { installCreatures, RESPAWN } from '../../../src/shards/sunscar-dunes/combat/creatures';
+import { installCreatures } from '../../../src/shards/sunscar-dunes/combat/creatures';
+import { RESPAWN } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { installMatriarch } from '../../../src/shards/sunscar-dunes/combat/matriarch';
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { DUNE_RAY, DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
@@ -60,7 +61,7 @@ it('restores a cold lit save after home respawn and boss retry without changing 
           // First visit: homes precede the late fire summon. Cold lit save: boss precedes homes.
           const flags = new Flags(SUNSCAR_DUNES.slug);
           expect(flags.has(FLAG.lit)).toBe(visit > 0);
-          const matriarch = installMatriarch(hooks.context, new Vector3(), () => flags.has(FLAG.lit));
+          const matriarch = installMatriarch(hooks.context, new Vector3(), flags, () => flags.has(FLAG.lit));
           const creatures = installCreatures(hooks.context), home = creatures.homes.find(row => row.kind === 'sandSkitterer');
           if (home?.animal === null || home === undefined) throw new Error('Missing authored skitterer home');
           if (visit === 0) {
