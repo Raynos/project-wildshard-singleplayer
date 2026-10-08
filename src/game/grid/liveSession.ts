@@ -348,7 +348,7 @@ export class LiveGridSession {
       for (const instance of this.live.state().residents) {
         if (instance !== to && !this.live.unload(instance)) throw new Error('Previous region is not durably retired');
       }
-      this.live.retry(to);
+      if (!this.live.state().pending.includes(to)) this.live.retry(to);
     }
     return this.live.prepare(from, to);
   }
