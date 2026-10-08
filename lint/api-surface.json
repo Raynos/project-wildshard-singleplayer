@@ -4361,6 +4361,12 @@
         "from": "@wildshard/engine/core/ktx2"
       },
       {
+        "name": "layerArrayMips",
+        "kind": "function",
+        "doc": "Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level",
+        "from": "@wildshard/engine/core/ktx2"
+      },
+      {
         "name": "readTexturePixels",
         "kind": "function",
         "doc": "Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h",
@@ -11344,6 +11350,12 @@
         "from": "@wildshard/engine/world/dayCycle"
       },
       {
+        "name": "adoptChannels",
+        "kind": "function",
+        "doc": "Rename a mesh's GLB application channels to the attributes its surface reads; throws for a missing or malformed one.",
+        "from": "@wildshard/engine/world/declaredProps"
+      },
+      {
         "name": "DeclaredProps",
         "kind": "interface",
         "doc": "Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer.",
@@ -11419,6 +11431,18 @@
         "name": "DecisionLog",
         "kind": "class",
         "doc": "One kept / skipped bit per undergrowth candidate, in candidate order. `record` runs the tests and",
+        "from": "@wildshard/engine/world/forest/placement"
+      },
+      {
+        "name": "decodeTreeRecords",
+        "kind": "function",
+        "doc": "Decode tree records against the forest's variants (their species come from the variant, as placement picks them);",
+        "from": "@wildshard/engine/world/forest/placement"
+      },
+      {
+        "name": "encodeTreeRecords",
+        "kind": "function",
+        "doc": "Encode placed trees as records; `variants` is the count of the forest's variants (each record's index is checked against it).",
         "from": "@wildshard/engine/world/forest/placement"
       },
       {
@@ -11500,9 +11524,21 @@
         "from": "@wildshard/engine/world/forest/placement"
       },
       {
+        "name": "TREE_RECORD_MAGIC",
+        "kind": "const",
+        "doc": "Baked forest instance records (SHARD-PLATFORM G227: a world's forest declared by its shardfile instead of placed at boot).",
+        "from": "@wildshard/engine/world/forest/placement"
+      },
+      {
         "name": "TreeGrid",
         "kind": "class",
         "doc": "Trees bucketed in 16 m cells, for \"which trunks are near (x, z)\" (collision, planting, herds, bolts).",
+        "from": "@wildshard/engine/world/forest/placement"
+      },
+      {
+        "name": "treeGridOf",
+        "kind": "function",
+        "doc": "The 16 m lookup grid over given trees (what `placeForest` returns beside them).",
         "from": "@wildshard/engine/world/forest/placement"
       },
       {
@@ -12568,9 +12604,45 @@
         "from": "@wildshard/engine/world/steppeWind"
       },
       {
+        "name": "canopyChannel",
+        "kind": "function",
+        "doc": "The per-vertex canopy density the chunk draws with (`Terrain.applyCanopy`): the forest's N² canopy map (`Forest.canopyMap`,",
+        "from": "@wildshard/engine/world/Terrain"
+      },
+      {
+        "name": "SPLAT_ATTRIBUTES",
+        "kind": "const",
+        "doc": "The splat / canopy vertex attributes the splat material reads, with their component counts.",
+        "from": "@wildshard/engine/world/Terrain"
+      },
+      {
+        "name": "SplatGround",
+        "kind": "interface",
+        "doc": "What the splat material reads of a ground set (`groundSet`): the four layer tints and the boreal extras (null: the plain shader).",
+        "from": "@wildshard/engine/world/Terrain"
+      },
+      {
+        "name": "SplatLayers",
+        "kind": "interface",
+        "doc": "The three splat texture arrays (layer i = splat channel i): a DataArrayTexture, or a CompressedArrayTexture from KTX2 (E157).",
+        "from": "@wildshard/engine/world/Terrain"
+      },
+      {
+        "name": "splatTerrainMaterial",
+        "kind": "function",
+        "doc": "The PBR splat ground material (PH-L8): four layers from three texture arrays blended by the per-vertex `splat` (vec4)",
+        "from": "@wildshard/engine/world/Terrain"
+      },
+      {
         "name": "Terrain",
         "kind": "class",
         "doc": "",
+        "from": "@wildshard/engine/world/Terrain"
+      },
+      {
+        "name": "terrainChunkGeometry",
+        "kind": "function",
+        "doc": "The chunk's drawn ground (pure, no GPU): a TERRAIN_RES² grid over the chunk (three's PlaneGeometry laid flat: row 0 at",
         "from": "@wildshard/engine/world/Terrain"
       },
       {

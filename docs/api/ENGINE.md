@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2169 members; 830 without a doc line (—).
+2181 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -733,6 +733,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `initKtx2` | function | @wildshard/engine/core/ktx2 | detect the GPU's formats and start the transcoder download (idempotent) |
 | `ktx2Layers` | function | @wildshard/engine/core/ktx2 | The files of one texture array as KTX2 textures of one format (their `#layer` twins, baked unflipped), their mip chains trimmed so level 0 is `size` (the |
 | `ktx2Texture` | function | @wildshard/engine/core/ktx2 | The KTX2 texture standing in for `served` (a clone sharing one source per file), or null: load the image instead. |
+| `layerArrayMips` | function | @wildshard/engine/core/ktx2 | Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level |
 | `readTexturePixels` | function | @wildshard/engine/core/ktx2 | Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h |
 | `releaseAfterUpload` | function | @wildshard/engine/core/ktx2 | Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the |
 | `DEFAULT_GRAPH_BUDGET` | const | @wildshard/engine/core/materialGraph | the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) |
@@ -1895,6 +1896,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ScheduleSeg` | interface | @wildshard/engine/world/dayCycle | — |
 | `smooth` | function | @wildshard/engine/world/dayCycle | — |
 | `TimePick` | type | @wildshard/engine/world/dayCycle | — |
+| `adoptChannels` | function | @wildshard/engine/world/declaredProps | Rename a mesh's GLB application channels to the attributes its surface reads; throws for a missing or malformed one. |
 | `DeclaredProps` | interface | @wildshard/engine/world/declaredProps | Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer. |
 | `installDeclaredProps` | function | @wildshard/engine/world/declaredProps | Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. Every |
 | `InstalledProps` | interface | @wildshard/engine/world/declaredProps | Level-owned roots and stable panel/model ports. Visibility/pose commands act on the returned roots. |
@@ -1908,6 +1910,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `FOREST_BANDS` | const | @wildshard/engine/world/forest/Forest | The forest's LOD bands, for a tree model the shard places (E315 second pass: Pine Hollow's forest tree): near cards + |
 | `trunkCapsule` | function | @wildshard/engine/world/forest/Forest | A tree's trunk as the capsule it collides as (PHYSICS P3): its centre `y` above the tree's foot, half its straight |
 | `DecisionLog` | class | @wildshard/engine/world/forest/placement | One kept / skipped bit per undergrowth candidate, in candidate order. `record` runs the tests and |
+| `decodeTreeRecords` | function | @wildshard/engine/world/forest/placement | Decode tree records against the forest's variants (their species come from the variant, as placement picks them); |
+| `encodeTreeRecords` | function | @wildshard/engine/world/forest/placement | Encode placed trees as records; `variants` is the count of the forest's variants (each record's index is checked against it). |
 | `FERN_MAX` | const | @wildshard/engine/world/forest/placement | — |
 | `LITTER_MAX` | const | @wildshard/engine/world/forest/placement | — |
 | `MOSS_MAX` | const | @wildshard/engine/world/forest/placement | — |
@@ -1921,7 +1925,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `sameChecksum` | function | @wildshard/engine/world/forest/placement | Same fingerprint? Counts exactly; the sum to 1e-9 relative (another engine's Math.cos may differ in the last bit). |
 | `SHRUB_MAX` | const | @wildshard/engine/world/forest/placement | — |
 | `STONE_MAX` | const | @wildshard/engine/world/forest/placement | — |
+| `TREE_RECORD_MAGIC` | const | @wildshard/engine/world/forest/placement | Baked forest instance records (SHARD-PLATFORM G227: a world's forest declared by its shardfile instead of placed at boot). |
 | `TreeGrid` | class | @wildshard/engine/world/forest/placement | Trees bucketed in 16 m cells, for "which trunks are near (x, z)" (collision, planting, herds, bolts). |
+| `treeGridOf` | function | @wildshard/engine/world/forest/placement | The 16 m lookup grid over given trees (what `placeForest` returns beside them). |
 | `TreeInstance` | interface | @wildshard/engine/world/forest/placement | — |
 | `UNDER_KINDS` | const | @wildshard/engine/world/forest/placement | — |
 | `UnderPlacements` | type | @wildshard/engine/world/forest/placement | — |
@@ -2099,7 +2105,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `wind` | const | @wildshard/engine/world/steppeWind | the world's wind (a singleton — every system reads the same one) |
 | `Wind` | class | @wildshard/engine/world/steppeWind | — |
 | `WIND_GLSL` | const | @wildshard/engine/world/steppeWind | — |
+| `canopyChannel` | function | @wildshard/engine/world/Terrain | The per-vertex canopy density the chunk draws with (`Terrain.applyCanopy`): the forest's N² canopy map (`Forest.canopyMap`, |
+| `SPLAT_ATTRIBUTES` | const | @wildshard/engine/world/Terrain | The splat / canopy vertex attributes the splat material reads, with their component counts. |
+| `SplatGround` | interface | @wildshard/engine/world/Terrain | What the splat material reads of a ground set (`groundSet`): the four layer tints and the boreal extras (null: the plain shader). |
+| `SplatLayers` | interface | @wildshard/engine/world/Terrain | The three splat texture arrays (layer i = splat channel i): a DataArrayTexture, or a CompressedArrayTexture from KTX2 (E157). |
+| `splatTerrainMaterial` | function | @wildshard/engine/world/Terrain | The PBR splat ground material (PH-L8): four layers from three texture arrays blended by the per-vertex `splat` (vec4) |
 | `Terrain` | class | @wildshard/engine/world/Terrain | — |
+| `terrainChunkGeometry` | function | @wildshard/engine/world/Terrain | The chunk's drawn ground (pure, no GPU): a TERRAIN_RES² grid over the chunk (three's PlaneGeometry laid flat: row 0 at |
 | `buildTerrain` | function | @wildshard/engine/world/terrainField | — |
 | `landscapeHash` | function | @wildshard/engine/world/terrainField | A 32-bit fingerprint of a height field: FNV-1a over `heightAt` sampled on a 16 × 16 grid across the |
 | `setTerrainDatum` | function | @wildshard/engine/world/terrainHeight | Bind the level's vertical datum (its terrain field's `datum`: a level shifted up or down at runtime, 0 for every level |

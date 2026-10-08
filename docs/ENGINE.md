@@ -1846,7 +1846,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2152 exports, grouped by the module to import them from.
+2164 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1980,7 +1980,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/GpuRecovery`: `installGpuRecovery`, `RecoveryHost`, `RELOAD_PARAM`
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
-- `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
+- `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `layerArrayMips`, `readTexturePixels`, `releaseAfterUpload`
 - `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphOutline`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `SUN_CASCADES`, `SUN_CASCADES_MAX`, `SUN_OPS`, `validateGraph`
 - `@wildshard/engine/core/meshCollision`: `decodeMeshCollision`, `encodeMeshCollision`, `isMeshCollisionData`, `lowestMeshHeight`, `MESH_COLLISION_LIMITS`, `meshCollisionCost`, `MeshCollisionData`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
@@ -2177,10 +2177,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/coarseTileMask`: `coarseTileMask`
 - `@wildshard/engine/world/csmLightBlock`: `patchCSMShaderChunk`
 - `@wildshard/engine/world/dayCycle`: `compassDir`, `DayCycle`, `DayCycleClock`, `DayCycleSpec`, `DayKeys`, `DayPhase`, `LightPreset`, `PhaseListener`, `phaseOfHour`, `ScheduleSeg`, `smooth`, `TimePick`
-- `@wildshard/engine/world/declaredProps`: `DeclaredProps`, `installDeclaredProps`, `InstalledProps`, `PropSurfaceBinding`
+- `@wildshard/engine/world/declaredProps`: `adoptChannels`, `DeclaredProps`, `installDeclaredProps`, `InstalledProps`, `PropSurfaceBinding`
 - `@wildshard/engine/world/faunaLayout`: `FaunaCell`, `FaunaGroup`, `FaunaLayoutOpts`, `layoutFauna`, `layoutFaunaCells`
 - `@wildshard/engine/world/forest/Forest`: `Forest`, `FOREST_BANDS`, `trunkCapsule`
-- `@wildshard/engine/world/forest/placement`: `DecisionLog`, `FERN_MAX`, `LITTER_MAX`, `MOSS_MAX`, `placeForest`, `Placement`, `placementChecksum`, `placeUndergrowth`, `PlantSpec`, `plantSpecs`, `REED_MAX`, `sameChecksum`, `SHRUB_MAX`, `STONE_MAX`, `TreeGrid`, `TreeInstance`, `UNDER_KINDS`, `UnderPlacements`
+- `@wildshard/engine/world/forest/placement`: `DecisionLog`, `decodeTreeRecords`, `encodeTreeRecords`, `FERN_MAX`, `LITTER_MAX`, `MOSS_MAX`, `placeForest`, `Placement`, `placementChecksum`, `placeUndergrowth`, `PlantSpec`, `plantSpecs`, `REED_MAX`, `sameChecksum`, `SHRUB_MAX`, `STONE_MAX`, `TREE_RECORD_MAGIC`, `TreeGrid`, `treeGridOf`, `TreeInstance`, `UNDER_KINDS`, `UnderPlacements`
 - `@wildshard/engine/world/forest/treeSet`: `BARK_LAYERS`, `CrownTop`, `crownTopUniforms`, `loadTreeSetGeometry`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `TREE_SET_PARTS`, `treeSetFiles`, `TreeSetPart`, `treeSetUrls`
 - `@wildshard/engine/world/forest/treeSpec`: `TREE_SPECS`, `treeSetOf`
 - `@wildshard/engine/world/forest/treeSpecies`: `SpeciesWeights`, `TreeSetVariant`, `TreeSpecies`, `TreeSpeciesTraits`
@@ -2203,7 +2203,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/shadowFilter`: `installShadowFilter`, `SOFT_RADII`, `tentShadowFilterOn`
 - `@wildshard/engine/world/skyRig`: `shadowRig`, `ShadowRig`, `SkyRig`
 - `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`
-- `@wildshard/engine/world/Terrain`: `Terrain`
+- `@wildshard/engine/world/Terrain`: `canopyChannel`, `SPLAT_ATTRIBUTES`, `SplatGround`, `SplatLayers`, `splatTerrainMaterial`, `Terrain`, `terrainChunkGeometry`
 - `@wildshard/engine/world/terrainField`: `buildTerrain`, `landscapeHash`
 - `@wildshard/engine/world/terrainHeight`: `setTerrainDatum`, `setTerrainHeight`, `setTerrainPlacement`, `terrainDatum`, `terrainHeight`, `terrainNormal`, `terrainWaterLevel`
 - `@wildshard/engine/world/terrainTileData`: `decodeTerrainTile`, `encodeTerrainTile`, `isTerrainTileData`, `terrainTileCost`, `TerrainTileData`, `terrainTileHeight`
