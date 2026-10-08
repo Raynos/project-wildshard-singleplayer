@@ -17,6 +17,7 @@ function rendererRecorder(commands: Record<string, unknown>): THREE.WebGLRendere
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer prototype');
   Reflect.set(renderer, 'properties', { get: () => ({}) });
+  Reflect.set(renderer, 'renderBufferDirect', () => undefined);
   for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
   return renderer;
 }

@@ -40,9 +40,18 @@ async function fixture(run: (renderer: THREE.WebGLRenderer, events: string[], se
     value.addEventListener('dispose', () => { properties.delete(value); });
     value.onUpdate?.(value);
   });
+  Reflect.set(renderer, 'renderBufferDirect', (_camera: THREE.Camera, _scene: THREE.Scene, _geometry: THREE.BufferGeometry, material: THREE.Material) => {
+    for (const value of Object.values(material)) if (value instanceof THREE.Texture) renderer.properties.get(value);
+    events.push('draw');
+  });
   Reflect.set(renderer, 'getContext', () => ({ NO_ERROR: 0, isContextLost: () => false, getError: () => { events.push(`fence:${frame}`); return error; } }));
   try { await run(renderer, events, value => { error = value; }); }
   finally { installScopeEnvironment(previous); }
+}
+function draw(renderer: THREE.WebGLRenderer, value: THREE.Texture): void {
+  const material = new THREE.MeshBasicMaterial({ map: value }), geometry = new THREE.BufferGeometry();
+  try { renderer.renderBufferDirect(new THREE.Camera(), new THREE.Scene(), geometry, material, new THREE.Mesh(geometry, material), { start: 0, count: 0, materialIndex: 0 }); }
+  finally { material.dispose(); geometry.dispose(); }
 }
 it('serializes concurrent late 2D and warm-up array requests on the same renderer', async () => {
   await fixture(async (renderer, events) => {
@@ -98,7 +107,7 @@ it('does not publish native residency until the in-flight paint fence completes'
     const bound = events.indexOf('second-bound');
     expect(events[bound - 1]).toMatch(/^paint:/u);
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
-    expect(value.mipmaps).toEqual([]);
+    expect(value.mipmaps).toHaveLength(1); draw(renderer, value); expect(value.mipmaps).toEqual([]);
   });
 });
 
@@ -111,7 +120,7 @@ it('retains a provisional glTF atlas through the LeverRifle anisotropy change an
     // LeverRifle.atlasOf runs only after GLTFLoader resolves its provisional upload.
     value.anisotropy = 8; value.needsUpdate = true;
     await uploadCompressedTexture(renderer, value);
-    expect(value.mipmaps).toEqual([]);
+    expect(value.mipmaps).toHaveLength(1); draw(renderer, value); expect(value.mipmaps).toEqual([]);
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(2);
     await uploadCompressedTexture(renderer, value);
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(2);
@@ -121,13 +130,13 @@ it('retains a provisional glTF atlas through the LeverRifle anisotropy change an
 it('recognizes an externally uploaded resident and rejects released mips after disposal or a sampler change', async () => {
   await fixture(async (renderer, events) => {
     const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
-    renderer.initTexture(value); expect(value.mipmaps).toEqual([]);
-    await uploadCompressedTexture(renderer, value);
+    renderer.initTexture(value); expect(value.mipmaps).toHaveLength(1);
+    await uploadCompressedTexture(renderer, value); draw(renderer, value);
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
     value.anisotropy = 8;
-    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('no mipmaps and is not resident');
+    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('changed after mip retirement');
     value.anisotropy = 1; value.dispose();
-    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('no mipmaps and is not resident');
+    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('lost its allocation after mip retirement');
     const clone = value.clone();
     await expect(uploadCompressedTexture(renderer, clone)).rejects.toThrow('no mipmaps and is not resident');
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
@@ -196,6 +205,50 @@ it('keeps the real baked bolt preload provisional until makeBoltAtlas finalizes 
     const maps = [atlas.map, atlas.normalMap, atlas.armMap];
     await Promise.all(maps.map(value => uploadCompressedTexture(renderer, value)));
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(4);
-    for (const value of maps) expect(value.mipmaps).toEqual([]);
+    for (const value of maps) { expect(value.mipmaps).toHaveLength(1); draw(renderer, value); expect(value.mipmaps).toEqual([]); }
+  });
+});
+
+it('allows sampler changes after a loader fence but never after the first successful draw', async () => {
+  await fixture(async (renderer, events) => {
+    const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
+    await uploadCompressedTexture(renderer, value);
+    expect(value.mipmaps).toHaveLength(1);
+    value.wrapS = value.wrapT = THREE.ClampToEdgeWrapping; value.anisotropy = 8;
+    await uploadCompressedTexture(renderer, value);
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(2);
+    expect(value.mipmaps).toHaveLength(1);
+    draw(renderer, value); expect(value.mipmaps).toEqual([]);
+    value.wrapS = THREE.RepeatWrapping;
+    expect(() => renderer.properties.get(value)).toThrow('changed after mip retirement');
+  });
+});
+
+it('keeps provisional and failed draws intact and retires shader-injected samplers only after a successful draw', async () => {
+  await fixture(async (renderer) => {
+    const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
+    await uploadCompressedTexture(renderer, value, () => true, false);
+    draw(renderer, value); expect(value.mipmaps).toHaveLength(1);
+    await uploadCompressedTexture(renderer, value);
+    const get = renderer.properties.get.bind(renderer.properties);
+    let fail = true;
+    renderer.properties.get = object => { const row = get(object); if (object === value && fail) throw new Error('Draw failed'); return row; };
+    expect(() => draw(renderer, value)).toThrow('Draw failed'); expect(value.mipmaps).toHaveLength(1);
+    fail = false;
+    // A hidden shader uniform binds via the same property lookup as a material-own map.
+    draw(renderer, value); expect(value.mipmaps).toEqual([]);
+  });
+});
+
+it.each([
+  ['wrapS', THREE.RepeatWrapping], ['wrapT', THREE.RepeatWrapping], ['anisotropy', 8],
+  ['minFilter', THREE.NearestFilter], ['magFilter', THREE.NearestFilter], ['colorSpace', THREE.SRGBColorSpace],
+  ['flipY', true], ['unpackAlignment', 8], ['premultiplyAlpha', true], ['generateMipmaps', true],
+])('refuses a post-retirement %s sampler mutation at the renderer boundary', async (key, value) => {
+  await fixture(async (renderer) => {
+    const map = ktx2.releaseAfterUpload(texture()); map.needsUpdate = true;
+    await uploadCompressedTexture(renderer, map); draw(renderer, map); expect(map.mipmaps).toEqual([]);
+    Reflect.set(map, key, value);
+    expect(() => renderer.properties.get(map)).toThrow('changed after mip retirement');
   });
 });

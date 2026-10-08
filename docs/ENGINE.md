@@ -646,7 +646,9 @@ gets a painted slice and graphics-error fence before any consumer draw. Raw KTX2
 array assembly. Shader patches declare borrowed textures and also record actual sampler uniforms at compilation;
 warm-up re-collects those uniforms before uploading. Cancellation and upload errors refuse readiness. A glTF loader
 uses `prepareCompressedTexture(texture, renderer, current, false)` provisionally: its consumer may still change
-the sampler, so mip data stays alive until the final warm-up fence. `loadTexture` accepts a fifth `configure`
+the sampler. All loader uploads retain mip data through configuration and the final fence; only the first
+successful real draw binding that texture releases it. A later sampler/storage/source mutation fails at the
+renderer property boundary before Three can access retired pixels. `loadTexture` accepts a fifth `configure`
 callback for sampler changes before publication (including baked cards). Final readiness checks the live GPU
 allocation, complete sampler/storage key and source version; disposed textures or empty unresident clones refuse
 with a descriptive error rather than attempting an upload from released pixels.
