@@ -65,6 +65,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [ask-new.sh](./ask-new.sh)
 - [browser-lane.sh](./browser-lane.sh)
 - [debug-settings.mjs](./debug-settings.mjs)
+- [deploy-pin.d.mts](./deploy-pin.d.mts)
 - [deploy-pin.mjs](./deploy-pin.mjs)
 - [deploy-version.mjs](./deploy-version.mjs)
 - [heavy-lane-lease.d.mts](./heavy-lane-lease.d.mts)
