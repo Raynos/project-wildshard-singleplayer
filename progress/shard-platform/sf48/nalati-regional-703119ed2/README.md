@@ -1,5 +1,7 @@
 # Nalati full-runtime re-entry diagnostic — E435 / SF48-g
 
+Receipt provenance: commit `12f525ba0` contains exactly the six files in this directory and `../nalati-regional-75495e452/`. Its G208 subject belongs to a concurrent commit whose message overwrote the shared `COMMIT_EDITMSG`; these files document SF48-g diagnostics. The G208 implementation landed separately as `f25ea1f09`. History is preserved; this note corrects the receipt attribution.
+
 Pin `703119ed22b118aae4b88bd9f5bbe39d4d172c88` includes generic registration/frame fix `5abd5b40c` and shared light restoration. Actual main-menu grid boot; muted iPhone 16 Pro portrait; browser-lane. This is **not an acceptance pass**. The browser and preview were closed after capture.
 
 The real first entry completes world, kit and play: the traveller walks road → Nalati, reaches world `(323.237, 0.020, -0.00034)` with gameplay ready, then returns to road `(278.180, 0.0198, 0.00008)`. No fall, stuck recovery or intermediate teleport. Nalati's entered systems disappear on the road. The second entry reaches `(305.035, 0.0207, 0.00059)` with gameplay ready, then faults. Three legs were recorded; four transitions include initial home → road.
