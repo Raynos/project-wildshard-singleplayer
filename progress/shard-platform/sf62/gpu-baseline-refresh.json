@@ -1,0 +1,1768 @@
+{
+  "ask": "E435",
+  "approvedBy": "wildshard-new",
+  "contentPin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+  "exception": {
+    "pair": "m5/nine-dragon-stack.desktop",
+    "pin": "8ecb6c70b60781dc33f88c0a54688227e5f6d19b",
+    "reason": "Approved G224 portal buffer ceiling 864ecb7d0; +686480 buffer bytes; no device-cap change"
+  },
+  "finalRunnerRecord": {
+    "run": "37741474189",
+    "workflowSha": "92d593e40d277e56236ec3373294c6594fc40a30",
+    "shardJobs": 7,
+    "greenShardJobs": 7
+  },
+  "pairs": 21,
+  "captures": 63,
+  "verdict": "green",
+  "minimumSelfSsim": 0.9913089923273153,
+  "checks": [
+    "All accepted JSON equals the official aggregate, except CLI-owned image paths",
+    "Every JPEG equals official run 1 bytes",
+    "All three raw captures: zero boot errors, zero stuck, no live startup toast",
+    "All three setting witnesses: Developer on, FPS overlays hidden, no Developer alerts, effective clock paused where present",
+    "Official record verdict green with no red field; no tolerance or timeout changed"
+  ],
+  "harnessFixes": [
+    "076309714",
+    "18b8a6f4f",
+    "17cb7422d",
+    "d739e3149",
+    "d47eb030b"
+  ],
+  "rejected": [
+    {
+      "pair": "driftwood-isle.desktop",
+      "run": 2,
+      "errors": [
+        "Failed to load resource: net::ERR_NETWORK_CHANGED"
+      ],
+      "rawSha256": "264ab6091fd6d4183210e807850d76abd468bb019a04355215d3f0590da88065",
+      "accepted": false,
+      "replacement": "official three-run per-pair CLI record"
+    },
+    {
+      "workflowRun": "37735055551",
+      "pair": "pine-hollow.phone",
+      "accepted": false,
+      "reason": "Parallel three-capture cabin walk exceeded unchanged 240-second limit; official serial three-run replacement 37738217141"
+    },
+    {
+      "workflowRun": "37738217141",
+      "pairs": [
+        "far-reach.phone",
+        "sunscar-dunes.phone"
+      ],
+      "accepted": false,
+      "reason": "Only boot.hud differed because startup toast expiration straddled the sample; bounded idle helper d47eb030b; no HUD exclusion"
+    }
+  ],
+  "records": [
+    {
+      "lane": "m5",
+      "pair": "_template.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "current": 1
+      },
+      "batchSeconds": 18.212,
+      "baselineSha256": "8bcc84ec7c6d408494ff7e11ca7bdd50f860be4fa7f917110ea00bc43e2cbc8b",
+      "poseSha256": {
+        "current": "424b448e099574280ecca99901306bf4f9948b33aeaf073f0486d26d7a5df89e"
+      },
+      "rawSha256": [
+        "a2d59c8ddf208d64fec7adfcf9984d59aae98ec5ab905f7ff7eb0438a55833da",
+        "bac65b5aa7dd3bd4a6778aa4b388b1123c6a6b4d1a3c6af6c38e987c5d494e78",
+        "c29ca56062454ad49b63d8591a19451e477fffad9d56b8522f78de2fec820628"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=_template --tiers=phone --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "_template.desktop",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "current": 0.9999999999999679
+      },
+      "batchSeconds": 19.2,
+      "baselineSha256": "5291ac285cede0fa66c64b267242c840470edaea2ad7d5ea66157506f934ca49",
+      "poseSha256": {
+        "current": "52861f662dc3723e76249dff302c8b554868bdcd9784ca254b9cc0253da3f615"
+      },
+      "rawSha256": [
+        "c362c3453874a5a7c5894d62e48951ed8ee572b97f9f9bbe0b766b3cc51f209f",
+        "8ebb5c84ad97711cf0f03f6034c9bbd361e34934e70a1eed20ccfbe4341c755f",
+        "28b42e497ea51319b0593f1402dc9a2d8fd1db7bf1d9a2b2c7b773151ffe4951"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=_template --tiers=desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "driftwood-isle.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "pier": 0.9913089923273153,
+        "beach": 0.994340456541505,
+        "wreck": 0.9999705541977699
+      },
+      "batchSeconds": 71.048,
+      "baselineSha256": "2201ccafd8f9ba919b69649a06876e32fbad85491aad5a507ab847c8b7eed1e1",
+      "poseSha256": {
+        "pier": "f75b217388c5efb68f7be97f9c3a198d098b2523639450bda45ab3630e01e42b",
+        "beach": "d05809a973d250c3a09037b91656fbc042b0ddf48de5479a9d300018f54a1f0d",
+        "wreck": "feda27e51ec059720bbcd6537a061c35a52f5ad510a1436398a779f4d67f6c43"
+      },
+      "rawSha256": [
+        "f8e84658bee80fd20078104d8eb517302dc6ad46e5f6645c6e2f76b31b398b3f",
+        "e0c838825fdab4c416d495845a8b390e6342f01efcd0d5e1de9d001749b6756e",
+        "6139d554765bd811e437f8712c6ee4f3e9bd2629bca26a40c35ad8fc7d130888"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=driftwood-isle --tiers=phone --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "driftwood-isle.desktop",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "pier": 1,
+        "beach": 1,
+        "wreck": 1
+      },
+      "batchSeconds": 187.389,
+      "baselineSha256": "b2ab92cdd5548d5ce5768b921cc538bec5678e9b7b1ab0449ba2bb5cc1878788",
+      "poseSha256": {
+        "pier": "cfb7d4c5ca7ac5c328f89b940296ec7465ad23ef7866d1fcb927254066338c0c",
+        "beach": "2b321cdf3f4c6ec9322164bb11b9796fbfc231a270754a74d14d5190ed191708",
+        "wreck": "1280fb0162a0c501ebc7725d220c4b59b1ccf26abfc1168b06cc63933aa6d56b"
+      },
+      "rawSha256": [
+        "e299b88856b6d095a85b3f10078aa3f3a982340fe383577cbf237d8663e51a2c",
+        "26fa8b557005c524b95bb123b72a5fcb3b10b8a83763202d7c84cd719de3b50e",
+        "f8aa086887985a1167b7ad32f20aa2f0bc5a59484d5d4d2db9cdf3b7fa9f13f8"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=driftwood-isle --tiers=desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "far-reach.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn": 0.9999997045891073,
+        "hover": 0.9999948619469837
+      },
+      "batchSeconds": 119.794,
+      "baselineSha256": "eead204fd756ebf930f072ea67dd1c78675274db5be543828f458c4580559322",
+      "poseSha256": {
+        "spawn": "ceed6a4e4020be6c3dab46d507015645a0dc9827b87a73aae950a68ee53dc70c",
+        "hover": "f9b97658d3e260afcd1f198c5d52525c89236093a559c461a6672fc52e1e6990"
+      },
+      "rawSha256": [
+        "05816ea4d9362ab9d4a0feef1607a463a0e6477ca312a0c24916a918af9c9d60",
+        "c6e556f2868f8973fc5d1a8f78687b31a737b832bd97ac7c13a3ae4ad6cdb58a",
+        "ecea099ab458e6cfcb639cc4fbc21d809c0a2f9131280541c1095e1fe35c0fb3"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=far-reach --tiers=phone,desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "d47eb030b679c09096539ea1fd0b7692bbbf4bb2"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "far-reach.desktop",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn": 0.999999965240429,
+        "hover": 0.9999999541296183
+      },
+      "batchSeconds": 119.794,
+      "baselineSha256": "c42896d240f17be921572324741fc0e660859df503f79ec60a996662056ea242",
+      "poseSha256": {
+        "spawn": "64ab05de469e9e20a623b0a211bffccea1b0f0fe88e4aed86028f6443f833e30",
+        "hover": "03d0115ec1f324e1db7580ef5cba266b4345945e72cba707d5efa75688c4d5f2"
+      },
+      "rawSha256": [
+        "450cb78a9c52588de4f72cfbb7e1548b9a294e14cebbbefd52c7c1a914c6b540",
+        "dd5b43acf5d75ca95fa937f642c50c44f12c7693d1804c56c74bb6ccf8a49a09",
+        "4bf3b6f6ffd3c4ddc2b5c260244b972e354a54199bec89070222a438ca4f7d6e"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=far-reach --tiers=phone,desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "d47eb030b679c09096539ea1fd0b7692bbbf4bb2"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "nalati-grasslands.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "camp": 1,
+        "bridge": 0.9999963586852945,
+        "plains": 0.9999982347861148
+      },
+      "batchSeconds": 95.32,
+      "baselineSha256": "907f23ebc4a82e7a6c4c3bab74b4fafd70444f2ce4918e4257b13494bff400d4",
+      "poseSha256": {
+        "camp": "6b770a5ba09b32bf39e180849b16bfb90dba9fcbfda908613da7a1a3bd1e3fa2",
+        "bridge": "6d5da0d6ac95c9c5afb6990fca6c2481b928cc18b61dd17caa5202d672e00646",
+        "plains": "146e0ca8c95a5d4d6d8457ceaec23761dd6cdabc0bd61553ac3aed4f1a744962"
+      },
+      "rawSha256": [
+        "e19679ac65f949b28be6e05825854f58a556ca4e8d983bcd8464e7d86ff4f437",
+        "3d6c3b964ae4337b6f040341ef4144630152bb6fe7ec1c373bb38ad84aff0f71",
+        "ee4b0bcd1b1eb39c52be8d1043a01125e7477e800861fecf48c3e870b17c76da"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=nalati-grasslands --tiers=phone --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "nalati-grasslands.desktop",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "camp": 1,
+        "bridge": 0.9999998402658152,
+        "plains": 0.9999765192965546
+      },
+      "batchSeconds": 170.806,
+      "baselineSha256": "2a6c05e55ca76feff8c6e274646655e9cda8f65e207c9850276cdfcef791d999",
+      "poseSha256": {
+        "camp": "e78fb84b00ca5d2d36e3ccfc00a2660700d18dcd68e141e14191a31df3135367",
+        "bridge": "ed18a57a882f75e5c7fcea3b720e9fc6bb7c02e306ac63c335e47064aec2a95e",
+        "plains": "d062993045cc41544502816ad01f906ae76c50cd6da5391e4c78fdd319b59438"
+      },
+      "rawSha256": [
+        "df236b3ab4b085b3f73793f3ee67db1517eeb18262a1af67bc73a5235f33c0df",
+        "d3775cd1cfacfe16afcff795583ae347a0a36eca59e131cd7cebed1ffbcd537a",
+        "89f8246536022bcc18df66e2df27f1e41400da581130f99b45107816eb8b4b8d"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=nalati-grasslands --tiers=desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "nine-dragon-stack.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn-rail": 1,
+        "well-edge": 1,
+        "stair-street": 0.999983421096111
+      },
+      "batchSeconds": 46.129,
+      "baselineSha256": "23e4bbf4d878601c91d344a8e3de041de2ebe064ff76a118516853104c4a0a41",
+      "poseSha256": {
+        "spawn-rail": "66767a8ae89fe93b3c6b1bc31c7a1b70a25cab0c6b97ab406e4338edcf6ff412",
+        "well-edge": "2a7692c58193cdba7f4a2610be47ed77300fcfb4cf75165863e0106583e3be57",
+        "stair-street": "b37ad44c23ee784672e87603220a9ae3e58002e4997fd0c7b2e85d2eb4d09c98"
+      },
+      "rawSha256": [
+        "19e12c2dd4d8c1df82f234f84e6b9a3295d73dd5bd63c7aa69850cfd34af3f39",
+        "185bcd94a648a300dc458a14dfb554232701d054edbbf0d955d4623627694260",
+        "45875efff5240a9f630f670bc301510eed9055f520a4c1712c5749be0243674c"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=nine-dragon-stack --tiers=phone --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "nine-dragon-stack.desktop",
+      "pin": "8ecb6c70b60781dc33f88c0a54688227e5f6d19b",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn-rail": 1,
+        "well-edge": 1,
+        "stair-street": 1
+      },
+      "batchSeconds": 93.037,
+      "baselineSha256": "a1f7e5d9b6d92f5c4f27d6c0fa7dfbe41b47d031a8a290a4f4acc0805e6a875a",
+      "poseSha256": {
+        "spawn-rail": "ad26bc1a2731e6c3629bd2456497f89582f8fae951bceef13064f88827e1c1dd",
+        "well-edge": "4c30db0f5ee2b7ed663335de0b9c16cb140a7ba12d7fdde5263f860644a84c7b",
+        "stair-street": "4c15737862a916d2231a6a4e460eb519fc188b740156213e0dc972577ba2df5f"
+      },
+      "rawSha256": [
+        "31d3d5ff1e5a1088607c344c8c0274a32c96d9690aff9d1906739e8512b59142",
+        "2e0c6631e0976a1b980ada58958b2cee99851479f3890e950225f98858260652",
+        "b8faf1d64b552e1a26fd694b9103d102fc5cee3ee261e9fae9faf63efcb4c04c"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=nine-dragon-stack --tiers=desktop --export=8ecb6c70b60781dc33f88c0a54688227e5f6d19b --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "d47eb030b679c09096539ea1fd0b7692bbbf4bb2"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "pine-hollow.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "gate": 0.9999994809924332,
+        "cabin": 1,
+        "pond": 0.9996982127247979
+      },
+      "batchSeconds": 173.06,
+      "baselineSha256": "a8e4371284e03b3cb63b179712c63053e9a127a9767f54cc9baf84e7851a47bf",
+      "poseSha256": {
+        "gate": "df1b0eedeaf34194485c94745fdf6f0526ef2597c6455ae4c08389ce2214f3b4",
+        "cabin": "e267560d26a2b1ca268095a2570018898e7ba82b4a3d6ba4ee086225bf84c9e2",
+        "pond": "3218af0f66283a159807858d67cb67786ee2417adb02bd64314dcfb1e8c4a196"
+      },
+      "rawSha256": [
+        "52c852282aabf073896799f03bc4724834b4cd02e141b0ed5ef4dcf000f26639",
+        "32d21518d0122abb51e7aee61495072235ab38c6b0e6958c812889624fae29ad",
+        "b2b640577d755d591aec64a594e56635938e0784b51117c1e7de1363c16de5f7"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=pine-hollow --tiers=phone --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "pine-hollow.desktop",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "gate": 1,
+        "cabin": 1,
+        "pond": 0.9999285764248292
+      },
+      "batchSeconds": 593.768,
+      "baselineSha256": "428b5ed387efa3a4dafdacd1cb633e770fd0837d55a8ff90ab361ee69cb9d6c8",
+      "poseSha256": {
+        "gate": "7bde47400e27a04f50b389e293412cc973216fea54fde8632a286464ba7a340e",
+        "cabin": "abffe9a8a337bc7d31c369bda3cbee7a9271f6a717f9961d45b465d115bb3cdf",
+        "pond": "eb87003c3e9f5f3b407efae1e280f7175e8375942b03a8ef4ccc8f755cf6dfde"
+      },
+      "rawSha256": [
+        "d3e3d9211ae36a1e961f7dbb722bfe2886480e9c2fdabf151212e8880d6fdba0",
+        "74b82c63bb77ec9225c38f0ccb6304a35d01033d7a9796d6c2b21bb105633b23",
+        "ccabe7c89b48eea393a96baed209ebf30f95065fd66962ba71a746f708fe870d"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=pine-hollow --tiers=desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "sunscar-dunes.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn": 0.9999973971255409,
+        "whip": 0.9999918647565575,
+        "ray": 0.9999508326831676,
+        "quest": 0.9996191407149362
+      },
+      "batchSeconds": 29.366,
+      "baselineSha256": "61fe460365e2fcdf320a32021699d632c0ab7ba4b49801bef5de11f0935ffb2d",
+      "poseSha256": {
+        "spawn": "a7373d1441bde204540b254b95563a9bcafcb9afa0766768235ea6c91a3ff237",
+        "whip": "a5c142fdd8f5271495b333042747e4bc9315d862ee6ba92861b6c7a10bbf0d54",
+        "ray": "5e0557552b04635fcaddf1bb0d916bcecf95a41eb2b4c24fa63068815859d69a",
+        "quest": "abf929f4f563c60b26c53ff2218664fc0d21a33291889008396113034aedff37"
+      },
+      "rawSha256": [
+        "cbc7f295e443fa7008b87e777cf9cd0783cd5201da1a1fd357394062864fe037",
+        "075e1c0215d1ba2ca985a8f33d512f4f54facb10865e99549ac3a38a5fa59ff2",
+        "b8b9797b7de564ecbc34d228df3b767c24943f0a6031de941aacbd2b8ff855d8"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=sunscar-dunes --tiers=phone --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "d47eb030b679c09096539ea1fd0b7692bbbf4bb2"
+      }
+    },
+    {
+      "lane": "m5",
+      "pair": "sunscar-dunes.desktop",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn": 0.9999871923041782,
+        "whip": 0.9999824620694994,
+        "ray": 0.9999907278551239,
+        "quest": 0.9999955517520087
+      },
+      "batchSeconds": 29.215,
+      "baselineSha256": "c21dce658ac46ed817f7abff1786783c057e108221b56eaa034b82a1de97bb0d",
+      "poseSha256": {
+        "spawn": "626c9068b547c148fc4b6a861b41341be2057ee931791036051889362846a916",
+        "whip": "7fbc1bda287b35b3491dfde23f56d3b6f376b6672b6097dd3ea6eed97aead7b5",
+        "ray": "7a52e7aa0493bcbceb3495d5968d509affd8250e3888b91c870e94baac474380",
+        "quest": "ce10787ef1bc9177149c868896c1704e8117f968ec9a3da43c23edd53cc07918"
+      },
+      "rawSha256": [
+        "fc1779dfb583234429800ead8316962da95deb0da277c1dd941dd701078251a7",
+        "cb9fea5a71c0936b9f4a5e2b5e203f49bc223a2f68d036203a801853e3934cc6",
+        "ff9d52cdb80c09be4347175ddea0476bcf5d77043ee03c8170617c48661742f6"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "officialCli": "node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=sunscar-dunes --tiers=desktop --export=bfb9dc325d08792ddbe88bd08c78fcf288da8851 --jobs=1 --retry=0 --out=<scratch>",
+        "harnessSha": "d47eb030b679c09096539ea1fd0b7692bbbf4bb2"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "_template.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "current": 1
+      },
+      "batchSeconds": 175.139,
+      "baselineSha256": "22b4ef430b4666500e20f51ddd24d1d3d3ecdb5eedc5fd0972fd5fcf433458ff",
+      "poseSha256": {
+        "current": "b2386b1976e75ab0b3a40cede8d4e893ef7f83f280aed353ad8713aeed821e3d"
+      },
+      "rawSha256": [
+        "a713fe9c15bfe3dd1e76bdc03fbd76facb4a6f72911d65a587fc5a8e6c3bb1e5",
+        "fd53a0d9a9397bc299b3cb644dca01ae77da76edc2f332198ed19d37cafa2413",
+        "3b51e28dbdd04ee55f6f9ff895e1552e6b714d1d55ef52c0a1583a5d9388affc"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37735055551",
+        "workflowSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+        "artifact": "parity-baselines-gh-macos15-_template"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "driftwood-isle.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "pier": 0.993726601265235,
+        "beach": 0.9917646472539042,
+        "wreck": 0.9999115729326805
+      },
+      "batchSeconds": 343.389,
+      "baselineSha256": "d667a5acef4ea7b2437faca1848bef8c14c12067ccffc7d0f1c5f31e69a99451",
+      "poseSha256": {
+        "pier": "22ec3bfa5684163b9e1fc69d15add0ecaf51f733131fddb71caed266dba87e3c",
+        "beach": "c6d104b46b95ea70647a8658aa1aed501acb1cc3f6e0e2aa9fef2a188facf144",
+        "wreck": "a2c426479a2ca839cd41dbccc505d49c919863bf960cc36d1d984e6a0a79d348"
+      },
+      "rawSha256": [
+        "06e2d2fa5ce1ea60d84f00b41bf67448af1b1961719bed82f893964b74b4729b",
+        "eaa32a704c07f3d0e1405c4ec6ba180cbcb36a3b86214c93bacbccf296326519",
+        "dcf6be88fcf20618266d4d952f8a41695381c50bba6c288bf4f9c4d09260aa32"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4166666666666667
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37735055551",
+        "workflowSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+        "artifact": "parity-baselines-gh-macos15-driftwood-isle"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "far-reach.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn": 0.9999573471520447,
+        "hover": 0.9999555637450965
+      },
+      "batchSeconds": 482.459,
+      "baselineSha256": "fd18720793c5048e12ef42ea256a5722bcf33b4370555e2c89c37c373e4f1252",
+      "poseSha256": {
+        "spawn": "33cfe908b9855415ff75cd082c58579bf1f5cde9f61a8d5f31b38e66191ea71a",
+        "hover": "6940e6360bd11fb8ab252228109e4cd8b66c797b92a31a36c9ab656b1b281a00"
+      },
+      "rawSha256": [
+        "60bb35c587cc2ba67994829d54f51ad3132306b05a369d0f6f0cc918f7e69ff6",
+        "0dbee3bbe90de4a92c6297acf2268a3b167d76d3274f2b19e4dd429bd32468a0",
+        "eb788a50547a3b3d3e703b292599b2dea76915817c2d6385333e1ba52c9e3cbc"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37735055551",
+        "workflowSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+        "artifact": "parity-baselines-gh-macos15-far-reach"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "nalati-grasslands.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "camp": 1,
+        "bridge": 0.999938284044818,
+        "plains": 0.9999640543885043
+      },
+      "batchSeconds": 444.644,
+      "baselineSha256": "c03ce0af7235f058a330813b270719ad0c13bdb1a3d18b2441c17473b96cfc4c",
+      "poseSha256": {
+        "camp": "6935c58e0799aa7109b8afdd168dd20ed372d89cfe5458293754a5e46997db9f",
+        "bridge": "cf3740226f540a02000da355c024153fab8dae480be2b482c04235519389c0a6",
+        "plains": "e28b34197385e36aa6728abafe87a0713c5ddf823685bab92b1dd45ec104563e"
+      },
+      "rawSha256": [
+        "29c923748b088990052bbac03e039f8b402f0eb93b1e16c049691299dc068737",
+        "ba366fd75870ae03d2611a34e9c9b34a4da2c094230ac1ecddbed4444152d5fb",
+        "c12772b1b0f0cd24c60bc780eb9c3d601228fec663296868d58a5436219c7eb4"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37735055551",
+        "workflowSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+        "artifact": "parity-baselines-gh-macos15-nalati-grasslands"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "nine-dragon-stack.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn-rail": 0.9999668363447924,
+        "well-edge": 0.9999683274606538,
+        "stair-street": 0.9996373284324235
+      },
+      "batchSeconds": 304.694,
+      "baselineSha256": "180fa8f8cdb950650d9e6db404cd4fec141a40bb84292f9b915ffc720c34e516",
+      "poseSha256": {
+        "spawn-rail": "15494271857c0320e7fa05c89cf3f445c050f49c39a5806ff1f8907d03e65038",
+        "well-edge": "50aeea1f9cdf6521f119f0a2b30a48d9b7d240c1bf7f1b3391e8bda91be4e68b",
+        "stair-street": "58f07f9a50faca18ee8fec4a5dc1d9a6667d099e1c955241f74e6ef6ff1c3c72"
+      },
+      "rawSha256": [
+        "42f222558a1a4214034720d2a44be0de0ae56b3745933af722563557178b60e6",
+        "6c0b3480579e98527f0d570bc306c10b97bf844fa57d43d64be51636de329805",
+        "a89bcfcf32950f58c793613e22769162ec7cdca946f657605528435a0b2c03b6"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": null,
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37735055551",
+        "workflowSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+        "artifact": "parity-baselines-gh-macos15-nine-dragon-stack"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "pine-hollow.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "gate": 0.9999857104083842,
+        "cabin": 0.999181583926254,
+        "pond": 0.9965940310276852
+      },
+      "batchSeconds": 883.275,
+      "baselineSha256": "dcb26d08479260e3acbcedf282f2fb7e293d174fe2905e2a0d92ac7a3f4ea7d2",
+      "poseSha256": {
+        "gate": "12b1c2461aaee44b5aeddbe345ec9c8af56bf9277859ec7d760348a9c7c87360",
+        "cabin": "a5fab1876a8f4c6c8c50801a1b9a118fc1f8bf02c298df3013ef1b6dd262b52f",
+        "pond": "df8c8319eb690cc62a3b1996cbe31dc53f2c6d4bd5d320f077aa194e6e03ae43"
+      },
+      "rawSha256": [
+        "06b215b1b0e4c9126c4111f96c7965fb30d2bdce8caa5cfe618b5bc115c73474",
+        "caa6445d69eab529dfb89826ce7f6e1647ee2bc60c2d9329b00eedb6e1ac517e",
+        "47eb434867fc144f2df3aa5014c608203b0d29deb193c4dc17665e7fd1eae514"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.4167
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37738217141",
+        "workflowSha": "d739e31490147a0d23584847edb3d9969d44f44e",
+        "artifact": "parity-baselines-gh-macos15-pine-hollow"
+      }
+    },
+    {
+      "lane": "gh-macos15",
+      "pair": "sunscar-dunes.phone",
+      "pin": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "verdict": "green",
+      "runs": 3,
+      "walkStuck": 0,
+      "bootErrors": [],
+      "classDRed": 0,
+      "selfMin": {
+        "spawn": 0.9999327180697648,
+        "whip": 0.9999853527084007,
+        "ray": 0.9999546017649026,
+        "quest": 0.9992079059435821
+      },
+      "batchSeconds": 190.471,
+      "baselineSha256": "f165cfe95413f47e1e6b6ca0434404af1ca493fafe6da587ce2c1b777df0f02b",
+      "poseSha256": {
+        "spawn": "a27f9870b6d4048d88a21fe2f663f124204a2407ef00209f4987f7249ffa9815",
+        "whip": "b22916e4d2207ad9e4a8b526750560859235271939daeb042b145bbacb2b04cc",
+        "ray": "e3989d39a17236da5b7629d0489fefea3d37c78914db2311902bf93dc55ff5da",
+        "quest": "9e8003d4b7ab8627e86444983d146409f617446e67a089883d3d4b1ce97ec34d"
+      },
+      "rawSha256": [
+        "88d4ff75a68fa467ee2c1fbc44fd2c126eb781dac3916953b1eab54594ea5188",
+        "f79fee5dfb9d94c1c310c504a5dbdf411aff4c929571bfb15e719f602211e3d1",
+        "bb0ce4b907db9d0b41597929d1e2183b89b97be39068ff6737cee6c63c730ebe"
+      ],
+      "captureSettings": [
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        },
+        {
+          "requested": {
+            "time": "midday",
+            "weather": "clear"
+          },
+          "developer": true,
+          "overlayStyle": true,
+          "fpsBadges": [
+            "hidden",
+            "hidden"
+          ],
+          "clock": {
+            "paused": true,
+            "phase": 0.5
+          },
+          "developerAlerts": []
+        }
+      ],
+      "source": {
+        "workflowRun": "37741474189",
+        "workflowSha": "92d593e40d277e56236ec3373294c6594fc40a30",
+        "artifact": "parity-baselines-gh-macos15-sunscar-dunes"
+      }
+    }
+  ]
+}
