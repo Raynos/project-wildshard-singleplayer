@@ -3287,7 +3287,7 @@
       {
         "name": "ItemSpec",
         "kind": "type",
-        "doc": "Data used by an authoritative item; kit factories add equipment UI and a view.",
+        "doc": "Data used by an authoritative item; kit factories add equipment UI and a view. A null tool action leaves input with its trusted runtime.",
         "from": "@wildshard/engine/combat/items"
       },
       {

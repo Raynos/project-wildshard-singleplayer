@@ -791,7 +791,7 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.items.rows[]<0>.view.rotation[1] | number | required | min_value -10; max_value 10 |
 | $.items.rows[]<0>.view.rotation[2] | number | required | min_value -10; max_value 10 |
 | $.items.rows[]<1> | strict_object | required |  |
-| $.items.rows[]<1>.action | custom | required | custom predicate; not executed |
+| $.items.rows[]<1>.action | custom | nullable; default undefined | custom predicate; not executed |
 | $.items.rows[]<1>.family | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
 | $.items.rows[]<1>.fuelSeconds | number | required | min_value 0.001; max_value 86400 |
 | $.items.rows[]<1>.hook | strict_object | nullable; default undefined |  |

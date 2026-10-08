@@ -554,7 +554,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ItemHook` | type | @wildshard/engine/combat/items | Script hooks return only a bounded action selection. The host owns tick admission and aggregate allowances. |
 | `ItemPorts` | interface | @wildshard/engine/combat/items | Existing actor/contact/effect ports; no renderer or active app participates in item simulation. |
 | `ItemRuntime` | class | @wildshard/engine/combat/items | Fixed-step weapon/tool state. Input queues once; render updates only read it. |
-| `ItemSpec` | type | @wildshard/engine/combat/items | Data used by an authoritative item; kit factories add equipment UI and a view. |
+| `ItemSpec` | type | @wildshard/engine/combat/items | Data used by an authoritative item; kit factories add equipment UI and a view. A null tool action leaves input with its trusted runtime. |
 | `ItemState` | interface | @wildshard/engine/combat/items | Complete numeric continuation. Script memory belongs to the shared script host snapshot. |
 | `ItemTarget` | interface | @wildshard/engine/combat/items | Host-supplied body contact position, shared by headless targets and posed client rigs. |
 | `scriptItemHook` | function | @wildshard/engine/combat/items | Compile a hook over the already installed, shared ScriptHost. An author cannot target another item or invent an action. |
