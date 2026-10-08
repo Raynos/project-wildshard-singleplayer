@@ -1,8 +1,9 @@
 /** Browser-side independent resource census (03 §2.4); called before page scripts. */
 export function installResources() {
   const w=/** @type {Window} */ (window);
-  /** @typedef {{target:EventTarget,type:string,callback:EventListenerOrEventListenerObject,capture:boolean,wrapped:EventListener,stack:string,abort?:()=>void,signal?:AbortSignal}} Entry */
+  /** @typedef {{id:number,target:EventTarget,type:string,callback:EventListenerOrEventListenerObject,capture:boolean,wrapped:EventListener,stack:string,abort?:()=>void,signal?:AbortSignal}} Entry */
   /** @type {Set<Entry>} */ const listeners=new Set();
+  let listenerId=0;
   // oxlint-disable-next-line typescript/unbound-method -- Wrappers preserve the native receiver through call().
   const add=EventTarget.prototype.addEventListener,remove=EventTarget.prototype.removeEventListener;
   /** @param {Entry} entry */
@@ -15,7 +16,7 @@ export function installResources() {
     const signal=typeof options==='object'?options.signal:undefined;
     if(signal?.aborted)return;
     const once=typeof options==='object' && options.once===true;
-    /** @type {Entry} */ const entry={target:this,type,callback,capture,stack:new Error(`listener ${type}`).stack??'',wrapped(event){if(once)forget(entry);if(typeof callback==='function')callback.call(this,event);else callback.handleEvent(event);}};
+    /** @type {Entry} */ const entry={id:++listenerId,target:this,type,callback,capture,stack:new Error(`listener ${type}`).stack??'',wrapped(event){if(once)forget(entry);if(typeof callback==='function')callback.call(this,event);else callback.handleEvent(event);}};
     if(signal){entry.signal=signal;entry.abort=()=>forget(entry);add.call(signal,'abort',entry.abort,{once:true});}
     listeners.add(entry);add.call(this,type,entry.wrapped,options);
   };
@@ -39,7 +40,10 @@ export function installResources() {
   w.cancelAnimationFrame=(id)=>{raf.delete(id);cancel(id);};
   window.__parityResources=()=>{
     const counts={window:0,document:0,canvas:0,other:0};
-    for(const e of listeners)counts[e.target===window?'window':e.target===document?'document':e.target instanceof HTMLCanvasElement?'canvas':'other']++;
-    return {listeners:counts,timers:{timeouts:timeouts.size,intervals:intervals.size,raf:raf.size},timerIds:{timeouts:[...timeouts.keys()],intervals:[...intervals.keys()],raf:[...raf.keys()]},stacks:{listeners:[...listeners].slice(0,5).map((e)=>e.stack),timers:[...timeouts.values(),...intervals.values(),...raf.values()].slice(0,5)}};
+    const listenerDetails=[...listeners].map(e=>({id:e.id,type:e.type,capture:e.capture,
+      kind:e.target===window?'window':e.target===document?'document':e.target instanceof HTMLCanvasElement?'canvas':'other',
+      target:e.target.constructor.name,stack:e.stack}));
+    for(const e of listenerDetails)counts[e.kind]++;
+    return {listeners:counts,listenerDetails,timers:{timeouts:timeouts.size,intervals:intervals.size,raf:raf.size},timerIds:{timeouts:[...timeouts.keys()],intervals:[...intervals.keys()],raf:[...raf.keys()]},stacks:{listeners:[...listeners].slice(0,5).map((e)=>e.stack),timers:[...timeouts.values(),...intervals.values(),...raf.values()].slice(0,5)}};
   };
 }

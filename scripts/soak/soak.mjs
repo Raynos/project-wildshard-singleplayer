@@ -151,6 +151,7 @@ async function worker() {
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
     const first = result.route.plans[0];
     await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
+    result.listenerBaseline = await driver.evaluate('window.__parityResources().listenerDetails');
     await driver.evaluate('window.__sf57={cycles:0};true');
     phase('baseline-0'); await measuredWait(10);
     result.gamePid = soakGamePid(readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)));
@@ -195,6 +196,7 @@ async function worker() {
     await driver.evaluate(`window.__wildshard.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true`);
     await until(driver, 'Boolean(window.__sf57Leak)', 60000, collectGl);
     result.leak = await driver.evaluate('window.__sf57Leak'); await measuredWait(20);
+    result.listenerAfter = await driver.evaluate('window.__parityResources().listenerDetails');
     await driver.evaluate('clearInterval(window.__sf57GLTimer);true');
     result.errors = [...new Set([...result.errors, ...await driver.evaluate('window.__sf57Errors')])];
     phase('done'); await samplerClosed; sampler = null;
@@ -210,6 +212,7 @@ async function worker() {
           await driver.evaluate('window.__wildshard?.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true');
           await until(driver, 'Boolean(window.__sf57Leak)', 60000, collectGl);
           result.leak = await driver.evaluate('window.__sf57Leak'); await measuredWait(5);
+          result.listenerAfter = await driver.evaluate('window.__parityResources().listenerDetails');
         } catch (cleanupError) { result.cleanupError = String(cleanupError); }
       }
     }
