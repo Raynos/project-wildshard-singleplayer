@@ -1,4 +1,5 @@
 import type { Scope } from '../app/scope';
+import type { TexturePolicyBinding } from '../boot/gpuFiles';
 import { withOwner } from '../app/ownership';
 import { bindChunkConstants, CHUNK_COORDS, SEED, TREE_COUNT } from '../core/config';
 import type { Navmesh } from '../physics/navmesh';
@@ -22,6 +23,8 @@ export interface LevelFrameOptions {
   levelScope?: Scope;
   water: WaterBodies;
   navmesh: Navmesh | null;
+  /** Retained asset policy; absent keeps the configured page's existing texture choice. */
+  textures?: TexturePolicyBinding;
 }
 interface HostPorts { scope: Scope | null; navmesh: Navmesh | null; navmeshId: string | null }
 interface HostFrame { ports: HostPorts }
@@ -59,6 +62,7 @@ export class LevelFrameBinding {
     const leaveTerrain = bindHeightfield(this.terrain);
     const leaveConstants = bindChunkConstants(this.constants);
     const leaveWater = host.world.bindWater(water);
+    const leaveTextures = this.options.textures?.enter();
     retained.frames.push(frame); apply(host, frame.ports);
     let active = true;
     let forgetEntered: () => void = () => undefined;
@@ -68,7 +72,7 @@ export class LevelFrameBinding {
       active = false; forgetEntered(); forgetResident();
       const index = retained.frames.indexOf(frame);
       if (index !== -1) retained.frames.splice(index, 1);
-      leaveWater(); leaveConstants(); leaveTerrain(); leaveLevel();
+      leaveTextures?.(); leaveWater(); leaveConstants(); leaveTerrain(); leaveLevel();
       apply(host, retained.frames.at(-1)?.ports ?? retained.home);
       if (retained.frames.length === 0) hosts.delete(host);
     };

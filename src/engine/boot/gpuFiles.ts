@@ -54,8 +54,14 @@ export type TexMode = 'ktx2' | 'img';
 
 /** the one level selected for this page (core/config's PAGE_LEVEL: captured by the registry's first apply) */
 /** the level a build's texture policy is for (setTexturePolicy); the page's level when unset */
-let policyLevel: string | undefined;
-const buildSlug = (): string => policyLevel ?? PAGE_LEVEL;
+interface TexturePolicyState {
+  readonly level: string | undefined;
+  readonly policy: { mode: TexMode; why: string } | undefined;
+  resolved: { mode: TexMode; why: string } | null;
+}
+let pagePolicy: TexturePolicyState = { level: undefined, policy: undefined, resolved: null };
+const policyFrames: { state: TexturePolicyState }[] = [];
+const activePolicy = (): TexturePolicyState => policyFrames.at(-1)?.state ?? pagePolicy;
 /** a page that may load KTX2 in some build (Debug ▸ GPU textures is not Images): its model / texture caches are per shard
  *  (KTX2 drops a texture's mips once uploaded — another renderer could not upload a cached copy; E155) */
 export const MAY_KTX2 = setting('tex') !== 'img';
@@ -64,8 +70,6 @@ let autoReady: ((slug: string) => boolean) | null = null;
 /** shardPrefetch.ts: how Auto learns that a shard's KTX2 set is cached (the marker check) */
 export function setAutoKtx2Check(fn: (slug: string) => boolean): void { autoReady = fn; }
 
-let resolved: { mode: TexMode; why: string } | null = null;
-let texturePolicy: { mode: TexMode; why: string } | undefined;
 /** G188's automatic tier policy: measured over-cap phone builds use KTX2 before the first visit, never desktop. */
 export function autoTexturePolicy(mode: TexMode | undefined, imagesFirstPlayingBytes?: number): { mode: TexMode; why: string } | undefined {
   if (imagesFirstPlayingBytes !== undefined && (!Number.isSafeInteger(imagesFirstPlayingBytes) || imagesFirstPlayingBytes < 0)) throw new RangeError('Invalid images-first playing estimate');
@@ -76,23 +80,41 @@ export function autoTexturePolicy(mode: TexMode | undefined, imagesFirstPlayingB
 }
 /** The composition root installs tier data before this build resolves its file list. */
 /** a build's texture policy (its tier's `textures`) and the level it is for (the page's level when omitted); the mode resolves afresh */
-export function setTexturePolicy(mode: TexMode | undefined, level?: string, imagesFirstPlayingBytes?: number): void { texturePolicy = autoTexturePolicy(mode, imagesFirstPlayingBytes); policyLevel = level; resolved = null; }
+export function setTexturePolicy(mode: TexMode | undefined, level?: string, imagesFirstPlayingBytes?: number): void {
+  pagePolicy = { level, policy: autoTexturePolicy(mode, imagesFirstPlayingBytes), resolved: null };
+}
+/**
+ * One resident's immutable texture choice, resolved once with the ordinary Debug/Auto precedence.
+ * Enter with its frame or exclusive asset-build scope and release before another frame resumes.
+ * Nested and out-of-order leaves preserve both the resident choice and the configured home choice.
+ */
+export class TexturePolicyBinding {
+  private readonly state: TexturePolicyState;
+  constructor(mode: TexMode | undefined, level: string, imagesFirstPlayingBytes?: number) {
+    this.state = { level, policy: autoTexturePolicy(mode, imagesFirstPlayingBytes), resolved: null };
+  }
+  enter(): () => void {
+    const frame = { state: this.state }; policyFrames.push(frame);
+    return () => { const index = policyFrames.indexOf(frame); if (index !== -1) policyFrames.splice(index, 1); };
+  }
+}
 let resolving = false;
 /** the mode this page loads with, and why (fixed on the first call) */
 export function texModeWhy(): { mode: TexMode; why: string } {
-  if (resolved) return resolved;
+  const state = activePolicy();
+  if (state.resolved !== null) return state.resolved;
   if (resolving) throw new Error('texMode(): asked while it is being resolved — pass the mode explicitly');
   resolving = true;
   try {
     const picked = setting('tex');
-    if (picked !== 'auto') resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
+    if (picked !== 'auto') state.resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
     else {
-      const slug = buildSlug();
-      if (texturePolicy !== undefined) resolved = texturePolicy;
-      else resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
+      const slug = state.level ?? PAGE_LEVEL;
+      if (state.policy !== undefined) state.resolved = state.policy;
+      else state.resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
     }
   } finally { resolving = false; }
-  return resolved;
+  return state.resolved;
 }
 export const texMode = (): TexMode => texModeWhy().mode;
 
