@@ -67,7 +67,8 @@ try {
   };
   await until("Boolean(document.querySelector('.ws-main-grid'))");
   report.stage = 'grid-tap'; save();
-  await evaluate("(setTimeout(() => document.querySelector('.ws-main-grid').click(),100),true)");
+  // This deliberate title-to-game navigation precedes the measurement document fence.
+  await inspector.raw("(setTimeout(() => document.querySelector('.ws-main-grid').click(),100),true)");
   await sleep(3000); evaluate = await connect(helper);
   report.stage = 'grid-load'; save();
   await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)", 240000);
