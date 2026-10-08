@@ -1,7 +1,7 @@
 # sp-x5 handoff — 2026-10-08
 
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
-Never message wildshard-v. Simulator Safari is now authorized via sim-lane behind sky-mem; no timing claim until the matched captures finish.
+Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
 
 ## Landed source
 
@@ -45,18 +45,41 @@ is the cleanup receipt. No new Simulator/browser/build/full-suite work queued.
 Coordinator was blocked during cleanup, so no prompt/keys were sent into its
 question. It resumed and received release + Safari SHA. No resource hold remains.
 
-## Exact next step
+## Format / source handoff
 
-Safari receipt a430e9ae470112973e8be7a06243eccf40dfbbeb landed and was relayed
-with the explicit final Simulator release to the working coordinator. Separate
-Signal Dunes correction: keep18-character cap, declare the17-character “Light
-signal fire” scout chip and remove the runtime override from e9c0c5945 hybridRows.
-Actual QuestState chip is checked in the existing contract; 2files/12tests and
-scoped typed lint green. Source40aa26ece160da70e97427bc677ee92cf046dcd1 landed
-and was relayed. A stale sf50 receipt clause is corrected in this docs follow-up.
-Coordinator owns the serialized push of the receipt and source commits. SF67 remains OPEN: the desktop ruler still
-has >100ms tasks (Driftwood733ms/Nalati1207ms/Pine263ms); bake/worker/time-slice
-follow-ups and physical-phone evidence remain. Fix3 is not assigned to this lane.
+Safari receipt a430e9ae470112973e8be7a06243eccf40dfbbeb and the explicit release
+were relayed to the coordinator. Signal Dunes chip source40aa26ece and docs2e4a9ecfa
+keep the18-character cap, declare the17-character “Light signal fire” and remove
+the runtime override. Actual QuestState chip: 2files/12tests and typed lint green.
+
+This format follow-up covers e9c0c5945 runtime.binds. RuntimeSchema already composes
+its sole strict RuntimeBindsSchema at schema.ts runtime; no duplicate validator or
+changed default/trust policy. Full-schema tests now cover omitted/empty/all-three,
+unknown/duplicate/oversized/malformed binds, unknown runtime keys, unchanged bound
+quest validation and external/cached runtime refusal before fetch/publication.
+SHARDFILE.md documents ownership, admitted rows retained, data-client installation
+filtering, explicit scoped installers, item family/input rules and runtime trust.
+Two focused files / 11 tests and scoped typed lint pass. Coordinator owns the push.
+
+## SF67 Safari CPU attribution — blocked; lane idle
+
+No demonstrated non-zero CPU clock exists in the tested Simulator Safari route.
+Read-only recheck of the archived safari-smoke-r2 raw events confirms after-cold
+8248 startTime / 6472 endTime / 3362 sample timestamp values are all0; after-warm
+5807 / 4680 / 2503 are all0. Timeline emits records and ScriptProfiler emits stacks,
+but neither can give task durations or correlate an owner to a freeze. LongTask
+observer is unsupported. scripts/soak/inspector.mjs forwards parsed raw event
+params unchanged; it does not zero these fields. The audit's independent sim.mjs
+reports the same limitation. Raw proof is committed in progress/loading/sf67/safari/safari-smoke-r2.tar.gz
+with member hashes in its manifest. No new browser/Simulator was started to repeat it.
+
+Reopen only after a protocol route first demonstrates non-zero monotonic task/sample
+clocks that can be joined to the loading document. Do not call missing tasks zero,
+substitute rAF gaps, or treat the desktop Chromium CPU trace as Safari attribution.
+Coordinator assigned Driftwood/Nalati >100ms builders to Opus sf67-bake2; those are
+not this lane's next step. SF67's ~100ms target and physical-phone evidence stay
+open. Per coordinator instruction, sp-x5 now goes IDLE; no owned preview, browser,
+Simulator, Inspector, build or suite remains, and no new acquisition is queued.
 
 ## Checks and scratch
 

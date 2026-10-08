@@ -62,7 +62,7 @@ export function bindRuntimeLedger(ctx: Pick<ShardContext, 'app'>, source: Shardf
   };
 }
 
-/** What a runtime lends a declared quest: its flags, the built place of a world-piece marker, a chip the format cannot carry yet. */
+/** What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override. */
 export interface RuntimeQuestPorts {
   readonly flags: Flags;
   /** Required when the quest's `onComplete` names a fact. */

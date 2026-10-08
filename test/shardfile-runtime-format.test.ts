@@ -23,8 +23,32 @@ it('defaults runtime to null and admits only a bounded relative TypeScript entry
   expect(() => parseShardfile({ ...source, runtime: { entry: 'runtime/index.ts', url: 'https://fixture.test/code.ts' } })).toThrow();
 });
 
+it('admits only the unique bounded runtime-owned section names through the full shardfile schema', () => {
+  const source = empty(), entry = 'runtime/index.ts';
+  expect(parseShardfile({ ...source, runtime: { entry } }).runtime?.binds).toBeUndefined();
+  for (const binds of [[], ['quests'], ['ledger', 'items'], ['quests', 'ledger', 'items']]) {
+    expect(parseShardfile({ ...source, runtime: { entry, binds } }).runtime?.binds).toEqual(binds);
+  }
+  for (const binds of [['quests', 'quests'], ['world'], ['quests', 'ledger', 'items', 'quests'], null, 'quests']) {
+    expect(() => parseShardfile({ ...source, runtime: { entry, binds } })).toThrow();
+  }
+  expect(() => parseShardfile({ ...source, binds: ['quests'] })).toThrow();
+  expect(() => parseShardfile({ ...source, runtime: { entry, binds: ['quests'], install: 'quests' } })).toThrow();
+});
+
+it('keeps runtime-bound quest rows under ordinary format validation before any binding', () => {
+  const source = empty(), quest = { id: 'runtime.quest', title: 'Bound quest', completeFlag: 'done',
+    steps: [{ id: 'first', objective: 'Finish the task', chip: 'Finish task', done: { all: ['done'] } }] };
+  const declaration = { ...source, runtime: { entry: 'runtime/index.ts', binds: ['quests'] },
+    quests: { flags: ['done'], quests: [quest], triggers: [], dialogue: [] } };
+  expect(parseShardfile(declaration).quests.quests[0]).toEqual(quest);
+  expect(() => parseShardfile({ ...declaration, quests: { ...declaration.quests, flags: [] } })).toThrow();
+  expect(() => parseShardfile({ ...declaration, quests: { ...declaration.quests, quests: [{ ...quest,
+    steps: [{ ...quest.steps[0], chip: 'This chip exceeds eighteen characters' }] }] } })).toThrow();
+});
+
 it('refuses external runtime declarations before fetching or publishing, including cached declarations', async () => {
-  const source = empty(); source.runtime = { entry: 'runtime/index.ts' };
+  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items'] };
   let published = false;
   const cache = { product: () => Promise.resolve({ source, firstParty: true }), asset: () => Promise.resolve(null),
     putAsset: () => Promise.resolve(), putProduct: () => { published = true; return Promise.resolve(); } };

@@ -55,7 +55,8 @@ callback fields have no format arm. Build-time TypeScript config/generators comp
 this data product and are not copied into it.
 
 `runtime` is the explicitly temporary first-party transition exception: it carries
-only a registry selector, never TypeScript bytes, a fetch URL or an executable callback.
+a registry selector and bounded data metadata, never TypeScript bytes, a fetch URL
+or an executable callback.
 External products cannot select it. Trusted platform code and transition chunks belong
 to the application build; they are not admitted author code in the cartridge.
 
@@ -131,7 +132,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
-| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. |
+| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?, binds?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. |
 
 Manifest admission runs before schema/reference traversal and immutable asset reads.
 The canonical UTF-8 JSON source is at most 2,000,000 bytes, with at most 4,096
@@ -578,9 +579,38 @@ compositor, whose trusted registry matches both shard slug and entry. Content ca
 select an import URL. Neighbours retain data without running trusted play hooks;
 entering a cell installs those hooks in its child scope and leaving disposes them.
 The trusted compositor may explicitly request `trustedRuntime` for a first-party
-runtime declaration. When its data/content/assets are empty, the data stages add no
-services; the existing runtime supplies gameplay and presentation. Authored data
-still installs normally, and external empty products retain the ordinary Game path.
+runtime declaration. Optional `runtime.binds` is a unique array of at most three
+section names: `"quests"`, `"ledger"`, `"items"`. Omitted or `[]` means none; unknown
+names, duplicates, null and unknown runtime keys are refused. The defining
+`RuntimeBindsSchema` is composed by `RuntimeSchema` at the full schema's `runtime`
+slot; it is not a second permissive format or a source-code hook.
+
+Every bound section remains ordinary declared data and passes its full schema,
+reference and budget checks before binding. The admitted source retains those rows.
+Only the trusted data client's installation view removes bound sections, preventing
+duplicate installation. Bound rows alone do not activate the full data gameplay
+loader; unbound behaviour and other authored content retain their ordinary path.
+If the remaining data/content/assets are empty, data stages add no services and the
+existing runtime supplies gameplay and presentation. External products still refuse
+a runtime declaration, and external empty products keep the ordinary Game path.
+
+The trusted runtime explicitly calls the game-owned installers in
+`@wildshard/game/shardfile/hybridRows` inside its play scope:
+
+- `quests`: bind validated quest state to runtime flags and world-piece marker
+  positions; completion facts use the declared ledger. The chip stays declared data
+  (maximum 18 characters).
+- `ledger`: emit only declared facts with placement/revision/entity provenance;
+  the platform ledger grants rewards once, including after rebind.
+- `items`: install declared weapon/tool rows and loadout with kit families or the
+  trusted shard's `<slug>.<name>` families. The runtime registers declared input
+  contexts through its entered-scope path. This binder refuses item script hooks;
+  declaring ownership does not invent an independent simulation lane.
+
+`binds` grants no runtime trust or automatic installation. The registered first-party
+entry must still match the same slug and entry exactly, and a runtime cannot bind a
+section it did not declare. Leaving the cell disposes its entered services; revisits
+bind the same admitted rows through the ordinary retained/restored lifecycle.
 
 First-party picker manifests may carry a built `shardfile` URL. The normal entry
 admits that same-origin source before starting the session, retaining the manifest's
