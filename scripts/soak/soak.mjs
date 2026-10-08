@@ -126,6 +126,8 @@ async function worker() {
     driver = await connect(`${base}sf57-safari.html`);
     await until(driver, `Boolean(document.querySelector('.ws-main-grid'))`, 240000, collectGl);
     await driver.evaluate(`setTimeout(()=>document.querySelector('.ws-main-grid').click(),100);true`);
+    // Title-to-grid navigation is intentional and precedes the single measurement-document fence.
+    driver.close(); driver = null; await sleep(3000); driver = await connect(base);
     await until(driver, `Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live)`, 240000, collectGl);
     await driver.evaluate('(window.__wildshard.world.hud.enterNow(),true)');
     await until(driver, 'window.__wsReveal?.endedMs != null', 45000, collectGl);
@@ -244,12 +246,16 @@ async function closePreviews(bases) {
 }
 function writeHelper(base, layout) {
   const record = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
-  const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
+  const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8')
+    .replaceAll(/<script data-sf57-fixture>[\s\S]*?<\/script>/gu, '');
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
   const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};`;
-  writeFileSync(join(dist, 'sf57-safari.html'), html.replace('<head>', `<head><script>${pins}</script>`));
+  const helper = html.replace('<head>', `<head><script data-sf57-fixture>${pins}</script>`);
+  // The ordinary main-menu action can return to index.html before any measurement begins.
+  writeFileSync(join(dist, 'index.html'), helper);
+  writeFileSync(join(dist, 'sf57-safari.html'), helper);
 }
 async function prepare() {
   const sha = execFileSync('git', ['rev-parse', flag('rev', 'origin/main')], { cwd: root, encoding: 'utf8' }).trim();
