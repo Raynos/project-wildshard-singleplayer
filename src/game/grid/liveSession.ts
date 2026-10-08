@@ -24,7 +24,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
-import { castRay } from '@wildshard/engine/physics/query';
+import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
@@ -127,6 +127,8 @@ export interface LiveGridSessionState {
   readonly runtimeTiming: ReturnType<HybridRuntimeSession['timings']>;
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
+  /** the initial home spawn's feet and the first collider within 3 m above them (null: open sky; E463 caught a deck) */
+  readonly spawnClearance: { readonly feetY: number; readonly overhead: number | null } | null;
 }
 /** The highway's own surfaces: the deck and strips at road level, no water (G72: the outer ring is land). */
 const HIGHWAY_QUERIES: PlayerFrameQueries = { heightAt: () => 0, waterSurfaceAt: () => null, platforms: [] };
@@ -175,6 +177,7 @@ export class LiveGridSession {
   private readonly transferWalls = new Map<string | null, TransferWalls>();
   private readonly offset = new Vector3();
   private framePhysics: Physics;
+  private spawnClearance: LiveGridSessionState['spawnClearance'] = null;
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
   private readonly roadWallet: GridWallet;
@@ -457,8 +460,13 @@ export class LiveGridSession {
     if (await this.activation !== true || !this.gameplayReady()) throw new Error('Initial owned home gameplay is not ready');
     const runtime = this.runtimeRegions.get(cell.instance);
     if (runtime === undefined) throw new Error('Initial owned runtime is missing');
-    // Source spawn height may be terrain-derived; query only after its entered world services finish installing.
-    this.page.traveller.position.y = spawn.y ?? runtime.queries.heightAt(spawn.x, spawn.z) + 0.5;
+    // Source spawn height may be terrain-derived; query only after its entered world services finish installing. A spawn
+    // with no height stands on the highest surface there, a deck included: terrain alone put Driftwood's pier spawn under
+    // its deck at water level (E463).
+    const at = this.page.traveller.position;
+    this.page.traveller.position.y = spawn.y ?? this.standingHeight(runtime.queries, at.x, at.z, spawn.x, spawn.z) + 0.5;
+    const feetY = this.page.traveller.position.y, above = castRay(this.framePhysics, { x: at.x, y: feetY + 0.1, z: at.z }, { x: 0, y: 1, z: 0 }, 3);
+    this.spawnClearance = { feetY, overhead: above === null ? null : feetY + 0.1 + above.distance };
     runtime.loadout.interior();
   }
 
@@ -680,8 +688,21 @@ export class LiveGridSession {
     const p = this.page.traveller.position;
     if (current === null) return { x: p.x, y: 0.5, z: p.z, yaw: this.page.traveller.yaw };
     const runtime = this.runtimeRegions.get(current);
-    if (runtime !== undefined) { const start = runtime.region.host.level.player; return { x: start.at.x, y: start.at.y, z: start.at.z, yaw: start.yaw }; }
+    if (runtime !== undefined) {
+      // the authored start's height defaults to 0 when the source omits it: never respawn under a deck (E463)
+      const start = runtime.region.host.level.player;
+      return { x: start.at.x, y: Math.max(start.at.y, this.standingHeight(runtime.queries, start.at.x, start.at.z, start.at.x, start.at.z) + 0.05), z: start.at.z, yaw: start.yaw };
+    }
     return this.regions.get(current)?.spawn ?? { x: 0, y: undefined, z: 0, yaw: 0 };
+  }
+  /** Where a spawn with no authored height stands: the region's terrain or water surface, its platform queries (decks,
+   *  hulls), and a collider up to 2 m above that (a pier deck over the sea), never a roof overhead (physics x / z in the
+   *  active frame; the queries take the source's local x / z). */
+  private standingHeight(queries: PlayerFrameQueries, px: number, pz: number, lx: number, lz: number): number {
+    let top = Math.max(queries.heightAt(lx, lz), queries.waterSurfaceAt(lx, lz) ?? Number.NEGATIVE_INFINITY);
+    for (const platform of queries.platforms) { const y = platform(lx, lz); if (y !== undefined && y > top) top = y; }
+    const floor = floorBelow(this.framePhysics, px, pz, top + 2, 4);
+    return floor !== undefined && floor > top ? floor : top;
   }
   /** The geometric region's kill floor, independent of the 6/10 m motor-frame hysteresis. */
   fallFloor(): number {
@@ -715,6 +736,6 @@ export class LiveGridSession {
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
     return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(),
-      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
+      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance, spawnClearance: this.spawnClearance };
   }
 }

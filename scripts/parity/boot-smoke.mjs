@@ -137,6 +137,12 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     }, `${mode} gameplay`, deadline);
     phases.gameplayMs = Date.now() - started;
     const initial = await page.evaluate(bootObservation);
+    if (mode === 'grid') { // E463: the home spawn stands on its deck / ground, never under a collider (Driftwood's pier)
+      const grid = initial.grid, session = typeof grid === 'object' && grid !== null && 'live' in grid ? grid.live : null;
+      const clearance = typeof session === 'object' && session !== null && 'spawnClearance' in session ? session.spawnClearance : undefined;
+      if (typeof clearance !== 'object' || clearance === null) throw new Error(`grid spawn clearance missing: ${JSON.stringify(clearance)}`);
+      if ('overhead' in clearance && clearance.overhead !== null) throw new Error(`grid spawn is under a collider: ${JSON.stringify(clearance)}`);
+    }
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
     const result = { mode, phases, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
