@@ -206,3 +206,20 @@ it('keeps layered sky geometry under the resident owner when its dome moves onto
   }
   resident.dispose(); page.dispose(); expect(assets.retained()).toEqual([]);
 });
+
+it('draws a layered dome before its own cloud ring, as the backdrop does standalone (SF63)', () => {
+  const scene = new Scene();
+  const layer = new BackdropLayer({ targets: pageTargets(), scene }, { onDispose: () => undefined });
+  const backdrop = regionBackdrop(layer.holder), dome = layer.holder.getObjectByName('region-dome');
+  if (!(dome instanceof Mesh)) throw new Error('Missing dome');
+  // standalone: an opaque dome at −20, an off-centre transparent ring at −15 inside it (Driftwood's stylized sky)
+  dome.renderOrder = -20;
+  const ring = new Mesh(new BoxGeometry().translate(900, 200, 300), new ShaderMaterial({ transparent: true, depthWrite: false }));
+  ring.name = 'region-ring'; ring.renderOrder = -15; dome.add(ring);
+  layer.attach(backdrop);
+  expect(dome.renderOrder).toBeLessThan(ring.renderOrder);
+  for (const node of [dome, ring]) { expect(node.renderOrder).toBeGreaterThan(-10); expect(node.renderOrder).toBeLessThan(-9); }
+  // three's transparent sort: render order first, so the ring's bounding-sphere centre can no longer put it under the dome
+  expect(ring.material instanceof ShaderMaterial && ring.material.transparent && ring.material.depthTest).toBe(true);
+  layer.dispose();
+});

@@ -16,7 +16,8 @@
  *   without one it blends the scene fog's colour like the rest.
  * - **Its dome**: whatever the backdrop adds to the layer's `holder` scene (its sky dome) moves to the page scene (its
  *   `clouds` layer kept on the camera, as the page keeps its own), drawn
- *   after the page's own sky pieces (render order −20 … −10) and before the grid road sky (−9), depth-tested (the dome
+ *   after the page's own sky pieces (render order −20 … −10) and before the grid road sky (−9), its pieces in the order
+ *   the backdrop draws them on its own (its opaque dome, then its cloud ring: `layerOrders`), depth-tested (the dome
  *   sits past every world thing), with a constant blend alpha of the weight; at weight 0 it is hidden and its clock is
  *   not run (no cost outside the cell).
  * - **Its dispose**: the dome leaves the page scene, the backdrop's own `dispose` frees its textures and targets, and the
@@ -34,7 +35,10 @@ import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 
-/** the layered dome's render order: after the page's sky pieces (−20 … −10), before the grid road sky (−9) */
+/**
+ * the layered dome's render order: after the page's sky pieces (−20 … −10), before the grid road sky (−9); a backdrop
+ * whose dome has several pieces spreads them over ±0.4 around it in its own draw order (`layerOrders`)
+ */
 export const LAYER_SKY_ORDER = -9.5;
 /** below this weight the layer is off: hidden, its clock not run, nothing moved */
 const OFF = 0.001;
@@ -65,6 +69,39 @@ function vector(real: Vector3, own: Vector3): Slot {
 }
 
 const basicColour = (mesh: Mesh): Color | null => (mesh.material instanceof MeshBasicMaterial ? mesh.material.color : null);
+
+/** a mesh's materials (none for any other node) */
+function meshMaterials(node: Object3D): Material[] {
+  if (!(node instanceof Mesh)) return [];
+  const list: unknown = node.material;
+  return (Array.isArray(list) ? list : [list]).filter((m): m is Material => m instanceof Material);
+}
+
+/** the half-width of the band the layer's meshes are spread over, around `LAYER_SKY_ORDER` (inside −10 … −9) */
+const LAYER_SKY_BAND = 0.4;
+
+/**
+ * Each mesh of the backdrop's dome its render order inside the layer's band, keeping the order the backdrop drew in on
+ * its own (SF63): everything it drew opaque first (by its own render order), then its transparents (by theirs). The layer
+ * draws them all as transparents; with one shared order three's back-to-front sort (by each geometry's bounding-sphere
+ * centre) put an off-centre cloud ring ahead of the dome it sits in, and the dome, drawn after at full weight, covered it.
+ * A single key keeps exactly `LAYER_SKY_ORDER`.
+ */
+function layerOrders(roots: readonly Object3D[]): Map<Object3D, number> {
+  const keyed: { readonly node: Object3D; readonly key: number }[] = [];
+  for (const root of roots) {
+    root.traverse((node) => {
+      const materials = meshMaterials(node);
+      if (materials.length === 0) return;
+      // opaque before transparent whatever the render order (three's two lists), then the backdrop's own order
+      const transparent = materials.some((m) => m.transparent);
+      keyed.push({ node, key: node.renderOrder + (transparent ? 1e6 : 0) });
+    });
+  }
+  const keys = [...new Set(keyed.map((k) => k.key))].sort((a, b) => a - b);
+  const rank = new Map(keys.map((key, i) => [key, LAYER_SKY_ORDER - LAYER_SKY_BAND + (2 * LAYER_SKY_BAND * (i + 0.5)) / keys.length]));
+  return new Map(keyed.map(({ node, key }) => [node, rank.get(key) ?? LAYER_SKY_ORDER]));
+}
 
 /** What the layer reads: the rig's live targets and the page scene it draws into. */
 export interface BackdropLayerHost {
@@ -154,15 +191,15 @@ export class BackdropLayer {
     this.backdrop = backdrop;
     // The grade pass draws this sampler outside the dome subtree; it still belongs to the resident layer.
     if (backdrop.lut !== null && !this.assets.isAcquired(backdrop.lut)) ownSceneResource(backdrop.lut, this.scope);
-    for (const child of this.holder.children.slice()) {
+    const children = this.holder.children.slice();
+    const order = layerOrders(children);
+    for (const child of children) {
       ownSceneTree(child, this.scope, this.assets);
       this.holder.remove(child);
       child.visible = false;
       child.traverse((node) => {
-        node.renderOrder = LAYER_SKY_ORDER;
-        const list: unknown = node instanceof Mesh ? node.material : null;
-        for (const m of Array.isArray(list) ? list : [list]) {
-          if (!(m instanceof Material)) continue;
+        node.renderOrder = order.get(node) ?? LAYER_SKY_ORDER;
+        for (const m of meshMaterials(node)) {
           m.transparent = true; m.depthTest = true; m.depthWrite = false;
           m.blending = CustomBlending; m.blendSrc = ConstantAlphaFactor; m.blendDst = OneMinusConstantAlphaFactor; m.blendAlpha = 0;
           m.needsUpdate = true;
