@@ -66,14 +66,12 @@ for (const arm of arms) {
         execFileSync('xcrun', ['simctl', 'openurl', udid, new URL('/version.json', arm.base).href]);
         await connect(new URL('/version.json', arm.base).href);
         await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
-        await sleep(500);
-        await connect(arm.base);
       } else {
         // Reuse this exact tab/cache context; opening another tab could attach to the old playing page.
         await inspector.evaluate(`setTimeout(() => location.replace('/'), 100); true`);
-        await sleep(500);
-        await connect(arm.base);
       }
+      await sleep(500);
+      await connect(arm.base);
       await wait(`document.querySelector('.ws-main-select') !== null`, arm.base);
       await gesture(`document.querySelector('.ws-main-select').click()`);
       await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, arm.base);
