@@ -14,8 +14,11 @@ const isGeometry = (value: unknown): value is BufferGeometry => value instanceof
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
 const isObject = (value: unknown): value is Object3D => value instanceof Object3D;
 const isTarget = (value: unknown): value is WebGLRenderTarget => value instanceof WebGLRenderTarget;
+/** the GL handles three keeps in a resource's properties (the keys `/^__webgl(Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/`) */
+const GL_HANDLES = ['__webglTexture', '__webglDepthbuffer', '__webglColorRenderbuffer', '__webglDepthRenderbuffer'] as const;
 function hook(name: string): unknown { return typeof window === 'undefined' ? undefined : Reflect.get(window, name); }
-function enabled(): boolean { return isDev() || typeof hook('__sc_label_gl') === 'function'; }
+function census(): boolean { return typeof hook('__sc_label_gl') === 'function'; }
+function enabled(): boolean { return isDev() || census(); }
 function emit(name: string, resource: object, label: Label, identity?: object): void {
   if (name === '__sc_label_gl' && label.priority > 0) memoryAttribution.label(resource, label);
   const fn = hook(name);
@@ -109,6 +112,47 @@ function tree(root: Object3D, owner: string, asset: string, priority: number): v
   };
   visit(root, asset);
 }
+/**
+ * SF69: the per-render walks (the scene each render, the drawn object each draw) without the census harness are
+ * amortized. A node or drawn object is (re)labelled when it is new, when its geometry / material / skeleton changed, and
+ * otherwise once per refresh window, spread over the window by its id, so labels for late-loaded images and new
+ * attributes still arrive within the window and no single frame re-walks the world. The census harness keeps the full
+ * walk on every render and draw. (Walking ~1.4 k visible nodes three times a frame with fresh strings was ≈ 40 % of the
+ * desktop grid spawn's main thread, the periodic doubled frame.)
+ */
+const REFRESH = 240; // renders: ≈ 1–2 s at the game's three to four renders a frame
+let generation = 0;
+interface Walked { geometry: unknown; material: unknown; skeleton: unknown; version: number; at: number }
+const walked = new WeakMap<object, Walked>();
+const drawn = new WeakMap<object, Walked>();
+function materialVersion(material: unknown): number {
+  if (material instanceof Material) return material.version;
+  let sum = 0;
+  if (Array.isArray(material)) for (const m of material) if (m instanceof Material) sum += m.version;
+  return sum;
+}
+/** true (and recorded) when `node`'s resources are due a (re)label this render */
+function due(cache: WeakMap<object, Walked>, node: Object3D, geometry: unknown, material: unknown): boolean {
+  const skeleton: unknown = Reflect.get(node, 'skeleton'), version = materialVersion(material);
+  const seen = cache.get(node);
+  if (seen !== undefined && seen.geometry === geometry && seen.material === material && seen.skeleton === skeleton && seen.version === version
+    && Math.floor((generation + node.id) / REFRESH) === Math.floor((seen.at + node.id) / REFRESH)) return false;
+  if (seen === undefined) cache.set(node, { geometry, material, skeleton, version, at: generation });
+  else { seen.geometry = geometry; seen.material = material; seen.skeleton = skeleton; seen.version = version; seen.at = generation; }
+  return true;
+}
+function amortizedTree(root: Object3D, owner: string, asset: string, priority: number): void {
+  const visit = (node: Object3D, parent: Object3D | null, index: number): void => {
+    if (due(walked, node, Reflect.get(node, 'geometry'), Reflect.get(node, 'material'))) {
+      const parentAsset = parent === null ? null : labels.get(parent)?.asset;
+      const path = parent === null ? asset : `${parentAsset ?? asset}/${node.name || `${node.type}[${index}]`}`;
+      nodeResources(node, remember(node, { owner, asset: path, priority }));
+    }
+    const children = node.children;
+    for (let i = 0; i < children.length; i++) { const child = children[i]; if (child !== undefined) visit(child, node, i); }
+  };
+  visit(root, null, 0);
+}
 /** Registered pieces and loaded GLBs keep a content path for procedural as well as file-backed geometry. */
 export function labelObjectTree(root: Object3D, owner: string, asset: string): void {
   if (enabled()) tree(root, owner, asset, 2);
@@ -126,7 +170,7 @@ function resourceLabel(value: unknown): Label {
   return { owner: 'engine/renderer', asset: 'renderer-internal', priority: 0 };
 }
 /** Bridge Three resource identity to native uploads for the debugger and the independent census harness. */
-export function installGpuLabels(renderer: Renderer): void {
+export function installGpuLabels(renderer: Renderer, developer: () => boolean = isDev): void {
   // Bone textures are allocated inside Three after the scene walk, including one-shot warm draws and pooled rigs.
   // Tag that allocation immediately: a later scene walk cannot recover models that already left the visible tree.
   if (!skeletonBridgeInstalled) {
@@ -140,6 +184,7 @@ export function installGpuLabels(renderer: Renderer): void {
     };
   }
   const proxies = new WeakMap<object, object>();
+  const tags = new WeakMap<object, { owner: string; base: string; priority: number }>();
   const get = renderer.properties.get.bind(renderer.properties);
   renderer.properties.get = (resource) => {
     if (isTarget(resource)) {
@@ -149,19 +194,26 @@ export function installGpuLabels(renderer: Renderer): void {
     }
     const properties = get(resource);
     if (properties === null || typeof properties !== 'object') return properties;
+    const tag = (value: unknown, role: string): void => {
+      if (Array.isArray(value)) { for (let index = 0; index < value.length; index++) tag(value[index], `${role}/${index}`); return; }
+      if (value === null || typeof value !== 'object') return;
+      const label = resourceLabel(resource);
+      // SF69: outside the census, a handle already tagged with this label is not re-tagged on every property read
+      const last = tags.get(value);
+      if (last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority && !census()) return;
+      tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
+      emit('__sc_label_gl', value, { ...label, asset: `${label.asset}/${role}` });
+    };
     const stamp = (value: unknown, role: string): unknown => {
       if (Array.isArray(value)) {
-        for (const [index, item] of value.entries()) stamp(item, `${role}/${index}`);
+        tag(value, role);
         return new Proxy(value, { set(target, key, item: unknown) { return Reflect.set(target, key, stamp(item, `${role}/${String(key)}`)); } });
       }
-      if (value !== null && typeof value === 'object') {
-        const label = resourceLabel(resource);
-        emit('__sc_label_gl', value, { ...label, asset: `${label.asset}/${role}` });
-      }
+      tag(value, role);
       return value;
     };
     // Assets initialized before joining a scene acquire their authored identity later; update the existing GL tag.
-    for (const [key, value] of Object.entries(properties)) if (/^__webgl(?:Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/u.test(key)) stamp(value, key.slice(7));
+    for (const key of GL_HANDLES) { const value: unknown = Reflect.get(properties, key); if (value !== undefined) tag(value, key.slice(7)); }
     const prior = proxies.get(properties);
     if (prior) return prior;
     const proxy = new Proxy(properties, { set(target, key, value: unknown) {
@@ -175,13 +227,18 @@ export function installGpuLabels(renderer: Renderer): void {
     const original: unknown = Reflect.get(renderer, method);
     if (typeof original !== 'function') continue;
     Reflect.set(renderer, method, function labelledRender(this: Renderer, ...args: unknown[]): unknown {
-      if (enabled() && isObject(args[0])) tree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
+      generation++;
+      if ((developer() || census()) && isObject(args[0])) {
+        if (census()) tree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
+        else amortizedTree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
+      }
       const result: unknown = Reflect.apply(original, this, args);
       return result;
     });
   }
   const draw = renderer.renderBufferDirect.bind(renderer);
   renderer.renderBufferDirect = (camera, scene, geo, mat, object, group) => {
+    if (!census() && !due(drawn, object, geo, mat)) { draw(camera, scene, geo, mat, object, group); return; }
     const owner = sceneObjectOwner(object);
     const label = owner === null ? labels.get(object) ?? { owner: 'unattributed', asset: `generated/${mat.name || mat.type}`, priority: 0 }
       : { owner: owner.name, asset: labels.get(object)?.asset ?? `generated/${object.name || mat.name || mat.type}`, priority: 2 };

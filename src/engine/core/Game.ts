@@ -14,6 +14,7 @@ import {
   type Effect, Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
+import { installAoTransparency } from '../render/aoTransparency';
 import { retried } from '../boot/retry';
 import { RegionCinematic } from '../render/regionCinematic';
 import { CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
@@ -489,42 +490,9 @@ export class Game {
       ao.configuration.screenSpaceRadius = false;
       ao.configuration.gammaCorrection = false;
       ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
-      // n8ao's transparency pre-passes hide each mesh with `visible = was && material.transparent && …`. On a
-      // multi-material mesh (an animal's fur / hard / eye, the rifle pickup) `material.transparent` is undefined, the
-      // result is `undefined`, three draws it, and every rig on screen was drawn a second time into the depth-write
-      // pass — 200–350 extra desktop draws at the Pine Hollow poses. Opaque ones now sit that pass out; n8ao's own
-      // AO-only render mode is unchanged by it (5 m from a boar: max Δ 5, the frame-to-frame noise 17). PINE-HOLLOW PH-P2.
-      //
-      // Its first pre-pass (the transparents that write no depth: glass, clouds, water, smoke, particles, the pickup orb —
-      // 20–40 desktop draws) is skipped as well (PH-P2): the compositer takes max(that pass's alpha, (1 − the
-      // depth-writing pass's alpha) × [no depth-writing transparent drew there]), which is 1 — no AO — wherever no
-      // depth-writing transparent (the viewmodels, the pickup item, lantern glass) drew, whatever the first pass held. It
-      // could only matter where a depth-free transparent lies in front of one of those, and a same-instant A/B at the
-      // perf poses, day and rain, shows no pixel past the frame noise. `aoLeanTransparency = false` draws it again.
-      const opaqueMulti: THREE.Object3D[] = [];
-      const lean: THREE.Object3D[] = [];
-      const renderTransparency = ao.renderTransparency.bind(ao);
-      ao.renderTransparency = (renderer) => {
-        this.rootScene.traverseVisible((o) => {
-          const m = (o as Partial<THREE.Mesh>).material;
-          if (m === undefined) return;
-          if (Array.isArray(m)) { if (o instanceof THREE.Mesh && m.every((x) => !x.transparent)) opaqueMulti.push(o); return; }
-          if (this.aoLeanTransparency && m.transparent && !m.depthWrite && o.userData['treatAsOpaque'] !== true) lean.push(o);
-        });
-        for (const o of opaqueMulti) o.visible = false;
-        for (const o of lean) o.userData['treatAsOpaque'] = true; // n8ao's own opt-out of both pre-passes
-        // its two renderer.render calls re-drew every shadow cascade too (autoUpdate), cleared and refilled with only the
-        // meshes it left visible — after the main pass had used them, so nothing saw it: skip the redraw (Water.ts does too)
-        const autoShadows = renderer.shadowMap.autoUpdate;
-        renderer.shadowMap.autoUpdate = false;
-        try { renderTransparency(renderer); } finally {
-          renderer.shadowMap.autoUpdate = autoShadows;
-          for (const o of opaqueMulti) o.visible = true;
-          opaqueMulti.length = 0;
-          for (const o of lean) delete o.userData['treatAsOpaque'];
-          lean.length = 0;
-        }
-      };
+      // its transparency pre-passes: without opaque multi-material meshes or depth-free transparents (PH-P2), and not at all
+      // when nothing would draw in them (SF69, bit-identical) — aoTransparency.ts
+      installAoTransparency(ao, this.rootScene, this.camera, { lean: () => this.aoLeanTransparency, skipEmpty: () => this.aoSkipEmptyTransparency });
       composer.addPass(ao);
     }
 
@@ -680,6 +648,8 @@ export class Game {
   hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
   /** skip n8ao's depth-free transparency pre-pass (buildComposer; PH-P2) — a live switch for A/B captures */
   aoLeanTransparency = true;
+  /** skip both n8ao transparency pre-passes when nothing would draw in them (aoTransparency.ts; SF69) — a live switch for A/B captures */
+  aoSkipEmptyTransparency = true;
   /** A cinematic chain's shafts, fringe and grain for a page that runs another chain (`regionCinematic.ts`; the grid's frame). */
   regionCinematic(): RegionCinematic { return new RegionCinematic(this.camera, this.renderer); }
   /** the scene pass draws the viewmodels into the depth slices (E142): the scene target's own depth is the world's */

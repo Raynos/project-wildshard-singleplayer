@@ -1,4 +1,5 @@
-// n8ao ships no types: the slice of N8AOPostPass that Game.ts uses (constructor, the `configuration` proxy, `renderTransparency`).
+// n8ao ships no types: the slice of N8AOPostPass that Game.ts and aoTransparency.ts use (constructor, the `configuration`
+// proxy, `renderTransparency` and its two targets).
 declare module 'n8ao' {
   import type * as THREE from 'three';
   import type * as PP from 'postprocessing';
@@ -32,7 +33,16 @@ declare module 'n8ao' {
   export class N8AOPostPass extends PP.Pass {
     constructor(scene: THREE.Scene, camera: THREE.Camera, width?: number, height?: number);
     configuration: N8AOConfiguration;
-    /** the transparency-aware pre-passes (two extra renders of the scene); Game.ts wraps it (the multi-material fix) */
+    /** the transparency-aware pre-passes (two extra renders of the scene); aoTransparency.ts wraps it (PH-P2, SF69) */
     renderTransparency(renderer: Renderer): void;
+    /** the pre-passes' targets (depth-free transparents; depth-writing ones, with a depth texture); unset until transparency-aware */
+    transparencyRenderTargetDWFalse?: THREE.WebGLRenderTarget | null | undefined;
+    transparencyRenderTargetDWTrue?: THREE.WebGLRenderTarget | null | undefined;
+    /** the full-screen pass that copies the scene depth into a pre-pass target (made with the targets) */
+    depthCopyPass?: { material: THREE.ShaderMaterial; render: (renderer: Renderer) => void } | null | undefined;
+    /** walk the scene every frame for a transparent material, switching `transparencyAware` on at the first */
+    autoDetectTransparency: boolean;
+    /** the scene depth it reads (the composer hands it over) */
+    depthTexture?: THREE.Texture | null | undefined;
   }
 }
