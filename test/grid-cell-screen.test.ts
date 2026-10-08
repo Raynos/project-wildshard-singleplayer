@@ -64,6 +64,14 @@ describe('G217: the cell state maps to the loading screen', () => {
     // a refusal after the product admitted lands on the next stage
     expect(cellScreenContent({ ...base, status: 'refused', refusal: 'safety', runtime: true }, frame).rows.find((r) => r.state === 'fail')?.label).toBe('colliders');
   });
+  it('the near screen retains the live reason and action in large type instead of tiny diagnostics', () => {
+    const drawn: string[] = [], g = recorder(drawn);
+    const screen = cellScreenContent({ ...base, status: 'waiting', wait: 'format' }, frame);
+    drawCellScreen(g, screen, null, true);
+    expect(drawn).toContain('TEMPLATE'); expect(drawn).toContain('NOT READY FOR GRID');
+    expect(drawn).toContain('ENTER THROUGH SHARD SELECT'); expect(drawn).toContain(screen.build);
+    expect(drawn).not.toContain('3 claims · 10.0 MB declared');
+  });
   it('the painter draws every line of the screen', () => {
     const drawn: string[] = [], g = recorder(drawn), s = cellScreenContent({ ...base, status: 'refused', refusal: 'load', issue: 'Failed to fetch' }, frame);
     drawCellScreen(g, s, null);
@@ -97,17 +105,23 @@ describe('G217: the panels in the world', () => {
       for (let k = 0; k < 30; k++) screens.step();
       expect(screens.state().draws).toBe(2); // nothing changed: no redraw
       const panels: { position: Mesh['position']; rotation: Mesh['rotation'] }[] = []; scene.traverse((node) => { if (node.name === 'grid-cell-screen' && node.visible) panels.push(node); });
-      const east = panels.find((p) => Math.abs(p.position.x - (560 - 256 - 0.08)) < 1e-6);
+      const east = panels.find((p) => Math.abs(p.position.x - (560 - 256 + 24)) < 1e-6);
       if (east === undefined) throw new Error('No panel on the east cell\'s west wall');
       expect(east.position.y).toBeCloseTo(SCREEN_M.bottom + SCREEN_M.h / 2); expect(east.rotation.y).toBeCloseTo(-Math.PI / 2); // in front of the wall, facing −x, toward the road
       // the clock ticks in whole seconds: one redraw per loading panel per second
       now = 1.2; for (let k = 0; k < 6; k++) screens.step();
       expect(screens.state().draws).toBe(4);
+      // At the soft wall the closest panel is still 24 m inside the blocked cell, never face-first on the road.
+      feet = { x: 304, z: 10 }; screens.step();
+      expect(screens.state().draws).toBe(6); // near layout plus the newly nearest corner, same canvas pool
+      for (let k = 0; k < 12; k++) screens.step();
+      expect(screens.state().draws).toBe(6);
+      expect(east.position.x - feet.x).toBeCloseTo(24);
       // a refusal redraws once; an enterable cell (absent from the port) loses its panel
       snapshot.set('east', { ...base, instance: 'east', status: 'refused', refusal: 'too-big' }); snapshot.delete('north');
       for (let k = 0; k < 6; k++) screens.step();
       expect(screens.state().shown).toEqual([{ instance: 'east', status: 'refused' }, { instance: 'far-corner', status: 'loading' }]);
-      expect(drawn).toContain('TEMPLATE · TOO BIG FOR THIS DEVICE');
+      expect(drawn).toContain('TEMPLATE'); expect(drawn).toContain('TOO BIG FOR THIS DEVICE');
       feet = { x: 2000, z: 2000 }; for (let k = 0; k < 6; k++) screens.step();
       expect(screens.state().shown).toEqual([]); // out of range
       scope.dispose();

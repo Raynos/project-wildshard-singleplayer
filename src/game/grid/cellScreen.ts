@@ -135,8 +135,8 @@ export type ScreenContext = Pick<CanvasRenderingContext2D, 'fillRect' | 'strokeR
   & { fillStyle: CanvasRenderingContext2D['fillStyle']; strokeStyle: CanvasRenderingContext2D['strokeStyle']; lineWidth: number; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline; globalAlpha: number;
     createLinearGradient?: CanvasRenderingContext2D['createLinearGradient']; createRadialGradient?: CanvasRenderingContext2D['createRadialGradient'] };
 
-/** Paint the screen: the loading screen's head, glass panel, tracks, step log and diagnostics; `art` is the shard's card. */
-export function drawCellScreen(g: ScreenContext, screen: CellScreen, art: CanvasImageSource | null): void {
+/** Paint the live loading facts; `near` uses large essential text at the soft wall, otherwise full diagnostics. */
+export function drawCellScreen(g: ScreenContext, screen: CellScreen, art: CanvasImageSource | null, near = false): void {
   const { w, h } = SCREEN_PX, accent = screen.status === 'refused' ? AMBER : CYAN;
   // background: the loading screen's radial dark, the shard's card under a dark veil, faint scanlines
   const radial = g.createRadialGradient?.(w / 2, h * 0.3, 0, w / 2, h * 0.3, w * 0.75);
@@ -156,6 +156,19 @@ export function drawCellScreen(g: ScreenContext, screen: CellScreen, art: Canvas
     g.save(); g.translate(x, y); g.scale(k, 1); g.fillText(value, 0, 0); g.restore();
     return width * k;
   };
+  // At the soft wall use the same live facts in large type; the full diagnostics stay on the distant screen.
+  if (near) {
+    const left = 54, width = w - 108;
+    text(screen.chip, left, 96, `700 48px ${MONO}`, accent, width);
+    text(screen.title.toUpperCase(), left, 194, `700 82px ${DISPLAY}`, TEXT, width);
+    const headline = screen.headline === null ? screen.tracks[1].fact : screen.headline.slice(screen.headline.indexOf(' · ') + 3);
+    for (const [i, line] of wrap(headline, 30, 2).entries()) text(line, left, 284 + i * 62, `600 52px ${DISPLAY}`, accent, width);
+    text(screen.sub ?? screen.line, left, 420, `600 38px ${MONO}`, DIM, width);
+    g.fillStyle = LINE; g.fillRect(left, 466, width, 10);
+    g.fillStyle = accent; g.fillRect(left, 466, width * screen.bar, 10);
+    text(screen.build, left, 544, `500 28px ${MONO}`, CYAN_DIM, width);
+    return;
+  }
   // head: the wordmark (Project, then Wildshard in cyan) and the build chip
   const project = text('PROJECT ', 34, 62, `700 40px ${DISPLAY}`, '#fff', 200);
   text(GAME_STRINGS.mainMenu.logo, 34 + project, 62, `700 40px ${DISPLAY}`, CYAN, 320);
@@ -234,6 +247,8 @@ interface Slot {
   instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
 }
 const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
+// Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
+const SETBACK = 24, NEAR = 55;
 
 /** The byte plan of `slots` screens: each a canvas (JS) and its texture with mips (GPU). */
 export function cellScreenBytes(slots: number): { jsBytes: number; gpuBytes: number } {
@@ -280,8 +295,8 @@ export function installCellScreens(input: {
       if (off > DEAD_ZONE) s.sliding = true; else if (off < 0.3) s.sliding = false;
       if (s.sliding) s.along += (target - s.along) * 0.08;
       const m = s.mesh, y = SCREEN_M.bottom + SCREEN_M.h / 2;
-      if (onX) { m.position.set(cell.x + side * (wall + 0.08), y, cell.z + s.along); m.rotation.set(0, side * Math.PI / 2, 0); }
-      else { m.position.set(cell.x + s.along, y, cell.z + side * (wall + 0.08)); m.rotation.set(0, side > 0 ? 0 : Math.PI, 0); }
+      if (onX) { m.position.set(cell.x + side * (wall - SETBACK), y, cell.z + s.along); m.rotation.set(0, side * Math.PI / 2, 0); }
+      else { m.position.set(cell.x + s.along, y, cell.z + side * (wall - SETBACK)); m.rotation.set(0, side > 0 ? 0 : Math.PI, 0); }
       m.updateMatrix();
     };
     const step = (): void => {
@@ -305,9 +320,11 @@ export function installCellScreens(input: {
         if (state.status !== s.status) { s.status = state.status; s.since = now; }
         const shown = s, frame = { build: input.build, tier: input.tier, elapsedS: state.status === 'loading' ? Math.max(0, Math.floor(now - s.since)) : null };
         const picture = image(cell, () => { shown.key = ''; });
-        const screen = cellScreenContent(state, frame), key = `${picture === null ? 0 : 1}${JSON.stringify(screen)}`;
-        if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture); s.texture.needsUpdate = true; draws++; }
-        place(s, cell, feet); s.mesh.visible = true;
+        place(s, cell, feet);
+        const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
+        const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(screen)}`;
+        if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.texture.needsUpdate = true; draws++; }
+        s.mesh.visible = true;
       }
     };
     owner.onDispose(() => {
