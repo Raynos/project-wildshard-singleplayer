@@ -1,0 +1,151 @@
+{
+  "pin": "7e5daa1f6b70cce80865ab41ef1f72c4421613ea",
+  "pass": false,
+  "failure": "Error: Retained GL residency reconciliation failed\n    at file:///private/tmp/claude-501/sp-builders/sp-x1/pine-regional/cache-retirement-two.mjs:68:182",
+  "seconds": 216.535,
+  "raw": {
+    "file": "two-laps-7e5daa1f6.json.gz",
+    "sha256": "5edb2007a16bea37a3eace249b86957c265776b8ddc95e32f513f138d3bf9dd6",
+    "decodedBytes": 8418931
+  },
+  "stops": [
+    {
+      "label": "home-first",
+      "playing": 933330798,
+      "retainedCacheCommons": 0,
+      "cacheConsumers": 0
+    },
+    {
+      "label": "first:pine-hollow-entered",
+      "playing": 1155116960,
+      "retainedCacheCommons": 11389812,
+      "cacheConsumers": 52
+    },
+    {
+      "label": "first:nalati-grasslands-entered",
+      "playing": 1142167725,
+      "retainedCacheCommons": 39271820,
+      "cacheConsumers": 33
+    },
+    {
+      "label": "first:driftwood-isle-entered",
+      "playing": 933979535,
+      "retainedCacheCommons": 0,
+      "cacheConsumers": 0
+    },
+    {
+      "label": "second:pine-hollow-entered",
+      "playing": 1155796298,
+      "retainedCacheCommons": 11389812,
+      "cacheConsumers": 52
+    },
+    {
+      "label": "second:nalati-grasslands-entered",
+      "playing": 1142167725,
+      "retainedCacheCommons": 39271820,
+      "cacheConsumers": 33
+    },
+    {
+      "label": "second:driftwood-isle-entered",
+      "playing": 933979535,
+      "retainedCacheCommons": 0,
+      "cacheConsumers": 0
+    },
+    {
+      "label": "home-returned-durable",
+      "playing": 933979535,
+      "retainedCacheCommons": 0,
+      "cacheConsumers": 0
+    }
+  ],
+  "routes": [
+    {
+      "pass": true,
+      "failures": []
+    },
+    {
+      "pass": true,
+      "failures": []
+    },
+    {
+      "pass": true,
+      "failures": []
+    },
+    {
+      "pass": true,
+      "failures": []
+    },
+    {
+      "pass": true,
+      "failures": []
+    },
+    {
+      "pass": true,
+      "failures": []
+    }
+  ],
+  "damage": [
+    {
+      "instance": "driftwood-isle",
+      "id": "creature:33",
+      "kind": "sailor",
+      "before": 60,
+      "after": 59
+    },
+    {
+      "instance": "pine-hollow",
+      "id": "creature:152",
+      "kind": "boar",
+      "before": 100,
+      "after": 99
+    },
+    {
+      "instance": "nalati-grasslands",
+      "id": "creature:4",
+      "kind": "wolf",
+      "before": 55,
+      "after": 54
+    }
+  ],
+  "homeRestoredHP": 59,
+  "errors": [],
+  "consoleErrors": [],
+  "reconciliation": {
+    "rawGL": 14961096,
+    "rawComposer": 13140576,
+    "rawCaches": 1820520,
+    "chargedComposer": 13140576,
+    "cachedGPU": 0,
+    "cachedCPU": 0,
+    "uncoveredGPU": 1820520,
+    "engineBase": 286859424,
+    "noRuntimeClaims": true,
+    "allCachesUncovered": true,
+    "composerMatches": true,
+    "retainedGPUSafelyCharged": false
+  },
+  "nativeAfter": {
+    "bodies": 0,
+    "colliders": 0
+  },
+  "disposalErrors": [],
+  "scope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "documentRequests": 2,
+  "bootDocumentRequests": 2
+}
