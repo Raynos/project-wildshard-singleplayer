@@ -48,7 +48,7 @@ import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
 import { frameLookOf, regionGrade, type FrameLookPort } from './frameLook';
-import { holdPageLight, regionLightSwap } from './regionLight';
+import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -137,8 +137,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       terrain.applyCanopy(forest.canopyMap);
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
       let world: ShardWorld | null = null;
-      // its light on the page's one sky: held on each entry, put back on leave (G223)
-      const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game })) : null;
+      // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
+      const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
       const foundation: RegionalRuntimeFoundation = {
         region: { host, dispose: () => { resident.dispose(); } },
         ground,

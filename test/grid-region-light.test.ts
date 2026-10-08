@@ -9,7 +9,9 @@ import { VolumetricsEffect } from '../src/engine/core/Volumetrics';
 import { fogUniforms, weatherFogUniforms, weatherUniforms } from '../src/engine/world/Atmosphere';
 import { painterlyUniforms, setPainterlyLook, syncPainterlySun, updatePainterly } from '../src/engine/world/painterly';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { holdPageLight, regionLightSwap } from '../src/game/grid/regionLight';
+import { applyLevelLight, holdPageLight, regionLightSwap } from '../src/game/grid/regionLight';
+import { wind } from '../src/engine/world/steppeWind';
+import { windStrength } from '../src/engine/world/wind';
 import { NALATI_GRASSLANDS } from '../src/shards/nalati-grasslands/manifest';
 import { SkyRig as NalatiSkyRig, copyLook, makeLook } from '../src/shards/nalati-grasslands/look/skyRig';
 import { LightCheat } from '../src/shards/nalati-grasslands/look/light';
@@ -138,4 +140,60 @@ it('leaves the composer alone before it is built', () => {
   const before = fogUniforms.fogDistDensity.value;
   restore();
   expect(sky.hemi.intensity).toBe(0.6); expect(fogUniforms.fogDistDensity.value).not.toBe(before);
+});
+
+it('starts a region sky rig from its own level light, not the road light, and gives the road its light back (G222 follow-up #3)', () => {
+  const sky = pageSky(), game = pageGame(), region = new Scene();
+  region.fog = new Fog(0x8899aa, 1, 1e6);
+  const level = NALATI_GRASSLANDS, page = readout(sky, game);
+  // the road's light differs from Nalati's own (2.5 vs its sun intensity, a different fill)
+  expect(sky.csm.lights[0]?.intensity).not.toBe(level.sky.sunIntensity);
+  const swap = regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene: region }, level); });
+  const first = new Scope('entered:1');
+  swap(first);
+  const regionGame = legacyDouble<Game>({ post: game.post, volumetrics: game.volumetrics, camera: game.camera, scene: region });
+  const rig = new NalatiSkyRig(regionGame, sky, { frames: nightKeys, blend: blendSteppeKey }, level);
+  expect(rig.daySunIntensity).toBe(level.sky.sunIntensity);
+  const day: unknown = Reflect.get(rig, 'day');
+  const key = day !== null && typeof day === 'object' ? Object.fromEntries(Object.entries(day)) : {};
+  expect(key['sun']).toEqual([...level.sky.sunColor]);
+  expect(key['hemiSky']).toEqual(new Color(level.sky.hemiSky).toArray());
+  expect(key['hemiI']).toBe(level.sky.hemiIntensity);
+  expect(key['env']).toBe(level.sky.envIntensity);
+  expect(key['fogSun']).toEqual([...level.sky.fogSunColor]);
+  expect(Reflect.get(rig, 'fogDist')).toBe(level.atmosphere.fogDistDensity);
+  first.dispose();
+  expect(readout(sky, game)).toEqual(page);
+  // a re-entry brings the region's own last light back; the level light is only its first start
+  sky.hemi.intensity = 0.9;
+  const second = new Scope('entered:2');
+  swap(second);
+  expect(sky.hemi.intensity).toBe(level.sky.hemiIntensity);
+  second.dispose();
+  expect(sky.hemi.intensity).toBe(0.9);
+});
+
+it('swaps the one engine wind with the region: its storm inside, the road wind back on leave (G222 follow-up #4)', () => {
+  const sky = pageSky(), game = pageGame();
+  wind.set(5, 1.95, 0.6); wind.update(1 / 60);
+  const road = { speed: wind.speed, dir: wind.dir, gust: wind.gustiness, dirX: wind.dirX, strength: windStrength.value, uDir: wind.uniforms.uWindDir.value.toArray() };
+  const swap = regionLightSwap(() => holdPageLight({ sky, game }));
+  const first = new Scope('entered:1');
+  swap(first);
+  // the region's storm: a hard gusting wind from another quarter
+  wind.setTarget(22, 0.4, 1, 0.1); for (let i = 0; i < 240; i++) wind.update(1 / 60);
+  const storm = { speed: wind.speed, dir: wind.dir, strength: windStrength.value };
+  expect(storm.speed).toBeGreaterThan(15); expect(storm.strength).toBeGreaterThan(road.strength);
+  const time = wind.time;
+  first.dispose();
+  expect({ speed: wind.speed, dir: wind.dir, gust: wind.gustiness, dirX: wind.dirX, strength: windStrength.value, uDir: wind.uniforms.uWindDir.value.toArray() }).toEqual(road);
+  expect(wind.time).toBe(time); // its clock is not a look: it keeps running
+  // the road's wind eases back to its own target, not the storm's
+  for (let i = 0; i < 60; i++) wind.update(1 / 60);
+  expect(wind.speed).toBeLessThan(8);
+  // re-entry: the storm is back as the region left it
+  const second = new Scope('entered:2');
+  swap(second);
+  expect(wind.speed).toBe(storm.speed); expect(windStrength.value).toBe(storm.strength);
+  second.dispose();
 });

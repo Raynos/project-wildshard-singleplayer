@@ -146,6 +146,22 @@ export class Wind {
     return out;
   }
 
+  /**
+   * Hold the wind's look (its speed, heading, gustiness, wander and the target it eases toward, and the legacy
+   * `windStrength` it bridges); the returned function puts it all back. Its clocks (`time`, `travel`) keep running. A grid
+   * page holds the road's wind while a stormy region owns it (game/grid/regionLight.ts).
+   */
+  hold(): () => void {
+    const speed = this.speed, dir = this.dir, gustiness = this.gustiness, wander = this.wander, target = { ...this.target };
+    const baseSpeed = this.baseSpeed, baseDir = this.baseDir, strength = windStrength.value;
+    return () => {
+      this.speed = speed; this.dir = dir; this.gustiness = gustiness; this.wander = wander; Object.assign(this.target, target);
+      this.baseSpeed = baseSpeed; this.baseDir = baseDir; windStrength.value = strength;
+      this.uniforms.uWindSpeed.value = speed; this.uniforms.uWindGustiness.value = gustiness;
+      this.syncDir();
+    };
+  }
+
   private syncDir(): void {
     this.dirX = -Math.sin(this.dir);
     this.dirZ = -Math.cos(this.dir);
