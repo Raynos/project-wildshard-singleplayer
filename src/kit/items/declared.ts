@@ -6,10 +6,19 @@ import type { ItemFamily, ItemFamilyPorts } from '@wildshard/engine/combat/itemF
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import { buildSword } from './declaredSword'; // SF54: the private iron sword copy, deleted when these families graduate
 
+/**
+ * The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:
+ * the template's neutral look has no environment and a dim sun, so a plain grey item's shade side rendered near black on
+ * every renderer (its measure surfaces carry their own lift, families/measure.ts). At 0.5 the sunlit face reads as the
+ * declared colour and the shade side a step darker.
+ */
+export const ITEM_VIEW_LIFT = 0.5;
+
 function itemMesh(ports: ItemFamilyPorts): Group {
   const recipe = ports.view.recipe;
   if (!['kit.whip', 'kit.sword', 'kit.lantern'].includes(recipe)) throw new Error(`Unresolved item view ${recipe}`);
-  const model = new Group(), material = new MeshStandardMaterial({ color: ports.view.colour, flatShading: true });
+  const model = new Group();
+  const material = new MeshStandardMaterial({ color: ports.view.colour, flatShading: true, emissive: ports.view.colour, emissiveIntensity: ITEM_VIEW_LIFT });
   const sword = recipe === 'kit.sword' ? buildSword('iron') : null;
   const geometry = sword?.sword ?? (recipe === 'kit.whip' ? new CylinderGeometry(0.025, 0.04, 0.8, 6) : new BoxGeometry(0.12, 0.18, 0.12));
   sword?.arms.dispose(); model.add(new Mesh(geometry, material));

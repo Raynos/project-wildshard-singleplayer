@@ -120,7 +120,10 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
     -- vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir \
     -- assert-devserver node scripts/check-devserver.mjs "$work/dist" \
     -- check-chunks node scripts/check-chunks.mjs "$work/dist" \
-    -- shard-platform node scripts/shard-platform.mjs --check # SHARD-PLATFORM SP5: each shard's custom share
+    -- shard-platform node scripts/shard-platform.mjs --check \
+    -- webkit-smoke bash scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist="$work/dist"
+  # shard-platform: SHARD-PLATFORM SP5, each shard's custom share. webkit-smoke (E460, ~5 s): the built template in
+  # Playwright WebKit as the phone; fails when a held item or the world view renders near black.
 fi
 wait
 failed=()
