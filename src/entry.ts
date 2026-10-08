@@ -107,7 +107,7 @@ export async function start(): Promise<void> {
 async function startSelected(): Promise<void> {
   await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
   const { game } = await retried(() => import('./game/shard/registry'));
-  const { beginLoading } = await retried(() => import('./engine/ui/Loading'));
+  const { beginLoading } = await retried(() => import('@wildshard/engine/ui/Loading'));
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
