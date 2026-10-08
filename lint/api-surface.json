@@ -3891,6 +3891,12 @@
         "from": "@wildshard/engine/combat/Weapon"
       },
       {
+        "name": "decodedImageCount",
+        "kind": "function",
+        "doc": "decodes the cache holds now (SF57: a released decode leaves it, trimmed or not)",
+        "from": "@wildshard/engine/core/assets"
+      },
+      {
         "name": "loadGLTF",
         "kind": "function",
         "doc": "",
@@ -6776,7 +6782,7 @@
       {
         "name": "cullPlaced",
         "kind": "function",
-        "doc": "Per-copy culling and LODs of everything this shard placed — once a frame, after the camera is posed.",
+        "doc": "Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed.",
         "from": "@wildshard/engine/models/place"
       },
       {
@@ -6830,13 +6836,25 @@
       {
         "name": "placedCopies",
         "kind": "function",
-        "doc": "how many copies of a model this shard has placed (0 when none)",
+        "doc": "how many copies of a model the live shards have placed (0 when none)",
         "from": "@wildshard/engine/models/place"
       },
       {
         "name": "placedGroups",
         "kind": "function",
-        "doc": "every `place` call this shard has registered, in the order they were made (a shard's named places sort them into Sets)",
+        "doc": "every `place` call the live shards have registered, in the order they were made (a shard's named places sort them into Sets)",
+        "from": "@wildshard/engine/models/place"
+      },
+      {
+        "name": "placementCensus",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/engine/models/place"
+      },
+      {
+        "name": "PlacementCensus",
+        "kind": "interface",
+        "doc": "What placement holds now (SF57's lifetime check): live worlds, model records, registered groups and per-frame cullers.",
         "from": "@wildshard/engine/models/place"
       },
       {

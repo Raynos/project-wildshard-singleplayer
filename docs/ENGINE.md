@@ -1876,7 +1876,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2222 exports, grouped by the module to import them from.
+2225 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1997,7 +1997,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
 - `@wildshard/engine/combat/view/SweptMelee`: `MeleeEvents`, `SweptMelee`, `SweptMeleeDefaults`, `SwordOptions`
 - `@wildshard/engine/combat/Weapon`: `AimInfo`, `EquipmentView`, `ImpactSurface`, `quiverState`, `ViewFrame`, `Weapon`, `WeaponHooks`, `WeaponState`
-- `@wildshard/engine/core/assets`: `loadGLTF`, `loadHDR`, `loadImage`, `loadPBR`, `loadPBRArray`, `loadTexture`, `pbrMaterial`, `PBRSet`, `pbrUrls`, `setAnisotropy`, `texUrl`
+- `@wildshard/engine/core/assets`: `decodedImageCount`, `loadGLTF`, `loadHDR`, `loadImage`, `loadPBR`, `loadPBRArray`, `loadTexture`, `pbrMaterial`, `PBRSet`, `pbrUrls`, `setAnisotropy`, `texUrl`
 - `@wildshard/engine/core/bootstrap`: `bootstrap`, `World`
 - `@wildshard/engine/core/clock`: `diagnosticNow`, `GameClock`, `GameClockState`
 - `@wildshard/engine/core/config`: `_applyChunkConstants`, `bindChunkConstants`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `CHUNK_COORDS`, `CHUNK_DEPTH`, `CHUNK_HALF`, `CHUNK_SIZE`, `CONTENT_CAPS`, `CONTENT_MB`, `ENTRY_ASPHALT`, `ENTRY_WIDTH`, `PAGE_LEVEL`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `TERRAIN_RES`, `TREE_COUNT`
@@ -2062,7 +2062,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/models/interact`: `glow`, `lit`, `pickup`
 - `@wildshard/engine/models/live`: `listModel`, `ListOptions`, `listRoster`, `live`, `RosterEntry`
 - `@wildshard/engine/models/model`: `ColliderSpec`, `definedModels`, `defineModel`, `ModelBuild`, `ModelBuildVisit`, `modelContext`, `ModelContext`, `ModelDef`, `ModelInfo`, `ModelLod`, `ModelPart`, `ModelPlacementVisit`, `ModelPlacementVisitor`, `ModelVariant`, `paramsOf`, `Placement`, `seedOf`, `withModelPlacementVisitor`
-- `@wildshard/engine/models/place`: `CLAIM_MARGIN`, `claimCopy`, `copiesAt`, `copiesNear`, `cullPlaced`, `Draw`, `DrawnInto`, `finishWeld`, `HandedBatch`, `InstancedCuller`, `PieceOptions`, `place`, `Placed`, `placedCopies`, `placedGroups`, `PlaceOptions`, `rayCopy`, `weld`, `Weld`, `WeldOptions`
+- `@wildshard/engine/models/place`: `CLAIM_MARGIN`, `claimCopy`, `copiesAt`, `copiesNear`, `cullPlaced`, `Draw`, `DrawnInto`, `finishWeld`, `HandedBatch`, `InstancedCuller`, `PieceOptions`, `place`, `Placed`, `placedCopies`, `placedGroups`, `placementCensus`, `PlacementCensus`, `PlaceOptions`, `rayCopy`, `weld`, `Weld`, `WeldOptions`
 - `@wildshard/engine/models/roster`: `listShardModels`, `ShardModelsOptions`
 - `@wildshard/engine/models/sets`: `placeSet`, `SetOptions`
 - `@wildshard/engine/models/slots`: `SlotGeometry`, `SlotRange`, `SlotRecorder`

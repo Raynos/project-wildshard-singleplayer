@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2239 members; 833 without a doc line (—).
+2242 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -655,6 +655,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Weapon` | class | @wildshard/engine/combat/Weapon | — |
 | `WeaponHooks` | interface | @wildshard/engine/combat/Weapon | — |
 | `WeaponState` | interface | @wildshard/engine/combat/Weapon | — |
+| `decodedImageCount` | function | @wildshard/engine/core/assets | decodes the cache holds now (SF57: a released decode leaves it, trimmed or not) |
 | `loadGLTF` | function | @wildshard/engine/core/assets | — |
 | `loadHDR` | function | @wildshard/engine/core/assets | — |
 | `loadImage` | function | @wildshard/engine/core/assets | — |
@@ -1134,7 +1135,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `claimCopy` | function | @wildshard/engine/models/place | the smallest of `p`'s copy boxes holding `pt` (grown by CLAIM_MARGIN), or null when `pt` is on none of them |
 | `copiesAt` | function | @wildshard/engine/models/place | Copies `at` (indices into the call's placement order) of a `place` call as a `Placed` of their own, like `copiesNear`'s |
 | `copiesNear` | function | @wildshard/engine/models/place | The copies of a `place` call whose box centre stands within each circle (x, z, r: metres, on the ground), as a `Placed` |
-| `cullPlaced` | function | @wildshard/engine/models/place | Per-copy culling and LODs of everything this shard placed — once a frame, after the camera is posed. |
+| `cullPlaced` | function | @wildshard/engine/models/place | Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. |
 | `Draw` | type | @wildshard/engine/models/place | how the copies are drawn (see ./model.ts step 3) |
 | `DrawnInto` | interface | @wildshard/engine/models/place | Copies drawn by the set they stand in, not by `place` (M3): each Nalati place is ONE painted mesh — every model of a |
 | `finishWeld` | function | @wildshard/engine/models/place | Draw a weld's shared meshes, start its bands, and register its copies' pieces (in the order they were placed). |
@@ -1143,8 +1144,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PieceOptions` | interface | @wildshard/engine/models/place | the registry piece a `place` call adds (defaults: the model's id and name; no floor) |
 | `place` | function | @wildshard/engine/models/place | Place copies of a model (see the file header and ./model.ts's migration guide). |
 | `Placed` | interface | @wildshard/engine/models/place | what a `place` call built |
-| `placedCopies` | function | @wildshard/engine/models/place | how many copies of a model this shard has placed (0 when none) |
-| `placedGroups` | function | @wildshard/engine/models/place | every `place` call this shard has registered, in the order they were made (a shard's named places sort them into Sets) |
+| `placedCopies` | function | @wildshard/engine/models/place | how many copies of a model the live shards have placed (0 when none) |
+| `placedGroups` | function | @wildshard/engine/models/place | every `place` call the live shards have registered, in the order they were made (a shard's named places sort them into Sets) |
+| `placementCensus` | function | @wildshard/engine/models/place | — |
+| `PlacementCensus` | interface | @wildshard/engine/models/place | What placement holds now (SF57's lifetime check): live worlds, model records, registered groups and per-frame cullers. |
 | `PlaceOptions` | interface | @wildshard/engine/models/place | how `place` draws a model's copies: the model context, the draw, merging into cells and culling |
 | `rayCopy` | function | @wildshard/engine/models/place | the nearest of `p`'s copy boxes `ray` enters within `far` (a box it starts inside doesn't count), or null |
 | `weld` | function | @wildshard/engine/models/place | A merge across several models' copies (see `WeldOptions`, ./weld.ts); `finishWeld` once every building is in. |
