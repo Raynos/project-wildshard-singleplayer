@@ -78,7 +78,7 @@ it('admits a whole-cost runtime, runs hooks only after the real interior event, 
     const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon' }); aimBodies = animals.animals; vi.spyOn(animals, 'update').mockImplementation(noop);
     return Promise.resolve({ region: { host, dispose: () => { disposed++; host.dispose(); } }, ground: { heightAt: () => 0, waterSurfaceAt: () => null },
       world: view => ({ ...world, registry: view.registry, physics: host.physics }),
-      enter: entered => { const prior = app.levelScope; app.levelScope = host.scope; entered.onDispose(() => { app.levelScope = prior; }); },
+      enter: entered => { const prior = app.levelScope; app.levelScope = request.scope; entered.onDispose(() => { app.levelScope = prior; }); },
       afterKit: () => Promise.resolve({ animals, wearSkin: noop }), checkpoint: () => ports.checkpoint(host, request) });
   });
   const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: player.camera, hoverSpeedLimit: null,

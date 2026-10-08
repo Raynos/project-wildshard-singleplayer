@@ -104,15 +104,24 @@ it('composes two retained entries with real equipment, instance saves, destinati
     }
     override kit(ctx: ShardContext): void {
       f.calls.push('trusted.kit');
+      ctx.rows.spawnTable({ id: 'regional.spawn', table: { mode: 'each', rows: [{ item: { kind: 'boar' }, weight: 1 }] } });
       const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing local runtime');
       rt.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null });
     }
     override play(ctx: ShardContext): void {
-      f.calls.push('trusted.play'); local = ctx.game.runtime?.play ?? null;
+      f.calls.push('trusted.play');
+      const world = ctx.game.runtime?.world;
+      if (world === undefined || world === null || ctx.app.levelScope === null) throw new Error('Missing regional world');
+      expect(world.game.levelScope).not.toBe(f.world.game.levelScope);
+      expect(world.game.registrationScope).toBe(world.game.levelScope);
+      const spawner = ctx.app.encounters.spawn('regional.spawn', ctx.app.levelScope, { create: value => value, retire: noop });
+      expect(spawner.spawn({ tags: [] }, { x: 0, z: 0, yaw: 0 }, () => 0.5)).toEqual([{ kind: 'boar' }]);
+      world.game.onUpdate(() => { ticks++; }, 'world.impacts');
+      local = ctx.game.runtime?.play ?? null;
       if (local === null) throw new Error('Missing regional play host');
       expect(local.inventory).not.toBe(f.play.inventory); expect(local.progress).not.toBe(f.play.progress);
       expect(local.inventory.chunkId).toBe('pine-hollow');
-      installEnteredRuntimeService(ctx, entry => { ctx.app.addSystem({ id: 'regional.test.tick', phase: 'update', run: () => { ticks++; } }, entry); });
+      installEnteredRuntimeService(ctx, entry => { ctx.app.addSystem({ id: 'regional.test.tick', phase: 'update', run: noop }, entry); });
     }
   }
   const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [

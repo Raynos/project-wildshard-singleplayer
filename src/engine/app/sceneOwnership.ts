@@ -26,14 +26,41 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
   visit(container);
   return resources;
 }
+interface DelegatedScene { capture: () => void }
+const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
+
+/** Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never
+ * take or free its resources. Nested delegated roots are independent; disposing them in either order is safe. */
+export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetService, 'isAcquired'>): void {
+  if (scope.disposed || delegatedScenes.has(root)) throw new Error('Scene subtree requires one live owner');
+  const capture = (): void => {
+    for (const resource of sceneResources(root)) if (!assets.isAcquired(resource)) scope.own(resource);
+    for (const child of root.children) captureDelegatedScenes(child);
+  };
+  delegatedScenes.set(root, { capture });
+  scope.onDispose(() => {
+    capture(); root.removeFromParent(); root.clear(); delegatedScenes.delete(root);
+  });
+}
+function captureDelegatedScenes(root: Object3D): void {
+  const delegated = delegatedScenes.get(root);
+  if (delegated !== undefined) { delegated.capture(); return; }
+  for (const child of root.children) captureDelegatedScenes(child);
+}
+
 export function sceneResources(root: Object3D): Set<Disposable3> {
   const resources = new Set<Disposable3>();
-  root.traverse((node) => {
+  const visit = (node: Object3D): void => {
+    if (node !== root && delegatedScenes.has(node)) return;
     if (node instanceof InstancedMesh || node instanceof BatchedMesh) resources.add(node);
     for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
+      // BatchedMesh.dispose owns its private aggregate geometry and internal textures.
+      if (node instanceof BatchedMesh && key === 'geometry') continue;
       for (const resource of containerResources(Reflect.get(node, key))) resources.add(resource);
     }
-  });
+    for (const child of node.children) visit(child);
+  };
+  visit(root);
   return resources;
 }
 
@@ -70,6 +97,9 @@ export class SceneOwnership {
   capture(): void {
     if (this.level.disposed) return;
     const visit = (node: Object3D): void => {
+      const delegated = delegatedScenes.get(node);
+      if (delegated !== undefined) { delegated.capture(); return; }
+      captureDelegatedScenes(node);
       if (this.engineNodes.has(node)) { for (const child of node.children) visit(child); return; }
       if (!this.roots.has(node)) {
         this.roots.add(node);

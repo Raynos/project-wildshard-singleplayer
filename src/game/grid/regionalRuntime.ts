@@ -141,7 +141,21 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.rootScene,
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
         scope, ground: foundation.ground });
-      const world = foundation.world(view);
+      const foundationWorld = foundation.world(view);
+      let enteredContext: ShardContext | null = null, anonymous = 0;
+      const onUpdate: ShardWorld['game']['onUpdate'] = (run, label, core = false) => {
+        if (enteredContext === null) throw new Error('Regional callback registered before its interior context');
+        const id = `grid.runtime.${request.cell.instance}.callback.${label ?? String(anonymous++)}`;
+        installEnteredRuntimeService(enteredContext, entry => { app.addSystem({ id, phase: 'update', run, core }, entry); });
+      };
+      // Content keeps the same renderer/player, but its stable scope and callback registration belong to this region.
+      // The home Game's fields are never overwritten, even across yielded hooks or while this resident is parked.
+      const game = new Proxy(foundationWorld.game, { get: (target, key, receiver) => {
+        if (key === 'levelScope' || key === 'registrationScope') return scope;
+        if (key === 'onUpdate') return onUpdate;
+        const value: unknown = Reflect.get(target, key, receiver); return value;
+      } });
+      const world = { ...foundationWorld, game };
       if (world.physics !== host.physics || world.player !== request.page.world.player || world.game.renderer !== request.page.world.game.renderer) throw new Error('Regional world must keep the page renderer/player and destination physics');
       const skinRows: SkinDef[] = [];
       let localPlay: ShardPlayHost | null = null;
@@ -172,7 +186,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             skinRows.push(...list);
           } } };
           return { ...installation, context,
-            beforeWorld: entered => { installEnteredRuntimeService(entered, entry => {
+            beforeWorld: entered => { enteredContext = entered; installEnteredRuntimeService(entered, entry => {
               foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);
               app.addSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
             }); },

@@ -24,7 +24,7 @@
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
-import { sceneResources } from '@wildshard/engine/app/sceneOwnership';
+import { sceneResources, ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
@@ -88,7 +88,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   const entry = allocator.entries().find((row) => row.id === claim.id);
   if (entry === undefined || entry.owner !== cell.instance) throw new Error('Regional view requires its reserved whole-runtime claim');
   const scope = request.scope.child(`grid.view:${cell.instance}`);
-  const root = new Group(); root.name = `region:${cell.instance}`;
+  const root = new Group(); ownSceneTree(root, scope, assets); root.name = `region:${cell.instance}`;
   // Parked geometry stays hidden: an inactive neighbour shows only its shardfile / frozen declared content.
   root.visible = false;
   root.position.set(cell.origin.x - request.home.x, 0, cell.origin.z - request.home.z);
@@ -101,7 +101,6 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   };
   // Unwinds last (LIFO): the scene node, then the claim hold, after every piece scope below has released its handles.
   scope.onDispose(() => {
-    free(root); root.clear();
     registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0;
     movers.clear(); platforms.length = 0;
   });

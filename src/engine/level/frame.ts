@@ -18,6 +18,8 @@ export interface LevelFrameHost {
 export interface LevelFrameOptions {
   level: LevelSpec;
   scope: Scope;
+  /** Common level identity for sibling runtime registrations; resources still belong to scope. */
+  levelScope?: Scope;
   water: WaterBodies;
   navmesh: Navmesh | null;
 }
@@ -39,20 +41,20 @@ export class LevelFrameBinding {
   private readonly options: LevelFrameOptions;
   private readonly constants: { slug: string; label: string; seed: number; treeCount: number };
   constructor(options: LevelFrameOptions) {
-    if (options.scope.disposed) throw new Error('Level frame requires a live resident scope');
+    if (options.scope.disposed || options.levelScope?.disposed === true) throw new Error('Level frame requires a live resident scope');
     this.options = options;
     this.terrain = new HeightfieldBinding(options.level);
     this.constants = { slug: options.level.id, label: options.level.label ?? CHUNK_COORDS, seed: options.level.seed ?? SEED, treeCount: options.level.treeCount ?? TREE_COUNT };
   }
   /** Install until either the entered scope or retained resident scope leaves; return an early leave. */
   enter(host: LevelFrameHost, entered: Scope): () => void {
-    if (entered.disposed || this.options.scope.disposed) throw new Error('Cannot enter a disposed level frame');
+    if (entered.disposed || this.options.scope.disposed || this.options.levelScope?.disposed === true) throw new Error('Cannot enter a disposed level frame');
     const { level, scope, navmesh, water } = this.options;
     captureHeightfield();
     let bindings = hosts.get(host);
     if (bindings === undefined) { bindings = { home: read(host), frames: [] }; hosts.set(host, bindings); }
     const retained = bindings;
-    const frame: HostFrame = { ports: { scope, navmesh, navmeshId: navmesh === null ? null : level.id } };
+    const frame: HostFrame = { ports: { scope: this.options.levelScope ?? scope, navmesh, navmeshId: navmesh === null ? null : level.id } };
     const leaveLevel = bindLevelSelection(level);
     const leaveTerrain = bindHeightfield(this.terrain);
     const leaveConstants = bindChunkConstants(this.constants);
