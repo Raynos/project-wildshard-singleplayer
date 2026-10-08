@@ -593,7 +593,8 @@ it, is refused. Its strict object has required `homes` (at most 256) and `bosses
 `{id, kind, look, at: [x, z], yaw}`; homes also require `respawn` in seconds, from
 1 through 3600. Coordinates are finite and within [-250, 250]; yaw is finite.
 IDs and look names are lowercase identifiers of at most 128 characters; the
-runtime species `kind` allows camel case and is at most 64 characters. IDs must
+runtime species `kind` starts with a lowercase letter, allows camel case and
+hyphens (for example `antler-king`), and is at most 64 characters. IDs must
 be unique across both arrays. Unknown fields and non-data values are refused.
 These rows place the trusted runtime's registered species and looks; their brains,
 rigs and encounter logic remain runtime-owned. They do not create local-simulation
@@ -631,6 +632,41 @@ The trusted runtime explicitly calls the game-owned installers in
 entry must still match the same slug and entry exactly, and a runtime cannot bind a
 section it did not declare. Leaving the cell disposes its entered services; revisits
 bind the same admitted rows through the ordinary retained/restored lifecycle.
+
+**Declared item input (SF70).** Each `items.contexts` row has a unique `id`,
+`keysFrom`, the exact ordered `actions` below, `touch` and boolean `lockable`.
+The platform registers the new context with inherited keys in its owning scope.
+The four baseline IDs are referenced, never redeclared as new context IDs.
+Item `ui.swapIcon` preserves the authored glyph verbatim, bounded to 512 characters
+so existing multi-path swap glyphs fit without truncation or a separate resolver.
+
+| `keysFrom` | `actions` | `touch` |
+| --- | --- | --- |
+| `weapon.melee` | `attack`, `heavy`, `lock` | `melee` |
+| `weapon.ranged` | `attack`, `aim`, `reload` | `ranged` |
+| `weapon.bow` | `attack`, `aim` | `bow` |
+| `weapon.spear` | `attack`, `aim` | `throwing` |
+
+A weapon's `context` normally names a declared context or the existing
+`weapon.melee` baseline. Optional `items.runtimeContexts` lists at most 64 unique,
+bounded existing context IDs (for example `weapon.bow`, `weapon.ranged` or
+`weapon.spear`) for runtime-bound weapons to reference directly. These IDs cannot
+also be declared in `items.contexts`. Nonempty references require a first-party
+runtime declaration whose `binds` includes `"items"`; they do not register or
+replace contexts. The runtime-owned installer checks every reference against the
+live input registry before creating any item. Missing contexts and ordinary
+data-client installation are refused. Omitted references preserve the old format
+output and melee path. Runtime registration of newly declared contexts still uses
+the entered-scope lifecycle.
+
+The trusted injected `ItemFamily` may supply `presentation` containing `ui`,
+`cues`, `hitStop` and `rangedFeel`. Its optional UI fields preserve existing ammo
+readouts, touch profile, lock/melee/tracer flags, swap label and hunter's eye.
+Declared identity, slot, input context, name, icon and swap glyph remain
+authoritative. Presentation overrides are trusted code metadata, not accepted
+fields in item JSON. This does not introduce projectile simulation: existing
+native bow, thrown and firearm families keep their firing/reload/flight logic;
+numeric contact limits and the one shared script-host contract remain unchanged.
 
 First-party picker manifests may carry a built `shardfile` URL. The normal entry
 admits that same-origin source before starting the session, retaining the manifest's

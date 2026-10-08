@@ -22,26 +22,36 @@ const tag = v.custom<`${string}.${string}`>((value) => typeof value === 'string'
 const effect = v.custom<`effect.${string}`>((value) => typeof value === 'string' && /^effect\.[a-z][a-zA-Z0-9.-]*$/u.test(value));
 const hook = v.nullable(v.strictObject({ module: v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u)), entity: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), event: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff)) }));
 const view = v.strictObject({ recipe: name, colour: v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u)), position: vector, rotation: vector });
-const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.maxLength(64)), blurb: text });
+const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.maxLength(512)), blurb: text });
 const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), v.maxValue(10000)), cooldown: duration,
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value)),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
-const context = v.strictObject({ id: name, keysFrom: v.picklist(['weapon.melee']), actions: v.tuple([v.literal('attack'), v.literal('heavy'), v.literal('lock')]), touch: v.literal('melee'), lockable: v.boolean() });
+const context = v.variant('keysFrom', [
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.melee'), actions: v.tuple([v.literal('attack'), v.literal('heavy'), v.literal('lock')]), touch: v.literal('melee'), lockable: v.boolean() }),
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.ranged'), actions: v.tuple([v.literal('attack'), v.literal('aim'), v.literal('reload')]), touch: v.literal('ranged'), lockable: v.boolean() }),
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.bow'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('bow'), lockable: v.boolean() }),
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.spear'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('throwing'), lockable: v.boolean() }),
+]);
+const baselineContexts = new Set(['weapon.melee', 'weapon.ranged', 'weapon.bow', 'weapon.spear']);
 const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
-  contexts: v.pipe(v.array(context), v.maxLength(64)), loadout: v.strictObject({ primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
+  contexts: v.pipe(v.array(context), v.maxLength(64)),
+  runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
+  loadout: v.strictObject({ primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
 /** Declared item families, numeric contacts, input contexts, script hooks and initial loadout. */
 export type ShardItems = v.InferOutput<typeof raw>;
 /** Local references plus optional script catalogue checks; global format composition supplies admitted module ids. */
 export function itemRules(items: ShardItems, modules?: readonly string[]): string[] {
   const errors: string[] = [], ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
-  if (items.contexts.some((ctx) => ctx.id === 'weapon.melee')) errors.push('baseline context is referenced rather than redeclared');
+  const runtimeContexts = items.runtimeContexts ?? [];
+  if (items.contexts.some((ctx) => baselineContexts.has(ctx.id))) errors.push('baseline context is referenced rather than redeclared');
+  if (new Set(runtimeContexts).size !== runtimeContexts.length || runtimeContexts.some((id) => items.contexts.some((ctx) => ctx.id === id))) errors.push('unique runtime context references separate from declared contexts');
   if (new Set(ids).size !== ids.length || new Set(weapons.map((r) => r.slot)).size !== weapons.length
     || new Set(items.contexts.map((r) => r.id)).size !== items.contexts.length) errors.push('unique item ids slots and contexts');
   if (weapons.some((r) => r.slot !== `declared.${r.id}`)) errors.push('stable weapon slot');
-  if (weapons.some((r) => r.context !== 'weapon.melee' && !items.contexts.some((c) => c.id === r.context))) errors.push('declared weapon context');
+  if (weapons.some((r) => r.context !== 'weapon.melee' && !runtimeContexts.includes(r.context) && !items.contexts.some((c) => c.id === r.context))) errors.push('declared weapon context');
   for (const id of [items.loadout.primary, items.loadout.secondary]) if (id !== null && !weapons.some((r) => r.id === id)) errors.push('weapon loadout reference');
   if (items.rows.length > 0 && items.loadout.primary === null) errors.push('primary weapon required');
   if (items.loadout.primary !== null && items.loadout.primary === items.loadout.secondary) errors.push('distinct loadout weapons');
@@ -68,7 +78,7 @@ export function declaredItemScriptEntities(input: unknown, actorId: string): { e
 }
 /** Trusted loader dependencies; factories and icons are resolved below the game layer. */
 export interface DeclaredItemPorts {
-  scope: Scope; actorId: string; input: Pick<InputService, 'bind' | 'held' | 'register'>; aim: () => AimCommand;
+  scope: Scope; actorId: string; input: Pick<InputService, 'bind' | 'held' | 'register' | 'has'>; aim: () => AimCommand;
   families: ReadonlyMap<string, ItemFamily>; icon: (name: string) => EquipmentIcon;
   runtime: (row: ShardItems['rows'][number]) => ItemPorts;
   /** A trusted shard's own families (M3): each named `<slug>.<name>`, never shadowing a kit family; resolved like the kit's. */
@@ -95,6 +105,9 @@ export interface DeclaredItems {
 /** Resolve every family before construction, register baseline contexts, and expose the normal buildEquipment handoff. */
 export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): DeclaredItems {
   const data = parseItems(input);
+  const runtimeContexts = data.runtimeContexts ?? [];
+  if (runtimeContexts.length > 0 && ports.contexts !== 'runtime') throw new Error('Existing runtime input contexts require a runtime-owned items installer');
+  for (const id of runtimeContexts) if (!ports.input.has(id)) throw new Error(`Unresolved runtime input context ${id}`);
   const resolved = ports.shardFamilies === undefined ? ports.families : shardItemFamilies(ports.families, ports.shardFamilies);
   const families = data.rows.map((row) => { const family = resolved.get(row.family); if (family?.kind !== row.kind) throw new Error(`Unresolved item family ${row.family}`); return family; });
   const icons = data.rows.map((row) => ports.icon(row.ui.icon));
@@ -113,7 +126,9 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
       const deps = runtimePorts[index]; if (deps === undefined) throw new Error('Missing resolved runtime');
       const itemScope = scope.child(declaration.id);
       const runtime = new ItemRuntime(declaration, { ...deps, active: () => !itemScope.disposed && (deps.active?.() ?? true) }); runtimes.set(declaration.id, runtime);
-      const row: EquipmentRow = { id: declaration.id, ui: { name: declaration.ui.name, icon, touch: 'melee', lockOn: declaration.kind === 'weapon', melee: declaration.kind === 'weapon', tracers: false, swapIcon: declaration.ui.swapIcon,
+      const { ui: presentationUi, ...presentation } = family.presentation ?? {};
+      const row: EquipmentRow = { ...presentation, id: declaration.id, ui: { touch: 'melee', lockOn: declaration.kind === 'weapon', melee: declaration.kind === 'weapon', tracers: false,
+        ...presentationUi, name: declaration.ui.name, icon, swapIcon: declaration.ui.swapIcon,
         ...(declaration.kind === 'weapon' ? { inputContext: declaration.context } : {}) }, meta: { name: declaration.ui.name, icon, blurb: declaration.ui.blurb, category: declaration.kind },
         ...(declaration.kind === 'weapon' ? { legacySlot: declaration.slot } : {}) };
       const args = { scope: itemScope, runtime, input: ports.input, aim: ports.aim, view: declaration.view };

@@ -1898,6 +1898,16 @@ their declared row identity, including retries; `runtime` preserves ordinary
 runtime-assigned identities and allocation order when adopting existing saves.
 Standalone bodies retain their ordinary identities in either mode.
 
+SF70 adds exact melee/ranged/bow/spear declared input profiles. A hybrid's optional
+`items.runtimeContexts` names existing input definitions, admitted only when its
+runtime binds items; the runtime installer checks `InputService.has` for every
+reference before constructing equipment. It registers no duplicate baseline.
+`ItemFamily.presentation` (`ItemFamilyPresentation`, defining module
+`@wildshard/engine/combat/itemFamilies`) preserves trusted UI/ammo, cues, hit-stop
+and ranged-feel metadata. The declaration retains identity, slot, input context,
+name, icon and swap glyph. The override is not author JSON and creates no new
+projectile or script lane. Existing families without it keep their previous row.
+
 `@wildshard/engine/combat/items` owns fixed-step cooldown, held charge, queued command aim and lantern fuel/light state. An admitted hook on the existing shared `ScriptHost` may select only its requested action for its host-bound item handle; configured contacts, damage and effects remain trusted. `@wildshard/game/shardfile/items` validates JSON rows, input contexts, loadout and module references, constructs trusted ownership aliases and resolves injected `ItemFamily` constructors. `installDeclaredItems` returns the normal primary/secondary/extras/order/install handoff plus the authoritative runtime map and fixed-step callback. `@wildshard/kit/items/declared` supplies melee and lantern factories with scoped primitive views; the fixture uses the template whip and lantern numbers and a content-addressed 740-byte AssemblyScript module. Toggle/refill use action3/action4; UI reads `remainingFuel` and `lightOn` from the same runtime. The existing template switches at SF16. Bound creature views expose `simulationBound`: the legacy manager skips their decisions, damage, separation and movement-body allocation, while retaining pose/query hitboxes.
 
 

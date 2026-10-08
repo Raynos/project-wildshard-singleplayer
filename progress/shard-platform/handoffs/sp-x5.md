@@ -3,6 +3,30 @@
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
 Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
 
+## SF70 format — current landing
+
+Ranged / bow / thrown item context profiles are strict declared data. Optional
+items.runtimeContexts references already registered contexts only when runtime.binds
+includes items; the scoped installer preflights every reference before constructing
+families. Trusted ItemFamily.presentation preserves native UI / cues / hitStop /
+rangedFeel while declared identity, slot, context, name, icon and swap glyph win.
+No new projectile sim or shared script lane. Omitted fields preserve the melee path.
+Pine fit: swapIcon accepts512 chars verbatim (existing159-char longbow tested);
+runtimeSpawns.kind accepts hyphens, preserving antler-king, with its64-char cap and
+existing trusted runtime species admission. Both bounds have full-schema tests.
+No render, map-hash, generated files or new import edges changed.
+
+Validation candidate: clean21fc15142 plus owned patch, pnpm gen before checks.
+25 focused tests in4 files, root strict, root-config oxlint and ratchet pass.
+Heavy-lane clean full suite:935 files /5364 tests passed /14 skipped in131.51s.
+The source lands with hooks, current-HEAD private index and old-value CAS.
+Only own hunks are included, especially the10-line ENGINE manual addition; foreign
+ENGINE appendix and runtime-state work remain untouched. Coordinator owns pushes.
+
+Next queued format task: runtime-state composition/docs/full-schema tests after
+sp-x4 sends its defining SHA through the coordinator. No runtimeState/hybridRows/
+runtimeBinds edits are owned here. No browser, Simulator, preview or build held.
+
 ## Landed source
 
 - E458 `6aadc5dfb` / `f4f9eb73e` / `414a98ad7` / `b0ad0641c`: first-HTML fields/clock, typed admission, verified warm cache without repeated writes. Pushed through `b7c71be8a`; E458 closes with the receipt.

@@ -56,12 +56,19 @@ it('validates runtime home and boss data, bounds and shared identities through t
   const admit = (spawns: unknown) => parseShardfile({ ...source, runtime: { entry: 'runtime/index.ts', binds: ['spawns'], spawns } });
   const spawns = { homes: [home], bosses: [boss] };
   expect(admit(spawns).runtime?.spawns).toEqual(spawns);
+  const nativeBoss = { ...boss, kind: 'antler-king' };
+  expect(admit({ homes: [home], bosses: [nativeBoss] }).runtime?.spawns?.bosses[0]?.kind).toBe('antler-king');
+  expect(admit({ homes: [{ ...home, kind: 'k'.repeat(64) }], bosses: [] }).runtime?.spawns?.homes[0]?.kind).toBe('k'.repeat(64));
+  for (const kind of ['-antler', 'Antler-king', 'antler king', 'antler_king', 'k'.repeat(65)]) {
+    expect(() => admit({ homes: [], bosses: [{ ...boss, kind }] })).toThrow();
+  }
+
   for (const bad of [{ homes: [home, home], bosses: [] }, { homes: [home], bosses: [{ ...boss, id: home.id }] },
     { homes: [], bosses: [boss, boss] }, { homes: [], bosses: [], extra: true }, { homes: [] }, { bosses: [] }]) {
     expect(() => admit(bad)).toThrow();
   }
   for (const badHome of [{ ...home, respawn: 0 }, { ...home, respawn: 3601 }, { ...home, at: [250.01, 0] },
-    { ...home, yaw: Infinity }, { ...home, kind: 'bad-kind' }, { ...home, look: 'BadLook' },
+    { ...home, yaw: Infinity }, { ...home, kind: 'bad_kind' }, { ...home, look: 'BadLook' },
     { ...home, id: 'h'.repeat(129) }, { ...home, kind: 'k'.repeat(65) }, { ...home, brain: 'pursue' }]) {
     expect(() => admit({ ...spawns, homes: [badHome] })).toThrow();
   }

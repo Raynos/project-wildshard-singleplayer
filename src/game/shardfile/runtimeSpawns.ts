@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
-const kind = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9]*$/u), v.maxLength(64));
+const kind = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u), v.maxLength(64));
 const finite = v.pipe(v.number(), v.finite());
 const coord = v.pipe(finite, v.minValue(-250), v.maxValue(250));
 const at = v.tuple([coord, coord]);
