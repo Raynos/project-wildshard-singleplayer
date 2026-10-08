@@ -277,6 +277,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [shard-platform.mjs](./shard-platform.mjs) — SF6: `--check` gates converted shards at public SDK share ≥80 % and their ratcheted `runtime/` ceiling; `--json` emits logical-line counts, unique-kit attribution and milestone flags. The immutable physical-line baseline and old ratio stay labelled legacy TS. Proof convention: executable, unskipped Vitest tests at `test/proof/<slug>/<boot|headless|replay|ledger|grid-ready>.test.ts`; the flag is true when its file exists, and the push gate runs every proof. `boot` proves shardfile boot with no trusted chunk; `headless` proves 10,000 Node ticks; `replay` proves snapshot/restore/suffix equality; `ledger` proves ledger/dedupe restoration; `grid-ready` proves the shard meets the grid contract. Template proofs use `_template`. Compatible requires headless + replay + ledger proofs; transitional separately reports remaining `runtime/` gameplay. Missing proofs are false, irrespective of percentages. Generated/baked paths and marked generated files do not count; generators count public whatever they import.
 - [shard-progress.mjs](./shard-progress.mjs)
 - [shard-timelapse.py](./shard-timelapse.py)
+- [shardfile-validation-revision.d.mts](./shardfile-validation-revision.d.mts)
 - [shardfile-validation-revision.mjs](./shardfile-validation-revision.mjs)
 - [shards.d.mts](./shards.d.mts)
 - [shards.mjs](./shards.mjs)
