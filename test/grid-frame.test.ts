@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
+import { Color, Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
 import { BlendFunction, Effect, EffectPass } from 'postprocessing';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
 import { FrameGradeEffect, GridFrame, opacityFade, passEffects } from '../src/game/grid/frame';
 import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
+import { frameLookOf, regionGrade } from '../src/game/grid/frameLook';
+import { toLevelSpec } from '../src/game/shard/spec';
+import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { Scope } from '../src/engine/app/scope';
 
 // SHARD-PLATFORM SF19a re-aimed by G158: the shard the player stands in owns the whole frame, the road look the road
@@ -106,5 +109,48 @@ describe('grid frame grade pieces', () => {
     expect(at(pitch, 0)).toBe(0);                                       // inside a neighbour: no road sky
     scope.dispose();
     expect(scene.getObjectByName('road-sky')).toBeUndefined();
+  });
+
+  it("E452: a live region's fog and grade own the frame inside its cell; what its weather writes is its air, then the base goes back", () => {
+    const scene = new Scene(), camera = new PerspectiveCamera(), scope = new Scope('e452-live-region');
+    scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);
+    const feet = { x: 0, z: 0 }, home = cells[4];
+    if (home === undefined) throw new Error('no home cell');
+    const frame = new GridFrame({ host: { scene, camera, composer: () => { throw new Error('not built'); }, post: () => null }, scope, cells, home, half, feet: () => feet });
+    // one drawn frame: the owners, the scene's before-render (the frame's air), then the home backdrop rewrites its fog
+    const draw = (x: number): void => {
+      feet.x = x; frame.frame();
+      const before: unknown = Reflect.get(scene, 'onBeforeRender'); if (typeof before === 'function') Reflect.apply(before, scene, []);
+      scene.fog?.color.setRGB(0.4, 0.5, 0.6);
+    };
+    frame.declare('1,0', { haze: { colour: [0.2, 0.3, 0.4] } });
+    const port = frameLookOf(scene);
+    if (port === null) throw new Error('the frame binds its port to its scene');
+    const own = new Fog(new Color(1, 1, 1), 1, 2), grade = { exposure: 0.1, saturation: 1.2, contrast: 1.1, tint: [1.02, 1, 0.98] as const };
+    expect(() => port.contribute('0,0', { fog: own })).toThrow();
+    const release = port.contribute('1,0', { fog: own, grade });
+    expect(own.color.toArray()).toEqual([0.2, 0.3, 0.4]); // starts from its declared base
+    draw(pitch);
+    expect(frame.state().air).toEqual([0.2, 0.3, 0.4]); expect(frame.state().grade).toEqual([0.1, 1.2, 1.1, 1.02, 1, 0.98]);
+    own.color.multiplyScalar(0.5); // the region's weather darkens its own fog (a boss seal)
+    draw(pitch);
+    expect(frame.state().air).toEqual([0.1, 0.15, 0.2]); expect(own.color.toArray()).toEqual([0.2, 0.3, 0.4]);
+    own.color.multiplyScalar(0.5); draw(pitch - half); // on its edge line: half its darkened air, half the road's
+    expect(frame.state().air[0]).toBeCloseTo(0.5 * 0.1 + 0.5 * (0.4 + (0.5 - 0.4) * 0.5), 3);
+    draw(0); // at home the home's own air and grade (its chain grades)
+    expect(frame.state().air).toEqual([0.4, 0.5, 0.6]); expect(frame.state().grade).toEqual([0, 1, 1, 1, 1, 1]);
+    release(); draw(pitch); // released: the declared look again
+    expect(frame.state().grade).toEqual([0, 1, 1, 1, 1, 1]); expect(frame.state().air).toEqual([0.2, 0.3, 0.4]);
+    scope.dispose();
+    expect(frameLookOf(scene)).toBeNull();
+  });
+
+  it("E452: a level's own grade as the frame's uniform grade (Pine: richer colour, more contrast, warm)", () => {
+    const pine = regionGrade(toLevelSpec(PINE_HOLLOW));
+    expect(pine.saturation).toBeGreaterThan(1.1); expect(pine.contrast).toBeCloseTo(1.25, 2); expect(pine.exposure).toBeLessThan(0);
+    const [r = 1, , b = 1] = pine.tint ?? [];
+    expect(r).toBeGreaterThan(b);
+    const flat = { saturation: 0, brightness: 0, contrast: 0, shadowTint: [1, 1, 1], highTint: [1, 1, 1], gain: [1, 1, 1] } as const;
+    expect(regionGrade({ grade: flat })).toEqual({ exposure: 0, saturation: 1, contrast: 1, tint: [1, 1, 1] });
   });
 });

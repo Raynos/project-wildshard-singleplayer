@@ -11,8 +11,12 @@
  * - a scene subtree: a `Scene` parented under the regional view's root (already at the cell's render offset), which
  *   `Game.bindScene` makes `game.scene` while the runtime is entered, so content the runtime adds to `game.scene` draws
  *   in place; the root scene, its one sky dome and its one sun keep rendering (SF19a's one grid frame);
- * - terrain built with `Terrain.build(..., frame.terrain)`, a forest built inside `frame.run`, and the regional
- *   AnimalManager built with `buildAsync(pause, frame)`, all children of that subtree.
+ * - terrain built with `Terrain.build(..., frame.terrain)` and the region level's own look painter (whatever its `look`
+ *   declares as `terrainPainter`; absent, the engine ground from the level's own assets: its splat, layers, boreal set), a forest built inside `frame.run`, and the regional
+ *   AnimalManager built with `buildAsync(pause, frame)`, all children of that subtree;
+ * - its part in the one grid frame (`frameLook.ts`): its scene's own fog object (which its runtime's weather writes) and
+ *   its level's grade, contributed to the page's frame while resident, so its air and grade own the frame inside its cell
+ *   and blend across the edge band; it builds no sky dome or sun of its own.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
  * (the resident scope): the host's Physics frees every body and collider, the subtree leaves the page scene and frees the
@@ -40,6 +44,7 @@ import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
+import { frameLookOf, regionGrade, type FrameLookPort } from './frameLook';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -56,10 +61,21 @@ export interface RegionalWorldPorts {
   readonly checkpoint: (host: SimHost, request: RegionalRuntimeRequest) => boolean;
   /** Yield between herd slices and heavy builds (a macrotask in the browser). */
   readonly pause: () => Promise<void>;
-  /** The drawn ground (default: `Terrain.build` on the frame's captured heightfield, splat and assets). */
+  /** The drawn ground (default: `regionalTerrain`, the level's own painter on the frame's captured heightfield and assets). */
   readonly terrain?: (level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']) => Promise<Terrain>;
+  /** The one grid frame's live-region port (default: the frame bound to the page's root scene; null: none). */
+  readonly look?: FrameLookPort | null;
 }
-const buildTerrain = (level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']): Promise<Terrain> => new Terrain().build(level.ground, undefined, scope, binding);
+/**
+ * A region's drawn ground as its own level paints it standalone: the painter its look declares (`LookStrategy.terrainPainter`),
+ * owned by the region's scope, on the frame's captured heightfield; without one, the engine ground from the level's own
+ * assets (splat, layers, boreal set). Only the painter is taken from the look: its sky, fog and chain stay the frame's.
+ */
+export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']): Promise<Terrain> {
+  const painter = level.look === undefined ? undefined : (await level.look()).terrainPainter;
+  if (scope.disposed) throw new Error('Regional terrain left while loading its look');
+  return new Terrain().build(level.ground, painter, scope, binding);
+}
 
 /** What a leak check reads from a prepared region, beside the view's own census. */
 export interface RegionalWorldCensus { readonly bodies: number; readonly colliders: number; readonly sceneBound: boolean; readonly parented: boolean; readonly disposed: boolean }
@@ -106,7 +122,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // The real ground of the region's level, sampled from its own bound heightfield (never the home's).
       frame.run(app, () => { addTerrain(host.physics); });
       ports.install?.(host, request);
-      const terrain = await (ports.terrain ?? buildTerrain)(level, resident, frame.terrain);
+      const terrain = await (ports.terrain ?? regionalTerrain)(level, resident, frame.terrain);
       if (left()) throw new Error('Regional world left while building its terrain');
       terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
       scene.add(terrain.group);
@@ -124,8 +140,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         world: view => {
           if (world !== null) throw new Error('Regional world is already composed');
           if (resident.disposed) throw new Error('Regional world left before composition');
-          // The region's own fog state: a runtime's weather writes it without changing the one grid frame's fog.
+          // The region's own fog object: its runtime's weather writes it (it is never drawn itself) ...
           scene.fog = game.rootScene.fog?.clone() ?? null;
+          // ... which is the owner's air in the one frame, with its level's grade, while the region is resident
+          const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
+          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level) }));
           view.root.add(scene); scene.updateMatrixWorld(true);
           if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
             file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));

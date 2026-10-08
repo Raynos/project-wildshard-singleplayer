@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle fixture uses the production native Rapier binary.
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { Group, Mesh, Scene, Vector3 } from 'three';
+import { Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
 import { Scope } from '../src/engine/app/scope';
@@ -21,6 +21,8 @@ import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../src/game/grid/regionalRuntime';
 import { createRegionalView } from '../src/game/grid/regionalView';
 import { createRegionalWorldFoundation, regionalWorldCensus } from '../src/game/grid/regionalWorld';
+import { regionGrade, type FrameLookContribution, type FrameLookPort } from '../src/game/grid/frameLook';
+import type { TerrainPainter } from '../src/engine/render/look';
 import { shardContext } from '../src/game/shard/context';
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
@@ -133,5 +135,52 @@ it('releases everything it allocated when the runtime leaves during preparation'
   const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region, terrain: drawnGround, navmesh: leaving, pause: () => Promise.resolve(), checkpoint: () => true });
   await expect(foundation({ ...f.request, scope })).rejects.toThrow();
   expect(leaving).toHaveBeenCalledOnce(); expect(f.game.rootScene.children).toHaveLength(0);
+  f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
+});
+
+it("paints the region's ground with its own level's look painter on its own heightfield, owned by the resident (E452)", async () => {
+  const f = fixture(), seen: { height: number; global: number; owner: Scope | null }[] = [];
+  const painter: TerrainPainter = { build: (terrain, ground, owner) => {
+    seen.push({ height: ground.heightAt(0, 0), global: heightAt(0, 0), owner });
+    const mesh = new Mesh(new PlaneGeometry(1, 1), new MeshLambertMaterial()); owner.own(mesh.geometry); owner.own(mesh.material);
+    terrain.mesh = mesh; terrain.group.add(mesh); return Promise.resolve();
+  } };
+  const level: LevelSpec = { ...f.region, look: () => Promise.resolve({ compose: () => ({}), terrainPainter: painter }) };
+  const scope = f.scope.child('grid.runtime:pine-hollow');
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => level, pause: () => Promise.resolve(), checkpoint: () => true, look: null });
+  const prepared = await foundation({ ...f.request, scope });
+  const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene, physics: prepared.region.host.physics, slot: f.app,
+    assets: f.app.assets, allocator: f.allocator, claim: f.claim, scope, ground: prepared.ground });
+  const world = prepared.world(view);
+  // the region's field (30 m), never the home's (3 m); the painter's mesh is the region's drawn ground
+  expect(seen).toHaveLength(1); expect(seen[0]?.height).toBe(30); expect(seen[0]?.global).toBe(3);
+  expect(world.terrain.mesh.parent?.parent?.parent).toBe(view.root);
+  const owner = seen[0]?.owner;
+  expect(owner?.disposed).toBe(false);
+  prepared.region.dispose(); scope.dispose();
+  expect(owner?.disposed).toBe(true); expect(f.game.rootScene.children).toHaveLength(0);
+  f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
+});
+
+it("contributes its own fog object and its level's grade to the one grid frame while resident, and releases them (E452)", async () => {
+  const f = fixture(), live: { instance: string; look: FrameLookContribution; released: boolean }[] = [];
+  const port: FrameLookPort = { contribute: (instance, look) => { const row = { instance, look, released: false }; live.push(row); return () => { row.released = true; }; } };
+  f.game.rootScene.fog = new Fog(0x8899aa, 10, 400);
+  const scope = f.scope.child('grid.runtime:pine-hollow');
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region, terrain: drawnGround, pause: () => Promise.resolve(), checkpoint: () => true, look: port });
+  const prepared = await foundation({ ...f.request, scope });
+  expect(live).toHaveLength(0); // nothing before composition
+  const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene, physics: prepared.region.host.physics, slot: f.app,
+    assets: f.app.assets, allocator: f.allocator, claim: f.claim, scope, ground: prepared.ground });
+  prepared.world(view);
+  expect(live.map(row => row.instance)).toEqual(['pine-hollow']);
+  expect(live[0]?.look.grade).toEqual(regionGrade(f.region));
+  const entry = new Scope('entered'); prepared.enter(entry);
+  // what the runtime's weather writes (game.scene.fog while entered) is the fog the frame reads; the page's fog is untouched
+  const fog = f.game.scene.fog;
+  expect(fog).not.toBe(f.game.rootScene.fog); expect(live[0]?.look.fog).toBe(fog);
+  entry.dispose(); expect(live[0]?.released).toBe(false);
+  prepared.region.dispose();
+  expect(live[0]?.released).toBe(true);
   f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
 });
