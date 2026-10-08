@@ -64,9 +64,29 @@ proved the internal cause. No crop/helper remains in the live engine or Pine sou
 `node progress/memory/g227-budget/sprite-parity.mjs OUT_JSON` (expected exit 1 on this engine).
 This negative result is preserved; the assertion is not relaxed and no native saving is credited.
 
+## First source cut: shared procedural texture pixels
+
+Memory saver ON now shares a weak source per seeded procedural set and colour/normal/ARM
+plane in `engine/combat/view/ranged.ts`. Each held/drop/Explorer consumer gets its own
+texture object, so repeat, wrapping and other sampler choices remain independent. Only
+live consumers keep the immutable pixels alive. Eight bounded memo entries contain WeakRefs,
+not texture or pixel ownership. OFF and the compressed path retain their existing behavior.
+The buffers stay available for late clones such as Pine's rifle borrowWood; blindly dropping
+them after upload was rejected during the reader audit.
+
+`viewmodel-source-parity.json` comes from the actual generators and texture factory in
+Mac WebKit. Fresh OFF/ON pages render 57 outputs, covering all planes, different repeat/wrap
+settings, disposal of the first owner, late consumers and borrowWood-style clones. Both
+pixel SHA-256s are `c3dd11f46c22de6a492d50945248770cf919c794a1fbcab0a1e2fc812c271262`;
+zero differing pixels, nonzero output. The deliberately repeated fixture's unique CPU pixels
+fall 43,319,296 → 13,402,112 bytes and GL allocations 39,949,828 → 25,226,076 bytes.
+Those are fixture deltas, **not entered-Pine savings**. Existing texture pixels, material
+parameters and shaders are unchanged. Three mock-free focused checks cover source lifetime,
+independent sampler objects and the unchanged OFF path. Reproduce via browser-lane:
+`node progress/memory/g227-budget/viewmodel-parity.mjs OUT_JSON`.
+
 ## Handoff (sp-x5)
 
-Pine remains over cap. Next: immutable procedural weapon texture CPU sources (exactly
-matched by object identity to held items and parked drops), with late-reader/clone audit
-and exact pixel proof before retirement. sp-x2 owns generic music; sp-x4 owns Nalati cuts.
-Native after-cut readings and the selected 30-minute soak pin are still pending.
+Pine remains over cap on the measured baseline. The shared-source cut passed pixel/lifetime
+proof; native after-cut readings and the selected 30-minute soak pin are pending. sp-x2 owns
+generic music; sp-x4 owns Nalati cuts. No process delta or cap pass is claimed before that ruler.

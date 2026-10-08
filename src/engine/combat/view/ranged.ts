@@ -14,6 +14,8 @@ import { ktx2Texture } from '../../core/ktx2';
 import { activeLevel } from '../../level/selection';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
+import { memorySaverOn } from '../../render/memorySaver';
+import { ViewmodelSources } from '../../player/viewmodelSources';
 
 export interface RangedWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface RangedOptions { row: EquipmentRow; allowUnlocked?: boolean }
@@ -143,20 +145,36 @@ function takePixels(name: SetName): Pixels {
   if (px) { pixelCache.delete(name); return px; } // each set is wrapped once (its buffers become the DataTextures')
   return makePixels(name, mainCanvas2d);
 }
-/** A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8). */
+
+// Eight named, immutable seeded sets. Only live consumers retain the pixels; the memo keeps no texture or array alive.
+// Keep per-consumer texture transforms/samplers: held weapons, drops and Explorer use different repeats and wrapping.
+const proceduralSources = new ViewmodelSources((source, srgb) => {
+  const texture = dataTexture(new Uint8Array(0), source.data.width, source.data.height, srgb);
+  texture.source = source;
+  return texture;
+});
+function proceduralTextures(name: SetName): { map: THREE.DataTexture; normalMap: THREE.DataTexture; armMap: THREE.DataTexture | null } {
+  return proceduralSources.take(name, memorySaverOn(), () => {
+    const pixels = takePixels(name);
+    return { map: dataTexture(pixels.col, pixels.w, pixels.h, true), normalMap: dataTexture(pixels.nrm, pixels.w, pixels.h, false),
+      armMap: pixels.arm === null ? null : dataTexture(pixels.arm, pixels.w, pixels.h, false) };
+  });
+}
+/** A viewmodel texture set (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8).
+ * With Memory saver ON, live procedural copies share immutable sources; sampler/transform objects stay independent.
+ * The weak source memo retains no retired pixels. Compressed sets and the OFF path keep their existing ownership. */
 export function viewmodelTexSet(name: Exclude<SetName, 'cord'>): TexSet {
   const baked = bakedSets.get(name);
   if (baked) { bakedSets.delete(name); return baked; } // taken once, as the pixels are (a second ask draws on the main thread)
-  const p = takePixels(name);
-  if (p.arm === null) throw new Error(`viewmodel textures: ${name} has no ARM plane`);
-  return { map: dataTexture(p.col, p.w, p.h, true), normalMap: dataTexture(p.nrm, p.w, p.h, false), armMap: dataTexture(p.arm, p.w, p.h, false) };
+  const textures = proceduralTextures(name);
+  if (textures.armMap === null) throw new Error(`viewmodel textures: ${name} has no ARM plane`);
+  return { map: textures.map, normalMap: textures.normalMap, armMap: textures.armMap };
 }
 
 /** Twisted hemp cord: diagonal stripes for both colour and bump. */
 export function makeCord(): { map: THREE.Texture; normalMap: THREE.Texture } {
-  const p = takePixels('cord');
-  const map = dataTexture(p.col, p.w, p.h, true); map.repeat.set(1, 14);
-  const normalMap = dataTexture(p.nrm, p.w, p.h, false); normalMap.repeat.set(1, 14);
+  const { map, normalMap } = proceduralTextures('cord');
+  map.repeat.set(1, 14); normalMap.repeat.set(1, 14);
   return { map, normalMap };
 }
 
@@ -322,4 +340,3 @@ export class Puffs {
 }
 
 // ───────────────────────────── debug tracers ─────────────────────────────
-

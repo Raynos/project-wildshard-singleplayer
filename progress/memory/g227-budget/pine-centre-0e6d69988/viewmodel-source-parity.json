@@ -1,0 +1,6433 @@
+{
+  "protocol": "Actual seeded generators/factory, WebKit64x64 offscreen pixels. Memory saver OFF/ON in fresh pages. Independent repeats/wraps, first-owner disposal, late owners and clones; all map/normal/ARM planes. No normalization or pixel exclusions.",
+  "implementationSha256": "b4f8f1e3abff02ece201b085ca2b519967992f7eeb91ff1a86b59b9cd7971232",
+  "sourceMemoSha256": "f8847b0e58d223a2b098df3d4db0bdedc5f8687d58f3e103e434247a4e00aeee",
+  "before": {
+    "cpuBytes": 43319296,
+    "sources": 52,
+    "gl": [
+      {
+        "resources": [
+          {
+            "id": "texture:13",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:14",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:15",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:16",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:17",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:18",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:22",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:23",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:24",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:25",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:26",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:27",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:40",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:41",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:42",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:43",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:44",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:45",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:49",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:50",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:51",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:52",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:53",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:54",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:59",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:60",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:61",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:31",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:32",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:33",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:34",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:35",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:36",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:55",
+            "kind": "texture",
+            "bytes": 21844,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:56",
+            "kind": "texture",
+            "bytes": 21844,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:57",
+            "kind": "texture",
+            "bytes": 21844,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:58",
+            "kind": "texture",
+            "bytes": 21844,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:5",
+            "kind": "texture",
+            "bytes": 16384,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 16384
+              }
+            ]
+          },
+          {
+            "id": "buffer:6",
+            "kind": "buffer",
+            "bytes": 48,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "buffer:7",
+            "kind": "buffer",
+            "bytes": 48,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "buffer:8",
+            "kind": "buffer",
+            "bytes": 32,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "texture:2",
+            "kind": "texture",
+            "bytes": 24,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 1,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 2,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 3,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 4,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 5,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "buffer:10",
+            "kind": "buffer",
+            "bytes": 12,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "texture:1",
+            "kind": "texture",
+            "bytes": 4,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:3",
+            "kind": "texture",
+            "bytes": 4,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:4",
+            "kind": "texture",
+            "bytes": 4,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          }
+        ],
+        "totalBytes": 39949828,
+        "listedBytes": 39949828,
+        "reconciled": true,
+        "unlabelled": 46,
+        "canvas": [
+          64,
+          64
+        ],
+        "texBytes": 39949688,
+        "textures": 42,
+        "levels": 368,
+        "top": [
+          [
+            1398108,
+            "1024x256",
+            "0x8c43",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8058",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8058",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8c43",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8058",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8058",
+            11
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8c43",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8c43",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ]
+        ],
+        "rbBytes": 0,
+        "bufBytes": 140,
+        "buffers": 4,
+        "compressedUploads": 0
+      }
+    ],
+    "frames": 57,
+    "pixelSha256": "c3dd11f46c22de6a492d50945248770cf919c794a1fbcab0a1e2fc812c271262"
+  },
+  "after": {
+    "cpuBytes": 13402112,
+    "sources": 17,
+    "gl": [
+      {
+        "resources": [
+          {
+            "id": "texture:11",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:12",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:13",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:14",
+            "kind": "texture",
+            "bytes": 1398108,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1024,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 512,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 256,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 128,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 64,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 32,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 16,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 8,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 4,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 2,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 8
+              },
+              {
+                "face": 0,
+                "level": 10,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:16",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:17",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:18",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:19",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:26",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:27",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:28",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:29",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:31",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:32",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:33",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:34",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:37",
+            "kind": "texture",
+            "bytes": 1398100,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 512,
+                "h": 512,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1048576
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 9,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:21",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:22",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:23",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:24",
+            "kind": "texture",
+            "bytes": 349524,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 256,
+                "h": 256,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 262144
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 128,
+                "h": 128,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 65536
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 7,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 8,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:35",
+            "kind": "texture",
+            "bytes": 21844,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 35907,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:36",
+            "kind": "texture",
+            "bytes": 21844,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16384
+              },
+              {
+                "face": 0,
+                "level": 1,
+                "w": 32,
+                "h": 32,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4096
+              },
+              {
+                "face": 0,
+                "level": 2,
+                "w": 16,
+                "h": 16,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 1024
+              },
+              {
+                "face": 0,
+                "level": 3,
+                "w": 8,
+                "h": 8,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 256
+              },
+              {
+                "face": 0,
+                "level": 4,
+                "w": 4,
+                "h": 4,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 64
+              },
+              {
+                "face": 0,
+                "level": 5,
+                "w": 2,
+                "h": 2,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 16
+              },
+              {
+                "face": 0,
+                "level": 6,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 32856,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:5",
+            "kind": "texture",
+            "bytes": 16384,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 64,
+                "h": 64,
+                "d": 1,
+                "ifmt": 32856,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 16384
+              }
+            ]
+          },
+          {
+            "id": "buffer:6",
+            "kind": "buffer",
+            "bytes": 48,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "buffer:7",
+            "kind": "buffer",
+            "bytes": 48,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "buffer:8",
+            "kind": "buffer",
+            "bytes": 32,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "texture:2",
+            "kind": "texture",
+            "bytes": 24,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 1,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 2,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 3,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 4,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              },
+              {
+                "face": 5,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "buffer:10",
+            "kind": "buffer",
+            "bytes": 12,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false
+          },
+          {
+            "id": "texture:1",
+            "kind": "texture",
+            "bytes": 4,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:3",
+            "kind": "texture",
+            "bytes": 4,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          },
+          {
+            "id": "texture:4",
+            "kind": "texture",
+            "bytes": 4,
+            "owner": "unlabelled",
+            "asset": "unlabelled",
+            "labelled": false,
+            "subresources": [
+              {
+                "face": 0,
+                "level": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1,
+                "ifmt": 6408,
+                "format": 6408,
+                "type": 5121,
+                "bytes": 4
+              }
+            ]
+          }
+        ],
+        "totalBytes": 25226076,
+        "listedBytes": 25226076,
+        "reconciled": true,
+        "unlabelled": 32,
+        "canvas": [
+          64,
+          64
+        ],
+        "texBytes": 25225936,
+        "textures": 28,
+        "levels": 234,
+        "top": [
+          [
+            1398108,
+            "1024x256",
+            "0x8058",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8058",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8c43",
+            11
+          ],
+          [
+            1398108,
+            "1024x256",
+            "0x8c43",
+            11
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8c43",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8c43",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8058",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8c43",
+            10
+          ],
+          [
+            1398100,
+            "512x512",
+            "0x8c43",
+            10
+          ]
+        ],
+        "rbBytes": 0,
+        "bufBytes": 140,
+        "buffers": 4,
+        "compressedUploads": 0
+      }
+    ],
+    "frames": 57,
+    "pixelSha256": "c3dd11f46c22de6a492d50945248770cf919c794a1fbcab0a1e2fc812c271262"
+  },
+  "different": 0,
+  "maximum": 0,
+  "signal": 140381652,
+  "pass": true
+}
