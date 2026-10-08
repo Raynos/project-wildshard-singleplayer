@@ -1,0 +1,465 @@
+{
+  "parent": "788482c19850720cef5d98fb83f1faf9f91cebb2",
+  "candidate": "f40323373af9e2f8f3fe084d6d183b522aa7e2ad",
+  "source": [
+    "edcfc7ad7e7815e9411b841953127899618dedfd",
+    "f40323373af9e2f8f3fe084d6d183b522aa7e2ad"
+  ],
+  "sf62": {
+    "originalSites": 19,
+    "actualRuntimeSites": 0,
+    "newAllowances": 0,
+    "vocabularyChanged": false
+  },
+  "focused": {
+    "files": 14,
+    "tests": 41,
+    "strict": "green",
+    "typedLint": "green"
+  },
+  "parity": {
+    "pass": true,
+    "closed": true,
+    "seconds": 115.198,
+    "parent": {
+      "build": "788482c-muzkobbn",
+      "time": "2026-10-08T13:28:46.701Z"
+    },
+    "candidate": {
+      "build": "f403233-muzkomxr",
+      "time": "2026-10-08T13:29:01.749Z"
+    },
+    "pairs": [
+      {
+        "tier": "phone",
+        "verdict": "green",
+        "images": [
+          {
+            "name": "spawn",
+            "ssim": 0.9999997045891073,
+            "full": 0.9999997151545779,
+            "masked": 0.036,
+            "note": null
+          },
+          {
+            "name": "hover",
+            "ssim": 1,
+            "full": 1,
+            "masked": 0.046,
+            "note": null
+          }
+        ],
+        "compareRows": 1044,
+        "verdicts": {
+          "green": 208,
+          "info": 836
+        },
+        "deterministicVerdicts": {
+          "green": 90
+        },
+        "zeroChecks": [
+          {
+            "field": "leak.disposalErrors",
+            "value": []
+          },
+          {
+            "field": "boot.errors",
+            "value": []
+          },
+          {
+            "field": "walk.stuck",
+            "value": 0
+          }
+        ],
+        "unload": {
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "disposalErrors": []
+        }
+      },
+      {
+        "tier": "desktop",
+        "verdict": "green",
+        "images": [
+          {
+            "name": "spawn",
+            "ssim": 1,
+            "full": 1,
+            "masked": 0.037,
+            "note": null
+          },
+          {
+            "name": "hover",
+            "ssim": 0.9999997361465478,
+            "full": 0.9999997412096292,
+            "masked": 0.019,
+            "note": null
+          }
+        ],
+        "compareRows": 1040,
+        "verdicts": {
+          "green": 207,
+          "info": 833
+        },
+        "deterministicVerdicts": {
+          "green": 89
+        },
+        "zeroChecks": [
+          {
+            "field": "leak.disposalErrors",
+            "value": []
+          },
+          {
+            "field": "boot.errors",
+            "value": []
+          },
+          {
+            "field": "walk.stuck",
+            "value": 0
+          }
+        ],
+        "unload": {
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "disposalErrors": []
+        }
+      }
+    ]
+  },
+  "grid": {
+    "pass": true,
+    "closed": true,
+    "seconds": 327.85,
+    "version": {
+      "build": "f403233-muzkomxr",
+      "time": "2026-10-08T13:29:01.749Z"
+    },
+    "entries": [
+      {
+        "edge": "north",
+        "pass": true,
+        "closed": true,
+        "onIsland": true,
+        "gateOpenAtRest": true,
+        "gateShutAway": true,
+        "recoveries": 0,
+        "extraDocuments": 0,
+        "errors": [],
+        "consoleErrors": [],
+        "edgeFallbacks": [],
+        "routes": [
+          {
+            "name": "north-road-to-lip",
+            "seconds": 8.0655
+          },
+          {
+            "name": "north-board",
+            "seconds": 1.4652999997138978
+          },
+          {
+            "name": "north-gate-bridge-island",
+            "seconds": 47.00940000009537
+          }
+        ],
+        "playingMB": 773.64,
+        "finalNative": {
+          "bodies": 0,
+          "colliders": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      {
+        "edge": "east",
+        "pass": true,
+        "closed": true,
+        "onIsland": true,
+        "gateOpenAtRest": true,
+        "gateShutAway": true,
+        "recoveries": 0,
+        "extraDocuments": 0,
+        "errors": [],
+        "consoleErrors": [],
+        "edgeFallbacks": [],
+        "routes": [
+          {
+            "name": "east-road-to-lip",
+            "seconds": 7.9525
+          },
+          {
+            "name": "east-board",
+            "seconds": 1.441800000190735
+          },
+          {
+            "name": "east-gate-bridge-island",
+            "seconds": 37.7482999997139
+          }
+        ],
+        "playingMB": 784.5,
+        "finalNative": {
+          "bodies": 0,
+          "colliders": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      {
+        "edge": "south",
+        "pass": true,
+        "closed": true,
+        "onIsland": true,
+        "gateOpenAtRest": true,
+        "gateShutAway": true,
+        "recoveries": 0,
+        "extraDocuments": 0,
+        "errors": [],
+        "consoleErrors": [],
+        "edgeFallbacks": [],
+        "routes": [
+          {
+            "name": "south-road-to-lip",
+            "seconds": 7.967599999904633
+          },
+          {
+            "name": "south-board",
+            "seconds": 1.4087999997138978
+          },
+          {
+            "name": "south-gate-bridge-island",
+            "seconds": 31.6785
+          }
+        ],
+        "playingMB": 766.85,
+        "finalNative": {
+          "bodies": 0,
+          "colliders": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      {
+        "edge": "west",
+        "pass": true,
+        "closed": true,
+        "onIsland": true,
+        "gateOpenAtRest": true,
+        "gateShutAway": true,
+        "recoveries": 0,
+        "extraDocuments": 0,
+        "errors": [],
+        "consoleErrors": [],
+        "edgeFallbacks": [],
+        "routes": [
+          {
+            "name": "west-road-to-lip",
+            "seconds": 7.979199999809265
+          },
+          {
+            "name": "west-board",
+            "seconds": 1.4061999998092651
+          },
+          {
+            "name": "west-gate-bridge-island",
+            "seconds": 35.611400000095365
+          }
+        ],
+        "playingMB": 817.09,
+        "finalNative": {
+          "bodies": 0,
+          "colliders": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      }
+    ]
+  },
+  "prepared": false,
+  "memoryGate": "SF49-g still RED: prior three-cold settled native plus GL proxy exceeds 1.0 GB; no new native claim or discount.",
+  "raw": {
+    "path": "runtime-port-assertions.tar.gz",
+    "files": 42,
+    "bytes": 6447068,
+    "sha256": "bf6491b16d29b34742634b00dce2f2a7670198c0a5ce2733676d9ae5136a2197",
+    "readbackVerified": true
+  }
+}
