@@ -340,7 +340,7 @@ export async function runPrecompile(
 
 
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
-export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
+export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
 
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:before');
@@ -352,13 +352,17 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts)
     const cut = chunkShadowCasters(game.scene);
     if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
+    // Compile against the same page lights/environment as firstFrame. A regional content binding
+    // changes game.scene only for installation; the renderer always draws rootScene. Keep caster
+    // chunking above scoped to the content frame so warm-up cannot restructure other residents.
+    const scene = game.rootScene;
     const rt = game.composer.inputBuffer;
     const policy = game.level.boot.shaders;
-    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(game.scene, rt);
+    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt);
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...familyCompileJobs(game.scene, rt));
-    if (policy?.shadows !== false) jobs.push(...shadowJobs(game.scene, rt));
-    const bg = backgroundJob(game.scene, rt);
+    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt));
+    if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt));
+    const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg);
     if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt));
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress);
