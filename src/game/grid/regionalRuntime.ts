@@ -27,6 +27,7 @@ import { Inventory } from '../Inventory';
 import { Owned } from '../loot/Owned';
 import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
+import { coverRuntimeAssets } from './assetResidency';
 
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -137,6 +138,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
     if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
     const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);
     try {
+      coverRuntimeAssets(request.allocator, scope, request.claim);
       const foundation = await prepare({ ...request, scope });
       if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
       scope.onDispose(foundation.region.dispose);

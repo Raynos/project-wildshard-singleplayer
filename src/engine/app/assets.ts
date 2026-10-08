@@ -1,17 +1,27 @@
-import type { Disposable3 } from './scope';
+import type { Disposable3, Scope } from './scope';
+import { currentOwner } from './ownership';
 
 export interface AssetRecord { key: string; refs: number; retained: boolean }
 export type AssetCensus = readonly AssetRecord[];
-interface Entry<T> { resource: T; refs: number; retained: boolean }
+/** Injected accounting follows a retained cache without coupling resource ownership to a cost model. */
+export interface AssetResidencyHandle { observe: (owner: Scope | null) => void; release: () => void }
+/** The composition root supplies the budget. Register may refuse before this service adopts the resource. */
+export interface AssetResidencyPort<T> { register: (key: string, resource: T, owner: Scope | null) => AssetResidencyHandle }
+interface Entry<T> { resource: T; refs: number; retained: boolean; cached: boolean; residency: AssetResidencyHandle | undefined }
 
 /** Shared resources are released by consumers; only this service disposes them. */
 export class AssetService<T extends Disposable3 = Disposable3> {
   private entries = new Map<string, Entry<T>>();
   private managed = new WeakSet();
+  private readonly byResource = new WeakMap<object, Entry<T>>();
+  private residency: AssetResidencyPort<T> | undefined;
 
-  register(key: string, resource: T, opts?: { retain?: boolean }): T {
+  register(key: string, resource: T, opts?: { retain?: boolean; cache?: boolean }): T {
     if (this.entries.has(key)) throw new Error(`Asset already registered: ${key}`);
-    this.entries.set(key, { resource, refs: 0, retained: opts?.retain ?? false });
+    const cached = opts?.cache === true;
+    const residency = cached ? this.residency?.register(key, resource, currentOwner()) : undefined;
+    const entry = { resource, refs: 0, retained: opts?.retain ?? false, cached, residency };
+    this.entries.set(key, entry); this.byResource.set(resource, entry);
     this.managed.add(resource);
     return resource;
   }
@@ -27,7 +37,7 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     entry.refs--;
     if (entry.refs === 0 && !entry.retained) {
       this.entries.delete(key);
-      this.managed.delete(entry.resource);
+      this.managed.delete(entry.resource); this.byResource.delete(entry.resource); entry.residency?.release();
       entry.resource.dispose();
     }
   }
@@ -40,8 +50,25 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     const entry = this.entries.get(key);
     if (!entry) return;
     if (entry.refs !== 0) throw new Error(`Disposed asset still acquired: ${key}`);
-    this.entries.delete(key); this.managed.delete(entry.resource);
+    this.entries.delete(key); this.managed.delete(entry.resource); this.byResource.delete(entry.resource); entry.residency?.release();
   }
+  /** Install one page's accounting port. Existing module caches are admitted before replacing any old binding. */
+  bindResidency(port: AssetResidencyPort<T>): () => void {
+    if (this.residency !== undefined) throw new Error('Asset residency already bound');
+    const prepared = new Map<Entry<T>, AssetResidencyHandle>();
+    try { for (const [key, entry] of this.entries) if (entry.cached) prepared.set(entry, port.register(key, entry.resource, null)); }
+    catch (error) { for (const handle of prepared.values()) handle.release(); throw error; }
+    for (const [entry, handle] of prepared) entry.residency = handle;
+    this.residency = port;
+    let live = true;
+    return () => {
+      if (!live) return; live = false;
+      for (const entry of this.entries.values()) { entry.residency?.release(); entry.residency = undefined; }
+      this.residency = undefined;
+    };
+  }
+  /** Draw-time ownership survives async loaders; a cache remains visible after its last content consumer retires. */
+  observeResidency(resource: object, owner: Scope | null): void { this.byResource.get(resource)?.residency?.observe(owner); }
   has(key: string): boolean { return this.entries.has(key); }
   isAcquired(resource: object): boolean { return this.managed.has(resource); }
 }

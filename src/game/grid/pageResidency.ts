@@ -1,4 +1,8 @@
 import { ResidencyAllocator, type ResidencyLease } from './allocator';
+import type { App } from '@wildshard/engine/app/app';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Game } from '@wildshard/engine/core/Game';
+import { AssetResidencyBridge, type AssetAllocationReader } from './assetResidency';
 
 /** An admitted home claim, shared by the early boot and the later live registry without charging it twice. */
 export interface HomeResidencyClaim {
@@ -26,6 +30,34 @@ export class PageResidency {
   private claim: HomeResidencyClaim | undefined;
   private bootLease: ResidencyLease | undefined;
   private closed = false;
+  private assetsBound = false;
+  private composerBound = false;
+
+  /** Renderer caches survive level unload, so their claims live with the actual renderer owner. */
+  bindAssets(assets: App['assets'], rendererScope: Scope, homeScope: Scope, readOwner: () => Scope | null, readAllocations: AssetAllocationReader): void {
+    if (this.assetsBound || this.closed || rendererScope.disposed) throw new Error('Page asset residency requires one live renderer');
+    const bridge = new AssetResidencyBridge(this.allocator, readAllocations, readOwner);
+    if (this.bootLease !== undefined) bridge.cover(homeScope, this.bootLease);
+    let detach: () => void;
+    try { detach = assets.bindResidency(bridge); }
+    catch (error) { bridge.dispose(); throw error; }
+    this.assetsBound = true;
+    rendererScope.onDispose(() => { detach(); bridge.dispose(); });
+  }
+
+  /** Calibration: the 804×1362 phone census owns 8-byte colour + 4-byte depth = 13,140,576 bytes in the measured
+   * 300 MB engine base (G226 full-loop receipt). Split that credit out; any larger current composer is additional. */
+  bindComposer(game: Pick<Game, 'observeComposerAllocation'>, rendererScope: Scope): void {
+    if (this.composerBound || this.closed || rendererScope.disposed) throw new Error('Page composer requires one live renderer');
+    let lease: ResidencyLease | null = null;
+    const detach = game.observeComposerAllocation(bytes => {
+      const next = this.allocator.reservePageComponent('page:composer', bytes, 13_140_576);
+      if (next === null) throw new Error('Composer admission deferred by the shared budget');
+      const previous = lease; lease = next; previous?.release();
+    });
+    this.composerBound = true;
+    rendererScope.onDispose(() => { detach(); lease?.release(); });
+  }
 
   constructor(allocator = new ResidencyAllocator()) { this.allocator = allocator; }
 

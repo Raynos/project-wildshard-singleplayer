@@ -386,9 +386,10 @@ export class GridSession {
       for (const root of roots.values()) root.removeFromParent();
     });
     host.onFixed((dt) => { this.step(dt); this.life.fixed(); });
+    const homeResidency = { instance: residency.home().instance, bytes: residency.home().bytes };
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(), roadView: () => this.roadBudget.view(), roadResident: () => this.roadBudget.resident(),
       // G144 admission receipts read the same allocator, without reserving or changing any claim.
-      residency: () => ({ cost: this.allocator.cost(), claims: this.allocator.entries(), home: { instance: residency.home().instance, bytes: residency.home().bytes } }),
+      residency: () => ({ cost: this.allocator.cost(), claims: this.allocator.entries(), home: homeResidency }),
       ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
     }));
   }

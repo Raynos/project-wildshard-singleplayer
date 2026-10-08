@@ -2,6 +2,7 @@ import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
 import { SceneOwnership } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
+import { composerAllocationBytes } from '../render/textureBytes';
 import { ViewmodelRoot } from '../render/viewmodel';
 import type { Phase } from '../app/systems';
 import { currentOwner, enterOwner } from '../app/ownership';
@@ -127,6 +128,15 @@ export class Game {
   camera: THREE.PerspectiveCamera;
   readonly viewmodel: ViewmodelRoot;
   private _composer: EffectComposer | null = null;
+  private compositionChanged = true;
+  private readonly compositionObservers = new Set<(bytes: number) => void>();
+  /** A budget owner reads actual allocated composer targets after warm-up and resize, without owning the renderer. */
+  observeComposerAllocation(read: (bytes: number) => void): () => void {
+    if (this._composer === null) throw new Error('Composer allocation observed before build');
+    read(composerAllocationBytes(this._composer, this.renderer));
+    this.compositionObservers.add(read);
+    return () => { this.compositionObservers.delete(read); };
+  }
   private _sky: Sky | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
   clock = new THREE.Clock();
@@ -742,6 +752,7 @@ export class Game {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.compositionChanged = true;
     this._composer?.setSize(w, h); // a resize can land before buildComposer() / buildSky()
     this._sky?.csm.updateFrustums();
   }
@@ -819,6 +830,11 @@ export class Game {
         finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);
+        if (this.compositionChanged && this.compositionObservers.size > 0) {
+          const bytes = composerAllocationBytes(composer, this.renderer);
+          for (const read of this.compositionObservers) read(bytes);
+          this.compositionChanged = false;
+        }
         if (exploreEntryPending() && !this.renderer.getContext().isContextLost()) recordExploreFrame();
       } catch (e) { this.fault(this.renderSystem, e); return; }
       this.flushEvents('render');

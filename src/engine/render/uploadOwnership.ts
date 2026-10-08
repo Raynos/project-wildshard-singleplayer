@@ -23,6 +23,7 @@ export class UploadOwnership {
     if (this.level.disposed || !(value instanceof BufferGeometry || value instanceof Material || value instanceof Texture ||
       value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh)) return;
     const resource = value;
+    this.assets.observeResidency(resource, this.drawOwner ?? sceneResourceOwner(resource));
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
     if (this.drawOwner !== null && !this.assets.isAcquired(resource)) ownSceneResource(resource, this.drawOwner);

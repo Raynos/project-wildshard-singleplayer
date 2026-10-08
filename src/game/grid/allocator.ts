@@ -75,7 +75,15 @@ export class ResidencyAllocator {
    * larger current allocations increase the envelope, and the component remains a visible page-owned claim. */
   reservePageComponent(id: string, bytes: number, calibratedCredit: number): ResidencyLease | null {
     if (!Number.isSafeInteger(calibratedCredit) || calibratedCredit < 0 || calibratedCredit > CONTENT_CAPS.engineBase) throw new RangeError('Invalid engine calibration');
-    return this.reserveClaim({ id, category: 'page', bytes, owner: 'platform', needed: true, distance: 0 }, Math.min(bytes, calibratedCredit));
+    const claim: ResidencyClaim & { baseCredit: number } = { id, category: 'page', bytes, owner: 'platform', needed: true, distance: 0, baseCredit: Math.min(bytes, calibratedCredit) };
+    const existing = this.entries_.get(id);
+    if (existing === undefined) return this.reserveClaim(claim, claim.baseCredit);
+    if (this.evicting || existing.category !== 'page' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid page component replacement');
+    const input = this.input(claim, new Set([id])), cost = contentCost(input);
+    if (cost.playing > this.playing && !this.memory.accept({ stage: 'resident', owner: 'platform', id, claimedBytes: bytes,
+      accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading, playingCap: this.playing, categories: input })) return null;
+    existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.refs++;
+    return this.lease(existing);
   }
 
   private reserveClaim(claim: ResidencyClaim, baseCredit: number): ResidencyLease | null {

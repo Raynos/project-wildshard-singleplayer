@@ -13,6 +13,7 @@ import { markBootContextLost, markBootHandledError } from '@wildshard/engine/boo
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { bootstrap } from '@wildshard/engine/core/bootstrap';
 import { TIER } from '@wildshard/engine/core/tier';
+import { cachedResourceAllocations } from '@wildshard/engine/render/textureBytes';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { showError } from '@wildshard/engine/ui/ErrorModal';
@@ -27,6 +28,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   const selected = { ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn };
   const world = Object.assign(await bootstrap(step, session.ownedGridHome ? gridPageShellLevel(selected) : gridLevel(toLevelSpec(selected)), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
+  session.residency?.bindAssets(app.assets, game.engineScope, game.levelScope, () => app.levelScope, cachedResourceAllocations);
   if (!session.ownedGridHome) installEntrySockets(world.physics, game.levelScope, [{ x: 0, z: 0 }]);
   app.params = params;
   boot.runtime.world = world; boot.runtime.step = step;
