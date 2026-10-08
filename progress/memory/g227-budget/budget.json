@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "row": "SHARD-PLATFORM G227 (E435)",
+  "source": "progress/memory/g226-platform-ledger/report-1b0572d69-fenced.json",
+  "sourceRevision": "1b0572d69",
+  "build": "1b0572d-muz46mxi",
+  "units": "decimal bytes",
+  "kind": "ledger-derived planning constraints; no measured world split or tile estimate",
+  "model": {
+    "engineBaseBytes": 300000000,
+    "overlapBytes": 80000000,
+    "residentFactor": 1.11,
+    "playingCapBytes": 1000000000,
+    "maximumAccountedBytes": 558558558
+  },
+  "replacementRule": "retained residual R + old world W = whole runtime. Replace only W with actual T. Net accounted savings = W - T - external claim growth.",
+  "worldOwnerMeasurement": null,
+  "replacementResidentMeasurement": null,
+  "recommendedNetAccountedSavingBytes": 100000000,
+  "poses": [
+    {
+      "pose": "pine-hollow-entry",
+      "shard": "pine-hollow",
+      "accountedBytesByOwner": {
+        "opaqueRuntime": 500839395,
+        "platformRender": 105894374,
+        "highwaySim": 6744192,
+        "far": 9600000,
+        "templateL1": 369960,
+        "products": 9160452
+      },
+      "accountedBytes": 632608373,
+      "playingBytes": 1082195295,
+      "overCapPlayingBytes": 82195295,
+      "minimumNetAccountedSavingBytes": 74049815,
+      "maximumRuntimeAndTileBytes": 426789580,
+      "recommendedNetAccountedSavingBytes": 100000000,
+      "recommendedRuntimeAndTileBytes": 400839395,
+      "projectedPlayingBytesAtTarget": 971195295,
+      "projectedMarginBytesAtTarget": 28804705,
+      "conditionalScenarios": [
+        {
+          "retiredWorldBytes": 100000000,
+          "replacementTileBytes": 50000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 50000000,
+          "projectedPlayingBytes": 1026695295
+        },
+        {
+          "retiredWorldBytes": 150000000,
+          "replacementTileBytes": 75000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 75000000,
+          "projectedPlayingBytes": 998945295
+        },
+        {
+          "retiredWorldBytes": 200000000,
+          "replacementTileBytes": 100000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 100000000,
+          "projectedPlayingBytes": 971195295
+        }
+      ]
+    },
+    {
+      "pose": "pine-hollow-centre",
+      "shard": "pine-hollow",
+      "accountedBytesByOwner": {
+        "opaqueRuntime": 500839395,
+        "platformRender": 99777680,
+        "highwaySim": 6744192,
+        "far": 9600000,
+        "templateL1": 832648,
+        "products": 9160452
+      },
+      "accountedBytes": 626954367,
+      "playingBytes": 1075919348,
+      "overCapPlayingBytes": 75919348,
+      "minimumNetAccountedSavingBytes": 68395809,
+      "maximumRuntimeAndTileBytes": 432443586,
+      "recommendedNetAccountedSavingBytes": 100000000,
+      "recommendedRuntimeAndTileBytes": 400839395,
+      "projectedPlayingBytesAtTarget": 964919348,
+      "projectedMarginBytesAtTarget": 35080652,
+      "conditionalScenarios": [
+        {
+          "retiredWorldBytes": 100000000,
+          "replacementTileBytes": 50000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 50000000,
+          "projectedPlayingBytes": 1020419348
+        },
+        {
+          "retiredWorldBytes": 150000000,
+          "replacementTileBytes": 75000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 75000000,
+          "projectedPlayingBytes": 992669348
+        },
+        {
+          "retiredWorldBytes": 200000000,
+          "replacementTileBytes": 100000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 100000000,
+          "projectedPlayingBytes": 964919348
+        }
+      ]
+    },
+    {
+      "pose": "nalati-grasslands-entry",
+      "shard": "nalati-grasslands",
+      "accountedBytesByOwner": {
+        "opaqueRuntime": 489909910,
+        "platformRender": 105894374,
+        "highwaySim": 6744192,
+        "far": 9600000,
+        "templateL1": 1111588,
+        "products": 9160452
+      },
+      "accountedBytes": 622420516,
+      "playingBytes": 1070886773,
+      "overCapPlayingBytes": 70886773,
+      "minimumNetAccountedSavingBytes": 63861958,
+      "maximumRuntimeAndTileBytes": 426047952,
+      "recommendedNetAccountedSavingBytes": 100000000,
+      "recommendedRuntimeAndTileBytes": 389909910,
+      "projectedPlayingBytesAtTarget": 959886773,
+      "projectedMarginBytesAtTarget": 40113227,
+      "conditionalScenarios": [
+        {
+          "retiredWorldBytes": 100000000,
+          "replacementTileBytes": 50000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 50000000,
+          "projectedPlayingBytes": 1015386773
+        },
+        {
+          "retiredWorldBytes": 150000000,
+          "replacementTileBytes": 75000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 75000000,
+          "projectedPlayingBytes": 987636773
+        },
+        {
+          "retiredWorldBytes": 200000000,
+          "replacementTileBytes": 100000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 100000000,
+          "projectedPlayingBytes": 959886773
+        }
+      ]
+    },
+    {
+      "pose": "nalati-grasslands-centre",
+      "shard": "nalati-grasslands",
+      "accountedBytesByOwner": {
+        "opaqueRuntime": 489909910,
+        "platformRender": 99777680,
+        "highwaySim": 6744192,
+        "far": 9600000,
+        "templateL1": 1200824,
+        "products": 9160452
+      },
+      "accountedBytes": 616393058,
+      "playingBytes": 1064196295,
+      "overCapPlayingBytes": 64196295,
+      "minimumNetAccountedSavingBytes": 57834500,
+      "maximumRuntimeAndTileBytes": 432075410,
+      "recommendedNetAccountedSavingBytes": 100000000,
+      "recommendedRuntimeAndTileBytes": 389909910,
+      "projectedPlayingBytesAtTarget": 953196295,
+      "projectedMarginBytesAtTarget": 46803705,
+      "conditionalScenarios": [
+        {
+          "retiredWorldBytes": 100000000,
+          "replacementTileBytes": 50000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 50000000,
+          "projectedPlayingBytes": 1008696295
+        },
+        {
+          "retiredWorldBytes": 150000000,
+          "replacementTileBytes": 75000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 75000000,
+          "projectedPlayingBytes": 980946295
+        },
+        {
+          "retiredWorldBytes": 200000000,
+          "replacementTileBytes": 100000000,
+          "assumption": "50 percent retained; not measured",
+          "netAccountedSavingBytes": 100000000,
+          "projectedPlayingBytes": 953196295
+        }
+      ]
+    }
+  ]
+}
