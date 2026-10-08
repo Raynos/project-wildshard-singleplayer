@@ -712,6 +712,7 @@ export class Music {
       return;
     } finally { if (this.decoding === genre) this.decoding = undefined; }
     if (this._genre !== genre) return; // picked something else meanwhile
+    this.titleRetired = false; // A missing/malformed title is one completed attempt, not an endless reload.
     this.useBank(bank); // A late menu decode must not retain the title after gameplay starts.
   }
 
