@@ -1,0 +1,319 @@
+{
+  "pin": "7c7589f7b",
+  "kind": "Mac WebKit retainer diagnostic, not native A/B",
+  "settings": {
+    "developer": true,
+    "memorySaver": "on",
+    "tier": "phone",
+    "dpr": 2,
+    "seed": 357,
+    "volume": 0
+  },
+  "heapSha256": "7f6708f6eaa51c92248406e08d2bcd79aed7b3109dbba648dd3b7d45f5b91b7d",
+  "totals": {
+    "Float32Array": {
+      "heapBytes": 62936748,
+      "objects": 23716
+    },
+    "CanvasRenderingContext2D": {
+      "heapBytes": 25432770,
+      "objects": 52
+    }
+  },
+  "collisionRetainers": [
+    {
+      "ownerNode": 1285596,
+      "ownerClass": "e",
+      "properties": [
+        "allocator",
+        "assembly",
+        "costs",
+        "farMissing",
+        "farViews",
+        "frame",
+        "home",
+        "host",
+        "issues",
+        "last",
+        "life",
+        "live",
+        "mapImages",
+        "names",
+        "neighbours",
+        "panels",
+        "plots",
+        "refusals",
+        "rings",
+        "road",
+        "roadBudget",
+        "roadPlans",
+        "screens",
+        "seams",
+        "shimmer",
+        "softWalls",
+        "strips",
+        "velocity",
+        "walls"
+      ],
+      "stripsNode": 501675,
+      "uniqueColourArrays": 36,
+      "colourHeapBytes": 3544416,
+      "paths": [
+        {
+          "stripNode": 503320,
+          "meshNode": 503393,
+          "colourNode": 503359,
+          "colourHeapBytes": 5952
+        },
+        {
+          "stripNode": 502804,
+          "meshNode": 502890,
+          "colourNode": 502838,
+          "colourHeapBytes": 7200
+        },
+        {
+          "stripNode": 501689,
+          "meshNode": 502367,
+          "colourNode": 501734,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 502794,
+          "meshNode": 503126,
+          "colourNode": 502832,
+          "colourHeapBytes": 7200
+        },
+        {
+          "stripNode": 568162,
+          "meshNode": 574097,
+          "colourNode": 574102,
+          "colourHeapBytes": 184488
+        },
+        {
+          "stripNode": 564710,
+          "meshNode": 564783,
+          "colourNode": 564800,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 557414,
+          "meshNode": 557468,
+          "colourNode": 557477,
+          "colourHeapBytes": 191976
+        },
+        {
+          "stripNode": 553357,
+          "meshNode": 553419,
+          "colourNode": 553447,
+          "colourHeapBytes": 109416
+        },
+        {
+          "stripNode": 648074,
+          "meshNode": 648080,
+          "colourNode": 637429,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 640473,
+          "meshNode": 640507,
+          "colourNode": 640515,
+          "colourHeapBytes": 195624
+        },
+        {
+          "stripNode": 637381,
+          "meshNode": 637408,
+          "colourNode": 637429,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 529451,
+          "meshNode": 529503,
+          "colourNode": 529509,
+          "colourHeapBytes": 115800
+        },
+        {
+          "stripNode": 541896,
+          "meshNode": 541952,
+          "colourNode": 541958,
+          "colourHeapBytes": 230280
+        },
+        {
+          "stripNode": 533971,
+          "meshNode": 534019,
+          "colourNode": 534023,
+          "colourHeapBytes": 194040
+        },
+        {
+          "stripNode": 503480,
+          "meshNode": 503789,
+          "colourNode": 503615,
+          "colourHeapBytes": 7200
+        },
+        {
+          "stripNode": 519088,
+          "meshNode": 519146,
+          "colourNode": 519153,
+          "colourHeapBytes": 201432
+        },
+        {
+          "stripNode": 504410,
+          "meshNode": 504528,
+          "colourNode": 504468,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 624706,
+          "meshNode": 624751,
+          "colourNode": 624756,
+          "colourHeapBytes": 112920
+        },
+        {
+          "stripNode": 590695,
+          "meshNode": 590736,
+          "colourNode": 590743,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 574121,
+          "meshNode": 574166,
+          "colourNode": 574180,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 568167,
+          "meshNode": 568175,
+          "colourNode": 564800,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 593875,
+          "meshNode": 593934,
+          "colourNode": 593941,
+          "colourHeapBytes": 201336
+        },
+        {
+          "stripNode": 503490,
+          "meshNode": 503702,
+          "colourNode": 503616,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 519082,
+          "meshNode": 529411,
+          "colourNode": 529417,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 503820,
+          "meshNode": 504003,
+          "colourNode": 503868,
+          "colourHeapBytes": 7200
+        },
+        {
+          "stripNode": 503823,
+          "meshNode": 503944,
+          "colourNode": 503871,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 504078,
+          "meshNode": 504207,
+          "colourNode": 504122,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 504083,
+          "meshNode": 504175,
+          "colourNode": 504124,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 504228,
+          "meshNode": 504397,
+          "colourNode": 503193,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 576666,
+          "meshNode": 576730,
+          "colourNode": 576733,
+          "colourHeapBytes": 223992
+        },
+        {
+          "stripNode": 601747,
+          "meshNode": 601796,
+          "colourNode": 601816,
+          "colourHeapBytes": 129912
+        },
+        {
+          "stripNode": 608187,
+          "meshNode": 608239,
+          "colourNode": 608248,
+          "colourHeapBytes": 185208
+        },
+        {
+          "stripNode": 615727,
+          "meshNode": 615781,
+          "colourNode": 615789,
+          "colourHeapBytes": 203976
+        },
+        {
+          "stripNode": 503155,
+          "meshNode": 503275,
+          "colourNode": 503199,
+          "colourHeapBytes": 7200
+        },
+        {
+          "stripNode": 503147,
+          "meshNode": 503295,
+          "colourNode": 503193,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 504232,
+          "meshNode": 504384,
+          "colourNode": 504281,
+          "colourHeapBytes": 5952
+        },
+        {
+          "stripNode": 504580,
+          "meshNode": 516001,
+          "colourNode": 516006,
+          "colourHeapBytes": 230760
+        },
+        {
+          "stripNode": 504574,
+          "meshNode": 519018,
+          "colourNode": 519022,
+          "colourHeapBytes": 93192
+        },
+        {
+          "stripNode": 504416,
+          "meshNode": 504479,
+          "colourNode": 503193,
+          "colourHeapBytes": 5856
+        },
+        {
+          "stripNode": 630026,
+          "meshNode": 630116,
+          "colourNode": 630126,
+          "colourHeapBytes": 185208
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "current.json.gz",
+      "sha256": "7863525d5fe63dcea629ec36de9b8046a89759e0763b1e62bae3c2fad1daa137",
+      "rawSha256": "4cf151c4ac546d4d012a123b743d50f5eda25038ea76e40ccf7b252567d64c3a"
+    },
+    {
+      "file": "current.heap-owners.json.gz",
+      "sha256": "fdecd3d9a54d4877cc9a26d6f1afde8aed5c0e2959d083323bb798bebdda6086",
+      "rawSha256": "5ec7e613808335e61f1e061f6c208b199c49353829118f9cfc0a98ebae47c5b0"
+    }
+  ],
+  "nativeSavingClaim": null,
+  "closed": true
+}

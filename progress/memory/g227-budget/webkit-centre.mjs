@@ -6,13 +6,15 @@ import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
 import { AUDIO_INIT, WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
+import { CPU_INIT, cpuOwnersExpression } from '../../../scripts/memory/cpuOwners.mjs';
 
 const [base, out, slug = 'nalati-grasslands', memorySaver = 'on'] = process.argv.slice(2);
+const cpuOwners = process.argv.includes('--cpu-owners');
 if (!base || !out || !['pine-hollow', 'nalati-grasslands'].includes(slug) || !['on', 'off'].includes(memorySaver)) {
   throw new Error('Pass BASE OUT_JSON [pine-hollow|nalati-grasslands] [on|off]; wrap with browser-lane.sh');
 }
 const report = { protocol: 'Mac Playwright WebKit at phone tier: retainer attribution, NOT a Simulator or physical-iPhone memory total.',
-  slug, memorySaver, routes: [], snapshots: [] };
+  slug, memorySaver, cpuOwners, routes: [], snapshots: [] };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
 const timeout = async (promise, ms) => {
   let timer;
@@ -28,7 +30,7 @@ try {
     {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto',memorySaver,volume:0},merge:true},
     {scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}}, {scope:'device',key:'devMode',data:true},
   ].map(saveFixtureCode).join(';');
-  await context.addInitScript({ content: GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];' });
+  await context.addInitScript({ content: (cpuOwners ? CPU_INIT + ';' : '') + GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];' });
   page = await context.newPage();
   report.errors = []; report.warnings = [];
   page.on('pageerror', error => { report.errors.push(String(error)); save(); });
@@ -68,6 +70,7 @@ try {
   report.routes.push(await runFloorGridRoute(page, { name: slug + '-centre', from: target.instance, to: target.instance,
     waypoints: [{x:target.cell[0]*555,z:target.cell[1]*555}], requiredResidents: [target.instance] }, origin));
   await sleep(8000);
+  if (cpuOwners) report.cpuBeforeHeap = await page.evaluate(cpuOwnersExpression);
   const snapshot = await page.evaluate(snapshotExpression);
   if (snapshot.settings?.memorySaver !== memorySaver) throw new Error('Memory saver setting mismatch');
   report.snapshots.push({ label: slug + '-centre', ...snapshot }); save();
@@ -81,6 +84,7 @@ try {
     writeFileSync(path, heap.snapshotData);
     report.heap = { path, timestamp: heap.timestamp, pose: slug + '-centre', transport: 'local Playwright WebKit pipe' }; save();
     report.stage = 'heap-owners'; save();
+    if (cpuOwners) { report.cpuAfterHeap = await page.evaluate(cpuOwnersExpression); save(); }
     const owners = await heapOwners({ send }, JSON.parse(heap.snapshotData));
     const ownersPath = out.replace(/\.json$/u, '') + '.heap-owners.json';
     writeFileSync(ownersPath, JSON.stringify(owners, null, 2) + '\n'); report.heap.ownersPath = ownersPath;

@@ -1,0 +1,11 @@
+# Pine CPU allocation owners (G227 / E435)
+
+This is a Mac Playwright WebKit retainer diagnostic on `7c7589f7b`, not a native saving or cap verdict. Phone tier, DPR2, Developer ON, Memory saver ON, seed357, volume0; real fenced road-to-Pine route and centre. Browser and preview closed. The complete route/scalar assertions and exact post-collection object-identity joins are compressed and SHA256-sealed in `summary.json`. Weak allocation-stack rows were captured before collection and may include construction temporaries; they are not used as retained byte totals. The optional harness now also samples these weak rows after collection.
+
+The collected heap holds **62,936,748 B Float32Array** and **25,432,770 B CanvasRenderingContext2D**. These heap categories overlap native backing storage and cannot be added to WebContent or treated as equal native savings. The old `0e6d69988` diagnostic held62,774,168 B /25,432,802 B respectively.
+
+An exact property path `GridSession.strips -> [index] -> mesh.colours` retains **36 distinct colour arrays /3,544,416 heap bytes** on this pin; the projection removes only those render-only references. Origins, shared position/index arrays, features and turn-ins remain. Other `colours` roots and render merge-source arrays are separate; the overall Float32Array total is not all removable. `93b87cdc0` also clears merge sources and eliminates duplicate typed-array constructor copies, with byte-identical native and render fixtures.
+
+Exact canvas joins identify two1024x640 cell screens, the1024x640 trophy chalk,1024x512 grass blade atlas,512x1024 fern,512x512 shrub and litter textures. Allocation stacks identify the unmatched1000x1000 minimap layer and six400x400 product-minimap rasters. Dynamic chalk and map/screen surfaces remain; only audited immutable per-world vegetation canvases are candidates for upload retirement under Memory saver.
+
+Next: verify owner retirement on a fresh post-GC capture and compare at least three independent cold Simulator runs per pin, same configuration and route, combined WebContent plus labelled GL median and full spread. Native allocator arenas can retain released pages, so a smaller live heap may yield little native change. No runtime claim or cap changes are credited here.

@@ -120,7 +120,7 @@ export const snapshotExpression = `(() => {
         wasm: (window.__g227Wasm ?? []).map(({source,name,memory})=>({source,name,bytes:memory.deref()?.buffer.byteLength ?? 0})), reveal: window.__wsReveal, originDrift: window.__frameFloorGridOriginDrift };
 })()`;
 export async function heapOwners(connection, heap) {
-  const targets = [], classes = new Set(['ArrayBuffer','ImageBitmap','Float32Array','HTMLCanvasElement','AudioBuffer']);
+  const targets = [], classes = new Set(['ArrayBuffer','ImageBitmap','Float32Array','HTMLCanvasElement','CanvasRenderingContext2D','AudioBuffer']);
   for(let i=0;i<heap.nodes.length;i+=4) {
     const className=heap.nodeClassNames[heap.nodes[i+2]], bytes=heap.nodes[i+1];
     if(classes.has(className) && bytes>=500000) targets.push({id:heap.nodes[i],className,bytes});
@@ -134,9 +134,9 @@ export async function heapOwners(connection, heap) {
         if(!remote.result.objectId) {rows.push({...target,remote:remote.result});continue;}
         const details=await connection.send('Runtime.callFunctionOn',{objectId:remote.result.objectId,returnByValue:true,
           functionDeclaration:`function(){
-            const target=this,matches=[],api=window.__wildshard;
+            const target=this,matches=[],api=window.__wildshard,canvas=target.constructor?.name==='CanvasRenderingContext2D'?target.canvas:null;
             const attributeArray=a=>{const own=a && Object.getOwnPropertyDescriptor(a,'array');if(own && 'value' in own)return own.value;const data=a && Object.getOwnPropertyDescriptor(a,'data')?.value;return data ? Object.getOwnPropertyDescriptor(data,'array')?.value : undefined;};
-            const add=(value,owner,role)=>{if(value===target || (ArrayBuffer.isView(value)&&value.buffer===target)) matches.push({owner,role,viewBytes:value?.byteLength});};
+            const add=(value,owner,role)=>{if(value===target || (ArrayBuffer.isView(value)&&value.buffer===target)) matches.push({owner,role,viewBytes:value?.byteLength});if(canvas && value===canvas)matches.push({owner,role:'canvas-context:'+role,width:canvas.width,height:canvas.height});};
             api?.world?.game?.rootScene?.traverse(object=>{
               const names=[];let parent=object;while(parent){names.unshift(parent.name||parent.type);parent=parent.parent;}const owner=names.join('/');
               if(object.geometry){for(const [role,attribute] of Object.entries(object.geometry.attributes)) add(attributeArray(attribute),owner,role);add(attributeArray(object.geometry.index),owner,'index');}
@@ -151,11 +151,11 @@ export async function heapOwners(connection, heap) {
             });
             for(const row of window.__g227Wasm??[]){const memory=row.memory.deref();if(memory?.buffer===target)matches.push({owner:'WASM:'+row.source+':'+row.name,role:'memory',viewBytes:memory.buffer.byteLength});}
             for(const row of window.__g227Audio??[]){if(row.buffer.deref()===target)matches.push({owner:'decoded-audio:'+row.source,role:'audio-buffer',source:row.source});}
-            return {kind:target.constructor?.name,byteLength:target.byteLength??null,length:target.length??null,width:target.width??null,height:target.height??null,duration:target.duration??null,matches};
+            return {kind:target.constructor?.name,byteLength:target.byteLength??null,length:target.length??null,width:target.width??null,height:target.height??null,duration:target.duration??null,canvas:canvas?{width:canvas.width,height:canvas.height,connected:canvas.isConnected,id:canvas.id,className:canvas.className}:null,matches};
           }`});
         rows.push({...target,details:details.result?.value,thrown:details.wasThrown??false});
       } catch(error){rows.push({...target,error:String(error)});}
     }
   } finally {await connection.send('Runtime.releaseObjectGroup',{objectGroup});}
-  return {protocol:'Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures and weak WASM/audio registrations. Audio sources follow Response bytes through the unchanged decoder. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.',rows};
+  return {protocol:'Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures, the exact canvas behind 2D contexts, and weak WASM/audio registrations. Audio sources follow Response bytes through the unchanged decoder. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.',rows};
 }
