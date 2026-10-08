@@ -103,8 +103,29 @@ Six native cold runs are deferred until a candidate changes a real owner. For fu
 credit, use at least three cold runs per side and report median and spread; a single pair
 cannot distinguish ordinary process/allocator variation from a cut.
 
+## Labelled GL target ranking
+
+`gl-centre-cdad59776.json.gz` is a separate clean built-pin phone-tier, 2×,
+Memory saver ON route with **228,777,182 labelled GL bytes / 1,248 allocations**.
+The browser closed, no heap snapshot or GC was requested, and all route legs passed.
+`gl-ranking-cdad59776.json` ranks the exact allocations. The older 245,244,410-byte
+capture predates the separate platform atlas improvement; that change is not credited here.
+
+The largest groups are platform/grid 57,216,910 bytes; composer/post targets
+29,879,328; sky keys plus PMREM 21,643,264; KTX2 textures 12,242,408; and PBR arrays
+8,167,608. `engine/scene` (51,725,882) remains a mixed label, not a single removable owner.
+Two 8,760,384-byte composer colour targets are its input/output pair. Pine's two
+1,572,864-byte PMREM targets are output/ping-pong storage. Their paired appearance is
+not evidence of duplication. No smaller resolution or changed texel format is applied.
+
+Rock-ground colour and normal files each have two 626,288-byte GL allocations;
+one pair is absent from the active scene texture census. This is an investigation target
+(1,252,576 bytes), not a proved dead owner or a saving. A reuse change must preserve
+file bytes, every sampler parameter, late consumers and disposal behavior, then pass
+exact pixel comparison and an actual allocation delta.
+
 ## Handoff (sp-x5)
 
 Pine remains over cap. The shared-source pixel/lifetime proof passes, but its isolated actual
-centre comparison is zero. Exact canvas ownership is the next attribution step. sp-x2 owns
+centre comparison is zero. Canvas/Float32 attribution is handed to sp-x1; the GL allocation audit is next. sp-x2 owns
 generic music; sp-x4 owns Nalati cuts. No native saving or cap pass is claimed.

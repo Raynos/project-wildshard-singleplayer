@@ -1,0 +1,437 @@
+{
+  "protocol": "Exact labelled live GL allocation census, not native WC or driver residency. Phone2x Memory saver ON real title/grid/Pine-centre; no heap snapshot/GC.",
+  "pin": "cdad59776",
+  "version": {
+    "build": "cdad597-muzcgb1q",
+    "time": "2026-10-08T09:38:37.194Z"
+  },
+  "totalBytes": 228777182,
+  "resources": 1251,
+  "groups": [
+    {
+      "group": "platform/grid",
+      "bytes": 57216910
+    },
+    {
+      "group": "engine/scene",
+      "bytes": 51725882
+    },
+    {
+      "group": "composer/post targets",
+      "bytes": 29879328
+    },
+    {
+      "group": "sky/PMREM",
+      "bytes": 21643264
+    },
+    {
+      "group": "engine/ktx2Texture",
+      "bytes": 12242408
+    },
+    {
+      "group": "engine/loadPBRArray",
+      "bytes": 8167608
+    },
+    {
+      "group": "engine/loadGLTF",
+      "bytes": 7232978
+    },
+    {
+      "group": "pine-crags-crag-cliff",
+      "bytes": 6002764
+    },
+    {
+      "group": "engine/loadRigFile",
+      "bytes": 5844320
+    },
+    {
+      "group": "other render targets",
+      "bytes": 5242880
+    },
+    {
+      "group": "pine-hollow/forest-tree",
+      "bytes": 3940472
+    },
+    {
+      "group": "engine/loadGlbPart",
+      "bytes": 3500504
+    },
+    {
+      "group": "pine-hollow/fern",
+      "bytes": 3255516
+    },
+    {
+      "group": "engine/texture",
+      "bytes": 1879724
+    },
+    {
+      "group": "pine-hollow/needle-litter",
+      "bytes": 1778240
+    },
+    {
+      "group": "pine-hollow/bilberry-shrub",
+      "bytes": 1683964
+    },
+    {
+      "group": "props",
+      "bytes": 1659192
+    },
+    {
+      "group": "props-stumps",
+      "bytes": 1524952
+    },
+    {
+      "group": "props-wood",
+      "bytes": 1523284
+    },
+    {
+      "group": "pine-hollow/moss-patch",
+      "bytes": 577664
+    },
+    {
+      "group": "pine-hollow/pebbles",
+      "bytes": 577664
+    },
+    {
+      "group": "pine-lookout",
+      "bytes": 503232
+    },
+    {
+      "group": "pine-hollow/reeds",
+      "bytes": 349532
+    },
+    {
+      "group": "hollow-log",
+      "bytes": 349524
+    },
+    {
+      "group": "pine-footbridge",
+      "bytes": 255792
+    },
+    {
+      "group": "pine-zip-landing",
+      "bytes": 110976
+    },
+    {
+      "group": "pine-landmarks",
+      "bytes": 87380
+    },
+    {
+      "group": "pine-zip-cable",
+      "bytes": 20352
+    },
+    {
+      "group": "pine-hollow/waystone",
+      "bytes": 384
+    },
+    {
+      "group": "pine-hollow/standing-stone",
+      "bytes": 192
+    },
+    {
+      "group": "pine-hollow/canoe",
+      "bytes": 128
+    },
+    {
+      "group": "pine-hollow/beaver-dam",
+      "bytes": 64
+    },
+    {
+      "group": "pine-hollow/cave-arch",
+      "bytes": 64
+    },
+    {
+      "group": "engine/renderer",
+      "bytes": 36
+    },
+    {
+      "group": "pier",
+      "bytes": 8
+    }
+  ],
+  "top": [
+    {
+      "id": "texture:38",
+      "kind": "texture",
+      "bytes": 13107172,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-open-plot-billboards/map/Texture"
+    },
+    {
+      "id": "texture:1247",
+      "kind": "texture",
+      "bytes": 8760384,
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/color/Texture"
+    },
+    {
+      "id": "texture:28",
+      "kind": "texture",
+      "bytes": 8760384,
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/color/Texture"
+    },
+    {
+      "id": "texture:1331",
+      "kind": "texture",
+      "bytes": 8388608,
+      "owner": "engine/scene",
+      "asset": "generated/Scene/Mesh[0]/uniform/tB/hdri/qwantani_mid_morning_puresky_2k.key.jpg + gain.png/Texture"
+    },
+    {
+      "id": "texture:1332",
+      "kind": "texture",
+      "bytes": 8388608,
+      "owner": "engine/scene",
+      "asset": "generated/Scene/Mesh[0]/uniform/tA/hdri/qwantani_late_afternoon_puresky_2k.key.jpg + gain.png/Texture"
+    },
+    {
+      "id": "texture:37",
+      "kind": "texture",
+      "bytes": 6640976,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-signs/map/Texture"
+    },
+    {
+      "id": "texture:36",
+      "kind": "texture",
+      "bytes": 5592404,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-junctions/map/Texture"
+    },
+    {
+      "id": "renderbuffer:29",
+      "kind": "renderbuffer",
+      "bytes": 4380192,
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/Depthbuffer"
+    },
+    {
+      "id": "texture:1325",
+      "kind": "texture",
+      "bytes": 4194304,
+      "owner": "engine/render-target",
+      "asset": "generated/render-target/1024x1024/depth/Texture"
+    },
+    {
+      "id": "texture:39",
+      "kind": "texture",
+      "bytes": 4194300,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-open-plot-signs/map/Texture"
+    },
+    {
+      "id": "texture:1396",
+      "kind": "texture",
+      "bytes": 3495244,
+      "owner": "engine/scene",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map/Texture"
+    },
+    {
+      "id": "texture:1397",
+      "kind": "texture",
+      "bytes": 3495244,
+      "owner": "engine/scene",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map/Texture"
+    },
+    {
+      "id": "texture:1451",
+      "kind": "texture",
+      "bytes": 3495244,
+      "owner": "engine/scene",
+      "asset": "generated/Group/trophy-chalk/map/Texture"
+    },
+    {
+      "id": "buffer:889",
+      "kind": "buffer",
+      "bytes": 3380184,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-deck/index"
+    },
+    {
+      "id": "buffer:87",
+      "kind": "buffer",
+      "bytes": 3269072,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-deck/grainUv"
+    },
+    {
+      "id": "texture:35",
+      "kind": "texture",
+      "bytes": 2796204,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-asphalt/map/Texture"
+    },
+    {
+      "id": "texture:1411",
+      "kind": "texture",
+      "bytes": 2796204,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/map/Texture"
+    },
+    {
+      "id": "texture:1413",
+      "kind": "texture",
+      "bytes": 2796204,
+      "owner": "pine-hollow/fern",
+      "asset": "src/shards/pine-hollow/models/fern.ts#Fern/map/Texture"
+    },
+    {
+      "id": "texture:1997",
+      "kind": "texture",
+      "bytes": 2505152,
+      "owner": "engine/loadPBRArray",
+      "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture"
+    },
+    {
+      "id": "texture:1998",
+      "kind": "texture",
+      "bytes": 2505152,
+      "owner": "engine/loadPBRArray",
+      "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture"
+    },
+    {
+      "id": "buffer:86",
+      "kind": "buffer",
+      "bytes": 2451804,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-deck/color"
+    },
+    {
+      "id": "buffer:85",
+      "kind": "buffer",
+      "bytes": 2451804,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-deck/normal"
+    },
+    {
+      "id": "buffer:84",
+      "kind": "buffer",
+      "bytes": 2451804,
+      "owner": "engine/scene",
+      "asset": "generated/Group/grid-deck/position"
+    },
+    {
+      "id": "texture:1240",
+      "kind": "texture",
+      "bytes": 2190096,
+      "owner": "engine/render-target",
+      "asset": "Downsampling.Mipmap0/color/Texture"
+    },
+    {
+      "id": "texture:1246",
+      "kind": "texture",
+      "bytes": 2190096,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[2]/uniform/e0Map/Upsampling.Mipmap0/Texture"
+    },
+    {
+      "id": "texture:1237",
+      "kind": "texture",
+      "bytes": 2190096,
+      "owner": "engine/render-target",
+      "asset": "LuminancePass.Target/color/Texture"
+    },
+    {
+      "id": "texture:888",
+      "kind": "texture",
+      "bytes": 1747620,
+      "owner": "engine/texture",
+      "asset": "generated/texture/Texture"
+    },
+    {
+      "id": "texture:1335",
+      "kind": "texture",
+      "bytes": 1572864,
+      "owner": "engine/render-target",
+      "asset": "PMREM.cubeUv/color/Texture"
+    },
+    {
+      "id": "texture:1338",
+      "kind": "texture",
+      "bytes": 1572864,
+      "owner": "engine/render-target",
+      "asset": "PMREM.cubeUv/color/Texture"
+    },
+    {
+      "id": "buffer:2000",
+      "kind": "buffer",
+      "bytes": 1560264,
+      "owner": "engine/scene",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[0]/Mesh[0]/index"
+    },
+    {
+      "id": "buffer:1957",
+      "kind": "buffer",
+      "bytes": 1512928,
+      "owner": "pine-crags-crag-cliff",
+      "asset": "src/shards/pine-hollow/models/cragCliff.ts#Ridge crag/cdata"
+    },
+    {
+      "id": "buffer:1992",
+      "kind": "buffer",
+      "bytes": 1442088,
+      "owner": "pine-crags-crag-cliff",
+      "asset": "src/shards/pine-hollow/models/cragCliff.ts#Ridge crag/index"
+    },
+    {
+      "id": "buffer:1579",
+      "kind": "buffer",
+      "bytes": 1433600,
+      "owner": "engine/scene",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[3]/Mesh[0]/instanceMatrix"
+    },
+    {
+      "id": "texture:1363",
+      "kind": "texture",
+      "bytes": 1398108,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/map/Texture"
+    },
+    {
+      "id": "texture:1364",
+      "kind": "texture",
+      "bytes": 1398108,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/aoMap/Texture"
+    },
+    {
+      "id": "texture:1365",
+      "kind": "texture",
+      "bytes": 1398108,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/normalMap/Texture"
+    },
+    {
+      "id": "texture:1394",
+      "kind": "texture",
+      "bytes": 1398100,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[5]/normalMap/Texture"
+    },
+    {
+      "id": "texture:1377",
+      "kind": "texture",
+      "bytes": 1398100,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/normalMap/Texture"
+    },
+    {
+      "id": "texture:1376",
+      "kind": "texture",
+      "bytes": 1398100,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/aoMap/Texture"
+    },
+    {
+      "id": "texture:1375",
+      "kind": "texture",
+      "bytes": 1398100,
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[1]/map/Texture"
+    }
+  ],
+  "closed": true,
+  "failure": null,
+  "savingClaim": null
+}
