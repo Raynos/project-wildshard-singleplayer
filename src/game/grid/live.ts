@@ -328,8 +328,11 @@ export class LiveGridHost {
     // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
     // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
     // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
+    // Borrowed home remains allocated; an active non-home world also occupies a resident slot.
+    // Owned-mode prefetch prepares products without allocating worlds, so it needs no such reservation.
+    const reserved = this.ports.home.mode === 'owned' ? 0 : 1 + (this.active !== null && !this.borrowedHome(this.active) ? 1 : 0);
     const nearby = this.assembly.cells.filter((cell) => !this.borrowedHome(cell.instance) && cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
-      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - (this.ports.home.mode === 'owned' ? 0 : 1));
+      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, Math.max(0, this.limit - reserved));
     // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
