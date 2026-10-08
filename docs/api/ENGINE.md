@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2217 members; 830 without a doc line (—).
+2218 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1541,7 +1541,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `takeForeignHook` | function | @wildshard/engine/render/shaderPatches | Run `install` (a foreign addon that assigns `onBeforeCompile` itself: three's CSM) and hand back the hook it |
 | `usedPatchIds` | function | @wildshard/engine/render/shaderPatches | Every patch id used so far, with how many materials took it (Debug, the inventory). |
 | `cachedResourceAllocations` | function | @wildshard/engine/render/textureBytes | Retained cache storage, without reading released attributes back from the GPU. Capture before the first upload; |
-| `composerAllocationBytes` | function | @wildshard/engine/render/textureBytes | Actual allocated composer texture/renderbuffer bytes in one renderer, deduplicated by native handle. Called only |
+| `composerAllocationBytes` | function | @wildshard/engine/render/textureBytes | Actual composer target allocation total; native handle identity is also available for independent reconciliation. |
+| `composerAllocations` | function | @wildshard/engine/render/textureBytes | Actual allocated composer texture/renderbuffer bytes in one renderer, deduplicated by native handle. Called only |
 | `ResourceAllocation` | interface | @wildshard/engine/render/textureBytes | One shared CPU/GPU allocation. Identity deduplicates attributes, backing stores and same-sampler texture sources. |
 | `textureBytes` | function | @wildshard/engine/render/textureBytes | An estimate of the texture memory a scene holds: every texture its materials and uniforms reference, once, at its |
 | `DrawingBuffer` | type | @wildshard/engine/render/viewmodelFeel | Drawing-buffer port used by viewmodel effects without exposing a renderer backend. |

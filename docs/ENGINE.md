@@ -1849,7 +1849,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2200 exports, grouped by the module to import them from.
+2201 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2112,7 +2112,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`, `warmComposerFrame`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
 - `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `OwnUniform`, `ownUniforms`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
-- `@wildshard/engine/render/textureBytes`: `cachedResourceAllocations`, `composerAllocationBytes`, `ResourceAllocation`, `textureBytes`
+- `@wildshard/engine/render/textureBytes`: `cachedResourceAllocations`, `composerAllocationBytes`, `composerAllocations`, `ResourceAllocation`, `textureBytes`
 - `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
 - `@wildshard/engine/saves/slots`: `Json`, `jsonRecord`, `jsonSchema`, `jsonSlot`, `saveStorage`

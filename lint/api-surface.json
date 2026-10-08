@@ -9218,6 +9218,12 @@
       {
         "name": "composerAllocationBytes",
         "kind": "function",
+        "doc": "Actual composer target allocation total; native handle identity is also available for independent reconciliation.",
+        "from": "@wildshard/engine/render/textureBytes"
+      },
+      {
+        "name": "composerAllocations",
+        "kind": "function",
         "doc": "Actual allocated composer texture/renderbuffer bytes in one renderer, deduplicated by native handle. Called only",
         "from": "@wildshard/engine/render/textureBytes"
       },
