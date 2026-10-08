@@ -35,13 +35,14 @@ it('charges the larger overlap instead of introducing an unaccounted memory cate
   expect(() => validateProject(s, new Map())).toThrow('total exceeds envelope');
 });
 
-it('keeps natural-byte contracts, wire/render caps and truthful asset budgets', () => {
+it('keeps natural-byte contracts, build target policy and truthful asset budgets', () => {
   const s = source();
   s.budgets.library.resident = -1;
   expect(() => parseShardfile(s)).toThrow();
   s.budgets.library.resident = 0;
   s.budgets.library.compressed = C.library.compressed + 1;
-  expect(() => parseShardfile(s)).toThrow();
+  expect(parseShardfile(s).budgets.library.compressed).toBe(C.library.compressed + 1);
+  expect(() => validateProject(s, new Map())).toThrow('PERFORMANCE REPORT');
   s.budgets.library.compressed = 0;
   s.files.push({ hash: 'a'.repeat(64), kind: 'binary', compressed: 0, decoded: 1, gpu: 0, triangles: 0, draws: 0, critical: false, dependencies: [] });
   s.library.push('a'.repeat(64));

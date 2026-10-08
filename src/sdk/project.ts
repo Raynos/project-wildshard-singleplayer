@@ -11,6 +11,9 @@ import { preflightShardfile } from '@wildshard/game/shardfile/preflight';
 import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
 import { readBoundedFile } from './sourceReader';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { MemoryAdmission } from '@wildshard/game/grid/memoryAdmission';
+import { projectPerformancePolicy } from './performancePolicy';
+import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -18,7 +21,18 @@ export function canonicalJson(value: unknown): string { return encodeCanonicalJs
 export function contentHash(bytes: Uint8Array): string { return hashImmutableBytes(bytes); }
 
 /** Validate graph closure costs and actual bytes through the same admission used by the browser loader. */
-export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint8Array>): Shardfile { return validateShardfileAssets(input, assets, contentHash); }
+export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint8Array>, project?: string): Shardfile {
+  const source = parseShardfile(input), policy = projectPerformancePolicy(project, source);
+  preflightDeclaredCosts(source, offlineMemory(policy));
+  enforceTargets(source, policy);
+  return validateShardfileAssets(source, assets, contentHash, offlineMemory(policy));
+}
+function offlineMemory(policy: 'warn' | 'refuse'): MemoryAdmission | undefined { return policy === 'warn' ? new MemoryAdmission(() => true) : undefined; }
+function enforceTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
+  if (!performanceTargetIssues(source, policy).some(issue => issue.severity === 'refusal')) return;
+  const unmeasured = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
+  throw new Error(performanceReportLines(performanceReport(source, unmeasured, policy)).join('\n'));
+}
 
 async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown }> {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u] } } });
@@ -34,9 +48,9 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
 /** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
 export async function readProject(project: string): Promise<Shardfile> { return (await projectModule(project)).shard; }
 
-function pinnedCommons(input: unknown, source: Shardfile): ReadonlyMap<string, Uint8Array> | undefined {
+function pinnedCommons(input: unknown, source: Shardfile, project: string): ReadonlyMap<string, Uint8Array> | undefined {
   if (input === undefined) return undefined;
-  preflightDeclaredCosts(source);
+  preflightDeclaredCosts(source, offlineMemory(projectPerformancePolicy(project, source)));
   if (typeof input !== 'object' || input === null || !('catalogue' in input) || !('assets' in input)) throw new Error('Build-only commons export needs a compiled catalogue');
   const catalogue = input.catalogue;
   if (typeof catalogue !== 'object' || catalogue === null || !('format' in catalogue) || catalogue.format !== 'wildshard.commons' || !('version' in catalogue) || catalogue.version !== 0 || !(input.assets instanceof Map)) throw new Error('Unsupported build-only commons catalogue');
@@ -51,7 +65,8 @@ function pinnedCommons(input: unknown, source: Shardfile): ReadonlyMap<string, U
 /** Preflight and read bounded immutable files from an author project or flat built product. */
 export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project', pinned?: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
   preflightShardfile(shard); preflightAssetGraph(shard);
-  preflightDeclaredCosts(shard);
+  preflightDeclaredCosts(shard, offlineMemory(projectPerformancePolicy(project, shard)));
+  enforceTargets(shard, projectPerformancePolicy(project, shard));
   const read = (hash: string, size: number, folder: string): Uint8Array => {
     const bytes = pinned?.get(hash) ?? readBoundedFile(resolve(project, layout === 'project' ? folder : '.', hash), size);
     if (bytes.length !== size) throw new Error('Project asset differs from its declared wire size'); return bytes;
@@ -59,8 +74,9 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
   return new Map([...shard.files.map((f) => [f.hash, read(f.hash, f.compressed, 'assets')] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, read(h, shard.requires.commonsWire[h] ?? 0, 'commons')] as const)]);
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
-export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null } = {}): Promise<Shardfile> {
-  const loaded = await projectModule(project), raw = loaded.shard, assets = projectAssets(project, raw, 'project', pinnedCommons(loaded.commons, raw)), shard = validateProject(raw, assets);
+export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+  const loaded = await projectModule(project), raw = loaded.shard, assets = projectAssets(project, raw, 'project', pinnedCommons(loaded.commons, raw, project)), shard = validateProject(raw, assets, project);
+  await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
   mkdirSync(destination, { recursive: true });

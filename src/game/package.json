@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/reportCard": "./shardfile/reportCard.ts",
+    "./grid/memoryAdmission": "./grid/memoryAdmission.ts",
     "./grid/regionalRuntime": "./grid/regionalRuntime.ts",
     "./grid/recoveryBoot": "./grid/recoveryBoot.ts",
     "./shardfile/crowds": "./shardfile/crowds.ts",

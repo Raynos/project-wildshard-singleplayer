@@ -65,7 +65,7 @@ const rawSchema = v.strictObject({
   accent: AccentSchema,
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), revision: positive, seed: natural }),
   requires: v.strictObject({ sdk: v.literal(SHARDFILE_VERSION), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}), commonsCosts: v.optional(CommonsCostsSchema, {}) }),
-  budgets: v.strictObject({ library: v.strictObject({ resident: natural, compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: natural, compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: natural }),
+  budgets: v.strictObject({ library: v.strictObject({ resident: natural, compressed: natural }), sim: v.strictObject({ resident: natural, compressed: natural }), overlap: natural }),
   look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: references, bindings: v.optional(ScriptBindingsSchema, []) }),
   state: StateSchema,
@@ -157,10 +157,8 @@ export function shardfileRules(s: Shardfile): string[] {
     if (seen.has(id)) errors.push('unique tile addresses'); seen.add(id);
     const n = 500 / cap.size;
     if (t.x >= n || t.z >= n || t.bounds.min[0] !== -250 + t.x * cap.size || t.bounds.max[0] !== -250 + (t.x + 1) * cap.size || t.bounds.min[2] !== -250 + t.z * cap.size || t.bounds.max[2] !== -250 + (t.z + 1) * cap.size) errors.push('tile grid bounds');
-    if (t.compressed > cap.compressed || t.triangles > cap.triangles || t.draws > cap.draws) errors.push('tile caps');
     if (t.lod === 1 && t.files.some((r) => s.library.includes(r))) errors.push('self-contained coarse tile');
   }
-  if (s.far !== null && (s.far.compressed > CONTENT_CAPS.far.compressed || s.far.triangles > CONTENT_CAPS.far.triangles || s.far.draws > CONTENT_CAPS.far.draws)) errors.push('far caps');
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
   errors.push(...uiRules(s.ui, s.state));
   errors.push(...hookRules(s.hooks, s.state));

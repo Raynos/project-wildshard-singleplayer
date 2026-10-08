@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
     "./flyers": "./flyers.ts",
     "./grazers": "./grazers.ts",
@@ -317,6 +318,10 @@
       "./bake/worldRows": {
         "types": "./dist/types/sdk/bake/worldRows.d.ts",
         "default": "./dist/bake/worldRows.js"
+      },
+      "./reportCard": {
+        "types": "./dist/types/sdk/reportCard.d.ts",
+        "default": "./dist/reportCard.js"
       }
     }
   }
