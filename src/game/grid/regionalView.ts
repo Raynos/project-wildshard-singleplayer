@@ -24,7 +24,7 @@
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
-import { sceneResources, ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
+import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
@@ -95,10 +95,6 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   const registry = new WorldRegistry();
   const movers = new Set<() => void>(), platforms: Floor[] = [];
   let bindings = 0, held = false;
-  const free = (tree: Object3D): void => {
-    tree.removeFromParent();
-    for (const resource of sceneResources(tree)) if (!assets.isAcquired(resource)) resource.dispose();
-  };
   // Unwinds last (LIFO): the scene node, then the claim hold, after every piece scope below has released its handles.
   scope.onDispose(() => {
     registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0;
@@ -120,7 +116,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
       }
       withOwner(pieceScope, () => {
         const object = piece.object;
-        if (object !== undefined) { root.add(object); pieceScope.onDispose(() => { if (object.parent === root) free(object); }); } // already unmounted: its verb freed it
+        if (object !== undefined) { root.add(object); ownSceneTree(object, pieceScope, assets); }
         const added = addPiece(physics, piece, root);
         if (added.body !== null || piece.active !== undefined) {
           movers.add(added.sync); pieceScope.onDispose(() => { movers.delete(added.sync); });

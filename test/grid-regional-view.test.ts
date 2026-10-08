@@ -1,8 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real collider proof uses the committed native Rapier binary.
 import { readFileSync } from 'node:fs';
-import { beforeAll, expect, it } from 'vitest';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene } from 'three';
+import { beforeAll, expect, it, vi } from 'vitest';
+import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene } from 'three';
 import { App } from '../src/engine/app/app';
+import { SceneOwnership } from '../src/engine/app/sceneOwnership';
+import { AssetService } from '../src/engine/app/assets';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
@@ -120,4 +122,21 @@ it('writes the destination physics through the page verbs while entered, hides p
   f.claim.release();
   expect(f.allocator.has(f.claim.id)).toBe(false);
   again.dispose(); world.dispose(); f.resident.dispose();
+});
+
+it('keeps captured piece batches under their piece owner and disposes once on leave then page unload', () => {
+  const f = fixture(), page = new Scope('capturing-page'), entry = f.resident.child('entry');
+  f.view.enter(entry);
+  const material = new MeshBasicMaterial(), batch = new BatchedMesh(1, 24, 36, material), source = new BoxGeometry();
+  batch.addInstance(batch.addGeometry(source)); source.dispose();
+  const dispose = vi.spyOn(batch, 'dispose'), geometryDispose = vi.spyOn(batch.geometry, 'dispose');
+  const installation = createLevelInstallation(f.app, entry, {}, () => ({ set: noop, detail: noop }));
+  withOwner(entry, () => { installation.context.piece(box('captured.batch', 0, { object: batch })); });
+  const ownership = new SceneOwnership(f.scene, page, new AssetService());
+  ownership.capture(); ownership.capture();
+  expect(f.view.scope.census.resources).toBe(1); expect(page.census.resources).toBe(0);
+  entry.dispose(); f.view.dispose(); page.dispose(); f.resident.dispose();
+  expect(dispose).toHaveBeenCalledOnce(); expect(geometryDispose).toHaveBeenCalledOnce();
+  expect(f.scene.children).toEqual([]); expect(f.region.world.colliders.len()).toBe(0);
+  f.claim.release(); f.home.dispose(); f.region.dispose();
 });

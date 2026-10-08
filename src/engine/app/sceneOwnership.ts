@@ -26,7 +26,7 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
   visit(container);
   return resources;
 }
-interface DelegatedScene { capture: () => void }
+interface DelegatedScene { scope: Scope; capture: () => void }
 const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
 
 /** Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never
@@ -34,10 +34,10 @@ const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
 export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetService, 'isAcquired'>): void {
   if (scope.disposed || delegatedScenes.has(root)) throw new Error('Scene subtree requires one live owner');
   const capture = (): void => {
-    for (const resource of sceneResources(root)) if (!assets.isAcquired(resource)) scope.own(resource);
+    for (const resource of sceneResources(root, scope)) if (!assets.isAcquired(resource)) scope.own(resource);
     for (const child of root.children) captureDelegatedScenes(child);
   };
-  delegatedScenes.set(root, { capture });
+  delegatedScenes.set(root, { scope, capture });
   scope.onDispose(() => {
     capture(); root.removeFromParent(); root.clear(); delegatedScenes.delete(root);
   });
@@ -48,10 +48,12 @@ function captureDelegatedScenes(root: Object3D): void {
   for (const child of root.children) captureDelegatedScenes(child);
 }
 
-export function sceneResources(root: Object3D): Set<Disposable3> {
+/** Resources a caller may own; explicit subtree owners are respected even when passed as the root. */
+export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> {
   const resources = new Set<Disposable3>();
   const visit = (node: Object3D): void => {
-    if (node !== root && delegatedScenes.has(node)) return;
+    const delegated = delegatedScenes.get(node);
+    if (delegated !== undefined && (node !== root || delegated.scope !== owner)) return;
     if (node instanceof InstancedMesh || node instanceof BatchedMesh) resources.add(node);
     for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
       // BatchedMesh.dispose owns its private aggregate geometry and internal textures.
