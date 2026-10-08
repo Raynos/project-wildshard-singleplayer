@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reuse shipped compressed texture bytes; no encode or texture-size change in this proof.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native byte equality keeps the complete compressed-asset proof fast under coverage.
+import { Buffer } from 'node:buffer';
 import { BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
@@ -34,11 +36,20 @@ function fixture() {
   source.props = packed.props; source.tiles = packed.tiles; source.files = packed.files;
   return { source, rows, packed, materials, splat, c, n };
 }
+function expectBytes(actual: Uint8Array | undefined, expected: Uint8Array): void {
+  if (actual === undefined) throw new Error('Missing packed texture bytes');
+  // Compare every byte and length natively instead of millions of instrumented
+  // assertion-object property visits under CI coverage. Metadata stays deep-equal.
+  expect(Buffer.from(actual).equals(Buffer.from(expected))).toBe(true);
+}
 it('packs and admits splat ground beside named prop slots with byte-identical shipped compressed textures and deduplicated dependencies', () => {
   const { source, rows, packed, materials, splat, c, n } = fixture();
-  expect(rows.finish('pbr', { materials, splat })).toEqual(packed);
+  const repeated = rows.finish('pbr', { materials, splat });
+  expect({ ...repeated, assets: undefined }).toEqual({ ...packed, assets: undefined });
+  expect([...repeated.assets.keys()]).toEqual([...packed.assets.keys()]);
+  for (const [hash, bytes] of packed.assets) expectBytes(repeated.assets.get(hash), bytes);
   expect(validateShardfileAssets(source, packed.assets, contentHash).props?.splat).toEqual(splat);
-  expect(packed.assets.get(c.hash)).toEqual(colour); expect(packed.assets.get(n.hash)).toEqual(numeric);
+  expectBytes(packed.assets.get(c.hash), colour); expectBytes(packed.assets.get(n.hash), numeric);
   expect(packed.files.filter(file => file.kind === 'ktx2')).toHaveLength(2);
   for (const tile of packed.tiles) expect(tile.compressed).toBe(packed.files.filter(file => tile.files.includes(file.hash) || file.kind === 'ktx2').reduce((sum, file) => sum + file.compressed, 0));
   const plain = { ...packed.props }; delete plain.splat;

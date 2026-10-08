@@ -3,6 +3,7 @@ import { Color, type Material, MeshStandardMaterial, type Texture, Vector3 } fro
 import { Grass } from '../../src/engine/world/Grass';
 import type { Forest } from '../../src/engine/world/forest/Forest';
 import type { SkyRig } from '../../src/engine/world/skyRig';
+import * as placement from '../../src/engine/world/forest/placement';
 import { Undergrowth } from '../../src/shards/pine-hollow/world/undergrowth';
 import { legacyDouble } from '../fake/FakeGame';
 import { PINE_HOLLOW } from '../../src/shards/pine-hollow/manifest';
@@ -26,6 +27,12 @@ const canvas = (texture: Texture): Canvas => {
 export function vegetationCanvasLifetime(enabled: boolean): void {
   const developer = isDev(); setDev(true); overrideSetting('memorySaver', enabled ? 'on' : 'off');
   configureLevel(toLevelSpec(PINE_HOLLOW));
+  // This proof owns real texture/material construction and upload/dispose/re-entry,
+  // not the unrelated 500 m placement scan (covered by placement/bake proofs).
+  const placements = vi.spyOn(placement, 'placeUndergrowth').mockImplementation(function* () {
+    yield;
+    return { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
+  });
   try {
     vi.stubGlobal('HTMLCanvasElement', Canvas); vi.stubGlobal('document', { createElement: () => new Canvas() });
     let previous: readonly Texture[] = [];
@@ -52,5 +59,5 @@ export function vegetationCanvasLifetime(enabled: boolean): void {
       expect(disposed).toEqual(textures.map(() => 1));
       previous = textures;
     }
-  } finally { overrideSetting('memorySaver', null); setDev(developer); vi.unstubAllGlobals(); }
+  } finally { placements.mockRestore(); overrideSetting('memorySaver', null); setDev(developer); vi.unstubAllGlobals(); }
 }

@@ -176,7 +176,7 @@ it('refuses an unwrapped app build at config loading without compiling the app',
   expect(result.stdout + result.stderr).toContain('heavy-lane.py build');
 });
 
-it('collects each test file once and keeps exactly five integration files', () => {
+it('collects each test file once and keeps exactly seven integration files', () => {
   const { env } = fixture();
   const inventory: unknown = JSON.parse(execFileSync('pnpm', ['exec', 'vitest', 'list', '--filesOnly', '--json'], { env, encoding: 'utf8' }));
   if (!Array.isArray(inventory)) throw new Error('invalid Vitest file inventory');
@@ -188,5 +188,5 @@ it('collects each test file once and keeps exactly five integration files', () =
     expect(files.has(row.file)).toBe(false); files.add(row.file);
     if (row.projectName === 'integration') integration.push(row.file.split('/').at(-1) ?? '');
   }
-  expect(integration.sort()).toEqual(['grid-collision-strips.test.ts', 'immutable-vegetation-canvases-off.test.ts', 'live-grid.test.ts', 'sdk-repo-build.test.ts', 'template-copy-scaffold.test.ts']);
+  expect(integration.sort()).toEqual(['grid-collision-strips.test.ts', 'immutable-vegetation-canvases-off.test.ts', 'immutable-vegetation-canvases.test.ts', 'live-grid.test.ts', 'sdk-repo-build.test.ts', 'shardfile-splat-admission.test.ts', 'template-copy-scaffold.test.ts']);
 });

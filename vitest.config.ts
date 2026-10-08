@@ -16,6 +16,8 @@ export const HEAVY_INTEGRATION_TESTS = [
   // under CI coverage when competing with the main pool. Keep their proofs serial as well.
   'test/grid-collision-strips.test.ts',
   'test/immutable-vegetation-canvases-off.test.ts',
+  'test/immutable-vegetation-canvases.test.ts',
+  'test/shardfile-splat-admission.test.ts',
 ];
 
 export default defineConfig({
