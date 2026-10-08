@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2197 members; 830 without a doc line (—).
+2203 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -404,6 +404,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `texMode` | const | @wildshard/engine/boot/gpuFiles | — |
 | `TexMode` | type | @wildshard/engine/boot/gpuFiles | — |
 | `texModeWhy` | function | @wildshard/engine/boot/gpuFiles | the mode this page loads with, and why (fixed on the first call) |
+| `TexturePolicyBinding` | class | @wildshard/engine/boot/gpuFiles | One resident's immutable texture choice, resolved once with the ordinary Debug/Auto precedence. |
 | `AliveInfo` | interface | @wildshard/engine/boot/lastEnd | what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' \| 'shard'`, |
 | `lastEnd` | function | @wildshard/engine/boot/lastEnd | — |
 | `LastEnd` | interface | @wildshard/engine/boot/lastEnd | — |
@@ -1263,6 +1264,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `IDLE` | const | @wildshard/engine/player/Hands | — |
 | `SwimArms` | interface | @wildshard/engine/player/Hands | a skinned arm rig's swimming (ShardSword.swim): drawn under `root` in the camera's viewmodel queue |
 | `SwimStyle` | type | @wildshard/engine/player/Hands | the gloves' look: smooth (`pbr`, every shard but a low-poly one) or faceted (`lowpoly`) |
+| `HOVER_COAST` | const | @wildshard/engine/player/hoverSpeed | m/s² the board loses gliding with no input, at or below the 14 m/s standalone cruise (25 % of its acceleration). |
+| `HOVER_COAST_DRAG` | const | @wildshard/engine/player/hoverSpeed | /s of extra coast drag per m/s above the standalone cruise: a released 30 m/s highway board stops in ~70 m, not 150. |
+| `hoverCoastDecel` | function | @wildshard/engine/player/hoverSpeed | Coast deceleration (m/s²) of a released board at `speed` m/s. At or below 14 m/s it is the old constant 3 m/s², so a |
 | `hoverSpeed` | function | @wildshard/engine/player/hoverSpeed | Board tuning port: standalone keeps 14 m/s; the grid may supply a finite cap up to 30 m/s. |
 | `addLockOffset` | function | @wildshard/engine/player/LockOnTarget | a look drag while locked: the view glances by ±10° / ±6° (clamped), then springs back once the finger lifts |
 | `aimPoint` | function | @wildshard/engine/player/LockOnTarget | the point the view locks onto: the body centre; on a tall enemy halfway up to the head (the chest) |
@@ -1513,6 +1517,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Renderer` | type | @wildshard/engine/render/renderer | the renderer every layer is handed (today three's WebGL renderer) |
 | `copyShaderPatches` | function | @wildshard/engine/render/shaderPatches | Give `to` (a fresh `clone()` of `from`: three's `copy` drops `onBeforeCompile` and `customProgramCacheKey`) the patch |
 | `hasProgramKey` | function | @wildshard/engine/render/shaderPatches | Whether a site gave the material a program key of its own (Sky.fillSlots skips those). |
+| `OwnUniform` | interface | @wildshard/engine/render/shaderPatches | a uniform a patch reads: its GLSL type and the live uniform object that feeds it |
+| `ownUniforms` | function | @wildshard/engine/render/shaderPatches | Make a patch self-contained (G226): declare and bind each uniform it reads that the compiled stage would not declare |
 | `PATCH_ORDER` | const | @wildshard/engine/render/shaderPatches | the order bands (lower runs first; ties run in the order they were added) |
 | `patchIds` | function | @wildshard/engine/render/shaderPatches | The patch ids in this material's chain, in run order (tests, the inventory). |
 | `patchShader` | function | @wildshard/engine/render/shaderPatches | Patch a material's shader source before it compiles. Returns the undo (Explore's diorama cut is temporary); |

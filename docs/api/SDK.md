@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-210 members; 0 without a doc line (—).
+218 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -41,6 +41,14 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `bakeProps` | function | @wildshard/sdk/bake/props | Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output. |
 | `PropsBakeSource` | interface | @wildshard/sdk/bake/props | Trusted static content. Named panels remain separate, and coarse/far replacements are optional build-time inputs. |
 | `PropScatter` | interface | @wildshard/sdk/bake/props | A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time. |
+| `CapturedStaticMaterial` | interface | @wildshard/sdk/bake/staticMaterials | Actual static surface factors copied while the authored material is alive. The owner selects the named look recipe. |
+| `captureStaticMaterial` | function | @wildshard/sdk/bake/staticMaterials | Snapshot Lambert/PBR source factors and all supported slots without inferring a family from a Three class. |
+| `checkStaticMaterialDependencies` | function | @wildshard/sdk/bake/staticMaterials | Each named GLB directly depends on every texture its own material slots use, rather than another tile's union. |
+| `StaticImageSource` | interface | @wildshard/sdk/bake/staticMaterials | Original full bitmap/atlas identity and extent, captured by its real producer. |
+| `StaticMaterialCatalogue` | class | @wildshard/sdk/bake/staticMaterials | Named multi-material transport for both native-world and normalized-GLB bakes. |
+| `staticMaterialNames` | function | @wildshard/sdk/bake/staticMaterials | Read exact emitted names from a byte-admitted GLB, including an empty name so named packing refuses it. |
+| `StaticTextureIdentity` | type | @wildshard/sdk/bake/staticMaterials | Name a real source bitmap/atlas before its producer retires. This port never reads dummy bake-canvas pixels. |
+| `StaticTextureResolver` | type | @wildshard/sdk/bake/staticMaterials | Return complete mipmapped KTX2 pixels for this exact original image, orientation and colour/data role. |
 | `BakedTerrain` | interface | @wildshard/sdk/bake/terrain | Immutable wire files plus the ordinary shardfile rows and a validated terrain section. |
 | `bakeTerrain` | function | @wildshard/sdk/bake/terrain | Bake a shared 257² lattice into 64 L0 and 16 L1 tiles, with an independent whole-sim collision file. |
 | `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |

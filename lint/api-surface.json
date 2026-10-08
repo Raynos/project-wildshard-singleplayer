@@ -2381,6 +2381,12 @@
         "from": "@wildshard/engine/boot/gpuFiles"
       },
       {
+        "name": "TexturePolicyBinding",
+        "kind": "class",
+        "doc": "One resident's immutable texture choice, resolved once with the ordinary Debug/Auto precedence.",
+        "from": "@wildshard/engine/boot/gpuFiles"
+      },
+      {
         "name": "AliveInfo",
         "kind": "interface",
         "doc": "what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' | 'shard'`,",
@@ -7548,6 +7554,24 @@
         "from": "@wildshard/engine/player/Hands"
       },
       {
+        "name": "HOVER_COAST",
+        "kind": "const",
+        "doc": "m/s² the board loses gliding with no input, at or below the 14 m/s standalone cruise (25 % of its acceleration).",
+        "from": "@wildshard/engine/player/hoverSpeed"
+      },
+      {
+        "name": "HOVER_COAST_DRAG",
+        "kind": "const",
+        "doc": "/s of extra coast drag per m/s above the standalone cruise: a released 30 m/s highway board stops in ~70 m, not 150.",
+        "from": "@wildshard/engine/player/hoverSpeed"
+      },
+      {
+        "name": "hoverCoastDecel",
+        "kind": "function",
+        "doc": "Coast deceleration (m/s²) of a released board at `speed` m/s. At or below 14 m/s it is the old constant 3 m/s², so a",
+        "from": "@wildshard/engine/player/hoverSpeed"
+      },
+      {
         "name": "hoverSpeed",
         "kind": "function",
         "doc": "Board tuning port: standalone keeps 14 m/s; the grid may supply a finite cap up to 30 m/s.",
@@ -9045,6 +9069,18 @@
         "name": "hasProgramKey",
         "kind": "function",
         "doc": "Whether a site gave the material a program key of its own (Sky.fillSlots skips those).",
+        "from": "@wildshard/engine/render/shaderPatches"
+      },
+      {
+        "name": "OwnUniform",
+        "kind": "interface",
+        "doc": "a uniform a patch reads: its GLSL type and the live uniform object that feeds it",
+        "from": "@wildshard/engine/render/shaderPatches"
+      },
+      {
+        "name": "ownUniforms",
+        "kind": "function",
+        "doc": "Make a patch self-contained (G226): declare and bind each uniform it reads that the compiled stage would not declare",
         "from": "@wildshard/engine/render/shaderPatches"
       },
       {
@@ -15828,6 +15864,12 @@
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {
+        "name": "HybridHookTiming",
+        "kind": "interface",
+        "doc": "Entered installation timing in the page performance clock; bounded diagnostics, never a readiness signal.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
         "name": "hybridInstallation",
         "kind": "function",
         "doc": "Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations.",
@@ -15843,6 +15885,12 @@
         "name": "HybridResidentWorld",
         "kind": "class",
         "doc": "A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "HybridRuntimeOptions",
+        "kind": "interface",
+        "doc": "Optional presentation boundary for grid entered stages; standalone callers keep the existing staged path.",
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {
@@ -18284,6 +18332,54 @@
         "kind": "interface",
         "doc": "A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time.",
         "from": "@wildshard/sdk/bake/props"
+      },
+      {
+        "name": "CapturedStaticMaterial",
+        "kind": "interface",
+        "doc": "Actual static surface factors copied while the authored material is alive. The owner selects the named look recipe.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "captureStaticMaterial",
+        "kind": "function",
+        "doc": "Snapshot Lambert/PBR source factors and all supported slots without inferring a family from a Three class.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "checkStaticMaterialDependencies",
+        "kind": "function",
+        "doc": "Each named GLB directly depends on every texture its own material slots use, rather than another tile's union.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "StaticImageSource",
+        "kind": "interface",
+        "doc": "Original full bitmap/atlas identity and extent, captured by its real producer.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "StaticMaterialCatalogue",
+        "kind": "class",
+        "doc": "Named multi-material transport for both native-world and normalized-GLB bakes.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "staticMaterialNames",
+        "kind": "function",
+        "doc": "Read exact emitted names from a byte-admitted GLB, including an empty name so named packing refuses it.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "StaticTextureIdentity",
+        "kind": "type",
+        "doc": "Name a real source bitmap/atlas before its producer retires. This port never reads dummy bake-canvas pixels.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
+      },
+      {
+        "name": "StaticTextureResolver",
+        "kind": "type",
+        "doc": "Return complete mipmapped KTX2 pixels for this exact original image, orientation and colour/data role.",
+        "from": "@wildshard/sdk/bake/staticMaterials"
       },
       {
         "name": "BakedTerrain",

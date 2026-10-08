@@ -1849,7 +1849,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2180 exports, grouped by the module to import them from.
+2186 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1922,7 +1922,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/boot/contentCache`: `CONTENT_CACHE_NAME`, `ContentCache`, `ContentCachePorts`, `ContentCacheStats`
 - `@wildshard/engine/boot/extras`: `AudioBanks`, `bootFiles`, `extraFetches`, `Preload`, `startAudioPreload`, `startDeferredAudioPreload`, `startMenuPreload`
 - `@wildshard/engine/boot/filePolicy`: `filePolicy`
-- `@wildshard/engine/boot/gpuFiles`: `autoTexturePolicy`, `gpuFile`, `isRegisteredGpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`
+- `@wildshard/engine/boot/gpuFiles`: `autoTexturePolicy`, `gpuFile`, `isRegisteredGpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`, `TexturePolicyBinding`
 - `@wildshard/engine/boot/lastEnd`: `AliveInfo`, `lastEnd`, `LastEnd`, `lastEndLine`, `lastRecordedEnd`, `markReload`, `markUnload`, `PageLife`, `registerBeforeReload`, `ReloadReason`, `setAliveSource`
 - `@wildshard/engine/boot/pack`: `bootParts`, `packFor`, `streamPack`
 - `@wildshard/engine/boot/plan`: `ByteProgress`, `createBootPlan`, `formatMB`, `LogRow`, `macrotask`, `Plan`, `PlanOptions`, `ProgressView`, `runDirect`, `Sink`, `slicer`, `StepProgress`, `StepRunner`
@@ -2070,7 +2070,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/player/CameraFX`: `CameraFX`
 - `@wildshard/engine/player/dodge`: `dodgeEnv`, `dodgeFx`
 - `@wildshard/engine/player/Hands`: `buildSwimGloves`, `ELBOW`, `Hands`, `IDLE`, `SwimArms`, `SwimStyle`
-- `@wildshard/engine/player/hoverSpeed`: `hoverSpeed`
+- `@wildshard/engine/player/hoverSpeed`: `HOVER_COAST`, `HOVER_COAST_DRAG`, `hoverCoastDecel`, `hoverSpeed`
 - `@wildshard/engine/player/LockOnTarget`: `addLockOffset`, `aimPoint`, `FlickDir`, `FlickTracker`, `LOCK`, `LockOnSystem`, `lockScore`, `pickSwitch`, `wrapAngle`
 - `@wildshard/engine/player/MeleeSweep`: `BLADE_SLACK`, `bladeBlocked`, `bladeContact`, `BladeContact`, `Clang`, `clangOf`
 - `@wildshard/engine/player/nalatiArms`: `ARM_PAL`, `Fist`, `FistOpts`, `forearm`, `gloveFist`, `placeArm`, `riderArm`
@@ -2110,7 +2110,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/nodes/tentShadowFilter`: `tentShadowFilter`
 - `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
-- `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
+- `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `OwnUniform`, `ownUniforms`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
 - `@wildshard/engine/render/textureBytes`: `textureBytes`
 - `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
@@ -2224,7 +2224,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-648 exports, grouped by the module to import them from.
+650 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2307,7 +2307,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/grazers`: `ChallengeGrazerSchema`, `parseChallengeGrazer`, `parseRamGrazer`, `RamGrazerSchema`, `ShardChallengeGrazer`, `ShardRamGrazer`
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
-- `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
+- `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `HybridHookTiming`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeOptions`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
@@ -2395,7 +2395,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-204 exports, grouped by the module to import them from.
+212 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2406,6 +2406,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/glb`: `GlbPrimitive`, `propBounds`, `staticGlb`
 - `@wildshard/sdk/bake/nativeLattice`: `NativeLatticeAttribute`, `NativeLatticeSource`, `NativeLatticeTile`, `sliceNativeLattice`
 - `@wildshard/sdk/bake/props`: `BakedProps`, `bakeProps`, `PropsBakeSource`, `PropScatter`
+- `@wildshard/sdk/bake/staticMaterials`: `CapturedStaticMaterial`, `captureStaticMaterial`, `checkStaticMaterialDependencies`, `StaticImageSource`, `StaticMaterialCatalogue`, `staticMaterialNames`, `StaticTextureIdentity`, `StaticTextureResolver`
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
 - `@wildshard/sdk/bake/textureWasm`: `bakeWorldTexture`, `WORLD_TEXTURE_TOOL`
