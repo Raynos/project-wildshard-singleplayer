@@ -36,6 +36,27 @@ function requireBound(source: Pick<Shardfile, 'runtime'>, section: RuntimeBoundS
   if (!runtimeBinds(source).has(section)) throw new Error(`Shardfile ${section} are not bound by its runtime (runtime.binds)`);
 }
 
+/**
+ * The immutable files only a runtime-bound world section references (G227): the terrain's collider and tile files, the
+ * props' tile, library, panel, far and texture files. Admission still fetches and verifies them with the product; the data
+ * client's view drops them so a hybrid whose world is bound stays an empty data declaration.
+ */
+export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
+  const binds = runtimeBinds(source), files = new Set<string>();
+  if (binds.has('terrain') && source.terrain !== null) for (const ref of [source.terrain.collider, ...source.terrain.tiles.map((tile) => tile.file)]) files.add(ref);
+  const props = source.props;
+  if (binds.has('props') && props !== null) {
+    for (const ref of [...props.tiles.map((tile) => tile.file), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file),
+      ...props.textures.flatMap((texture) => [texture.model, texture.colour]), ...(props.far === null ? [] : [props.far])]) files.add(ref);
+  }
+  if (files.size === 0) return files;
+  // a file another (unbound) declaration still names stays the data client's
+  const unbound = { ...source, terrain: binds.has('terrain') ? null : source.terrain, props: binds.has('props') ? null : source.props, tiles: [], files: [], critical: [], library: [], far: null };
+  const text = JSON.stringify(unbound);
+  for (const ref of files) if (text.includes(ref)) files.delete(ref);
+  return files;
+}
+
 /** The source as the data client installs it: every runtime-bound section emptied, so neither installs it twice. */
 export function withoutRuntimeRows(source: Shardfile): Shardfile {
   const binds = runtimeBinds(source);
@@ -43,7 +64,13 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
   if (binds.has('state') && (source.state.player.length > 0 || source.state.shared.some((field) => field.privacy !== 'host'))) {
     throw new Error('Runtime-bound state supports only host-owned shared fields');
   }
+  const world = runtimeBoundWorldFiles(source), keep = (ref: string): boolean => !world.has(ref);
+  const far = source.far === null || source.far.files.every(keep) ? source.far : source.far.files.some(keep) ? { ...source.far, files: source.far.files.filter(keep) } : null;
   return { ...source,
+    ...(binds.has('terrain') ? { terrain: null } : {}),
+    ...(binds.has('props') ? { props: null } : {}),
+    ...(world.size === 0 ? {} : { files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep), far,
+      tiles: source.tiles.flatMap((tile) => { const files = tile.files.filter(keep); return files.length === 0 ? [] : [files.length === tile.files.length ? tile : { ...tile, files }]; }) }),
     ...(binds.has('quests') ? { quests: { flags: [], quests: [], triggers: [], dialogue: [] } } : {}),
     ...(binds.has('ledger') ? { ledger: [] } : {}),
     ...(binds.has('items') ? { items: { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } } } : {}),

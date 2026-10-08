@@ -17,8 +17,13 @@ import * as v from 'valibot';
  *   encounter scripts stay its own.
  * - `state`: host-owned shared scalar fields (including bounded JSON strings), migrated once from legacy slots and
  *   persisted by the platform under the stable instance id; player/public fields remain simulation-owned.
+ * - `terrain` (G227, "the shardfile is the bake"): the compiled 62.5 m terrain tiles and their critical collider. The data
+ *   client draws and collides none of them; the runtime binds them (`bindRuntimeTerrain`, ./runtimeWorld.ts), streaming the
+ *   admitted tiles through the shardfile's residency in place of its code-built ground. The edge rows stay platform data.
+ * - `props` (G227): the compiled props section (tiles, library models, panels, far proxy), bound the same way; the
+ *   runtime keeps the behaviour of the pieces it dresses.
  */
-export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 'state'] as const;
+export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 'state', 'terrain', 'props'] as const;
 /** One section a trusted runtime binds rather than the data client. */
 export type RuntimeBoundSection = (typeof RUNTIME_BOUND_SECTIONS)[number];
 /** `runtime.binds`: the declared capability that replaces the implicit "empty apart from audio, edges and colliders" rule. */

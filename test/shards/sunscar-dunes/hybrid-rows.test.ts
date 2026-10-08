@@ -20,7 +20,7 @@ const whipFamily = (app: App): ReadonlyMap<string, ItemFamily> => new Map([['sun
 
 describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runtime-owner binding)', () => {
   it('declares its quest, ledger and whip in shard.config.ts as sections its trusted runtime binds', () => {
-    expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns']);
+    expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns', 'terrain']);
     expect(source.quests.quests.map((quest) => quest.id)).toEqual(['sunscar.signal']);
     expect(source.ledger.map((rule) => rule.fact)).toEqual([FACT.signal, FACT.matriarch]);
     expect(source.items.rows.map((row) => [row.id, row.family])).toEqual([['weapon.sunscar-whip', 'sunscar-dunes.whip']]);
@@ -28,6 +28,8 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     const data = withoutRuntimeRows(source);
     expect([data.quests.quests.length, data.quests.flags.length, data.ledger.length, data.items.rows.length, data.items.contexts.length]).toEqual([0, 0, 0, 0, 0]);
     expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
+    // G227: the compiled terrain tiles are bound too; the data client sees no terrain, tile, file or critical row
+    expect([data.terrain, data.tiles.length, data.files.length, data.critical.length]).toEqual([null, 0, 0, 0]);
   });
   it('the whip row drives the bullwhip and its equipment row: the same numbers, slot and context as before', () => {
     expect([CRACK.reach, CRACK.heavyReach, CRACK.width, CRACK.light, CRACK.heavy, CRACK.cooldown, CRACK.heavyCooldown, CRACK.charge]).toEqual([7, 8, 0.9, 18, 16, 0.45, 0.9, 0.6]);

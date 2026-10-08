@@ -17,11 +17,14 @@ const at = (i: number, j: number): number => heights[j * res + i] ?? Number.NaN;
 
 it('declares the bake\'s four native boundary rows, the midpoints at road height', () => {
   const native = { north: (k: number) => at(k, res - 1), south: (k: number) => at(k, 0), east: (k: number) => at(res - 1, k), west: (k: number) => at(0, k) };
+  // M3 / G227: the rows are now the compiled terrain tiles' own (257 samples, the collider's edge exactly); they read the
+  // legacy WSTR bake's rows (res samples over the same 500 m) to within 8 cm, resampled onto the 257 lattice
+  const resample = (side: keyof typeof native, k: number): number => { const f = k * (res - 1) / 256, i = Math.min(res - 2, Math.floor(f)), u = f - i; return native[side](i) * (1 - u) + native[side](i + 1) * u; };
   for (const side of ['north', 'east', 'south', 'west'] as const) {
     const row = source.edge[side];
-    expect(row.heights).toHaveLength(res);
-    expect(row.colours).toHaveLength(res);
-    expect(Math.max(...row.heights.map((h, k) => Math.abs(h - native[side](k))))).toBeLessThanOrEqual(0.0005 + 1e-6); // 3-decimal rows: half a millimetre plus the f32 lattice's noise
+    expect(row.heights).toHaveLength(257);
+    expect(row.colours).toHaveLength(257);
+    expect(Math.max(...row.heights.map((h, k) => Math.abs(h - resample(side, k))))).toBeLessThanOrEqual(0.08);
     expect(Math.max(...row.heights)).toBeGreaterThan(5); // the dune field, not a flat substitute
   }
   expect(entrywayRules(source)).toEqual([]);
