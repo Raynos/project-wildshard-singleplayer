@@ -1,24 +1,19 @@
-# sp-x5 handoff — 2026-10-08
+## Handoff (sp-x5)
 
-SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
-Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
+SF54 active: first non-graphical slice moves the unchanged shared combat-cue
+router from kit into game/systems/audio, exposed through SDK runtime/audio.
+Boot and the existing six combat-cue regressions use the SDK port. No shard folders,
+recipe DSP, graphical code, map inputs or commons content change. Approved exact
+edges: kit->engine -1, game->engine +1, sdk->game +1, root->kit -1, root->sdk +1.
+The audit's models/sword is already absent; lookApi and species/install remain
+live and may retire only after caller migrations. Next slices: non-graphical audio
+recipes / bag and effects rows via G138 build-time packs, coordinating shard folders
+through wildshard-new. Opus owns weapons / looks / models / viewmodel.
 
-## SF45 — schema / ABI documentation coverage
-
-Build on c5fa39dd5/0710aac7f. The actual compiled schema plus every public SDK
-*Schema constant is inventoried (SDK package exports + TypeScript declarations,
-then trusted runtime metadata); no predicates/default factories execute. Recursive
-pipeline wrappers now preserve nested fields/checks. Current inventory5046paths
-(2148compiled +2898SDK across16schema roots) and16admitted ABI calls. Explicit
-missing/duplicate/obsolete coverage failures compose with exact generated-byte
-checks for changed bounds/defaults/signatures. Runtime binds/spawn categories,
-state, SF70 contexts and action:null native tools are covered. SDK/SCRIPT-ABI guides
-link the same generated reference; custom-validator internals remain opaque.
-Generated output stays with serialized pusher. No generated files, imports/debt,
-map inputs or graphical changes. Clean f6505e2ec plus owned hunks:21focused tests/3files, root and scripts
-strict, root-config oxlint and ratchet green. Combined full434 queued (also covers
-b19 native-tool format; duplicate429 withdrawn before child allocation). Current-HEAD
-private index/hooks/old-value CAS required; final full proof remains pending. Coordinator pushes.
+SF45 4ba7ada99: 5046/5046 schema fields, 16/16 ABI calls; focused/strict/lint/ratchet
+green. Combined clean-export full proof remains pending (ticket434, also covers
+b19bccf66 native tools); replace with a later covering proof rather than duplicate
+full runs when possible. No browser/Simulator/preview owned. Coordinator pushes.
 
 ## Runtime-owned native tool format — b19bccf66
 

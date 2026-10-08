@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3, Group } from 'three';
 import { CombatCues, resolveHitStop } from '../../src/engine/combat/cues';
-import { sharedCombatCues } from '../../src/kit/audio/combatCues';
+import { sharedCombatCues } from '@wildshard/sdk/runtime/audio/combatCues';
 import { driftwoodCombatCues } from '../../src/shards/driftwood-isle/runtime/audio/combatCues';
 import { pineCombatCues } from '../../src/shards/pine-hollow/runtime/audio/combatCues';
 import { ndCueMap } from '../../src/shards/nine-dragon-stack/runtime/audio/cues';

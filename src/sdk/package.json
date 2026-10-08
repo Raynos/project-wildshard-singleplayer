@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
     "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
     "./flyers": "./flyers.ts",
@@ -92,6 +93,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./runtime/audio/combatCues": {
+        "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",
+        "default": "./dist/runtime/audio/combatCues.js"
+      },
       "./crowds": {
         "types": "./dist/types/sdk/crowds.d.ts",
         "default": "./dist/crowds.js"

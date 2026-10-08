@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./systems/audio/combatCues": "./systems/audio/combatCues.ts",
     "./shardfile/reportCard": "./shardfile/reportCard.ts",
     "./grid/memoryAdmission": "./grid/memoryAdmission.ts",
     "./grid/regionalRuntime": "./grid/regionalRuntime.ts",

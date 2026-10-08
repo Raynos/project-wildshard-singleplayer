@@ -1,5 +1,12 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/game/systems/audio/combatCues` defines the shared equipment cue router.
+Trusted runtimes use `@wildshard/sdk/runtime/audio/combatCues.sharedCombatCues(audio, meleeSilent)`;
+its SDK facade refers to the same function. It calls the supplied mixer's existing
+sound operations exactly once, preserves surface / pan / gain and the melee-silence
+policy, returns false for unknown cues, and installs nothing on import. Sound
+recipes and authored audio assets remain separate content; this router carries none.
+
 `@wildshard/engine/render/memorySaver.memorySaverOn()` reads the existing reload-scoped Debug setting. Immutable procedural textures may call `core/gpuOnly.gpuOnlyTexture` before first draw only when it returns true: after upload the canvas shrinks without another texture upload. Lit and depth passes must share that texture; CPU readers, redrawn canvases and different-sampler clones are ineligible. Rebuild these sources for each admitted world; GPU-only context loss uses the existing recovery reload.
 
 `@wildshard/engine/render/memorySaver.releaseOnUpload(source, done)` opts an exclusively owned, immutable decoded image into the existing Memory saver upload retirement. The callback closes the private bitmap or releases its cache owner after upload; the texture keeps its dimensions and GPU allocation. Register only when no later CPU reader or different-sampler clone needs the pixels, and also release on owner disposal. Memory saver OFF keeps the decode until disposal; GPU-only context-loss recovery reloads the page.

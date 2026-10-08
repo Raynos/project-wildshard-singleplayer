@@ -1,5 +1,10 @@
 # Build and preview an author project
 
+The trusted `@wildshard/sdk/runtime/audio/combatCues` system routes stable equipment
+cues into a supplied mixer through `sharedCombatCues`. It preserves existing sound
+recipes, surface routing and silence policy without installing services on import.
+This runtime module contains no commons content or build-time code.
+
 The [SDK API catalogue](api/SDK.md) is generated from the package's defining public
 modules and their JSDoc. The [schema and ABI reference](api/SHARDFILE.md) lists every
 compiled shardfile field, every public SDK `*Schema` constant (including the

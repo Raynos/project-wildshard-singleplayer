@@ -1,6 +1,7 @@
 import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 
-interface CombatAudio {
+/** Sound operations supplied by the owning mixer; the router allocates no audio resources. */
+export interface CombatAudio {
   rifleFire: () => void; crossbowFire: () => void; swordSwing: () => void; swordHeavy: () => void;
   swordHit: (surface: 'wood' | 'ground' | 'flesh', pan: number, gain: number) => void;
   boltImpact: (surface: 'wood' | 'ground' | 'flesh', pan: number, gain: number) => void;

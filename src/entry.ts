@@ -115,7 +115,7 @@ async function startSelected(): Promise<void> {
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
     retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
     retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
-    retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
+    retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
