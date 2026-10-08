@@ -82,6 +82,6 @@ describe('compiled mesh collision admission', () => {
     source.files = source.files.map(row => ({ ...row, decoded: row.decoded - 1 }));
     expect(() => validateShardfileAssets(source, assets, hash)).toThrow('asset cost declaration understated');
     source.files = source.files.map(row => ({ ...row, decoded: row.decoded + 1 }));
-    expect(() => validateShardfileAssets(source, assets, hash)).toThrow('Compiled mesh collision runtime and entry admission pending');
+    expect(() => validateShardfileAssets(source, assets, hash)).toThrow('requires continuous road-height ground');
   });
 });

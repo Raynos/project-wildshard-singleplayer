@@ -3,6 +3,8 @@ import type { ShardEntryways } from './entryways';
 import type { ShardProps } from './props';
 import { entryFootprints, clipEntryPolygon, type EntryFootprint, type EntryVertex } from './entryGeometry';
 import { glbPoint, glbTransform } from './glbTriangles';
+import type { ShardMeshCollision } from './meshCollision';
+import { visitMeshTriangles } from './meshEntryways';
 
 type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;
 function boxTop(box: Box): EntryVertex[][] {
@@ -23,7 +25,7 @@ function farLine(edge: ShardEntryways[number]['edge'], footprint: EntryFootprint
 }
 
 /** Socket floors may bridge below-road ground only when actual collision surfaces meet their entire shard-side edge. */
-export function validateSocketLandings(source: { entryways: ShardEntryways; terrain: { collider: string } | null; props: ShardProps | null }, assets: ReadonlyMap<string, Uint8Array>): void {
+export function validateSocketLandings(source: { entryways: ShardEntryways; terrain: { collider: string } | null; props: ShardProps | null; meshCollision?: ShardMeshCollision | null }, assets: ReadonlyMap<string, Uint8Array>): void {
   const sockets = source.entryways.filter((entry) => entry.kind === 'socketOverWater');
   if (sockets.length === 0) return;
   const terrainBytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
@@ -53,6 +55,8 @@ export function validateSocketLandings(source: { entryways: ShardEntryways; terr
       const values = clipped.map((point) => point[axis]); intervals.push([Math.min(...values), Math.max(...values)]);
     };
     for (const triangle of decks) inspect(triangle);
+    // Interactive mesh panels may disappear; only permanent static chunks prove a landing.
+    for (const row of source.meshCollision?.tiles ?? []) visitMeshTriangles(row.file, assets, inspect);
     if (terrain !== undefined) {
       const n = terrain.resolution - 1, stride = terrain.size / n;
       const vertex = (x: number, z: number): EntryVertex => {

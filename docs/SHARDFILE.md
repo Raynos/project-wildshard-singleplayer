@@ -807,3 +807,5 @@ Loading puts that rider at the reset road boarding point after checking the real
 upright capsule against current deck and obstacle poses. Missing, submerged or
 blocked boarding falls back to the normal admitted safe spawn. This load policy
 never teleports a capsule during the traversal admission proof.
+
+Mesh entry admission clips every actual WMC1 triangle to the canonical 8 × 15 m footprints. Ground entries require exact continuous area coverage at y = 0 from permanent static chunks; gaps, slopes and panel-only ground are refused. All mesh panels, including inactive ones, are checked for above-road obstructions. Socket-over-water entries additionally require a continuous full-width permanent collision landing at the inner line; platform floors and interactive mesh panels cannot prove that landing. The existing dry-entry water exclusions still apply.
