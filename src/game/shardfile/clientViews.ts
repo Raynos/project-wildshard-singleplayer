@@ -28,6 +28,11 @@ function noMask(excluded: ReadonlySet<number>): void { if (excluded.size > 0) th
 export interface ClientTileViews {
   terrain: (input: Uint8Array | TerrainTileData, root: Object3D, scope: Scope, shadow: boolean) => ResidentTile;
   props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, root: Object3D, scope: Scope) => Promise<ResidentTile | null>;
+  /**
+   * The declared library panels only (a door, a gate: what `targets.panels` shows and hides), under `root`, each starting at
+   * its declared `visible`; no tiles, models or far proxy. The grid draws a neighbour's panels with these (G222 playtest #7).
+   */
+  panels: (props: NonNullable<Shardfile['props']>, assets: ReadonlyMap<string, Uint8Array>, root: Object3D, scope: Scope) => Promise<ReadonlyMap<string, Object3D>>;
 }
 
 /**
@@ -73,6 +78,12 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       const shadow = (enabled: boolean): void => { for (const mesh of casters) mesh.castShadow = enabled; };
       if (row.lod === 1) { const mask = coarseTileMask(root, row.x, row.z, scope); shadow(false); return { mask, shadow: () => undefined }; }
       return { mask: noMask, shadow };
+    },
+    panels: async (props, assets, root, scope) => {
+      const installed = await installDeclaredProps({ ...props, models: [] }, { scene: root, scope, assets, materials: ports.materials, textures: ports.textures, lod: 0, selectedTiles: new Set(), ...surfacePort(ports) });
+      const family = ports.materials.get(props.family);
+      for (const panel of installed.panels.values()) outlineProps(panel, ports, family, scope);
+      return installed.panels;
     },
   };
 }

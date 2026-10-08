@@ -69,6 +69,7 @@ import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
+import { NeighbourPanels } from './neighbourPanels';
 import { copyMarks } from './copyIdentity';
 import { admittedMapImage, ProductMinimaps } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
@@ -208,6 +209,8 @@ export class GridSession {
   private readonly roadPlans = new Map<Mesh, CullPlan>();
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
+  /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
+  private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
   private readonly shimmer: { readonly step: () => void; readonly state: () => BorderShimmerState };
   /** G167: why a neighbour's shard can't load (its product refused, with the admission's message) and its far view's status */
@@ -369,7 +372,8 @@ export class GridSession {
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
-    host.frame?.onLate((dt) => { this.life.late(dt); frame?.frame(); });
+    this.panels = new NeighbourPanels({ scope: host.scope, simulation: (id) => this.live?.simulation(id) });
+    host.frame?.onLate((dt) => { this.life.late(dt); this.panels.late(); frame?.frame(); });
     const tiles = neighbourTiles(host.scope), tileCost = clientRingCatalogue(tiles.instances);
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
@@ -419,6 +423,7 @@ export class GridSession {
         if (scope.disposed) return;
         if (source.tiles.length > 0) instances.set(cell.instance, { source, assets, root, views });
         try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
+        try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
       } catch (error) { this.refuse(cell, error); } // G167 / G217: a refused shard's cell screen names the reason
     }
   }

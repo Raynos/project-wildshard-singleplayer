@@ -1,0 +1,293 @@
+{
+ "url": "http://127.0.0.1:4400",
+ "tag": "before",
+ "errors": [],
+ "version": {
+  "build": "4549ace-muyuco3n",
+  "time": "2026-10-08T01:11:53.504Z"
+ },
+ "enter": "arrived",
+ "closed": {
+  "survey": [
+   {
+    "x": -0.5,
+    "y": 0.3,
+    "z": 0.85,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": -0.5,
+    "y": 1,
+    "z": 0.24,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": -0.5,
+    "y": 1.8,
+    "z": -8.9,
+    "shape": 1,
+    "radius": null,
+    "at": [
+     0,
+     1.2,
+     -9
+    ],
+    "enabled": true,
+    "groups": 131071
+   },
+   {
+    "x": 0,
+    "y": 0.3,
+    "z": 0.98,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0,
+    "y": 1,
+    "z": 0.55,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0,
+    "y": 1.8,
+    "z": -8.9,
+    "shape": 1,
+    "radius": null,
+    "at": [
+     0,
+     1.2,
+     -9
+    ],
+    "enabled": true,
+    "groups": 131071
+   },
+   {
+    "x": 0.5,
+    "y": 0.3,
+    "z": 0.85,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0.5,
+    "y": 1,
+    "z": 0.24,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0.5,
+    "y": 1.8,
+    "z": -8.9,
+    "shape": 1,
+    "radius": null,
+    "at": [
+     0,
+     1.2,
+     -9
+    ],
+    "enabled": true,
+    "groups": 131071
+   }
+  ],
+  "north": {
+   "why": "stalled",
+   "stop": {
+    "x": 0,
+    "z": 1.4
+   }
+  },
+  "door": {
+   "why": "stalled",
+   "stop": {
+    "x": 0,
+    "z": -8.5
+   }
+  }
+ },
+ "opened": {
+  "current": "template-2",
+  "scene": "template.door.toggle",
+  "door": {
+   "why": "stalled",
+   "stop": {
+    "x": 0,
+    "z": -14.5
+   }
+  },
+  "survey": [
+   {
+    "x": -0.5,
+    "y": 0.3,
+    "z": 0.85,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": -0.5,
+    "y": 1,
+    "z": 0.24,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": -0.5,
+    "y": 1.8,
+    "z": -14.85,
+    "shape": 1,
+    "radius": null,
+    "at": [
+     0,
+     1.45,
+     -15
+    ],
+    "enabled": true,
+    "groups": 131071
+   },
+   {
+    "x": 0,
+    "y": 0.3,
+    "z": 0.98,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0,
+    "y": 1,
+    "z": 0.55,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0,
+    "y": 1.8,
+    "z": -14.85,
+    "shape": 1,
+    "radius": null,
+    "at": [
+     0,
+     1.45,
+     -15
+    ],
+    "enabled": true,
+    "groups": 131071
+   },
+   {
+    "x": 0.5,
+    "y": 0.3,
+    "z": 0.85,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0.5,
+    "y": 1,
+    "z": 0.24,
+    "shape": 2,
+    "radius": 0.9900000000000001,
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "enabled": true,
+    "groups": 262439
+   },
+   {
+    "x": 0.5,
+    "y": 1.8,
+    "z": -14.85,
+    "shape": 1,
+    "radius": null,
+    "at": [
+     0,
+     1.45,
+     -15
+    ],
+    "enabled": true,
+    "groups": 131071
+   }
+  ]
+ }
+}
