@@ -1,0 +1,280 @@
+{
+  "base": "http://127.0.0.1:4402",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Template shard",
+      "badge": "91% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY \u00b7 NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Driftwood Isle",
+      "mode": "legacy",
+      "entered": true,
+      "seconds": 9,
+      "slot": {
+        "driftwood-isle": "legacy"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Driftwood Isle",
+      "mode": "shardfile",
+      "entered": true,
+      "seconds": 7,
+      "slot": {
+        "driftwood-isle": "shardfile"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "legacy",
+      "entered": true,
+      "seconds": 10,
+      "slot": {
+        "nalati-grasslands": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardnalati-grasslands | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "shardfile",
+      "entered": true,
+      "seconds": 12,
+      "slot": {
+        "nalati-grasslands": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardnalati-grasslands | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "legacy",
+      "entered": true,
+      "seconds": 10,
+      "slot": {
+        "nine-dragon-stack": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardnine-dragon-stack | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "legacy",
+      "entered": true,
+      "seconds": 10,
+      "slot": {
+        "sunscar-dunes": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardsunscar-dunes | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Sky Reach",
+      "mode": "legacy",
+      "entered": true,
+      "seconds": 10,
+      "slot": {
+        "far-reach": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardfar-reach | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Sky Reach",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Template shard",
+      "mode": "legacy",
+      "entered": false,
+      "disabled": "SHARDFILE ONLY \u00b7 NO LEGACY"
+    },
+    {
+      "card": "Template shard",
+      "mode": "shardfile",
+      "entered": true,
+      "seconds": 9,
+      "slot": {
+        "_template": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shard_template | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "legacy",
+      "entered": false,
+      "failure": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "screen": "CHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPine Hollow could not load\n\nBUILD 874a42f-muzq7ruw \u00b7 STAGE finish\n\nCompressed texture 40 has no mipmaps and is not resident on this renderer\n\nError: Compressed texture 40",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "shardfile",
+      "entered": false,
+      "failure": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "screen": "CHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPine Hollow could not load\n\nBUILD 874a42f-muzq7ruw \u00b7 STAGE finish\n\nCompressed texture 40 has no mipmaps and is not resident on this renderer\n\nError: Compressed texture 40",
+      "errors": []
+    }
+  ],
+  "errors": [],
+  "pineFrom": "cap2 run on 874a42f2d (same Pine paths)"
+}

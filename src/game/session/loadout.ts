@@ -7,6 +7,7 @@ import { EnteredEquipment } from '../grid/enteredEquipment';
 import { GAME_STRINGS } from '../strings';
 import { titleCards } from '../titleDeck';
 import { buildTitleMenu } from '../mainMenu';
+import { shardEntry } from '../shard/entryMode';
 import { enterGrid, pageMode } from '../grid/boot';
 import { travel } from '../travel/travel';
 import type { worldStage } from './world';
@@ -82,11 +83,13 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   await macrotask();
   const hud = withOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine, ...(chunk.status === 'hidden' ? { developerBanner: GAME_STRINGS.developer.banner(chunk.slug.replace(/^_/, '')) } : {}) }));
   // the title deck (E318): this level's card enters or explores here, another's opens in a fresh page (travel)
+  const booted = shardEntry(chunk); // SF65: the way this page entered the shard (LEGACY / SHARDFILE)
   hud.titleDeck = (here) => {
     const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(chunk.slug)];
     return buildTitleMenu({
       cards, active: chunk.slug,
-      onEnter: (c) => { if (c === own) here.enter(); else travel({ to: c.slug, mode: 'enter' }); },
+      // SF65: this card in the mode this page booted with enters here; the other mode (or another card) is a fresh page
+      onEnter: (c, entry) => { if (c === own && entry === booted) here.enter(); else travel({ to: c.slug, mode: 'enter' }); },
       onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } here.explore(); },
       onGrid: () => { if (pageMode() === 'grid') here.enter(); else enterGrid(); }, // SF21a: the main menu's second entry
       onSettings: here.settings,

@@ -106,3 +106,13 @@
   .ws-menu.ws-menu-carousel .ws-menu-title { font-size: 19px; letter-spacing: 0.14em; }
   .ws-menu.ws-menu-carousel .ws-menu-back { font-size: 10px; padding: 7px 10px 7px 9px; }
 }
+/* SF65 (G237–G241): Developer on, LEGACY and SHARDFILE share ENTER WORLD's footprint; each card wears its port badge (G238) */
+.ws-menu .ws-menu-shardfile[hidden] { display: none; }
+.ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 4px; padding: 10px 6px 9px; }
+.ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode b { font-size: 16px; letter-spacing: 0.12em; }
+.ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode .ws-menu-mode-glyph svg { width: 20px; height: 20px; }
+.ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode small { position: static; white-space: normal; text-align: center; letter-spacing: 0.08em; line-height: 1.25; }
+.ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode:disabled { opacity: 0.45; border-style: dashed; box-shadow: none; cursor: default; }
+.ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode:disabled .ws-menu-mode-glyph { color: var(--ws-cyan-dim); }
+.ws-menu.ws-menu-carousel .ws-menu-card .ws-menu-card-port { position: absolute; left: 8px; bottom: 8px; z-index: calc(var(--ws-layer-hud) + 1); padding: 3px 8px; font: 9px/1.2 var(--ws-mono); font-style: normal; letter-spacing: 0.16em; color: var(--ws-cyan); background: rgba(4, 18, 26, 0.85); border: 1px solid var(--ws-cyan-line); }
+.ws-menu.ws-menu-carousel .ws-menu-shardfile { background: rgba(9, 22, 36, 0.88); }

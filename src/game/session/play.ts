@@ -1,4 +1,5 @@
 import { resolveLevelBounds } from '../shard/runtime';
+import { shardEntry } from '../shard/entryMode';
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
@@ -205,10 +206,11 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
   let explore: Explore | null = null; // Explore World (below) — while it is up, notes describe the viewer, not the player
   const exploring = (): boolean => explore?.active === true;
+  const entry = shardEntry(manifest); // SF65 (G240): every note names the shard and the way it was entered (legacy / shardfile)
   const loadFeedback = (): Promise<Feedback> => { feedback ??= loadFeedbackModule().then(({ Feedback: F }) => new F({
     capture: () => game.captureFrame(1280),
-    context: () => (explore?.active === true ? { shard: manifest.slug, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {
-      shard: manifest.slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
+    context: () => (explore?.active === true ? { shard: manifest.slug, entry, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {
+      shard: manifest.slug, entry, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
       yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(playerHealth.attributes.health), kills,
       swimming: player.swimming, hover: player.hover, tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles,
     }),

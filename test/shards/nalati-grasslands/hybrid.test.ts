@@ -9,7 +9,7 @@ import { ShardPlugin } from '../../../src/game/shard/plugin';
 import Plugin from '../../../src/shards/nalati-grasslands/plugin';
 import { NALATI_RUNTIME_COST } from '../../../src/shards/nalati-grasslands/data/runtimeCost';
 
-it.each(['off', 'on'])('keeps Nalati boot %s explicit, with identical OFF stage contexts and no data admission', async (choice) => {
+it.each(['legacy', 'shardfile'])('enters Nalati as %s from SHARD SELECT (SF65), with identical LEGACY stage contexts and no data admission', async (choice) => {
   const legacy = vi.fn(), hybrid = vi.fn();
   class Legacy extends ShardPlugin {
     override world(context: ShardContext): void { legacy('world', context); }
@@ -23,19 +23,16 @@ it.each(['off', 'on'])('keeps Nalati boot %s explicit, with identical OFF stage 
   }
   const prepare = vi.fn((_context: ShardContext) => Promise.resolve(new Admitted()));
   const app = new App(), manifest = emptyShardfileSource(emptyShardfile({ slug: source.identity.slug, name: source.identity.name, author: 'Fixture', seed: 357, revision: 1 })), scope = app.engineScope.child('nalati.boot');
-  const installation = createLevelInstallation(app, scope, { debugRow: (row) => {
-    expect(row.id).toBe('nalatiHybrid'); expect(row.initial).toBe('off'); expect(row.reload).toBe(true);
-    row.change(choice); return () => undefined;
-  } }, () => ({ set: () => undefined, detail: () => undefined }));
+  const installation = createLevelInstallation(app, scope, { debugRow: () => { throw new Error('SF65: the hybrid boot has no Debug row'); } }, () => ({ set: () => undefined, detail: () => undefined }));
   const context = shardContext(installation.context, manifest, { shard: manifest, rows: new Map(), bag: {
     tab: () => () => undefined, fragment: () => () => undefined,
   } });
   try {
-    const plugin = new Plugin(Legacy, prepare); await plugin.world(context); await plugin.kit(context); await plugin.play(context);
-    const selected = choice === 'off' ? legacy : hybrid;
+    const plugin = new Plugin(Legacy, prepare, () => choice === 'shardfile'); await plugin.world(context); await plugin.kit(context); await plugin.play(context);
+    const selected = choice === 'legacy' ? legacy : hybrid;
     expect(selected.mock.calls).toEqual([['world', context], ['kit', context], ['play', context]]);
-    expect((choice === 'off' ? hybrid : legacy).mock.calls).toEqual([]);
-    if (choice === 'off') expect(prepare).not.toHaveBeenCalled();
+    expect((choice === 'legacy' ? hybrid : legacy).mock.calls).toEqual([]);
+    if (choice === 'legacy') expect(prepare).not.toHaveBeenCalled();
     else {
       expect(prepare).toHaveBeenCalledTimes(1);
       expect(prepare).toHaveBeenCalledWith(context);

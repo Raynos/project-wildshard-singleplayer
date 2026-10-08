@@ -138,7 +138,7 @@ describe('the main menu (G79 / G88)', () => {
     expect(deck?.classList.contains('hide')).toBe(false);
     expect(menu.root.querySelector('.ws-main')?.classList.contains('hide')).toBe(true);
     expect(menu.root.querySelector('.ws-menu-entries')).toBeNull(); // the old two-entry row is gone: the main menu owns it
-    expect(menu.root.querySelector('.ws-menu-play b')?.textContent).toBe('Enter world');
+    expect(menu.root.querySelector('.ws-menu-play b')?.textContent).toBe('LEGACY'); // SF65: Developer on, LEGACY / SHARDFILE
     menu.dispose(); menu.root.remove();
     const again = buildTitleMenu(opts); // Settings ▸ Developer rebuilt the title: still on the deck
     expect(again.screen).toBe('select');

@@ -1,6 +1,7 @@
 import { isDev } from '@wildshard/engine/core/devMode';
 import type { ShardContext } from './context';
 import { currentPageMode } from '../grid/pageMode';
+import { shardEntry } from './entryMode';
 
 /** Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. */
 export function runtimeVariantEnabled(context: Pick<ShardContext, 'debugRow'>,
@@ -17,3 +18,7 @@ export function gridPage(): boolean { return currentPageMode() === 'grid'; }
 
 /** Unfinished systems and diagnostics run only in the page's Developer build (E451). */
 export function developerToolsEnabled(): boolean { return isDev(); }
+
+/** SF65 (G237–G241): whether this boot enters the shard as SHARDFILE (its current port state) rather than LEGACY (the
+ *  original TypeScript): SHARD SELECT's choice with Developer on, else the shard's public entry (`ShardManifest.entries`). */
+export function shardfileEntry(context: Pick<ShardContext, 'manifest'>): boolean { return shardEntry(context.manifest) === 'shardfile'; }

@@ -227,17 +227,19 @@ export class Feedback {
     if (mode === 'tab') this.viewScope.listen(text, 'keydown', (e) => { if (e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); void this.send(); } });
     sheet.append(text);
     const c = this.ctx, pos = c['pos'], cam = c['cam'];
+    // the host may tag the level with the way it was entered (`entry`, e.g. SF65's legacy / shardfile): its own row
+    const level = String(c['shard'] ?? '—'), entry: [string, string][] = typeof c['entry'] === 'string' ? [['Entry', c['entry']]] : [];
     // Explore World notes (src/engine/explore/Explore.ts context) describe the viewer: mode, camera, what is on the turntable / selected
     const exploring = typeof c['explore'] === 'string';
     const kv: [string, string][] = exploring ? [
-      [engineString('s_level_word'), String(c['shard'] ?? '—')],
+      [engineString('s_level_word'), level], ...entry,
       ['Explore', String(c['explore'])],
       ['Camera', Array.isArray(cam) ? `${Math.round(cam[0] ?? 0)} · ${Math.round(cam[1] ?? 0)} · ${Math.round(cam[2] ?? 0)}` : '—'],
       ['Heading', Array.isArray(cam) && typeof cam[3] === 'number' ? `${headingDeg(cam[3])}°` : '—'],
       ['Model', String(c['model'] ?? c['selected'] ?? '—')],
       ['Tier', String(c['tier'] ?? '—')],
     ] : [
-      [engineString('s_level_word'), String(c['shard'] ?? '—')],
+      [engineString('s_level_word'), level], ...entry,
       ['Pos', Array.isArray(pos) ? `${Math.round(pos[0] ?? 0)} · ${Math.round(pos[2] ?? 0)}` : '—'],
       ['Heading', typeof c['yaw'] === 'number' ? `${headingDeg(c['yaw'])}°` : '—'],
       ['Weapon', String(c['weapon'] ?? '—')],

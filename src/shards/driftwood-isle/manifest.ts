@@ -116,6 +116,8 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
   gridShardfile: '/shardfiles/driftwood-isle/shard.json',
+  // SF65 (G237): the SF46 hybrid boot ships (G172); LEGACY is the TypeScript runtime alone, no shardfile admitted
+  entries: { legacy: true, shardfile: true, public: 'shardfile' },
   trustedRuntime: { get slug() { return DRIFTWOOD_ISLE.slug; }, entry: 'runtime/hybrid.ts' },
   runtimeCost: DRIFTWOOD_RUNTIME_COST,
   // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.

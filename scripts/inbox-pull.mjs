@@ -122,13 +122,13 @@ async function main() {
     .map((f) => JSON.parse(fs.readFileSync(path.join(INBOX, f), 'utf8')));
   console.info(`inbox: ${entries.length} notes + ${errs.total} error reports on the server, ${ok.filter(Boolean).length} + ${errs.fresh} new, ${rows.length} in .review/inbox/ (${base})`);
   if (rows.length === 0) return;
-  console.info(`${pad('time (UTC)', 20)} ${pad('cat', 5)} ${pad('shard', 15)} ${pad('pos', 16)} ${pad('build', 8)} ${pad('id', 34)} note`);
+  console.info(`${pad('time (UTC)', 20)} ${pad('cat', 5)} ${pad('shard', 28)} ${pad('pos', 16)} ${pad('build', 8)} ${pad('id', 34)} note`);
   for (const n of rows) {
     const c = n.context ?? {};
     const one = `${String(n.note).replaceAll(/\s+/gu, ' ').trim()}${n.error?.count > 1 ? ` ×${n.error.count}` : ''}${n.error?.fatal === true ? ' FATAL' : n.error?.disabled === true ? ' (switched off)' : ''}`;
     const pos = Array.isArray(c.pos) ? c.pos.map((v) => Math.round(Number(v))).join(',') : '—';
     console.info(
-      `${pad(String(n.receivedAt).slice(0, 19).replace('T', ' '), 20)} ${pad(String(n.category ?? '—'), 5)} ${pad(String(c.shard ?? '—'), 15)} ${pad(pos, 16)} ${pad(String(c.build ?? '—').slice(0, 7), 8)} ${pad(String(n.id), 34)} ${one.length > 80 ? `${one.slice(0, 79)}…` : one}`,
+      `${pad(String(n.receivedAt).slice(0, 19).replace('T', ' '), 20)} ${pad(String(n.category ?? '—'), 5)} ${pad(typeof c.entry === 'string' ? `${String(c.shard ?? '—')}·${c.entry}` : String(c.shard ?? '—'), 28)} ${pad(pos, 16)} ${pad(String(c.build ?? '—').slice(0, 7), 8)} ${pad(String(n.id), 34)} ${one.length > 80 ? `${one.slice(0, 79)}…` : one}`,
     );
   }
 }

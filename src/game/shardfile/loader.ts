@@ -3,6 +3,7 @@ import type { LevelSpec } from '@wildshard/engine/level/spec';
 import { _applyChunkConstants } from '@wildshard/engine/core/config';
 import { configureLevel } from '@wildshard/engine/level/selection';
 import type { ShardManifest } from '../shard/manifest';
+import { shardEntries } from '../shard/entryMode';
 import { game } from '../shard/registry';
 import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
@@ -150,6 +151,8 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   return selectSource({ ...clientSource(admitted, productOptions, { ...bindings, instance: firstPartyInstance(manifest.slug) }),
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     biome: manifest.biome, blurb: manifest.blurb, card: manifest.card,
+    // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
+    entries: shardEntries(manifest),
   }, true);
 }
 

@@ -437,6 +437,13 @@ export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; ca
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
 
+/** SF65: LEGACY is the original TypeScript shard; SHARDFILE is its current port state (the shardfile plus any TypeScript
+ *  not yet ported). */
+export type ShardEntryMode = 'legacy' | 'shardfile';
+/** Which entries exist (a missing one is a disabled button: NOT YET, or SHARDFILE ONLY · NO LEGACY) and which one the
+ *  public build enters. */
+export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean; readonly public: ShardEntryMode }
+
 export interface ShardManifest {
   /** Reviewed opaque-runtime home measurements, available before world bootstrap; the declaration shares this data. */
   runtimeCost?: RuntimeCost;
@@ -447,6 +454,9 @@ export interface ShardManifest {
   gridShardfile?: string;
   /** Explicit first-party module admission for the declared regional runtime; never an arbitrary asset import. */
   trustedRuntime?: Pick<TrustedRuntimeEntry, 'slug' | 'entry'>;
+  /** SF65 (G237–G241): the ways SHARD SELECT can enter this shard with Developer on, and the one the public build enters
+   *  (`src/game/shard/entryMode.ts`). Absent: a shard with no TypeScript plugin (`load`) is shardfile only, any other is its TypeScript alone. */
+  entries?: ShardEntries;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin;

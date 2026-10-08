@@ -25,7 +25,9 @@ import { listenDom } from '@wildshard/engine/input/dom';
  */
 import { shards } from './shard/list';
 import type { ShardSlug } from './shard/slugs.generated';
-import type { ShardManifest } from './shard/manifest';
+import type { ShardEntries, ShardEntryMode, ShardManifest } from './shard/manifest';
+import { chooseShardEntry, hasEntry, shardEntries } from './shard/entryMode';
+import { PORT_SHARES } from './shard/portShares.generated';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
@@ -51,6 +53,10 @@ export interface TitleCard {
   upgrade?: { readonly built: number };
   /** G167: this session refused the shard (memory, safety, format or load): the dimmed UNAVAILABLE card with its reason */
   unavailable?: ShardRefusal;
+  /** SF65 (G237 / G241): the shard's LEGACY / SHARDFILE entries, the Developer buttons' enabled state */
+  entries?: ShardEntries;
+  /** SF65 (G238): the SF6 public share (0..1, measured at build time), the Developer card's "N% PORTED" badge */
+  ported?: number;
 }
 
 /** Which shards need an upgrade before this client can enter them (G86): the shardfile version each was built for. Every
@@ -71,7 +77,10 @@ export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = 
     const card: TitleCard = {
     slug: m.slug, name: m.name, label: m.biome,
     thumbnail: m.card.thumb, heroPortrait: m.card.portrait, heroLandscape: m.card.landscape,
+    entries: shardEntries(m),
     };
+    const ported = PORT_SHARES[m.slug];
+    if (ported !== undefined) card.ported = ported;
     if (m.status === 'earlyAccess') card.badge = 'Early access';
     if (m.status === 'experimental') card.badge = 'Experimental';
     if (hidden(m)) card.badge = 'Developer only';
@@ -92,6 +101,8 @@ interface DeckEntry {
   readonly badge?: TitleBadge | undefined;
   readonly upgrade?: { readonly built: number } | undefined;
   readonly unavailable?: ShardRefusal | undefined;
+  readonly entries?: ShardEntries | undefined;
+  readonly ported?: number | undefined;
   readonly thumbnail: string;
   readonly heroPortrait: string;
   readonly heroLandscape: string;
@@ -108,7 +119,8 @@ export interface TitleDeckOptions {
   readonly cards: readonly TitleCard[];
   /** the shard this page is running (its card is LOADED and selected first); null on the cold launch */
   readonly active: string | null;
-  readonly onEnter: (card: TitleCard) => void;
+  /** `entry`: SF65's LEGACY / SHARDFILE button with Developer on, else the shard's public entry (recorded for the boot first) */
+  readonly onEnter: (card: TitleCard, entry: ShardEntryMode) => void;
   readonly onExplore: (card: TitleCard) => void;
   readonly onSettings: () => void;
   /** a line under the wordmark (the cold launch's "returned to shard select" after an interrupted boot) */
@@ -132,6 +144,7 @@ export interface TitleDeck {
 }
 
 const SWORD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+const FILE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.8h8l4 4v14.4H6z M14 2.8v4h4 M9 12h6 M9 15.5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const EYE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 
 function required(root: ParentNode, selector: string): HTMLElement {
@@ -170,6 +183,11 @@ function dotTag(card: DeckEntry, mode: MenuMode): 'soon' | 'developer' | '' {
   return restricted(card) ? 'developer' : '';
 }
 
+/** SF65 (G237): with Developer on, a shard card that can be entered offers LEGACY and SHARDFILE instead of one ENTER WORLD */
+function dualEntry(card: DeckEntry, mode: MenuMode): card is DeckEntry & { readonly shard: TitleCard; readonly entries: ShardEntries } {
+  return mode.developer && card.shard !== null && card.entries !== undefined && canEnter(card, mode);
+}
+
 function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()): string {
   if (card.draft) return isDev() ? card.draft.stageName : GAME_STRINGS.drafts.notPlayable;
   if (card.upgrade !== undefined || card.unavailable !== undefined) return GAME_STRINGS.upgrade.saveKept;
@@ -193,7 +211,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     <div class="ws-menu-deck">
       <div class="ws-menu-cards"><div class="ws-menu-deck-track"></div></div>
       <div class="ws-menu-dots"></div>
-      <div class="ws-menu-modes"><button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${SWORD}</span><b>Enter world</b><small></small></button></div>
+      <div class="ws-menu-modes"><button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${SWORD}</span><b>Enter world</b><small></small></button><button class="ws-menu-mode ws-menu-shardfile" type="button" hidden><span class="ws-menu-mode-glyph">${FILE}</span><b>${GAME_STRINGS.entry.shardfile}</b><small></small></button></div>
       <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button></div>
     </div>`;
   const words = (tag: string, cls: string, text: string): HTMLElement => { const node = document.createElement(tag); node.className = cls; node.textContent = text; return node; };
@@ -205,6 +223,8 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (card.upgrade !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.upgrade.badge));
     else if (card.unavailable !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.unavailable.badge));
     if (canEnter(card, mode())) image.append(words('i', `ws-menu-card-tag${active ? ' ok' : ''}`, active ? 'Loaded' : 'Load'));
+    // G238: the port badge, Developer on only (the public card is unchanged)
+    if (mode().developer && card.ported !== undefined && card.shard !== null) image.append(words('i', 'ws-menu-card-port', GAME_STRINGS.entry.ported(card.ported)));
     const ribbon = ribbonFor(card, mode());
     if (ribbon !== '') image.append(words('i', `ws-menu-card-exp${card.badge === 'Early access' && canEnter(card, mode()) ? ' ws-menu-card-ea' : ''}`, ribbon));
     const sub = card.upgrade !== undefined ? GAME_STRINGS.upgrade.built(card.upgrade.built) : card.unavailable !== undefined ? refusalReason(card.unavailable) : card.label;
@@ -240,7 +260,9 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const hint = required(root, '.ws-menu-play small');
   const play = root.querySelector<HTMLButtonElement>('.ws-menu-play');
   const explore = root.querySelector<HTMLButtonElement>('.ws-menu-explore');
-  if (play === null || explore === null) throw new Error('Title deck: missing entry buttons');
+  const shardfile = root.querySelector<HTMLButtonElement>('.ws-menu-shardfile');
+  if (play === null || explore === null || shardfile === null) throw new Error('Title deck: missing entry buttons');
+  const modes = required(root, '.ws-menu-modes');
   const cardEls = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-card'));
   const dots = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
   const portrait = (): boolean => innerWidth < innerHeight;
@@ -266,6 +288,19 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     explore.disabled = !canExplore(c, mode());
     explore.classList.toggle('off', !canExplore(c, mode())); // menu.css hides .off
     required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : c.upgrade !== undefined ? GAME_STRINGS.upgrade.badge : c.unavailable !== undefined ? GAME_STRINGS.unavailable.badge : canEnter(c, mode()) ? 'Enter world' : 'Coming soon';
+    // SF65 (G237–G241): Developer on, two buttons in ENTER WORLD's place: LEGACY (disabled SHARDFILE ONLY · NO LEGACY without
+    // legacy TypeScript) and SHARDFILE (disabled NOT YET without a shardfile path)
+    const dual = dualEntry(c, mode());
+    modes.classList.toggle('ws-menu-modes-dual', dual);
+    shardfile.hidden = !dual;
+    if (dual) {
+      const e = GAME_STRINGS.entry, legacyOk = hasEntry(c.entries, 'legacy'), shardfileOk = hasEntry(c.entries, 'shardfile');
+      required(play, 'b').textContent = e.legacy;
+      hint.textContent = legacyOk ? e.legacyLine : e.shardfileOnly;
+      play.disabled = !legacyOk;
+      required(shardfile, 'small').textContent = shardfileOk ? e.shardfileLine : e.notYet;
+      shardfile.disabled = !shardfileOk;
+    }
     paintSummary(c);
   };
   const select = (raw: number, smooth = true): void => {
@@ -273,11 +308,19 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     place(i, 0, smooth);
     if (i !== index) { index = i; apply(); }
   };
+  // SF65: the way in is recorded for the next page's boot (src/game/shard/entryMode.ts), then the card is entered
+  const enterAs = (c: DeckEntry, entry: ShardEntryMode): void => {
+    if (c.shard === null || !canEnter(c, mode())) return;
+    if (c.entries !== undefined && !hasEntry(c.entries, entry)) return;
+    chooseShardEntry(c.slug, entry);
+    opts.onEnter(c.shard, entry);
+  };
+  /** ENTER WORLD, or a key: the shard's public entry (Developer on too: the buttons pick LEGACY / SHARDFILE) */
   const activate = (): void => {
     const c = entries[index];
     // A draft opens on the drafts site (J16, J19): FOLLOW THE BUILD shows its teaser, DRAFT MODE its pages (Developer on there).
     if (c?.draft) { window.open(c.draft.url, '_blank', 'noopener'); return; }
-    if (c?.shard && canEnter(c, mode())) opts.onEnter(c.shard);
+    if (c?.shard) enterAs(c, c.entries?.public ?? 'legacy');
   };
 
   // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
@@ -304,7 +347,11 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   listenDom(scope, list, 'pointerup', endDrag); listenDom(scope, list, 'pointercancel', endDrag);
   cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
   dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
-  listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => { ev.stopPropagation(); activate(); });
+  listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => {
+    ev.stopPropagation(); const c = entries[index];
+    if (c !== undefined && dualEntry(c, mode())) enterAs(c, 'legacy'); else activate();
+  });
+  listenDom(scope, shardfile, 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c !== undefined && dualEntry(c, mode())) enterAs(c, 'shardfile'); });
   listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c?.shard && canExplore(c, mode())) opts.onExplore(c.shard); });
   listenDom(scope, required(root, '.ws-menu-settings'), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
 

@@ -34,6 +34,17 @@ export const GAME_STRINGS = {
     built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
     saveKept: 'YOUR SAVE IS KEPT',
   },
+  /** SF65 (G237–G241): SHARD SELECT's Developer entry buttons (LEGACY / SHARDFILE) and each card's port badge */
+  entry: {
+    legacy: 'LEGACY',
+    shardfile: 'SHARDFILE',
+    legacyLine: 'ORIGINAL TYPESCRIPT',
+    shardfileLine: 'CURRENT PORT STATE',
+    notYet: 'NOT YET',
+    shardfileOnly: 'SHARDFILE ONLY · NO LEGACY',
+    /** G238: the SF6 public share, e.g. "3% PORTED"; a share under one percent reads "<1% PORTED" */
+    ported: (share: number): string => `${share > 0 && share < 0.005 ? '<1' : String(Math.round(share * 100))}% PORTED`,
+  },
   /** G167 (art/grid/round-18-refused-cell): a shard that can't load. Its cell in the grid (B: the frozen grey far view under a
    *  static dome; A: the void and the holo sign) and its SHARD SELECT card (dimmed, an amber UNAVAILABLE badge and the reason) */
   unavailable: {

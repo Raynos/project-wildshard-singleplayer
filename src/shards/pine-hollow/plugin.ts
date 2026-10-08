@@ -1,14 +1,10 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
+import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 import type { prepareHybridShard as prepareTrustedHybrid } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './runtime/index';
 import { pineMemoryTrim } from './debug/options';
 import { bindPineViewTrim } from './look/viewDistance';
-
-const DEBUG_ROWS = [{ id: 'pineHybrid', group: 'loading', label: 'Pine Hollow hybrid boot',
-  choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], initial: 'off', reload: true,
-  ask: 'E435', reviewBy: '2026-10-11', note: 'E435 SF47: transitional trusted home boot; retires under G112 after parity and residency proof.' }] as const;
 
 /** Compatibility callers keep the unchanged trusted runtime hooks. */
 export class PineHollow extends RuntimePlugin {}
@@ -33,17 +29,20 @@ export async function preparePineHybrid(ctx: ShardContext,
   }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }]);
 }
 
-/** Admit the declared data only after the default-off choice; OFF uses the original context and staged runtime. */
+/** SF65 (G237–G239): SHARD SELECT's SHARDFILE admits the declared data (SF47 hybrid); LEGACY (the public entry) runs the
+ *  original context and staged runtime. */
 class PineHybrid extends ShardPlugin {
   private composite: ShardPlugin | undefined;
   private readonly Legacy: new () => ShardPlugin;
   private readonly admit: (ctx: ShardContext) => Promise<ShardPlugin>;
-  constructor(Legacy: new () => ShardPlugin = RuntimePlugin, admit: (ctx: ShardContext) => Promise<ShardPlugin> = preparePineHybrid) {
-    super(); this.Legacy = Legacy; this.admit = admit;
+  private readonly shardfile: (ctx: ShardContext) => boolean;
+  constructor(Legacy: new () => ShardPlugin = RuntimePlugin, admit: (ctx: ShardContext) => Promise<ShardPlugin> = preparePineHybrid,
+    shardfile: (ctx: ShardContext) => boolean = shardfileEntry) {
+    super(); this.Legacy = Legacy; this.admit = admit; this.shardfile = shardfile;
     bindPineViewTrim(pineMemoryTrim); // G187: before the level applies its tier row
   }
   override async world(ctx: ShardContext): Promise<void> {
-    if (!runtimeVariantEnabled(ctx, DEBUG_ROWS[0])) {
+    if (!this.shardfile(ctx)) {
       this.composite = new this.Legacy();
       await this.composite.world?.(ctx);
       return;
