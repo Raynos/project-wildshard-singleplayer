@@ -118,6 +118,11 @@ void test('SF57 fills a blocked drive timer only from complete mutations and exp
   assert.equal(joinSoakSamples(native, wrongCategory, null, events)[2].gl, undefined, 'The category breakdown must also reconcile');
   const unlabelled = structuredClone(events); for (const row of unlabelled) if (row.op === 'allocation') row.labelled = false;
   assert.equal(joinSoakSamples(native, [], null, unlabelled)[2].gl.unlabelled, 1, 'Unlabelled resources remain a sampling failure');
+  const replayed = joinSoakSamples(native, [], null, unlabelled)[2].gl;
+  assert.deepEqual([replayed.unlabelledBytes > 0, replayed.unlabelledBytes], [true, replayed.totalBytes], 'The replay reports the unlabelled bytes the grader gates');
+  // A zero-byte handle replayed between its createBuffer and its label holds no bytes.
+  const race = structuredClone(unlabelled); for (const row of race) if (row.op === 'allocation') row.bytes = 0;
+  assert.deepEqual([race.length > 0, joinSoakSamples(native, [], null, race)[2].gl.unlabelledBytes], [true, 0]);
 });
 
 void test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs', () => {

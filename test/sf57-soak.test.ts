@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' };
-import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDuration } from '../scripts/soak/route';
+import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDuration, soakUnlabelledBytes } from '../scripts/soak/route';
 
 const cut = { receipt: 'art/fixture/round-1-cut/README.md', sourceRevision: 'a'.repeat(40), approvedBy: 'Jake' as const };
 const witness = () => ({
@@ -148,6 +148,12 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(gradeSoak({ ...witness(), samples: witness().samples.filter((sample) => sample.phase !== 'loading') }).sampling).toBe(false);
     const broken = witness(); for (const sample of broken.samples) sample.gl.reconciled = false;
     expect(gradeSoak(broken).sampling).toBe(false);
+    // Unlabelled GL is graded by bytes: a zero-byte create-then-label handle holds nothing; one unlabelled byte fails.
+    const unlabelledFirst = (bytes: number) => ({ ...witness(), samples: witness().samples.map((sample, index) => index === 0 ? { ...sample, gl: { ...sample.gl, unlabelled: 1, unlabelledBytes: bytes } } : sample) });
+    expect(gradeSoak(unlabelledFirst(0)).sampling).toBe(true); expect(gradeSoak(unlabelledFirst(1)).sampling).toBe(false);
+    expect(soakUnlabelledBytes({ totalBytes: 1, reconciled: true, unlabelled: 1, accountedBytes: null, cycle: 0, assets: [{ owner: 'unlabelled', bytes: 1 }] })).toBe(1);
+    expect(soakUnlabelledBytes({ totalBytes: 1, reconciled: true, unlabelled: 1, accountedBytes: null, cycle: 0, assets: [{ owner: 'engine/scene', bytes: 1 }, { owner: 'unlabelled', bytes: 0 }] })).toBe(0);
+    expect(soakUnlabelledBytes({ totalBytes: 1, reconciled: true, unlabelled: 1, accountedBytes: null, cycle: 0 })).toBe(Number.POSITIVE_INFINITY);
     const absent = gradeSoak({ ...witness(), samples: witness().samples.map(({ gl: _gl, ...sample }) => sample) });
     expect(absent.memoryPass).toBe(false); expect(absent.missingGlSamples).toBe(3642);
     expect(Number.isFinite(absent.peakBytes)).toBe(true);

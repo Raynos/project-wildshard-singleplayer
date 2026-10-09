@@ -1,7 +1,15 @@
 interface Cell { readonly instance: string; readonly slug: string; readonly cell: readonly number[] }
 interface Point { readonly x: number; readonly z: number }
 interface Step extends Point { readonly kind: string; readonly instance?: string; readonly slug?: string; readonly id?: string; readonly seconds?: number }
-interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readonly unlabelled: number; readonly accountedBytes: number | null; readonly cycle: number | null; readonly settled?: boolean }
+interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readonly unlabelled: number; readonly unlabelledBytes?: number; readonly assets?: readonly { readonly owner: string; readonly bytes: number }[]; readonly accountedBytes: number | null; readonly cycle: number | null; readonly settled?: boolean }
+/** Unlabelled GL bytes in a reading. A zero-byte handle created a moment before its label is a create-then-label race that
+ * holds nothing; any unlabelled byte still fails sampling. Older readings without the byte field use their per-label groups
+ * (the census files an unlabelled resource under owner `unlabelled`); a count with no bytes to show is a failure. */
+export function soakUnlabelledBytes(gl: Gl): number {
+  if (gl.unlabelledBytes !== undefined) return gl.unlabelledBytes;
+  if (gl.unlabelled === 0) return 0;
+  return gl.assets === undefined ? Number.POSITIVE_INFINITY : gl.assets.filter((group) => group.owner === 'unlabelled').reduce((sum, group) => sum + group.bytes, 0);
+}
 interface Sample { readonly type: string; readonly phase: string; readonly elapsed: number; readonly footprint: number; readonly interval?: number; readonly gl?: Gl }
 interface Window { readonly start: number; readonly end: number }
 interface Entry { readonly instance: string; readonly admitted: boolean }
@@ -116,7 +124,7 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   const gaps = covered.slice(1).map((row, index) => row.elapsed - (covered.at(index)?.elapsed ?? row.elapsed));
   const missingGlSamples = [...drive, ...loading].filter((row) => row.gl === undefined).length;
   const sampling = loading.length > 0 && drive.length >= seconds * 0.95 && gaps.every((gap) => gap <= 2.5)
-    && [...drive, ...loading].every((row) => row.footprint > 0 && row.gl?.reconciled === true && row.gl.unlabelled === 0);
+    && [...drive, ...loading].every((row) => row.footprint > 0 && row.gl?.reconciled === true && soakUnlabelledBytes(row.gl) === 0);
   const admitted = expected.filter((id) => entries.some((row) => row.instance === id && row.admitted));
   const refused = expected.filter((id) => !admitted.includes(id));
   const visited = expected.every((id) => entries.some((row) => row.instance === id));

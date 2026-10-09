@@ -228,17 +228,18 @@ export function loadingGlSamples(events, timestamps, observed = []) {
         else resources.set(key, { ...event, ...labels.get(key) });
       }
     }
-    let totalBytes = 0, textures = 0, renderbuffers = 0, buffers = 0, unlabelled = 0;
+    let totalBytes = 0, textures = 0, renderbuffers = 0, buffers = 0, unlabelled = 0, unlabelledBytes = 0;
     for (const resource of resources.values()) {
-      totalBytes += resource.bytes; if (!resource.labelled) unlabelled++;
+      totalBytes += resource.bytes; if (!resource.labelled) { unlabelled++; unlabelledBytes += resource.bytes; }
       if (resource.kind === 'texture') textures += resource.bytes;
       else if (resource.kind === 'renderbuffer') renderbuffers += resource.bytes;
       else if (resource.kind === 'buffer') buffers += resource.bytes;
     }
-    const replay = { at, totalBytes, textures, renderbuffers, buffers, unlabelled,
+    const replay = { at, totalBytes, textures, renderbuffers, buffers, unlabelled, unlabelledBytes,
       reconciled: totalBytes === textures + renderbuffers + buffers, accountedBytes: null, cycle,
       source: 'complete GL allocation journal', journalFrom: first.at, journalThrough: last.at };
     if (snapshot && (replay.totalBytes !== snapshot.totalBytes || replay.unlabelled !== snapshot.unlabelled || replay.reconciled !== snapshot.reconciled
+      || (snapshot.unlabelledBytes !== undefined && replay.unlabelledBytes !== snapshot.unlabelledBytes)
       || ['textures', 'renderbuffers', 'buffers', 'cycle'].some(key => snapshot[key] !== undefined && replay[key] !== snapshot[key]))) return new Map();
     result.set(at, replay);
   }
