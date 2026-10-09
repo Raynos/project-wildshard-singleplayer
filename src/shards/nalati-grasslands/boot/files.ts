@@ -1,4 +1,5 @@
 import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
+import { CLOUD_FIELD_URL } from '@wildshard/engine/boot/bakedApi';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
 import { publicBytes } from '@wildshard/engine/boot/tables';
@@ -27,7 +28,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const root = '/assets/baked/nalati-grasslands/';
   const terrain = `${root}terrain.bin`, navmesh = `${root}navmesh.bin`;
   return {
-    sky: [], baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${root}tex/`) && !url.includes('.phone.')).map(gpu),
+    sky: [], baked: [...Object.keys(publicBytes()).filter((url) => url.startsWith(`${root}tex/`) && !url.includes('.phone.')).map(gpu), ...(CLOUD_FIELD_URL in publicBytes() ? [CLOUD_FIELD_URL] : [])],
     terrain: terrain in publicBytes() ? [gpu(terrain)] : [], trees: [],
     physics: ['/assets/physics/rapier.wasm', ...(navmesh in publicBytes() ? [navmesh] : [])], cabins: [],
     props: worldFiles(tier).map(gpu), art: [], music: [], sfx: [],

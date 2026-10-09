@@ -14,7 +14,8 @@
  */
 import { publicBytes } from './tables';
 import * as THREE from 'three';
-import { fetchImage, tierUrl } from './bytes';
+import { fetchImage, tierUrl, versionedUrl } from './bytes';
+import { TIER } from '../core/tier';
 import { ktx2Texture } from '../core/ktx2';
 import { activeLevel } from '../level/selection';
 import { labelAsset, labelClone } from '../render/gpuLabels';
@@ -26,9 +27,12 @@ const NOBAKE = params.has('nobake');
 export interface BakeSpec { name: string; url: string; lossless: boolean; srgb: boolean }
 const exported = new Map<string, { texture: THREE.Texture; lossless: boolean }>();
 const loaded = new Map<string, ImageBitmap | HTMLImageElement | THREE.CompressedTexture>();
+const raw = new Map<string, Uint8Array>();
 if (typeof window !== 'undefined') Object.defineProperty(window, '__bakeExport', { get: () => exportAll() });
 
 const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
+/** chunk-independent lossless bakes (raw bytes, never given phone / KTX2 copies): fetched when the level's boot declares them */
+const COMMON = '/assets/baked/common/';
 
 /** Every baked texture file the build has for this chunk that its boot reads (declared in the boot manifest). */
 export function bakedTextureUrls(slug: string, unread?: RegExp): string[] {
@@ -49,12 +53,28 @@ export async function preloadBakedTextures(): Promise<number> {
   const level = activeLevel();
   const slug = level.id;
   const urls = bakedTextureUrls(slug, level.boot.bakedUnread);
-  await Promise.all(urls.map(async (u) => {
+  const common = level.boot.files(TIER).filter((u) => u.startsWith(COMMON) && u.endsWith('.bin'));
+  await Promise.all([...common.map(async (u) => {
+    try {
+      const r = await fetch(versionedUrl(u));
+      if (r.ok) raw.set(u, new Uint8Array(await r.arrayBuffer()));
+    } catch (e) { console.warn(`[baked] ${u}: ${(e as Error).message}`); }
+  }), ...urls.map(async (u) => {
     // E157: the KTX2 stand-in when there is one (Y-flipped at encode, like fetchImage's bitmap)
     try { loaded.set(u, (await ktx2Texture(tierUrl(u))) ?? await fetchImage(u, Infinity, true)); }
     catch (e) { console.warn(`[baked] ${u}: ${(e as Error).message}`); }
-  }));
-  return urls.length;
+  })]);
+  return urls.length + common.length;
+}
+
+/**
+ * A lossless common bake's bytes (`/assets/baked/common/*.bin`) when the level declared it and it arrived with exactly
+ * `length` bytes, else null (the caller computes the same bytes itself). The bytes are shared: never write into them.
+ */
+export function bakedBytes(url: string, length: number): Uint8Array | null {
+  if (NOBAKE) return null;
+  const bytes = raw.get(url);
+  return bytes?.length === length ? bytes : null;
 }
 
 /**

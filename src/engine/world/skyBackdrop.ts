@@ -9,7 +9,9 @@ import type { SkyDressing } from '../render/look';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { loadHDR } from '../core/assets';
-import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
+import { bakedBytes, bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
+import { CLOUD_FIELD_N, cloudFieldPixels } from './cloudField';
+import { CLOUD_FIELD_URL } from '../boot/bakedApi';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { loadLUT } from './lut';
@@ -116,7 +118,7 @@ export class SkyBackdropView {
     const dressing = this.dressing;
     if (dressing !== null && !dressing.clouds && dressing.build === undefined) return; // no layer and no cloud field asked for
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
-    const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
+    const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus (cloudField.ts): ~400 ms at 4× CPU when neither file is there
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     this.cloudTex = tex;
     if (dressing !== null) {
@@ -453,20 +455,13 @@ function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
 }
 
 function makeCloudTexture() {
-  // tileable fbm: sample simplex noise on a torus so both axes wrap without seams
-  const N = 512;
+  // tileable fbm (world/cloudField.ts): the baked bytes when the level declares the file, else marched here (the same bytes)
+  const N = CLOUD_FIELD_N;
+  const grey = bakedBytes(CLOUD_FIELD_URL, N * N) ?? cloudFieldPixels();
   const c = document.createElement('canvas'); c.width = c.height = N;
   const g = ctx2d(c);
   const img = g.createImageData(N, N);
-  const n = new Noise2D(1234);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const u = (x / N) * Math.PI * 2, v = (y / N) * Math.PI * 2;
-    const px = Math.cos(u) * 1.5, py = Math.sin(u) * 1.5, pz = Math.cos(v) * 1.5, pw = Math.sin(v) * 1.5;
-    let s = 0, amp = 0.5, norm = 0;
-    for (let o = 0; o < 6; o++) { const f = 2 ** o; s += (n.get((px + pz * 0.7) * f, (py + pw * 0.7) * f + o * 7.3) * 0.5 + 0.5) * amp; norm += amp; amp *= 0.55; }
-    s /= norm;
-    const i = (y * N + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = s * 255; img.data[i + 3] = 255;
-  }
+  for (let p = 0; p < N * N; p++) { const s = grey[p] ?? 0, i = p * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = s; img.data[i + 3] = 255; }
   g.putImageData(img, 0, 0);
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
