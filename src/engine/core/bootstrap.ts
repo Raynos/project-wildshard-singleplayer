@@ -20,7 +20,7 @@ import { needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
 import { setActivePhysics } from '../physics/active';
-import { loadNavmesh } from '../physics/navmesh';
+import { loadNavmesh } from '../physics/navmeshLoad';
 import { setRagdollClock } from '../physics/ragdoll';
 import { Bodies, setActiveBodies } from '../physics/bodies';
 import { addEdgeWalls, addTerrain } from '../physics/terrain';

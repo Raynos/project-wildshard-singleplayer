@@ -57,7 +57,7 @@ import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scrip
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
 import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
-import { loadNavmesh } from '@wildshard/engine/physics/navmesh';
+import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission } from './admissionYield';

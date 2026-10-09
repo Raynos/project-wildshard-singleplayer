@@ -1,9 +1,11 @@
-import { app } from '../app/runtime';
 /**
  * The shard's navmesh (project/archive/2026-09-23-physics.md P6b): where a creature can walk, baked offline per shard by
  * scripts/bake-navmesh.mjs (navcat's recast port over the baked terrain + every static builder's ColliderDescs, the water
  * left out) into public/assets/baked/<slug>/navmesh.bin — a declared boot file (src/engine/boot/manifest.ts, `physics`), loaded
  * in the `physics` step. Queried with navcat (pure JS, detour's queries).
+ *
+ * Renderer-free (SF72): the format, the parse and the queries, which the browser and the headless runtimes (Node) share;
+ * the app binding (the active level's navmesh and its fetch) is src/engine/physics/navmeshLoad.ts.
  *
  * The file holds one layer per agent class (Driftwood: 0.3 m for crabs / monkeys / sailors, 0.5 m for the rest; Pine Hollow: 0.5 m);
  * a query takes the creature's radius and runs on the smallest layer that covers it (the largest when none does).
@@ -16,9 +18,7 @@ import {
   findNearestPoly, findRandomPointAroundCircle, findStraightPath, initSlicedFindNodePath, raycast, SlicedFindNodePathStatusFlags, updateSlicedFindNodePath,
   type Box3, type NavMesh, type NavMeshPoly, type NavMeshPolyDetail, type Vec3,
 } from 'navcat';
-import { navmeshUrl } from './navmeshUrl';
 import { terrainDatum } from '../world/terrainHeight';
-import { frameCost } from '../core/frameCost';
 
 
 /** One agent class's mesh. */
@@ -105,6 +105,9 @@ export class Navmesh {
   readonly layers: readonly NavLayer[];
   /** query cost, for the perf meter / bench: calls and total ms since load (or the last `resetStats`) */
   readonly stats = { queries: 0, ms: 0 };
+  /** where each query's cost also goes: nowhere by default; the browser's loader points it at the perf meter
+   *  (navmeshLoad.ts → frameCost.nav), so this module stays renderer-free */
+  costSink: (ms: number) => void = () => undefined;
   private readonly nearest = createFindNearestPolyResult();
   private readonly nearest2 = createFindNearestPolyResult();
   private readonly query = createSlicedNodePathQuery();
@@ -205,7 +208,7 @@ export class Navmesh {
     } finally { this.count(t0); }
   }
 
-  private count(t0: number): void { const ms = performance.now() - t0; this.stats.queries++; this.stats.ms += ms; frameCost.nav(ms); }
+  private count(t0: number): void { const ms = performance.now() - t0; this.stats.queries++; this.stats.ms += ms; this.costSink(ms); }
 }
 
 /** Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version. */
@@ -219,33 +222,5 @@ export function parseNavmesh(buf: ArrayBuffer): Navmesh | null {
   } catch (e) {
     if (e instanceof RangeError) return null;
     throw e;
-  }
-}
-
-/** The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. */
-export function activeNavmesh(): Navmesh | null { return app.navmesh; }
-
-/** Set (or clear) the active navmesh — node tests, or a shard switch. */
-export function setActiveNavmesh(levelId: string, navmesh: Navmesh | null): void { app.navmesh = navmesh; app.navmeshId = navmesh ? levelId : null; }
-
-/**
- * Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so
- * the loading bar counts it and the service worker caches it). Resolves null — a warning, never a failure — when the
- * build has none or it doesn't parse: the creatures then steer as they did before the navmesh.
- */
-export async function loadNavmesh(levelId: string): Promise<Navmesh | null> {
-  if (app.navmeshId === levelId) return app.navmesh;
-  const url = navmeshUrl(levelId);
-  if (url === null) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${res.status}`);
-    const navmesh = parseNavmesh(await res.arrayBuffer());
-    if (navmesh === null) throw new Error('not a navmesh.bin of this version');
-    setActiveNavmesh(levelId, navmesh);
-    return navmesh;
-  } catch (e) {
-    console.warn(`[navmesh] ${levelId}: not loaded (${(e as Error).message}); creatures steer without it`);
-    return null;
   }
 }

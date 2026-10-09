@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./physics/navmesh": "./physics/navmesh.ts",
+    "./physics/navmeshLoad": "./physics/navmeshLoad.ts",
     "./ai/flock": "./ai/flock.ts",
     "./ai/orbitDiver": "./ai/orbitDiver.ts",
     "./ai/patrolDiver": "./ai/patrolDiver.ts",

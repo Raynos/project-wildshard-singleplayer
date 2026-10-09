@@ -4,7 +4,7 @@ import { app } from '../../src/engine/app/runtime';
 import { activeRegistry, WorldRegistry } from '../../src/engine/world/registry';
 import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
 import { activeBodies, setActiveBodies } from '../../src/engine/physics/bodies';
-import { activeNavmesh, setActiveNavmesh } from '../../src/engine/physics/navmesh';
+import { activeNavmesh, setActiveNavmesh } from '../../src/engine/physics/navmeshLoad';
 
 afterEach(() => { app.registryValue = null; setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null); });
 it('legacy getters delegate to the same typed app services, including lazy registry creation', () => {

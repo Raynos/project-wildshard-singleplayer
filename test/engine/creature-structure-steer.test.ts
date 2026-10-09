@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { activeLevel, configureLevel } from '../../src/engine/level/selection';
 import { setActivePhysics } from '../../src/engine/physics/active';
-import { setActiveNavmesh } from '../../src/engine/physics/navmesh';
+import { setActiveNavmesh } from '../../src/engine/physics/navmeshLoad';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import { TEMPLATE } from '../../src/shards/_template/manifest';
 import type { Animal } from '../../src/engine/entities/AnimalView';
