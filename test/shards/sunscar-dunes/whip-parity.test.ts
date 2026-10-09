@@ -2,6 +2,8 @@
 import { Vector3 } from 'three';
 // oxlint-disable-next-line import/no-nodejs-modules -- WHIP_PARITY_RECORD=1 re-pins the trace from a base tree.
 import { writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Hashes the lash's laid geometry each frame against the pinned one.
+import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- the record switch is a test-runner environment value, not game configuration.
 import process from 'node:process';
 import { afterAll, describe, expect, it } from 'vitest';
@@ -26,6 +28,8 @@ interface Case { name: string; bodies: Body[]; world?: World[]; frames: { dt: nu
 // The pinned JSON wire trace canonically records both signed zeroes as 0.
 const round = (n: number): number => Math.round(n * 1e6) / 1e6 || 0;
 const vec = (v: Vector3): number[] => [round(v.x), round(v.y), round(v.z)];
+/** The laid lash's positions as one hash (its view each frame: where the cord lies). */
+const laid = (a: { readonly array: ArrayLike<number> }): string => createHash('sha256').update(new Uint8Array(Float32Array.from(a.array).buffer)).digest('hex').slice(0, 16);
 const frames = (n: number, dt = 1 / 60): Case['frames'] => Array.from({ length: n }, () => ({ dt }));
 
 /**
@@ -82,6 +86,8 @@ function run(c: Case): unknown[] {
       whip.update(frame.dt);
       const { lash, grip } = whip.parts, coil = game.scene.children.find(child => child.type === 'Mesh');
       trace.push(['frame', i, lash.mesh.visible, vec(grip.position), coil?.visible ?? null, round(whip.charge)]);
+      // the item view: the model's hold and spring, the laid cord, the wrap coil's place
+      trace.push(['view', vec(whip.model.position), round(whip.model.rotation.y), whip.model.visible, lash.mesh.visible ? laid(lash.mesh.geometry.getAttribute('position')) : null, coil === undefined ? null : vec(coil.position)]);
     });
   } finally { scope.dispose(); app.engineScope.dispose(); }
   return trace;

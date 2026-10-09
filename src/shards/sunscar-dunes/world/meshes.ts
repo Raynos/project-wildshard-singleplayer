@@ -1,8 +1,9 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
+import { applySurfaceLooks, type SurfaceLook } from '@wildshard/sdk/looks/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
+import { BRAZIER_SURFACE, CAMP_SURFACE, GLOVE_SURFACE } from '../data/surfaces';
 import { DUNE_HD, DUNE_MESHES, DUNE_RIGS, DUNE_HD_URLS, DUNE_MESH_URLS, DUNE_RIG_URLS, type DuneHdName, type DuneMeshName, type DuneRigName } from '../data/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
 
@@ -83,98 +84,12 @@ export function undrawnRig(): BufferGeometry {
 }
 
 const hd = new Map<DuneHdName, Object3D>();
-/** The brazier's texture warmed by each burning fire within ~4.5 m (fireFx.ts FIRE_LIGHTS): its own fire lights it. */
-export function warmByFire(m: MeshStandardMaterial): void {
-  patchShader(m, 'sunscar.firelight', PATCH_ORDER.decorate, (shader) => {
-    shader.uniforms['uFireLights'] = FIRE_LIGHTS;
-    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vFireW;')
-      .replace('#include <project_vertex>', '#include <project_vertex>\n  vFireW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uFireLights[4];\nvarying vec3 vFireW;')
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  for (int i = 0; i < 4; i++) {
-    float fireD = length(vFireW - uFireLights[i].xyz);
-    totalEmissiveRadiance += diffuseColor.rgb * vec3(1.0, 0.45, 0.16) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 4.5), 2.0) * 1.8;
-  }`);
-  });
-}
-
-/**
- * The held leather's viewer-side light (the glove's, above) for a code-built part of the viewmodel: faces turned to the
- * eye lit, edges falling off, more as the dusk deepens, so the backlit fist and coil never read as a cut-out.
- */
-export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, number, number], sheen = 0): void {
-  patchShader(m, 'sunscar.viewerLit', PATCH_ORDER.decorate, (shader) => {
-    shader.uniforms['uDusk'] = DUSK;
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;')
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance += diffuseColor.rgb * vec3(${gain.map((g) => g.toFixed(3)).join(', ')}) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);
-  // a glancing sheen where the surface (with its relief) turns from the eye: each plaited strand's edge catches it
-  totalEmissiveRadiance += vec3(0.9, 0.62, 0.4) * ${sheen.toFixed(3)} * pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 3.0) * (1.0 - roughnessFactor * 0.6);`);
-  });
-}
-/**
- * Round 19 (seat C after round 18: glove-hd4's leather detail 2.1 against mockup D's 8.3; its paint is one 1024 map): fine
- * leather in the model's own space, creases and a pebbled grain, as albedo and as a bump on the normal (screen-space
- * derivatives, so no tangents). The model spans ~2 units across a 0.14 m hand: creases ~5 mm, grain ~1.5 mm.
- */
-function leatherDetail(m: MeshStandardMaterial): void {
-  patchShader(m, 'sunscar.leatherDetail', PATCH_ORDER.decorate, (shader) => {
-    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLeatherP;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLeatherP = position;');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
-varying vec3 vLeatherP;
-float lHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
-float lNoise(vec3 p) {
-  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(lHash(i), lHash(i + vec3(1, 0, 0)), f.x), mix(lHash(i + vec3(0, 1, 0)), lHash(i + vec3(1, 1, 0)), f.x), f.y),
-             mix(mix(lHash(i + vec3(0, 0, 1)), lHash(i + vec3(1, 0, 1)), f.x), mix(lHash(i + vec3(0, 1, 1)), lHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
-}
-float leatherH() {
-  float crease = 1.0 - abs(lNoise(vLeatherP * vec3(9.0, 22.0, 9.0)) * 2.0 - 1.0);
-  return 0.55 * pow(crease, 6.0) + 0.45 * lNoise(vLeatherP * 46.0);
-}`).replace('#include <map_fragment>', `#include <map_fragment>
-  float leatherA = leatherH();
-  diffuseColor.rgb *= 0.8 + 0.36 * (1.0 - leatherA);`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-  {
-    vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition);
-    float dhx = dFdx(leatherA), dhy = dFdy(leatherA);
-    vec3 r1 = cross(dpy, normal), r2 = cross(normal, dpx);
-    float det = dot(dpx, r1);
-    // the height in view-space metres: the creases ~0.6 mm deep on the held hand
-    normal = normalize(abs(det) * normal - sign(det) * (dhx * r1 + dhy * r2) * 0.0006);
-  }`);
-  });
-}
-/**
- * The waymark's plinth a fieldstone drum (round 11; the seats since round 7: a clean pale brick block; mockup C: a dark
- * drum of rough fieldstones): below the post (model y < -0.55; the model spans -1..1) the texture is replaced by rows
- * of irregular stones, each its own grey-brown, with dark mortar between.
- */
-function fieldstoneBase(m: MeshStandardMaterial): void {
-  patchShader(m, 'sunscar.fieldstone', PATCH_ORDER.decorate, (shader) => {
-    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vStoneP;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vStoneP = position;');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
-varying vec3 vStoneP;
-float stoneH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }`).replace('#include <map_fragment>', `#include <map_fragment>
-  {
-    float base = 1.0 - smoothstep(-0.6, -0.52, vStoneP.y);
-    float row = floor((vStoneP.y + 1.0) * 11.0 + sin(atan(vStoneP.z, vStoneP.x) * 5.0) * 0.25), ang = atan(vStoneP.z, vStoneP.x) / 6.2831853 + 0.5;
-    vec2 cell = vec2(ang * (9.0 + stoneH(vec2(row, 3.0)) * 4.0) + stoneH(vec2(row, 7.0)), (vStoneP.y + 1.0) * 11.0 + sin(atan(vStoneP.z, vStoneP.x) * 5.0) * 0.25);
-    vec2 id = floor(cell), f = fract(cell);
-    float edge = min(min(f.x, 1.0 - f.x) * 1.6, min(f.y, 1.0 - f.y));
-    float mortar = 1.0 - smoothstep(0.04, 0.12, edge);
-    float tone = stoneH(id + row * 1.7);
-    vec3 stone = mix(vec3(0.07, 0.06, 0.05), vec3(0.17, 0.14, 0.115), tone) * (0.8 + 0.4 * stoneH(floor(cell * 5.0))); // (the greying patch after this keeps it grey)
-    diffuseColor.rgb = mix(diffuseColor.rgb, mix(stone, vec3(0.05, 0.04, 0.035), mortar), base);
-  }`);
-  });
-}
-/** A texture's colour pulled `amount` of the way to its own grey (the wagon's canvas: sun-bleached cloth, not orange). */
-function greyed(m: MeshStandardMaterial, amount: number): void {
-  patchShader(m, 'sunscar.greyed', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), ${amount.toFixed(2)});`);
-  });
-}
+/** The live inputs Signal's surface rows read: the fires' light slots and the dusk. */
+const SURFACE_INPUTS = { lights: FIRE_LIGHTS, dusk: DUSK };
+/** A camp material warmed by each burning fire within ~4.5 m (`data/surfaces.ts` FIRELIGHT): its own fire lights it. */
+export const warmByFire = (m: MeshStandardMaterial): void => { applySurfaceLooks(m, CAMP_SURFACE, SURFACE_INPUTS); };
+/** A code-built held part's surface rows (the coil's viewer light and sheen) over the shared inputs. */
+export const heldSurface = (m: MeshStandardMaterial, looks: readonly SurfaceLook[]): void => { applySurfaceLooks(m, looks, SURFACE_INPUTS); };
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
 async function loadHd(name: DuneHdName): Promise<void> {
   try {
@@ -184,17 +99,12 @@ async function loadHd(name: DuneHdName): Promise<void> {
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
         if (m instanceof MeshStandardMaterial) {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
-          // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
-          // E407 row 4: the new glove keeps its own painted leather (no discard, no hd2 seams): matte with a soft sheen, the
-          // viewer-side light so the backlit fist never reads as a cut-out
-          // round 16 (seat C after round 15: the smaller fist's leather flatter than round 14's, p95 47 against 83.5): lighter, glossier, more viewer light
-          if (name === 'glove-hd4') { m.color.setRGB(0.92, 0.84, 0.76); m.roughness = 0.34; m.fog = false; m.userData['sunscarNoRim'] = true; viewerLit(m, [0.58, 0.47, 0.38], 0.22); leatherDetail(m); }
-          // round 8 (the council since round 5: the wagon's canvas one even self-lit orange with blown white patches; mockup B:
-          // a backlit wagon, its cloth grey-beige, the lantern's light inside): its texture taken down to the cloth's value
-          // round 8 (the council since round 4: a copper bowl and twisted copper post on a clean tan plinth; mockup C: soot-dark
-          // iron and weathered stone, warm only where the fire lights it)
-          if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.46, 0.44); greyed(m, 0.8); fieldstoneBase(m); } // round 10 (R9B-7: the post still red copper, R/G 8.4 against 2.3)
-          if (name === 'brazier-hd' || name === 'wagon-hd2' || name === 'crates-hd' || name === 'sacks-hd') warmByFire(m); // the camp: the lantern and the cookfire light it
+          // E399 / E407 row 4 / round 16 (mockup D): the glove keeps its own painted leather, matte with a soft sheen, the
+          // viewer-side light and the leather grain (data/surfaces.ts)
+          if (name === 'glove-hd4') { m.color.setRGB(0.92, 0.84, 0.76); m.roughness = 0.34; m.fog = false; m.userData['sunscarNoRim'] = true; applySurfaceLooks(m, GLOVE_SURFACE, SURFACE_INPUTS); }
+          // round 8-10 (mockup C: soot-dark iron and weathered stone, warm only where the fire lights it; R9B-7: the post still red copper)
+          if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.46, 0.44); applySurfaceLooks(m, BRAZIER_SURFACE, SURFACE_INPUTS); }
+          if (name === 'wagon-hd2' || name === 'crates-hd' || name === 'sacks-hd') warmByFire(m); // the camp: the lantern and the cookfire light it
           m.needsUpdate = true;
         }
       }

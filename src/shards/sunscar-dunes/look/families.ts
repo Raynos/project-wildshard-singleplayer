@@ -9,7 +9,8 @@ import { GROUND_HALF } from '../data/layout';
 import { SHADOW_HALF } from '../data/sand';
 import { WIND } from '../world/dunes';
 import { PAINTED } from './painted';
-import { SUN_GLOW } from './sky';
+import { duskDomeSun } from '@wildshard/sdk/looks/duskDome';
+import { SKY_STYLE } from '../data/sky';
 
 /**
  * Signal Dunes' sky and sand on the engine's material families (SHARD-PLATFORM SF50 / SF10a, A10): the sand is the PBR
@@ -19,6 +20,9 @@ import { SUN_GLOW } from './sky';
  * the ground layer's light pools. No shard shader source is left on either surface.
  */
 
+
+/** Where the afterglow is brightest (`data/sky.ts`): the faces turned from it fall dark in the late dusk. */
+const SUN_GLOW = duskDomeSun(SKY_STYLE);
 
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const mix3 = (a: readonly [number, number, number], b: readonly [number, number, number], t: number): [number, number, number] => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];

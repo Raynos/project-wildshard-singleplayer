@@ -1,11 +1,12 @@
 import { DUSK, fillAt, keyAt } from './dusk';
-import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Material, type Texture } from 'three';
+import { ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { GROUND_HALF, SEED, TRAIL } from '../data/layout';
 import { duneHeight } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
-import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
+import { duskDomeMaterial } from '@wildshard/sdk/looks/duskDome';
+import { SKY_STYLE } from '../data/sky';
 import { loadPaintedSky } from './painted';
 import { familySand, familySky, type FamilySand, type FamilySky } from './families';
 import { GRAIN_TILE, KEY_DIR, SAND_FILES, SAND_MAP } from '../data/sand';
@@ -127,8 +128,7 @@ function duskClock(): DayCycle {
 export function signalDunesLook(): LookStrategy {
   // The dusk dome is the backdrop's own sky layer (`SkyBackdrop.clouds`): the engine keeps it on the camera.
   // 120 m: the dome draws first with no depth test, so its size never occludes; at 300 m the far plane clipped it (an arc)
-  const dome = new Mesh<SphereGeometry, Material>(new SphereGeometry(120, 48, 24), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
-    uniforms: { uSun: { value: SUN_GLOW.clone() }, uDusk: DUSK }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
+  const dome = new Mesh<SphereGeometry, Material>(new SphereGeometry(120, 48, 24), duskDomeMaterial(SKY_STYLE, DUSK)); // data/sky.ts
   dome.renderOrder = -1000; dome.frustumCulled = false;
   // E409 second top-10 row 2: the painted dusk skies replace the procedural dome once they load (the backdrop); freed with the look
   let painted: { scope: Scope; sky: FamilySky; textures: readonly Texture[] } | null = null;

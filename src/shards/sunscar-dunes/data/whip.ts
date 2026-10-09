@@ -1,3 +1,5 @@
+import type { LashView } from '@wildshard/sdk/items/lashWeapon';
+
 /**
  * The bullwhip's look as rows (E374 polish; council rounds 1-25) on the lash item's view (`@wildshard/game/systems/items/lashView`):
  * the braids' warm saddle-leather browns, the thrown lash, the held coil's plait tile and its path in the hero glove's frame.
@@ -33,3 +35,16 @@ export const PLAIT = { size: 128, columns: 4, rows: 4, crease: [12, 8, 7], crown
  * thicker cord, x ~0.33-0.80.
  */
 export const LOOP = { cord: 0.075, from: [-0.613, 0.922, -0.537], start: 1.8, rx: 0.8, ry: 0.85, face: 0.4, turns: 2, step: [-0.35, 0.2, 0.06], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
+
+/**
+ * The held whip's motion on the lash weapon (`@wildshard/sdk/items/lashWeapon`): mockup D's hold (the fist whole at the
+ * right above the DODGE / JUMP discs, the coil beside it, the centre clear; loop 3 tune G: half a metre out so the
+ * generated glove reads a hand's size; round 1: lower), a soft view spring, the hand's snap forward on each lash, the
+ * slack lash's fall, and the pull's wrap round a caught lever (after the check pass: the board showed no lash round the crank).
+ */
+export const WHIP_VIEW: LashView = {
+  hold: { hero: [0.1, -0.095, -0.5], code: [0.08, -0.17, -0.38] },
+  spring: { gain: 0.012, clampYaw: 0.12, clampPitch: 0.1, k: 46, c: 11 },
+  flick: { lift: 0.03, push: -0.04, drop: 1.5, back: 2, lead: 0.42, loosen: 0.35, sag: [0.25, 0.4], tautSag: 0.05, overlap: 0.08 },
+  wrap: { r: 0.06, h: 0.24, turns: 4, cord: 0.018, hold: 0.9, samples: 40, segments: 80, sides: 5 },
+};

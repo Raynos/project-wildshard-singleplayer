@@ -1,7 +1,8 @@
 import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
 import { braidColours, coilPoints as heldCoil, LashCord, plaitedCord, type CordRgb, type LashCordView } from '@wildshard/sdk/items/lashView';
 import { COIL_A, COIL_B, GLOW, LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B } from '../data/whip';
-import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
+import { duneHd, duneMesh, heldSurface, smoothColors } from '../world/meshes';
+import { COIL_SURFACE } from '../data/surfaces';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
 // round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
@@ -128,7 +129,7 @@ export function buildWhipModel(): WhipParts {
     const turn = hd.children[0]?.children[0];
     // the coil as one plaited tube (data/whip.ts LOOP, PLAIT), the viewer-side light and a glancing sheen
     const coilMesh = plaitedCord(heldCoil(LOOP), LOOP.cord, PLAIT);
-    coilMesh.material.userData['sunscarNoRim'] = true; viewerLit(coilMesh.material, [0.42, 0.37, 0.33], 0.16);
+    coilMesh.material.userData['sunscarNoRim'] = true; heldSurface(coilMesh.material, COIL_SURFACE);
     turn?.add(coilMesh);
     grip.visible = false; coil.visible = false;
   }
