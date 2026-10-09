@@ -120,6 +120,12 @@ document. Cells never enter a save or fact key. First-party modes resolve one id
 through `@wildshard/game/grid/instances`; template copies use `template-1` … `template-6`,
 while Select a shard uses `template-solo`. The template uses the normal staged Game loader.
 
+The public grid catalogue includes Driftwood, Pine Hollow, Nalati and Sky Reach (G258),
+with template copies 2 and 3 and three open plots. Developer adds Signal Dunes; DEVSERVER
+may add Nine Dragon. Catalogue membership does not waive admission: every runtime keeps
+its complete claim, the public memory caps stay 1.0 GB playing / 1.8 GB loading, and a
+failed KTX2 capability probe retains the image fallback and its actual admission refusal.
+
 Instance-local saves bind through `SaveStore.instance`, or the game’s `instanceSave`
 helper with the session’s stable id and shard. Canonical first-party slug namespaces stay
 unchanged; `template-solo` copies the legacy `_template` document while retaining its
