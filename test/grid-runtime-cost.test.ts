@@ -12,8 +12,8 @@ const measured = DRIFTWOOD_RUNTIME_COST;
 it('applies calibration once to the measured whole runtime home, including its render cost', () => {
   const owner = new PageResidency(new ResidencyAllocator());
   const claim = owner.admitHome('home', runtimeAccountedBytes(measured));
-  expect(claim.bytes).toBe(Math.ceil(379_378_000 / CONTENT_CAPS.residentFactor));
-  const expected = CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 379_378_000;
+  expect(claim.bytes).toBe(Math.ceil(371_223_073 / CONTENT_CAPS.residentFactor));
+  const expected = CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 371_223_073;
   expect(owner.allocator.cost().playing).toBeGreaterThanOrEqual(expected);
   expect(owner.allocator.cost().playing).toBeLessThanOrEqual(expected + 2);
   // The new default has honest headroom; a claim exceeding it still cannot hide behind an empty source budget.
@@ -33,7 +33,7 @@ it('retains a strict images-first reading independently of the lower compressed 
   const compressed = { ...measured, imagesFirst };
   expect(runtimeAccountedBytes(compressed)).toBe(runtimeAccountedBytes(measured));
   expect(imagesFirstPlayingBytes(compressed)).toBe(1_131_000_001);
-  expect(imagesFirstPlayingBytes(measured)).toBe(759_378_001);
+  expect(imagesFirstPlayingBytes(measured)).toBe(751_223_074);
   expect(imagesFirstPlayingBytes(undefined)).toBeUndefined();
   for (const images of [{ ...imagesFirst, rev: '' }, { ...imagesFirst, glMB: Number.NaN }, { ...imagesFirst, unknown: 1 }, { ...imagesFirst, imagesFirst }]) {
     expect(() => runtimeAccountedBytes({ ...measured, imagesFirst: images })).toThrow();

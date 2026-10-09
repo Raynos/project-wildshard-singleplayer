@@ -161,7 +161,7 @@ async function worker() {
     result.documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
     result.documentId = await driver.evaluate('window.__sf57DocumentId');
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
-    const first = result.route.plans[0];
+    const first = circuitPlans(result.route, 0, diagnosticCircuits)[0];
     await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
     await collectGl();
     result.listenerBaseline = await driver.evaluate('window.__parityResources().listenerDetails');

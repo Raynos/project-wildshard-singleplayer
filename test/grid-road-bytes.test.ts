@@ -227,7 +227,7 @@ it('admits the real platform beside the G172 measured default without changing t
     allocated.push(plan.id); return build(owner);
   }) };
   try {
-    expect(page.allocator.cost().playing).toBe(759_378_001);
+    expect(page.allocator.cost().playing).toBe(751_223_074);
     install(assembly, strips, admission, scope);
     expect(allocated).toEqual(['road.asphalt', 'road.junctions', 'road.signs', 'road.void', 'road.deck', 'road.curtain']);
     expect(page.allocator.has('platform:render:road.deck')).toBe(true);

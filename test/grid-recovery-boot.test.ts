@@ -41,7 +41,7 @@ it('uses the same measured owner for a successful resume and leaves ordinary boo
   gridRecovery(store, () => 100).write(assembly, assembly.cell(safe.instance), safe.road, 'gpu');
   consumeGridRecovery({ assembly, saves: store, now: () => 110 });
   const page = preparePageResidency({ slug: 'driftwood-isle', runtimeCost: DRIFTWOOD_RUNTIME_COST });
-  try { expect(page.mode).toBe('grid'); expect(page.residency?.home().bytes).toBe(341_781_982); }
+  try { expect(page.mode).toBe('grid'); expect(page.residency?.home().bytes).toBe(334_435_201); }
   finally { page.residency?.dispose(); }
   clearGridRecovery(); gridCells.leave(); expect(bootPageMode('driftwood-isle')).toBe('shard');
 });

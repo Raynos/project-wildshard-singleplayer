@@ -144,8 +144,10 @@ export function installOpenPlots(input: {
   const canvasOk = typeof document !== 'undefined';
   const atlasBytes = canvasOk ? (PICTURE_ATLAS.w * PICTURE_ATLAS.h + TEXT_ATLAS.w * TEXT_ATLAS.h) * 4 : 0;
   const bufferBytes = built.reduce((sum, row) => sum + openPlotBytes(row.geometry), 0) + 4 * 3 * 4 * plots.length;
-  // the atlases' canvases (JS until freed) and their textures with mips (GPU, 4/3); every buffer once each side
-  const plan = { id: 'grid.open-plots', jsBytes: bufferBytes + atlasBytes, gpuBytes: bufferBytes + Math.ceil(atlasBytes * 4 / 3) };
+  // every buffer once each side, and the atlases' textures with mips (GPU, 4/3). The atlas canvases are construction
+  // transients (the cost model's overlap allowance): each shrinks to 1 × 1 once its final content is uploaded, so only those
+  // two pixels stay JS-resident (SF57: 17.3 MB of atlas GL and no resident canvas, progress/memory/sf57/calibration-243da2c5e)
+  const plan = { id: 'grid.open-plots', jsBytes: bufferBytes + (canvasOk ? 2 * 4 : 0), gpuBytes: bufferBytes + Math.ceil(atlasBytes * 4 / 3) };
   const groups: { group: Group; holo: Group; scan: Mesh; plot: GridPlot; geometry: OpenPlotGeometry }[] = [];
   let decoded = 0, draws = 0, triangles = 0, t = 0;
   let lineMaterial: LineBasicMaterial | null = null, holoMaterial: LineBasicMaterial | null = null, cardMaterial: MeshBasicMaterial | null = null, scanMaterial: MeshBasicMaterial | null = null;
@@ -167,15 +169,17 @@ export function installOpenPlots(input: {
         const release = (canvas: HTMLCanvasElement) => () => { canvas.width = 1; canvas.height = 1; };
         text.onUpdate = release(textCanvas);
         pictureTexture = pictures; textTexture = text;
+        // the picture canvas is freed once every picture has settled; a failed one keeps its navy placeholder
+        let settled = 0;
+        const settle = (): void => { if (++settled === PLOT_IDEAS.length) pictures.onUpdate = release(pictureCanvas); pictures.needsUpdate = true; };
         const load = async (idea: PlotIdea): Promise<void> => {
           try {
             const image = await fetchImage(`/assets/grid/open-plot/${idea}.webp`, FACE.w, false);
             if (owner.disposed) return;
             paintFace(pg, idea, image); decoded++;
             if ('close' in image) image.close();
-            if (decoded === PLOT_IDEAS.length) pictures.onUpdate = release(pictureCanvas);
-            pictures.needsUpdate = true;
-          } catch (error) { console.warn(`[grid] open plot picture ${idea}:`, error); }
+            settle();
+          } catch (error) { console.warn(`[grid] open plot picture ${idea}:`, error); if (!owner.disposed) settle(); }
         };
         for (const idea of PLOT_IDEAS) void load(idea);
       }

@@ -29,12 +29,19 @@ export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue', h
   /** @param {SoakPlan} plan @returns {SoakPlan} */
   const borrow = plan => ({ ...plan, borrowedHome: home, requiredResidents: plan.requiredResidents.filter(id => id !== home),
     retiredResidents: (plan.retiredResidents ?? []).filter(id => id !== home) });
-  return { ...route, plans: route.plans.map(borrow), ...(route.coveragePlans ? { coveragePlans: route.coveragePlans.map(borrow) } : {}) };
+  // The public page boots inside its borrowed home, so the road-only leg first leaves it, once, by the same road the
+  // cells leg's crossroads tour takes; every lap after that is the unchanged boulevard circuit (no shard entered).
+  const leadIn = leg === 'road' ? ownedHomeSoakPlans(state, 'cells', routeScope).coveragePlans?.slice(0, 1) ?? [] : [];
+  if (leg === 'road' && leadIn.length !== 1) throw new Error('Missing borrowed-home road lead-in');
+  const reference = leg === 'road' ? ownedHomeSoakPlans(state, 'cells', routeScope).reference : route.reference;
+  return { ...route, reference, plans: route.plans.map(borrow), ...(route.coveragePlans ? { coveragePlans: route.coveragePlans.map(borrow) } : {}),
+    ...(leadIn.length > 0 ? { leadIn: leadIn.map(plan => borrow({ ...plan, name: 'home-to-road' })) } : {}) };
 }
 
 /** @typedef {{ name: string, from: string | null, to: string | null, movement: string, hoverMaxSpeed: number,
  *   waypoints: {x:number,z:number}[], requiredResidents: string[], retiredResidents?: string[], crossroads?: string | null,
  *   borrowedHome?: string }} SoakPlan */
+/** @typedef {{ reference: {x:number,z:number}, plans: SoakPlan[], coveragePlans?: SoakPlan[], leadIn?: SoakPlan[], omitted?: string[] }} SoakRoute */
 
 /** Strict borrowed-home witness on top of the floor's: the page level and its `sim:<home>` claim survive every leg.
  * @param {Parameters<typeof gridFloorWitnessFailures>[0]} witness */

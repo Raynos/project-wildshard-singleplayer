@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
+import { circuitPlans } from './boundary.mjs';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
 
@@ -246,4 +247,20 @@ void test('SF57 public soak travels from and back to the borrowed Driftwood home
   assert.deepEqual(soakWitnessFailures(witness(state(home, [], 6, commits, 8))), ['Borrowed home destination residency claim was not retained']);
   assert.ok(soakWitnessFailures(witness(state(home, [home], 6, commits))).includes('Borrowed home also became a regional destination resident'));
   assert.ok(soakWitnessFailures(witness(state(null, [], 5, commits.slice(0, 1)))).includes('Destination interior gameplay is not ready'));
+});
+
+void test('SF57 public road leg leaves the borrowed home once, then laps the boulevard without entering a shard', () => {
+  const cells = soakCatalogue(catalogue, 'shipped'), home = 'driftwood-isle';
+  const route = ownedSoakPlans({ cells, home }, 'road', 'catalogue', 'borrowed');
+  const owned = ownedSoakPlans({ cells, home }, 'road');
+  assert.equal(owned.leadIn, undefined);
+  assert.equal(route.leadIn?.length, 1);
+  const leadIn = route.leadIn?.[0];
+  assert.equal(leadIn?.from, home); assert.equal(leadIn?.to, null); assert.equal(leadIn?.borrowedHome, home);
+  assert.deepEqual(leadIn?.waypoints.at(-1), route.plans[0].waypoints[0]);
+  assert.deepEqual(route.reference, ownedSoakPlans({ cells, home }, 'cells', 'catalogue', 'borrowed').reference);
+  assert.deepEqual(route.plans.map(p => [p.from, p.to, p.waypoints]), owned.plans.map(p => [p.from, p.to, p.waypoints]));
+  assert.ok(route.plans.every(p => p.to === null && p.from === null));
+  assert.deepEqual(circuitPlans(route, 0, null).map(p => p.name), ['home-to-road', ...route.plans.map(p => p.name)]);
+  assert.deepEqual(circuitPlans(route, 1, null).map(p => p.name), route.plans.map(p => p.name));
 });

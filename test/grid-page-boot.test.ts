@@ -25,7 +25,7 @@ it('charges a measured Select a shard home before bootstrap without creating a g
   const consume = vi.spyOn(boot, 'bootPageMode').mockReturnValue('shard');
   const selected = preparePageResidency(manifest);
   expect(selected.mode).toBe('shard'); expect(selected.instance).toBe(manifest.slug);
-  expect(selected.residency?.home().bytes).toBe(341_781_982);
+  expect(selected.residency?.home().bytes).toBe(334_435_201);
   selected.residency?.dispose();
   expect(consume).toHaveBeenCalledExactlyOnceWith(manifest.slug);
 });
@@ -36,8 +36,8 @@ it('reserves the opaque measured home before hydration and exposes the same owne
   const selected = preparePageResidency(manifest), owner = selected.residency;
   if (owner === undefined) throw new Error('Missing early grid owner');
   const claim = owner.home(), registry = claim.retain();
-  expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:driftwood-isle', bytes: 341_781_982, refs: 2 }]);
-  expect(owner.allocator.cost().playing).toBe(759_378_001);
+  expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:driftwood-isle', bytes: 334_435_201, refs: 2 }]);
+  expect(owner.allocator.cost().playing).toBe(751_223_074);
   registry.release(); owner.dispose(); expect(owner.allocator.entries()).toEqual([]);
 });
 
@@ -68,7 +68,7 @@ it('ignores the retired opt-out and always admits a grid home before hydration',
   const page = preparePageResidency(manifest);
   try {
     expect(page.mode).toBe('grid');
-    expect(page.residency?.home().bytes).toBe(341_781_982);
-    expect(page.residency?.allocator.cost().playing).toBe(759_378_001);
+    expect(page.residency?.home().bytes).toBe(334_435_201);
+    expect(page.residency?.allocator.cost().playing).toBe(751_223_074);
   } finally { page.residency?.dispose(); retired.reset(); }
 });

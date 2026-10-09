@@ -1,0 +1,53 @@
+{
+ "row": "SHARD-PLATFORM SF57 calibration (E435)",
+ "units": "decimal MB",
+ "build": "scripts/serve-build.sh --head at 243da2c5e (clean export)",
+ "method": "Chromium iPhone 16 Pro, muted, Metal ANGLE, Settings > Debug > GPU textures img (the mode the Simulator resolves), labelled GL census (scripts/parity/glbytes.mjs) 15 s after the reveal; the allocator claims from grid.residency(). Same desktop labelled-GL method as the SF22a row it refreshes.",
+ "driftwoodStandalone": {
+  "glMB": 196.35,
+  "mode": "img",
+  "why": "picked (Settings ▸ Debug ▸ GPU textures: img)",
+  "previousRowGlMB": 204.5,
+  "previousRev": "fe508c172"
+ },
+ "publicHome": {
+  "glMB": 241.64,
+  "accountedMB": 445.72
+ },
+ "webkitCrossCheck": {
+  "note": "The WebKit labelled census on the Simulator (soak public-236c1225d, settled home stops c1-c4) reads the public home GL at 245.34 MB vs Chromium 241.64 here (+1.5 %).",
+  "simulatorPublicHomeGlMB": 245.344989,
+  "chromiumPublicHomeGlMB": 241.64
+ },
+ "openPlots": {
+  "claimMB": 33.79,
+  "claimJsMB": 14.71,
+  "claimGpuMB": 19.08,
+  "measuredGlMB": {
+   "billboardAtlas": 13.11,
+   "signAtlas": 4.19,
+   "buffers": 1.73
+  },
+  "finding": "The JS half charged both atlas canvases (12.98 MB) for the page lifetime; openPlot.ts shrinks each canvas to 1x1 after its final upload, so they are construction transients (overlap allowance). The GPU half matches the census."
+ },
+ "otherL0": {
+  "road.deck": {
+   "claimMB": 17.74,
+   "glMB": 10.88,
+   "note": "JS half = retained vertex + culled index copies (engine/scene RAM +7.7 MB on the public page)"
+  },
+  "road.junctions": {
+   "claimMB": 5.63,
+   "glMB": 5.62
+  },
+  "road.signs": {
+   "claimMB": 3.16,
+   "glMB": 3.08
+  },
+  "road.asphalt": {
+   "claimMB": 2.85,
+   "glMB": 2.84
+  }
+ },
+ "gridGlDeltaMB": 45.29
+}
