@@ -38,18 +38,19 @@ export function plantSpecs(trees: { factory: TreeSpec['factory']; set?: string |
 /** A 16 m grid cell as one integer (exact for cells within 2^20 of the origin: any coordinate a query meets in play). */
 const cellKey = (cx: number, cz: number): number => (cx + 1048576) * 2097152 + (cz + 1048576);
 
-/** Trees bucketed in 16 m cells, for "which trunks are near (x, z)" (collision, planting, herds, bolts). */
-export class TreeGrid {
-  private cells = new Map<number, TreeInstance[]>();
-  add(t: TreeInstance): void {
+/** Trees bucketed in 16 m cells, for "which trunks are near (x, z)" (collision, planting, herds, bolts); generic over the
+ *  tree's record, so a renderer-free host buckets its baked trunks exactly as the page's forest does. */
+export class TreeGrid<T extends { readonly x: number; readonly z: number; readonly r: number } = TreeInstance> {
+  private cells = new Map<number, T[]>();
+  add(t: T): void {
     const k = cellKey(Math.floor(t.x / 16), Math.floor(t.z / 16));
     let bucket = this.cells.get(k);
     if (!bucket) { bucket = []; this.cells.set(k, bucket); }
     bucket.push(t);
   }
   /** trees whose trunk might intersect a circle at (x,z) */
-  nearby(x: number, z: number, radius = 2): TreeInstance[] {
-    const out: TreeInstance[] = [];
+  nearby(x: number, z: number, radius = 2): T[] {
+    const out: T[] = [];
     const cx = Math.floor(x / 16), cz = Math.floor(z / 16);
     for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
       const list = this.cells.get(cellKey(cx + i, cz + j));

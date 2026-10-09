@@ -36,7 +36,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../runtime/audio/synth';
 import type { SteppeStorm as Weather, Exposed, LightningPlayer } from './Weather';
-import { steppeStorm, stormWind, stepStorm, stormEnv } from './weatherStep';
+import { steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
 import { STORM_PHASES } from './weatherProfile';
 import { WeatherFX } from './WeatherFX';
 import { waterOf } from '../water';
@@ -79,6 +79,8 @@ export interface NalatiWeather {
   fx: WeatherFX;
   /** the look applied last frame (clock + storm) */
   look: SkyLook;
+  /** the yurts the lightning's shelter rule reads (world/weatherStep.ts yurtsOf over the POI colliders; the headless bake's `yurts`) */
+  readonly yurts: readonly YurtCircle[];
   update: (dt: number) => void;
   bind: (hooks: WeatherHooks) => void;
 }
@@ -159,17 +161,6 @@ function waterDimmer(root: THREE.Object3D | undefined): ((L: SkyLook, dayFog: nu
   };
 }
 
-/** the yurts, from the POI colliders (Yurt.ts: two crossed squares of half-width 0.93 R per yurt) */
-function yurtsOf(colliders: Collider[]): { x: number; z: number; r: number }[] {
-  const out: { x: number; z: number; r: number }[] = [];
-  for (const c of colliders) {
-    if (Math.abs(c.hw - c.hd) > 0.01 || c.hw < 2.2 || c.hw > 3.6 || c.yTop - c.yBottom < 2.5) continue;
-    if (out.some((y) => Math.abs(y.x - c.x) < 0.1 && Math.abs(y.z - c.z) < 0.1)) continue;
-    out.push({ x: c.x, z: c.z, r: c.hw / 0.93 });
-  }
-  return out;
-}
-
 export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   const { game, sky, player, forest } = ctx;
   const def = ctx.manifest;
@@ -195,14 +186,12 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
   const weather = steppeStorm(def.seed, {
     heightAt,
-    exposed(x: number, z: number, r: number, out: Exposed[]) {
-      for (const t of forest.nearby(x, z, r)) if ((t.x - x) ** 2 + (t.z - z) ** 2 <= r * r) out.push({ x: t.x, z: t.z, top: t.y + t.height, kind: 'tree', ref: t });
-    },
+    exposed(x: number, z: number, r: number, out: Exposed[]) { exposeTrees(forest.nearby(x, z, r), (t) => t.y + t.height, (t) => t, x, z, r, out); },
     player() {
       const p = player.position;
       lp.x = p.x; lp.y = p.y; lp.z = p.z;
       lp.crouched = player.crouching; lp.mounted = wildEnv.playerMounted;
-      lp.sheltered = indoors || held || yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
+      lp.sheltered = indoors || held || yurtShelters(yurts, p.x, p.z);
       return lp;
     },
   });
@@ -248,7 +237,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   let audioT = 0;
 
   const out: NalatiWeather = {
-    clock, weather, rig, fx, look,
+    clock, weather, rig, fx, look, yurts,
     bind(h) { Object.assign(hooks, h); },
     update(dt) {
       indoors = hooks.indoors?.() === true;

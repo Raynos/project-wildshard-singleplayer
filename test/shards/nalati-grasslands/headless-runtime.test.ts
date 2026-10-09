@@ -11,10 +11,11 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, nalatiLightningGround, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { Wind } from '../../../src/engine/world/steppeWind';
 import { lightLevel } from '../../../src/shards/nalati-grasslands/look/wildLight';
-import { steppeStorm, stepStorm, stormWind } from '../../../src/shards/nalati-grasslands/world/weatherStep';
+import { exposeTrees, steppeStorm, stepStorm, stormWind, yurtShelters } from '../../../src/shards/nalati-grasslands/world/weatherStep';
+import type { Exposed } from '../../../src/shards/nalati-grasslands/world/Weather';
 import { SEED } from '../../../src/shards/nalati-grasslands/world/terrain';
 import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifest';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
@@ -165,7 +166,7 @@ it('restores mid-walk exactly: the reinstalled roster and the host continue step
   } finally { a.dispose(); }
 });
 
-it('carries a building storm through a restore exactly, and refuses at the gust front (the lightning\'s world is not modelled)', () => {
+it('carries a building storm through a restore exactly; the gust front reads the baked lightning world, and a landed strike refuses (its scare reaches the unhosted flock)', () => {
   const a = boot();
   try {
     // forced, as the page's dev switch does: the storm's own clock reaches building only after 12–18 min of clear
@@ -180,10 +181,34 @@ it('carries a building storm through a restore exactly, and refuses at the gust 
       expect(env?.wind.strength).toBe(nalatiGroupsOf(a)?.env.wind.strength);
       expectSameSimSnapshot(snapshotSimHost(b), sa);
       wa.storm.force('gust', 0);
-      // its first GET LOW check (every 0.25 s) reads the player the lightning sees
-      expect(() => { for (let tick = 0; tick < 20; tick++) walk(a); }).toThrow('not modelled yet');
+      // its GET LOW checks (every 0.25 s) read the player and the baked spruces: under the camp's slope the ground stands over
+      // the player's head (no warning); out on the flat toward the river, standing, it trips
+      for (let tick = 0; tick < 30; tick++) walk(a);
+      expect(wa.storm.getLow).toBe(false);
+      for (let tick = 0; tick < 240; tick++) walk(a);
+      expect(wa.storm.getLow).toBe(true);
+      // the storm proper: its first bolt to the ground lands, and its scare refuses
+      wa.storm.force('storm', 0);
+      expect(() => { for (let tick = 0; tick < 60 * 30; tick++) walk(a); }).toThrow('the flock is not hosted');
     } finally { b.dispose(); }
   } finally { a.dispose(); }
+});
+
+it('reads the page\'s lightning world from the bake: the spruces in the forest\'s 16 m cells with their tops, the yurts\' shelter', () => {
+  const { trees, yurts } = nalatiLightningGround(bake);
+  expect(bake.tops.length).toBe(bake.trees.length); expect(yurts.length).toBeGreaterThan(0);
+  // the forest's own query (engine TreeGrid nearby): every trunk within reach of the 3 × 3 cells round a spruce, the spruce first among its cell's
+  const [x, z, r] = bake.trees[0] ?? [0, 0, 0], top = bake.tops[0];
+  const out: Exposed[] = [];
+  exposeTrees(trees.nearby(x, z, 10), t => t.top, () => undefined, x, z, 10, out);
+  expect(out.find(e => e.x === x && e.z === z)).toEqual({ x, z, top, kind: 'tree', ref: undefined });
+  expect(top).toBeGreaterThan(heightAt(x, z) + r);
+  const brute = bake.trees.flatMap(([tx, tz, tr], i) => Math.floor(tx / 16) - Math.floor(x / 16) <= 1 && Math.floor(tx / 16) >= Math.floor(x / 16) - 1
+    && Math.abs(Math.floor(tz / 16) - Math.floor(z / 16)) <= 1 && Math.hypot(tx - x, tz - z) < 10 + tr + 3 && (tx - x) ** 2 + (tz - z) ** 2 <= 100 ? [i] : []);
+  expect(out.length).toBe(brute.length);
+  // a yurt shelters the player at its door, a step beyond it does not
+  const yurt = yurts[0]; if (yurt === undefined) throw new Error('no yurt');
+  expect(yurtShelters(yurts, yurt.x + yurt.r + 1.4, yurt.z)).toBe(true); expect(yurtShelters(yurts, yurt.x + yurt.r + 1.6, yurt.z)).toBe(yurts.some(y => y !== yurt && Math.hypot(y.x - yurt.x - yurt.r - 1.6, y.z - yurt.z) < y.r + 1.5));
 });
 
 it('loads the trusted entry in plain Node under the renderer-denying loader', () => {

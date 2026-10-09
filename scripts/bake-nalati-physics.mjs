@@ -2,7 +2,7 @@
 // Trusted SF72 metadata only (Nalati Grasslands): the real native browser recipes remain the shipping source. Captures the
 // standalone level's native floor (the terrain heightfield collider exactly as the page built it), its edge walls and every
 // solid world collider (POIs, crags, outcrops, the kurgan, the bridge, the camps, props), the registry pieces' metadata,
-// the lone spruces' trunk circles, and the bodies AnimalManager simulates at load (Wildlife's wolf pack, the wild herd with
+// the lone spruces' trunk circles and tops, the yurts the lightning's shelter reads, and the bodies AnimalManager simulates at load (Wildlife's wolf pack, the wild herd with
 // its stallion, the flock's dog and the camp's two saddled horses) with their model-derived simulation specs, seeds, scales,
 // herd membership, tick-0 spots, headings and memories, and the declared groups' tick-0 continuations. Two independent same-page captures must match exactly.
 // scripts/browser-lane.sh node scripts/bake-nalati-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
@@ -71,7 +71,14 @@ try {
     // herd membership is a placement fact; positions and herd centres are not (the page ticks and recentres between captures)
     const herds = w.animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
     // the lone spruces as the hunting brain's placement reads them (HuntGround.trees: x, z, r), in the forest's order
-    const trees = (w.animals.forest?.trees ?? []).map(t => [t.x, t.z, t.r]);
+    const forest = w.animals.forest, trees = (forest?.trees ?? []).map(t => [t.x, t.z, t.r]);
+    // the lightning's view (world/installWeather.ts): the same forest's tops (base + height, its `exposed`) and the yurts
+    // its shelter rule reads (NalatiWeather.yurts)
+    if (forest !== w.forest) throw new Error('The hunting brain and the weather read different forests');
+    const tops = (forest?.trees ?? []).map(t => t.y + t.height);
+    const weather = g.app.debug.snapshot().nalati?.weather;
+    if (!Array.isArray(weather?.yurts)) throw new Error('No Nalati weather yurts');
+    const yurts = weather.yurts.map(y => [y.x, y.z, y.r]);
     const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: piece.colliders.length, active: piece.active?.() ?? true };
       if (piece.surface !== undefined) row.surface = piece.surface;
@@ -119,9 +126,9 @@ try {
     const grassBase = g.app.debug.snapshot()['harness.shard.nalati-grasslands'].grassBase;
     const points = [...spawns.map(row => [row.at[0], row.at[2]]), ...Array.from({ length: 48 * 48 }, (_v, i) => [-247.3 + (i % 48) * 10.37, -246.1 + Math.floor(i / 48) * 10.41])];
     const grass = points.map(([x, z]) => [x, z, grassBase(x, z)]);
-    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids, spawns, groups, grass };
+    if (!wantCensus) return { actors, herds, trees, tops, yurts, pieces, grounds, solids, spawns, groups, grass };
     const nalati = g.app.debug.snapshot().nalati;
-    return { kinds, actors: actors.map(a => `${a.id} ${a.kind}.${a.variant} herd ${a.herd}${a.scripted ? ' scripted' : ''}`), herds, trees: trees.length, pieces: pieces.length, solids: solids.length,
+    return { kinds, actors: actors.map(a => `${a.id} ${a.kind}.${a.variant} herd ${a.herd}${a.scripted ? ' scripted' : ''}`), herds, trees: trees.length, yurts, pieces: pieces.length, solids: solids.length,
       solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ rows: gr.rows, cols: gr.cols, scale: gr.scale, at: gr.at, friction: gr.friction, groups: gr.groups, heights: gr.heights.length })),
       spawns, groups, clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
   };
@@ -135,7 +142,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Nalati bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces, spawns: first.spawns, groups: first.groups, grass: first.grass };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, tops: first.tops, yurts: first.yurts, pieces: first.pieces, spawns: first.spawns, groups: first.groups, grass: first.grass };
     writeFileSync(resolve(root, 'src/shards/nalati-grasslands/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-nalati-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }

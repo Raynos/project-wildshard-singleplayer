@@ -1,6 +1,6 @@
 import type { WildEnv } from '../creatures/env';
 import { wildLight, type SunClock } from '../look/wildLight';
-import { SteppeStorm, type LightningWorld } from './Weather';
+import { SteppeStorm, type Exposed, type LightningWorld } from './Weather';
 
 /**
  * The steppe weather's simulation rules, renderer-free (SF72): what the page's wiring (world/installWeather.ts, every frame)
@@ -61,4 +61,28 @@ export function stormEnv(env: Pick<WildEnv, 'light' | 'storm'>, clock: SunClock,
 /** What the creatures read from the wind: the way the air moves (unit) and its strength 0..1 (10 m/s and up is 1). */
 export function windEnv(env: Pick<WildEnv, 'wind'>, wind: SteppeWindPort): void {
   env.wind.x = wind.dirX; env.wind.z = wind.dirZ; env.wind.strength = Math.min(1, wind.speed / 10);
+}
+
+/** A yurt's footprint as the lightning reads it: its centre and radius (a step beside it, `r + 1.5` m, is shelter too). */
+export interface YurtCircle { readonly x: number; readonly z: number; readonly r: number }
+/** The yurts, from the POI colliders (Yurt.ts: two crossed squares of half-width 0.93 R per yurt). */
+export function yurtsOf(colliders: readonly { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly yTop: number; readonly yBottom: number }[]): YurtCircle[] {
+  const out: YurtCircle[] = [];
+  for (const c of colliders) {
+    if (Math.abs(c.hw - c.hd) > 0.01 || c.hw < 2.2 || c.hw > 3.6 || c.yTop - c.yBottom < 2.5) continue;
+    if (out.some((y) => Math.abs(y.x - c.x) < 0.1 && Math.abs(y.z - c.z) < 0.1)) continue;
+    out.push({ x: c.x, z: c.z, r: c.hw / 0.93 });
+  }
+  return out;
+}
+/** Inside or right beside a yurt: no lightning reaches (x, z). */
+export function yurtShelters(yurts: readonly YurtCircle[], x: number, z: number): boolean { return yurts.some((y) => (y.x - x) ** 2 + (y.z - z) ** 2 < (y.r + 1.5) ** 2); }
+
+/**
+ * The lightning's exposed trees around (x, z): every trunk of `near` (a forest's 16 m cell query, engine TreeGrid `nearby`,
+ * in its order) within r, scored by its top (`top`), carrying `ref` (the page's live tree; a host passes none, so an armed
+ * strike on a tree stays a saveable plain value).
+ */
+export function exposeTrees<T extends { readonly x: number; readonly z: number }>(near: readonly T[], top: (t: T) => number, ref: (t: T) => unknown, x: number, z: number, r: number, out: Exposed[]): void {
+  for (const t of near) if ((t.x - x) ** 2 + (t.z - z) ** 2 <= r * r) out.push({ x: t.x, z: t.z, top: top(t), kind: 'tree', ref: ref(t) });
 }

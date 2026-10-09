@@ -19,7 +19,8 @@ const Solid = v.strictObject({ shape: v.picklist([1, 2, 6, 9]), groups: finite, 
 const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(NALATI_GROUND_RES - 1), cols: v.literal(NALATI_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
   solids: v.array(Solid), actors: v.array(Actor), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })),
-  trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])),
+  trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), tops: v.array(finite),
+  yurts: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])),
   spawns: v.array(v.strictObject({ id: v.string(), at: triple, yaw: finite, mem: v.record(v.string(), v.nullable(finite)) })),
   groups: v.array(v.strictObject({ kind: v.picklist(['pack', 'herd']), members: v.array(v.string()), state: v.string() })),
   grass: v.array(triple) });
@@ -41,6 +42,10 @@ export interface NalatiBake {
   readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
   /** the lone spruces' trunk circles (x, z, r), in the forest's order */
   readonly trees: readonly (readonly [number, number, number])[];
+  /** each of those spruces' top (its base `y` + `height`), as the lightning scores it (world/installWeather.ts `exposed`) */
+  readonly tops: readonly number[];
+  /** the yurts' shelter circles (x, z, r) the page's lightning reads (world/weatherStep.ts yurtsOf over the POI colliders) */
+  readonly yurts: readonly (readonly [number, number, number])[];
   /** every body's spot and heading at its tick 0 (the frame it first exists, before the manager moves it), in the list's order */
   readonly spawns: readonly NalatiBakedSpawn[];
   /** each declared group (Wildlife's packs, then its herds, Argymaq's last) as it stood at its tick 0: its members and its
@@ -76,8 +81,9 @@ export function nalatiBake(): NalatiBake {
   if (ids.size !== bake.actors.length || !bake.herds.every(herd => herd.members.every(id => ids.has(id)))
     || bake.spawns.length !== bake.actors.length || bake.spawns.some((spawn, i) => spawn.id !== bake.actors[i]?.id)
     || !bake.groups.every(group => group.members.every(id => ids.has(id)))) throw new Error('Nalati baked roster is not one id per body');
+  if (bake.tops.length !== bake.trees.length) throw new Error('Nalati baked trees and tops differ in count');
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
-    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees,
+    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees, tops: bake.tops, yurts: bake.yurts,
     // a never-hit body's hit time is -Infinity, which JSON writes as null (AnimalSim's own snapshot encodes it so)
     spawns: bake.spawns.map(spawn => ({ ...spawn, mem: Object.fromEntries(Object.entries(spawn.mem).map(([key, value]) => [key, value ?? -Infinity])) })), groups: bake.groups, grass: bake.grass };
   return parsed;
