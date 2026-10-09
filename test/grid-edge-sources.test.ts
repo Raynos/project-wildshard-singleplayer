@@ -25,8 +25,10 @@ it('opens every Developer and DEVSERVER cell\'s legacy edges without a fallback,
   const assembly = new GridAssembly({ developer: true, devserver: true });
   const legacy = assembly.cells.filter(cell => { const manifest = findShard(cell.slug); return manifest?.shardfile === undefined && manifest?.gridShardfile === undefined; });
   expect(legacy.map(cell => cell.slug)).not.toContain('far-reach');
+  expect(legacy.map(cell => cell.slug)).not.toContain('nine-dragon-stack');
   const fetched: string[] = [];
-  const cells = await loadGridEdgeProfiles(legacy, cell => readGridEdges(cell, { product: () => null, fetch: fetchPublic(fetched) }));
+  // SF51-g converts the final legacy cell. The reader correctly refuses an empty assembly; there is then no bake to read.
+  const cells = legacy.length === 0 ? [] : await loadGridEdgeProfiles(legacy, cell => readGridEdges(cell, { product: () => null, fetch: fetchPublic(fetched) }));
   expect(cells).toHaveLength(legacy.length);
   for (const cell of legacy) {
     const manifest = findShard(cell.slug); if (manifest === undefined) throw new Error(`Unregistered grid shard ${cell.slug}`);
