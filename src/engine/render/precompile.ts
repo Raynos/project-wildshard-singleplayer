@@ -395,10 +395,13 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts)
     if (options.chunkCasters !== false) {
       // SF67: sliced with a painted frame between (it was one 0.3 s task on Driftwood at 4×); the pieces are the same
-      const cut = await chunkShadowCastersSliced(game.scene, async () => {
+      let tChunk = performance.now();
+      const pauseChunking = async (): Promise<void> => {
         await frame();
         if (options.current?.() === false) throw new Error('Shader warm-up owner left');
-      });
+        tChunk = performance.now();
+      };
+      const cut = await chunkShadowCastersSliced(game.scene, () => (performance.now() - tChunk < 12 ? null : pauseChunking()));
       if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
     }
     // Compile against the same page lights/environment as firstFrame. A regional content binding

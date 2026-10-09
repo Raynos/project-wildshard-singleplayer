@@ -59,18 +59,16 @@ export function chunkShadowCasters(scene: THREE.Scene): ShadowChunkReport {
 }
 
 /**
- * The same split, its pieces and its order identical to `chunkShadowCasters`, in time slices (SF67, E461): after `budgetMs`
- * of work it awaits `pause()` (a painted frame during loading). A mesh changes only when its own split finishes, so a pause
- * never leaves a half-split mesh in the scene.
+ * The same split, its pieces and its order identical to `chunkShadowCasters`, in slices (SF67, E461): at every pause point
+ * it calls `due()`, and awaits the promise it returns (the caller's clock decides: a painted frame after ~12 ms of work).
+ * A mesh changes only when its own split finishes, so a pause never leaves a half-split mesh in the scene.
  */
-export async function chunkShadowCastersSliced(scene: THREE.Scene, pause: () => Promise<void>, budgetMs = 12): Promise<ShadowChunkReport> {
+export async function chunkShadowCastersSliced(scene: THREE.Scene, due: () => Promise<void> | null): Promise<ShadowChunkReport> {
   const report: ShadowChunkReport = { meshes: 0, pieces: 0, tris: 0 };
   const work = chunkWork(scene, report);
-  let t0 = performance.now();
   while (work.next().done !== true) {
-    if (performance.now() - t0 < budgetMs) continue;
-    await pause();
-    t0 = performance.now();
+    const pause = due();
+    if (pause !== null) await pause;
   }
   return report;
 }

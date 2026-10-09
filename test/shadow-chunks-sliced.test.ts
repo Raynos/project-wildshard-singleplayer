@@ -31,7 +31,7 @@ describe('SF67: sliced shadow-caster chunking', () => {
     const a = islandScene(), b = islandScene();
     const sync = chunkShadowCasters(a);
     let pauses = 0;
-    const sliced = await chunkShadowCastersSliced(b, () => { pauses++; return Promise.resolve(); }, 0);
+    const sliced = await chunkShadowCastersSliced(b, () => { pauses++; return Promise.resolve(); });
     expect(sliced).toEqual(sync);
     expect(sync.meshes).toBe(1);
     expect(pauses).toBeGreaterThan(4);
@@ -42,7 +42,7 @@ describe('SF67: sliced shadow-caster chunking', () => {
 
   it('runs once: a second pass finds every mesh already chunked', async () => {
     const s = islandScene();
-    await chunkShadowCastersSliced(s, () => Promise.resolve(), 0);
+    await chunkShadowCastersSliced(s, () => null);
     expect(chunkShadowCasters(s)).toEqual({ meshes: 0, pieces: 0, tris: 0 });
   });
 });
