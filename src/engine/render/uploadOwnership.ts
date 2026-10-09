@@ -44,8 +44,6 @@ export class UploadOwnership {
   /** Every observed upload's lifetime hooks, registered once. */
   private readonly tracked = new WeakSet<Resource>();
   private collected = 0;
-  /** Each tracked resource's release (its dispose listener), so a render target releases its attachments with it. */
-  private readonly releases = new WeakMap<Resource, () => void>();
   /** A compiled object's samplers and geometry, with that object's owner: their own upload (the warm-up's texture pass,
    *  a later draw) is attributed to it when no drawn owner is known then. A hint never observes a resource by itself. */
   private readonly hints = new WeakMap<Resource, Scope>();
@@ -144,12 +142,13 @@ export class UploadOwnership {
       this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
       this.retire(resource);
       eventMethod(resource, 'removeEventListener', released); forget();
-      this.releases.delete(resource);
-      // SF57 leak5: a render target's dispose frees its attachments (three's deallocateRenderTarget) without dispatching
-      // their own dispose, so each one is released here with it, or a freed attachment stayed in the live set
-      if (resource instanceof WebGLRenderTarget) for (const texture of resource.textures) this.releases.get(texture)?.();
+      // Three deletes colour attachments with their target but does not dispatch their dispose events. Those events
+      // also retire derived GPU allocations (WebGLEnvironments' cube/PMREM maps). Calling only our listener silently
+      // forgot the source and its level cleanup while leaving the derived allocation alive (SF57 leak5).
+      // Colour attachments have no standalone native texture-disposal listener: the target still deletes their GL
+      // storage after this listener returns. Depth attachments dispatch dispose in Three's own target deallocator.
+      if (resource instanceof WebGLRenderTarget) for (const texture of resource.textures) texture.dispose();
     };
-    this.releases.set(resource, released);
     eventMethod(resource, 'addEventListener', released);
   }
   private retire(resource: Resource): void {

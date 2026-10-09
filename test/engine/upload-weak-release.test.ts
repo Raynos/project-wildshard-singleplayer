@@ -4,7 +4,7 @@
 import { setFlagsFromString } from 'node:v8';
 // oxlint-disable-next-line import/no-nodejs-modules -- the collection witness needs V8's own collector
 import { runInNewContext } from 'node:vm';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { MeshBasicMaterial, WebGLRenderTarget, type WebGLRenderer } from 'three';
 import { AssetService } from '../../src/engine/app/assets';
 import { Scope } from '../../src/engine/app/scope';
@@ -48,4 +48,26 @@ it('a render target\'s dispose releases its attachment textures, which three fre
   expect(uploads.has(target)).toBe(false); expect(uploads.has(texture)).toBe(false);
   expect(uploads.resources().size).toBe(0);
   page.dispose();
+});
+
+it('retiring a target dispatches attachment disposal so generated environment targets retire too', () => {
+  const { page, uploads, renderer } = rig();
+  const source = new WebGLRenderTarget(4, 4), environment = new WebGLRenderTarget(8, 8);
+  const dispose = vi.spyOn(environment, 'dispose');
+  // WebGLEnvironments owns its converted target through a listener on the source texture.
+  // Merely dropping that texture from the upload census leaves the converted GPU allocation alive.
+  const releaseEnvironment = (): void => {
+    source.texture.removeEventListener('dispose', releaseEnvironment);
+    environment.dispose();
+  };
+  source.texture.addEventListener('dispose', releaseEnvironment);
+  for (const target of [source, environment]) {
+    renderer.properties.get(target); renderer.properties.get(target.texture);
+  }
+  source.dispose();
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(uploads.resources().size).toBe(0);
+  expect(uploads.orphanCensus()).toEqual({ live: 0, collected: 0 });
+  page.dispose();
+  expect(dispose).toHaveBeenCalledOnce();
 });
