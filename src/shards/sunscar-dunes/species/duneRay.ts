@@ -1,4 +1,5 @@
-import { DUNE_RAY } from '../data/species/duneRay';
+import { clipAnimate } from '@wildshard/sdk/species/clips';
+import { DUNE_RAY, RAY_CLIPS } from '../data/species/duneRay';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
@@ -54,10 +55,5 @@ export const DUNE_RAY_LOOK: SpeciesLook = { id: 'sunscar.look.duneRay', species:
   rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => ({ bones: rayBones(), furParts: [], hardParts: [mantaBody(RAY_TINT) ?? rayGeometry()], eyeParts: [],
     dims: { bodyY: 0.3, bodyHalfLen: 1.1, bodyRadius: 0.8, headRadius: 0.4, legLen: 0, feet: [], halfWidth: 2.6 } }),
-  animate: ({ bones, t, alive }) => {
-    const flap = alive ? Math.sin(t * 2.4) * 0.32 : -0.5;
-    const left = bones['wingL'], right = bones['wingR'], tail = bones['tail'];
-    if (left) left.rotation.z = -flap; if (right) right.rotation.z = flap;
-    if (tail) tail.rotation.y = alive ? Math.sin(t * 1.7) * 0.25 : 0;
-  },
+  animate: clipAnimate(RAY_CLIPS),
 };

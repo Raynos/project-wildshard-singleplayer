@@ -1,5 +1,6 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
 import { STRINGS } from '../strings';
+import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 
 export const SKITTER = { wake: 13, sleep: 34, burst: 0.55, run: 5.6, ring: 2.2, retreat: 1.1, rebury: 5 } as const;
 
@@ -9,3 +10,16 @@ export const BITE_DATA: StrikeData = { id: 'sunscar.skitterer.bite', shape: { ki
 export const SKITTERER_DATA: SpeciesData = { id: 'sunscar.creature.sandSkitterer', kind: 'sandSkitterer', label: STRINGS.skitterer, aggressive: true, lockable: true, blood: false,
   variants: [{ id: 'dusk', label: STRINGS.skitterer, weight: 1, rarity: 'common', scale: [0.9, 1.1], hp: 24 }] };
 
+const BITING = { attacking: true } as const;
+/** The skitterer's legs scurry with its speed. */
+const SCURRY = [{ gait: 3 }, { wave: 't', rate: 26 }] as const;
+/** The skitterer's clips (SHARD-PLATFORM M3): it sinks to burrow and rears to bite (from its bind height), flips over dead. */
+export const SKITTERER_CLIPS: SpeciesClips = [
+  { bone: 'body', channel: 'position.y', bind: 'bodyY', cases: [{ sum: [{ of: [{ mem: 'burrow' }, -0.62] }, { when: BITING, of: [{ attack: true }, 0.12] }] }] },
+  { bone: 'body', channel: 'rotation.x', cases: [{ sum: [{ when: BITING, of: [{ attack: true }, -0.45] }] }] },
+  { bone: 'body', channel: 'rotation.z', cases: [{ when: { alive: true }, sum: [0] }, { sum: [{ of: [Math.PI, { death: true }] }] }] },
+  { bone: 'legsL', channel: 'rotation.y', cases: [{ when: { alive: true }, sum: [{ of: [...SCURRY, 0.5] }] }, { sum: [0.6] }] },
+  { bone: 'legsR', channel: 'rotation.y', cases: [{ when: { alive: true }, sum: [{ of: [...SCURRY, -0.5] }] }, { sum: [-0.6] }] },
+  { bone: 'head', channel: 'rotation.y', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 9 }, 0.08] }] }, { sum: [0] }] },
+  { bone: 'tail', channel: 'rotation.x', cases: [{ when: { alive: true }, sum: [-0.3, { when: BITING, of: [{ attack: true }, -0.5] }] }, { sum: [0] }] },
+];

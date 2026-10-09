@@ -1,5 +1,6 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
 import { STRINGS } from '../strings';
+import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 
 export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, patrolR: 34, patrolAlt: 22, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;
 
@@ -11,3 +12,9 @@ export const DUNE_RAY: SpeciesData = { id: 'sunscar.creature.duneRay', kind: 'du
   flight: { altitude: RAY.glideAlt, above: 'ground', climbRate: 6, diveRate: 24, lockRange: 34 },
   variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1.15], hp: 70 }] };
 
+/** The ray's clips (SHARD-PLATFORM M3): a steady wingbeat and a lazy tail; dead, the wings droop. */
+export const RAY_CLIPS: SpeciesClips = [
+  { bone: 'wingL', channel: 'rotation.z', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 2.4 }, -0.32] }] }, { sum: [0.5] }] },
+  { bone: 'wingR', channel: 'rotation.z', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 2.4 }, 0.32] }] }, { sum: [-0.5] }] },
+  { bone: 'tail', channel: 'rotation.y', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 1.7 }, 0.25] }] }, { sum: [0] }] },
+];

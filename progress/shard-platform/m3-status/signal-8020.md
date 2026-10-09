@@ -138,3 +138,23 @@ picked by a `mem` predicate (the Matriarch's grounded phase) and per-bone overri
 test: snapshot each old `animate` (strider, skitterer, ray, Matriarch) over a grid of (t, phase, speed, attack, deathT,
 mem) before the move, compare bone transforms after; a second fixture species (a grazer) proves it generic. The rows
 then move to `data/species/*`, and the four animate functions (~60 custom lines) go.
+
+## 2026-10-09 (op-clips): declarative species clips
+
+| Slice | What moved | Proof |
+|---|---|---|
+| species clips | the strider's, skitterer's, ray's and Matriarch's `animate` functions → generic `@wildshard/game/systems/species/clips` (`clipAnimate(rows)`, SDK facade `@wildshard/sdk/species/clips`); rows in `data/species/*.ts` (`STRIDER_CLIPS`, `SKITTERER_CLIPS`, `RAY_CLIPS`, `MATRIARCH_CLIPS`) | `test/game/species-clips.test.ts`: every bone's position / rotation / scale as raw float64 bits (signed zeroes count) over 3 lives × 50 s at 60 / 30 / 20 Hz and paused (~21 k frames per species), sha256-pinned from HEAD's hand-written functions, then green on the rows; a fixture grazer |
+| second consumer | Sky Reach's drift ray, sky goat and gale wisp → `far-reach/data/creatureClips.ts` (the Roc stays: its bank eases by `dt`) | the same pinned traces |
+
+The design held with three exactness rules it did not state: a term's factors multiply left to right in the order of the
+code they replace; a bound channel (`bind`: the mem key keeping the bind value) starts its sum from the bind, never adds
+it after; a term whose `when` fails adds +0 (never drops out, never yields −0). The negated wings carry negated
+constants, not a negate flag. Additions the second consumer needed: `living` (1 / 0), `clock`, `deathAbove`, the
+`scale` channel. Not built (no consumer): keyframes and cross-clip blending; a new row kind joins the union when one needs
+it. `engine/entities/animalPose.ts` (sp-x4) is the shipping quadruped gait law over its own channel buffer, not a custom
+rig's bones: nothing in it to share.
+
+Candidate `b8599bf27` vs base `02885fd74`: pixels at the parity poses on phone and desktop within the base's own run-to-run
+noise (Signal phone spawn 74 px > 24 base→candidate vs 469 px base run-to-run; Sky 0 px), calls / tris identical at all
+12 poses; physics rebaked for both shards (only inputs / revision / build move); both witnesses `compatible`. Share:
+Signal 29.1 → 30.5 % (public 1066 / custom 2432), Sky 20.4 → 20.7 %.

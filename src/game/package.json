@@ -12,6 +12,7 @@
     "./systems/looks/fireFx": "./systems/looks/fireFx.ts",
     "./systems/looks/surfaceLooks": "./systems/looks/surfaceLooks.ts",
     "./systems/looks/duskDome": "./systems/looks/duskDome.ts",
+    "./systems/species/clips": "./systems/species/clips.ts",
     "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
     "./systems/looks/trample": "./systems/looks/trample.ts",
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",

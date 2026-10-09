@@ -1,5 +1,6 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
 import { STRINGS } from '../strings';
+import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 
 export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9, skim: 4.2,
   /** Grounded she lies on the sand (`lieAlt`) and holds `standOff` m from the player (her centre): at 3.6× her nose is 6.4 m
@@ -22,3 +23,20 @@ export const MATRIARCH_DATA: SpeciesData = { id: 'sunscar.creature.duneMatriarch
   flight: { altitude: MATRIARCH.alt, above: 'ground', climbRate: 7, diveRate: 20, lockRange: 60 },
   variants: [{ id: 'matriarch', label: STRINGS.matriarch, weight: 1, rarity: 'legendary', scale: [3.6, 3.6], hp: MATRIARCH_HP }] };
 
+/** Grounded (her brain's phase 2 on): she lies on the sand. */
+const GROUNDED = { alive: true, mem: { key: 'phase', atLeast: 2 } } as const;
+const BUFFET = { attacking: true } as const;
+/** The Matriarch's clips (SHARD-PLATFORM M3): grounded, the head dips and the tail lifts to sweep. */
+export const MATRIARCH_CLIPS: SpeciesClips = [
+  { bone: 'head', channel: 'rotation.x', cases: [{ when: GROUNDED, sum: [0.22] }, { sum: [0] }] },
+  // Slow beats aloft; grounded the wings drape and lift into a buffet; dead they hang (the left mirrors the right).
+  { bone: 'wingL', channel: 'rotation.z', cases: [{ when: { alive: false }, sum: [0.4] },
+    { when: GROUNDED, sum: [0.14, { of: [{ wave: 't', rate: 1.1 }, -0.06] }, { when: BUFFET, of: [{ attack: true }, 0.4] }] },
+    { sum: [{ of: [{ wave: 't', rate: 1.5 }, -0.34] }] }] },
+  { bone: 'wingR', channel: 'rotation.z', cases: [{ when: { alive: false }, sum: [-0.4] },
+    { when: GROUNDED, sum: [-0.14, { of: [{ wave: 't', rate: 1.1 }, 0.06] }, { when: BUFFET, of: [{ attack: true }, -0.4] }] },
+    { sum: [{ of: [{ wave: 't', rate: 1.5 }, 0.34] }] }] },
+  { bone: 'tail', channel: 'rotation.y', cases: [{ when: GROUNDED, sum: [{ of: [{ wave: 't', rate: 0.9 }, 0.3] }] },
+    { when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 1.2 }, 0.3] }] }, { sum: [0] }] },
+  { bone: 'tail', channel: 'rotation.x', cases: [{ when: { ...GROUNDED, ...BUFFET }, sum: [{ of: [{ attack: true }, -0.7] }] }, { sum: [0] }] },
+];

@@ -1,5 +1,6 @@
+import { clipAnimate } from '@wildshard/sdk/species/clips';
 import { SkittererBrain } from '../runtime/species/skitterer';
-import { SKITTERER_DATA } from '../data/species/skitterer';
+import { SKITTERER_DATA, SKITTERER_CLIPS } from '../data/species/skitterer';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
@@ -22,19 +23,5 @@ export const SAND_SKITTERER_LOOK: SpeciesLook = { id: 'sunscar.look.sandSkittere
   rigContract: { skeleton: 'sunscar.sandSkitterer', sockets: ['body', 'head', 'legsL', 'legsR', 'tail'], clips: ['idle', 'walk', 'attack', 'hit', 'die'] },
   build: () => ({ bones: bones(), furParts: [], hardParts: [skittererBody()], eyeParts: [],
     dims: { bodyY: 0.22, bodyHalfLen: 0.45, bodyRadius: 0.3, headRadius: 0.17, legLen: 0.2, feet: [], halfWidth: 0.45 } }),
-  animate: ({ bones: b, t, alive, deathT, speed, attack, mem }) => {
-    const body = b['body'], head = b['head'], left = b['legsL'], right = b['legsR'], tail = b['tail'];
-    const burrow = mem['burrow'] ?? 0, scurry = Math.min(1, Math.abs(speed) / 3) * Math.sin(t * 26);
-    if (body) {
-      // The bind height is kept in `mem` on the first frame: the burrow and the rear move the bone from it.
-      const base = mem['bodyY'] ?? body.position.y; mem['bodyY'] = base;
-      body.position.y = base - burrow * 0.62 + (attack >= 0 ? attack * 0.12 : 0);
-      body.rotation.x = attack >= 0 ? -attack * 0.45 : 0;
-      body.rotation.z = alive ? 0 : Math.PI * Math.min(1, Math.max(0, deathT));
-    }
-    if (left) left.rotation.y = alive ? scurry * 0.5 : 0.6;
-    if (right) right.rotation.y = alive ? -scurry * 0.5 : -0.6;
-    if (head) head.rotation.y = alive ? Math.sin(t * 9) * 0.08 : 0;
-    if (tail) tail.rotation.x = alive ? -0.3 - (attack >= 0 ? attack * 0.5 : 0) : 0;
-  },
+  animate: clipAnimate(SKITTERER_CLIPS),
 };

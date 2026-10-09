@@ -1,3 +1,5 @@
+import { clipAnimate } from '@wildshard/sdk/species/clips';
+import { GALE_WISP_CLIPS } from '../data/creatureClips';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
@@ -26,6 +28,5 @@ export const GALE_WISP_LOOK: SpeciesLook = { id: 'far.look.galeWisp', species: G
       { geometry: new TorusGeometry(0.55, 0.04, 3, 8), bone: 2, color: 0xffffff, rot: [Math.PI / 2.6, 0.4, 0] },
     ])],
     dims: { bodyY: 0, bodyHalfLen: 0.4, bodyRadius: 0.45, headRadius: 0.2, legLen: 0.1, feet: [], halfWidth: 0.75 } }),
-  animate: ({ bones, t, alive }) => { const swirl = bones['swirl'], body = bones['body'];
-    if (swirl) swirl.rotation.y = t * (alive ? 6 : 1); if (body) body.scale.setScalar(alive ? 1 + Math.sin(t * 7) * 0.08 : 0.5); },
+  animate: clipAnimate(GALE_WISP_CLIPS),
 };

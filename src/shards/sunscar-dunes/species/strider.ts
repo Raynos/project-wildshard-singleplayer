@@ -1,4 +1,5 @@
-import { DUNE_STRIDER } from '../data/species/strider';
+import { clipAnimate } from '@wildshard/sdk/species/clips';
+import { DUNE_STRIDER, STRIDER_CLIPS } from '../data/species/strider';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { BufferGeometry } from 'three';
@@ -44,22 +45,5 @@ export const DUNE_STRIDER_LOOK: SpeciesLook = { id: 'sunscar.look.duneStrider', 
     return { bones: body.bones, furParts: [], hardParts: [body.geometry], eyeParts: [],
       dims: { bodyY: body.h * 0.7, bodyHalfLen: 1.3, bodyRadius: 0.75, headRadius: 0.4, legLen: body.h * 0.5, feet: [], halfWidth: 0.7 } };
   },
-  animate: ({ bones: b, t, alive, deathT, speed, phase, mem }) => {
-    const body = b['body'], head = b['head'], tail = b['tail'], paw = mem['paw'] ?? 0, winded = mem['winded'] ?? 0;
-    const gait = Math.min(1, Math.abs(speed) / 2) * (speed > 6 ? 0.75 : 0.45), swing = Math.sin(phase * Math.PI * 2);
-    LEGS.forEach(([name], i) => {
-      const leg = b[name]; if (!leg) return;
-      const front = i < 2, side = i % 2 === 0 ? 1 : -1;
-      leg.rotation.x = alive ? swing * gait * (front === (i % 2 === 0) ? 1 : -1) : -0.3;
-      if (front && side > 0 && paw > 0) leg.rotation.x = -0.9 + Math.abs(Math.sin(t * 9)) * 0.9; // the paw: lift and stamp
-      leg.rotation.z = alive ? 0 : side * 0.9 * Math.min(1, Math.max(0, deathT));
-    });
-    if (body) {
-      const base = mem['bodyY'] ?? body.position.y; mem['bodyY'] = base;
-      body.position.y = base - (alive ? winded * 0.25 : 1.2 * Math.min(1, Math.max(0, deathT)));
-      body.rotation.z = alive ? 0 : 0.25 * Math.min(1, Math.max(0, deathT));
-    }
-    if (head) head.rotation.x = alive ? (paw > 0 ? 0.35 : 0) + winded * 0.5 + Math.sin(t * 1.3) * 0.05 : 0.7;
-    if (tail) tail.rotation.y = alive ? Math.sin(t * 2.1) * 0.3 : 0;
-  },
+  animate: clipAnimate(STRIDER_CLIPS),
 };

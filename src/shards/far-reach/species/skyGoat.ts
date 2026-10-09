@@ -1,3 +1,5 @@
+import { clipAnimate } from '@wildshard/sdk/species/clips';
+import { SKY_GOAT_CLIPS } from '../data/creatureClips';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
@@ -41,15 +43,5 @@ export const goatBody = (): AnimalSpecies => skyBody('sky-goat') ?? goatCode();
 export const SKY_GOAT_LOOK: SpeciesLook = { id: 'far.look.skyGoat', species: SKY_GOAT.id, kind: 'skyGoat', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.skyGoat', sockets: ['body', 'head', 'legFL', 'legFR', 'legBL', 'legBR'], clips: ['idle', 'walk', 'attack', 'hit', 'die'] },
   build: () => goatBody(),
-  animate: ({ bones, t, alive, speed, phase, attack, deathT }) => {
-    // A stride-locked walk (the gait phase from the engine), opposite pairs in step, a clear swing even at a graze.
-    const gait = alive ? Math.min(1, Math.abs(speed) / 0.8) : 0, swing = Math.sin(phase * Math.PI * 2) * 0.62 * gait;
-    const fl = bones['legFL'], fr = bones['legFR'], bl = bones['legBL'], br = bones['legBR'], head = bones['head'], body = bones['body'];
-    if (fl) fl.rotation.x = swing; if (br) br.rotation.x = swing; if (fr) fr.rotation.x = -swing; if (bl) bl.rotation.x = -swing;
-    // The ram's windup drops the head (horns forward), the charge holds it there; dead goats fold their legs.
-    const ram = attack >= 0 ? Math.min(1, attack * 3) : 0;
-    if (head) head.rotation.x = alive ? Math.sin(t * 1.3) * 0.08 + ram * 0.55 + Math.abs(swing) * 0.08 : 0.5;
-    if (body) body.rotation.x = alive ? Math.sin(phase * Math.PI * 4) * 0.03 * gait : 0;
-    if (!alive && deathT > 0) for (const leg of [fl, fr, bl, br]) if (leg) leg.rotation.x = 1.1 * deathT;
-  },
+  animate: clipAnimate(SKY_GOAT_CLIPS),
 };
