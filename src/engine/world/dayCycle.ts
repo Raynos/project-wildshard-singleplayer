@@ -1,10 +1,11 @@
 import { Vector3 } from 'three';
+import { checkDayClockState, clockDayPhase, clockHour, clockPeriod, hourPhase, scheduleSeconds, scheduleSegment, stepDayClock, wrapClock, type DayClockPhase, type DayClockSegment, type DayClockState } from '../sim/dayClock';
 
-export type DayPhase = 'dawn' | 'day' | 'golden' | 'dusk' | 'night';
+export type DayPhase = DayClockPhase;
 export type TimePick = 'live' | 'midday' | 'golden' | 'sunset' | 'night';
 export type LightPreset = 'dawn' | 'noon' | 'dusk' | 'night';
 export type PhaseListener = (phase: DayPhase, prev: DayPhase) => void;
-export interface ScheduleSeg { phase: DayPhase; from: number; to: number; minutes: number }
+export type ScheduleSeg = DayClockSegment;
 export interface DayKeys<K> {
   coordinate: 'phase' | 'elevation';
   frames: readonly (readonly [number, K])[];
@@ -28,11 +29,9 @@ export interface DayCycleSpec<K = never> {
 }
 export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress'>;
 
-const wrap = (n: number, period: number): number => ((n % period) + period) % period;
-export function phaseOfHour(h: number): DayPhase {
-  const x = wrap(h, 24);
-  return x >= 4.5 && x < 7 ? 'dawn' : x >= 7 && x < 16.5 ? 'day' : x >= 16.5 && x < 18 ? 'golden' : x >= 18 && x < 19.75 ? 'dusk' : 'night';
-}
+const wrap = wrapClock;
+/** The fixed hour table a phase clock names its phase by (sim/dayClock.ts). */
+export function phaseOfHour(h: number): DayPhase { return hourPhase(h); }
 export function compassDir(azimuth: number, elevation: number, out = new Vector3()): Vector3 {
   const az = azimuth * Math.PI / 180, el = elevation * Math.PI / 180;
   return out.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
@@ -44,7 +43,11 @@ export function smooth(e0: number, e1: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/** One clock mechanism. Its schedule, paths, curves and look keys belong to content. */
+/**
+ * One clock mechanism. Its schedule, paths, curves and look keys belong to content.
+ * Its law (advance, hour, phase) is sim/dayClock.ts's, shared with the renderer-free host: `SimHost.useDayClock` steps a
+ * DayCycle on its fixed step and saves it with `snapshot` / `restore`.
+ */
 export class DayCycle<K = never> {
   readonly spec: DayCycleSpec<K>;
   private value: number;
@@ -61,18 +64,14 @@ export class DayCycle<K = never> {
   constructor(spec: DayCycleSpec<K>) {
     if (spec.schedule.length === 0) throw new Error('DayCycle: empty schedule');
     this.spec = spec;
-    this.value = wrap(spec.start, spec.units === 'phase' ? 1 : 24);
-    this.cycle = spec.schedule.reduce((sum, seg) => sum + seg.minutes * 60, 0);
+    this.value = wrap(spec.start, clockPeriod(spec));
+    this.cycle = scheduleSeconds(spec.schedule);
     this.lastPhase = this.dayPhase;
   }
   get phase(): number { return this.spec.units === 'phase' ? this.value : this.hour / 24; }
   set phase(p: number) { this.value = this.spec.units === 'phase' ? p : wrap(p * 24, 24); this.checkPhase(); }
-  get hour(): number {
-    if (this.spec.units === 'hour') return this.value;
-    const day = this.spec.dayFraction ?? 20 / 24, p = this.value;
-    return (p < day ? 6 + 12 * p / day : 18 + 12 * (p - day) / (1 - day)) % 24;
-  }
-  get dayPhase(): DayPhase { return this.spec.units === 'hour' ? this.segAt(this.hour).phase : phaseOfHour(this.hour); }
+  get hour(): number { return clockHour(this.spec, this.value); }
+  get dayPhase(): DayPhase { return clockDayPhase(this.spec, this.value); }
   get dayMinutes(): number { return this.cycle / 60; }
   get maxElevation(): number { return 'maxElevation' in this.spec.sun ? this.spec.sun.maxElevation : 0; }
   get azimuthOffset(): number { return 'azimuthOffset' in this.spec.sun ? this.spec.sun.azimuthOffset : 0; }
@@ -94,12 +93,18 @@ export class DayCycle<K = never> {
   }
   update(dt: number): void {
     if (this.paused) return;
-    if (this.spec.units === 'phase') this.value = (this.value + dt * this.scale / this.cycle) % 1;
-    else if (dt > 0) {
-      const seg = this.segAt(this.hour), rate = (seg.to - seg.from) / Math.max(1e-3, seg.minutes * 60);
-      this.value = wrap(this.value + dt * this.scale * rate, 24);
-    }
+    this.value = stepDayClock(this.spec, this.value, dt, this.scale, this.cycle);
     this.checkPhase();
+  }
+  /** The whole mutable state as plain values (SimHost's strict snapshot); listeners and `onSet` are not state. */
+  snapshot(): DayClockState {
+    return { value: this.value, paused: this.paused, scale: this.scale, cycle: this.cycle, held: this.held === null ? null : { ...this.held }, last: this.lastPhase };
+  }
+  /** Exact restore of a `snapshot`: no listener fires and `onSet` is not called. */
+  restore(state: DayClockState): void {
+    const s = checkDayClockState(state);
+    this.value = s.value; this.paused = s.paused; this.scale = s.scale; this.cycle = s.cycle;
+    this.held = s.held === null ? null : { ...s.held }; this.lastPhase = s.last;
   }
   setTime(t: TimePick): void {
     this.paused = t !== 'live';
@@ -107,7 +112,7 @@ export class DayCycle<K = never> {
   }
   async set(to: number | DayPhase | 'noon' | 'midnight'): Promise<void> {
     const named: Record<DayPhase | 'noon' | 'midnight', number> = { dawn: 5.6, day: 10, noon: 12, golden: 17.1, dusk: 18.15, night: 22.5, midnight: 0 };
-    this.value = wrap(typeof to === 'number' ? to : named[to], this.spec.units === 'phase' ? 1 : 24);
+    this.value = wrap(typeof to === 'number' ? to : named[to], clockPeriod(this.spec));
     this.checkPhase();
     await this.onSet?.();
   }
@@ -165,10 +170,5 @@ export class DayCycle<K = never> {
     const prev = this.lastPhase; this.lastPhase = phase;
     for (const l of this.listeners.slice()) if (l.phase === null || l.phase === phase) l.fn(phase, prev);
   }
-  private segAt(hour: number): ScheduleSeg {
-    for (const s of this.spec.schedule) if ((hour >= s.from && hour < s.to) || (hour + 24 >= s.from && hour + 24 < s.to)) return s;
-    const first = this.spec.schedule[0];
-    if (!first) throw new Error('DayCycle: empty schedule');
-    return first;
-  }
+  private segAt(hour: number): ScheduleSeg { return scheduleSegment(this.spec.schedule, hour); }
 }

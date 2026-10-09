@@ -25,6 +25,8 @@ import { groups } from './physics/groups';
 import { tagCollider } from './physics/surface';
 import { Flags } from './world/interact/flags';
 import { QuestState, type QuestDef } from './quest/core';
+import type { DayCycle, DayCycleClock, DayCycleSpec } from './world/dayCycle';
+import { clockDayPhase, clockPeriod, wrapClock, type DayClockState } from './sim/dayClock';
 
 /** The embedded simulation contract. Versions change when level or command semantics change. */
 export const SIM_API_VERSION = 1;
@@ -48,6 +50,10 @@ export interface SimLevel {
   ground: { size: number; height: number };
   player: { at: { x: number; y: number; z: number }; yaw: number; speed: number };
   entities: readonly SimSpawn[]; weapon: SimStrike; quests: readonly QuestDef[];
+  /** SF72: where the day clock a runtime installs (SimHost.useDayClock) starts, in that clock's own units (its spec's
+   *  `start`: the day fraction for a 'phase' clock, the hour for an 'hour' clock), over the clock's own start. A witness
+   *  sets it to begin near dusk without ticking a whole day. Absent keeps the level's exact bytes. */
+  day?: { start: number };
 }
 /** Resolved world-space movement and an optional targeted attack for one fixed tick. */
 export interface SimCommand {
@@ -80,6 +86,9 @@ export interface SimBodyBands {
   /** The physics body LOD (default true); false keeps every body's host motor. */
   physics?: boolean;
 }
+
+/** The day clock a host steps: the page's DayCycle (world/dayCycle.ts), read through its usual query surface. */
+type SimDayClock = DayCycleClock & Pick<DayCycle, 'snapshot' | 'restore'> & { readonly spec: Pick<DayCycleSpec, 'units' | 'schedule' | 'dayFraction'> };
 
 /** The existing page owns this traveller, its health update and its one physics/movement step. */
 export interface SimExternalPlayer { position: Vector3; readonly yaw: number; health: PlayerHealth; owner: object }
@@ -157,6 +166,7 @@ export class SimHost {
   private heightAt: (x: number, z: number) => number;
   private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; physics: boolean } | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
+  private day: SimDayClock | undefined;
 
   constructor(level: SimLevel, ports: SimHostPorts) {
     if (level.version !== SIM_API_VERSION) throw new RangeError('Unsupported simulation level version');
@@ -319,6 +329,34 @@ export class SimHost {
         entity.motor = motor;
       } else if (entity.motor !== null && !keep) { entity.motor.dispose(); entity.motor = null; }
     }
+  }
+  /**
+   * SF72: step the page's own day clock on this host, once, at install (a restoring host installs it again before
+   * restore): build the shard's DayCycle exactly as its page sky does (its spec, cycle, scale) and hand it here. It then
+   * advances one fixed step at the start of every tick, before the step callbacks, so a runtime reads `dayPhase`,
+   * `night`, `dusk`, `hour` and hears `onDusk` / `onNight` / `onPhase` as the page's systems do. The level's `day.start`
+   * (if any) moves it there first, silently. It rides the strict snapshot as `day` with exact restore; a host without a
+   * clock keeps its exact bytes. Returns the clock.
+   */
+  useDayClock<C extends SimDayClock>(clock: C): C {
+    if (this.disposed || this.embedded || this.day !== undefined) throw new Error('A day clock belongs to an owned host, once');
+    const start = this.level.day?.start;
+    if (start !== undefined) {
+      if (!Number.isFinite(start)) throw new RangeError('Invalid simulation day start');
+      const value = wrapClock(start, clockPeriod(clock.spec));
+      clock.restore({ ...clock.snapshot(), value, last: clockDayPhase(clock.spec, value) });
+    }
+    this.day = clock;
+    return clock;
+  }
+  /** The installed day clock, if any (its query surface: hour, phase, dayPhase, night, dusk, onDusk…). */
+  get dayClock(): DayCycleClock | undefined { return this.day; }
+  /** The day clock as plain values (SimSnapshot.day); undefined without a clock. */
+  dayClockState(): DayClockState | undefined { return this.day?.snapshot(); }
+  /** Exact day clock restore: saved state is refused unless this host has a clock, and the reverse. */
+  restoreDayClock(saved: DayClockState | undefined): void {
+    if ((saved === undefined) !== (this.day === undefined)) throw new RangeError('Snapshot day clock does not match');
+    if (saved !== undefined) this.day?.restore(saved);
   }
   /** Reinstall the admitted terrain height query before a fresh host's same-engine continuation resumes. */
   setHeightQuery(heightAt: (x: number, z: number) => number): void { this.heightAt = heightAt; }
@@ -500,6 +538,7 @@ export class SimHost {
     this.state.tick++;
     const bands = this.bands;
     if (bands !== undefined) { bands.clocks.beginTick(FIXED_STEP); if (bands.physics) this.syncBodies(); }
+    this.day?.update(FIXED_STEP);
     for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
     for (const run of this.callbacks.values()) run(FIXED_STEP, this);
     for (const [id, runner] of this.strikes) this.updateStrike(id, runner);

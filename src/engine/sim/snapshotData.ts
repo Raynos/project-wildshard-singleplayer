@@ -3,6 +3,7 @@ import { deflateSync, inflateSync } from 'fflate';
 import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
 import type { SimValue } from '../sim';
 import type { SimSnapshot } from './snapshot';
+import { DAY_CLOCK_PHASES } from './dayClock';
 
 const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));
@@ -84,6 +85,8 @@ const entries = {
   adapters: v.array(v.strictObject({ id, state: simValue })),
   bands: v.optional(v.strictObject({ rates: uint32, time: nonnegative, frame: integer, frameDt: nonnegative,
     rows: v.array(v.strictObject({ id, rate: id, brain: bandClock, body: bandClock })) })),
+  day: v.optional(v.strictObject({ value: finite, paused: v.boolean(), scale: finite, cycle: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+    held: v.nullable(v.strictObject({ value: finite, paused: v.boolean() })), last: v.picklist(DAY_CLOCK_PHASES) })),
   boardColliders: v.optional(v.pipe(v.array(nonnegative), v.minLength(1))), // Rapier handles, as colliderTags'
 };
 const snapshot: v.GenericSchema<SimSnapshot> = v.strictObject({ ...entries,
