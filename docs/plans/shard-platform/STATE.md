@@ -19,9 +19,7 @@
 | Nine Dragon | 0.2 % | 722/5033 | ✗ |
 | Blender Template (8th, not counted) | 97.2 % | — | — |
 
-**Live:**
-- **main:** 1c74e4319+, CI green.
-- **Deploy:** fix `697fca989`; G258/G266/G270 release dispatching. Build id goes here when live.
+**Live:** production **1c74e431-mv1exih9** (2026-10-09 20:23 UTC) carries G258 public Pine/Nalati/Sky, G266 Signal tiles-only, G270 public grid, G271 saver off, the shadow fix. Deploy unstuck: W0 `46397ef46` (no duplicate full test for a CI-green pin); deploys stay hourly.
 
 **Lanes (5 Codex + 5 Opus):**
 - **sp-x1:** Nalati SF72.
