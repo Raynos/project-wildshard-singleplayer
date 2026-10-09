@@ -346,3 +346,203 @@ An agent-day is the plan's unit (≈ 1–2 wall-clock hours of the fleet).
    Captures that are identical within SF9c's tolerance ship without a board.
 4. **Quest, dialogue and encounter generators: Part A or Part B?** **Recommend:** Part B as one S-row. Part A gets the
    commons skeleton, the packs the kit fills, `abi.as` and the shared bridge mover.
+
+## 7. SF54 final-module dissolution (2026-10-09)
+
+This section supersedes the historical “nothing has moved yet” statement for the final SF54 modules.
+`f72b637c8` moved them into the game package. The reviewed boundary now ratchets **game imports outside
+`runtime/`** at their actual per-file count; it does not invent SDK aliases for the same runtime classes.
+Engine imports remain the separate G143/SF62 transition debt. Only exact files in the SF73 frozen-copy
+inventory receive the `-legacy` exception, never a suffix or a manifest declaration alone.
+
+| Moved module | Verdict | Consumer / destination | Reason |
+|---|---|---|---|
+| `systems/npc/figureRig` | (c) single shard | Nalati `models/npc/figureRig` | Only Nalati fits and merges these figures; preserve the fitting/atlas code unchanged. Future build-time fitting belongs to Nalati's generator. |
+| `systems/npc/figureMotion` | (c) single shard | Nalati `models/npc/figureMotion` | Only Nalati advances these NPC poses; keep its rig types local. |
+| `systems/npc/faceHeads` | (c) single shard | Driftwood `npc/faceHeads` | Only Driftwood loads these heads; preserve the module-local caches and decoder. |
+| `systems/effects/install` | (a) platform system | Game installer; SDK effects declarations/runtime boundary | Status effects and Developer controls are platform services. Direct page imports remain transition debt, not a renamed SDK class library. |
+| `systems/effects/view` + `status.css` | (a) platform system | Game status widget called by effects installer | Shared effect display belongs to the platform HUD; authored content supplies effects data. |
+| `systems/items/declared` | (a) platform system | Boot-owned family/view registration; authored family ids | The shardfile resolves registered item families by id; authors do not import this installer. |
+| `systems/items/declaredSword` | (a) platform system | Private view builder used by item registration | A platform-rendered recipe, private to its installer. |
+| `systems/tools/hoverboard` | (a) platform system | Boot-owned registration; authored tool id | Input/motor lifecycle is platform-owned, not build-time commons. |
+| `systems/icons` + merge types | (a) platform system | Boot icon registry; declared icon ids | One registry serves every shard. Existing direct calls remain explicit transition debt. |
+
+None of these final runtime modules is a build-time-only commons pack or proven dead. This job preserves
+live platform systems and does not create facade aliases that leave author code coupled to them.
+
+### Current path to zero
+
+The actual oxlint AST scan at `6f1ff85b5b198f632ac9d1ea23b5b2e243c0de00` finds **233 game import sites
+in 128 files outside `runtime/`**, including type imports, dynamic imports, re-exports and relative game
+imports. The new `wildshard/shard-game-imports` ratchet starts with those per-file counts and only shrinks.
+It is not a hard-zero rule on the existing tree.
+
+| Shard | Current sites | NPC-local moves | Remaining after those moves |
+|---|---:|---:|---:|
+| Driftwood | 58 | 2 | 56 |
+| Nalati | 46 | 6 | 40 |
+| Pine | 69 | 0 | 69 |
+| Signal Dunes | 29 | 0 | 29 |
+| Nine Dragon | 16 | 0 | 16 |
+| Sky Reach | 14 | 0 | 14 |
+| Template | 1 | 0 | 1 |
+| **Total** | **233** | **8** | **225** |
+
+The list below is a measured migration checklist, not exemptions to add. Each site must become a real
+SDK declaration/capability, a shard-local module, or part of that shard's explicit runtime conversion
+with unchanged loaded behavior. The per-file ratchet prevents fresh coupling.
+
+#### _template
+
+- `manifest.ts`: 1
+
+#### driftwood-isle
+
+- `creatures/install.ts`: 1
+- `creatures/species.ts`: 2
+- `creatures/tables.ts`: 1
+- `fpArms.ts`: 3
+- `generators/movers.ts`: 1
+- `loadout/rows.ts`: 2
+- `loot/effects.ts`: 1
+- `loot/finds.ts`: 2
+- `loot/keepsakes.ts`: 3
+- `loot/perks.ts`: 1
+- `loot/presentation.ts`: 4
+- `loot/shop.ts`: 1
+- `loot/tables.ts`: 1
+- `manifest.ts`: 1
+- `models/trader.ts`: 1
+- `npc/Castaway.ts`: 1
+- `onboarding/firstMinutes.ts`: 1
+- `plugin.ts`: 4
+- `quest/Complete.ts`: 3
+- `quest/Spine.ts`: 3
+- `quest/adventure.ts`: 5
+- `quest/facts.ts`: 3
+- `quest/install.ts`: 4
+- `quest/people.ts`: 1
+- `quest/rows.ts`: 3
+- `roster.ts`: 1
+- `species/sailor.ts`: 1
+- `weapons/swordView.ts`: 1
+- `world/sea.ts`: 1
+- `world/systems.ts`: 1
+
+#### far-reach
+
+- `boot/files.ts`: 1
+- `combat/stormRoc.ts`: 1
+- `generators/movers.ts`: 1
+- `manifest.ts`: 1
+- `plugin.ts`: 1
+- `quest/install.ts`: 5
+- `roster.ts`: 1
+- `world/baked.ts`: 1
+- `world/build.ts`: 1
+- `world/skyDock.ts`: 1
+
+#### nalati-grasslands
+
+- `adventure.ts`: 4
+- `bag.ts`: 1
+- `campPeople.ts`: 2
+- `campPeopleModels.ts`: 1
+- `campPeopleProfiles.ts`: 2
+- `combat/balbalWarriors.ts`: 1
+- `combat/eliteRoster.ts`: 1
+- `combat/elites.ts`: 1
+- `combat/goldenKing.ts`: 2
+- `combat/stormTitan.ts`: 2
+- `creatures/raidDirector.ts`: 1
+- `feats.ts`: 1
+- `look/grass.ts`: 2
+- `look/horizon.ts`: 1
+- `look/skyRig.ts`: 1
+- `manifest.ts`: 1
+- `models/gear.ts`: 1
+- `models/people.ts`: 1
+- `playground/registration.ts`: 1
+- `plugin.ts`: 4
+- `ride/Mount.ts`: 1
+- `ride/ride.ts`: 1
+- `stealth.ts`: 2
+- `weapons/equipment.ts`: 1
+- `weapons/loadout.ts`: 2
+- `weapons/nalatiSkins.ts`: 2
+- `world/WeatherFX.ts`: 1
+- `world/dressing/life.ts`: 1
+- `world/dressing/place.ts`: 1
+- `world/installWeather.ts`: 2
+- `world/terrain.ts`: 1
+
+#### nine-dragon-stack
+
+- `grapple/FeiZhua.ts`: 1
+- `manifest.ts`: 1
+- `plugin.ts`: 3
+- `vm/arms.ts`: 2
+- `vm/fpArms.ts`: 2
+- `vm/jianRow.ts`: 2
+- `vm/swordSupport.ts`: 1
+- `world/entries.ts`: 1
+- `world/jian.ts`: 2
+- `world/portalRide.ts`: 1
+
+#### pine-hollow
+
+- `combat/chargeTells.ts`: 2
+- `combat/ctx.ts`: 2
+- `combat/eliteRoster.ts`: 2
+- `combat/elites.ts`: 1
+- `combat/install.ts`: 6
+- `compendium.ts`: 1
+- `compendium/install.ts`: 1
+- `debug/options.ts`: 2
+- `dev/perfLap.ts`: 1
+- `feats.ts`: 1
+- `items.ts`: 1
+- `life/index.ts`: 3
+- `loadout/finishes.ts`: 1
+- `loadout/loadout.ts`: 7
+- `manifest.ts`: 1
+- `models/skinningKnife.ts`: 1
+- `models/tokenShelf.ts`: 1
+- `plugin.ts`: 5
+- `quest/index.ts`: 7
+- `quest/npcModels.ts`: 1
+- `quest/npcProfiles.ts`: 1
+- `quest/npcRig.ts`: 1
+- `quest/trades.ts`: 1
+- `roster.ts`: 1
+- `species/hulls.ts`: 2
+- `species/looks.ts`: 2
+- `species/rows.ts`: 2
+- `weapons/longbowProfile.ts`: 1
+- `world/PineWeatherFX.ts`: 1
+- `world/drawnModels.ts`: 1
+- `world/rainProgram.ts`: 1
+- `world/streams.ts`: 2
+- `world/trophyWall.ts`: 3
+- `world/weather.ts`: 3
+
+#### sunscar-dunes
+
+- `boot/files.ts`: 1
+- `combat/creatures.ts`: 2
+- `combat/matriarch.ts`: 5
+- `look/groundTiles.ts`: 3
+- `manifest.ts`: 1
+- `plugin.ts`: 6
+- `quest/install.ts`: 5
+- `roster.ts`: 1
+- `weapons/Bullwhip.ts`: 1
+- `world/baked.ts`: 1
+- `world/build.ts`: 2
+- `world/places.ts`: 1
+
+### Frozen NPC compatibility and removal
+
+The three literal historical modules remain exported at `@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` only while an exact SF73-registered frozen file imports them. Primary Nalati will own unchanged copies at `models/npc/`; primary Driftwood will own `npc/faceHeads`. They are rendering code, not bounded `runtime/` code. There are no facade aliases and no edits inside frozen copies. After the primary moves, a guard permits external imports of these historical exports only from registered legacy files; the old modules retain their existing internal type dependency unchanged. Delete each old implementation and its public export in the same commit that retires its last registered legacy consumer.
+
+Relocations are serialized after the Pine combat landing, sp-x1's Nalati reins rebake and sp-x5's G258 claim. Each source move includes its real bake and loaded-input freshness proofs; the table above lists their projected reductions until those commits land.

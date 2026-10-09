@@ -20,6 +20,7 @@ import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations } from './runtime-performance.mjs';
+import { shardGameImport } from './shard-imports.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -866,6 +867,21 @@ const shardNames = rule('The game names no particular shard (E405 LAYER-PURITY)'
 // defines the binding (`@wildshard/<layer>/<path>` across layers, a relative path within one); a package's public surface
 // is its package.json `exports`. A re-export of a third-party module (a bundler shim) is not a barrel and passes.
 const ownModule = (source) => typeof source === 'string' && (source.startsWith('.') || source.startsWith('@wildshard/'));
+// SF54/G136: the author boundary is the SDK; existing direct game imports are shrink-only transition debt.
+const shardGameImports = rule('Shard code outside runtime imports the SDK, not the game', (context) => {
+  const filename = pathOf(context);
+  if (legacySourcePath(filename) !== null) return {};
+  const local = /^src\/shards\/[^/]+\/(.+)$/u.exec(filename)?.[1];
+  if (local === undefined || local.startsWith('runtime/')) return {};
+  const check = (node, source) => {
+    if (shardGameImport(context.filename, source)) report(context, node, `Author imports use @wildshard/sdk; game imports belong in runtime/: ${source}`);
+  };
+  return {
+    ...importsVisitor(node => { check(node, importPrefix(node.source)); }),
+    TSImportType(node) { check(node, importPrefix(node.source)); },
+  };
+});
+
 const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (context) => {
   if (!pathOf(context).startsWith('src/')) return {};
   const imported = new Set();
@@ -887,6 +903,7 @@ const plugin = {
   meta: { name: 'wildshard' },
   rules: {
     'no-reexport': noReexport,
+    'shard-game-imports': shardGameImports,
     'runtime-commons': runtimeCommons,
     'runtime-performance': runtimePerformance,
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,

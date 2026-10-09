@@ -33,6 +33,7 @@
     "wildshard/shard-names": "error",
     "wildshard/engine-internal": "error",
     "wildshard/no-reexport": "error",
-    "wildshard/shard-services": "error"
+    "wildshard/shard-services": "error",
+    "wildshard/shard-game-imports": "error"
   }
 }
