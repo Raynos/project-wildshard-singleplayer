@@ -1,0 +1,292 @@
+{
+ "base": "http://127.0.0.1:4411",
+ "device": "iPhone 16 Pro",
+ "runs": [
+  {
+   "variant": "off",
+   "row": "off",
+   "poses": [
+    {
+     "name": "spawn",
+     "x": 0,
+     "z": 70,
+     "yaw": 0,
+     "pitch": 2,
+     "feet": {
+      "y": 21.366935312966664,
+      "x": 0.0008368609610442945,
+      "z": 69.99704592870512
+     }
+    },
+    {
+     "name": "whip",
+     "x": 0,
+     "z": 66,
+     "yaw": -20,
+     "pitch": -4,
+     "feet": {
+      "y": 20.33272869055215,
+      "x": 0.0007444527059305983,
+      "z": 65.99617663745448
+     }
+    },
+    {
+     "name": "ray",
+     "x": 0,
+     "z": 70,
+     "yaw": -3,
+     "pitch": 9,
+     "feet": {
+      "y": 21.366828944803704,
+      "x": 0.0008424761012975068,
+      "z": 69.9970262305651
+     }
+    },
+    {
+     "name": "quest",
+     "x": 4,
+     "z": -63,
+     "yaw": 15,
+     "pitch": 22,
+     "feet": {
+      "y": 18.965431573985413,
+      "x": 3.9998423199452873,
+      "z": -62.99591870198128
+     }
+    },
+    {
+     "name": "centre",
+     "x": 0,
+     "z": 0,
+     "yaw": 0,
+     "pitch": -6,
+     "feet": {
+      "y": 18.0689209363735,
+      "x": 0.0035888480215362506,
+      "z": -0.0005458127247948141
+     }
+    }
+   ],
+   "coldLoadMs": 3418,
+   "witness": {
+    "meshes": 2,
+    "tiles": 0,
+    "groupChildren": 2,
+    "gpu": {
+     "geometries": 284,
+     "textures": 57
+    },
+    "heapMB": 10,
+    "memory": {
+     "totals": {
+      "gpu": 127893920,
+      "ram": 73116924
+     },
+     "accountedBytes": 96769515,
+     "unattributed": {
+      "gpu": 21715284,
+      "ram": 0
+     }
+    }
+   },
+   "errors": [
+    "console.warning: [sunscar-dunes] brazier-hd not loaded, the flat model stands in: Error: Runtime cache coverage exceeds its measured bytes\n    at i.validateCoverage (http://127.0.0.1:4411/assets/allocator-SfkGA640.js:1:5259)\n    at i.reserveClaim (http://127.0.0.1:4411/assets/allocator-SfkGA640.js:1:3463)\n    at i.r"
+   ],
+   "shardfileRequests": 0,
+   "shardfileSample": []
+  },
+  {
+   "variant": "off2",
+   "row": "off",
+   "poses": [
+    {
+     "name": "spawn",
+     "x": 0,
+     "z": 70,
+     "yaw": 0,
+     "pitch": 2,
+     "feet": {
+      "y": 21.366935312966664,
+      "x": 0.0008368609610442945,
+      "z": 69.99704592870512
+     }
+    },
+    {
+     "name": "whip",
+     "x": 0,
+     "z": 66,
+     "yaw": -20,
+     "pitch": -4,
+     "feet": {
+      "y": 20.332825260132058,
+      "x": 0.0007494181827496504,
+      "z": 65.99615114902372
+     }
+    },
+    {
+     "name": "ray",
+     "x": 0,
+     "z": 70,
+     "yaw": -3,
+     "pitch": 9,
+     "feet": {
+      "y": 21.366828944803704,
+      "x": 0.0008424761012975068,
+      "z": 69.9970262305651
+     }
+    },
+    {
+     "name": "quest",
+     "x": 4,
+     "z": -63,
+     "yaw": 15,
+     "pitch": 22,
+     "feet": {
+      "y": 18.965349645000103,
+      "x": 3.999843371413135,
+      "z": -62.99594591042478
+     }
+    },
+    {
+     "name": "centre",
+     "x": 0,
+     "z": 0,
+     "yaw": 0,
+     "pitch": -6,
+     "feet": {
+      "y": 18.06882386915447,
+      "x": 0.003565080580301583,
+      "z": -0.0005421983671567432
+     }
+    }
+   ],
+   "coldLoadMs": 3126,
+   "witness": {
+    "meshes": 2,
+    "tiles": 0,
+    "groupChildren": 2,
+    "gpu": {
+     "geometries": 284,
+     "textures": 57
+    },
+    "heapMB": 10,
+    "memory": {
+     "totals": {
+      "gpu": 127893920,
+      "ram": 67739836
+     },
+     "accountedBytes": 96769515,
+     "unattributed": {
+      "gpu": 21715284,
+      "ram": 0
+     }
+    }
+   },
+   "errors": [
+    "console.warning: [sunscar-dunes] brazier-hd not loaded, the flat model stands in: Error: Runtime cache coverage exceeds its measured bytes\n    at i.validateCoverage (http://127.0.0.1:4411/assets/allocator-SfkGA640.js:1:5259)\n    at i.reserveClaim (http://127.0.0.1:4411/assets/allocator-SfkGA640.js:1:3463)\n    at i.r"
+   ],
+   "shardfileRequests": 0,
+   "shardfileSample": []
+  },
+  {
+   "variant": "on",
+   "row": "on",
+   "poses": [
+    {
+     "name": "spawn",
+     "x": 0,
+     "z": 70,
+     "yaw": 0,
+     "pitch": 2,
+     "feet": {
+      "y": 21.30268498068981,
+      "x": 0.0006790744082536548,
+      "z": 69.99878804928721
+     }
+    },
+    {
+     "name": "whip",
+     "x": 0,
+     "z": 66,
+     "yaw": -20,
+     "pitch": -4,
+     "feet": {
+      "y": 20.332632696091547,
+      "x": 0.0007489075073863205,
+      "z": 65.99615246602298
+     }
+    },
+    {
+     "name": "ray",
+     "x": 0,
+     "z": 70,
+     "yaw": -3,
+     "pitch": 9,
+     "feet": {
+      "y": 21.302565125891853,
+      "x": 0.0006976492190915451,
+      "z": 69.99875486148994
+     }
+    },
+    {
+     "name": "quest",
+     "x": 4,
+     "z": -63,
+     "yaw": 15,
+     "pitch": 22,
+     "feet": {
+      "y": 18.93617053832312,
+      "x": 3.9997872030708095,
+      "z": -62.995893051396706
+     }
+    },
+    {
+     "name": "centre",
+     "x": 0,
+     "z": 0,
+     "yaw": 0,
+     "pitch": -6,
+     "feet": {
+      "y": 18.068885171436705,
+      "x": 0.0033499477158329682,
+      "z": -3.45073968617271e-05
+     }
+    }
+   ],
+   "coldLoadMs": 3096,
+   "witness": {
+    "meshes": 49,
+    "tiles": 48,
+    "groupChildren": 49,
+    "gpu": {
+     "geometries": 317,
+     "textures": 57
+    },
+    "heapMB": 10,
+    "memory": {
+     "totals": {
+      "gpu": 124668728,
+      "ram": 68121304
+     },
+     "accountedBytes": 96769515,
+     "unattributed": {
+      "gpu": 21715284,
+      "ram": 0
+     }
+    }
+   },
+   "errors": [
+    "console.warning: [sunscar-dunes] brazier-hd not loaded, the flat model stands in: Error: Runtime cache coverage exceeds its measured bytes\n    at i.validateCoverage (http://127.0.0.1:4411/assets/allocator-SfkGA640.js:1:5259)\n    at i.reserveClaim (http://127.0.0.1:4411/assets/allocator-SfkGA640.js:1:3463)\n    at i.r"
+   ],
+   "shardfileRequests": 61,
+   "shardfileSample": [
+    "200 /shardfiles/sunscar-dunes/4bb138a8a5587e227023d66a0ef2491449ea1370cd559d601b2140a8c8968b95",
+    "200 /shardfiles/sunscar-dunes/edcd1d66103523fcde41a55b857dfeb7483b2450c5035ef905cb7b5d22f0d37a",
+    "200 /shardfiles/sunscar-dunes/2f11f9f934ade5893e82b44420f4534a37b5bd6910f0adce8273792098d688a9",
+    "200 /shardfiles/sunscar-dunes/01c4b206090240052118d68e94ef1bfc7093f5162bbecd0074b7d76770798616",
+    "200 /shardfiles/sunscar-dunes/d19110dd7696b68cbbcab466f5bca67bc85e55a65cfa773a4559f1ce1d1032a4",
+    "200 /shardfiles/sunscar-dunes/3adbb2f9be024713b8aea7dda55083abf8edf0192847ed342a84b97d1f6c2b7e"
+   ]
+  }
+ ]
+}

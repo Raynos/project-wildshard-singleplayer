@@ -1,0 +1,62 @@
+{
+ "spawn": {
+  "noise(off-off2)": {
+   "meanAbs": 0.009,
+   "over8": 0.0,
+   "over24": 0.0
+  },
+  "swap(off-on)": {
+   "meanAbs": 0.912,
+   "over8": 4.8,
+   "over24": 0.24
+  }
+ },
+ "whip": {
+  "noise(off-off2)": {
+   "meanAbs": 0.05,
+   "over8": 0.0,
+   "over24": 0.0
+  },
+  "swap(off-on)": {
+   "meanAbs": 0.306,
+   "over8": 0.84,
+   "over24": 0.03
+  }
+ },
+ "ray": {
+  "noise(off-off2)": {
+   "meanAbs": 0.045,
+   "over8": 0.32,
+   "over24": 0.02
+  },
+  "swap(off-on)": {
+   "meanAbs": 0.508,
+   "over8": 1.61,
+   "over24": 0.2
+  }
+ },
+ "quest": {
+  "noise(off-off2)": {
+   "meanAbs": 0.023,
+   "over8": 0.04,
+   "over24": 0.0
+  },
+  "swap(off-on)": {
+   "meanAbs": 0.475,
+   "over8": 2.51,
+   "over24": 0.33
+  }
+ },
+ "centre": {
+  "noise(off-off2)": {
+   "meanAbs": 0.034,
+   "over8": 0.24,
+   "over24": 0.01
+  },
+  "swap(off-on)": {
+   "meanAbs": 1.139,
+   "over8": 5.46,
+   "over24": 0.52
+  }
+ }
+}
