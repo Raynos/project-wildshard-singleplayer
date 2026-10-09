@@ -39,15 +39,40 @@ export function trustedHeadlessModule(input: string): string {
 function hasFactory(value: unknown): value is { prepareHeadlessRuntime: PrepareHeadlessRuntime } {
   return typeof value === 'object' && value !== null && 'prepareHeadlessRuntime' in value && typeof value.prepareHeadlessRuntime === 'function';
 }
-/** Worker-side composition only: owns one real SimHost, its native continuation and its scoped installers. */
-export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimePreparation, entry: TrustedHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
+/**
+ * One owned, renderer-free trusted world: the explicitly selected entry's plan installed into one native host. The worker's
+ * tick adapter (`createTrustedHeadlessAdapter`) and the grid's server-side admission (a `GridSimulation` `load` port,
+ * `test/proof/<slug>/grid-ready.mjs`) both compose exactly this, so an admitted region runs the same runtime, controllers
+ * and continuation as the worker.
+ * - `host` is owned and stepped by its owner (the worker's `step`, or `GridSimulation.step` while the region is current);
+ *   it is never embedded and owns its player motor until a grid detaches it.
+ * - `lend(commands)` hands the runtime the coming tick's tick-protocol commands (`HeadlessRuntimeInstallation.commands`)
+ *   and opens a fresh effect buffer; `effects` reads what the runtime emitted since that lend.
+ * - `step(commands)` is the worker's fenced tick: lend, the last `player` command drives the host, and a nonfinite body
+ *   refuses the tick.
+ */
+export interface TrustedHeadlessResident {
+  readonly host: SimHost;
+  lend: (commands: readonly HeadlessCommand[]) => void;
+  readonly effects: readonly HeadlessEffect[];
+  step: (commands: readonly HeadlessCommand[]) => void;
+  proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
+  dispose: () => void;
+}
+/**
+ * Load the explicitly selected trusted entry (`TrustedHeadlessRuntime`, a local file module, never a shardfile URL) and
+ * install its plan into a fresh host, or into a host restored from `snapshot`. The plan must keep the shard's identity;
+ * installation must not emit effects. An object continuation (the grid's packed cache) goes through the same strict wire
+ * decode as the worker's string, so no path restores from a live object. A failed install disposes the world it built.
+ */
+export async function createTrustedHeadlessResident(preparation: HeadlessRuntimePreparation, entry: TrustedHeadlessRuntime, snapshot?: string | Readonly<SimSnapshot>): Promise<TrustedHeadlessResident> {
   const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
   if (!hasFactory(loaded)) throw new Error('Trusted runtime must export prepareHeadlessRuntime');
   const plan = await loaded.prepareHeadlessRuntime(preparation);
   const identity = { id: preparation.shard.identity.slug, seed: preparation.shard.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
-  const saved = snapshot === undefined ? undefined : decodeSimSnapshot(snapshot);
+  const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
   const context: HeadlessRuntimeInstallation = { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, emit: effect => { effects.push(effect); } };
   const ports = { ...plan.ports, rapier: preparation.rapier };
   let installing: SimHost | undefined;
@@ -59,21 +84,35 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeP
     });
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
   } catch (error) { installing?.dispose(); throw error; }
+  const lend = (input: readonly HeadlessCommand[]): void => { commands = input; effects = []; };
   return {
+    host, lend,
+    get effects() { return effects; },
     step: input => {
-      commands = input; effects = [];
+      lend(input);
       let player: Parameters<SimHost['step']>[0];
       for (const command of input) if (command.kind === 'player') player = { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw, ...(command.attack === undefined ? {} : { attack: command.attack }), ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }), ...(command.dodge === undefined ? {} : { dodge: command.dodge }) };
       host.step(player);
       if (![host.player.position, ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
     },
-    commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(host)), effects }),
-    finish: () => {
+    proveEntries: () => {
       if (plan.proveEntries === undefined) throw new Error('Trusted runtime has no entry proof');
-      const proof = plan.proveEntries(host);
+      return plan.proveEntries(host);
+    },
+    dispose: () => { host.dispose(); },
+  };
+}
+/** Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers). */
+export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimePreparation, entry: TrustedHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
+  const resident = await createTrustedHeadlessResident(preparation, entry, snapshot), { host } = resident;
+  return {
+    step: input => { resident.step(input); },
+    commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(host)), effects: [...resident.effects] }),
+    finish: () => {
+      const proof = resident.proveEntries();
       if (proof.lanes < 1 || proof.steps < 1) throw new Error('Trusted runtime entry proof is empty');
       return { ticks: host.state.tick, ...proof };
     },
-    dispose: () => { host.dispose(); },
+    dispose: () => { resident.dispose(); },
   };
 }

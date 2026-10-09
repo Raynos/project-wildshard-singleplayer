@@ -122,3 +122,13 @@ reinstalls matching actors with `host.spawn` before native restore, and register
 respawn clock through its `onStep` adapter. Installation does not step or emit rewards. Native
 restore validates the resulting identities and immutable recipes; it never silently drops actors.
 `host.retire` releases a deferred actor's native motor and strike when its keeper retires it.
+
+The worker composes the entry through `createTrustedHeadlessResident(preparation, { module }, snapshot?)`
+(`@wildshard/sdk/headlessRuntime`), and so does the grid's server-side admission: the resident is one owned
+native host with the entry installed (fresh, or strictly restored from a wire string or a grid continuation
+object), `lend(commands)` for the coming tick's commands with a fresh effect buffer (`effects`), the
+worker's fenced `step(commands)`, `proveEntries()` and `dispose()`. Its `host` and `dispose` make it a
+`GridResident`, so a `GridSimulation` `load` port admits a native shard's cell with the same lease, readiness
+fence, durable checkpoint, frozen-while-away and re-entry restore as a data-only cell
+(`test/proof/<slug>/grid-ready.mjs`, shared by `test/proof/compatibility/gridReady.mjs`). The browser grid's
+regional runtime admission is unchanged.
