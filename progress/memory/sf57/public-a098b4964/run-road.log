@@ -1,0 +1,99 @@
+serve-build: building a098b496435e4562e1be13cc6ccb4c903daade78 a098b4964 → /private/tmp/claude-501/sp-builders/sf57-qualify4/soak-road/out/serve/20261009-020013-4403/dist
+serve-build: pid 87905, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4403
+PREPARED /private/tmp/claude-501/sp-builders/sf57-qualify4/soak-road/out/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sf57-qualify4/soak-road/out/GO only after go
+sim-lane: created sf57-sp-x3-shipped-66948 (F740C4FD-A23A-43B4-998E-AE3B7957D758)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[   2.0s] WebContent 94833 gone during loading
+[   2.0s] WebContent 95477 gone during loading
+[   3.0s] WebContent 94850 gone during loading
+[   3.0s] WebContent 95057 gone during loading
+[   3.0s] WebContent 95689 gone during loading
+[  31.2s] phase -> baseline-0
+{"layout":"shipped","cycle":0,"route":"home-to-road","seconds":0.055}
+[  56.3s] phase -> drive
+{"layout":"shipped","cycle":0,"route":"road-0","seconds":89.843}
+{"layout":"shipped","cycle":0,"route":"road-1","seconds":90.71}
+{"layout":"shipped","cycle":0,"route":"road-2","seconds":112.217}
+{"layout":"shipped","cycle":0,"route":"road-3","seconds":133.188}
+{"layout":"shipped","cycle":0,"route":"road-4","seconds":153.852}
+{"layout":"shipped","cycle":0,"route":"road-5","seconds":175.186}
+{"layout":"shipped","cycle":0,"route":"road-6","seconds":198.139}
+{"layout":"shipped","cycle":0,"route":"road-7","seconds":219.141}
+{"layout":"shipped","cycle":0,"route":"road-8","seconds":240.071}
+{"layout":"shipped","cycle":0,"route":"road-9","seconds":260.98}
+{"layout":"shipped","cycle":0,"route":"road-10","seconds":281.903}
+{"layout":"shipped","cycle":0,"route":"road-11","seconds":302.875}
+{"layout":"shipped","cycle":0,"route":"road-12","seconds":323.74}
+{"layout":"shipped","cycle":0,"route":"road-13","seconds":344.832}
+{"layout":"shipped","cycle":0,"route":"road-14","seconds":365.803}
+{"layout":"shipped","cycle":0,"route":"road-15","seconds":386.791}
+{"layout":"shipped","cycle":0,"route":"road-16","seconds":407.801}
+{"layout":"shipped","cycle":0,"route":"road-17","seconds":447.299}
+[ 562.6s] phase -> settle-1
+{"layout":"shipped","cycle":1,"route":"road-0","seconds":527.24}
+[ 583.7s] phase -> drive
+{"layout":"shipped","cycle":1,"route":"road-1","seconds":566.893}
+{"layout":"shipped","cycle":1,"route":"road-2","seconds":588.013}
+{"layout":"shipped","cycle":1,"route":"road-3","seconds":609.015}
+{"layout":"shipped","cycle":1,"route":"road-4","seconds":629.981}
+{"layout":"shipped","cycle":1,"route":"road-5","seconds":651.016}
+{"layout":"shipped","cycle":1,"route":"road-6","seconds":672.192}
+{"layout":"shipped","cycle":1,"route":"road-7","seconds":693.411}
+{"layout":"shipped","cycle":1,"route":"road-8","seconds":714.374}
+{"layout":"shipped","cycle":1,"route":"road-9","seconds":735.294}
+{"layout":"shipped","cycle":1,"route":"road-10","seconds":756.242}
+{"layout":"shipped","cycle":1,"route":"road-11","seconds":777.35}
+{"layout":"shipped","cycle":1,"route":"road-12","seconds":798.268}
+{"layout":"shipped","cycle":1,"route":"road-13","seconds":819.268}
+{"layout":"shipped","cycle":1,"route":"road-14","seconds":840.11}
+{"layout":"shipped","cycle":1,"route":"road-15","seconds":861.049}
+{"layout":"shipped","cycle":1,"route":"road-16","seconds":881.921}
+{"layout":"shipped","cycle":1,"route":"road-17","seconds":921.808}
+[1036.5s] phase -> settle-2
+{"layout":"shipped","cycle":2,"route":"road-0","seconds":1000.842}
+[1057.6s] phase -> drive
+{"layout":"shipped","cycle":2,"route":"road-1","seconds":1040.292}
+{"layout":"shipped","cycle":2,"route":"road-2","seconds":1061.422}
+{"layout":"shipped","cycle":2,"route":"road-3","seconds":1082.334}
+{"layout":"shipped","cycle":2,"route":"road-4","seconds":1103.372}
+{"layout":"shipped","cycle":2,"route":"road-5","seconds":1124.584}
+{"layout":"shipped","cycle":2,"route":"road-6","seconds":1146.267}
+{"layout":"shipped","cycle":2,"route":"road-7","seconds":1167.437}
+{"layout":"shipped","cycle":2,"route":"road-8","seconds":1188.797}
+{"layout":"shipped","cycle":2,"route":"road-9","seconds":1209.974}
+{"layout":"shipped","cycle":2,"route":"road-10","seconds":1231.043}
+{"layout":"shipped","cycle":2,"route":"road-11","seconds":1252.582}
+{"layout":"shipped","cycle":2,"route":"road-12","seconds":1273.665}
+{"layout":"shipped","cycle":2,"route":"road-13","seconds":1294.88}
+{"layout":"shipped","cycle":2,"route":"road-14","seconds":1316.212}
+{"layout":"shipped","cycle":2,"route":"road-15","seconds":1337.242}
+{"layout":"shipped","cycle":2,"route":"road-16","seconds":1358.276}
+{"layout":"shipped","cycle":2,"route":"road-17","seconds":1397.891}
+[1512.5s] phase -> settle-3
+{"layout":"shipped","cycle":3,"route":"road-0","seconds":1477.217}
+[1533.7s] phase -> drive
+{"layout":"shipped","cycle":3,"route":"road-1","seconds":1516.805}
+{"layout":"shipped","cycle":3,"route":"road-2","seconds":1537.881}
+{"layout":"shipped","cycle":3,"route":"road-3","seconds":1558.806}
+{"layout":"shipped","cycle":3,"route":"road-4","seconds":1579.567}
+{"layout":"shipped","cycle":3,"route":"road-5","seconds":1600.48}
+{"layout":"shipped","cycle":3,"route":"road-6","seconds":1621.549}
+{"layout":"shipped","cycle":3,"route":"road-7","seconds":1642.806}
+{"layout":"shipped","cycle":3,"route":"road-8","seconds":1663.587}
+{"layout":"shipped","cycle":3,"route":"road-9","seconds":1684.551}
+{"layout":"shipped","cycle":3,"route":"road-10","seconds":1705.498}
+{"layout":"shipped","cycle":3,"route":"road-11","seconds":1726.816}
+{"layout":"shipped","cycle":3,"route":"road-12","seconds":1748.03}
+{"layout":"shipped","cycle":3,"route":"road-13","seconds":1769.427}
+{"layout":"shipped","cycle":3,"route":"road-14","seconds":1790.484}
+[1868.7s] phase -> unloaded
+[1888.8s] phase -> done
+{"phases": {"loading": {"samples": 31, "seconds": 30.2, "gamePid": 94294, "gameHighGB": 0.633, "gameSampledGB": 0.627, "allWebContentGB": 0.661, "gpuProcessGB": 0.183}, "baseline-0": {"samples": 25, "seconds": 24.2, "gamePid": 94294, "gameHighGB": 0.526, "gameSampledGB": 0.506, "allWebContentGB": 0.558, "gpuProcessGB": 0.179}, "drive": {"samples": 1738, "seconds": 1811.4, "gamePid": 94294, "gameHighGB": 0.562, "gameSampledGB": 0.558, "allWebContentGB": 0.601, "gpuProcessGB": 0.197}, "settle-1": {"samples": 21, "seconds": 20.1, "gamePid": 94294, "gameHighGB": 0.484, "gameSampledGB": 0.484, "allWebContentGB": 0.524, "gpuProcessGB": 0.191}, "settle-2": {"samples": 21, "seconds": 20.1, "gamePid": 94294, "gameHighGB": 0.483, "gameSampledGB": 0.483, "allWebContentGB": 0.523, "gpuProcessGB": 0.192}, "settle-3": {"samples": 21, "seconds": 20.1, "gamePid": 94294, "gameHighGB": 0.484, "gameSampledGB": 0.484, "allWebContentGB": 0.523, "gpuProcessGB": 0.192}, "unloaded": {"samples": 20, "seconds": 19.1, "gamePid": 94294, "gameHighGB": 0.483, "gameSampledGB": 0.483, "allWebContentGB": 0.522, "gpuProcessGB": 0.163}}, "lost": [{"pid": 94833, "phase": "loading", "elapsed": 2.0}, {"pid": 95477, "phase": "loading", "elapsed": 2.0}, {"pid": 94850, "phase": "loading", "elapsed": 3.0}, {"pid": 95057, "phase": "loading", "elapsed": 3.0}, {"pid": 95689, "phase": "loading", "elapsed": 3.0}]}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":805433197,"loadingPeakBytes":905161837,"phoneEstimateBytes":1127606475.8,"baselines":[{"cycle":0,"start":1791529469.193,"end":1791529481.443,"samples":12,"bytes":726396541},{"cycle":1,"start":1791529997.766,"end":1791530008.669,"samples":11,"bytes":726690069},{"cycle":2,"start":1791530471.77,"end":1791530482.263,"samples":10,"bytes":725903709},{"cycle":3,"start":1791530948.309,"end":1791530958.648,"samples":10,"bytes":726362461}],"baselineDeltaBytes":[492832,786360,0,458752],"loops":[{"cycle":0,"complete":true,"peakBytes":805433197,"troughBytes":721186357},{"cycle":1,"complete":true,"peakBytes":751790277,"troughBytes":725073597},{"cycle":2,"complete":true,"peakBytes":739917725,"troughBytes":724713221},{"cycle":3,"complete":false,"peakBytes":739926125,"troughBytes":527133972}],"recovery":false,"calibration":true,"ratios":[{"cycle":1,"raw":1.73706408660082,"adjusted":1.0199506317584284},{"cycle":2,"raw":1.735184388812987,"adjusted":1.0180709339705953},{"cycle":3,"raw":1.7362809795851066,"adjusted":1.019167524742715}],"missingGlSamples":0,"sampling":true,"leakZero":true,"admitted":[],"refused":[],"attemptedEveryCell":true,"crossroads":16,"rehearsal":false,"limitation":null}
+SF57 DONE /private/tmp/claude-501/sp-builders/sf57-qualify4/soak-road/out

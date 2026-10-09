@@ -1,0 +1,21 @@
+{
+  "sha": "a098b496435e4562e1be13cc6ccb4c903daade78",
+  "out": "/private/tmp/claude-501/sp-builders/sf57-qualify4/soak-road/out",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4403/",
+      "version": {
+        "build": "a098b49-mv0mbuf6",
+        "time": "2026-10-09T07:02:51.433Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "road"
+  ],
+  "rehearsal": false
+}

@@ -1,0 +1,22 @@
+{
+  "sha": "a098b496435e4562e1be13cc6ccb4c903daade78",
+  "out": "/private/tmp/claude-501/sp-builders/sf57-qualify4/soak/out",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4404/",
+      "version": {
+        "build": "a098b49-mv0kzmjm",
+        "time": "2026-10-09T06:25:28.542Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells",
+    "road"
+  ],
+  "rehearsal": false
+}
