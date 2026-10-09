@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./combat/collisionPose": "./combat/collisionPose.ts",
     "./combat/clipTiming": "./combat/clipTiming.ts",
     "./systems/audio/combatCues": "./systems/audio/combatCues.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
