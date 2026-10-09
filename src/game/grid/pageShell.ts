@@ -7,9 +7,9 @@ import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
 import type { PageMode } from './boot';
 
-/** G226 is unfinished: only Developer grid boots may replace the shipped borrowed home with an owned shell. */
-export function useOwnedGridHome(mode: PageMode, developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>): boolean {
-  return mode === 'grid' && developer && manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined;
+/** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads. */
+export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>): boolean {
+  return mode === 'grid' && manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined;
 }
 
 /**

@@ -36,8 +36,8 @@ it('keeps catalogue identity while excluding every resident home asset and autho
   expect(terrainFor(shell).heightAt(0, 0)).toBeLessThan(-500);
 });
 
-it('gates the owned shell to Developer and preserves the shipped borrowed home otherwise', () => {
-  expect(useOwnedGridHome('grid', false, PINE_HOLLOW)).toBe(false);
+it('uses an owned shell in public and Developer grids while preserving standalone boots', () => {
+  expect(useOwnedGridHome('grid', false, PINE_HOLLOW)).toBe(true);
   expect(useOwnedGridHome('grid', true, PINE_HOLLOW)).toBe(true);
   expect(useOwnedGridHome('shard', true, PINE_HOLLOW)).toBe(false);
   expect(useOwnedGridHome('grid', true, { gridShardfile: '/fixture/shard.json' })).toBe(false);
