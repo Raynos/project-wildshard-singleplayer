@@ -22,9 +22,9 @@ Jake picked **B, stylized** (art/maps/round-1-baked-map-style/). Commit `edad546
 | Nalati | 131 KB |
 | Signal Dunes | 24 KB |
 | template | 26 KB |
-| Nine Dragon | not rebaked (world WIP in the shared tree); still the placeholder |
+| Nine Dragon | 13 KB (`f9a2e7493`, below) |
 
-`contact-sheet.jpg` shows each shard standalone on an iPhone 16 Pro in portrait (phone tier, muted, Developer on): the HUD
+`contact-sheet.jpg` (Nine Dragon the seventh column, top right) shows each shard standalone on an iPhone 16 Pro in portrait (phone tier, muted, Developer on): the HUD
 minimap on top, Bag ▸ MAP below. The full frames are the `<slug>-minimap.jpg` and `<slug>-mapscreen.jpg` files. The real
 fog of war still dims unexplored ground. The bottom row is the grid (G252b, below).
 
@@ -55,3 +55,19 @@ a clean export, so the stamps hash HEAD's world and not the shared tree's WIP.
 
 Reproduce: `scripts/serve-build.sh --rev <sha>` from a scratch dir, then
 `scripts/browser-lane.sh node progress/shard-platform/g252/capture-b.mjs <url> <out dir> far-reach,_template grid`.
+
+## Nine Dragon (`f9a2e7493`)
+
+The g252 lane skipped Nine Dragon (world WIP in the shared tree); it is baked from a clean export of HEAD. From straight up
+its towers and the bridge blocks (136–175 m) roof over the street and frame the square, so `look/map.json` sets
+**`clipAbove: 153`** (new and generic in `scripts/map-hash.mjs` / `scripts/bake-maps.mjs`: the bake camera's near plane;
+153 m is just over the deck at Y0 + 24) and the cut towers drop out. What shows is the square, the stair-street west, the
+street south, the north lane and the Well's galleries east. The style is `ground` with a colour table clustered from its
+colour pass (cool granite floors, the plaza's cinnabar neon, level changes inked by slope, the Well's drop dark with a blue
+lip) and a **transparent void** (new for `ground` in `scripts/map-stylize.py`: undrawn pixels see-through with a cast-shadow
+veil and a rim; no other shard's style names one, so their output is unchanged), as Sky Reach's. 13 KB.
+`nine-dragon-stack-minimap.jpg`, `nine-dragon-stack-mapscreen.jpg` (iPhone 16 Pro portrait, phone tier, muted, Developer on,
+0 page errors; the fog of war dims the unexplored floors).
+
+Reproduce: `scripts/serve-build.sh --rev f9a2e7493`, then
+`scripts/browser-lane.sh node progress/shard-platform/g252/capture.mjs <url> <out dir> nine-dragon-stack`.
