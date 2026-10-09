@@ -1,37 +1,52 @@
-# SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten, never appended)
+# SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-09 15:00 CT.** Councils done (11 rounds, 4 councils). Plan file = decisions + rows; this file = live status.
+**2026-10-09 15:20 CT.** Councils done (11 rounds). Part A only; S1–S22 not started.
+
+**Milestones:**
+- **M1:** done (re-board SF16 at HEAD).
+- **M2:** open. SF57 must re-qualify on the G270 layout and SF22 gates must pass formally; then G269, Jake's three phone runs.
+- **M3:** open. 1 of 7 at 80/20 (Template 1, 90.4 %).
+
+**80/20 (share · runtime/ceiling · compatible):**
+
+| Shard | Share | Runtime / ceiling | Compatible |
+|---|---|---|---|
+| Signal Dunes | 20.9 % | 806/965 | ✓ |
+| Sky Reach | 9.6 % | 1288/1377 | ✓ |
+| Pine | 3.1 % | 5317/4339 | ✗ |
+| Driftwood | 1.0 % | 5868/3753 | ✗ |
+| Nalati | 0.4 % | 9583/6618 | ✗ |
+| Nine Dragon | 0.2 % | 722/5033 | ✗ |
+| Blender Template (8th, not counted) | 97.2 % | — | — |
 
 **Live:**
-- **Production:** b20b732d (13:10 UTC).
-- **main:** 1c74e4319, CI green. Not deploying: boot-smoke skipped on it (sp-x5 fixing).
-- **G258** (public Pine / Nalati / Sky Reach) and **G270–G272** (public grid, saver off) ship with the next deploy.
+- **main:** 1c74e4319+, CI green.
+- **Deploy:** fix `697fca989`; G258/G266/G270 release dispatching. Build id goes here when live.
 
-**Gates:**
-- Desktop 59.88 fps on the template with the harness on (`d34018fdc`).
-- SF57 soak: both shipped-layout legs PASS (`ee8c0bcfd`).
-- Frame floors on HEAD: op-floor is re-measuring all 8 shards and both grids.
+**Lanes (5 Codex + 5 Opus):**
+- **sp-x1:** Nalati SF72.
+- **sp-x2:** Pine SF72.
+- **sp-x4:** Driftwood SF72.
+- **sp-x5:** deploy → delete the shadow-bias row (Jake: keep new) → SF57 re-soak on G270 → SF22 gates.
+- **sp-x6:** blender-template card facade + far-deck seams.
+- **op-floor:** fps on HEAD, all shards and grids.
+- **op-loading:** SF67, no task > 100 ms.
+- **op-memdbg:** SF64 panel/report (< 10 % unattributed not reachable this session).
+- **op-process:** G273–G275 CI and hook cuts.
+- **op-bfill:** fill the Blender cell per G220 (Jake), board + video.
 
-**Done today:**
-- **Public grid:** G258 admission (`986dc7495`). G266 Signal tiles-only (`8cce2181c`). G270 grid, G271 saver, G272 verified (`d3704c31e`, `195597049`).
-- **New shard / legacy / kit:** SF55a + blender-template playable behind Developer (`d9312d5cc`, `48a8de415`). SF73 legacy copies + SHARDFILE for all six (`10a4fbc7d`, `0eabd2285`). SF54 kit guard (`4811026f9`).
-- **Maps, rendering:** SF66 places, coverage and bake fixes (`934b319ec`, `b44a3f020`). Shadow-acne fix (`f9fe9e81e`).
-- **Push pipeline:** witness manifests re-recorded at push (`ec89b2e60`), gate cache, own lease, exact-tip push (`420b061c8`, `693c85f5c`, `d8f159aa2`).
+**Unowned, next as slots free:**
+- **SF72:** Signal (~3.5k view lines to bake, Opus), Sky (~4.5k, Opus), Nine Dragon (ledger, Jian, gates, portal rides; Codex).
+- **Systems rows (Codex):** SF36 weapon rows (2 kit subclasses left); SF34 player modes; SF24 directors as the only path; SF27 brains (Pine/Nalati/Nine); SF26 commons packs (G259); SF66 map inside the shardfile.
+- **Opus:** SF28 panels (26 DOM files, E332); SF59/SF63 post and per-shard look; SF16 re-board; SF17b void wall + art check.
+- **Small:** frame-floor.mjs refuses Signal's Developer-off entry.
+- **Orphaned WIP:** untracked src/engine/ui/memoryPanel.ts + s_memory_debug_* strings (superseded by 8ecc29759): owner should drop.
 
-**Lanes (cap 5 Codex + 5 Opus):**
-- **sp-x1:** Nalati SF72. Elites, reins, mounted body, crouch and player driver done. Next: storm/night elites, boss, sabre, witness.
-- **sp-x2:** Pine SF72 tail. King FK activation, native ranged, dialogue, producers, weather, thralls.
-- **sp-x4:** Driftwood SF72. Posed volumes, then treasures, camera, zipline, ecology.
-- **sp-x5:** release pipeline (deploy stuck). Then idle.
-- **sp-x6:** blender-template card facade (`16d7eb142` API), far-deck seams, floor.
-- **Opus:** op-audit (true open rows), op-floor (fps on HEAD), op-loading (SF67), op-memdbg (SF64), op-process (G273–G275 CI and hook cuts).
+**Jake:**
+- **Done:** pier ramps, Signal tiles, shadow new, public 3×3.
+- **Pending:**
+  - G269 phone runs (+ the KTX2 phone verdict);
+  - G260 Blender board;
+  - confirm G120/G123/SF48 boards are moot.
 
-**Open, not assigned:**
-- SF66 map inside the shardfile (after G258).
-- frame-floor.mjs still refuses Signal's Developer-off entry.
-- Blender Template's public slot (Jake's board pending).
-
-**Waiting on Jake:**
-- G269: grid public after three phone runs.
-- G260: Blender Template board (sent).
-- Pier ramps: done (flared).
+The for-Jake page (docs/reviews/shard-platform-for-jake.md) is stale since 10-04.
