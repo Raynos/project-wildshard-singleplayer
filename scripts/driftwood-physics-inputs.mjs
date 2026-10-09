@@ -7,7 +7,7 @@ const MOVERS = new Set(['src/shards/driftwood-isle/data/movers.ts']);
 
 /** Exact native actor/collision/model inputs of Driftwood Isle; a changed recipe refuses the trusted headless bake (SF72). */
 export function driftwoodPhysicsInputs(root) {
-  const paths = ['shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/hybrid.ts', 'runtime/brains.ts']
+  const paths = ['shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/hybrid.ts', 'runtime/brains.ts', 'npc/faceHeads.ts']
     .map(path => `src/shards/driftwood-isle/${path}`);
   // the manager and the hunting brain that roll every body's draws, the creature floor, the physics ground and its cuts
   paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');

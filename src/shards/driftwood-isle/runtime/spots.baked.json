@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "1f97f1300928bfb0ce62eeb99a9e3fa2fca10c7e",
- "build": "1f97f13-mv156gye",
+ "revision": "3d7c0bed33aab48a18335383a4935007b5f43178",
+ "build": "3d7c0be-mv1avth8",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -18,8 +18,9 @@
   "src/shards/driftwood-isle/data/runtimeCost.ts": "1cc31272878c926574cf2c168172463c3df167fec2291d8c51abbb293ef6e03d",
   "src/shards/driftwood-isle/data/spawns.ts": "1b0558f83ccd2feaf219f93dcd1df0f3ed8e87665ac63a3c5ae4780d7f11c7b6",
   "src/shards/driftwood-isle/manifest.ts": "db3fcde752530e84e2f6d70c750f0dcf6eec43b64db6056bbac617c821be454d",
-  "src/shards/driftwood-isle/npc/Castaway.ts": "8ede25859186a0dd54881353e591d29f8344bf39d906c0be1b0ffcaf97a140e2",
+  "src/shards/driftwood-isle/npc/Castaway.ts": "73034bc4d6dd111a27158a50e6f8ba4d2cd224b24713ceb358c2836fcd59fb20",
   "src/shards/driftwood-isle/npc/Trader.ts": "68307ce1bb815156cbc469315772f67d0a2fe76be63bb346925bdaba04917f1e",
+  "src/shards/driftwood-isle/npc/faceHeads.ts": "5e522658a86d33296bf278c4ceca97d8e75f4738b1c30953936c0c6d39d27584",
   "src/shards/driftwood-isle/quest/Complete.ts": "1b161a8c7d782af7a93d219e4d94d3aa418e5abf94bc44083eeba263fa0ba45c",
   "src/shards/driftwood-isle/quest/Ecology.ts": "452fbe5935dc20943db983ee23bd4603974372e4f8c35284c3edbbe94209000d",
   "src/shards/driftwood-isle/quest/Feats.ts": "2bb8f8efe37b94af1748926c01bd15e6213012b5156c2ec62260fd04614bb62c",
