@@ -1,236 +1,71 @@
 {
   "audit": {
-    "sourceRevision": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
+    "sourceRevision": "2434193f659d6bab02e2622a317c1288c53e7249",
+    "candidate": "this commit (the SF72 witness flip on that revision)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
-    "exitStatus": 1,
-    "scope": "real entry import and partial declared-row ledger contracts; no gameplay proxy"
+    "exitStatus": 0,
+    "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, byte-exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
+    "runs": "two independent native processes, identical output"
   },
   "slug": "sunscar-dunes",
-  "entry": "runtime/index.ts",
-  "compatible": false,
+  "entry": "runtime/headless.ts",
+  "compatible": true,
   "headless": {
-    "status": "blocked",
-    "stage": "runtime-entry",
-    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/anim/rig.ts",
-    "ticksExecuted": 0
+    "status": "passed",
+    "ticksExecuted": 12318,
+    "hash": "60e955aada4e74446b7892bac80b76e726d3c617537b5b1bc45a1ad544696b80",
+    "victoryTick": 12198,
+    "attempts": 1,
+    "questComplete": true,
+    "facts": [
+      "sunscar.signal",
+      "sunscar.matriarch"
+    ],
+    "coins": 25,
+    "entries": {
+      "lanes": 92,
+      "steps": 46095
+    }
   },
   "replay": {
-    "status": "blocked",
-    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/anim/rig.ts",
-    "checkpointCaptured": false,
-    "suffixTicksExecuted": 0,
-    "reason": "No real headless runtime; no encounter checkpoint or complete continuation can be captured"
-  },
-  "declarations": {
-    "sourceLoaded": true,
-    "ordinarySpawns": 0,
-    "scripts": 0,
-    "runtimeBinds": [
-      "quests",
-      "ledger",
-      "items",
-      "spawns",
-      "terrain"
-    ],
-    "runtimeSpawns": {
-      "homes": [
-        {
-          "id": "sunscar.home:0",
-          "kind": "duneRay",
-          "look": "dusk",
-          "at": [
-            8,
-            -75
-          ],
-          "yaw": 0,
-          "respawn": 25
-        },
-        {
-          "id": "sunscar.home:1",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -30.493920028209534,
-            4.535026261898441
-          ],
-          "yaw": -3,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:2",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -32.75379526653711,
-            10.160234160918163
-          ],
-          "yaw": -0.9056048976068047,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:3",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -26.752284705253356,
-            9.304739577183398
-          ],
-          "yaw": 1.1887902047863905,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:4",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            59.02204575630376,
-            13.360596003276282
-          ],
-          "yaw": 6,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:5",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            63.399338632541834,
-            9.166635217141604
-          ],
-          "yaw": 8.094395102393195,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:6",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            57.57861561115441,
-            7.472768779582114
-          ],
-          "yaw": 10.18879020478639,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:7",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -23.182540993889887,
-            -41.456513927915
-          ],
-          "yaw": -2,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:8",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -21.456513927914997,
-            -36.81745900611011
-          ],
-          "yaw": -0.42920367320510344,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:9",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -16.817459006110113,
-            -38.543486072085
-          ],
-          "yaw": 1.1415926535897931,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:10",
-          "kind": "sandSkitterer",
-          "look": "dusk",
-          "at": [
-            -18.543486072085003,
-            -43.18254099388989
-          ],
-          "yaw": 2.7123889803846897,
-          "respawn": 50
-        },
-        {
-          "id": "sunscar.home:11",
-          "kind": "duneStrider",
-          "look": "dusk",
-          "at": [
-            100,
-            -50
-          ],
-          "yaw": 0,
-          "respawn": 70
-        },
-        {
-          "id": "sunscar.home:12",
-          "kind": "duneStrider",
-          "look": "dusk",
-          "at": [
-            -100,
-            0
-          ],
-          "yaw": 0,
-          "respawn": 70
-        }
-      ],
-      "bosses": [
-        {
-          "id": "sunscar.matriarch",
-          "kind": "duneMatriarch",
-          "look": "matriarch",
-          "at": [
-            -14,
-            -150
-          ],
-          "yaw": 0
-        }
-      ]
+    "status": "passed",
+    "checkpointCaptured": true,
+    "checkpointTick": 10620,
+    "checkpoint": {
+      "state": "fight",
+      "phase": 1,
+      "storm": 0.7,
+      "hp": 396
     },
-    "quests": [
-      "sunscar.signal"
+    "suffixTicksExecuted": 1698,
+    "victoryTick": 12198,
+    "hash": "9142e402b82f63c8a618a704ccae4392f16383211c7a0d66e9785a85da2600e3",
+    "replayHash": "9142e402b82f63c8a618a704ccae4392f16383211c7a0d66e9785a85da2600e3",
+    "workerTicks": 60,
+    "workerExact": true,
+    "suffixFacts": [
+      "sunscar.signal",
+      "sunscar.matriarch"
     ],
-    "ledgerRules": [
-      {
-        "fact": "sunscar.signal",
-        "origin": {
-          "kind": "engine",
-          "source": "quest.complete"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "sunscar.signal",
-            "title": "The signal",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "sunscar.matriarch",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.victory"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "sunscar.matriarch",
-            "title": "The Dune Matriarch",
-            "threshold": 1
-          }
-        ]
-      }
-    ]
+    "suffixCoins": 25
   },
   "ledger": {
-    "status": "partial",
+    "status": "passed",
     "rules": 2,
-    "facts": 2,
+    "facts": [
+      {
+        "name": "sunscar.signal",
+        "origin": "engine.quest.complete",
+        "tick": 12198,
+        "entity": "actor.player"
+      },
+      {
+        "name": "sunscar.matriarch",
+        "origin": "engine.encounter.victory",
+        "tick": 12198,
+        "entity": "sunscar.matriarch"
+      }
+    ],
     "achievements": [
       {
         "id": "sunscar.signal",
@@ -244,8 +79,8 @@
       }
     ],
     "durableReload": true,
-    "refusedWriteRetried": true,
     "duplicateStable": true,
-    "gameplayEmissionProven": false
+    "restoredReemits": 0,
+    "gameplayEmissionProven": true
   }
 }

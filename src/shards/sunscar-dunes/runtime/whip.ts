@@ -2,6 +2,8 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { ItemRuntime, type ItemSpec, type ItemState, type ItemTarget } from '@wildshard/engine/combat/items';
 import type { SimHost } from '@wildshard/engine/sim';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { lashContact } from '../weapons/lash';
 
 /** The declared whip row's id (data/items.ts) and its fixed-step adapter id. */
 export const WHIP_ID = 'weapon.sunscar-whip';
@@ -21,15 +23,31 @@ const Saved = v.strictObject({ version: finite, id: v.string(), tick: finite, co
 /**
  * Signal's bullwhip as its declared item row in the renderer-free host (SF72): the platform's own `ItemRuntime` with the
  * row's light (18) and heavy (16) contacts, reach, width and cooldowns, aimed from the player's eye at the commanded
- * target's body. The browser's trusted family (weapons/Bullwhip.ts) adds the lash's 0.12 s unroll, the heavy's second
+ * target's body. A body's contact point is where the lash first meets its head ball or body capsule, the browser
+ * whip's rule (weapons/lash.ts): the reach runs to her skin, never to her centre. The browser's trusted family (weapons/Bullwhip.ts) adds the lash's 0.12 s unroll, the heavy's second
  * lash, the pull and the stagger as presentation-timed extras; headless strikes are the row's single declared contacts,
  * never an invented one. Its cooldown and queued commands are exact continuation.
  */
 export function installSignalWhip(host: SimHost, row: ItemSpec, commands: () => readonly WhipCommand[]): ItemRuntime {
   if (row.kind !== 'weapon' || row.id !== WHIP_ID) throw new Error('Signal declares its whip as a weapon row');
-  const origin = new Vector3(), target = new Vector3();
+  const origin = new Vector3(), target = new Vector3(), eye = new Vector3(), ray = new Vector3();
+  const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
+  const reach = Math.max(row.light.range, row.heavy.range), width = row.light.width;
+  // Each body's contact point: where a lash from the eye at its centre first meets its head ball or body capsule (or
+  // its chest in the lane), the browser whip's rule (weapons/lash.ts); out of reach it stays the centre, which the
+  // item's own range then refuses.
+  const contact = (actor: AnimalSim): Vector3 => {
+    const centre = actor.position.clone(); centre.y += actor.dims.bodyY * actor.scale;
+    eye.copy(host.player.position); eye.y += EYE; ray.subVectors(centre, eye);
+    const length = ray.length(); if (length < 1e-9) return centre;
+    ray.multiplyScalar(1 / length);
+    actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
+    volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
+    const along = lashContact(eye, ray, reach, width, volumes, actor.position);
+    return along === null ? centre : eye.clone().addScaledVector(ray, along);
+  };
   const targets = (): readonly ItemTarget[] => [...host.entities.values()].map(actor =>
-    Object.assign(host.combat.targetPort(actor.combatActor(), actor), { aimPoint: actor.position.clone().add(new Vector3(0, actor.dims.bodyY * actor.scale, 0)) }));
+    Object.assign(host.combat.targetPort(actor.combatActor(), actor), { aimPoint: contact(actor) }));
   const whip = new ItemRuntime(row, { actor: host.player.health, combat: host.combat, hook: null, targets,
     effect: () => { throw new Error('The whip row declares no contact effect'); } });
   // the item copies the aim at its input boundary, so one buffer serves every command

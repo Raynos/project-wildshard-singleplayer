@@ -1,10 +1,11 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import { signalWitness } from './native';
 
-it('refuses replay without a real encounter checkpoint and complete native continuation', () => {
-  const result = nativeCompatibility('sunscar-dunes', 'replay');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
-  const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ compatible: false, replay: { status: 'blocked',
-    checkpointCaptured: false, suffixTicksExecuted: 0, dependency: 'Renderer dependency in Node simulation: repo:/src/engine/anim/rig.ts' } });
-});
+it('restores her storm-phase checkpoint byte-exactly and the suffix to her fall matches, in process and in the shipping worker', () => {
+  const result = signalWitness('replay');
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
+  const report = JSON.parse(result.stdout) as { replay: { hash: string; replayHash: string } };
+  expect(report).toMatchObject({ replay: { status: 'passed', checkpointCaptured: true, checkpoint: { state: 'fight', phase: 1 }, workerExact: true,
+    suffixFacts: ['sunscar.signal', 'sunscar.matriarch'], suffixCoins: 25 } });
+  expect(report.replay.replayHash).toBe(report.replay.hash);
+}, 120_000);

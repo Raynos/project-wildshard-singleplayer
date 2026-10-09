@@ -1,10 +1,12 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import { signalWitness } from './native';
 
-it('fails closed on the real trusted entry without executing an empty data proxy', () => {
-  const result = nativeCompatibility('sunscar-dunes', 'headless');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
+it('walks the signal quest, lights the fire and fells the Matriarch by tick commands alone, past 10,000 ticks, then proves its entries', () => {
+  const result = signalWitness('headless');
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ slug: 'sunscar-dunes', compatible: false,
-    headless: { status: 'blocked', ticksExecuted: 0, dependency: 'Renderer dependency in Node simulation: repo:/src/engine/anim/rig.ts' } });
-});
+  expect(report).toMatchObject({ slug: 'sunscar-dunes', entry: 'runtime/headless.ts',
+    headless: { status: 'passed', questComplete: true, facts: ['sunscar.signal', 'sunscar.matriarch'], coins: 25, entries: { lanes: 92 } } });
+  const headless = (report as { headless: { ticksExecuted: number; entries: { steps: number } } }).headless;
+  expect(headless.ticksExecuted).toBeGreaterThanOrEqual(10_000); expect(headless.entries.steps).toBeGreaterThan(0);
+}, 120_000);

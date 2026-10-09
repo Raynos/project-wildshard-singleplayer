@@ -1,8 +1,13 @@
-# Six native shards: fail-closed compatibility witnesses (E435 / §C / SF72)
+# Six native shards: compatibility witnesses (E435 / §C / SF72)
 
-**All six remain `compatible: false`.** These are executable audits of the real trusted entries, not
-headless gameplay implementations. No real runtime reaches a tick, no mid-encounter checkpoint is
-captured, and no replay hash is claimed. The renderer-free extraction is separate work.
+**Signal Dunes passes (`compatible: true`, SF72); the other five remain `compatible: false`.** Signal's witness
+(`test/proof/sunscar-dunes/witness.ts`) runs its renderer-free trusted entry `runtime/headless.ts`, composed as the
+platform's trusted adapter composes it, on a tape of tick commands alone: it walks the signal quest from the spawn,
+lights the fire, fells the Dune Matriarch (no health, flag, position or fact is ever written), restores her
+storm-phase checkpoint byte-exactly in process and in the shipping worker (`HeadlessSimulation` + `trustedRuntime`),
+and feeds the committed facts to the real `Ledger`. The other five are executable audits of the real trusted
+entries, not headless gameplay implementations: no real runtime reaches a tick, no mid-encounter checkpoint is
+captured, and no replay hash is claimed. Their renderer-free extraction is separate work.
 
 Audited from clean committed source `b13614a6e7bb218f691a5f3b7040510de13cb7e8` plus these test-only files,
 using the template's unchanged `scripts/sim-node-loader.mjs`, plain Node 24.18.1, no browser/DOM shim.
@@ -14,7 +19,7 @@ Run, for example:
 
 ```sh
 node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all
-# Exit 1; JSON includes compatible:false. Modes: all, headless, replay, ledger.
+# Exit 1; JSON includes compatible:false (Signal Dunes: exit 0, compatible:true). Modes: all, headless, replay, ledger.
 pnpm exec vitest run test/proof/compatibility test/proof/sunscar-dunes test/proof/far-reach test/proof/pine-hollow test/proof/driftwood-isle test/proof/nalati-grasslands test/proof/nine-dragon-stack
 ```
 
@@ -25,7 +30,7 @@ compatibility green. Unknown modes throw rather than emit a passing result.
 
 | Shard | Actual trusted entry | First runtime blocker | Full source / partial ledger |
 | --- | --- | --- | --- |
-| Signal Dunes | `sunscar-dunes/runtime/index.ts` | `engine/anim/rig.ts` | Loads; 2 rules tested |
+| Signal Dunes | `sunscar-dunes/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay) | 2 rules, both from gameplay |
 | Sky Reach | `far-reach/runtime/index.ts` | `engine/anim/rig.ts` | Source rejects `engine/app/runtime.ts`; blocked |
 | Pine Hollow | `pine-hollow/runtime/index.ts` | `runtime/audio/score.ts` parameter property | Loads; 19 rules tested |
 | Driftwood | `driftwood-isle/runtime/hybrid.ts` | `game/shardfile/hybrid.ts` parameter property | Loads; 10 rules tested |
@@ -57,17 +62,21 @@ quest/item/ledger ingress and fixed-step ownership. Restore must reinstall adapt
 draws, body duplication or reward replay. Snapshot adapters must cover gameplay continuation outside
 `AnimalSim`/`StrikeRunner`/the declared script lane; persisted save fields alone are not a mid-tick snapshot.
 
-### Signal Dunes
+### Signal Dunes (passes)
 
-Cut `runtime/index.ts -> plugin.ts -> world/meshes.ts -> engine/anim/rig.ts`; keep rig/model loading in a
-view installer. Also split `combat/matriarch.ts -> engine/ui/BossBar.ts` and `look/light.ts ->
-engine/render/shaderPatches.ts`, loot UI and the world/fire view from decisions/collision.
-The current native runtime owns 13 declared homes (1 dune ray, 10 sand skitterers, 2 dune striders),
-`sunscar.matriarch`, the whip and signal/Matriarch quest outcomes. Keep the real home spawn/respawn gates,
-ray hold, light/fire/crackable state and native Matriarch combat ports. Continuation needs home clocks,
-actor identities, weapon action/cooldown, quest/director pending work, Matriarch phase/strike/intro/death/
-checkpoint state and its invulnerability/storm goal/timer. Fog, burst meshes and boss bar can observe it.
-Next executable target: signal completion and Matriarch mid-fight snapshot, suffix and durable reward.
+The legacy browser entry (`runtime/index.ts -> plugin.ts -> world/meshes.ts -> engine/anim/rig.ts`) is unchanged; the
+witness names the renderer-free trusted entry `runtime/headless.ts` instead. It owns the admitted terrain collider and
+baked pieces, the 13 declared homes (1 dune ray, 10 sand skitterers, 2 dune striders) with their shipping policies,
+stream and respawn clocks, the whip as its declared item row (contact on the head ball / body capsule, then the lane:
+the browser whip's rule, `weapons/lash.ts`), the signal quest and interactions on `host.flags`, the Matriarch's
+encounter on `BossBrain` with her body in the creature keeper, and the entry proof (92 lanes on the native terrain).
+Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,198,
+past the 10,000-tick floor); her storm-phase checkpoint restores byte-exactly, the 1,698-tick suffix to her fall
+hashes identically, and the source-checkout worker started from the same checkpoint commits the same 60th-tick bytes; both
+facts reach the durable `Ledger` once under their declared provenance and a restore re-emits nothing. Known, documented
+gaps (not modelled headless): prompt line of sight, a crack command not spending the whip's cooldown, the browser
+whip's unroll / second lash / pull / stagger, and no heavy attack in the tick protocol (the crank's double crack is a
+`script` command).
 
 ### Sky Reach (`far-reach`)
 
@@ -141,6 +150,5 @@ reward declarations should add a ledger emission witness.
 
 ## Delivery boundary
 
-This commit changes tests/reports only. No production dependency, runtime, save, rendering, map or
-shard behaviour is changed. Extraction stops here for the coordinator's separate SF72 row. Compatibility
-stays false until real headless/replay/gameplay-to-ledger proofs meet §C with the shipping controllers.
+The five fail-closed audits change tests/reports only. Compatibility stays false for each until real
+headless/replay/gameplay-to-ledger proofs meet §C with the shipping controllers, as Signal Dunes' now do.

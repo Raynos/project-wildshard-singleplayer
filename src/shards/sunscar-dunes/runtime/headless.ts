@@ -11,6 +11,7 @@ import { installSignalHomes } from './homes';
 import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
 import { installSignalQuest, type SignalSpots } from './quest';
 import { installSignalMatriarch } from './matriarch';
+import { proveSignalEntries } from './entries';
 import { SIGNAL_SPAWNS } from '../data/spawns';
 import { MATRIARCH_ID } from '../combat/matriarchFight';
 import { BRAZIERS } from '../layout';
@@ -53,7 +54,8 @@ export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
  * creature stream, attack tokens and respawn clocks, the whip as its declared item row (a player command's attack is
  * its light crack), the signal quest with its interactions (`script` commands on `sunscar.interact`, runtime/quest.ts),
  * and the Dune Matriarch's encounter (runtime/matriarch.ts), armed by the signal fire, her body the keeper's after the
- * homes. Not yet owned (fail-closed, see the SF72 handoff): the entry proof; `finish` refuses.
+ * homes, and the entry proof: a player capsule walks in from every declared entryway on the native terrain
+ * (runtime/entries.ts), so `finish` answers with real lanes and steps.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   if (shard.terrain === null) throw new Error('Signal Dunes declares its admitted terrain collider');
@@ -76,7 +78,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   if (whip?.kind !== 'weapon') throw new Error('Signal Dunes declares its whip row');
   const reach = { light: whip.light.range, heavy: whip.heavy.range }, matriarchRow = SIGNAL_SPAWNS.bosses.find(row => row.id === MATRIARCH_ID);
   if (matriarchRow === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
-  return { level, ports: { ground: false, heightAt }, install: (host, context) => {
+  return { level, ports: { ground: false, heightAt }, proveEntries: host => proveSignalEntries(host.physics, shard.entryways, heightAt), install: (host, context) => {
     if (!context.restoring) colliders(host);
     const keeper = installSignalHomes(host, { specs, attackers: SIGNAL_ATTACKERS, held: () => !host.flags.has(SCOUT_FLAG), boss: matriarchRow }, context.snapshot);
     if (keeper.boss === null) throw new Error('Signal Dunes declares the Matriarch\'s body');

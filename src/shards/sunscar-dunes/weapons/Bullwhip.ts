@@ -9,11 +9,10 @@ import { WHIP_ROW } from './rows';
 import { WHIP_ITEM } from '../data/items';
 import { braidedMaterial, buildWhipModel, type WhipParts } from './whipModel';
 import type { Crackable } from '../world/build';
+import { lashLane } from './lash';
 
 /** What the lash lands on: the combat actor, and the body's yank and stagger when it has them. */
 export interface WhipTarget { actor: Actor; impulse?: (velocity: Vector3) => void; stagger?: (dir: Vector3, strength: number) => void }
-/** A combat target's chest: its port position is at its feet. */
-const CHEST = 0.9, BODY = 0.7;
 
 /** The crack's numbers (metres, seconds, hit points); `pull` is the yank's speed (m/s) on a creature of `pullMaxHp` or less. */
 /** The wrap round a caught lever (metres, seconds): coil radius, height, turns, cord, how long it holds. */
@@ -79,7 +78,8 @@ export class Bullwhip extends Weapon {
   /**
    * One lash lands: a narrow lane from the eye along the view, `reach` metres long. Selection goes through the shared
    * combat targets (`app.combat.targets()`, ENGINE §19), so the Practice Arena's dummies take the crack like creatures:
-   * the shared raycast first (it knows the bodies' shapes), then the nearest target whose chest is inside the lane.
+   * the shared raycast first (it knows the bodies' shapes), then the nearest target whose chest is inside the lane. The
+   * headless whip runs the same rule on the same volumes (weapons/lash.ts `lashContact`).
    */
   private land(second: boolean): void {
     const host = this.app.equipmentHost; if (host === null) return;
@@ -110,10 +110,8 @@ export class Bullwhip extends Weapon {
     let best: { port: CombatTarget; point: Vector3 } | null = null, bestT = Infinity;
     for (const port of this.app.combat.targets()) {
       if (!port.hittable) continue;
-      const chest = port.position.clone(); chest.y += CHEST;
-      const delta = chest.clone().sub(from), forward = delta.dot(dir);
-      if (forward < 0 || forward > reach + BODY || forward >= bestT) continue;
-      if (delta.addScaledVector(dir, -forward).length() > CRACK.width + BODY) continue;
+      const forward = lashLane(from, dir, reach, CRACK.width, port.position);
+      if (forward === null || forward >= bestT) continue;
       best = { port, point: from.clone().addScaledVector(dir, Math.min(forward, reach)) }; bestT = forward;
     }
     return best;

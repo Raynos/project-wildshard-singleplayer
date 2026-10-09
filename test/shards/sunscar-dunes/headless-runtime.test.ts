@@ -58,7 +58,17 @@ it('keeps the manifest\'s attack cap and installs the 13 declared homes as trust
   const host = boot();
   try {
     expect([...host.entities.keys()]).toEqual(SIGNAL_SPAWNS.homes.map(home => home.id));
-    expect(plan.proveEntries).toBeUndefined(); // finish stays refused until the entry proof is real
+  } finally { host.dispose(); }
+});
+
+it('proves its entries on the native terrain: a player capsule walks 50 m in on all 92 lanes of the four declared openings', () => {
+  const host = boot();
+  try {
+    for (let tick = 0; tick < 60; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    const colliders = host.physics.world.colliders.len();
+    const proof = plan.proveEntries?.(host);
+    expect(proof?.lanes).toBe(92); expect(proof?.steps).toBeGreaterThanOrEqual(46_000);
+    expect(host.physics.world.colliders.len()).toBe(colliders); // the proof's capsule is released
   } finally { host.dispose(); }
 });
 
