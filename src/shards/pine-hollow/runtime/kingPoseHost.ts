@@ -86,8 +86,9 @@ export class PineKingPose {
     const timers = new AnimalPoseLaw({ custom: true, dims: this.body.dims });
     const query = new KingQueryPose(this.joints, this.volumes);
     timers.restore(saved.timers); query.restore(saved.query);
+    const validatedQuery = query.snapshot();
     return () => {
-      this.timers.restore(saved.timers); this.query.restore(saved.query);
+      this.timers.restore(saved.timers); this.query.restore(validatedQuery);
       this.rootPitch = saved.rootPitch; this.rootRoll = saved.rootRoll;
     };
   }
