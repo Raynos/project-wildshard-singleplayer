@@ -1,13 +1,29 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and clean disposable author products.
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, realpathSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, realpathSync, statSync, utimesSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture directories and paths.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
 import { join } from 'node:path';
 import { expect, it, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { devProject } from '../src/sdk/dev';
+import { devProject, projectSourceStamp } from '../src/sdk/dev';
 import { assertProductionBuild } from '../scripts/check-devserver.mjs';
+
+it('detects quick overwrites and nested source changes without depending on a native watch event', () => {
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'sdk-source-stamp-'))), config = join(dir, 'shard.config.ts');
+  try {
+    writeFileSync(config, 'first');
+    const original = statSync(config), initial = projectSourceStamp(dir);
+    expect(projectSourceStamp(dir)).toBe(initial);
+    writeFileSync(config, 'other'); utimesSync(config, original.atime, original.mtime);
+    const edited = projectSourceStamp(dir); expect(edited).not.toBe(initial);
+    mkdirSync(join(dir, 'data')); writeFileSync(join(dir, 'data', 'row.ts'), 'export const x=1;');
+    const added = projectSourceStamp(dir); expect(added).not.toBe(edited);
+    for (const name of ['node_modules', '.git', 'dist', 'public']) { mkdirSync(join(dir, name)); writeFileSync(join(dir, name, 'ignored'), 'data'); }
+    expect(projectSourceStamp(dir)).toBe(added);
+    rmSync(join(dir, 'data', 'row.ts')); expect(projectSourceStamp(dir)).toBe(edited);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
 
 it('rejects an enabled or missing production runtime stamp even if its metadata claims false', () => {
   const dir = mkdtempSync(join(tmpdir(), 'production-flags-'));

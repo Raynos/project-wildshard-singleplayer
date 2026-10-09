@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Serve only built static products from the local author tool.
 import { createServer } from 'node:http';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author changes rebuild a private disposable product.
-import { createReadStream, existsSync, mkdtempSync, realpathSync, rmSync, statSync, watch, readFileSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdtempSync, realpathSync, readdirSync, rmSync, statSync, watch, readFileSync, writeFileSync, type Dirent } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own temporary build directory.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve static requests inside the product directory.
@@ -11,6 +11,29 @@ import { Scope } from '@wildshard/engine/app/scope';
 
 const POLL = '<script>let wsRevision=WS_REVISION;setInterval(async()=>{try{const r=await fetch("/__wildshard_dev_revision",{cache:"no-store"});const s=await r.json();if(s.error){console.error(s.error);return}if(s.revision!==wsRevision)location.reload()}catch{}},500)</script>';
 const MIME: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.ktx2': 'image/ktx2' };
+const ignored = new Set(['node_modules', '.git', 'dist', 'public']);
+
+/** Synchronous author-source baseline: native recursive watch notifications can miss quick overwrites during startup.
+ * Nanosecond change time also detects same-length edits whose modification time was restored. Symlink directories
+ * are not traversed; output/dependency directories keep the existing watcher exclusions. */
+export function projectSourceStamp(source: string): string {
+  const directories = [source], rows: string[] = [];
+  while (directories.length > 0) {
+    const directory = directories.pop(); if (directory === undefined) break;
+    let entries: Dirent[];
+    try { entries = readdirSync(directory, { withFileTypes: true }); }
+    catch (cause) { if (cause instanceof Error && 'code' in cause && cause.code === 'ENOENT') continue; throw cause; }
+    for (const entry of entries) {
+      if (ignored.has(entry.name)) continue;
+      const file = join(directory, entry.name);
+      if (entry.isDirectory()) { directories.push(file); continue; }
+      const metadata = statSync(file, { bigint: true, throwIfNoEntry: false });
+      if (metadata === undefined) continue;
+      if (metadata.isFile()) rows.push(`${file}\0${metadata.ino}:${metadata.size}:${metadata.mtimeNs}:${metadata.ctimeNs}`);
+    }
+  }
+  return rows.sort().join('\n');
+}
 /** A rebuilt static author client. Closing it releases its watcher, socket and private build products. */
 export interface DevProject { url: string; close: () => Promise<void> }
 /** Only the author command chooses DEVSERVER; requests, cookies and URL switches cannot enable it. */
@@ -57,11 +80,20 @@ export async function devProject(project: string, options: { port?: number; clie
   try {
     await new Promise<void>((_resolve, reject) => { server.once('error', reject); server.listen(options.port ?? 0, '127.0.0.1', _resolve); });
   } catch (cause) { rmSync(scratch, { recursive: true, force: true }); throw cause; }
-  const watcher = watch(source, { recursive: true }, (_event, filename) => {
-    if (filename?.split(/[\\/]/u).some((part) => ['node_modules', '.git', 'dist', 'public'].includes(part))) return;
+  let observed = projectSourceStamp(source);
+  const reconcile = (): void => {
+    const next = projectSourceStamp(source);
+    if (next === observed) return;
+    observed = next;
     debounce?.dispose(); debounce = scope.child('rebuild.debounce');
     debounce.timeout(100, () => { debounce?.dispose(); work = work.then(rebuild); });
+  };
+  const watcher = watch(source, { recursive: true }, (_event, filename) => {
+    if (filename?.split(/[\\/]/u).some((part) => ignored.has(part))) return;
+    reconcile();
   });
+  // Capture before returning the ready server; polling covers native-event gaps without rebuilding unchanged input.
+  scope.interval(250, reconcile);
   const address = server.address(); if (address === null || typeof address === 'string') throw new Error('No author server address');
   return { url: `http://127.0.0.1:${address.port}/`, close: async () => {
     if (stopped) return;
