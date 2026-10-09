@@ -175,6 +175,22 @@ describe('G224: Nine Dragon portals', () => {
     expect(Math.max(...veil)).toBe(1); expect(veil.at(-1)).toBe(0);
   });
 
+  it('resumes exactly from a mid-ride snapshot (the headless host\'s continuation): the same transfer, the same veil', () => {
+    const p = DECK_PORTALS[2]; if (p === undefined) throw new Error('south deck');
+    const run = (ride: ReturnType<typeof portalRide>, n: number): void => { for (let i = 0; i < n; i++) ride.step(1 / 60); };
+    const a = { x: p.x, y: 0, z: p.z }, veilA: number[] = [], logA = { holds: [] as boolean[], settled: [] as number[], refuse: new Set<string>() };
+    const first = portalRide(linkRider(a, logA), (k) => { veilA.push(k); });
+    run(first, 10); // held, before the transfer
+    const saved = first.snapshot(); expect(saved).toMatchObject({ from: p.id, moved: false, armed: false, rides: [] }); expect(saved.t).toBeGreaterThan(0);
+    const b = { ...a }, veilB: number[] = [], logB = { holds: [] as boolean[], settled: [] as number[], refuse: new Set<string>() };
+    const second = portalRide(linkRider(b, logB), (k) => { veilB.push(k); });
+    second.restore(structuredClone(saved));
+    const mark = veilA.length;
+    run(first, 60); run(second, 60);
+    expect(second.snapshot()).toEqual(first.snapshot()); expect(b).toEqual(a); expect(veilB).toEqual(veilA.slice(mark));
+    expect(second.rides().map((r) => r.from)).toEqual([p.id]); expect(second.entered()).toBe('south');
+  });
+
   it('fades back where you stand when the format refuses the transfer (never an arbitrary move)', () => {
     const p = DECK_PORTALS[1]; if (p === undefined) throw new Error('east deck');
     const position = { x: p.x, y: 0, z: p.z }, log = { holds: [] as boolean[], settled: [] as number[], refuse: new Set([p.id]) };

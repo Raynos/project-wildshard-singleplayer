@@ -86,6 +86,18 @@ it('swings the Jian\'s shipping combo from tick commands on the swept melee cloc
   } finally { host.dispose(); restored?.dispose(); }
 });
 
+it('charges and releases the Jian\'s heavy from the HEAVY hold the tick commands carry, on the same clock', () => {
+  const tape: Tape = { commands: [] }, host = boot(tape);
+  try {
+    // two seconds held (past the heavy's charge), then let go: the release swings the heavy, one swing, its contact once
+    for (let i = 0; i < 150; i++) {
+      const c: HeadlessCommand = { kind: 'player', moveX: 0, moveZ: 0, yaw: 0, ...(i < 120 ? { heavy: {} } : {}) };
+      tape.commands = [c]; host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    }
+    expect(jianState(host)).toMatchObject({ swings: 1, hits: 1 });
+  } finally { host.dispose(); }
+});
+
 it('proves the four portal-link entries on the baked world: 92 deck lanes and eight bound transfers through the square', () => {
   const tape: Tape = { commands: [] }, host = boot(tape);
   try {

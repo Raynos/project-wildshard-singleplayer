@@ -18,7 +18,7 @@ The later [SF51-g admission proof](grid-admission.md) closes that descriptor/run
 
 Map: rebuilt after the Nine map-style commit `f9a2e7493`, using the official `scripts/bake-maps.mjs` command from the clean candidate. The stamp is `c9c32e3ef2792cfc2afee6d6bd73a15c25b56d33042115a03bf28c4ff9060d5c`, stylized ground, 1,000 px / 13,488 bytes. The browser proof pin predates this map-only rebake; the native world / layout inputs are unchanged.
 
-## SF72 witness (part 2): what `compatible: true` covers, and what it does not
+## SF72 witness (parts 2–3): what `compatible: true` covers, and what it does not
 
 `run.mjs` runs the trusted renderer-free entry `runtime/headless.ts` through the platform's own trusted adapter
 (`createTrustedHeadlessAdapter`). The result is **compatible but transitional** (`transitional: true` in
@@ -33,15 +33,23 @@ as open, not proven.
 - the Jian as its declared row on the shipping swept melee clock (`runtime/jian.ts`, `SweptMeleeCore` over `JIAN_ROW`):
   combo, one-deep queue, combo gap, cooldown and active windows, with exact continuation (the replay restores mid-swing);
 - the portal-link entry proof (`provePortalLinks`): 23 capsule lanes per deck and the format's checked transfer to the
-  square and back (92 lanes, 8 transfers).
+  square and back (92 lanes, 8 transfers);
+- play-time portal rides (part 3) on the page's own ride, `world/portalRide.ts` (renderer-free since the fade veil moved
+  to `world/portalVeil.ts`), driven by `runtime/portals.ts` after the player's move: the tape walks the square's declared
+  route from the spawn into the ring out (→ the north deck, `portal.square.north>portal.north`), steps 2.5 m out of the
+  deck's ring and back in (→ the square, `portal.north>portal.square.arrival`). The hold is the page Player's `carried`
+  (feet kept at the ring's touch through the fade), the transfer is `createPortalTraversal` on the host's own physics,
+  motor and feet; the ride's state and hold are continuation, and the replay checkpoint (tick 400) falls mid-swing AND
+  held in the square's ring before the transfer. The same build's browser rides all four decks (north arrival
+  (0, 0.01, 236), the headless one (0, 0, 236)).
 
 **Still not headless (open):**
 - the Fei Zhua (targeting, rope pull, swing, climb): browser only; the headless world has no grapple;
-- portal rides during play (ring trigger, hold, checked transfer): browser only; only the entry proof transfers;
 - gates / fragments: the Well safety cap never opens (`NdRuntime.guardOpen` is the Fei Zhua's), the crossings stand
   as baked;
 - Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at
-  nothing; the charged heavy needs a hold the tick protocol does not carry.
+  nothing. (The charged heavy now runs headless on the tick protocol's HEAVY hold, `runtime/jian.ts`, proven in
+  `test/shards/nine-dragon-stack/headless-runtime.test.ts`; the witness tape does not swing it yet.)
 
 **Ledger `not-declared`** is the truth, not a skipped stage: Nine declares no quest, fact or ledger rule
 (`shard.config.ts`), so there is nothing to emit. The stage loads the real source in strict Node and reports the empty

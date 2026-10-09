@@ -6,8 +6,8 @@
 // the node its link binds, both floors rechecked against the declared colliders and the capsule's clearance, the save
 // fence (`portalTransitioning`) up for the whole synchronous move, then the engine's normal ride resets facing the
 // admitted heading. Never an arbitrary spawn: a refused transfer fades back where you stand. A ring re-arms once you
-// have stepped out of every portal, so arriving in one never bounces you back.
-import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
+// have stepped out of every portal, so arriving in one never bounces you back. Renderer-free (SF72): the ride runs the
+// same in the page (world/portalVeil.ts draws its fade in the HUD) and in the headless host (runtime/portals.ts).
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
 import source from '../shard.config';
 import { DECK_PORTALS, SQUARE_PORTAL, exitDeck, inPortal, squareExitId, type ShardEdge } from './portalPlan';
@@ -41,6 +41,17 @@ export interface PortalRide {
   readonly refused: () => readonly string[];
   /** one step of the ride (the session's update system calls it; tests drive it directly) */
   step: (dt: number) => void;
+  /** the ride's whole state, for a checkpoint (the headless host's continuation) */
+  snapshot: () => PortalRideState;
+  /** resume exactly at a snapshot's state */
+  restore: (state: PortalRideState) => void;
+}
+
+/** the ride's whole state: the deck you came in by, whether a ring is armed, the fade clock (−1 at rest), the node it
+ *  rides from, whether the transfer is done, and the session's transfers and refusals */
+export interface PortalRideState {
+  readonly entered: ShardEdge | null; readonly armed: boolean; readonly t: number; readonly from: string; readonly moved: boolean;
+  readonly rides: readonly PortalTransfer[]; readonly refused: readonly string[];
 }
 
 /** the pure ride: which ring the feet are in, the hold and the fade, the checked transfer under the dark */
@@ -80,7 +91,12 @@ export function portalRide(rider: PortalRider, veil: (k: number) => void): Porta
     veil(t < PORTAL_FADE.out ? t / PORTAL_FADE.out : t < back ? 1 : Math.max(0, 1 - (t - back) / PORTAL_FADE.in));
     if (t >= back + PORTAL_FADE.in) { t = -1; veil(0); }
   };
-  return { entered: () => entered, busy: () => t >= 0, rides: () => done, refused: () => refused, step };
+  const snapshot = (): PortalRideState => ({ entered, armed, t, from, moved, rides: done.map((r) => ({ ...r })), refused: [...refused] });
+  const restore = (state: PortalRideState): void => {
+    entered = state.entered; armed = state.armed; t = state.t; from = state.from; moved = state.moved;
+    done.splice(0, done.length, ...state.rides.map((r) => ({ ...r }))); refused.splice(0, refused.length, ...state.refused);
+  };
+  return { entered: () => entered, busy: () => t >= 0, rides: () => done, refused: () => refused, step, snapshot, restore };
 }
 
 /** what the ride uses of the engine's player: its feet and capsule, the hold, the hoverboard, the spawn's resets */
@@ -104,20 +120,4 @@ export function playerRider(player: PortalPlayer, physics: () => PortalTraversal
     teleport: (from) => createPortalTraversal(entries, source, { physics: physics(), motor: player.motor, feet: player.position }).teleport(from),
     settle: (yaw) => { const p = player.position; player.spawn(p.x, p.z, yaw, p.y); },
   };
-}
-
-/**
- * install the portals' ride for this session: the fade veil in the HUD (owned by the level's scope, so it goes with the
- * session) and the step, run by the world's own per-frame update (world/build.ts `portal`, after the player's)
- */
-export function installPortals(slot: PortalSlot, rider: PortalRider): PortalRide {
-  const scope = uiScope('NdPortalVeil');
-  const el = document.createElement('div');
-  el.className = 'nd-portal-veil';
-  el.style.cssText = 'position:absolute;inset:0;pointer-events:none;opacity:0;display:none;z-index:60;background:radial-gradient(circle at 50% 50%,#2a1648 0%,#0a0612 70%)';
-  mountUi(el, scope);
-  const ride = portalRide(rider, (k) => { el.style.opacity = k.toFixed(3); el.style.display = k > 0 ? 'block' : 'none'; });
-  slot.step = (dt) => { ride.step(dt); };
-  scope.onDispose(() => { if (ride.busy()) rider.hold(false); slot.step = null; });
-  return ride;
 }

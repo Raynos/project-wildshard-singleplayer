@@ -173,7 +173,7 @@
       [
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
-        "src/shards/nine-dragon-stack/world/portalRide.ts",
+        "src/shards/nine-dragon-stack/world/portalVeil.ts",
         "src/engine/ui/ownership.ts"
       ],
       [

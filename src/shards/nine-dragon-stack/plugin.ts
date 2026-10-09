@@ -13,7 +13,8 @@ import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { bindNineItems } from './runtime/items';
 import { STRINGS } from './strings';
-import { installPortals, playerRider, type PortalRide } from './world/portalRide';
+import { playerRider, type PortalRide } from './world/portalRide';
+import { installPortals } from './world/portalVeil';
 import { entryCapsFor } from './world/entries';
 
 

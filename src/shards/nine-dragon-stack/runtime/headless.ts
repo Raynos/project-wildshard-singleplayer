@@ -10,6 +10,7 @@ import { provePortalLinks } from '@wildshard/game/shardfile/portalLinkProof';
 import { JIAN_ROW } from '../vm/jianRow';
 import { entryCapColliders } from '../world/floorRows';
 import { installNineJian, JIAN_ID } from './jian';
+import { installNinePortals } from './portals';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -72,8 +73,9 @@ export function addNinePieces(physics: Physics): number {
 /**
  * Nine Dragon Stack's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked
  * native colliders of the grid's cell (the fragment at +125 m, the four road-height landing decks open to the road, the
- * square's slab, the Well's crossings and safety cap, every placed model's colliders), the player standing at the declared spawn in Lantern Square, and the
- * Jian as its declared item row on the swept melee family's own clock (runtime/jian.ts). The fragment declares no quest,
+ * square's slab, the Well's crossings and safety cap, every placed model's colliders), the player standing at the declared spawn in Lantern Square, the
+ * Jian as its declared item row on the swept melee family's own clock (runtime/jian.ts), and the play-time portal rides on
+ * the page's own ride (runtime/portals.ts: walk into a ring, held through the fade, the checked transfer). The fragment declares no quest,
  * creature, encounter or ledger rule, so none is installed. The entry proof is the format's own portal-link proof
  * (`provePortalLinks`): 23 capsule lanes across each deck's 8 m opening, then the bound ride to the square, the walked
  * route to its exit and the ride back, through the host's own collision world, so `finish` answers with real lanes,
@@ -94,6 +96,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     return { lanes: proof.lanes, steps: proof.steps, portalTransfers: proof.transfers };
   }, install: (host, context) => {
     if (!context.restoring) addNinePieces(host.physics);
-    installNineJian(host, jian, JIAN_ROW, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined));
+    installNineJian(host, jian, JIAN_ROW, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
+      () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));
+    installNinePortals(host);
   } };
 };
