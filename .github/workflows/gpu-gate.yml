@@ -1,7 +1,10 @@
 name: gpu-gate
+# Nightly plus a dispatch at each milestone, not on every push (Jake, 2026-10-09, process audit
+# progress/process/audit-2026-10-09/: 0 green in 87 push runs, ~2,400 macOS job-min per 12 h, and it holds no release
+# under deploy-pin mode newest-ci-green). Milestone: `gh workflow run gpu-gate` (add -f sha=<candidate> to gate a SHA).
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '41 8 * * *'   # 03:41 CT, main's head
   workflow_dispatch:
     inputs:
       sha:    { description: Commit to gate (default the branch head), type: string, required: false }
@@ -11,9 +14,9 @@ on:
       angle:  { description: ANGLE backend (the metal-off plant uses swiftshader), type: string, default: metal }
       offline: { description: Also run the offline boot check (a milestone candidate; R1-47), type: boolean, default: false }
 concurrency:
-  # push runs: one running + one pending; a burst of pushes gates the newest (ci-gpu-options §6).
-  # dispatches (plant / record / prove / a re-gate) get their own group, so they never replace a push run (R1-41)
-  group: ${{ github.event_name == 'push' && 'gpu-gate-main' || format('gpu-gate-dispatch-{0}-{1}-{2}-{3}', inputs.sha, inputs.plant, inputs.record, inputs.prove) }}
+  # the nightly run: one running + one pending (ci-gpu-options §6).
+  # dispatches (plant / record / prove / a milestone gate) get their own group, so they never replace the nightly (R1-41)
+  group: ${{ github.event_name == 'schedule' && 'gpu-gate-main' || format('gpu-gate-dispatch-{0}-{1}-{2}-{3}', inputs.sha, inputs.plant, inputs.record, inputs.prove) }}
   cancel-in-progress: false
 permissions:
   contents: read

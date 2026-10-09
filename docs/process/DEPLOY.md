@@ -49,8 +49,8 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   successful historical release job's exact full pin plus matching production-version reading. Pin history alone
   is insufficient. The OTA reader enforces the same proof. `force`
   only bypasses the already-live check. Inspect the smoke artifact's queue/run timings when a release waits.
-  `gpu-gate` still reports on every push but does not hold a release
-  (its push runs cancel each other under the agents' push stream). `mode pinned` (`deploy-pin.mjs set` / `rollback`)
+  `gpu-gate` runs nightly and by dispatch at a milestone (`gh workflow run gpu-gate`, `-f sha=<candidate>`), not on
+  every push (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`), and it does not hold a release. `mode pinned` (`deploy-pin.mjs set` / `rollback`)
   freezes production on one SHA; `mode newest-green` waits for gpu-gate.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
   slow"). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run on their own. A red CI
