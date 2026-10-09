@@ -1,4 +1,5 @@
 import { hoverCoastDecel } from './hoverSpeed';
+import { groundedVelocity } from './fall';
 
 /** A world point or velocity (m, m/s): three's Vector3, or the client Player's plain `want`. */
 interface Vec3 { x: number; y: number; z: number }
@@ -66,6 +67,7 @@ export interface BoardStepOut { lat: number; fwd: number; accel: number; water: 
  */
 export function stepBoard(position: Vec3, v: Vec3, impulse: Readonly<Vec3>, want: Vec3, state: BoardState, move: BoardMove, ports: BoardPorts, dt: number, out: BoardStepOut): void {
   const sin = Math.sin(move.yaw), cos = Math.cos(move.yaw);
+  const startBob = state.hoverBob;                               // where the last step left the board (over the ride height)
   const inAir = state.hoverBob > 0.35;                           // above the ride height (hop / ledge): half the grip
   const grip = inAir ? 0.5 : 1;
   const wantMove = move.len > 0.02;
@@ -104,7 +106,11 @@ export function stepBoard(position: Vec3, v: Vec3, impulse: Readonly<Vec3>, want
     v.y -= HOVER_JUMP_GRAVITY * dt;
     if (impulse.y === 0) position.y += v.y * dt;
     else { want.x = 0; want.y = (v.y + impulse.y) * dt; want.z = 0; ports.move(position, want); }
-    if (v.y < 0 && position.y <= target + 0.05) { state.hoverAir = false; ports.landed(-v.y); }
+    // touchdown. A board that began this step at the ride height never really left it (a shove too weak to lift it: the
+    // updraft's steady feed shoves it airborne every tick and it lands the same tick), so its downward speed is spent,
+    // as the walk's landing does (fall.ts groundedVelocity); kept, it grew 0.25 m/s a tick into hard landings (SF72).
+    // A real flight (a jump, a strong shove) keeps it, so the spring takes the landing with its dip.
+    if (v.y < 0 && position.y <= target + 0.05) { state.hoverAir = false; ports.landed(-v.y); if (startBob <= 0.05) v.y = groundedVelocity(v.y); }
   } else {
     const a = Math.max(-HOVER_SPRING_MAX, Math.min(HOVER_SPRING_MAX, HOVER_SPRING_K * err)) - HOVER_SPRING_C * v.y;
     v.y += a * dt;

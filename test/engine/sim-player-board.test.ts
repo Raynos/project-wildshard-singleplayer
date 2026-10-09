@@ -89,6 +89,23 @@ it('lifts off on an upward shove (the updraft), flies ballistic, lands hard past
     expect(peak).toBeGreaterThan(5);
     expect(host.player.position.y).toBeLessThan(HOVER_HEIGHT + 0.06);
     expect(host.player.health.attributes.health).toBe(100 - HARD_FALL_DAMAGE);
+    expect(host.boardVelocity.y).toBeLessThan(-9); // a real flight's landing keeps its speed: the spring takes it, with its dip
+  } finally { host.dispose(); }
+});
+
+it('rides a steady updraft lift without running away: a same-tick touchdown spends its fall, no hard landing (SF72)', () => {
+  // Sky Reach's far.updraft feeds UPDRAFT_LIFT * dt of upward impulse every tick in its column: every tick shoves the
+  // board airborne and it touches down the same tick; the downward speed used to carry over and grow 0.25 m/s a tick
+  // until every touchdown past 9 m/s was a hard landing (dead in ~1.6 s in the browser, hurt headless)
+  const { host } = sky();
+  try {
+    host.step(hover);
+    for (let tick = 0; tick < 60; tick++) host.step(north(0));
+    let low = 0;
+    for (let tick = 0; tick < 600; tick++) { host.impulsePlayer(new Vector3(0, 12 / 60, 0)); host.step(north(0)); low = Math.min(low, host.boardVelocity.y); }
+    expect(low).toBeGreaterThan(-1);
+    expect(host.player.health.attributes.health).toBe(100);
+    expect(Math.abs(host.player.position.y - HOVER_HEIGHT)).toBeLessThan(0.5);
   } finally { host.dispose(); }
 });
 
