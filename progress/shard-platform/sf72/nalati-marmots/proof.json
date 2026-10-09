@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "scope": "SF72 Nalati marmots; canonical witness remains fail-closed",
+  "build": {
+    "revision": "1d71b0d432c17f1692c641db743c48bf2455c32a",
+    "build": "1d71b0d-mv112b7o",
+    "profile": "iPhone 16 Pro / phone / DPR2",
+    "twoIndependentCapturesEqual": true
+  },
+  "native": {
+    "actors": 35,
+    "solidColliders": 2694,
+    "trees": 155,
+    "pieces": 81,
+    "ground": [
+      255,
+      255
+    ],
+    "marmots": 26,
+    "marmotFrame": 0,
+    "unchangedWorldFields": [
+      "ground",
+      "solids",
+      "actors",
+      "herds",
+      "trees",
+      "tops",
+      "yurts",
+      "pieces",
+      "groups",
+      "flocks",
+      "grass"
+    ],
+    "knownRenderTimedSpawnDifferences": [
+      21,
+      23
+    ]
+  },
+  "algorithm": {
+    "oracleFrames": 20000,
+    "allStates": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "exactWhistlesRngPoseCadence": true,
+    "pausedTimeDiscarded": true,
+    "oneJsonKeeperRoundTrip": true
+  },
+  "nativeContinuation": {
+    "realHerdPackWarning": 0.3,
+    "oneCompleteJsonCheckpoint": true,
+    "immutableAdmittedPhysicsBasis": true,
+    "exactSuffixTicks": 120
+  },
+  "checks": {
+    "focused": {
+      "files": 4,
+      "tests": 19,
+      "seconds": 16.46
+    },
+    "coverage": {
+      "files": 2,
+      "tests": 3,
+      "totalSeconds": 11.61,
+      "eachTestBelow20Seconds": true
+    },
+    "engineImportDelta": 0,
+    "strict": true,
+    "rootLint": true,
+    "ratchet": true,
+    "full": {
+      "base": "852a673c8dfe69bd83397148df7c58aa9041989c",
+      "files": 1064,
+      "tests": 5894,
+      "seconds": 101.5,
+      "queueTicket": 1055
+    }
+  },
+  "inputsSha256": "c5fee07de3e1d6b989bb7796c68a85164140aed45f9e3e32aa377c134bf27ae1"
+}

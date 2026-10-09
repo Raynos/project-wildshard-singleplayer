@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { MarmotBrain, MarmotContinuation } from '../creatures/marmotBrain';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -82,7 +83,7 @@ const Saved = v.strictObject({ rng: Stream, clock: finite, speed: v.strictObject
   groups: v.array(v.string()),
   // Wildlife's own smoothed player speed (the flocks read it) and the flocks' continuations (FlockBrain `snapshot()`)
   wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }), flocks: v.array(v.string()),
-  placement: Stream, raids: v.array(RaidPack) });
+  marmots: MarmotContinuation, placement: Stream, raids: v.array(RaidPack) });
 type SavedMemory = v.InferOutput<typeof Memory>;
 const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Nalati hunting path'); return [p.x, p.y, p.z]; };
 function saveMemory(memory: HuntMemory): SavedMemory {
@@ -108,7 +109,7 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
 export interface NalatiHostCreatures {
   readonly hunt: HuntBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
   readonly scare: (x: number, z: number, r?: number) => void;
-  readonly raid: HeadlessSheepRaid;
+  readonly raid: HeadlessSheepRaid; readonly marmots: MarmotBrain;
 }
 const installed = new WeakMap<SimHost, NalatiHostCreatures>();
 /** The creatures installed into `host`, or undefined. */
@@ -135,7 +136,7 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  * charge, a stampede) dashes the host's player along the blow (creatures/knockdown.ts, `SimHost.dashPlayer`, the page's
  * `Player.dash`); the creatures' signals are the page's `creature.signal` event; `scare` is Wildlife's (a lightning strike's).
  * The raid's shipping clock and shepherd ring run between Wildlife and thinking, including deferred native valley packs.
- * Not hosted yet (fail-closed in the runtime's `finish`): Aqbars' elite brain, the marmots, a
+ * Not hosted yet (fail-closed in the runtime's `finish`): Aqbars' elite brain, a
  * dodge's 'target.dodge' wake and a weapon's 'target.attack' wake (the host fires no weapon).
  */
 export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
@@ -202,6 +203,22 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     }
     return brain;
   });
+  const marmots = new MarmotBrain(SEED, { heightAt: floor.heightAt, normalY: (x, z) => floor.normalAt(x, z)[1] });
+  marmots.restore(ports.bake.marmots);
+  const whistle = (x: number, z: number): void => {
+    for (let i = 0; i < GROUP_MAX; i++) {
+      const h = groups.herds[i]; if (h === undefined) break;
+      for (let j = 0; j < BODY_MAX; j++) { const a = h.members[j]; if (a === undefined) break;
+        if (Math.hypot(a.position.x - x, a.position.z - z) < 30) a.mem['aw'] = Math.min(1, (a.mem['aw'] ?? 0) + 0.3);
+      }
+    }
+    for (let i = 0; i < GROUP_MAX; i++) {
+      const p = groups.packs[i]; if (p === undefined) break;
+      for (let j = 0; j < BODY_MAX; j++) { const w = p.members[j]; if (w === undefined) break;
+        if (w.alive && Math.hypot(w.position.x - x, w.position.z - z) < 30) { p.awareness = Math.min(1, p.awareness + 0.3); break; }
+      }
+    }
+  };
   const preyRows = flocks.map((f, index) => Array.from({ length: f.n }, (_, i) => {
     const position = new Vector3();
     const prey = { get position() { return f.positions(i, position); }, get yaw() { return f.headingOf(i); },
@@ -349,6 +366,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     for (let i = 0; i < BODY_MAX; i++) { const w = wildWolves[i]; if (w === undefined) break; if (w.alive) wolves.push(w); }
     pushWildMovers(bodies, player.x, player.z, pushTrample);
     for (let i = 0; i < FLOCK_MAX; i++) { const f = flocks[i]; if (f === undefined) break; f.update(dt, host.clock.now, player, wild.v, wolves); }
+    marmots.update(dt, player, wild.v, env.playerCrouched, whistle);
     for (let i = 0; i < GROUP_MAX; i++) {
       const h = groups.herds[i]; if (h === undefined) break;
       if (h.stampeding) for (let j = 0; j < GROUP_MAX; j++) { const p = groups.packs[j]; if (p === undefined) break; p.scare(h.cx, h.cz, 20); }
@@ -376,11 +394,11 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   }, {
     snapshot: () => ({ rng: { ...rng.snapshot() }, clock, speed: { ...speed }, seen: [...seen],
       memories: bodies.flatMap(a => { const m = hunt.memory(a); return m === undefined ? [] : [[a.entityId, saveMemory(m)] as [string, SavedMemory]]; }),
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided().map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()), placement: { ...placement.snapshot() }, raids: raids.map(r => ({ x: r.x, z: r.z, herd: r.herd, bodies: r.bodies.map(b => ({ id: b.id, variant: b.variant, seed: b.seed, scale: b.scale, at: [...b.at], yaw: b.yaw, adopted: { ...b.adopted } })) })) }),
+      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided().map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()), marmots: marmots.snapshot(), placement: { ...placement.snapshot() }, raids: raids.map(r => ({ x: r.x, z: r.z, herd: r.herd, bodies: r.bodies.map(b => ({ id: b.id, variant: b.variant, seed: b.seed, scale: b.scale, at: [...b.at], yaw: b.yaw, adopted: { ...b.adopted } })) })) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided().length || saved.flocks.length !== flocks.length) throw new Error('Incompatible Nalati creatures continuation');
-      placement.restore(saved.placement); rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
+      marmots.restore(saved.marmots); placement.restore(saved.placement); rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
       // the brain's clock is a sum of the same steps: a fresh brain takes the saved sum exactly
       hunt.beginTick(saved.clock - clock); clock = saved.clock;
       const memories = new Map(saved.memories);
@@ -396,7 +414,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   });
   // Match the original adapter insertion order: fixed controllers first, actors materialized later.
   restoreRoster();
-  const out = { hunt, rng, bodies, flocks, raid, scare: wildScare };
+  const out = { hunt, rng, bodies, flocks, raid, marmots, scare: wildScare };
   installed.set(host, out);
   return out;
 }

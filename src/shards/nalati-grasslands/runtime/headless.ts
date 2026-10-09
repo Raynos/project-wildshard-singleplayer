@@ -278,7 +278,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati12.md): the elites' brains, the
- * marmots, the Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
+ * the Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {

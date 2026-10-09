@@ -40,12 +40,13 @@ try {
   // adoption), before any of them decides: the renderer-free runtime's groups are checked against them on the 'ai' stream
   await page.addInitScript(() => {
     const seen = new Map(), groups = new Map(), flocks = new Map(), raf = window.requestAnimationFrame.bind(window);
-    window.__nalatiSpawns = seen; window.__nalatiGroups = groups; window.__nalatiFlocks = flocks;
+    window.__nalatiSpawns = seen; window.__nalatiGroups = groups; window.__nalatiFlocks = flocks; window.__nalatiMarmots = null;
     window.requestAnimationFrame = onFrame => raf(time => {
       for (const a of window.__wildshard?.world?.animals?.animals ?? []) {
         if (!seen.has(a.entityId)) seen.set(a.entityId, { id: a.entityId, at: [a.position.x, a.position.y, a.position.z], yaw: a.yaw, mem: { ...a.mem } });
       }
       const wildlife = window.__wildshard?.world?.game?.app?.debug?.snapshot?.().nalati?.wildlife;
+      if (window.__nalatiMarmots === null && wildlife?.marmots !== null && wildlife?.marmots !== undefined) window.__nalatiMarmots = wildlife.marmots.tickZero;
       for (const [kind, list] of [['pack', wildlife?.packs ?? []], ['herd', wildlife?.herds ?? []]]) list.forEach((group, i) => {
         const key = `${kind}:${i}`;
         if (!groups.has(key)) groups.set(key, { kind, members: group.members.map(m => m.entityId), state: group.snapshot() });
@@ -127,17 +128,18 @@ try {
       solids.push(row);
     });
     const spawns = actors.map(a => { const row = window.__nalatiSpawns.get(a.id); if (row === undefined) throw new Error(`No tick-0 spawn for ${a.id}`); return row; });
-    const groups = [...window.__nalatiGroups.values()], flocks = [...window.__nalatiFlocks.values()];
+    const groups = [...window.__nalatiGroups.values()], flocks = [...window.__nalatiFlocks.values()], marmots = window.__nalatiMarmots;
+    if (marmots === null || marmots.bands.frame !== 0) throw new Error('No exact tick-zero marmot keeper');
     // the grass the senses read before trampling (grassBaseHeightAt), at every body's tick-0 spot and on a 48² grid at an
     // off-lattice pitch (the 4 m lattice's interpolation, the trail beds, the yurt floors, the water): the renderer-free field's check
     const grassBase = g.app.debug.snapshot()['harness.shard.nalati-grasslands'].grassBase;
     const points = [...spawns.map(row => [row.at[0], row.at[2]]), ...Array.from({ length: 48 * 48 }, (_v, i) => [-247.3 + (i % 48) * 10.37, -246.1 + Math.floor(i / 48) * 10.41])];
     const grass = points.map(([x, z]) => [x, z, grassBase(x, z)]);
-    if (!wantCensus) return { actors, herds, trees, tops, yurts, pieces, grounds, solids, spawns, groups, flocks, grass };
+    if (!wantCensus) return { actors, herds, trees, tops, yurts, pieces, grounds, solids, spawns, groups, flocks, marmots, grass };
     const nalati = g.app.debug.snapshot().nalati;
     return { kinds, actors: actors.map(a => `${a.id} ${a.kind}.${a.variant} herd ${a.herd}${a.scripted ? ' scripted' : ''}`), herds, trees: trees.length, yurts, pieces: pieces.length, solids: solids.length,
       solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ rows: gr.rows, cols: gr.cols, scale: gr.scale, at: gr.at, friction: gr.friction, groups: gr.groups, heights: gr.heights.length })),
-      spawns, groups, flocks, clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
+      spawns, groups, flocks, marmots, clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -149,7 +151,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Nalati bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, tops: first.tops, yurts: first.yurts, pieces: first.pieces, spawns: first.spawns, groups: first.groups, flocks: first.flocks, grass: first.grass };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, tops: first.tops, yurts: first.yurts, pieces: first.pieces, spawns: first.spawns, groups: first.groups, flocks: first.flocks, marmots: first.marmots, grass: first.grass };
     writeFileSync(resolve(root, 'src/shards/nalati-grasslands/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-nalati-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }

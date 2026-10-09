@@ -1,11 +1,13 @@
 # Handoff (sp-x1) — 2026-10-09, SF72 Nalati
 
-Coordinator wildshard-new pushes; private CURRENT HEAD index, own hunks only, CAS/ancestor/subject checks. No Simulator owned. Preserve foreign working/index files.
+Coordinator wildshard-new pushes. CURRENT HEAD private index + own hunks, hooks, CAS/ancestor/subject/stat check. Preserve foreign files/index. No Simulator.
 
-Landed prerequisites: dbab71de4 pure bands export; 003cf3687 general infinite logical-number codec, full1058/5870 green and all11 finite checkpoint assets byte-identical. Nine closure436f05c91 remains complete.
+Landed: Nine436f05c91; bandsdbab71de4; infinite logical-number codec003cf3687 (all11 finite assets identical); Nalati raid/shepherd/flock3f333a8ed. This source slice adds shared shipping marmot law, actual construction-state bake, native whistle + complete JSON/suffix proof. See sf72-nalati13.md and ../sf72/nalati-marmots/proof.json.
 
-This source commit is Nalati raid/shepherd + native deferred motors + exact flock tick0. Full detail and exact next step: sf72-nalati12.md. Canonical witness still fails closed. Next: marmots/elites/dodge, then mounted player/crouch, bosses, sabre, canonical storm checkpoints in that order.
+Canonical Nalati remains fail-closed. Next: step3 elites on EliteCore and target.dodge wake, then mounted player/crouch, bosses, sabre, canonical storm witnesses. Do not skip the listed ordering or fake completion. Keep coverage restores <1/3 timeout with an immutable pre-raid basis.
 
-Scratch: /private/tmp/claude-501/sp-builders/sp-x1/nalati12/ (candidate, explicit paths/base, exact preview sha396527c32, wrapped bake/validation logs); codec export/logs in ../nalati-codec/. Owned preview x1-nalati12-final :4400 (stop after browser validation). No live browser. Six stale Nalati runtime files have coordinator release for sync to landed HEAD; unrelated audio/look/cost remain foreign.
+Scratch: /private/tmp/claude-501/sp-builders/sp-x1/nalati13/; candidate ../nalati12/candidate/. Final owned preview :4400 stopped; all browsers closed. Shared generated files left untouched as coordinator directed after an accidental root regeneration; never include them in this private source commit.
 
 Plan-State: unchanged.
+
+Proof: clean full1064files/5894tests101.5s;19focused green;3coverage checks11.6s total; root strict/lint/ratchet/hooks green; netengine imports0. Final browser native bake1d71b0d exact twice,26marmots frame0, unchanged world metadata.

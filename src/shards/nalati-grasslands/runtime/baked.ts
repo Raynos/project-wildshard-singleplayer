@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import { MarmotContinuation, type MarmotSnapshot } from '../creatures/marmotBrain';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it. */
@@ -24,7 +25,7 @@ const Bake = v.object({ version: v.literal(1),
   spawns: v.array(v.strictObject({ id: v.string(), at: triple, yaw: finite, mem: v.record(v.string(), v.nullable(finite)) })),
   groups: v.array(v.strictObject({ kind: v.picklist(['pack', 'herd']), members: v.array(v.string()), state: v.string() })),
   flocks: v.array(v.strictObject({ n: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), cx: finite, cz: finite, members: v.array(v.strictObject({ at: triple, yaw: finite })) })),
-  grass: v.array(triple) });
+  marmots: MarmotContinuation, grass: v.array(triple) });
 
 /** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
 export interface NalatiSolid {
@@ -55,6 +56,7 @@ export interface NalatiBake {
   /** the page's grass before trampling (grassBaseHeightAt) as [x, z, metres]: every body's tick-0 spot, then a 48² grid */
   readonly grass: readonly (readonly [number, number, number])[];
   /** Each flock's first observed frame before Wildlife advances: live positions include its native prey height offset. */
+  readonly marmots: MarmotSnapshot;
   readonly flocks: readonly { readonly n: number; readonly cx: number; readonly cz: number;
     readonly members: readonly { readonly at: readonly [number, number, number]; readonly yaw: number }[] }[];
 }
@@ -90,6 +92,6 @@ export function nalatiBake(): NalatiBake {
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
     actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees, tops: bake.tops, yurts: bake.yurts,
     // a never-hit body's hit time is -Infinity, which JSON writes as null (AnimalSim's own snapshot encodes it so)
-    spawns: bake.spawns.map(spawn => ({ ...spawn, mem: Object.fromEntries(Object.entries(spawn.mem).map(([key, value]) => [key, value ?? -Infinity])) })), groups: bake.groups, flocks: bake.flocks, grass: bake.grass };
+    spawns: bake.spawns.map(spawn => ({ ...spawn, mem: Object.fromEntries(Object.entries(spawn.mem).map(([key, value]) => [key, value ?? -Infinity])) })), groups: bake.groups, flocks: bake.flocks, marmots: bake.marmots, grass: bake.grass };
   return parsed;
 }
