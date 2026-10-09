@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The headless runtime reads the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
+import * as v from 'valibot';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
@@ -46,7 +47,10 @@ function tick(run: Run, commands: HeadlessCommand[] = []): void {
   } finally { run.tape = []; }
 }
 const spot = (list: readonly SignalSpot[], id: string): SignalSpot => { const found = list.find(s => s.id === id); if (found === undefined) throw new Error(`missing spot ${id}`); return found; };
+/** A crack is the whip's own (its row's cooldown gates it): a player lets the lash recover a second before the next one. */
+const CRACKS = new Set<number>([SIGNAL_ACT.crank, SIGNAL_ACT.light, SIGNAL_ACT.light + 1, SIGNAL_ACT.light + 2]);
 function act(run: Run, value: number, at: SignalSpot): void {
+  if (CRACKS.has(value)) for (let i = 0; i < 60; i++) tick(run);
   run.host.player.position.set(at.x, at.y - 1, at.z + 0.3);
   tick(run, [{ kind: 'script', actorId: SIGNAL_INTERACT, value }]);
 }
@@ -103,8 +107,11 @@ it('rises on the signal fire, holds the whip through her intro, and the whip\'s 
     run.host.player.position.set(STAND.x, run.host.groundHeightAt(STAND.x, STAND.z) + 0.1, STAND.z);
     tick(run);
     expect(encounter(run).state).toBe('intro');
+    // locked: no crack fires, so the lash's cooldown (left from the last waymark's crack) only runs down
+    const cooldown = (): number => { const state = snapshotSimHost(run.host).adapters.find(a => a.id === WHIP_STEP)?.state; return typeof state === 'string' ? v.parse(v.object({ cooldown: v.number() }), JSON.parse(state)).cooldown : Number.NaN; };
+    const before = cooldown();
     tick(run, [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: MATRIARCH_ID } }]);
-    expect(snapshotSimHost(run.host).adapters.find(a => a.id === WHIP_STEP)?.state).toContain('"cooldown":0,'); // locked: no crack fired
+    expect(cooldown()).toBeCloseTo(Math.max(0, before - 1 / 60), 9); expect(cooldown()).toBeLessThan(0.45);
     until(run, e => e.state === 'fight');
     until(run, e => e.phase === 1);
     expect(her(run).hp).toBe(600 * 0.66); // clamped at the threshold, never past it

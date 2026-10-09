@@ -10,14 +10,16 @@ mesh) and about 900 behaviour. **No runtime move gets there.** The share only mo
 `generators/` as a real offline bake (the classifier lets a generator import anything because it never runs in the
 client), and the behaviour becomes declared rows that SDK systems run.
 
-**After this lane's slices:** public 185 / custom 4117 (4.3 %), runtime + trusted 832 / 965; proofs unchanged
+**After this lane's slices:** public 185 / custom 4139 (4.3 %), runtime + trusted 854 / 965; proofs: boot now true
 (the witness re-runs byte-identical to `test/proof/sunscar-dunes/compatibility.json`).
 
 | Slice | Commit | public / custom | share | runtime + trusted |
 |---|---|---|---|---|
 | start | `d5f6e9ec7` | 42 / 4359 | 0.95 % | 927 / 965 |
 | home keeper → `@wildshard/game/shardfile/homeKeeper` | `4dca8153a` | 42 / 4281 | 0.97 % | 849 / 965 |
-| layout / strings / brazierFlag → public folders; boss row → `@wildshard/game/shardfile/bossRow` | this commit | 185 / 4117 | 4.3 % | 832 / 965 |
+| layout / strings / brazierFlag → public folders; boss row → `@wildshard/game/shardfile/bossRow` | `58d6abc9e` | 185 / 4117 | 4.3 % | 832 / 965 |
+| boot proof (`boot: true`) | `23e55d0dd` | 185 / 4117 | 4.3 % | 832 / 965 |
+| world cracks gated by the whip's cooldown (fidelity) | this commit | 185 / 4139 | 4.3 % | 854 / 965 |
 
 ## How the classifier reads Signal
 
@@ -71,10 +73,9 @@ client), and the behaviour becomes declared rows that SDK systems run.
 
 ## What `boot` and `gridReady` need
 
-- **boot** is `test/proof/sunscar-dunes/boot.test.ts` existing and passing. The honest proof for Signal: in plain Node,
-  parse `shard.config.ts` (already renderer-free) and boot it through the declared trusted headless factory
-  (`runtime/headless.ts` via `createTrustedHeadlessAdapter`), then assert the 13 homes, the admitted terrain and the
-  quest are installed. The witness already does everything except name it a boot proof; ≈ 15 lines on `witness.ts`.
+- **boot: done** (`23e55d0dd`): `test/proof/sunscar-dunes/boot.mjs` boots `shard.config.ts` through
+  `createTrustedHeadlessAdapter` over `runtime/headless.ts` in plain Node under the renderer-denying loader; one empty
+  tick commits no effect and holds the 13 declared homes and the five controllers.
 - **gridReady** is `test/proof/sunscar-dunes/grid-ready.test.ts`, the template's `grid-ready.mjs` shape: a
   `GridAssembly` cell whose `load` creates Signal's trusted headless simulation behind the `ResidencyAllocator` lease,
   readiness false until admitted, `checkpoint` refused until durable, a frozen region while away, and the continuation
@@ -85,11 +86,12 @@ client), and the behaviour becomes declared rows that SDK systems run.
 
 ## Fidelity gaps the witness must not pass on (from the previous lane)
 
-- **the whip-crack command cooldown**: the headless whip's creature contacts honour the row's 0.45 s / 0.9 s cooldown
-  (`runtime/whip.ts` on `ItemRuntime`), but the world cracks (`SIGNAL_ACT.crank`, `SIGNAL_ACT.light + i` in
-  `runtime/quest.ts`) have no cooldown at all: a tape could crack every tick;
+- **the whip-crack command cooldown: closed.** A world crack (`SIGNAL_ACT.crank`, `SIGNAL_ACT.light + i`) is now the
+  whip item's own crack aimed at its spot, so the row's 0.45 s / 0.9 s cooldown gates it as the browser's
+  `Bullwhip.swing` does (`runtime/whip.ts` `cracked`; test: a crack inside the heavy crack's cooldown lands nothing).
+  The witness re-runs byte-identical (its tape never cracked inside a cooldown);
 - **prompt line of sight**: headless prompts are distance-only from the eye (`near()` in `runtime/quest.ts`, "not
   modelled"); the browser's interactables also need a clear line;
 - **the browser whip's unroll delay, second lash, pull and stagger** stay the browser's; headless lands the light /
   heavy crack only.
-All three belong to move 5 (the generic lash item), so the browser and the witness run one rule.
+The other two belong to move 5 (the generic lash item), so the browser and the witness run one rule.

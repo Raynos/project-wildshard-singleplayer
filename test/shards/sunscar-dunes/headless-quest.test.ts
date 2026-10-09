@@ -32,8 +32,11 @@ function restore(saved: string): Run {
   const host = restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, context(run, true, decoded)); });
   return Object.assign(run, { host });
 }
+/** A crack is the whip's own (its row's cooldown gates it): a player lets the lash recover a second before the next one. */
+const CRACKS = new Set<number>([SIGNAL_ACT.crank, SIGNAL_ACT.light, SIGNAL_ACT.light + 1, SIGNAL_ACT.light + 2]);
 /** Stand with the eye 0.7 m above the spot (feet 1 m under it), then send one interaction on the next tick. */
-function act(run: Run, value: number, spot: SignalSpot | null): void {
+function act(run: Run, value: number, spot: SignalSpot | null, cool = true): void {
+  if (cool && CRACKS.has(value)) for (let i = 0; i < 60; i++) run.host.step({ moveX: 0, moveZ: 0, yaw: 0 });
   if (spot !== null) run.host.player.position.set(spot.x, spot.y - 1, spot.z + 0.3);
   run.tape = [{ kind: 'script', actorId: SIGNAL_INTERACT, value }];
   try { run.host.step({ moveX: 0, moveZ: 0, yaw: 0 }); } finally { run.tape = []; }
@@ -74,6 +77,19 @@ it('plays the signal quest\'s first five steps through the declared quest rows, 
     expect(run.host.flags.has(FLAG.lit)).toBe(true); expect(quest?.current?.id).toBe('matriarch');
     // the quest's reward waits for the Matriarch's step: no fact or coins yet
     expect(run.host.flags.has(COMPLETE_FLAG)).toBe(false); expect(run.effects).toEqual([]);
+  } finally { run.host.dispose(); }
+});
+
+it('gates a crack by the whip row\'s cooldown, as the browser\'s crack: a second crack inside it does not land', () => {
+  const run = boot(), { interact, crack } = signalSpots();
+  try {
+    run.host.flags.set(SCOUT_FLAG); run.host.flags.set(FLAG.logbook); run.host.flags.set(FLAG.oil);
+    act(run, SIGNAL_ACT.pour, spot(interact, 'brazier.0'));
+    act(run, SIGNAL_ACT.crank, spot(crack, 'well.crank')); // the heavy crack: 0.9 s before the lash is ready again
+    act(run, SIGNAL_ACT.light, spot(crack, 'brazier.0'), false);
+    expect(run.host.flags.has(brazierFlag(0))).toBe(false);
+    act(run, SIGNAL_ACT.light, spot(crack, 'brazier.0'));
+    expect(run.host.flags.has(brazierFlag(0))).toBe(true);
   } finally { run.host.dispose(); }
 });
 

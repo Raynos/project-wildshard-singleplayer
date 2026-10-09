@@ -9,7 +9,7 @@ import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/te
 import { SCOUT_FLAG } from '../data/flags';
 import { installSignalHomes } from './homes';
 import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
-import { installSignalQuest, type SignalSpots } from './quest';
+import { installSignalQuest, SIGNAL_ACT, SIGNAL_INTERACT, type SignalSpots } from './quest';
 import { installSignalMatriarch } from './matriarch';
 import { proveSignalEntries } from './entries';
 import { SIGNAL_SPAWNS } from '../data/spawns';
@@ -86,8 +86,17 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
     const matriarch = installSignalMatriarch(host, { body: keeper.boss, fact, coins });
     // the browser disables the player's weapons through her intro (BossPorts.lockInput)
-    installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): WhipCommand[] => command.kind === 'player' && command.attack !== undefined ? [{ targetId: command.attack.targetId }] : []));
-    installSignalQuest(host, { quests: shard.quests, spots, braziers: BRAZIERS.length, reach,
+    // a crack command at the well's crank (heavy) or a waymark's brazier (light) is the whip's own crack at that spot
+    const world = (value: number): WhipCommand | null => {
+      const at = value === SIGNAL_ACT.crank ? spots.crack[0] : value >= SIGNAL_ACT.light && value < SIGNAL_ACT.light + BRAZIERS.length ? spots.crack[1 + value - SIGNAL_ACT.light] : undefined;
+      return at === undefined ? null : { world: value, at, heavy: value === SIGNAL_ACT.crank };
+    };
+    const signalWhip = installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): WhipCommand[] => {
+      if (command.kind === 'player') return command.attack === undefined ? [] : [{ targetId: command.attack.targetId }];
+      const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? world(command.value) : null;
+      return crack === null ? [] : [crack];
+    }));
+    installSignalQuest(host, { quests: shard.quests, spots, braziers: BRAZIERS.length, reach, cracked: signalWhip.cracked,
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []), fact, coins, lit: matriarch.summon });
     keeper.settle();
   } };
