@@ -15,6 +15,9 @@
 #
 # Lane size: BROWSER_LANES (default 4, Jake 2026-09-30). A slot counts as used when a lane run holds it OR a browser is open outside any
 # lane run (agent-browser sessions, a script run without this wrapper), so the cap holds whoever opened what.
+# The push gate has one reserved slot of its own on top (SF74 W19, speed audit #4): its webkit-smoke waited 125-277 s
+# behind the agents' slots in 3 of 7 gates. It is taken only with BROWSER_LANE_PRIORITY=1 under the live push-gate
+# lease (heavy-lane.py gate, checked by ancestry); the gate tries it first, then the shared slots. Agents keep 4.
 #
 # Reaping (runs before every wait, from the Stop / SessionStart hooks, and by hand):
 #   - a headless Chromium (Playwright's chrome-headless-shell / chromium, agent-browser's Chrome) whose parent died
@@ -184,7 +187,7 @@ case "${1:-}" in
     # since), then run <cmd> as a child — not exec: this command line is how in_lane() finds the browsers under it —
     # with a hard timeout. Exit 75 without the marker = the cap was full after all; the caller tries again.
     slot="$2"; marker="$3"; max="$4"; shift 4
-    [ "$(used)" -le "$LANES" ] || exit 75
+    [ "$slot" = gate ] || [ "$(used)" -le "$LANES" ] || exit 75 # the gate's reserved slot is not one of the agents' 4
     : > "$marker"
     # P1: preserve caller stdin for a lane-held browser server (bash otherwise gives an async child /dev/null).
     exec 9<&0
@@ -207,10 +210,16 @@ if [ "${1:-}" = "--max" ]; then MAX_MIN="${2:?--max needs minutes}"; shift 2; fi
 [ "${1:-}" = "--" ] && shift
 [ $# -gt 0 ] || { echo "usage: browser-lane.sh [--max <min>] <cmd …>" >&2; exit 64; }
 
+# SF74 W19: the push gate (priority flag + an actual push-gate lease ancestor, not a copied env var) has a reserved slot
+slots="$(seq 0 $((LANES - 1)))"
+if [ "${BROWSER_LANE_PRIORITY:-0}" = 1 ] && node --input-type=module -e \
+  "import {assertHeavyLease} from '$(dirname "$SELF")/heavy-lane-lease.mjs'; assertHeavyLease('push-gate');" >/dev/null 2>&1; then
+  slots="gate $slots"
+fi
 said=0
 while :; do
   reap >/dev/null
-  for i in $(seq 0 $((LANES - 1))); do
+  for i in $slots; do
     marker="$DIR/got.$$.$i"; rm -f "$marker"
     lockf -s -t 0 "$DIR/slot-$i.lock" bash "$SELF" _slot "$i" "$marker" "$MAX_MIN" "$@"
     rc=$?

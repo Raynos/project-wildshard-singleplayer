@@ -13,6 +13,8 @@ Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
 - Before a new agent-browser session: `scripts/browser-lane.sh wait && agent-browser --session <s> open …`. Reusing
   your open session is fine; `close` it the moment you're done, and always before you report (idle sessions also close
   after 5 min).
+- The push gate has **one reserved slot of its own** on top of the 4 (SF74 W19): its WebKit smoke waited 125-277 s behind
+  the agents' slots. Only a run under the live push-gate lease can take it; agents keep 4.
 - `.claude/hooks/guard-browser-lane.sh` blocks an unwrapped browser-launching script and a new session while the lane is
   full. Rare escape: `SKIP_BROWSER_LANE=1`.
 - The reaper (`scripts/browser-lane.sh reap`) kills headless Chromiums whose parent died or that are older than 90 min,
