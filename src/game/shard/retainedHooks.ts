@@ -4,6 +4,7 @@ import type { ShardContext } from './context';
 import { bindPlayerEffects } from '@wildshard/engine/combat/effects/EffectService';
 import type { Vector3 } from 'three';
 
+const ownerBelongsTo = (owner: Scope | null, entered: Scope): boolean => owner?.belongsTo(entered) === true;
 const enteredServices = new WeakMap<ShardContext, (install: (scope: Scope) => void) => void>();
 const playerBindings = new WeakSet<ShardContext>();
 
@@ -88,10 +89,11 @@ export class RetainedRuntimeHooks {
     this.activate();
     const generation = this.generation;
     const register = (install: (scope: Scope) => void): void => {
-      const owner = currentOwner(), entered = this.entered;
-      // Existing callbacks re-enter their new owner. A yielded old hook has no such owner and cannot publish here.
+      const entered = this.entered;
+      // Existing callbacks re-enter their new owner. A yielded old hook has no such owner and cannot publish here. The owner
+      // is read only for that check (SF57: a read on every registration counted as a stray read during owned builds).
       if (base.scope.disposed || entered === undefined || (generation !== this.generation
-        && (owner === null || !owner.belongsTo(entered)))) throw new Error('Trusted callback registration left its cell');
+        && !ownerBelongsTo(currentOwner(), entered))) throw new Error('Trusted callback registration left its cell');
       withOwner(entered, () => install(entered));
       this.installers.push(install);
     };

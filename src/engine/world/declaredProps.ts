@@ -1,9 +1,11 @@
-import { Group, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, type Texture } from 'three';
+import { Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, type Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Scope } from '../app/scope';
 import { familyVariant } from '../render/families/registry';
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
+/** Without narrowing its argument (InstancedMesh's type parameters default to any). */
+function isInstanced(object: Object3D): boolean { return object instanceof InstancedMesh; }
 
 /** the colour and map slots a family material and a GLB material share (PBR and toon are standard, painterly Lambert) */
 function surfaceOf(m: Material): MeshStandardMaterial | MeshLambertMaterial | null {
@@ -126,10 +128,17 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
   surfaces?: (name: string) => PropSurfaceBinding;
 }): Promise<InstalledProps> {
   const roots = new Group(), geometries = new Set<BufferGeometry>(), held: Material[] = [], bases = new Map<Material, Material>();
+  // SF57 leak5: a GLB's EXT_mesh_gpu_instancing node parses to an InstancedMesh, whose instance buffers are its own upload; it
+  // is disposed with its geometry, or each ring tile's instanced props stayed in the renderer's live set undisposed
+  const instanced = new Set<Object3D>();
+  const disposeInstanced = (mesh: Object3D): void => { if (instanced.delete(mesh) && mesh instanceof InstancedMesh) mesh.dispose(); };
   const family = ports.materials.get(props.family); if (family === undefined) throw new Error(`Unresolved props family ${props.family}`);
   let disposed = false;
   const release = (m: Material): void => { releaseVariant(bases.get(m) ?? family, m); };
-  const releaseAll = (): void => { for (const g of geometries) g.dispose(); geometries.clear(); for (const m of held.splice(0)) release(m); };
+  const releaseAll = (): void => {
+    for (const g of geometries) g.dispose(); geometries.clear(); for (const m of held.splice(0)) release(m);
+    for (const mesh of instanced) disposeInstanced(mesh);
+  };
   ports.scope.onDispose(() => { disposed = true; roots.removeFromParent(); releaseAll(); });
   const parse = async (hash: string): Promise<Object3D> => {
     const bytes = ports.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted props GLB');
@@ -139,6 +148,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
     gltf.scene.traverse((o) => {
       if (!isMesh(o)) return;
       geometries.add(o.geometry);
+      if (isInstanced(o)) instanced.add(o);
       const original = Array.isArray(o.material) ? o.material : [o.material];
       const vertexColours = o.geometry.hasAttribute('color');
       const named = ports.surfaces;
@@ -174,6 +184,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       const root = tiles.get(key); if (root === undefined) return; root.removeFromParent(); tiles.delete(key);
       root.traverse((o) => {
         if (!isMesh(o)) return; if (geometries.delete(o.geometry)) o.geometry.dispose();
+        disposeInstanced(o);
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) { const at = held.indexOf(m); if (at !== -1) { held.splice(at, 1); release(m); } }
       });
     };

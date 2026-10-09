@@ -135,6 +135,17 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
 }
 
 /**
+ * A job's disposer made outside the function that collects the job's stand-ins (SF57 leak5). A closure shares its
+ * function's one context: made inside `shadowJobs`, the disposer (held by the warm-up's owner until that frame leaves)
+ * also held the stand-in list the scene walk filled, and so every caster's geometry, material and textures, including
+ * other residents' that retired meanwhile.
+ */
+function disposerOf(resources: Iterable<{ dispose: () => void }>): () => void {
+  const held = [...resources];
+  return () => { for (const resource of held) resource.dispose(); };
+}
+
+/**
  * The shadow pass's depth materials: WebGLShadowMap.getDepthMaterial picks the caster's
  * customDepthMaterial, else the shared MeshDepthMaterial (BasicDepthPacking — r186 shadow maps are depth textures) with the caster
  * material's map / alphaMap / alphaTest / displacement copied on and the side flipped — and it
@@ -189,7 +200,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
     jobs.push({ label: engineString('s_2a96df75489f', [i]), root, target: scene, rt, fogOff: true });
   }
   const first = jobs[0];
-  if (first !== undefined) first.dispose = () => { for (const material of temporary) material.dispose(); box.dispose(); white.dispose(); };
+  if (first !== undefined) first.dispose = disposerOf([...temporary, box, white]);
   return jobs;
 }
 
@@ -251,7 +262,7 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   if (groups.buffer.children.length > 0) jobs.push({ label: engineString('s_178612197e2b'), root: groups.buffer, target: empty, rt });
   if (groups.screen.children.length > 0) jobs.push({ label: engineString('s_9070659b32c3'), root: groups.screen, target: empty, rt: null });
   const first = jobs[0];
-  if (first === undefined) tri.dispose(); else first.dispose = () => { tri.dispose(); };
+  if (first === undefined) tri.dispose(); else first.dispose = disposerOf([tri]);
   return jobs;
 }
 

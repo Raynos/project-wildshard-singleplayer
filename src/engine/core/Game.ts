@@ -214,6 +214,8 @@ export class Game {
     const live = this.uploads.resources();
     const read = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
     return { total: { ...this.renderer.info.memory, programs: this.renderer.info.programs?.length ?? 0 },
+      // SF57: the live unowned uploads and those collected without a dispose (UploadOwnership.orphanCensus)
+      orphans: this.uploads.orphanCensus(),
       retained: this.retainedGpuCounts(), resources: [...live].map((resource) => {
         const props: unknown = this.renderer.properties.get(resource);
         const compiled = read(props, 'programs'), source = read(resource, 'source'), image = read(source, 'data');

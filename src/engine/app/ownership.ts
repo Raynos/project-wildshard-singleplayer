@@ -21,6 +21,9 @@ export function currentOwner(): Scope | null {
  *  continuation, a native callback). A service with a lifetime of its own (a region's registry) uses this to take its own
  *  scope instead of the page's ambient one; it is never a stray read (SF57). */
 export function enteredOwner(): Scope | null { return entered > 0 ? owner : null; }
+/** The owner an enclosing `withOwner` section set (null included: `asShell` means no owner), or `fallback` outside any
+ *  section. A service with a lifetime of its own (a region's physics world) passes its scope; never a stray read (SF57). */
+export function ownerOr(fallback: Scope): Scope | null { return entered > 0 ? owner : fallback; }
 export function enterOwner(next: Scope | null): void { owner = next; }
 export function withOwner<T>(scope: Scope | null, fn: () => T): T {
   const previous = owner; owner = scope; entered++;

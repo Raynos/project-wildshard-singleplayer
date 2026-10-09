@@ -94,7 +94,12 @@ describe('declared prop baker', () => {
     } });
     expect(matrices).toEqual(transforms.map(matrix => matrix.elements));
     const panel = installed.panels.get('template.door'); expect(panel).toBeDefined(); if (panel === undefined) throw new Error('Missing panel'); panel.visible = false; expect(panel.visible).toBe(false);
+    // SF57 leak5: the instanced props (their instance buffers) are disposed with the scope, not left to the renderer
+    const instanced: Mesh[] = []; scene.traverse((o) => { if (o instanceof InstancedMesh && o instanceof Mesh) instanced.push(o); });
+    let freed = 0; for (const mesh of instanced) mesh.addEventListener('dispose', () => { freed++; });
+    expect(instanced.length).toBeGreaterThan(0);
     expect(installed.models.has('template.lantern')).toBe(true); expect(scene.children).toHaveLength(1); scope.dispose(); expect(scene.children).toHaveLength(0);
+    expect(freed).toBe(instanced.length);
   });
   it('uses ordinary GLB instancing and admission counts each rendered triangle and each 64-byte matrix', async () => {
     const geometry = new BoxGeometry(1, 1, 1), material = new MeshStandardMaterial(), instances = [new Matrix4().makeTranslation(2, 0, 2), new Matrix4().makeTranslation(4, 0, 4)];

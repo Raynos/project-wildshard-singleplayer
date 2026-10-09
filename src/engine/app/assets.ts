@@ -1,5 +1,5 @@
 import type { Disposable3, Scope } from './scope';
-import { currentOwner } from './ownership';
+import { enteredOwner } from './ownership';
 
 export interface AssetRecord { key: string; refs: number; retained: boolean }
 export type AssetCensus = readonly AssetRecord[];
@@ -19,7 +19,9 @@ export class AssetService<T extends Disposable3 = Disposable3> {
   register(key: string, resource: T, opts?: { retain?: boolean; cache?: boolean }): T {
     if (this.entries.has(key)) throw new Error(`Asset already registered: ${key}`);
     const cached = opts?.cache === true;
-    const residency = cached ? this.residency?.register(key, resource, currentOwner(), () => this.evictCached(key)) : undefined;
+    // SF57: a module cache's resource is attributed to an enclosing `withOwner` section's scope; outside one (after an
+    // `await`) the residency port falls back to its own reader, as it did for the ambient owner, without an owner read
+    const residency = cached ? this.residency?.register(key, resource, enteredOwner(), () => this.evictCached(key)) : undefined;
     const entry = { key, resource, refs: 0, retained: opts?.retain ?? false, cached, residency };
     this.entries.set(key, entry); this.byResource.set(resource, entry);
     this.managed.add(resource);

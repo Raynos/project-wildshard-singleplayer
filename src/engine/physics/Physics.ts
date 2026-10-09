@@ -10,7 +10,7 @@
 import type { Collider, RigidBody, World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
-import { currentOwner } from '../app/ownership';
+import { currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { untagCollider } from './surface';
 
@@ -25,26 +25,31 @@ export class Physics {
   private readonly colliderCaptures = new Map<number, () => void>();
   private readonly bodyOwners = new Map<number, Scope>();
   private readonly colliderOwners = new Map<number, Scope>();
-  constructor(R: Rapier, snapshot?: Uint8Array) {
+  /** The world's own lifetime (a region's simulation scope), or null for the page's world. SF57: a body or collider made
+   *  outside any `withOwner` section (after an `await` in a resident's build) belongs to this world's scope, as a region
+   *  registry's registrations do, not to the page's ambient owner; the page's world keeps the ambient owner. */
+  private readonly owner: Scope | null;
+  constructor(R: Rapier, snapshot?: Uint8Array, owner: Scope | null = null) {
     this.R = R;
+    this.owner = owner;
     this.world = snapshot === undefined ? new R.World({ x: 0, y: -9.81, z: 0 }) : R.World.restoreSnapshot(snapshot);
     this.world.timestep = FIXED_STEP;
     const bodies = this.bodyCaptures, colliders = this.colliderCaptures;
     const createBody = this.world.createRigidBody.bind(this.world), removeBody = this.world.removeRigidBody.bind(this.world);
     const createCollider = this.world.createCollider.bind(this.world), removeCollider = this.world.removeCollider.bind(this.world);
     this.world.createRigidBody = (desc) => {
-      const body = createBody(desc), scope = currentOwner();
+      const body = createBody(desc), scope = this.creationOwner();
       if (scope) {
         this.bodyOwners.set(body.handle, scope);
-        bodies.set(body.handle, scope.capture('bodies', () => { if (body.isValid()) this.world.removeRigidBody(body); }));
+        bodies.set(body.handle, scope.capture('bodies', () => { if (!this.freed && body.isValid()) this.world.removeRigidBody(body); }));
       }
       return body;
     };
     this.world.createCollider = (desc, parent) => {
-      const collider = createCollider(desc, parent), scope = currentOwner();
+      const collider = createCollider(desc, parent), scope = this.creationOwner();
       if (scope) {
         this.colliderOwners.set(collider.handle, scope);
-        colliders.set(collider.handle, scope.capture('colliders', () => { if (collider.isValid()) this.world.removeCollider(collider, true); }));
+        colliders.set(collider.handle, scope.capture('colliders', () => { if (!this.freed && collider.isValid()) this.world.removeCollider(collider, true); }));
       }
       return collider;
     };
@@ -92,8 +97,13 @@ export class Physics {
     this.stepMs = performance.now() - t0;
   }
 
+  /** Who owns a body or collider made now: an enclosing `withOwner` section's scope, else this world's, else the ambient owner. */
+  private creationOwner(): Scope | null { return this.owner === null ? currentOwner() : ownerOr(this.owner); }
+  /** Set by `dispose`: a scope torn down in the same pass may still run a capture it had copied before the world went. */
+  private freed = false;
+
   dispose(): void {
-    this.world.forEachCollider(untagCollider); this.world.free();
+    this.world.forEachCollider(untagCollider); this.world.free(); this.freed = true;
     // Whole-world retirement has freed these handles. Their scopes may outlive this world (cold regions);
     // unregister native cleanup callbacks so they cannot later dereference a freed Rapier set.
     for (const forget of this.bodyCaptures.values()) forget();

@@ -110,7 +110,7 @@ export class SimHost {
     this.level = level; this.scope = ports.scope?.child(`sim:${level.id}`) ?? new Scope(`sim:${level.id}`); this.rng = new RngService(level.seed);
     this.heightAt = ports.heightAt ?? (() => level.ground.height);
     this.events = ports.events ?? new Events(); this.clock = ports.clock ?? new GameClock();
-    this.physics = ports.physics ?? new Physics(ports.rapier);
+    this.physics = ports.physics ?? new Physics(ports.rapier, undefined, this.scope);
     if (ports.ground !== false && !this.embedded) {
       const count = ports.groundResolution ?? 2;
       const ground = this.physics.world.createCollider(ports.rapier.ColliderDesc.heightfield(count - 1, count - 1,

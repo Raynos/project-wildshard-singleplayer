@@ -44,6 +44,8 @@ export class UploadOwnership {
   /** Every observed upload's lifetime hooks, registered once. */
   private readonly tracked = new WeakSet<Resource>();
   private collected = 0;
+  /** Each tracked resource's release (its dispose listener), so a render target releases its attachments with it. */
+  private readonly releases = new WeakMap<Resource, () => void>();
   /** A compiled object's samplers and geometry, with that object's owner: their own upload (the warm-up's texture pass,
    *  a later draw) is attributed to it when no drawn owner is known then. A hint never observes a resource by itself. */
   private readonly hints = new WeakMap<Resource, Scope>();
@@ -115,29 +117,46 @@ export class UploadOwnership {
     const forget = this.track(resource);
     this.finalizer.register(resource, { ref, forget }, ref);
   }
-  /** The dispose listener and the level's end-of-life capture, once per resource; neither keeps the resource alive. */
+  /** The dispose listener and the level's end-of-life capture, once per resource; neither keeps the resource alive.
+   *  SF57 leak5: the two closures are made in separate functions. Made in one, they shared one closure context, and the
+   *  level's capture (and the finalizer's `forget`) then held the resource through the listener's binding: every weakly
+   *  held upload stayed alive until the page level ended. */
   private track(resource: Resource): () => void {
     if (this.tracked.has(resource)) return () => { /* Already tracked. */ };
     this.tracked.add(resource);
-    const ref = new WeakRef(resource);
-    let forget = () => { /* Bound after registration. */ };
-    const released = (): void => {
-      this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
-      this.tracked.delete(resource);
-      this.owned.delete(resource);
-      const weak = this.orphanRefs.get(resource);
-      if (weak !== undefined) { this.orphans.delete(weak); this.orphanRefs.delete(resource); this.finalizer.unregister(weak); }
-      eventMethod(resource, 'removeEventListener', released); forget();
-    };
-    eventMethod(resource, 'addEventListener', released);
-    forget = this.level.capture('resources', () => {
+    const forget = this.captureAtLevelEnd(new WeakRef(resource));
+    this.listenForRelease(resource, forget);
+    return forget;
+  }
+  /** The page level's end of life frees what is still live, unowned and not acquired. Holds only a WeakRef. */
+  private captureAtLevelEnd(ref: WeakRef<Resource>): () => void {
+    return this.level.capture('resources', () => {
       const live = ref.deref();
       if (live === undefined) return;
       const owner = sceneResourceOwner(live);
       if ((this.owned.has(live) || this.isOrphan(live)) && !this.assets.isAcquired(live) && owner === null) live.dispose();
       // Engine/acquired resources remain visible to the independent GPU census after level disposal.
     });
-    return () => { forget(); };
+  }
+  /** The resource's own dispose event forgets it. Reachable only from the resource's listeners. */
+  private listenForRelease(resource: Resource, forget: () => void): void {
+    const released = (): void => {
+      this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
+      this.retire(resource);
+      eventMethod(resource, 'removeEventListener', released); forget();
+      this.releases.delete(resource);
+      // SF57 leak5: a render target's dispose frees its attachments (three's deallocateRenderTarget) without dispatching
+      // their own dispose, so each one is released here with it, or a freed attachment stayed in the live set
+      if (resource instanceof WebGLRenderTarget) for (const texture of resource.textures) this.releases.get(texture)?.();
+    };
+    this.releases.set(resource, released);
+    eventMethod(resource, 'addEventListener', released);
+  }
+  private retire(resource: Resource): void {
+    this.tracked.delete(resource);
+    this.owned.delete(resource);
+    const weak = this.orphanRefs.get(resource);
+    if (weak !== undefined) { this.orphans.delete(weak); this.orphanRefs.delete(resource); this.finalizer.unregister(weak); }
   }
   /** A `compile()` is a draw of every object in it: each object's material program is that object's owner's upload, and its
    *  samplers and geometry carry that owner as a hint for their own upload. */
