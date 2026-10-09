@@ -10219,6 +10219,114 @@
         "from": "@wildshard/engine/sim"
       },
       {
+        "name": "AI_TICK_RATE",
+        "kind": "const",
+        "doc": "The scheduler's 'ai' rate (also 'npc'): decisions 20 Hz / 10 Hz / paused, the body every frame / 'half' / paused.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "ALWAYS_TICK_RATE",
+        "kind": "const",
+        "doc": "A pinned, driven or fight-scripted subject: it decides and moves every frame at any distance.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "bandAt",
+        "kind": "function",
+        "doc": "The first band covering `distance` (undefined only for a rate that `checkTickRate` refuses).",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "BandRow",
+        "kind": "interface",
+        "doc": "One host body's band row: its rate id and its brain and body clocks.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "BandsState",
+        "kind": "interface",
+        "doc": "A host's band state as plain JSON (SimSnapshot.bands).",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "BodyBandClocks",
+        "kind": "class",
+        "doc": "Per-body band clocks for a fixed-step host (the page scheduler's rates plus the creature manager's 'legacy'), keyed by stable body id (serializable, unlike the page scheduler's",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "checkTickRate",
+        "kind": "function",
+        "doc": "Refuse a rate whose bands do not rise strictly, with a positive rate each, up to an unbounded last band.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "CREATURE_BODY_FAR",
+        "kind": "const",
+        "doc": "… and loses it past this one (m): the 10 m between keeps a creature at the edge from churning colliders.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "CREATURE_BODY_NEAR",
+        "kind": "const",
+        "doc": "A creature gains its physics body within this horizontal distance of the player (m).",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "creatureBodyDistance",
+        "kind": "function",
+        "doc": "The physics body LOD's distance: horizontal, from the player.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "creatureBodyShape",
+        "kind": "function",
+        "doc": "The page's creature body capsule for a body of these dimensions and scale (CreatureBodies' motor recipe).",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "DEFAULT_TICK_RATES",
+        "kind": "const",
+        "doc": "The scheduler's built-in rates by id; a level's tier `ticks` add to or replace them.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "freshClock",
+        "kind": "function",
+        "doc": "A subject's fresh clock: it starts one frame ago (`time - frameDt`), so its first step is one frame, never a catch-up.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "keepsCreatureBody",
+        "kind": "function",
+        "doc": "Whether a creature holds a physics body after this sync: gained live, un-driven and within NEAR; lost dead, driven or past FAR.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "LEGACY_TICK_RATE",
+        "kind": "const",
+        "doc": "The creature manager's 'legacy' rate (AnimalManager.configureTicks), set over any level override: a self-thinking",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "tickClock",
+        "kind": "function",
+        "doc": "Advance one clock to frame `frame` at time `time` (s) and return its step (s; 0 = not due this frame). A clock asked",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "TickClock",
+        "kind": "interface",
+        "doc": "One subject's clock on one tick rate: the page scheduler's per-subject brain or body clock, plain JSON values.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
+        "name": "tickDistance",
+        "kind": "function",
+        "doc": "The scheduler's distance: straight-line 3D from the player.",
+        "from": "@wildshard/engine/sim/bands"
+      },
+      {
         "name": "bakedEdgeProfiles",
         "kind": "function",
         "doc": "Decode only the pure WSTR bake data. Four palette colours correspond to its four splat channels.",

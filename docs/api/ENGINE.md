@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2314 members; 841 without a doc line (—).
+2332 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1708,6 +1708,24 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |
 | `SimStrike` | type | @wildshard/engine/sim | Pure strike data. The host supplies the constant selection weight. |
 | `SimValue` | type | @wildshard/engine/sim | Serializable F1 extension values, without callbacks or renderer objects. |
+| `AI_TICK_RATE` | const | @wildshard/engine/sim/bands | The scheduler's 'ai' rate (also 'npc'): decisions 20 Hz / 10 Hz / paused, the body every frame / 'half' / paused. |
+| `ALWAYS_TICK_RATE` | const | @wildshard/engine/sim/bands | A pinned, driven or fight-scripted subject: it decides and moves every frame at any distance. |
+| `bandAt` | function | @wildshard/engine/sim/bands | The first band covering `distance` (undefined only for a rate that `checkTickRate` refuses). |
+| `BandRow` | interface | @wildshard/engine/sim/bands | One host body's band row: its rate id and its brain and body clocks. |
+| `BandsState` | interface | @wildshard/engine/sim/bands | A host's band state as plain JSON (SimSnapshot.bands). |
+| `BodyBandClocks` | class | @wildshard/engine/sim/bands | Per-body band clocks for a fixed-step host (the page scheduler's rates plus the creature manager's 'legacy'), keyed by stable body id (serializable, unlike the page scheduler's |
+| `checkTickRate` | function | @wildshard/engine/sim/bands | Refuse a rate whose bands do not rise strictly, with a positive rate each, up to an unbounded last band. |
+| `CREATURE_BODY_FAR` | const | @wildshard/engine/sim/bands | … and loses it past this one (m): the 10 m between keeps a creature at the edge from churning colliders. |
+| `CREATURE_BODY_NEAR` | const | @wildshard/engine/sim/bands | A creature gains its physics body within this horizontal distance of the player (m). |
+| `creatureBodyDistance` | function | @wildshard/engine/sim/bands | The physics body LOD's distance: horizontal, from the player. |
+| `creatureBodyShape` | function | @wildshard/engine/sim/bands | The page's creature body capsule for a body of these dimensions and scale (CreatureBodies' motor recipe). |
+| `DEFAULT_TICK_RATES` | const | @wildshard/engine/sim/bands | The scheduler's built-in rates by id; a level's tier `ticks` add to or replace them. |
+| `freshClock` | function | @wildshard/engine/sim/bands | A subject's fresh clock: it starts one frame ago (`time - frameDt`), so its first step is one frame, never a catch-up. |
+| `keepsCreatureBody` | function | @wildshard/engine/sim/bands | Whether a creature holds a physics body after this sync: gained live, un-driven and within NEAR; lost dead, driven or past FAR. |
+| `LEGACY_TICK_RATE` | const | @wildshard/engine/sim/bands | The creature manager's 'legacy' rate (AnimalManager.configureTicks), set over any level override: a self-thinking |
+| `tickClock` | function | @wildshard/engine/sim/bands | Advance one clock to frame `frame` at time `time` (s) and return its step (s; 0 = not due this frame). A clock asked |
+| `TickClock` | interface | @wildshard/engine/sim/bands | One subject's clock on one tick rate: the page scheduler's per-subject brain or body clock, plain JSON values. |
+| `tickDistance` | function | @wildshard/engine/sim/bands | The scheduler's distance: straight-line 3D from the player. |
 | `bakedEdgeProfiles` | function | @wildshard/engine/sim/edgeProfiles | Decode only the pure WSTR bake data. Four palette colours correspond to its four splat channels. |
 | `EdgeColour` | type | @wildshard/engine/sim/edgeProfiles | Linear RGB, supplied by the admitted terrain palette rather than a renderer dependency. |
 | `EdgeProfiles` | type | @wildshard/engine/sim/edgeProfiles | Boundary rows run west→east on north/south and south→north on east/west. North is positive z. |

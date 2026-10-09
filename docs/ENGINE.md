@@ -2036,7 +2036,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2297 exports, grouped by the module to import them from.
+2315 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2325,6 +2325,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimBodyBands`, `SimBodyStep`, `SimCommand`, `SimExternalPlayer`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
+- `@wildshard/engine/sim/bands`: `AI_TICK_RATE`, `ALWAYS_TICK_RATE`, `bandAt`, `BandRow`, `BandsState`, `BodyBandClocks`, `checkTickRate`, `CREATURE_BODY_FAR`, `CREATURE_BODY_NEAR`, `creatureBodyDistance`, `creatureBodyShape`, `DEFAULT_TICK_RATES`, `freshClock`, `keepsCreatureBody`, `LEGACY_TICK_RATE`, `tickClock`, `TickClock`, `tickDistance`
 - `@wildshard/engine/sim/edgeProfiles`: `bakedEdgeProfiles`, `EdgeColour`, `EdgeProfiles`, `EdgeResolution`, `edgeSample`, `edgeSampleLocations`, `nativeEdgeProfiles`, `validateEdgeProfile`
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`
 - `@wildshard/engine/sim/shore`: `SHORE_DEPTH`, `SHORE_REVETMENT_INNER_FACE`
