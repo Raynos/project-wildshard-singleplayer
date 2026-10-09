@@ -9,7 +9,8 @@ import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/te
 import { SCOUT_FLAG } from '../data/flags';
 import { installSignalHomes } from './homes';
 import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
-import { installSignalQuest, SIGNAL_ACT, SIGNAL_INTERACT, type SignalSpots } from './quest';
+import { installSignalQuest, type SignalSpots } from './quest';
+import { SIGNAL_ACT, SIGNAL_INTERACT } from '../quests/interactions';
 import { installSignalMatriarch } from './matriarch';
 import { proveSignalEntries } from './entries';
 import { SIGNAL_SPAWNS } from '../data/spawns';
@@ -52,7 +53,7 @@ export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
  * Signal Dunes' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the admitted terrain
  * collider and heights, the browser-baked native colliders, and the 13 declared homes with their shipping policies,
  * creature stream, attack tokens and respawn clocks, the whip as its declared item row (a player command's attack is
- * its light crack), the signal quest with its interactions (`script` commands on `sunscar.interact`, runtime/quest.ts),
+ * its light crack), the signal quest with its declared interaction rows (`script` commands on `sunscar.interact`, quests/interactions.ts),
  * and the Dune Matriarch's encounter (runtime/matriarch.ts), armed by the signal fire, her body the keeper's after the
  * homes, and the entry proof: a player capsule walks in from every declared entryway on the native terrain
  * (runtime/entries.ts), so `finish` answers with real lanes and steps.
@@ -96,7 +97,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
       const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? world(command.value) : null;
       return crack === null ? [] : [crack];
     }));
-    installSignalQuest(host, { quests: shard.quests, spots, braziers: BRAZIERS.length, reach, cracked: signalWhip.cracked,
+    installSignalQuest(host, { quests: shard.quests, spots, reach, cracked: signalWhip.cracked,
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []), fact, coins, lit: matriarch.summon });
     keeper.settle();
   } };

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
@@ -11,7 +12,8 @@ import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/da
 import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import { INTERACTIONS_STEP, SIGNAL_ACT, SIGNAL_INTERACT, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import { INTERACTIONS_STEP, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/sunscar-dunes/assets/${file.hash}`))]));
@@ -103,14 +105,14 @@ it('restores the transient well / oil / waymark state mid-quest and continues ex
     const saved = serializeSimSnapshot(snapshotSimHost(original.host));
     expect(snapshotSimHost(original.host).adapters.find(a => a.id === INTERACTIONS_STEP)?.state).toContain('"raised":true');
     restored = restore(saved);
-    expect(serializeSimSnapshot(snapshotSimHost(restored.host))).toBe(saved);
+    expectSameSimSnapshot(snapshotSimHost(restored.host), decodeSimSnapshot(saved));
     for (const run of [original, restored]) {
       act(run, SIGNAL_ACT.well, spot(interact, 'well'));
       act(run, SIGNAL_ACT.pour, spot(interact, 'brazier.0'));
       for (let tick = 0; tick < 60; tick++) run.host.step({ moveX: 0, moveZ: 0, yaw: 0 });
     }
     expect(restored.host.flags.has(FLAG.oil)).toBe(true);
-    expect(serializeSimSnapshot(snapshotSimHost(restored.host))).toBe(serializeSimSnapshot(snapshotSimHost(original.host)));
+    expectSameSimSnapshot(snapshotSimHost(restored.host), snapshotSimHost(original.host));
     expect(original.effects).toEqual([]); expect(restored.effects).toEqual([]);
   } finally { restored?.host.dispose(); original.host.dispose(); }
 });

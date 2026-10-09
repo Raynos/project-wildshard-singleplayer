@@ -8,6 +8,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost, type SimSpawn } from '../../../src/engine/sim';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { canReach } from '../../../src/engine/ai/reach';
 import { SkittererBrain, type SkittererPorts } from '../../../src/shards/sunscar-dunes/runtime/species/skitterer';
 import { MatriarchBrain, type MatriarchPorts } from '../../../src/shards/sunscar-dunes/runtime/species/matriarch';
@@ -53,12 +54,12 @@ it.each(['skitterer', 'matriarch'] as const)('restores %s clocks, native motion 
       for (let tick = 0; tick < checkpoint; tick++) original.step();
       const saved = decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(original)));
       restored = restoreSimHost(level, { rapier }, saved, fresh => { install(fresh, kind); });
-      expect(snapshotSimHost(restored)).toEqual(saved);
+      expectSameSimSnapshot(snapshotSimHost(restored), saved);
       for (let tick = 0; tick < 600; tick++) {
         original.step(); restored.step(); states.add(policy.state);
         const state = policy.snapshot();
         if (typeof state === 'string' && (state.includes('"phase":"windup"') || state.includes('"phase":"active"'))) pending = true;
-        expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+        expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       }
     } finally { restored?.dispose(); original.dispose(); }
   }

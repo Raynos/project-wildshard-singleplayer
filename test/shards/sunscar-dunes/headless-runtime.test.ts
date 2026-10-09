@@ -9,6 +9,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
@@ -99,12 +100,12 @@ it('restores mid-fight and mid-respawn continuation exactly, reinstalling the sa
       for (let tick = 0; tick < checkpoint; tick++) { if (tick === 2000) kill(original, 'sunscar.home:1'); step(original); }
       const saved = serializeSimSnapshot(snapshotSimHost(original));
       restored = restore(saved);
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       for (let tick = 0; tick < 900; tick++) {
         if (tick === 120) { kill(original, 'sunscar.home:2'); kill(restored, 'sunscar.home:2'); }
         step(original); step(restored);
       }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       const keeper = snapshotSimHost(original).adapters.find(adapter => adapter.id === HOMES_STEP);
       expect(keeper).toBeDefined();
     } finally { restored?.dispose(); original.dispose(); }
@@ -132,7 +133,7 @@ it('cracks the declared whip row through the platform ItemRuntime: 18 per light 
       crack(host, tick % 10 === 0 ? target.entityId : null); crack(restored, tick % 10 === 0 ? twin.entityId : null);
     }
     expect(target.combatActor().attributes.health).toBeLessThan(hp - WHIP_ITEM.light.damage);
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(host)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     // out of reach (12 m): the lash lands on nothing
     const before = target.combatActor().attributes.health;
     for (let tick = 0; tick < 40; tick++) { host.player.position.set(target.position.x, target.position.y, target.position.z + 12); crack(host, tick % 30 === 0 ? target.entityId : null); }

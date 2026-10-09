@@ -18,7 +18,9 @@ if (url === undefined) throw new Error('bake-signal-physics requires a clean-can
 const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)
   ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const version = await (await fetch(new URL('/version.json', url))).json();
-if (typeof version.build !== 'string' || !version.build.startsWith(`${revision.slice(0, 7)}-`)) throw new Error(`Signal bake revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
+// the build id leads with the short revision git chose (7 or more hex digits)
+const built = typeof version.build === 'string' ? version.build.split('-')[0] ?? '' : '';
+if (built.length < 7 || !revision.startsWith(built)) throw new Error(`Signal bake revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
 const errors = [];
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {

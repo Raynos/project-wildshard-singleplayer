@@ -13,7 +13,8 @@ import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import { SIGNAL_ACT, SIGNAL_INTERACT, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import type { SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 import { MATRIARCH_STEP } from '../../../src/shards/sunscar-dunes/runtime/matriarch';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/combat/matriarchFight';
 import { lashContact } from '../../../src/shards/sunscar-dunes/weapons/lash';

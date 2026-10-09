@@ -6,6 +6,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
@@ -17,7 +18,8 @@ import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/combat/matriarch
 import { MATRIARCH_STEP } from '../../../src/shards/sunscar-dunes/runtime/matriarch';
 import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/whip';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import { SIGNAL_ACT, SIGNAL_INTERACT, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import type { SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/sunscar-dunes/assets/${file.hash}`))]));
@@ -142,16 +144,16 @@ it('a death in her fight answers the checkpoint: back at the basin rim, her body
   } finally { run.host.dispose(); }
 });
 
-it('restores mid-fight (storm phase) byte-identically, and the suffix of the same tape stays identical', () => {
+it('restores mid-fight (storm phase) exactly (canonical state), and the suffix of the same tape stays identical', () => {
   const original = boot(); let restored: Run | undefined;
   try {
     lightTheSignal(original); original.host.player.position.set(STAND.x, original.host.groundHeightAt(STAND.x, STAND.z) + 0.1, STAND.z);
     until(original, e => e.phase === 1 && e.state === 'fight' && e.storm > 0.3);
     const saved = save(original);
     restored = restore(saved);
-    expect(save(restored)).toBe(saved);
+    expectSameSimSnapshot(snapshotSimHost(restored.host), decodeSimSnapshot(saved));
     for (let i = 0; i < 1200; i++) { fight(original); fight(restored); }
-    expect(save(restored)).toBe(save(original));
+    expectSameSimSnapshot(snapshotSimHost(restored.host), snapshotSimHost(original.host));
     expect(restored.effects).toEqual(original.effects);
   } finally { restored?.host.dispose(); original.host.dispose(); }
 });

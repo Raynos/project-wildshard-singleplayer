@@ -165,6 +165,7 @@
     "./systems/effects/install": "./systems/effects/install.ts",
     "./systems/items/declared": "./systems/items/declared.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
-    "./icons": "./icons.ts"
+    "./icons": "./icons.ts",
+    "./quest/interactionRows": "./quest/interactionRows.ts"
   }
 }

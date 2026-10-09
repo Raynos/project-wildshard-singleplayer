@@ -71,7 +71,8 @@
     "./bag": "./bag.ts",
     "./runtime/effects": "./runtime/effects.ts",
     "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
-    "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts"
+    "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts",
+    "./interactions": "./interactions.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
