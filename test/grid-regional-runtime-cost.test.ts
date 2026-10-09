@@ -32,3 +32,17 @@ it('refuses missing, mismatched and understated measurement provenance without d
   expect(() => regionalRuntimeAccountedBytes({ source: { ...source, runtime: { entry: 'runtime/index.ts', cost: { ...cost, glMB: 1 } } } }, manifest)).toThrow('differs');
   expect(() => regionalRuntimeAccountedBytes({ source }, { ...manifest, runtimeCost: { ...imagesFirst, webContentMB: cost.webContentMB, glMB: cost.glMB } })).toThrow('differs');
 });
+
+it('charges the probe-selected image fallback without changing compressed provenance or the strict cap', () => {
+  const compressed = regionalRuntimeAccountedBytes({ source }, manifest, 'ktx2');
+  const fallback = regionalRuntimeAccountedBytes({ source }, manifest, 'img');
+  expect(compressed).toBe(runtimeAccountedBytes(cost));
+  expect(fallback).toBe(runtimeAccountedBytes(imagesFirst));
+  expect(fallback).toBeGreaterThan(compressed);
+  const allocator = new ResidencyAllocator();
+  expect(allocator.reserve({ id: 'sim:pine-hollow', category: 'sim', owner: 'pine-hollow',
+    bytes: fallback, needed: true, distance: 0 })).toBeNull();
+  expect(allocator.entries()).toEqual([]);
+  expect(() => regionalRuntimeAccountedBytes({ source }, { ...manifest,
+    runtimeCost: { ...cost, imagesFirst: { ...imagesFirst, glMB: 1 } } }, 'img')).toThrow('differs');
+});

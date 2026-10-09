@@ -100,7 +100,7 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
   try {
     await session.live.prefetch([target.instance]); expect(worlds).toBe(0); expect(plays).toBe(0);
     const claim = allocator.entries().find(row => row.id === `sim:${target.instance}`);
-    expect(claim).toMatchObject({ bytes: regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW), refs: 1, holds: 0 });
+    expect(claim).toMatchObject({ bytes: regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW, 'img'), refs: 1, holds: 0 });
     expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
     const prepared = await session.live.prepare(home.instance, target.instance); prepared.commit();
     traveller.position.set(0, 0.5, 0); expect(session.gameplayReady()).toBe(false);

@@ -24,7 +24,7 @@ export interface LevelFrameOptions {
   water: WaterBodies;
   navmesh: Navmesh | null;
   /** Retained asset policy; absent keeps the configured page's existing texture choice. */
-  textures?: TexturePolicyBinding;
+  textures?: Pick<TexturePolicyBinding, 'enter'>;
   /**
    * The level's own resolved look parts (its grass driver), bound with the level while the frame is entered (SF63): the
    * region's content builds its own level's grass, not the page look's. Absent / null: the engine defaults.

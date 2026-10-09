@@ -64,7 +64,7 @@ import { yieldGridAdmission } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/runtime';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
-import { createRegionalWorldFoundation } from './regionalWorld';
+import { createRegionalWorldFoundation, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalSimAccountedBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../shard/runtime';
@@ -625,7 +625,7 @@ export class LiveGridSession {
       const loaded = await load(), resolve = loaded.resolveTrustedRuntime;
       if (resolve === undefined) throw new Error('Trusted plugin module does not resolve its declared entry');
       return { default: resolve(registered.entry) };
-    } }, bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest);
+    } }, textures = resolveRegionalRuntimeTextures(manifest), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
     const { slug: identity } = entry;
     if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
@@ -647,7 +647,7 @@ export class LiveGridSession {
         }),
       });
       let prepared: PreparedRegionalRuntime;
-      try { prepared = await factory({ cell, admitted: retained.admitted, manifest, page, allocator: this.ports.allocator, claim, scope: this.runtimeScope }); }
+      try { prepared = await factory({ cell, admitted: retained.admitted, manifest, page, textures, allocator: this.ports.allocator, claim, scope: this.runtimeScope }); }
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });

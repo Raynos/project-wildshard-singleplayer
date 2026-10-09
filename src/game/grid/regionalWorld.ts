@@ -35,7 +35,7 @@
 import { Fog, Group, Material, Mesh, Scene, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { TexturePolicyBinding, registerGpuFiles } from '@wildshard/engine/boot/gpuFiles';
+import { TexturePolicyBinding, registerGpuFiles, texMode } from '@wildshard/engine/boot/gpuFiles';
 import { ownSceneResource, ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -58,7 +58,7 @@ import type { ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
-import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
+import type { RegionalRuntimeFoundation, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
@@ -124,6 +124,16 @@ function simLevel(level: LevelSpec): SimLevel {
     weapon: { id: 'region.none', shape: { kind: 'ring', inner: 0, outer: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 }
 
+/** Resolve the existing texture policy once before memory admission. The resident enters this SAME policy for
+ * asynchronous construction and each frame, so a capability-probe image fallback cannot retain a compressed claim. */
+export function resolveRegionalRuntimeTextures(manifest: Pick<ShardManifest, 'slug' | 'tiers' | 'runtimeCost'>): RegionalRuntimeTextures {
+  const { slug: identity } = manifest;
+  const policy = new TexturePolicyBinding(manifest.tiers?.[TIER]?.textures, identity, imagesFirstPlayingBytes(manifest.runtimeCost));
+  const leave = policy.enter();
+  try { return Object.freeze({ mode: texMode(), enter: () => policy.enter() }); }
+  finally { leave(); }
+}
+
 /** The `prepareFoundation` port of `createRegionalRuntimeFactory` for any trusted hybrid manifest. */
 export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (request: RegionalRuntimeRequest) => Promise<RegionalRuntimeFoundation> {
   return async request => {
@@ -133,7 +143,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
-    const textures = new TexturePolicyBinding(request.manifest.tiers?.[TIER]?.textures, identity, imagesFirstPlayingBytes(request.manifest.runtimeCost));
+    const textures = request.textures ?? resolveRegionalRuntimeTextures(request.manifest);
     // Exclusive runtime construction has retired the source. Keep the destination's policy through asynchronous
     // setup, then restore the page on the road. Entered frame scopes reinstall this same resolved policy for hooks.
     const leaveTextures = textures.enter(); resident.onDispose(leaveTextures);

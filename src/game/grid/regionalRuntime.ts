@@ -40,9 +40,10 @@ function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
 /**
  * A transitional region pays for its whole opaque runtime. The first-party manifest and admitted declaration must
  * share the reviewed measurement and its images-first provenance; an empty declarative sim is never its estimate.
- * The caller reserves these bytes through the page's ordinary allocator before constructing the regional shell.
+ * The selected image path uses its separate images-first measurement when declared. The caller reserves these bytes
+ * through the page's ordinary allocator before constructing the regional shell.
  */
-export function regionalRuntimeAccountedBytes(admitted: Pick<AdmittedProduct, 'source'>, manifest: Pick<ShardManifest, 'slug' | 'runtimeCost'>): number {
+export function regionalRuntimeAccountedBytes(admitted: Pick<AdmittedProduct, 'source'>, manifest: Pick<ShardManifest, 'slug' | 'runtimeCost'>, textureMode?: 'img' | 'ktx2'): number {
   const { source } = admitted;
   const { slug: declaredIdentity } = source.identity, { slug: registeredIdentity } = manifest;
   if (declaredIdentity !== registeredIdentity) throw new Error('Regional runtime identity differs from its trusted manifest');
@@ -52,7 +53,7 @@ export function regionalRuntimeAccountedBytes(admitted: Pick<AdmittedProduct, 's
   runtimeAccountedBytes(measured);
   if (!sameMeasurement(declared, measured) || (declared.imagesFirst === undefined) !== (measured.imagesFirst === undefined)
     || !sameMeasurement(declared.imagesFirst ?? declared, measured.imagesFirst ?? measured)) throw new Error('Regional runtime measurement differs from its trusted manifest');
-  return bytes;
+  return textureMode === 'img' ? runtimeAccountedBytes(declared.imagesFirst ?? declared) : bytes;
 }
 
 /** Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. */
@@ -64,12 +65,20 @@ export interface RegionalRuntimePage {
   readonly context: ShardContext;
 }
 
+/** One resolved texture policy shared by pre-allocation admission and the resident's builds/frames. */
+export interface RegionalRuntimeTextures {
+  readonly mode: 'img' | 'ktx2';
+  readonly enter: () => () => void;
+}
+
 /** Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes. */
 export interface RegionalRuntimeRequest {
   readonly cell: GridCell;
   readonly admitted: AdmittedProduct;
   readonly manifest: ShardManifest;
   readonly page: RegionalRuntimePage;
+  /** Resolved before the whole-runtime claim; absent only in renderer-free compositions. */
+  readonly textures?: RegionalRuntimeTextures;
   readonly allocator: ResidencyAllocator;
   /** Already reserved through the ordinary page allocator at the full measured runtime cost. */
   readonly claim: ResidencyLease;
@@ -138,7 +147,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
   return async request => {
     const declaration = request.admitted.source.runtime;
     if (declaration === null) throw new Error('Regional factory requires a declared trusted runtime');
-    const bytes = regionalRuntimeAccountedBytes(request.admitted, request.manifest);
+    const bytes = regionalRuntimeAccountedBytes(request.admitted, request.manifest, request.textures?.mode);
     const { slug: cellIdentity } = request.cell, { slug: manifestIdentity } = request.manifest;
     if (cellIdentity !== manifestIdentity) throw new Error('Regional factory identity differs from its catalogue cell');
     const claim = request.allocator.entries().find(row => row.id === request.claim.id);

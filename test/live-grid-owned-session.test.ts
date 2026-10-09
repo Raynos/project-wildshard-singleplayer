@@ -47,6 +47,8 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
   });
   const initial = pageHost.physics.world.colliders.len(), assembly = new GridAssembly({ developer: true, devserver: false });
   const home = assembly.cell('pine-hollow'), target = assembly.cell('nalati-grasslands');
+  // This renderer-free lifecycle fixture explicitly supplies the pre-admitted compressed policy.
+  vi.spyOn(foundation, 'resolveRegionalRuntimeTextures').mockReturnValue({ mode: 'ktx2', enter: () => noop });
   const allocator = new ResidencyAllocator({ memory: new MemoryAdmission(() => true) }), owner = new PageResidency(allocator);
   const residency = owner.admitHome(home.instance, regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW)); scope.onDispose(() => { owner.dispose(); });
   const scene = new Scene(), registry = new WorldRegistry(); app.registryValue = registry;
