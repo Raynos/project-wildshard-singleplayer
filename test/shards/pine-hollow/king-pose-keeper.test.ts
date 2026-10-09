@@ -1,10 +1,14 @@
 import { beforeAll, expect, it } from 'vitest';
 import { Vector3 } from 'three';
+import * as v from 'valibot';
+import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { installKingPoseKeeper, KING_POSE_STEP } from '../../../src/shards/pine-hollow/runtime/kingPoseKeeper';
+import { rangedVolumes } from '../../../src/shards/pine-hollow/runtime/rangedVolumes';
+import { bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { SIM_LEVEL } from '../../fixtures/sim-level/level';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
@@ -16,6 +20,8 @@ if (recipe === undefined) throw new Error('Missing actual parked King recipe');
 const recipes = [0, 1].map(i => ({ id: `king:${String(i)}`, spec: recipe.spec,
   seed: recipe.seed + i, scale: recipe.scale, at: { x: 3 * i, y: 0, z: 4 }, yaw: 0 }));
 const level = { ...SIM_LEVEL, entities: [] };
+const hasRibs = (body: AnimalSim): body is AnimalSim & { ribsWorld: (out: Vector3) => Vector3 } =>
+  'ribsWorld' in body && typeof body.ribsWorld === 'function';
 
 function install(host: SimHost): { retire: (id: string) => void; heads: Vector3[] } {
   const heads: Vector3[] = [];
@@ -75,5 +81,49 @@ it('validates the whole two-King continuation before mutation and restores an ex
       expectSameSimSnapshot(snapshotSimHost(copy), snapshotSimHost(host));
       expect(copy.entities.get('king:0')?.headWorld(new Vector3())).toEqual(host.entities.get('king:0')?.headWorld(new Vector3()));
     } finally { copy.dispose(); }
+  } finally { host.dispose(); }
+});
+
+it('chooses the custom-animation band before a moving King crosses its 140 m boundary', () => {
+  const host = createSimHost(level, { rapier }), keeper = installKingPoseKeeper(host);
+  try {
+    const row = recipes[0]; if (row === undefined) throw new Error('Missing actual King recipe');
+    const body = host.spawn({ ...row, at: { x: host.player.position.x + 139.99, y: host.player.position.y, z: host.player.position.z } });
+    body.motor?.dispose(); body.motor = null;
+    body.yaw = Math.PI / 2; body.speed = 12; body.setMotion(Math.PI / 2, 12, 0);
+    body.mem['act'] = 2; body.startAttack(1.1);
+    keeper.attach(Object.assign(body, { hidden: false, sampleTerrain: (): void => undefined }));
+    const saved = v.looseObject({ bodies: v.array(v.looseObject({ pose: v.looseObject({ query: v.looseObject({ staged: v.unknown() }) }) })) });
+    const pending = (): unknown => v.parse(saved, host.adapters.get(KING_POSE_STEP)?.snapshot()).bodies[0]?.pose.query.staged;
+    const rest = pending();
+    host.step();
+    expect(body.position.distanceToSquared(host.player.position)).toBeGreaterThan(140 * 140);
+    const lastNear = pending(); expect(lastNear).not.toEqual(rest);
+    host.step(); expect(pending()).toEqual(lastNear);
+  } finally { host.dispose(); }
+});
+
+it('copies projectile hitboxes before movement and keeps them frozen across forced cage reads', () => {
+  const host = createSimHost(level, { rapier }), keeper = installKingPoseKeeper(host);
+  try {
+    const row = recipes[0]; if (row === undefined) throw new Error('Missing actual King recipe');
+    const body = host.spawn(row); body.driven = true;
+    keeper.attach(Object.assign(body, { hidden: false, sampleTerrain: (): void => undefined }));
+    const hits = rangedVolumes(body), oldHead = hits.headWorld(new Vector3());
+    const rear = new Vector3(), front = new Vector3(); hits.bodyCapsule(rear, front);
+    host.onStep('test.place-after-hitbox-sync', () => { body.position.x += 20; body.mem['act'] = 2; });
+    host.onStep('test.forced-cage-read', () => {
+      if (!hasRibs(body)) throw new Error('Missing cage getter');
+      body.ribsWorld(new Vector3());
+      expect(hits.headWorld(new Vector3())).toEqual(oldHead);
+      const a = new Vector3(), b = new Vector3(); hits.bodyCapsule(a, b);
+      expect(a).toEqual(rear); expect(b).toEqual(front);
+      body.bodyCapsule(a, b); expect(a.distanceTo(rear)).toBeGreaterThan(10);
+      const origin = oldHead.clone().add(new Vector3(0, 0, -10));
+      expect(bodyHit([body], origin, new Vector3(0, 0, 1), 30)?.body).toBe(body);
+    }, undefined, 'afterBodies');
+    host.step();
+    expect(hits.headWorld(new Vector3())).toEqual(oldHead);
+    expect(body.headWorld(new Vector3()).distanceTo(oldHead)).toBeGreaterThan(10);
   } finally { host.dispose(); }
 });

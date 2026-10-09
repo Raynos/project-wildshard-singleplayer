@@ -3,6 +3,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { castSegment, sweepBall, type Hit } from '@wildshard/engine/physics/query';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
+import { rangedVolumes, type RangedVolumes } from '../rangedVolumes';
 
 /** The page Player's eye over its feet (player/Player.ts EYE): every aim line starts there. */
 export const EYE = 1.68;
@@ -13,9 +14,9 @@ const MAX_BODIES = 512;
 const SQRT_CONE = { radius: 'sqrt', axisScale: 1 } as const;
 const LINEAR_CONE = { radius: 'linear', axisScale: 1 } as const;
 
-type ForeBody = AnimalSim & { foreCapsule: (a: Vector3, b: Vector3) => boolean };
+type ForeBody = RangedVolumes & { foreCapsule: (a: Vector3, b: Vector3) => boolean };
 type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
-const hasFore = (body: AnimalSim): body is ForeBody => 'foreCapsule' in body && typeof body.foreCapsule === 'function';
+const hasFore = (body: RangedVolumes): body is ForeBody => 'foreCapsule' in body && typeof body.foreCapsule === 'function';
 const hasRibs = (body: AnimalSim): body is RibBody => 'ribsWorld' in body && typeof body.ribsWorld === 'function';
 
 const _ap = new Vector3(), _ab = new Vector3(), _ao = new Vector3(), _a = new Vector3(), _b = new Vector3();
@@ -65,12 +66,13 @@ export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, dir: Vect
     const s = body.scale, d = body.dims;
     // a cheap reject: the segment never comes within reach of the body
     if (body.position.distanceTo(origin) > bestT + (d.bodyHalfLen + d.bodyRadius + d.headRadius) * s + d.bodyY * s + 2) continue;
-    const th = raySphere(origin, dir, body.headWorld(_a), d.headRadius * s, bestT);
-    body.bodyCapsule(_a, _b);
+    const volumes = rangedVolumes(body);
+    const th = raySphere(origin, dir, volumes.headWorld(_a), d.headRadius * s, bestT);
+    volumes.bodyCapsule(_a, _b);
     const tb = rayCapsule(origin, dir, _a, _b, d.bodyRadius * s, Math.min(bestT, th));
     const fore = d.fore;
     let tf = Infinity;
-    if (fore !== undefined && hasFore(body) && body.foreCapsule(_a, _b)) {
+    if (fore !== undefined && hasFore(volumes) && volumes.foreCapsule(_a, _b)) {
       tf = rayCapsule(origin, dir, _a, _b, fore.radius * s, Math.min(bestT, th, tb));
     }
     const t = Math.min(th, tb, tf);

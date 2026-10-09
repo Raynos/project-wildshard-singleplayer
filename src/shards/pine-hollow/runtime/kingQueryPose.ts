@@ -44,6 +44,14 @@ export class KingQueryPose {
     }
   }
 
+  /** Copy the already published hitbox clock, without forcing bone propagation or allocating a snapshot. */
+  copyFrom(source: KingQueryPose): void {
+    Object.assign(this.staged, source.staged);
+    this.headPoint.copy(source.headPoint); this.ribsPoint.copy(source.ribsPoint);
+    this.rear.copy(source.rear); this.front.copy(source.front);
+    this.left.copy(source.left); this.right.copy(source.right);
+  }
+
   /** Match updateWorldMatrix(true, false) on this joint; descendants retain their previously published worlds. */
   publish(frame: Matrix4, through: Publication): void {
     if (!frame.elements.every(Number.isFinite)) throw new RangeError('Invalid King query frame');

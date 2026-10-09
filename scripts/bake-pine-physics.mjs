@@ -68,10 +68,10 @@ try {
     };
     const dims = king.dims, fore = dims.fore, chest = king.mesh.getObjectByName('chest'), look = fight.look;
     if (!fore || !chest || !look) throw new Error('King has no authored chest/cage');
-    chest.updateWorldMatrix(true, false);
-    const cageWorld = look.ribcageWorld(new V());
-    const cage = chest.children.find(child => child.getWorldPosition(new V()).distanceToSquared(cageWorld) < 1e-20);
-    if (!cage) throw new Error('King cage is not attached to its chest');
+    // Read the actual attachment, never the runtime query table that this bake is about to replace.
+    const cages = chest.children.filter(child => child.name === 'king-ribcage');
+    const cage = cages[0];
+    if (cages.length !== 1 || !cage) throw new Error('King cage is not uniquely attached to its chest');
     const cageAt = cage.position.toArray();
     const kingHit = {
       head: local(dims.headAt ?? [0, 0, 0], rest('head')),

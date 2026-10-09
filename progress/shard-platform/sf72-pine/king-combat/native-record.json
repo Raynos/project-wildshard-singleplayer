@@ -1,0 +1,53 @@
+{
+  "capture": {
+    "candidate": "04af4145284959017a687d64575097e784b916fb",
+    "physicsPayloadChanges": [],
+    "actors": 164,
+    "trees": 918,
+    "solids": 2078,
+    "pieces": 50
+  },
+  "armX64Exact": true,
+  "payloads": {
+    "night.snap.gz": "352dc05dbee37b7feceed10daff73006f3f41876aa575883ae0fa29b9f7f8b9c",
+    "king.snap.gz": "64d6a2ef13306916a4f688b1a90d0264527e76cab41a58a51fbedd21f99957a2",
+    "fallen.snap.gz": "303a5200a318247da173d96955c36c05badb43181f770521a8dda205b8e2932f",
+    "ridge.snap.gz": "2e7b900ae0e71f3fc57b0fffadd962fb2e2089f116cf16c94654b0b947d729de",
+    "basis.snap.gz": "a7f8adb13116cfc0289ee43cb890ea14143ad5e2796281cd224b8d518d776d6e",
+    "dam.snap.gz": "a85221baed8c136030579518a9e39d0257971578650a2df33cea23b6523b9e3a"
+  },
+  "headless": {
+    "status": "passed",
+    "ticksExecuted": 32378,
+    "alive": true,
+    "kingDefeated": true,
+    "dawn": true,
+    "hash": "43d45d843409104bb9e3a8c42e04cf6fa8e11b24f011e1448434cb1b47e613f1",
+    "resinCount": 2
+  },
+  "replay": {
+    "status": "passed",
+    "checkpointTick": 29076,
+    "suffixTicksExecuted": 1200,
+    "hash": "b8da6cd49f98e4b09849ef22dca0d0469dccf0cb40b1be8e375057b8760b17f3",
+    "replayHash": "b8da6cd49f98e4b09849ef22dca0d0469dccf0cb40b1be8e375057b8760b17f3",
+    "restoredReemits": 0
+  },
+  "ledger": {
+    "status": "passed",
+    "gameplayEmissionProven": true,
+    "refusedWriteRetried": true,
+    "durableReload": true,
+    "duplicateStable": true
+  },
+  "compatible": false,
+  "remainingOutcomeDifferences": [
+    "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
+    "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
+    "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
+    "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
+    "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
+    "Rain wander goals are null: creature positions can differ.",
+    "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved."
+  ]
+}

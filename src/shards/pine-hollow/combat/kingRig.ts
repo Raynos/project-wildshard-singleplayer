@@ -510,7 +510,18 @@ export function advanceKingPose(c: KingPoseInput, r: KingPoseRest, into: KingPos
 }
 
 /** Visual skinning stays live; collision adapters consume this exact same scalar pose. */
+const poseObservers = new WeakMap<RigAnimCtx['animal'], (pose: KingPose) => void>();
+
+/** Observe the already-evaluated custom pose, without advancing its blend memory twice. Explicitly removed with its owner. */
+export function observeKingPose(animal: RigAnimCtx['animal'], receive: (pose: KingPose) => void): () => void {
+  if (poseObservers.has(animal)) throw new Error('King pose observer already installed');
+  poseObservers.set(animal, receive);
+  return () => { if (poseObservers.get(animal) === receive) poseObservers.delete(animal); };
+}
+
 export function animateKing(c: RigAnimCtx): void {
   const r = kingRest(c.bones);
-  applyKingPose(r, advanceKingPose(c, r, _pose, c.animal.debugGait));
+  const pose = advanceKingPose(c, r, _pose, c.animal.debugGait);
+  applyKingPose(r, pose);
+  poseObservers.get(c.animal)?.(pose);
 }

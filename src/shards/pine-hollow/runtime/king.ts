@@ -10,6 +10,7 @@ import { Lane } from '../combat/lane';
 import { PINE_LANES } from '../combat/strikes';
 import type { PineHuntBody, PineParked } from './roster';
 import { pineBake } from './baked';
+import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 
 type BossBrain = ReturnType<typeof installBossRow>['boss'];
 type BossDefinition = Parameters<typeof installBossRow>[1]['definition'];
@@ -50,6 +51,7 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
   protected override readonly thrallLanes: Lane<PineHuntBody>[];
   /** the bodies made: his parked prewarm is used once (the page spawned it at boot and keeps it while he lives) */
   private madeFirst = false;
+  private light = false;
   private readonly ports: PineKingPorts;
   constructor(host: SimHost, ports: PineKingPorts) {
     super(host.level.seed);
@@ -84,8 +86,7 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
     return a;
   }
   protected override retireKing(k: PineHuntBody): void { this.ports.retire(k); }
-  /** The page's cage test and radius, on its browser-baked rest chest. Animated pose displacement remains an explicit
-   *  headless limitation; neither the capsule surface nor the weak-point volume is fabricated for the tape. */
+  /** The same forced chest-chain read as the page's cage getter, with its admitted radius. */
   protected override onRibs(p: Vector3): boolean {
     const k = this.king;
     return k?.ribsWorld !== undefined && p.distanceTo(k.ribsWorld(RIB_POINT)) < pineBake().kingHit.radius * k.scale;
@@ -99,11 +100,28 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
     return a;
   }
   protected override retireThrall(a: PineHuntBody): void { this.ports.retire(a); }
-  protected override action(): void { /* the rig's move names: the page's */ }
+  protected override action(k: PineHuntBody, move: 'roar' | 'sweep' | 'strike' | 'brace'): void {
+    k.mem['act'] = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE }[move];
+  }
+  protected override introFocus(k: PineHuntBody, out: Vector3): Vector3 {
+    return k.ribsWorld?.(out) ?? out.copy(k.position);
+  }
+  protected override room(): void {
+    // The page's light samples the chest only before the final darkness phase moves it to the camera.
+    if (this.light && this.darkK <= 0.5) this.king?.ribsWorld?.(RIB_POINT);
+  }
+  protected override lightOn(): void { this.light = true; }
+  protected override lightOff(): void { this.light = false; }
+  protected override lanternView(_i: number, _f: unknown, _t: number, event: string): void {
+    // A dropped lantern's getWorldPosition forces the head's parent chain, even though its view is silent here.
+    if (event === 'drop') this.king?.publishKingHead?.();
+  }
   protected override roar(): void { /* the voice: the page's */ }
   /** the continuation's madeFirst rides beside the fight's state */
   get first(): boolean { return this.madeFirst; }
   set first(on: boolean) { this.madeFirst = on; }
+  get lightActive(): boolean { return this.light; }
+  set lightActive(on: boolean) { this.light = on; }
 }
 
 const finite = v.pipe(v.number(), v.finite());
@@ -112,7 +130,7 @@ const Runner = v.strictObject({ version: finite, phase: v.picklist(['idle', 'win
   elapsed: finite, speedMul: finite, clock: finite, deadlines: v.array(v.strictObject({ id: v.string(), at: finite })), scores: v.array(v.strictObject({ id: v.string(), score: finite })),
   x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite });
 const LaneSaved = v.strictObject({ tellT: finite, runner: Runner });
-const Fight = v.strictObject({ first: v.boolean(), hidden: v.boolean(), king: v.nullable(v.string()), present: v.boolean(), sealed: v.boolean(), sealK: finite, darkK: finite, glow: finite,
+const Fight = v.strictObject({ first: v.boolean(), lightActive: v.boolean(), hidden: v.boolean(), king: v.nullable(v.string()), present: v.boolean(), sealed: v.boolean(), sealK: finite, darkK: finite, glow: finite,
   invuln: v.boolean(), lockHp: finite, won: v.boolean(), phase: finite, mode: v.string(), modeT: finite, sweepCd: finite, stompCd: finite, callCd: finite, laneN: finite, open: finite,
   lane: LaneSaved, waves: v.array(v.strictObject({ r: finite, on: v.boolean(), hit: v.boolean(), delay: finite })),
   lanterns: v.array(v.strictObject({ x: finite, z: finite, y: finite, fallT: finite, acc: finite })),
@@ -142,7 +160,7 @@ function kingDefinition(): BossDefinition {
  * a parked King stays hidden across a restore.
  *
  * His damage rule is the page's (`damageMul` at the pipeline's order 50: bark ×0.25, the ribcage ×3 open / ×0.6 shut, the
- * beat ×0.01); the ribcage uses the page-rig baked rest chest and radius (animated displacement remains open).
+ * beat ×0.01); the ribcage reads the shared animated FK chest at the page getter's forced-parent clock.
  *
  * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): the re-fight's three amber resin (no item effect).
  */
@@ -154,10 +172,11 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
   const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(), script: fight, body: () => fight.king, shielded: () => fight.shielded,
     fight: {
       // a parked King's `hidden` is the fight's (the body's own flag is no part of the host's entity record)
-      snapshot: () => ({ first: fight.first, hidden: fight.king?.hidden === true, ...fight.fightState(b => b.entityId) }),
+      snapshot: () => ({ first: fight.first, lightActive: fight.lightActive, hidden: fight.king?.hidden === true, ...fight.fightState(b => b.entityId) }),
       restore: value => {
-        const { first, hidden, ...state } = v.parse(Fight, value);
+        const { first, lightActive, hidden, ...state } = v.parse(Fight, value);
         fight.first = first;
+        fight.lightActive = lightActive;
         fight.restoreFight(state, id => ports.find(id));
         if (fight.king !== null) fight.king.hidden = hidden;
       },

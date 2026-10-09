@@ -13,6 +13,7 @@ import { SPAWN } from '../layout';
 import { PINE_FAUNA } from './fauna';
 import { PINE_HERD_STREAM, PINE_KING_KIND, pineHuntGround, pineSpawnSpecies } from './herds';
 import type { PineBake } from './baked';
+import { installKingPoseKeeper } from './kingPoseKeeper';
 
 /** The roster keeper's fixed-step id. */
 export const ROSTER_STEP = 'pine.roster';
@@ -28,7 +29,9 @@ const SCRIPTED = 'sidestep';
 
 /** A renderer-free body as the hunting brain and the elites' scripts drive it: the host's body, never drawn (`hidden` is a fight's
  *  own flag: the Ghost Stag's fade, Blackpaw in his cave). */
-export type PineHuntBody = AnimalSim & { hidden: boolean; sampleTerrain: () => void; foreCapsule?: (a: Vector3, b: Vector3) => boolean; ribsWorld?: (out: Vector3) => Vector3 };
+export type PineHuntBody = AnimalSim & { hidden: boolean; sampleTerrain: () => void; foreCapsule?: (a: Vector3, b: Vector3) => boolean; ribsWorld?: (out: Vector3) => Vector3;
+  /** A view-only lantern read forces this consumer chain before the ordinary render publication. */
+  publishKingHead?: () => void };
 /** One manager body: its id and kind, the live host actor, and whether a fight scripts it (an elite). */
 export interface PineBody { readonly id: string; readonly kind: string; readonly actor: PineHuntBody; readonly scripted: boolean }
 /** A parked prewarm body (runtime/antlerKing.ts `prewarm`): its id and rolled recipe, no host body until the King's script calls it. */
@@ -120,11 +123,15 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   actor: (id: string) => PineHuntBody | null;
 } {
   const { bake, grid } = ports, rng = new Rng(PINE_HERD_STREAM), player = host.player.position;
+  const kingPose = installKingPoseKeeper(host);
+  /** Every body this roster made, listed or kept out of the list by a fight, by entity id. */
+  const made = new Map<string, PineHuntBody>();
   // the page's distance bands (engine/sim/bands.ts, Pine overrides no tier ticks): the scheduler's 'ai' rate for the herds
   // (every frame within 60 m, every other frame to 160 m, paused beyond; decisions at 20 / 10 Hz), 'always' for a scripted
   // elite (pinned: it thinks every frame), and the creature body LOD (a capsule within 45 m, released past 55). Before any
   // spawn, and on a restoring host before the host restores its clocks.
-  host.useBodyBands({ rate: body => body.driven || body.scripted || body.state === SCRIPTED ? 'always' : 'ai' });
+  host.useBodyBands({ rate: body => body.driven || body.scripted || body.state === SCRIPTED ? 'always' : 'ai',
+    present: body => made.get(body.entityId)?.hidden !== true });
   const kingRow = bake.parked[0];
   if (kingRow?.kind !== PINE_KING_KIND) throw new Error('Pine bake has no Antler King prewarm');
   const species = pineSpawnSpecies({ id: kingRow.variant, label: kingRow.spec.label, weight: 1, rarity: kingRow.spec.rarity, scale: [kingRow.scale, kingRow.scale] });
@@ -175,26 +182,14 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     return { id, spec: row.spec, seed: r.seed, scale: r.scale, variant: r.variant.id };
   };
   const seen: boolean[] = [];
-  /** every body this roster made, listed or kept out of the list by a fight, by entity id */
-  const made = new Map<string, PineHuntBody>();
   /** the host body of a recipe on the creature floor a metre over the spawn height or the ground, out of any herd */
   const materialize = (recipe: SimSpawn, kind: string, listed = true): PineHuntBody => {
     const { x, z } = recipe.at, at = creatureFloor(x, z, Math.max(ports.spawnY, heightAt(x, z)) + 1);
     recipe.at.y = at.y;
     const a: PineHuntBody = Object.assign(host.spawn(recipe), { ...HUNT_BODY });
-    if (kind === PINE_KING_KIND) {
-      const kingPoint = (out: Vector3, local: readonly [number, number, number]): Vector3 => {
-        const c = Math.cos(a.yaw), s = Math.sin(a.yaw), scale = a.scale;
-        return out.set(a.position.x + (local[0] * c + local[2] * s) * scale,
-          a.position.y + local[1] * scale, a.position.z + (local[2] * c - local[0] * s) * scale);
-      };
-      a.headWorld = out => kingPoint(out, bake.kingHit.head);
-      a.bodyCapsule = (rear, front) => { kingPoint(rear, bake.kingHit.body[0]); kingPoint(front, bake.kingHit.body[1]); };
-      a.foreCapsule = (left, right) => { kingPoint(left, bake.kingHit.fore[0]); kingPoint(right, bake.kingHit.fore[1]); return true; };
-      a.ribsWorld = out => kingPoint(out, bake.kingHit.ribs);
-    }
     a.levelGround = at.structure;
     if (at.structure) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
+    if (kind === PINE_KING_KIND) kingPose.attach(a);
     a.herd = -1;
     made.set(recipe.id, a);
     if (!listed) return a;
@@ -210,7 +205,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   };
   const retire = (a: HuntBody): void => {
     const i = list.findIndex(b => b.actor === a); if (i !== -1) { list.splice(i, 1); seen.splice(i, 1); }
-    hunt.forget(a); host.retire(a.entityId); made.delete(a.entityId);
+    hunt.forget(a); kingPose.retire(a.entityId); host.retire(a.entityId); made.delete(a.entityId);
   };
   Array.from(hunt.placeHerds(PINE_FAUNA, SPAWN, spawn)); // every herd in one go
   swapRolledElites({ bodies: list.map(b => b.actor), herds: hunt.herds, retire, spawn });

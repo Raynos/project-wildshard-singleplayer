@@ -407,6 +407,12 @@ it('parks the Antler King by day (out of sight, kept for tonight) and a restore 
     expect([king.boss.state, king.fight.king?.entityId, king.fight.king?.hidden]).toEqual(['armed', 'creature:161', false]);
     clock.night = 0; host.step(still);
     expect([king.boss.state, king.fight.king?.entityId, king.fight.king?.hidden]).toEqual(['dormant', 'creature:161', true]);
+    host.step(still); // the next body-LOD pass releases the parked collider
+    const body = king.fight.king;
+    if (body === null) throw new Error('Missing parked King');
+    const frozen = body.snapshot(); expect(body.motor).toBeNull();
+    for (let tick = 0; tick < 300; tick++) host.step(still);
+    expect(body.snapshot()).toEqual(frozen);
     const saved = snapshotSimHost(host), restored = restoreWith(parts, saved);
     try {
       expect(restored.entities.get('creature:161')).toMatchObject({ kind: 'antler-king', hidden: true });

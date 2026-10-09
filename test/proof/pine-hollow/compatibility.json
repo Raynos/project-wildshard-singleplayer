@@ -3,16 +3,16 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "d6fbd5289e0c09bfb7354ee880aa2e41c1ef8459640bbe82b55e3b65c4cb2820",
+  "inputs": "436cc6e4b8f8046bcb5ab3c1f926098a6101284d5bf1b550265a95a352f074cb",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
-    "ticksExecuted": 30015,
-    "tick": 30015,
+    "ticksExecuted": 32378,
+    "tick": 32378,
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "d0a8221c52308bc5fb3bbd3b4512ec2a21a8724641e19f80802a00de3ab095b9",
+    "hash": "43d45d843409104bb9e3a8c42e04cf6fa8e11b24f011e1448434cb1b47e613f1",
     "pack": {
       "counts": {
         "amber-resin": 2
@@ -26,7 +26,7 @@
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:1",
-        "tick": 6692,
+        "tick": 6828,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -35,7 +35,7 @@
       {
         "name": "pine.feat.resin",
         "entity": "resin:1",
-        "tick": 10386,
+        "tick": 10033,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -44,7 +44,7 @@
       {
         "name": "pine.feat.resin",
         "entity": "resin:2",
-        "tick": 10989,
+        "tick": 10637,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -53,7 +53,7 @@
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:2",
-        "tick": 12716,
+        "tick": 12365,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -62,7 +62,7 @@
       {
         "name": "pine.feat.zipline",
         "entity": "zipline:1",
-        "tick": 14340,
+        "tick": 13997,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -71,7 +71,16 @@
       {
         "name": "pine.feat.bear2",
         "entity": "bear2:1",
-        "tick": 18866,
+        "tick": 19163,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.bear2",
+        "entity": "bear2:2",
+        "tick": 19278,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -80,25 +89,7 @@
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:3",
-        "tick": 18939,
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        }
-      },
-      {
-        "name": "pine.feat.elk3",
-        "entity": "elk3:1",
-        "tick": 27713,
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        }
-      },
-      {
-        "name": "pine.feat.thralls",
-        "entity": "thralls:1",
-        "tick": 27713,
+        "tick": 20502,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -107,16 +98,7 @@
       {
         "name": "pine.feat.boar5",
         "entity": "boar5:1",
-        "tick": 27850,
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        }
-      },
-      {
-        "name": "pine.feat.thralls",
-        "entity": "thralls:2",
-        "tick": 27850,
+        "tick": 22562,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -125,7 +107,7 @@
       {
         "name": "pine.feat.king",
         "entity": "king:1",
-        "tick": 29295,
+        "tick": 31658,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -134,7 +116,7 @@
       {
         "name": "pine.feat.quest",
         "entity": "quest:1",
-        "tick": 30014,
+        "tick": 32377,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -170,25 +152,9 @@
         "shard": "pine-hollow",
         "id": "pine-hollow.bear2",
         "title": "Unbearable",
-        "count": 1,
-        "threshold": 2,
-        "earned": false
-      },
-      {
-        "shard": "pine-hollow",
-        "id": "pine-hollow.elk3",
-        "title": "Elk Yeah",
-        "count": 1,
-        "threshold": 3,
-        "earned": false
-      },
-      {
-        "shard": "pine-hollow",
-        "id": "pine-hollow.thralls",
-        "title": "Moss Remover",
         "count": 2,
-        "threshold": 10,
-        "earned": false
+        "threshold": 2,
+        "earned": true
       },
       {
         "shard": "pine-hollow",
@@ -222,8 +188,6 @@
     "duplicateStable": true,
     "receipts": [
       "pending",
-      "granted",
-      "granted",
       "granted",
       "granted",
       "granted",
@@ -272,119 +236,119 @@
       {
         "leg": 4,
         "kind": "go",
-        "tick": 5276,
-        "x": -140.89625196889142,
-        "y": -2.8951815271331967,
-        "z": 65.65451299442505
+        "tick": 5412,
+        "x": -140.89660975908123,
+        "y": -2.897978318622691,
+        "z": 65.66661798905518
       },
       {
         "leg": 5,
         "kind": "act",
-        "tick": 5277,
-        "x": -140.89625266602957,
-        "y": -2.895092820098604,
-        "z": 65.65453504426735
+        "tick": 5413,
+        "x": -140.89661045537673,
+        "y": -2.89791883508623,
+        "z": 65.66664003909212
       },
       {
         "leg": 6,
         "kind": "go",
-        "tick": 5390,
-        "x": -134.73414264492453,
-        "y": -3.0750607310812725,
-        "z": 62.02233309210608
+        "tick": 5526,
+        "x": -134.76669442888692,
+        "y": -3.0860371413076706,
+        "z": 62.0054265873285
       },
       {
         "leg": 7,
         "kind": "act",
-        "tick": 5391,
-        "x": -134.7341306931246,
-        "y": -3.0752308830753705,
-        "z": 62.02226797064107
+        "tick": 5527,
+        "x": -134.76668437900503,
+        "y": -3.086281853357278,
+        "z": 62.00535553189077
       },
       {
         "leg": 8,
         "kind": "go",
-        "tick": 5480,
-        "x": -141.9733924991358,
-        "y": -3.986898277992829,
-        "z": 61.07594185081582
+        "tick": 5616,
+        "x": -142.0060720253225,
+        "y": -3.986168343086675,
+        "z": 61.07341340331443
       },
       {
         "leg": 9,
         "kind": "act",
-        "tick": 5481,
-        "x": -141.97338874035404,
-        "y": -3.9870781915135254,
-        "z": 61.07592316336452
+        "tick": 5617,
+        "x": -142.00606826654757,
+        "y": -3.9863101863378603,
+        "z": 61.0733947154193
       },
       {
         "leg": 10,
         "kind": "go",
-        "tick": 6691,
-        "x": -62.208446071975686,
-        "y": -1.6082725253047343,
-        "z": 102.40626408477767
+        "tick": 6827,
+        "x": -62.22253050617064,
+        "y": -1.6081312693717251,
+        "z": 102.37496364568945
       },
       {
         "leg": 11,
         "kind": "act",
-        "tick": 6692,
-        "x": -62.2084748144639,
-        "y": -1.6081847037323556,
-        "z": 102.40627742826003
+        "tick": 6828,
+        "x": -62.222559248602465,
+        "y": -1.6080600025237715,
+        "z": 102.37497698948103
       },
       {
         "leg": 12,
         "kind": "go",
-        "tick": 9828,
-        "x": 149.42405914217534,
-        "y": 0.10570003642535397,
-        "z": 141.89843313035186
+        "tick": 9476,
+        "x": 149.43284299826018,
+        "y": 0.10424755367567684,
+        "z": 141.89990483563707
       },
       {
         "leg": 13,
         "kind": "go",
-        "tick": 12324,
-        "x": 34.283690662813115,
-        "y": 57.476980439460945,
-        "z": 212.95862671453602
+        "tick": 11973,
+        "x": 34.25418992447203,
+        "y": 57.47688428530619,
+        "z": 213.00764720551052
       },
       {
         "leg": 14,
         "kind": "act",
-        "tick": 12357,
-        "x": 35.24148371106287,
-        "y": 57.47472279312513,
-        "z": 214.04428287445086
+        "tick": 11999,
+        "x": 35.227129008079146,
+        "y": 57.47350597109662,
+        "z": 214.03655628219332
       },
       {
         "leg": 15,
         "kind": "go",
-        "tick": 12715,
-        "x": 40.775306147006745,
-        "y": 46.28227055932751,
-        "z": 213.2677875196187
+        "tick": 12364,
+        "x": 40.76883260217096,
+        "y": 46.28420916972221,
+        "z": 213.2745913939978
       },
       {
         "leg": 16,
         "kind": "act",
-        "tick": 12716,
-        "x": 40.77533029075505,
-        "y": 46.28209310381447,
-        "z": 213.2677833141907
+        "tick": 12365,
+        "x": 40.768856765718965,
+        "y": 46.28399798901058,
+        "z": 213.27458717840938
       },
       {
         "leg": 17,
         "kind": "go",
-        "tick": 13355,
-        "x": 34.963192339000784,
-        "y": 57.477175245033344,
-        "z": 211.30091479487334
+        "tick": 13012,
+        "x": 34.96478455521196,
+        "y": 57.47693409407401,
+        "z": 211.3012723980167
       },
       {
         "leg": 18,
         "kind": "act",
-        "tick": 14340,
+        "tick": 13997,
         "x": 4.097649562950047,
         "y": 3.856233756107526,
         "z": 20.592000475384662
@@ -392,7 +356,7 @@
       {
         "leg": 19,
         "kind": "ride",
-        "tick": 14340,
+        "tick": 13997,
         "x": 4.097649562950047,
         "y": 3.856233756107526,
         "z": 20.592000475384662
@@ -400,158 +364,153 @@
       {
         "leg": 20,
         "kind": "go",
-        "tick": 18938,
-        "x": 192.84962598926677,
-        "y": 9.008044743230437,
-        "z": 197.5552728986244
+        "tick": 20501,
+        "x": 192.92634222487771,
+        "y": 9.009016438050587,
+        "z": 197.51507928333282
       },
       {
         "leg": 21,
         "kind": "act",
-        "tick": 18939,
-        "x": 192.84962597563145,
-        "y": 9.008144713905802,
-        "z": 197.55527531983344
+        "tick": 20502,
+        "x": 192.92634221115986,
+        "y": 9.009116408725951,
+        "z": 197.5150817046849
       },
       {
         "leg": 22,
         "kind": "go",
-        "tick": 22624,
-        "x": 0.28094440120486297,
-        "y": 0.8627364433764004,
-        "z": -9.478577435258643
+        "tick": 24231,
+        "x": 0.28022782492462284,
+        "y": 0.8631092840007497,
+        "z": -9.480132123692357
       },
       {
         "leg": 23,
         "kind": "go",
-        "tick": 22982,
-        "x": -9.030943195063344,
-        "y": 3.7438333892166273,
-        "z": -34.65189271933386
+        "tick": 24589,
+        "x": -9.025389256076778,
+        "y": 3.739590867175586,
+        "z": -34.65039777511677
       },
       {
         "leg": 24,
         "kind": "act",
-        "tick": 22983,
-        "x": -9.030881576368017,
-        "y": 3.7434649039311925,
-        "z": -34.65191521197457
+        "tick": 24590,
+        "x": -9.025326940344712,
+        "y": 3.7393869546799507,
+        "z": -34.650420522134056
       },
       {
         "leg": 25,
         "kind": "wait",
-        "tick": 23258,
-        "x": -9.025102043275155,
-        "y": 3.738094550990093,
-        "z": -34.65402779998478
+        "tick": 24863,
+        "x": -9.023886439100075,
+        "y": 3.738193784065963,
+        "z": -34.650954818594634
       },
       {
         "leg": 26,
         "kind": "go",
-        "tick": 23579,
-        "x": -0.1387582046281466,
-        "y": 1.0986089683826439,
-        "z": -10.506028161293237
+        "tick": 25184,
+        "x": -0.13815776229666454,
+        "y": 1.0982235731075818,
+        "z": -10.503894949573457
       },
       {
         "leg": 27,
         "kind": "go",
-        "tick": 23948,
-        "x": 29.454280950378262,
-        "y": -1.729768780631991,
-        "z": -2.1540565163850474
+        "tick": 25553,
+        "x": 29.456025839142335,
+        "y": -1.729899931612188,
+        "z": -2.153503040093362
       },
       {
         "leg": 28,
         "kind": "go",
-        "tick": 24342,
-        "x": 57.57982408280262,
-        "y": -1.7147957077429847,
-        "z": 11.636123971173198
+        "tick": 25947,
+        "x": 57.580557905427945,
+        "y": -1.7147301498309915,
+        "z": 11.63671687500608
       },
       {
         "leg": 29,
         "kind": "go",
-        "tick": 24683,
-        "x": 85.48897023523935,
-        "y": -0.25351882069643317,
-        "z": 15.922939336949618
+        "tick": 26287,
+        "x": 85.40731421142056,
+        "y": -0.24632598180438237,
+        "z": 15.910641411077798
       },
       {
         "leg": 30,
         "kind": "go",
-        "tick": 25095,
-        "x": 119.48022576446422,
-        "y": 0.9173961972848819,
-        "z": 12.070486654618414
+        "tick": 26700,
+        "x": 119.48395806580021,
+        "y": 0.917931503965967,
+        "z": 12.069683271218658
       },
       {
         "leg": 31,
         "kind": "go",
-        "tick": 25559,
-        "x": 157.4629336001981,
-        "y": 3.1636271096797035,
-        "z": 6.099222662018271
+        "tick": 27164,
+        "x": 157.46625348209574,
+        "y": 3.1639519949971984,
+        "z": 6.098563800324321
       },
       {
         "leg": 32,
         "kind": "go",
-        "tick": 25701,
-        "x": 155.10507904576846,
-        "y": 3.42760317755957,
-        "z": -5.482467187477617
+        "tick": 27306,
+        "x": 155.10524854651823,
+        "y": 3.42741673963598,
+        "z": -5.482276988457322
       },
       {
         "leg": 33,
         "kind": "go",
-        "tick": 25853,
-        "x": 151.16497716146299,
-        "y": 3.7764867934702924,
-        "z": -17.497500037683515
+        "tick": 27458,
+        "x": 151.16522594197824,
+        "y": 3.7766017080974663,
+        "z": -17.496857342551827
       },
       {
         "leg": 34,
         "kind": "wait",
-        "tick": 25853,
-        "x": 151.16497716146299,
-        "y": 3.7764867934702924,
-        "z": -17.497500037683515
+        "tick": 27458,
+        "x": 151.16522594197824,
+        "y": 3.7766017080974663,
+        "z": -17.496857342551827
       },
       {
         "leg": 35,
         "kind": "king",
-        "tick": 29295,
-        "x": 158.04153981231715,
-        "y": 3.776700582545014,
-        "z": -28.137493378087242
+        "tick": 31658,
+        "x": 155.20920426081022,
+        "y": 3.7766014311356386,
+        "z": -19.794687048565656
       },
       {
         "leg": 36,
         "kind": "wait",
-        "tick": 30014,
-        "x": 158.04152669961903,
-        "y": 3.7766003948569375,
-        "z": -28.137493575459416
+        "tick": 32377,
+        "x": 155.20920425396957,
+        "y": 3.7766830825504414,
+        "z": -19.79468301932385
       }
     ]
   },
   "replay": {
     "status": "passed",
     "checkpointCaptured": true,
-    "checkpointTick": 26652,
+    "checkpointTick": 29076,
     "suffixTicksExecuted": 1200,
-    "hash": "fb0675b14220c6397d475e4b259cb8ae7978c4ebd48b221e3adeaacb3f21a217",
-    "replayHash": "fb0675b14220c6397d475e4b259cb8ae7978c4ebd48b221e3adeaacb3f21a217",
+    "hash": "b8da6cd49f98e4b09849ef22dca0d0469dccf0cb40b1be8e375057b8760b17f3",
+    "replayHash": "b8da6cd49f98e4b09849ef22dca0d0469dccf0cb40b1be8e375057b8760b17f3",
     "checkpoint": {
       "state": "fight",
       "phase": 1
     },
-    "facts": [
-      "pine.feat.elk3/elk3:1",
-      "pine.feat.thralls/thralls:1",
-      "pine.feat.boar5/boar5:1",
-      "pine.feat.thralls/thralls:2"
-    ],
+    "facts": [],
     "restoredReemits": 0
   },
   "ledger": {
@@ -560,7 +519,7 @@
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:1",
-        "tick": 6692,
+        "tick": 6828,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -569,7 +528,7 @@
       {
         "name": "pine.feat.resin",
         "entity": "resin:1",
-        "tick": 10386,
+        "tick": 10033,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -578,7 +537,7 @@
       {
         "name": "pine.feat.resin",
         "entity": "resin:2",
-        "tick": 10989,
+        "tick": 10637,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -587,7 +546,7 @@
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:2",
-        "tick": 12716,
+        "tick": 12365,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -596,7 +555,7 @@
       {
         "name": "pine.feat.zipline",
         "entity": "zipline:1",
-        "tick": 14340,
+        "tick": 13997,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -605,7 +564,16 @@
       {
         "name": "pine.feat.bear2",
         "entity": "bear2:1",
-        "tick": 18866,
+        "tick": 19163,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.bear2",
+        "entity": "bear2:2",
+        "tick": 19278,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -614,25 +582,7 @@
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:3",
-        "tick": 18939,
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        }
-      },
-      {
-        "name": "pine.feat.elk3",
-        "entity": "elk3:1",
-        "tick": 27713,
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        }
-      },
-      {
-        "name": "pine.feat.thralls",
-        "entity": "thralls:1",
-        "tick": 27713,
+        "tick": 20502,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -641,16 +591,7 @@
       {
         "name": "pine.feat.boar5",
         "entity": "boar5:1",
-        "tick": 27850,
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        }
-      },
-      {
-        "name": "pine.feat.thralls",
-        "entity": "thralls:2",
-        "tick": 27850,
+        "tick": 22562,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -659,7 +600,7 @@
       {
         "name": "pine.feat.king",
         "entity": "king:1",
-        "tick": 29295,
+        "tick": 31658,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -668,7 +609,7 @@
       {
         "name": "pine.feat.quest",
         "entity": "quest:1",
-        "tick": 30014,
+        "tick": 32377,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -704,25 +645,9 @@
         "shard": "pine-hollow",
         "id": "pine-hollow.bear2",
         "title": "Unbearable",
-        "count": 1,
-        "threshold": 2,
-        "earned": false
-      },
-      {
-        "shard": "pine-hollow",
-        "id": "pine-hollow.elk3",
-        "title": "Elk Yeah",
-        "count": 1,
-        "threshold": 3,
-        "earned": false
-      },
-      {
-        "shard": "pine-hollow",
-        "id": "pine-hollow.thralls",
-        "title": "Moss Remover",
         "count": 2,
-        "threshold": 10,
-        "earned": false
+        "threshold": 2,
+        "earned": true
       },
       {
         "shard": "pine-hollow",
@@ -756,7 +681,6 @@
     "duplicateStable": true
   },
   "outcomeDifferences": [
-    "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
     "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
     "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
@@ -770,7 +694,6 @@
     "The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape."
   ],
   "open": [
-    "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
     "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
     "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",

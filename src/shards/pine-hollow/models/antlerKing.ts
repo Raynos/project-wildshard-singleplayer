@@ -6,7 +6,10 @@ import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/en
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { KING_BONES, animateKing } from '../combat/kingRig';
+import { KING_BONES, animateKing, observeKingPose } from '../combat/kingRig';
+import { bindKingQueryView } from '../runtime/kingQueryView';
+import { readKingCollisionBake } from '../runtime/kingCollisionBake';
+import kingCollision from '../runtime/kingCollision.baked.json' with { type: 'json' };
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark
@@ -164,6 +167,8 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     return g;
   };
   const hull = isHull(a);
+  // The procedural fallback keeps its own dimensions; only the real measured GLB uses the native collision table.
+  const collision = hull ? bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive)) : null;
   for (const p of hullLanterns(a) ?? LANTERN_AT) {
     const l = makeLantern();
     l.position.set(p[0], p[1], p[2]);
@@ -175,6 +180,7 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     head.add(skull); own.push(skull);
   }
   const cage = new THREE.Group();
+  cage.name = 'king-ribcage'; // The offline capture reads this actual attachment, independently of FK queries.
   // the ribcage rides the chest, which rears and recoils with him
   cage.position.set(RIB_AT[0], RIB_AT[1], RIB_AT[2]);
   const ribs = new THREE.Mesh(kit.ribGeo, kit.ribMat), core = new THREE.Mesh(kit.coreGeo, kit.coreMat);
@@ -184,9 +190,18 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   let glow = 1;
   const scale = a.scale;
   return {
-    lanternWorld: (i, out) => { const l = lanterns[i]; return l ? l.getWorldPosition(out) : out.copy(a.position); },
+    lanternWorld: (i, out) => {
+      const l = lanterns[i];
+      if (!l) return out.copy(a.position);
+      l.getWorldPosition(out); collision?.publishHead();
+      return out;
+    },
     setLanternsHung: (on) => { for (const l of lanterns) l.visible = on; },
-    ribcageWorld: (out) => cage.getWorldPosition(out),
+    ribcageWorld: (out) => {
+      cage.getWorldPosition(out); // Preserve the live getter's parent matrix propagation for every other consumer.
+      if (collision === null) return out;
+      collision.publishRibs(); return collision.query.ribs(out);
+    },
     ribcageRadius: RIB_R * scale * 1.15,
     setGlow: (k) => { glow = k; kit.glassMat.emissiveIntensity = 3 * k; kit.ribMat.emissiveIntensity = 2 * k; kit.coreMat.emissiveIntensity = 4 * k; },
     setOpen: (k, t) => {
@@ -197,7 +212,7 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
       kit.ribMat.emissiveIntensity = glow * (1.6 + 2.4 * k);
     },
     makeLantern: () => { const l = makeLantern(); l.scale.setScalar(scale); return l; },
-    dispose: () => { for (const o of own) o.removeFromParent(); },
+    dispose: () => { collision?.dispose(); for (const o of own) o.removeFromParent(); },
   };
 }
 

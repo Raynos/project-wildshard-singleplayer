@@ -147,6 +147,6 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
       stuck.restore(saved.stuck);
       saved.flying.forEach((s, i) => { const a = arrows[i]; if (a !== undefined) { a.active = s.active; a.pos.set(...s.pos); a.vel.set(...s.vel); a.origin.set(...s.origin); a.age = s.age; a.glanced = s.glanced; } });
     },
-  });
+  }, 'afterBodies');
   return { draw, state, flying: () => arrows.filter(a => a.active).length, stuck };
 }

@@ -8,7 +8,7 @@ import { KingQueryPose, type KingQueryPoseSaved } from './kingQueryPose';
 
 const finite = v.pipe(v.number(), v.finite());
 const Saved = v.strictObject({ version: v.literal(1), timers: v.pipe(v.string(), v.maxLength(8192)),
-  query: v.unknown(), rootPitch: finite, rootRoll: finite });
+  query: v.unknown(), hits: v.unknown(), rootPitch: finite, rootRoll: finite });
 const smooth01 = (n: number): number => n * n * (3 - 2 * n);
 const INVALID_CLOCK = new RangeError('Invalid King pose clock');
 
@@ -16,6 +16,7 @@ const INVALID_CLOCK = new RangeError('Invalid King pose clock');
  * body movement, near/far cadence and publication moments; this owner never creates a bone or a second actor. */
 export class PineKingPose {
   readonly query: KingQueryPose;
+  readonly hits: KingQueryPose;
   private readonly timers: AnimalPoseLaw;
   private readonly body: AnimalSim;
   private readonly rest: KingPoseRest;
@@ -34,9 +35,10 @@ export class PineKingPose {
     this.body = body; this.rest = metadata.rest; this.joints = metadata.joints; this.volumes = metadata.volumes;
     this.timers = new AnimalPoseLaw({ custom: true, dims: body.dims });
     this.query = new KingQueryPose(metadata.joints, metadata.volumes);
+    this.hits = new KingQueryPose(metadata.joints, metadata.volumes);
     this.input = { dt: 0, t: 0, scale: body.scale, speed: 0, deathT: -1, flinch: 0, brace: 0, attack: -1,
       lookWeight: 0, yaw: body.yaw, mem: body.mem, position: body.position, lookTarget: body.lookTarget };
-    this.sampleTerrain(); this.query.stage(this.pose); this.publish('head');
+    this.sampleTerrain(); this.query.stage(this.pose); this.publish('head'); this.sampleHitboxes();
   }
 
   /** Same sampling boundary as AnimalManager.spawn/think and the fight's explicit terrain samples. */
@@ -71,8 +73,11 @@ export class PineKingPose {
   /** The live cage getter updates its root/chest parents immediately; head and body queries themselves stay passive. */
   ribs(out: Vector3): Vector3 { this.publish('ribs'); return this.query.ribs(out); }
 
-  snapshot(): { version: 1; timers: string; query: KingQueryPoseSaved; rootPitch: number; rootRoll: number } {
-    return { version: 1, timers: this.timers.snapshot(), query: this.query.snapshot(),
+  /** CreatureBodies.sync copies last-render queries before think/movement; later cage reads do not alter its colliders. */
+  sampleHitboxes(): void { this.hits.copyFrom(this.query); }
+
+  snapshot(): { version: 1; timers: string; query: KingQueryPoseSaved; hits: KingQueryPoseSaved; rootPitch: number; rootRoll: number } {
+    return { version: 1, timers: this.timers.snapshot(), query: this.query.snapshot(), hits: this.hits.snapshot(),
       rootPitch: this.rootPitch, rootRoll: this.rootRoll };
   }
   /** Validate both clocks before mutation, and retain the exact pending/cached query difference. No terrain reads or ticks. */
@@ -85,10 +90,11 @@ export class PineKingPose {
     const saved = v.parse(Saved, input);
     const timers = new AnimalPoseLaw({ custom: true, dims: this.body.dims });
     const query = new KingQueryPose(this.joints, this.volumes);
-    timers.restore(saved.timers); query.restore(saved.query);
-    const validatedQuery = query.snapshot();
+    const hits = new KingQueryPose(this.joints, this.volumes);
+    timers.restore(saved.timers); query.restore(saved.query); hits.restore(saved.hits);
+    const validatedQuery = query.snapshot(), validatedHits = hits.snapshot();
     return () => {
-      this.timers.restore(saved.timers); this.query.restore(validatedQuery);
+      this.timers.restore(saved.timers); this.query.restore(validatedQuery); this.hits.restore(validatedHits);
       this.rootPitch = saved.rootPitch; this.rootRoll = saved.rootRoll;
     };
   }

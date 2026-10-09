@@ -78,8 +78,10 @@ describe('native King scalar pose ownership', () => {
     const saved = host.snapshot(); copy.restore(body.snapshot()); restored.restore(saved);
     expect(restored.snapshot()).toEqual(saved);
     const detached = structuredClone(saved), commit = restored.prepareRestore(detached);
-    detached.query.published.head[0] += 100;
+    detached.query.published.head[0] += 100; detached.hits.published.head[0] += 100;
     commit(); expect(restored.snapshot()).toEqual(saved); // Prepared state never retains mutable caller storage.
+    const invalidHits = structuredClone(saved); invalidHits.hits.published.front[0] = Number.NaN;
+    expect(() => restored.restore(invalidHits)).toThrow(); expect(restored.snapshot()).toEqual(saved);
     const corrupt = structuredClone(saved); corrupt.timers = '{}';
     expect(() => restored.restore(corrupt)).toThrow(); expect(restored.snapshot()).toEqual(saved);
     expect(() => restored.advance(Number.NaN, 1, true)).toThrow('Invalid King pose clock');

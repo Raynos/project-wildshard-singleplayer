@@ -1,0 +1,34 @@
+{
+  "build": "7be7c14-mv1grr0x",
+  "actualFight": true,
+  "epsilonMetres": 1e-10,
+  "queries": {
+    "head": 7213,
+    "body": 6414,
+    "fore": 5452,
+    "ribs": 1130,
+    "beforePose": 1076,
+    "afterPose": 1076,
+    "render": 1076
+  },
+  "maxErrorMetres": {
+    "head": 0,
+    "body": 0,
+    "fore": 0,
+    "ribs": 3.552713678800501e-15
+  },
+  "modes": [
+    "dormant",
+    "intro",
+    "stalk",
+    "sweep",
+    "stomp",
+    "waves",
+    "open",
+    "call",
+    "stalk3"
+  ],
+  "firstFailures": [],
+  "pass": true,
+  "errors": []
+}

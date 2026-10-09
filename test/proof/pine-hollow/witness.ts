@@ -20,6 +20,7 @@ import { QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow'
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { LEVER_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLever';
+import { CROSSBOW_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessCrossbow';
 import { AIM_COMMAND, AIM_RIBS } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
@@ -288,7 +289,9 @@ function kingPlay(host: SimHost): HeadlessCommand[] {
 }
 
 const HUNTING = new Set(['stalk', 'charge']), DEFEND_R = 18;
-/** Stand and shoot the nearest creature that hunts the player within 18 m with the crossbow (picked up first), else null. */
+const CrossbowRow = v.object({ loaded: v.boolean(), quiver: v.number() });
+/** Stand and shoot the nearest hunter within 18 m. Use the first pickup's crossbow while it has ammunition;
+ * an owned, supplied rifle takes over when the bow is dry, through the ordinary loadout swap and trigger. */
 function defence(host: SimHost): HeadlessCommand[] | null {
   const p = host.player.position;
   let near: { id: string; x: number; z: number; d: number } | null = null;
@@ -299,7 +302,10 @@ function defence(host: SimHost): HeadlessCommand[] | null {
   }
   if (near === null) return null;
   const yaw = Math.atan2(-(near.x - p.x), -(near.z - p.z)), held = v.parse(LoadoutRow, host.adapters.get(LOADOUT_STEP)?.snapshot()).held;
-  if (held !== PINE_WEAPON.crossbow) return [{ kind: 'script', actorId: WEAPON_COMMAND, value: PINE_WEAPON.crossbow }, move(0, 0, yaw)];
+  const bow = v.parse(CrossbowRow, host.adapters.get(CROSSBOW_STEP)?.snapshot()), gun = lever(host);
+  const suppliedRifle = host.flags.has(LEVER_FLAG) && (gun.chambered || gun.tube > 0 || gun.reserve > 0);
+  const want = !bow.loaded && bow.quiver === 0 && suppliedRifle ? PINE_WEAPON.lever : PINE_WEAPON.crossbow;
+  if (held !== want) return [{ kind: 'script', actorId: WEAPON_COMMAND, value: want }, move(0, 0, yaw)];
   return [{ kind: 'player', moveX: 0, moveZ: 0, yaw, attack: { targetId: near.id } }];
 }
 
@@ -494,7 +500,6 @@ export function gameplayProof(rapier: Rapier, from?: 'night'): ReturnType<typeof
 
 /** These omissions can change damage, inventory, quest/ledger outcomes or persistence relative to the browser. */
 export const OUTCOME_DIFFERENCES = [
-  'King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.',
   'Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.',
   'Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.',
   'Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.',

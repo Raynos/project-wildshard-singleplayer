@@ -173,9 +173,9 @@ export function installPine(host: SimHost, parts: PineInstall): {
     spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
     retire: a => { live().retire(a); }, find: id => live().actor(id), night });
   // the player's loadout and weapons, locked through the King's intro: installed before the roster (a restoring roster
-  // reinstalls its live spawns at install, and the host keeps every step in registration order), so their shots fly before
-  // the creatures move this tick where the page's weapons update after them (a tick's lag on a moving body); the loadout
-  // steps first (the page's EquipmentService swaps, then updates every weapon)
+  // reinstalls its live spawns at install, and the host keeps every adapter in registration order). Their afterBodies
+  // work follows the creature manager, as on the page; the loadout swaps before every weapon updates. The roster's King
+  // publication comes last, matching render propagation after equipment's cached-pose queries.
   const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null), pick = parts.pick ?? ((): null => null);
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
   let quest: ReturnType<typeof installHollowQuest> | null = null;

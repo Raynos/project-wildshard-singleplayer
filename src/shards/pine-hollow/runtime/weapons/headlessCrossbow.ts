@@ -134,6 +134,6 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
       Object.assign(state, { loaded: saved.loaded, quiver: saved.quiver, reloading: saved.reloading, reloadT: saved.reloadT, cooldown: saved.cooldown, sinceFire: saved.sinceFire });
       saved.bolts.forEach((s, i) => { const b = bolts[i]; if (b !== undefined) { b.active = s.active; b.pos.set(...s.pos); b.vel.set(...s.vel); b.age = s.age; b.glanced = s.glanced; } });
     },
-  });
+  }, 'afterBodies');
   return { state, flying: () => bolts.filter(b => b.active).length };
 }

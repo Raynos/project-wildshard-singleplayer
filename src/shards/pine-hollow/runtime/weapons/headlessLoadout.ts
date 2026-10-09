@@ -67,7 +67,7 @@ export function installPineLoadout(host: SimHost, ports: PineLoadoutPorts): Pine
       state.held = saved.held; swap.on = saved.swap !== null;
       if (saved.swap !== null) { swap.to = saved.swap.to; swap.t = saved.swap.t; swap.switched = saved.swap.switched; }
     },
-  });
+  }, 'afterBodies');
   return { held: () => state.held, swapping: () => swap.on, owned,
     live: i => state.held === i && !swap.on && !ports.locked() };
 }

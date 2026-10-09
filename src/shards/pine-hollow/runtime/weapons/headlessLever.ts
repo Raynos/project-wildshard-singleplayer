@@ -91,6 +91,6 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
         fed: s.fed, planned: s.planned, stopAfter: s.stopAfter, dryAtStart: s.dryAtStart, reloadProgress: s.reloadProgress });
       store.reserve = s.reserve; sinceEmpty = s.sinceEmpty;
     },
-  });
+  }, 'afterBodies');
   return { act, store };
 }
