@@ -21,7 +21,7 @@ we get prod deployed and unstuck?"* Source: the 12-hour process audit `progress/
 
 | # | Change | Owner | Needs Jake | Status |
 |---|---|---|---|---|
-| W0 | **Prod unstuck**: a red push CI blocks every release (deploy ships the newest CI-green main). Fix the red test first, always; the coordinator checks `version.json` against origin hourly and runs `gh workflow run deploy` when they differ | coordinator | no | in flight 2026-10-09 |
+| W0 | **Prod unstuck**: a red push CI blocks every release (deploy ships the newest CI-green main). Fix the red test first, always; the coordinator checks `version.json` against origin hourly and runs `gh workflow run deploy` when they differ. **The deploy job re-runs the whole `pnpm test` on a commit whose push CI already passed** (`.github/workflows/deploy.yml` "Test": 20+ min on 2026-10-09 19:59): skip it for a CI-green pin and keep only the build + chunk check + production verify | coordinator | no | in flight 2026-10-09 |
 | W1 | Lanes land on quick checks of what they touched; the push gate is the only full suite (reach the Codex briefs too: 14 lane suites ran the hour after the cut) | coordinator | no | landed in the coordinator's brief; Codex briefs pending |
 | W2 | Take regeneration off the push lock: generated files (api-surface, docs/api, ENGINE.md appendix, layer-edges, debt counts) are built in gen / CI, not committed; drop the gate's duplicate 88 s check | coordinator | no | open |
 | W3 | Cache gate steps by content hash; affected-only tests at push (bake-check only when bake inputs change); a full suite every Nth push or nightly | coordinator | no | open |
