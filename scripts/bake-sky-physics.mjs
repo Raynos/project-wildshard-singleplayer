@@ -41,8 +41,8 @@ try {
     const activeIn = (piece, hover) => { player.hover = hover; try { return piece.active?.() ?? true; } finally { player.hover = riding; } };
     const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const foot = activeIn(piece, false), board = activeIn(piece, true);
-      const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: foot,
-        ...(foot === board ? {} : { mode: board ? 'board' : 'foot' }) };
+      const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: foot };
+      if (foot !== board) row.mode = board ? 'board' : 'foot';
       if (piece.surface !== undefined) row.surface = piece.surface;
       if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
       if (piece.follows !== undefined) {
