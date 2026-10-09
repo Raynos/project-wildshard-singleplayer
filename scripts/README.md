@@ -298,6 +298,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [popin-fly.mjs](./popin-fly.mjs)
 - [precommit-generated.d.mts](./precommit-generated.d.mts)
 - [precommit-generated.mjs](./precommit-generated.mjs)
+- [precommit-guards.d.mts](./precommit-guards.d.mts)
 - [precommit-guards.mjs](./precommit-guards.mjs)
 - [progress-video.sh](./progress-video.sh)
 - [public-grid.d.mts](./public-grid.d.mts)
