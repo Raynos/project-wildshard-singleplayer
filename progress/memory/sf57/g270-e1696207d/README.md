@@ -18,6 +18,8 @@ GL and WASM capacities stabilize after warm-up; WC does not. Actual ASTC 6×6 up
 
 The override does **not** override `applyKtx2Probe`: Basis transcoding still filters the failed format families. As-shipped ASTC planes upload compressed, while some Basis files upload RGBA. The diagnostic is therefore a mixed-format arm whose equivalence to the phone has not been demonstrated. The recorded failure is preserved; no revised threshold or regrade supplies a pass.
 
-Next: the requested one-circuit per-crossing SF64/native/passive-category read, after the Pine desktop floor. Physical-phone M2 memory and no-tab-kill evidence remains Jake's G269 runs. SF22 is postponed until this investigation is reported.
+The requested one-circuit attribution produced no valid circuit: its first preview build was accidentally stopped by another lane; the retry hit an Inspector timeout during cold loading at host load 84–106, before any route or owner boundary. Both failures are summarized in [attribution-attempts.json](attribution-attempts.json). All owned resources closed. The prepared harness moved process inspection after the final reading to respect G257; neither failed attempt reached that inspection.
+
+**Coordinator disposition:** skip further attribution. The mixed Basis/RGBA forced-compressed Simulator arm cannot establish phone memory. M2's memory and no-tab-kill verdict rests on Jake's G269 phone runs. This does not turn either original SF57 leg into a pass. The valid next proofs are one isolated current-HEAD Pine desktop floor and Chromium G270 crossroads/admission/install gates; their Simulator memory gate is recorded as **phone runs (G269)**.
 
 Raw samples remain outside git in the lane scratchpad. `summary.json` preserves the original verdicts and compact scalar analysis; no raw archives are committed.

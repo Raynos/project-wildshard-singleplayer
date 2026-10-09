@@ -1,0 +1,30 @@
+{
+  "purpose": "Requested one-circuit attribution: no valid circuit recorded",
+  "productionPin": "e1696207dc0c8b1d73421f40d459b8c0ab081fec",
+  "diagnosticPin": "6b74ba9f07dc32f9797c07c74abdd0f01c296082",
+  "attempts": [
+    {
+      "proof": "20261009T171900-sf57-one-circuit-66804",
+      "phase": "preview build",
+      "seconds": 219,
+      "failure": "Preview4406 mistakenly stopped by another lane; coordinator confirmed. No Simulator acquired."
+    },
+    {
+      "proof": "20261009T172305-sf57-one-circuit-retry-95361",
+      "phase": "cold loading",
+      "seconds": 415,
+      "failure": "Runtime.evaluate Inspector timeout before drive",
+      "routes": 0,
+      "ownerBoundaries": 0,
+      "loadOneMinute": {
+        "min": 84.11,
+        "max": 105.79,
+        "mean": 98.74
+      },
+      "gpuRecovery": false
+    }
+  ],
+  "rulerFence": "vmmap/footprint only after the final native reading; changed before worker spawn. No process report ran in either failed attempt.",
+  "disposition": "Coordinator explicitly skipped further attribution: mixed Basis/RGBA forced arm cannot establish phone memory. M2 memory verdict is G269 phone runs. Original SF57 recorded failures remain intact.",
+  "resources": "Owned Simulator, browser, Inspector, native sampler and preview closed."
+}
