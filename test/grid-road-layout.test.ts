@@ -15,7 +15,7 @@ it('lays the boulevard on the generator gaps: 24 segments, 16 junctions, roundab
   // segment ids and centres match the generator's (gap.x runs along z between columns)
   const between = layout.segments.find((s) => s.id === 'gap.x.-1.0');
   expect(between?.centre).toEqual({ x: -277.5, z: 0 });
-  expect(between?.low?.instance).toBe('template-3'); expect(between?.high?.instance).toBe('driftwood-isle');
+  expect(between?.low?.instance).toBe('sunscar-dunes'); expect(between?.high?.instance).toBe('driftwood-isle');
 });
 
 it('puts the rail on the outer road shoulder, where the rim walls stand (G89)', () => {
@@ -31,11 +31,11 @@ it('puts the rail on the outer road shoulder, where the rim walls stand (G89)', 
 it('names the shards ahead on green signs from the catalogue, on the traveller\'s right (G80, G81, G93)', () => {
   const segment = layout.segments.find((s) => s.id === 'gap.x.-1.0');
   if (segment === undefined) throw new Error('missing segment');
-  // heading north (+z) between template-3 (west, −x) and Driftwood (east, +x): in three's mirrored frame your right hand is
+  // heading north (+z) between Signal Dunes (west, −x) and Driftwood (east, +x): in three's mirrored frame your right hand is
   // west, so the sign stands on the west shoulder and Driftwood's turn-in is on the left
   expect(rightSide(segment, 1)).toBe(-1);
   const north = layout.signs.find((s) => s.facing.z === -1 && Math.abs(s.at.x - segmentPoint(segment, 0, -9.7).x) < 0.01 && s.at.z < -190 && s.at.z > -210);
-  expect(north?.lines).toEqual([{ arrow: 'right', names: ['_TEMPLATE'], metres: 200 }, { arrow: 'left', names: ['DRIFTWOOD-ISLE'], metres: 200 }]);
+  expect(north?.lines).toEqual([{ arrow: 'right', names: ['SUNSCAR-DUNES'], metres: 200 }, { arrow: 'left', names: ['DRIFTWOOD-ISLE'], metres: 200 }]);
   // heading east (+x) your right hand is +z (south of the road is −z)
   const east = layout.segments.find((s) => s.id === 'gap.z.0.0');
   if (east === undefined) throw new Error('missing segment');

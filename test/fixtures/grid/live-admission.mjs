@@ -5,11 +5,12 @@ import { readFileSync } from 'node:fs';
 import { createSimHost } from '../../../src/engine/sim.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
+import { TEMPLATE_WEST_GRID } from './templateWest.ts';
 import { LiveGridHost } from '../../../src/game/grid/live.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const assembly = new GridAssembly({ developer: false, devserver: false });
+const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID);
 const home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],

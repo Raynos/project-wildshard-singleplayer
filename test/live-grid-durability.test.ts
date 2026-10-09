@@ -24,6 +24,7 @@ import * as products from '../src/game/grid/products';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
+import { TEMPLATE_WEST_GRID } from './fixtures/grid/templateWest';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { parseMigrations } from '../src/game/shardfile/migrations';
@@ -88,7 +89,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
   });
   const rebound = vi.spyOn(simulation, 'bindShardfileSim'), toast = vi.fn(), devAlert = vi.fn();
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
-  const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
+  const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const homeBaseline = { bodies: pageHost.physics.world.bodies.len(), colliders: pageHost.physics.world.colliders.len() };
   const restoreGlobals = browserEvents();
@@ -226,7 +227,7 @@ it('admits an old-revision region through its logical companion before exposing 
   vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source: nextSource, assets, cached: false }, release: () => undefined,
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('Already admitted')) } }));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
-  const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
+  const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
   const local = new MemoryStorage(), store = new SaveStore({ local, session: null });
   const old = new GridRegionDurability(store, { id: target.instance, shard: target.slug }, source, []);
   const previous = simulation.createShardfileSim(source, assets, { rapier, quest: old.quest }); old.bind(previous.host);

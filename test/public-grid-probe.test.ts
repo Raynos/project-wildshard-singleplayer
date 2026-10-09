@@ -50,8 +50,8 @@ it('requires effective public mode and excludes every Developer-only runtime res
   for (const change of checks) {const row=witness();row.state.cells=[...cells];change(row);expect(publicGridWitnessFailures(row,false).length).toBeGreaterThan(0);}
 });
 
-it('allows the G258 public hybrids without fabricating admission or residency', () => {
-  for (const slug of ['pine-hollow','nalati-grasslands','far-reach']) {
+it('allows the G258 / G270 public shards without fabricating admission or residency', () => {
+  for (const slug of ['pine-hollow','nalati-grasslands','far-reach','sunscar-dunes']) {
     const row=witness();row.state.cells=[...cells,{instance:slug,slug,cell:[0,1]}];
     row.state.live.live.residents=[slug];
     expect(publicGridWitnessFailures(row,false)).toEqual([]);
@@ -62,8 +62,8 @@ it('allows the G258 public hybrids without fabricating admission or residency', 
   }
 });
 
-it('still excludes unfinished Signal Dunes and Nine Dragon from the public catalogue', () => {
-  for (const slug of ['sunscar-dunes','nine-dragon-stack']) {
+it('still excludes Developer-only Blender Template and Nine Dragon from the public catalogue', () => {
+  for (const slug of ['blender-template','nine-dragon-stack']) {
     const row=witness();row.state.cells=[...cells,{instance:slug,slug,cell:[0,1]}];
     expect(publicGridWitnessFailures(row,false)).toContain('Developer-only region is present in the public catalogue');
   }

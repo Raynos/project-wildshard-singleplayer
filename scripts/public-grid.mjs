@@ -38,15 +38,18 @@ export function readPublicGridWitness() {
     runtimeLevel:window.__wildshard.world.game.level.id};
 }
 
-/** G258 opens the three approved hybrids; other unfinished regions still need Developer or DEVSERVER.
+/** The slugs the public catalogue may hold (G258, G270). */
+const PUBLIC_SLUGS = new Set(['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach','sunscar-dunes']);
+
+/** G258 / G270: the five real shards and Template 1 are public; Blender Template (Developer) and Nine Dragon (DEVSERVER) are not.
  * @param {import('./public-grid.mjs').PublicGridWitness} witness @param {boolean} requireTemplate */
 export function publicGridWitnessFailures(witness, requireTemplate) {
   const failures = [], state = witness.state;
   if (witness.developer || witness.savedDeveloper !== false) failures.push('Developer is not saved and effective OFF');
   if (state.home !== 'driftwood-isle' || witness.runtimeLevel !== 'platform.grid') failures.push('Public grid is not the owned platform shell');
   if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Grid home has no positive admitted residency claim');
-  if (state.cells.some(row => !['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach'].includes(row.slug))) failures.push('Developer-only region is present in the public catalogue');
-  if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach'].includes(row.slug)))) failures.push('An unlisted region became a runtime resident');
+  if (state.cells.some(row => !PUBLIC_SLUGS.has(row.slug))) failures.push('Developer-only region is present in the public catalogue');
+  if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && PUBLIC_SLUGS.has(row.slug)))) failures.push('An unlisted region became a runtime resident');
   if (requireTemplate && !state.cells.some(row => row.slug === '_template' && row.instance === state.inside
     && row.instance === state.live.live.current && state.live.live.residents.includes(row.instance))) failures.push('Public template entry and residency were not witnessed');
   return failures;

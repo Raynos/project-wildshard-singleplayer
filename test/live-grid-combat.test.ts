@@ -11,6 +11,7 @@ import { ReadinessWalls } from '../src/engine/physics/readinessWalls';
 import { createSimHost } from '../src/engine/sim';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
+import { TEMPLATE_WEST_GRID } from './fixtures/grid/templateWest';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
@@ -31,7 +32,7 @@ it('gates real page and fresh/restored regional combat at geometry, irrespective
     return () => { if (before === undefined) Reflect.deleteProperty(globalThis, name); else Object.defineProperty(globalThis, name, before); };
   });
   const scope = new Scope('live.combat'), allocator = new ResidencyAllocator();
-  const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
+  const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
   const owner = new PageResidency(allocator), residency = owner.admitHome(home.instance, 1_000_000);
   scope.onDispose(() => { owner.dispose(); });
   const traveller = { position: page.player.position, yaw: 0, motor: page.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null,

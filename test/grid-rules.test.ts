@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { GridAssembly } from '../src/game/grid/assembly';
+import { TEMPLATE_WEST_GRID } from './fixtures/grid/templateWest';
 import { gridHoverSpeed, gridZone, gridCanAct, GridCombatRules, reframeGridUnit, installGridHoverSpeed, type GridPresence, type GridTravelUnit } from '../src/game/grid/rules';
 import { parseTraversal } from '../src/game/shardfile/traversal';
 import { Scope } from '../src/engine/app/scope';
@@ -131,7 +132,7 @@ describe('grid traversal rules', () => {
     } finally { mount.dispose(); scope.dispose(); ph.dispose(); }
   });
   it('prepares mount and rider as one atomic unit, preserving separation, velocity, yaw and stable IDs', () => {
-    const grid = new GridAssembly({ developer: false, devserver: false }), from = grid.cell('template-3'), to = grid.cell('driftwood-isle');
+    const grid = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID), from = grid.cell('template-3'), to = grid.cell('driftwood-isle');
     const unit: GridTravelUnit = { instance: from.instance, members: [
       { id: 'actor.player', role: 'rider', position: point(278, 0, 2), velocity: point(12), yaw: 0.7 },
       { id: 'horse.1', role: 'mount', position: point(277, 0, 0.02), velocity: point(12), yaw: 0.7 },

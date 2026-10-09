@@ -11,7 +11,7 @@ import { GAME_STRINGS } from '../src/game/strings';
 import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
 import { CHUNK_HALF, ENTRY_WIDTH } from '../src/engine/core/config';
 
-it('keeps the three open plots while G258 opens the three approved public shards', () => {
+it('keeps the three open plots while G258 / G270 open the five real public shards', () => {
   const grid = new GridAssembly({ developer: false, devserver: false });
   const ring = [[-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0]] as const;
   const kinds = ring.map(([x, z]) => {
@@ -19,7 +19,8 @@ it('keeps the three open plots while G258 opens the three approved public shards
     if (cell !== undefined) return cell.slug === '_template' ? 'template' : 'shard';
     return grid.plots.some((row) => row.cell[0] === x && row.cell[1] === z) ? 'plot' : 'missing';
   });
-  expect(kinds).toEqual(['plot', 'shard', 'template', 'shard', 'plot', 'shard', 'plot', 'template']);
+  // G270: Signal Dunes holds the west cell; the SW plot is Template 2's slot until Blender Template leaves Developer
+  expect(kinds).toEqual(['plot', 'shard', 'template', 'shard', 'plot', 'shard', 'plot', 'shard']);
   // a plot is never a shard cell: no slug, no `at` hit, no instance lookup
   for (const plot of grid.plots) { expect(grid.at(plot.origin.x, plot.origin.z)).toBeUndefined(); expect(() => grid.cell(plot.instance)).toThrow(); }
   // Developer fills the SW plot with Blender Template; DEVSERVER also replaces the SE plot.

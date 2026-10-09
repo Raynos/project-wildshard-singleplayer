@@ -15,6 +15,7 @@ import { generateStrip } from '../../../src/engine/sim/strips.ts';
 import { installStripCollider } from '../../../src/engine/physics/stripColliders.ts';
 import { CONTENT_CAPS } from '../../../src/engine/core/config.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
+import { TEMPLATE_WEST_GRID } from './templateWest.ts';
 import { LiveGridHost } from '../../../src/game/grid/live.ts';
 import { GRID_CONTINUATION_CACHE_BYTES } from '../../../src/game/grid/continuations.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
@@ -24,7 +25,7 @@ assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefin
 const durableOnly = argv.includes('--durable'), nativeBytes = argv.includes('--bytes');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
-const assembly = new GridAssembly({ developer: false, devserver: false }), homeCell = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
+const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID), homeCell = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [], weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 const empty = assembly.emptyNeighbour.edge;
 const strip = generateStrip({ id: 'west', axis: 'x', origin: { x: -277.5, z: 0 }, profiles: [empty, empty], adjacent: [target, homeCell] });

@@ -9,13 +9,14 @@ import { createSimHost } from '../../../src/engine/sim.ts';
 import { restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
+import { TEMPLATE_WEST_GRID } from './templateWest.ts';
 import { LiveGridHost } from '../../../src/game/grid/live.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { PageResidency } from '../../../src/game/grid/pageResidency.ts';
 
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
-const assembly = new GridAssembly({ developer: false, devserver: false });
+const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID);
 const home = assembly.cell('driftwood-isle'), target = assembly.cell('template-2');
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [], weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 const allocator = new ResidencyAllocator(), page = new PageResidency(allocator), homeClaim = page.admitHome(home.instance, 20_000_000);

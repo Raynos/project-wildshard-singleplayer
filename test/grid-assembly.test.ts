@@ -9,40 +9,42 @@ import { installBounds } from '../src/engine/world/bounds';
 it('assembles shipped, Developer and DEVSERVER grids exclusively from the platform catalogue', () => {
   for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
     const grid = new GridAssembly({ developer, devserver, nineDragon });
-    const nine = devserver && nineDragon ? 1 : 0; // G198: the cells without a shard alternate Template copies and open plots
+    const nine = devserver && nineDragon ? 1 : 0; // G270: five real shards, Template 1, two plots and Template 2's slot (Developer: Blender Template)
     expect(grid.cells).toHaveLength(6 + nine + (developer ? 1 : 0)); expect(grid.plots).toHaveLength(3 - nine - (developer ? 1 : 0)); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
     expect(grid.cell('driftwood-isle').cell).toEqual([0, 0]);
     expect(grid.cell('pine-hollow').cell).toEqual([0, 1]);
     expect(grid.cell('nalati-grasslands').cell).toEqual([1, 0]);
-    expect(grid.at(-555, 0)?.slug).toBe(developer ? 'sunscar-dunes' : '_template');
+    expect(grid.at(-555, 0)?.slug).toBe('sunscar-dunes');
     expect(grid.at(0, -555)?.slug).toBe('far-reach');
     expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : undefined);
     expect(grid.plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', ...(developer ? [] : ['open-plot-sw']), ...(nine === 1 ? [] : ['open-plot-se'])]);
-    expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(2 - (developer ? 1 : 0));
+    expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(1);
+    expect(grid.at(-555, -555)?.slug).toBe(developer ? 'blender-template' : undefined);
   }
   expect(new GridAssembly({ developer: false, devserver: true }).at(555, -555)?.slug).toBe('nine-dragon-stack');
   expect(catalogue.placements).toHaveLength(8);
 });
 
-it('admits G258 Pine, Nalati and Sky Reach in the same public and Developer cells', () => {
+it('admits G258 Pine, Nalati, Sky Reach and G270 Signal Dunes in the same public and Developer cells', () => {
   const publicGrid = new GridAssembly({ developer: false, devserver: false });
   const developerGrid = new GridAssembly({ developer: true, devserver: false });
-  for (const slug of ['pine-hollow', 'nalati-grasslands', 'far-reach']) {
+  for (const slug of ['pine-hollow', 'nalati-grasslands', 'far-reach', 'sunscar-dunes']) {
     expect(catalogue.grid.cells.some(cell => cell.slug === slug)).toBe(true);
     expect(catalogue.grid.developer.some(cell => cell.slug === slug)).toBe(false);
     expect(publicGrid.cell(slug)).toEqual(developerGrid.cell(slug));
   }
-  expect(publicGrid.cells.map(cell => cell.slug)).toEqual(['pine-hollow', '_template', '_template', 'driftwood-isle', 'nalati-grasslands', 'far-reach']);
-  expect(publicGrid.cells.some(cell => cell.slug === 'sunscar-dunes')).toBe(false);
-  expect(developerGrid.cell('sunscar-dunes').cell).toEqual(publicGrid.cell('template-3').cell);
+  expect(publicGrid.cells.map(cell => cell.slug)).toEqual(['pine-hollow', '_template', 'sunscar-dunes', 'driftwood-isle', 'nalati-grasslands', 'far-reach']);
+  // Template 2 stays Developer-only until Jake's board (G260): publicly its slot is the SW open plot
+  expect(publicGrid.cells.some(cell => cell.slug === 'blender-template')).toBe(false);
+  expect(developerGrid.cell('blender-template-1').cell).toEqual([-1, -1]);
 });
 
 it('keeps stable instance ids independent of signed coordinates and derives reversible per-cell render origins', () => {
   const moved = structuredClone(catalogue.grid), first = moved.cells[1], second = moved.cells[2];
-  if (first === undefined || second === undefined) throw new Error('Missing template cells');
+  if (first === undefined || second === undefined) throw new Error('Missing template and Signal Dunes cells');
   [first.cell, second.cell] = [second.cell, first.cell];
-  const grid = new GridAssembly({ developer: false, devserver: false }, moved), cell = grid.cell('template-3');
-  expect(cell.cell).toEqual([1, 1]); expect(grid.renderOrigin(cell)).toEqual({ x: 555, y: 0, z: 555 });
+  const grid = new GridAssembly({ developer: false, devserver: false }, moved), cell = grid.cell('template-2');
+  expect(cell.cell).toEqual([-1, 0]); expect(grid.renderOrigin(cell)).toEqual({ x: -555, y: 0, z: 0 });
   const point = { x: -249.75, y: -2.5, z: 240.125 };
   expect(grid.local(grid.world(point, cell), cell)).toEqual(point); expect(point).toEqual({ x: -249.75, y: -2.5, z: 240.125 });
   expect(grid.at(277.5, 0)).toBeUndefined();
