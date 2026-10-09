@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2350 members; 842 without a doc line (—).
+2357 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -2174,6 +2174,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SIGHT_SLACK` | const | @wildshard/engine/world/interact/Interactables | the slack of a prompt nobody described (a pickup orb, an NPC's head, a zipline platform) |
 | `interactParts` | const | @wildshard/engine/world/interact/kit | a lit part (the shared low-poly material) and a glowing one (unlit, the glow batch's), for a pickup look's model |
 | `walkInPickup` | function | @wildshard/engine/world/interact/pickup | The page's walk-in pickup law: strict foot radius and height, then chest-to-pickup native world visibility. |
+| `pickPrompt` | function | @wildshard/engine/world/interact/prompts | Page pick law: strict reach, first equal-distance row, and any visible strong prompt ahead of weak prompts. |
+| `PROMPT_SIGHT_SLACK` | const | @wildshard/engine/world/interact/prompts | Unspecified targets may meet their own surface within this many metres of the prompt. |
+| `PromptPoint` | interface | @wildshard/engine/world/interact/prompts | A prompt's world point, independent of its view or input binding. |
+| `PromptSight` | interface | @wildshard/engine/world/interact/prompts | The target's own native owner may be a registered piece or a trusted reconstructed identity. |
+| `PromptTarget` | interface | @wildshard/engine/world/interact/prompts | Live reach and weak priority can be getters: hidden prompts have zero reach. |
+| `promptVisible` | function | @wildshard/engine/world/interact/prompts | A clear native segment, or its first hit is the target itself. A missing boot world retains distance-only picking. |
+| `setPromptSight` | function | @wildshard/engine/world/interact/prompts | Attach actual native owner identity without retaining a retired prompt. |
 | `AltarDef` | interface | @wildshard/engine/world/interact/types | — |
 | `autoFlag` | function | @wildshard/engine/world/interact/types | the automatic flag each kind raises when it fires |
 | `BarrelDef` | interface | @wildshard/engine/world/interact/types | — |

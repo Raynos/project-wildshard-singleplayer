@@ -13018,6 +13018,48 @@
         "from": "@wildshard/engine/world/interact/pickup"
       },
       {
+        "name": "pickPrompt",
+        "kind": "function",
+        "doc": "Page pick law: strict reach, first equal-distance row, and any visible strong prompt ahead of weak prompts.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
+        "name": "PROMPT_SIGHT_SLACK",
+        "kind": "const",
+        "doc": "Unspecified targets may meet their own surface within this many metres of the prompt.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
+        "name": "PromptPoint",
+        "kind": "interface",
+        "doc": "A prompt's world point, independent of its view or input binding.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
+        "name": "PromptSight",
+        "kind": "interface",
+        "doc": "The target's own native owner may be a registered piece or a trusted reconstructed identity.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
+        "name": "PromptTarget",
+        "kind": "interface",
+        "doc": "Live reach and weak priority can be getters: hidden prompts have zero reach.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
+        "name": "promptVisible",
+        "kind": "function",
+        "doc": "A clear native segment, or its first hit is the target itself. A missing boot world retains distance-only picking.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
+        "name": "setPromptSight",
+        "kind": "function",
+        "doc": "Attach actual native owner identity without retaining a retired prompt.",
+        "from": "@wildshard/engine/world/interact/prompts"
+      },
+      {
         "name": "AltarDef",
         "kind": "interface",
         "doc": "",

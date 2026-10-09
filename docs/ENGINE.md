@@ -2064,7 +2064,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2333 exports, grouped by the module to import them from.
+2340 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2430,6 +2430,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/interact/Interactables`: `canSee`, `Interactables`, `InteractEvent`, `InteractHost`, `Live`, `pickInteractable`, `plateDown`, `setSight`, `Sight`, `SIGHT_SLACK`
 - `@wildshard/engine/world/interact/kit`: `interactParts`
 - `@wildshard/engine/world/interact/pickup`: `walkInPickup`
+- `@wildshard/engine/world/interact/prompts`: `pickPrompt`, `PROMPT_SIGHT_SLACK`, `PromptPoint`, `PromptSight`, `PromptTarget`, `promptVisible`, `setPromptSight`
 - `@wildshard/engine/world/interact/types`: `AltarDef`, `autoFlag`, `BarrelDef`, `BeaconDef`, `BenchDef`, `ChestDef`, `ChestDims`, `ChestItem`, `ChestLook`, `Cond`, `DoorDef`, `DoorLook`, `flagsRaised`, `flagsRead`, `Interactable`, `InteractDef`, `InteractKind`, `interactProps`, `InteractProps`, `InteractTable`, `KeyDef`, `LeverDef`, `PickupDef`, `pickupLook`, `PickupLook`, `PickupPart`, `Place`, `PlateDef`, `PoiId`, `registerInteractProps`, `registerPickupLook`, `TRANSIENT_PREFIXES`
 - `@wildshard/engine/world/lowpolyKit`: `AddOpts`, `AOOptions`, `bakeAO`, `BakedLight`, `bakeLight`, `broadClump`, `ColorLike`, `fern`, `grassTuft`, `hibiscus`, `hibiscusBush`, `leaf`, `lilyPad`, `lotus`, `LowPolyKit`, `lowPolyMaterial`, `Part`, `PLANT`, `vineStrand`
 - `@wildshard/engine/world/painterly`: `painterlyKnobs`, `PainterlyKnobs`, `PainterlyLook`, `painterlyMaterial`, `PainterlyOpts`, `painterlyUniforms`, `paintGeometry`, `setPainterlyLook`, `syncPainterlySun`, `updatePainterly`
