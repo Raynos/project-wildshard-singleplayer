@@ -14,11 +14,18 @@ import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from '../look/trampleMovers';
+import { clockForSun } from '../look/dayKeys';
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
-/** The day at boot the headless runtime models: Aqbars and Argymaq hold their lairs, no storm (combat/elites.ts rules). */
-export const NALATI_HEADLESS_CLOCK: NalatiBootClock = { phase: 'day', storm: false };
+/** The manifest's sun (manifest.ts `sky.sun`, test-pinned): the page's clock starts on it (world/installWeather.ts
+ *  `clockForSun(def.sky.sun)`, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
+export const NALATI_SUN = { azimuth: 250, elevation: 26 } as const;
+/** The page's day clock as its weather builds it (look/dayKeys.ts clockForSun over the steppe schedule). */
+export function nalatiDayClock(): ReturnType<typeof clockForSun> { return clockForSun(NALATI_SUN); }
+/** The boot's clock for the roster's elite rules (combat/elites.ts `condition`): the clock's day phase at install and no
+ *  storm (the weather starts clear; the storm state machine is not hosted yet). */
+export function nalatiBootClock(clock: { readonly dayPhase: string }): NalatiBootClock { return { phase: clock.dayPhase, storm: false }; }
 
 const buffer = (bytes: Uint8Array): ArrayBuffer => { const copy = new ArrayBuffer(bytes.byteLength); new Uint8Array(copy).set(bytes); return copy; };
 
@@ -115,10 +122,10 @@ export interface NalatiBody { readonly boot: NalatiBootBody; readonly baked: Nal
  * terrain itself when that is the ground's heightfield). The Golden King stays parked (no body), as the page parks him.
  * The host runs on the page's distance bands, installed before any spawn (and before a restoring host restores its clocks).
  */
-export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; grid: BakedGrid; spawnY: number }): readonly NalatiBody[] {
+export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: NalatiBootClock }): readonly NalatiBody[] {
   const { bake } = ports, s = bakedSamplers(ports.grid);
   host.useBodyBands();
-  const roster = nalatiBootRoster({ normalY: (x, z) => s.normalAt(x, z)[1], heightAt: s.heightAt, waterLevel: () => TERRAIN.waterLevel(), wetAt: nalatiWetAt }, NALATI_HEADLESS_CLOCK);
+  const roster = nalatiBootRoster({ normalY: (x, z) => s.normalAt(x, z)[1], heightAt: s.heightAt, waterLevel: () => TERRAIN.waterLevel(), wetAt: nalatiWetAt }, ports.clock);
   if (roster.bodies.length !== bake.actors.length || JSON.stringify(roster.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.id) }))) !== JSON.stringify(bake.herds))
     throw new Error('Nalati roster diverges from the page\'s list');
   const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
@@ -145,12 +152,13 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
 /**
  * Nalati Grasslands' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
  * world (the terrain heightfield as Rapier built it and every solid WORLD collider; `ground: false`), the page's terrain grid
- * as the height query, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
+ * as the height query, the page's day clock on the host's tick (from the manifest's sun; the level's `day.start` moves it), the
+ * player's trail on the host's trample map, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
  * restored exactly by an identical install before the host restores, and the declared groups (runtime/groups.ts: the pack,
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati6.md): the groups' decisions (their wild view has the page's grass and a
  * trample map of the host's own on its fixed step and in its snapshot; not yet the wildlife's pushes, the weather's wind or the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
- * weapons, the day clock past the boot's day, the quests and their facts, and the entry proof; `finish` refuses.
+ * weapons, the storm, the dusk / night spawns as the day clock passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
@@ -161,7 +169,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   return { level, ports: { ground: false, heightAt }, install: host => {
     // the creature floor casts into this world at install, restoring too (the saved physics then replaces it)
     addNalatiWorld(host, bake);
-    const bodies = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y }), normal = bakedSamplers(grid).normalAt;
+    // the page's day clock, stepped at the start of every tick (restoring too: the host then restores its saved `day`); the
+    // roster reads it at install, the boot's phase (the level's `day.start`, if any, moves both)
+    const clock = host.useDayClock(nalatiDayClock());
+    const bodies = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y, clock: nalatiBootClock(clock) }), normal = bakedSamplers(grid).normalAt;
     // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
     const grass = nalatiGrassView(grid, shard.identity.seed);
     installNalatiTrample(host, grass.trample);

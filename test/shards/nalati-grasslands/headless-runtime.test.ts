@@ -11,7 +11,8 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifest';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
@@ -38,6 +39,17 @@ it('stands the player at the camp on the page\'s terrain grid, with no entry pro
   expect(plan.level.seed).toBe(0x4a1a); expect(plan.level.player.at.z).toBe(232);
   expect(plan.level.player.at.y).toBeCloseTo(Math.max(0, heightAt(0, 232) + 0.1), 9);
   expect(plan.proveEntries).toBeUndefined();
+});
+
+it('starts the page\'s day clock on the manifest\'s sun, in the day; a witness level starting at dusk refuses (its elites are not modelled)', () => {
+  expect(NALATI_GRASSLANDS.sky.sun).toEqual(NALATI_SUN);
+  const host = boot();
+  try {
+    expect(host.dayClock?.hour).toBeCloseTo(16.22, 2); expect(host.dayClock?.dayPhase).toBe('day');
+    expect(snapshotSimHost(host).day).toEqual(nalatiDayClock().snapshot());
+  } finally { host.dispose(); }
+  const dusk = createSimHost({ ...plan.level, day: { start: 18.5 } }, { ...plan.ports, rapier });
+  try { expect(() => { plan.install(dusk, { restoring: false, ...effects }); }).toThrow('does not model the kokbori elite'); } finally { dusk.dispose(); }
 });
 
 it('refuses without the page\'s terrain grid', async () => {
@@ -114,6 +126,9 @@ it('walks 2k ticks: every body stays finite on the ground, on the page\'s distan
     const p = host.player.position;
     expect(p.z).toBeLessThan(220); expect(p.y).toBeGreaterThan(heightAt(p.x, p.z) - 0.3);
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
+    // the page's day clock on the host's tick: the hour a 60 Hz page frame clock reaches, past the boot's day into golden
+    const page = nalatiDayClock(); for (let i = 0; i < 2000; i++) page.update(1 / 60);
+    expect(host.dayClock?.hour).toBe(page.hour); expect(host.dayClock?.dayPhase).toBe('golden');
     // 25 s on, the tick-500 trail has stood back up, inside the map's 128 m window
     const stood = spots[500]; if (stood === undefined) throw new Error('no trail');
     expect(Math.max(Math.abs(stood.x - p.x), Math.abs(stood.z - p.z))).toBeLessThan(60); expect(trample.amountAt(stood.x, stood.z)).toBe(0);
