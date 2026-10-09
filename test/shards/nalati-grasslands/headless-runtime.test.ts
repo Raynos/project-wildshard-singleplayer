@@ -19,6 +19,7 @@ import type { Exposed } from '../../../src/shards/nalati-grasslands/world/Weathe
 import { SEED } from '../../../src/shards/nalati-grasslands/world/terrain';
 import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifest';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
+import { nalatiCreaturesOf } from '../../../src/shards/nalati-grasslands/runtime/headlessCreatures';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { KNOCKDOWN_TIME } from '../../../src/shards/nalati-grasslands/creatures/knockdown';
@@ -135,11 +136,15 @@ it('walks 2k ticks: every body stays finite on the ground, on the page\'s distan
     expect(p.z).toBeLessThan(220); expect(p.y).toBeGreaterThan(heightAt(p.x, p.z) - 0.3);
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
     // the groups decide on the host's brain clocks (runtime/headlessCreatures.ts): the wild herd near the walk grazes and drifts,
-    // every member; the owned saddled horses, the unhosted dog and Aqbars stand, and Argymaq's far pasture is past the bands
+    // every member, and the flock's dog circles its flock (creatures/sheepdogBrain.ts); the owned saddled horses and Aqbars
+    // stand, and Argymaq's far pasture is past the bands
     const moved = new Set([...host.entities].filter(([id, a]) => { const s0 = start.get(id); return s0 !== undefined && Math.hypot(a.position.x - s0.x, a.position.z - s0.z) > 0.5; }).map(([id]) => id));
-    const wild = bake.actors.filter(a => a.herd === 1).map(a => a.id), still = bake.actors.filter(a => a.herd === -1 || a.herd === 2 || a.herd === 3).map(a => a.id);
-    expect(wild.length).toBe(15);
+    const wild = bake.actors.filter(a => a.herd === 1 || a.kind === 'sheepdog').map(a => a.id), still = bake.actors.filter(a => a.herd === -1 || a.herd === 3).map(a => a.id);
+    expect(wild.length).toBe(16);
     expect(wild.filter(id => !moved.has(id))).toEqual([]); expect(still.filter(id => moved.has(id))).toEqual([]);
+    // the flock stepped on its own 'ai' band clock (FlockBrain): its 40 sheep alive, its clock at the host's last step
+    const flock = nalatiCreaturesOf(host)?.flocks[0]; if (flock === undefined) throw new Error('no flock');
+    expect(flock.alive).toBe(40); expect(flock.state().time).toBeCloseTo(host.clock.now - 1 / 60, 9);
     // the page's day clock on the host's tick: the hour a 60 Hz page frame clock reaches, past the boot's day into golden
     const page = nalatiDayClock(); for (let i = 0; i < 2000; i++) page.update(1 / 60);
     expect(host.dayClock?.hour).toBe(page.hour); expect(host.dayClock?.dayPhase).toBe('golden');
@@ -206,7 +211,7 @@ it('restores mid-stampede exactly: the groups\' continuations and the bodies\' p
   } finally { a.dispose(); }
 });
 
-it('carries a building storm through a restore exactly; the gust front reads the baked lightning world, and a landed strike refuses (its scare reaches the unhosted flock)', () => {
+it('carries a building storm through a restore exactly; the gust front reads the baked lightning world, and a landed strike scares the creatures (Wildlife\'s scare)', () => {
   const a = boot();
   try {
     // forced, as the page's dev switch does: the storm's own clock reaches building only after 12–18 min of clear
@@ -227,9 +232,13 @@ it('carries a building storm through a restore exactly; the gust front reads the
       expect(wa.storm.getLow).toBe(false);
       for (let tick = 0; tick < 240; tick++) walk(a);
       expect(wa.storm.getLow).toBe(true);
-      // the storm proper: its first bolt to the ground lands, and its scare refuses
+      // the storm proper: its first bolt to the ground lands and scares the creatures within 60 m (the page's bind({ scare }):
+      // packs, herds, the flock, then the 'scare' signal)
+      const signals: string[] = [];
+      a.events.on('creature.signal', ({ name }) => { signals.push(name); }, a.scope);
       wa.storm.force('storm', 0);
-      expect(() => { for (let tick = 0; tick < 60 * 30; tick++) walk(a); }).toThrow('the flock is not hosted');
+      for (let tick = 0; tick < 60 * 30 && !signals.includes('scare'); tick++) walk(a);
+      expect(signals).toContain('scare');
     } finally { b.dispose(); }
   } finally { a.dispose(); }
 });

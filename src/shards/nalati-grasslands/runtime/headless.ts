@@ -149,7 +149,6 @@ const StormValue = v.strictObject({ state: v.picklist(STORM_PHASES), phaseT: num
   pending: v.nullable(v.strictObject({ x: num, y: num, z: num, kind: v.picklist(['tree', 'player', 'ground', 'thing']), t: num })),
   nextBolt: num, nextGust: num, windTarget: num, getLowFor: num, getLowTick: num });
 const WeatherValue = v.strictObject({ wind: WindValue, storm: StormValue, asked: v.nullable(num) });
-const unmodelled = (what: string) => (): never => { throw new Error(`Nalati headless lightning reaches ${what}, not modelled yet (sf72-nalati8 handoff)`); };
 
 /** A baked spruce as the lightning reads it: its trunk circle (the grid's bucket key) and its top. */
 interface NalatiTree { readonly x: number; readonly z: number; readonly r: number; readonly top: number }
@@ -178,11 +177,12 @@ export function nalatiLightningGround(bake: Pick<NalatiBake, 'trees' | 'tops' | 
  * crouch and no horse, so both stay false); sheltered beside a baked yurt (`yurtShelters`), never indoors (the host cannot
  * enter the Golden King's dungeon) and never held (the Storm Titan, who needs a rider, is not hosted), so `hold` stays off.
  * A strike within 4 m hurts the player through the host's combat pipeline as the page's `hurt` does (60, the weather's
- * damage ask, `env.lightning`). Fail-closed: a landed strike's scare (Wildlife's `scare`: the packs, the herds, the flock and
- * the rider's horse) refuses, since the flock is not modelled; strikes land only in the storm phase, 12–18 min in.
+ * damage ask, `env.lightning`). A landed strike scares the creatures within 60 m (`ports.scare`, Wildlife's `scare` as the page
+ * binds it: the packs break, the herds stampede, the flock bolts, the 'scare' signal); strikes land only in the storm phase,
+ * 12–18 min in.
  */
 export function installNalatiWeather(host: SimHost, ports: { heightAt: (x: number, z: number) => number; clock: SunClock; env: Pick<WildEnv, 'light' | 'storm' | 'wind' | 'playerCrouched' | 'playerMounted'>;
-  bake: Pick<NalatiBake, 'trees' | 'tops' | 'yurts'> }): NalatiHostWeather {
+  bake: Pick<NalatiBake, 'trees' | 'tops' | 'yurts'>; scare: (x: number, z: number) => void }): NalatiHostWeather {
   const wind = new Wind({ value: 1 }), env = ports.env, clock = ports.clock, ground = nalatiLightningGround(ports.bake);
   const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
   const storm = steppeStorm(SEED, {
@@ -196,7 +196,7 @@ export function installNalatiWeather(host: SimHost, ports: { heightAt: (x: numbe
       return lp;
     },
   });
-  storm.onStrike(unmodelled('its scare (Wildlife\'s packs, herds, the flock and the rider\'s horse; the flock is not hosted)'));
+  storm.onStrike(strike => { ports.scare(strike.x, strike.z); });
   storm.onPlayerHit(dmg => {
     const health = host.player.health;
     host.combat.hit({ source: 'env', sourceTags: ['env.lightning', 'feel.jolt', 'cover.checked'], target: health, amount: host.events.ask('weather.damage', dmg),
@@ -273,12 +273,13 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * world (the terrain heightfield as Rapier built it and every solid WORLD collider; `ground: false`), the page's terrain grid
  * as the height query, the page's day clock on the host's tick (from the manifest's sun; the level's `day.start` moves it), the
  * steppe weather (its own wind and the storm's state machine on the page's seed, the creatures' light, storm and wind;
- * the lightning's world from the bake's tree tops and yurts, its player damage; a landed strike's scare refuses), the player's trail on the host's trample map, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
- * restored exactly by an identical install before the host restores, and the declared groups (runtime/groups.ts: the pack,
- * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them). Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati8.md): the groups' decisions (their wild view has the page's grass and a
- * trample map of the host's own on its fixed step and in its snapshot, the weather's wind and the day's light; not yet the wildlife's pushes), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
- * weapons, the lightning's scare, the dusk / night spawns as the day clock passes them, the quests and their facts, and the entry proof; `finish` refuses.
+ * the lightning's world from the bake's tree tops and yurts, its player damage and a landed strike's scare), the player's trail on the host's trample map, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
+ * restored exactly by an identical install before the host restores, the declared groups (runtime/groups.ts: the pack,
+ * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
+ * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
+ * progress/shard-platform/handoffs/sf72-nalati11.md): the raid director and the shepherd's ring, the elites' brains, the
+ * marmots, the Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
+ * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
@@ -299,10 +300,16 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     installNalatiTrample(host, grass.trample);
     // the weather after the grass (the page's frame order), into the wild view the groups read
     const env = nalatiHeadlessEnv(grass);
-    installNalatiWeather(host, { heightAt, clock, env, bake });
+    // a landed strike scares the creatures (installWeather.ts `bind({ scare })`: Wildlife.scare within 60 m), installed below
+    let scare: ((x: number, z: number) => void) | null = null;
+    installNalatiWeather(host, { heightAt, clock, env, bake, scare: (x, z) => {
+      if (scare === null) throw new Error('Nalati headless strike before its creatures are installed');
+      scare(x, z);
+    } });
     const groups = installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass, env });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    installNalatiCreatures(host, { bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream });
+    const creatures = installNalatiCreatures(host, { bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream });
+    scare = (x, z) => { creatures.scare(x, z, 60); };
   } };
 };

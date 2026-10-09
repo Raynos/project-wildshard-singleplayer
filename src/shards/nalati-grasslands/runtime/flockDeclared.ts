@@ -1,12 +1,11 @@
 import { prepareDeclaredCrowds, type PreparedCrowds, type CrowdObservation } from '@wildshard/game/shardfile/crowdRuntime';
-import { flock } from '@wildshard/sdk/crowds';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
 import { Flock, type FlockOpts, dogWolves } from '../creatures/flock';
 import type { WildlifeOpts } from '../creatures/wildlife';
 import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
 import { wildEnv } from '../creatures/env';
-import { NALATI_FLOCK } from '../data/crowds';
+import { nalatiFlockRows } from '../creatures/flockRows';
 
 /** Native observation/view bridge; sheep shaders, prey, dog identities and render-frame ordering stay G51. */
 export interface NativeFlocks {
@@ -16,8 +15,7 @@ export interface NativeFlocks {
 }
 /** Admit all authored crowds before placement; no legacy flock setup or scheduler runs in the declared branch. */
 export function createNativeFlocks(sky: WildlifeOpts['sky'], seed: number, layout = NALATI_WILDLIFE.flocks): NativeFlocks {
-  const rows = layout.map((row, index) => flock({ ...NALATI_FLOCK, id: `nalati.flock.${index}`, x: row.x, z: row.z,
-    count: row.count, seed: seed + index * 101, range: row.range ?? 45 }));
+  const rows = nalatiFlockRows(seed, layout);
   const views = new Map<string, Flock>(), observations = new Map<string, CrowdObservation>();
   const runtime = prepareDeclaredCrowds(rows, { flock: row => {
     const observation: CrowdObservation = { player: new Vector3(), playerSpeed: 0, wolves: dogWolves, dog: null };

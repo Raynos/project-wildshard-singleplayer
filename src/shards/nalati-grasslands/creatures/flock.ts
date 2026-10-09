@@ -4,7 +4,6 @@ import { TickScheduler } from '@wildshard/engine/app/scheduler';
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -25,6 +24,7 @@ import { modelsOn } from '../world/glbPaint';
 
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { wildEnv, angDiff } from './env';
+import { setDogFlock } from './sheepdogBrain';
 
 
 /**
@@ -119,7 +119,11 @@ export class Flock extends GroupBrain<SheepPrey> {
 
   static ofDog(dog: Animal): Flock | null { return flockOfDog.get(dog) ?? null; }
   /** make `dog` this flock's sheepdog */
-  setDog(dog: Animal): void { this.dog = dog; flockOfDog.set(dog, this); }
+  setDog(dog: Animal): void {
+    this.dog = dog; flockOfDog.set(dog, this);
+    // the dog's brain (creatures/sheepdogBrain.ts, the host's too) reads this flock, the living wolves and the app's 'ai' stream
+    setDogFlock(dog, { flock: this, wolves: dogWolves, ai: () => app.rng.stream('ai').next(), bark: (x, z) => { this.onSound?.('dog_bark', x, z); } });
+  }
 
   build(): this {
     const geo = buildSheepGeometry();
@@ -479,56 +483,6 @@ function patchSheep(mat: THREE.Material, uTime: { value: number }, depthOnly: bo
       { float woolL = dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) ); diffuseColor.rgb *= mix( vec3( 1.0 ), vColor.rgb, smoothstep( 0.05, 0.18, woolL ) ); }
       #endif`);
   }, { key: (k) => `${k}|nalati-sheep${depthOnly ? '-depth' : ''}` });
-}
-
-/** SpeciesDef.think for the sheepdog: circle the flock, fetch stragglers, face down wolves */
-export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
-  const f = Flock.ofDog(a);
-  if (f === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
-  const m = a.mem;
-  m['barkT'] = (m['barkT'] ?? 0) - c.dt;
-  const px = a.position.x, pz = a.position.z;
-  // a wolf near the flock: run at it and bark (keeps between, never closes)
-  let wolf: Animal | null = null, wd = 35;
-  for (const w of dogWolves) {
-    if (!w.alive) continue;
-    const d = Math.hypot(w.position.x - f.cx, w.position.z - f.cz);
-    if (d < wd) { wd = d; wolf = w; }
-  }
-  if (wolf !== null) {
-    const tx = (wolf.position.x + f.cx) / 2, tz = (wolf.position.z + f.cz) / 2;
-    c.steer(a, c.pathYaw(a, tx, tz, 0.8), Math.hypot(tx - px, tz - pz) > 3 ? 7.5 : 0, 5);
-    a.lookTarget.copy(wolf.position); a.lookWeight = 1; a.state = 'alert'; m['snarl'] = 1; m['low'] = 0.4;
-    if ((m['barkT'] ?? 0) <= 0) { m['barkT'] = 0.5 + app.rng.stream('ai').next() * 0.6; f.onSound?.('dog_bark', px, pz); }
-    c.confine(a); return;
-  }
-  m['snarl'] = 0;
-  // fetch a straggler: get round behind it, the sheep walks away from the dog toward the flock
-  const s = f.straggler(12);
-  if (s >= 0) {
-    f.positions(s, _p);
-    const ox = _p.x - f.cx, oz = _p.z - f.cz, od = Math.hypot(ox, oz) || 1;
-    const bx = _p.x + (ox / od) * 3.5, bz = _p.z + (oz / od) * 3.5;
-    const bd = Math.hypot(bx - px, bz - pz);
-    m['low'] = 0.8;
-    a.state = 'stalk';
-    if (bd > 1) c.steer(a, bd > 4 ? c.pathYaw(a, bx, bz, 1) : Math.atan2(bx - px, bz - pz), bd > 8 ? 7.5 : 3, 5); else a.setMotion(Math.atan2(-ox, -oz), 0, 3);
-    a.lookTarget.set(_p.x, _p.y, _p.z); a.lookWeight = 0.8;
-    c.confine(a); return;
-  }
-  // circle the flock at a trot, now and then lie watching
-  m['low'] = 0;
-  m['rest'] = (m['rest'] ?? 0) - c.dt;
-  if ((m['rest'] ?? 0) > 0) { a.setMotion(Math.atan2(f.cx - px, f.cz - pz), 0, 2); a.state = 'idle'; a.lookTarget.set(f.cx, a.position.y, f.cz); a.lookWeight = 0.5; c.confine(a); return; }
-  if ((m['rest'] ?? 0) < -20 && app.rng.stream('ai').next() < 0.02) m['rest'] = 6 + app.rng.stream('ai').next() * 8;
-  const R = 16;
-  const ang = Math.atan2(px - f.cx, pz - f.cz) + 0.35;
-  const tx = f.cx + Math.sin(ang) * R, tz = f.cz + Math.cos(ang) * R;
-  a.state = 'wander';
-  c.steer(a, c.pathYaw(a, tx, tz, 2), 3.4, 3);
-  const pd = a.position.distanceTo(c.player);
-  a.lookTarget.copy(c.player); a.lookWeight = pd < 6 ? 0.8 : 0;
-  c.confine(a);
 }
 
 function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

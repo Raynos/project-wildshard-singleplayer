@@ -11,8 +11,13 @@ import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import { WOLF_SPECIES } from '../species/wolf';
 import { HORSE_SPECIES } from '../species/horse';
 import { LEOPARD_SPECIES } from '../species/leopard';
+import { SHEEPDOG_SPECIES } from '../species/sheepdog';
+import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
+import { nalatiFlockRows } from '../creatures/flockRows';
+import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
+import { setDogFlock, thinkSheepdog } from '../creatures/sheepdogBrain';
 import { ARGYMAQ, argymaqDefinition } from '../combat/eliteRoster';
-import { TERRAIN } from '../world/terrain';
+import { SEED, TERRAIN } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
 import { pushWildMovers } from '../look/trampleMovers';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
@@ -25,24 +30,23 @@ import type { NalatiBody } from './headless';
 export const NALATI_CREATURES_STEP = 'nalati.creatures';
 /** The level's chunk half (m): the hunting brain's hard clamp (core/config.ts CHUNK_HALF). */
 const CHUNK_HALF = 250;
-/** The bodies whose decisions belong to a system this host does not run yet: the flock's dog (creatures/flock.ts
- *  `thinkSheepdog`) and Aqbars (combat/elites.ts, the leopard's elite brain). Their brain clocks still run, as the page's. */
-const UNHOSTED = new Set(['sheepdog', 'leopard']);
-/** Bounds for the frame loops: the manager's load-time list (35 bodies) and the declared groups (a pack, two herds). */
-const BODY_MAX = 64, GROUP_MAX = 8;
+/** The bodies whose decisions belong to a system this host does not run yet: Aqbars (combat/elites.ts, the leopard's elite
+ *  brain). Its brain clock still runs, as the page's. */
+const UNHOSTED = new Set(['leopard']);
+/** Bounds for the frame loops: the manager's load-time list (35 bodies), the declared groups (a pack, two herds), the flocks. */
+const BODY_MAX = 64, GROUP_MAX = 8, FLOCK_MAX = 4;
 
 /** A renderer-free body as the hunting brain reads it: never hidden here (no view), no ground tilt to sample. */
 export type NalatiHuntBody = AnimalSim & HuntBody;
 
 /**
  * Nalati's creature rows as the manager's hunting brain reads them (HuntConfig.species), renderer-free: the shipping wolf,
- * horse and leopard rows and Argymaq's (combat/eliteRoster.ts, from the horse's stallion, as the elites register it). The
- * flock's dog has no row here: its species module is the flock's (not hosted), and the brain never adopts it.
+ * horse, leopard and sheepdog rows and Argymaq's (combat/eliteRoster.ts, from the horse's stallion, as the elites register it).
  */
 export function nalatiHuntSpecies(): (kind: string) => HuntSpecies {
   const stallion = HORSE_SPECIES.variants.find(variant => variant.id === 'stallion');
   if (stallion === undefined) throw new Error('Nalati horse has no stallion');
-  const rows = new Map<string, HuntSpecies>([['wolf', WOLF_SPECIES], ['horse', HORSE_SPECIES], ['leopard', LEOPARD_SPECIES], [ARGYMAQ, argymaqDefinition(HORSE_SPECIES, stallion)]]);
+  const rows = new Map<string, HuntSpecies>([['wolf', WOLF_SPECIES], ['horse', HORSE_SPECIES], ['leopard', LEOPARD_SPECIES], ['sheepdog', SHEEPDOG_SPECIES], [ARGYMAQ, argymaqDefinition(HORSE_SPECIES, stallion)]]);
   return kind => { const row = rows.get(kind); if (row === undefined) throw new Error(`Nalati hunting brain has no row '${kind}'`); return row; };
 }
 
@@ -65,7 +69,9 @@ const Memory = v.record(v.string(), v.union([finite, v.boolean(), v.array(v.tupl
 const Saved = v.strictObject({ rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
   seen: v.array(v.boolean()), memories: v.array(v.tuple([v.string(), Memory])), herds: v.array(v.tuple([finite, finite])),
   // the declared groups' continuations (PackBrain / HerdBrain `snapshot()`), packs then herds: they decide on this step
-  groups: v.array(v.string()) });
+  groups: v.array(v.string()),
+  // Wildlife's own smoothed player speed (the flocks read it) and the flocks' continuations (FlockBrain `snapshot()`)
+  wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }), flocks: v.array(v.string()) });
 type SavedMemory = v.InferOutput<typeof Memory>;
 const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Nalati hunting path'); return [p.x, p.y, p.z]; };
 function saveMemory(memory: HuntMemory): SavedMemory {
@@ -86,8 +92,12 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
   });
 }
 
-/** The host's creatures, for its tests: the hunting brain over the manager's stream and the bodies it decides for. */
-export interface NalatiHostCreatures { readonly hunt: HuntBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[] }
+/** The host's creatures, for its tests: the hunting brain over the manager's stream and the bodies it decides for, the
+ *  flocks, and Wildlife's `scare` (a lightning strike's: the packs break, the herds stampede, the flocks bolt). */
+export interface NalatiHostCreatures {
+  readonly hunt: HuntBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
+  readonly scare: (x: number, z: number, r?: number) => void;
+}
 const installed = new WeakMap<SimHost, NalatiHostCreatures>();
 /** The creatures installed into `host`, or undefined. */
 export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefined { return installed.get(host); }
@@ -97,21 +107,24 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  * worldUpdate order, then `engine.creatures.update`):
  *
  * - Wildlife's frame (creatures/wildlife.ts `update`): the player's heading and health into the wild view (the host's player
- *   stands, on foot), the moving wolves, horses and dog part the grass (look/trampleMovers.ts `pushWildMovers`, the page's one
- *   law), and a stampeding herd scares every pack within 20 m of its centre.
+ *   stands, on foot), Wildlife's own smoothed player speed and living wolves, the moving wolves, horses and dog part the grass
+ *   (look/trampleMovers.ts `pushWildMovers`, the page's one law), the flocks step (engine/ai/flock.ts FlockBrain: their own
+ *   seeds, 'ai' band clock and continuation), and a stampeding herd scares every pack within 20 m of its centre.
  * - The manager's think loop (AnimalManager.update): its smoothed player speed, the hunting brain's clock (engine/ai/hunt.ts
  *   over the manager's own stream, `Rng(SEED + 31)` continuing from the boot roster, every body's memory adopted where the page
  *   adopted it), then in list order a 'lost.sight' wake for a hunter that loses its line to the player and each body's decision
- *   on its band's brain clock (`brainDt`): a wolf by its pack and a free horse (Argymaq too) by its herd (runtime/groupDispatch.ts,
- *   the page's rules), on a ThinkCtx with the brain's navmesh steering (`navSteer`), its paths and confine, the herd's centre
+ *   on its band's brain clock (`brainDt`): a wolf by its pack, the flock's dog by the one sheepdog rule (creatures/sheepdogBrain.ts)
+ *   and a free horse (Argymaq too) by its herd (runtime/groupDispatch.ts, the page's rules), on a ThinkCtx with the brain's navmesh steering (`navSteer`), its paths and confine, the herd's centre
  *   easing after.
  * - Each body's step (`useBodyStep`): its `act` before it moves (a committed lunge or charge), and after it, on this melee
  *   shard, a running charge's contact (`chargeContact`); a creature's blow is the page's PlayerHurt.creature (`feel.blow`).
  *
  * A stampede runs through the player on foot on the bodies' own capsules (`passThroughPlayer`), and a knock-down (the stallion's
  * charge, a stampede) dashes the host's player along the blow (creatures/knockdown.ts, `SimHost.dashPlayer`, the page's
- * `Player.dash`); the creatures' signals are the page's `creature.signal` event. Not hosted yet (fail-closed in the runtime's
- * `finish`): the flock, its dog's decisions and the raid director, Aqbars' elite brain, the marmots, a
+ * `Player.dash`); the creatures' signals are the page's `creature.signal` event; `scare` is Wildlife's (a lightning strike's).
+ * Not hosted yet (fail-closed in the runtime's `finish`): the raid director and the shepherd's ring (creatures/sheepRaid.ts,
+ * whose ring draws on the shared 'ai' stream every page frame: until it is hosted, every 'ai' draw here, the dog's and the
+ * groups', runs on a stream the page has advanced further), Aqbars' elite brain, the marmots, a
  * dodge's 'target.dodge' wake and a weapon's 'target.attack' wake (the host fires no weapon).
  */
 export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
@@ -141,10 +154,10 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   // the manager's herds (its hunting brain's), as the boot roster added them
   ports.herds.forEach(h => { hunt.addHerd(h.kind, h.cx, h.cz); });
   bodies.forEach(a => { if (a.herd >= 0) hunt.herds[a.herd]?.members.push(a); });
-  // every body's memory where the page adopted it (the stream at its three draws); the dog's species is the flock's, unhosted
+  // every body's memory where the page adopted it (the stream at its three draws)
   ports.bodies.forEach((b, i) => {
     const a = bodies[i];
-    if (a === undefined || b.boot.kind === 'sheepdog') return;
+    if (a === undefined) return;
     rng.restore(b.boot.adopted.stream); hunt.adopt(a, b.boot.adopted.x, b.boot.adopted.z);
   });
   rng.restore(ports.stream);
@@ -153,13 +166,46 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   const decided: readonly (PackBrain<AnimalSim> | HerdBrain<AnimalSim>)[] = [...groups.packs, ...groups.herds];
   groups.packs.forEach(p => { p.members.forEach(m => { packOf.set(m, p); }); });
   groups.herds.forEach(h => { h.members.forEach(m => { herdOf.set(m, h); }); if (h.stallion !== null) herdOf.set(h.stallion, h); });
+  // Wildlife's flocks (creatures/wildlife.ts spawnFlock), on the engine's FlockBrain: the shipping flock's own rules (the
+  // page's default creatures/flock.ts runs the same spans, test/fixtures/flock-oracle; its declared crowds run FlockBrain), each
+  // set up on its own seed as Wildlife builds it, over the page's ground, water and wild view; its dog (the roster's sheepdogs in
+  // order, one a flock that has one) thinks on the one sheepdog rule (creatures/sheepdogBrain.ts) over the host's 'ai' stream
+  const floor = bakedSamplers(ports.grid), layout = NALATI_WILDLIFE.flocks, rows = nalatiFlockRows(SEED, layout);
+  if (rows.length > FLOCK_MAX) throw new Error(`Nalati headless hosts at most ${String(FLOCK_MAX)} flocks`);
+  const pushTrample = (x: number, z: number, r: number, st: number, vx: number, vz: number): void => { env.trample(x, z, r, st, vx, vz); };
+  const flockPorts: FlockPorts = { heightAt: floor.heightAt, normalY: (x, z) => floor.normalAt(x, z)[1], inBounds: (x, z, margin) => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin,
+    wetAt: nalatiWetAt, playerCrouched: () => env.playerCrouched, grassHeightAt: (x, z) => env.grassHeightAt(x, z), trample: pushTrample, centre: () => undefined };
+  // Wildlife's living wolves (its `wolves`: the pack's, in placement order), refreshed every frame (the page's `dogWolves`)
+  const wildWolves = bodies.filter(a => a.kind === 'wolf' && packOf.has(a)), wolves: NalatiHuntBody[] = [];
+  const dogs = bodies.filter(a => a.kind === 'sheepdog');
+  let dogIndex = 0;
+  const flocks = rows.map((row, i) => {
+    const brain = new FlockBrain(flockPorts, row);
+    brain.initialize();
+    if (layout[i]?.dog === true) {
+      const dog = dogs[dogIndex++];
+      if (dog === undefined) throw new Error(`Nalati flock ${String(i)} has no dog in the roster`);
+      brain.dog = dog;
+      setDogFlock(dog, { flock: brain, wolves, ai: () => host.rng.stream('ai').next(), bark: () => undefined });
+    }
+    return brain;
+  });
+  if (dogIndex !== dogs.length) throw new Error('Nalati roster has a sheepdog with no flock');
+  /** Wildlife.scare: packs within 20 m break, herds within r stampede, a flock within r bolts, then the 'scare' signal (the
+   *  rider's horse panics on the page; the host has no rider) */
+  const wildScare = (x: number, z: number, r = 60): void => {
+    for (let i = 0; i < GROUP_MAX; i++) { const p = groups.packs[i]; if (p === undefined) break; p.scare(x, z, 20); }
+    for (let i = 0; i < GROUP_MAX; i++) { const h = groups.herds[i]; if (h === undefined) break; if (Math.hypot(h.cx - x, h.cz - z) < r) h.stampede(x, z); }
+    for (let i = 0; i < FLOCK_MAX; i++) { const f = flocks[i]; if (f === undefined) break; if (Math.hypot(f.cx - x, f.cz - z) < r) f.scare(x, z, 6); }
+    env.onEvent?.('scare', x, z);
+  };
   // the creatures' signals (runtime/state.ts onSignal: the event; its toasts are the HUD's)
   env.onEvent = (name, x, z) => { host.events.emit('creature.signal', { name, x, z }); };
   // bowled over (runtime/state.ts onKnockdown: its flash and toast are the HUD's): the one dash rule on the host's player
   const knocked = { x: 0, z: 0 };
   env.onKnockdown = (x, z, strength) => { knockdownDash(x, z, strength, knocked); host.dashPlayer(knocked.x, knocked.z, KNOCKDOWN_TIME); };
 
-  const speed = { init: false, x: 0, z: 0, v: 0 };
+  const speed = { init: false, x: 0, z: 0, v: 0 }, wild = { init: false, x: 0, z: 0, v: 0 };
   const seen = bodies.map(() => false);
   let clock = 0;
   // AnimalManager.thinkCtx / customContext: one context, its per-body fields set before each call
@@ -189,6 +235,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
     const ctx = context(a, dt);
     if (a.kind === 'wolf') decideWolf(a, ctx, packOf.get(a) ?? null);
+    else if (a.kind === 'sheepdog') thinkSheepdog(a, ctx);
     else if (!horseHeld(a)) decideHorse(a, ctx, herdOf.get(a) ?? null);
     const herd = a.herd >= 0 ? hunt.herds[a.herd] : undefined;
     if (herd !== undefined) hunt.updateHerd(herd);
@@ -196,7 +243,8 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   host.useBodyStep({
     before: (_id, body, dt) => {
       const a = byActor.get(body);
-      if (a === undefined || !a.alive || a.stunned || UNHOSTED.has(a.kind)) return;
+      // the sheepdog has no body act (its species has none)
+      if (a === undefined || !a.alive || a.stunned || UNHOSTED.has(a.kind) || a.kind === 'sheepdog') return;
       if (a.kind === 'wolf') actWolfBody(a, context(a, dt), packOf.get(a) ?? null);
       else actHorseBody(a, context(a, dt), herdOf.get(a) ?? null);
     },
@@ -205,14 +253,21 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
       if (a?.alive === true && !a.stunned && a.state === 'charge') hunt.chargeContact(a, player);
     },
   });
-  const pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { env.trample(x, z, r, s, vx, vz); };
   host.onStep(NALATI_CREATURES_STEP, dt => {
     // Wildlife's frame: the player into the wild view, the grass movers, a stampede scaring the packs
     const yaw = host.player.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), fl = Math.hypot(fx, fz);
     if (fl > 1e-4) { env.playerFwdX = fx / fl; env.playerFwdZ = fz / fl; }
     env.playerCrouched = false; env.playerMounted = false;
     const vital = host.player.health.attributes; env.playerHealth01 = vital.health / vital.maxHealth;
+    // Wildlife's smoothed player speed (its own: 14 m/s cap, a 6 /s ease), the living wolves, the grass movers, the flocks
+    if (!wild.init) { wild.x = player.x; wild.z = player.z; wild.init = true; }
+    const walked = Math.hypot(player.x - wild.x, player.z - wild.z);
+    wild.x = player.x; wild.z = player.z;
+    if (dt > 0) wild.v += (Math.min(walked / dt, 14) - wild.v) * Math.min(1, dt * 6);
+    wolves.length = 0;
+    for (let i = 0; i < BODY_MAX; i++) { const w = wildWolves[i]; if (w === undefined) break; if (w.alive) wolves.push(w); }
     pushWildMovers(bodies, player.x, player.z, pushTrample);
+    for (let i = 0; i < FLOCK_MAX; i++) { const f = flocks[i]; if (f === undefined) break; f.update(dt, host.clock.now, player, wild.v, wolves); }
     for (let i = 0; i < GROUP_MAX; i++) {
       const h = groups.herds[i]; if (h === undefined) break;
       if (h.stampeding) for (let j = 0; j < GROUP_MAX; j++) { const p = groups.packs[j]; if (p === undefined) break; p.scare(h.cx, h.cz, 20); }
@@ -238,10 +293,10 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   }, {
     snapshot: () => ({ rng: { ...rng.snapshot() }, clock, speed: { ...speed }, seen: [...seen],
       memories: bodies.flatMap(a => { const m = hunt.memory(a); return m === undefined ? [] : [[a.entityId, saveMemory(m)] as [string, SavedMemory]]; }),
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided.map(g => g.snapshot()) }),
+      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided.map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()) }),
     restore: value => {
       const saved = v.parse(Saved, value);
-      if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided.length) throw new Error('Incompatible Nalati creatures continuation');
+      if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided.length || saved.flocks.length !== flocks.length) throw new Error('Incompatible Nalati creatures continuation');
       rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
       // the brain's clock is a sum of the same steps: a fresh brain takes the saved sum exactly
       hunt.beginTick(saved.clock - clock); clock = saved.clock;
@@ -253,9 +308,10 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
       });
       saved.herds.forEach(([cx, cz], i) => { const h = hunt.herds[i]; if (h !== undefined) { h.cx = cx; h.cz = cz; } });
       saved.groups.forEach((state, i) => { decided[i]?.restore(state); });
+      Object.assign(wild, saved.wild); saved.flocks.forEach((state, i) => { flocks[i]?.restore(state); });
     },
   });
-  const out = { hunt, rng, bodies };
+  const out = { hunt, rng, bodies, flocks, scare: wildScare };
   installed.set(host, out);
   return out;
 }

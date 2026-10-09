@@ -5,12 +5,12 @@ import { engineString } from '@wildshard/engine/strings';
 
 
 import { buildCanid, canidPostPose, SHEEPDOG_VARIANTS } from './wolf';
-import { thinkSheepdog } from '../creatures/flock';
+import { thinkSheepdog } from '../creatures/sheepdogBrain';
 
 /**
  * The camp's sheepdog (Nalati, row B4): a black-and-white collie on the wolf's canid build (species/wolf.ts, trait
  * `dog`: softer ears, shorter muzzle, a feathered white-tipped tail), 0.55 m at the shoulder. Its AI is the flock's
- * (`thinkSheepdog` in src/shards/nalati-grasslands/creatures/flock.ts — `flock.setDog(dog)`): circles the flock, fetches stragglers, stands
+ * (`thinkSheepdog` in src/shards/nalati-grasslands/creatures/sheepdogBrain.ts — `flock.setDog(dog)`): circles the flock, fetches stragglers, stands
  * between the sheep and a wolf barking. Not hostile; not a quarry.
  */
 export const SHEEPDOG_SPECIES: SpeciesDef = {
