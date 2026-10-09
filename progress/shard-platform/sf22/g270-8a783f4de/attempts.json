@@ -1,0 +1,19 @@
+[
+  {
+    "sha": "8a783f4deb64ed4a0f4ce69e6bf5ed02b222f368",
+    "started": "2026-10-09T22:45:50.990Z",
+    "failure": "Error: page.evaluate: Error: Probe control requires the harness pins\n    at d (http://127.0.0.1:4404/assets/session-ZMuBZeU3.js:2217:3567)\n    at Object.j [as pose] (http://127.0.0.1:4404/assets/session-ZMuBZeU3.js:2217:6427)\n    at Object.pose (http://127.0.0.1:4404/assets/session-ZMuBZeU3.js:2217:11806)\n    at stageFloorGrid (eval at evaluate (:311:30), <anonymous>:35:15)\n    at eval (eval at evaluate (:311:30), <anonymous>:45:3)\n    at eval (<anonymous>)\n    at UtilityScript.evaluate (<anonymous>:311:30)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+    "routes": 0,
+    "gameErrors": [],
+    "classification": "Harness missing authorized pins, before any travel; no gate verdict",
+    "probe": {
+      "mode": "ktx2",
+      "families": {
+        "astc": true,
+        "etc2": true,
+        "bptc": true,
+        "s3tc": true
+      }
+    }
+  }
+]

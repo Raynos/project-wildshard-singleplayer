@@ -1,0 +1,808 @@
+{
+  "sha": "8a783f4deb64ed4a0f4ce69e6bf5ed02b222f368",
+  "version": {
+    "build": "8a783f4-mv1k9wn0",
+    "time": "2026-10-09T22:53:10.642Z"
+  },
+  "purpose": "SF22 G270 Chromium real-input crossroads gates",
+  "started": "2026-10-09T22:53:19.284Z",
+  "finished": "2026-10-09T23:02:34.145Z",
+  "completed": true,
+  "failure": null,
+  "verdict": {
+    "routeComplete": true,
+    "zeroRefusals": true,
+    "cadence": false,
+    "firstCrossroadShaderCompile": true,
+    "crossingInstall": false,
+    "memory": "phone runs (G269)",
+    "limitations": [
+      "Chromium Metal at phone tier is not physical iPhone performance or native memory.",
+      "Hook wall intervals include awaited work; they are not CPU-task totals. Long-task overlaps retain that distinction.",
+      "Static road poses are seeded after all real-input crossings, solely for standing cadence."
+    ]
+  },
+  "memoryGate": "Phone runs (G269); no Chromium or forced-compressed Simulator result substitutes for this gate.",
+  "initial": {
+    "catalogue": [
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow"
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template"
+      },
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes"
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle"
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands"
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach"
+      }
+    ],
+    "level": "platform.grid",
+    "clock": "live",
+    "renderScale": 2,
+    "developer": false,
+    "texture": {
+      "mode": "ktx2",
+      "why": "auto: images-first playing estimate 1207003681 exceeds 1000000000",
+      "probe": {
+        "ran": true,
+        "note": "12 formats ok",
+        "families": {
+          "astc": true,
+          "etc2": true,
+          "bptc": true,
+          "s3tc": true
+        },
+        "veto": null
+      }
+    },
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "astcExtension": true
+  },
+  "network": {
+    "downstreamBitsPerSecond": 5000000,
+    "upstreamBitsPerSecond": 5000000,
+    "stallsSeconds": [
+      3,
+      10
+    ],
+    "actualStalls": {
+      "count": 18,
+      "threeSeconds": 9,
+      "tenSeconds": 9,
+      "examples": [
+        {
+          "url": "http://127.0.0.1:4404/assets/pine-hollow/astc6/tex/rock_ground/diffuse-90136f33.ktx2",
+          "seconds": 3
+        },
+        {
+          "url": "http://127.0.0.1:4404/assets/pine-hollow/astc6/tex/metasequoia_bark/nor_gl.phone-c1227b9b.ktx2",
+          "seconds": 10
+        },
+        {
+          "url": "http://127.0.0.1:4404/assets/gpu/nalati/models/boulder-1.phone-0d074f9b.glb",
+          "seconds": 10
+        }
+      ]
+    }
+  },
+  "load": {
+    "samples": 554,
+    "median": 16.08447265625,
+    "min": 11.900390625,
+    "max": 23.24560546875
+  },
+  "routes": [
+    {
+      "name": "driftwood-isle-to-pine-hollow",
+      "from": "driftwood-isle",
+      "to": "pine-hollow",
+      "elapsedSeconds": 122.58969999980927,
+      "load": {
+        "median": 15.50244140625,
+        "min": 13.62255859375,
+        "max": 21.169921875,
+        "samples": 123,
+        "underLoad": true
+      },
+      "frames": 1199,
+      "p95Ms": 33.40000000000873,
+      "p99Ms": 33.5,
+      "maximumFrameMs": 78646.80000000002,
+      "failures": [],
+      "minimumFeetY": 0.008898514414613423,
+      "destinationPlayingModelMB": 714.61,
+      "destinationSky": {
+        "pine-hollow": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 20971520,
+          "reserved": 29360128
+        }
+      },
+      "roadHover": {
+        "samples": 103,
+        "maxObservedMetresPerSecond": 19.507290272876286,
+        "p95ObservedMetresPerSecond": 11.118060226970925
+      },
+      "commits": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "pine-hollow"
+        }
+      ]
+    },
+    {
+      "name": "pine-hollow-to-nalati-grasslands",
+      "from": "pine-hollow",
+      "to": "nalati-grasslands",
+      "elapsedSeconds": 88.925,
+      "load": {
+        "median": 19.2998046875,
+        "min": 16.60107421875,
+        "max": 22.9072265625,
+        "samples": 89,
+        "underLoad": true
+      },
+      "frames": 1309,
+      "p95Ms": 33.40000000002328,
+      "p99Ms": 33.5,
+      "maximumFrameMs": 42598.20000000001,
+      "failures": [],
+      "minimumFeetY": 0.019929489515965737,
+      "destinationPlayingModelMB": 754.83,
+      "destinationSky": {},
+      "roadHover": {
+        "samples": 120,
+        "maxObservedMetresPerSecond": 30.188680075518633,
+        "p95ObservedMetresPerSecond": 30.10914650265465
+      },
+      "commits": [
+        {
+          "from": "pine-hollow",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "nalati-grasslands"
+        }
+      ]
+    },
+    {
+      "name": "nalati-grasslands-to-template-2",
+      "from": "nalati-grasslands",
+      "to": "template-2",
+      "elapsedSeconds": 39.20690000009537,
+      "load": {
+        "median": 14.34228515625,
+        "min": 13.32763671875,
+        "max": 16.60107421875,
+        "samples": 39,
+        "underLoad": true
+      },
+      "frames": 1176,
+      "p95Ms": 33.40000000002328,
+      "p99Ms": 33.5,
+      "maximumFrameMs": 66.70000000001164,
+      "failures": [],
+      "minimumFeetY": 0.019871860688403298,
+      "destinationPlayingModelMB": 548.7,
+      "destinationSky": {},
+      "roadHover": {
+        "samples": 102,
+        "maxObservedMetresPerSecond": 30.200075266727918,
+        "p95ObservedMetresPerSecond": 30.09781766478481
+      },
+      "commits": [
+        {
+          "from": "nalati-grasslands",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-2"
+        }
+      ]
+    },
+    {
+      "name": "template-2-to-far-reach",
+      "from": "template-2",
+      "to": "far-reach",
+      "elapsedSeconds": 108.44909999990463,
+      "load": {
+        "median": 17.3251953125,
+        "min": 13.865234375,
+        "max": 21.568359375,
+        "samples": 109,
+        "underLoad": true
+      },
+      "frames": 1842,
+      "p95Ms": 33.40000000002328,
+      "p99Ms": 33.40000000002328,
+      "maximumFrameMs": 45548.100000000035,
+      "failures": [],
+      "minimumFeetY": 0.014719229981755289,
+      "destinationPlayingModelMB": 696.12,
+      "destinationSky": {
+        "far-reach": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 0,
+          "reserved": 0
+        }
+      },
+      "roadHover": {
+        "samples": 185,
+        "maxObservedMetresPerSecond": 30.22289323702604,
+        "p95ObservedMetresPerSecond": 30.097817316355552
+      },
+      "commits": [
+        {
+          "from": "template-2",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "far-reach"
+        }
+      ]
+    },
+    {
+      "name": "far-reach-to-sunscar-dunes",
+      "from": "far-reach",
+      "to": "sunscar-dunes",
+      "elapsedSeconds": 45.39790000009537,
+      "load": {
+        "median": 14.61962890625,
+        "min": 12.83056640625,
+        "max": 15.44677734375,
+        "samples": 45,
+        "underLoad": true
+      },
+      "frames": 1194,
+      "p95Ms": 33.40000000002328,
+      "p99Ms": 33.40000000002328,
+      "maximumFrameMs": 4583.199999999953,
+      "failures": [],
+      "minimumFeetY": 0.01477698633866481,
+      "destinationPlayingModelMB": 598.04,
+      "destinationSky": {
+        "sunscar-dunes": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 0,
+          "reserved": 0
+        }
+      },
+      "roadHover": {
+        "samples": 105,
+        "maxObservedMetresPerSecond": 30.23431573439321,
+        "p95ObservedMetresPerSecond": 30.17729137425495
+      },
+      "commits": [
+        {
+          "from": "far-reach",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "sunscar-dunes"
+        }
+      ]
+    },
+    {
+      "name": "sunscar-dunes-to-driftwood-isle",
+      "from": "sunscar-dunes",
+      "to": "driftwood-isle",
+      "elapsedSeconds": 61.533099999904636,
+      "load": {
+        "median": 13.40234375,
+        "min": 11.900390625,
+        "max": 14.10791015625,
+        "samples": 62,
+        "underLoad": false
+      },
+      "frames": 1216,
+      "p95Ms": 33.40000000002328,
+      "p99Ms": 33.40000000002328,
+      "maximumFrameMs": 17899.20000000001,
+      "failures": [],
+      "minimumFeetY": 0.009067888882705155,
+      "destinationPlayingModelMB": 870.53,
+      "destinationSky": {
+        "driftwood-isle": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 1720320,
+          "reserved": 2752512
+        }
+      },
+      "roadHover": {
+        "samples": 107,
+        "maxObservedMetresPerSecond": 31.787584819158372,
+        "p95ObservedMetresPerSecond": 31.633792122287524
+      },
+      "commits": [
+        {
+          "from": "sunscar-dunes",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ]
+    }
+  ],
+  "standing": [
+    {
+      "pose": {
+        "name": "crossroads",
+        "x": 277.5,
+        "z": 277.5,
+        "y": 0.55,
+        "yaw": -2.356,
+        "pitch": -0.12
+      },
+      "start": 532135.6999998093,
+      "end": 542138.5,
+      "frames": 300,
+      "p95Ms": 33.40000000002328
+    },
+    {
+      "pose": {
+        "name": "east-road",
+        "x": 277.5,
+        "z": 0,
+        "y": 0.55,
+        "yaw": 0,
+        "pitch": -0.08
+      },
+      "start": 544144,
+      "end": 554145.5,
+      "frames": 300,
+      "p95Ms": 33.40000000002328
+    }
+  ],
+  "cadence": {
+    "frames": 7936,
+    "p95Ms": 33.40000000002328,
+    "p99Ms": 33.40000000002328,
+    "maxMs": 78646.80000000002
+  },
+  "installs": [
+    {
+      "instance": "driftwood-isle",
+      "hooks": [
+        {
+          "hook": "world",
+          "wallMs": 14353.200000286102,
+          "outcome": "done"
+        },
+        {
+          "hook": "play",
+          "wallMs": 2478.800000190735,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterKit",
+          "wallMs": 98,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterPlay",
+          "wallMs": 4.5,
+          "outcome": "done"
+        },
+        {
+          "hook": "kit",
+          "wallMs": 0.6000003814697266,
+          "outcome": "done"
+        },
+        {
+          "hook": "beforeWorld",
+          "wallMs": 0.5,
+          "outcome": "done"
+        },
+        {
+          "hook": "constructor",
+          "wallMs": 0.10000038146972656,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterWorld",
+          "wallMs": 0.10000038146972656,
+          "outcome": "done"
+        }
+      ],
+      "wallMs": 17004.200000286102,
+      "initialBoot": true
+    },
+    {
+      "instance": "pine-hollow",
+      "hooks": [
+        {
+          "hook": "world",
+          "wallMs": 50110.39999961853,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterKit",
+          "wallMs": 18686.300000190735,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterPlay",
+          "wallMs": 4390,
+          "outcome": "done"
+        },
+        {
+          "hook": "play",
+          "wallMs": 4148.599999904633,
+          "outcome": "done"
+        },
+        {
+          "hook": "kit",
+          "wallMs": 1242.5999999046326,
+          "outcome": "done"
+        },
+        {
+          "hook": "beforeWorld",
+          "wallMs": 0.2999997138977051,
+          "outcome": "done"
+        },
+        {
+          "hook": "constructor",
+          "wallMs": 0,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterWorld",
+          "wallMs": 0,
+          "outcome": "done"
+        }
+      ],
+      "wallMs": 78612.69999980927,
+      "initialBoot": false
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hooks": [
+        {
+          "hook": "world",
+          "wallMs": 29464.599999904633,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterKit",
+          "wallMs": 9366.799999713898,
+          "outcome": "done"
+        },
+        {
+          "hook": "play",
+          "wallMs": 1715.2000002861023,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterPlay",
+          "wallMs": 1456.5,
+          "outcome": "done"
+        },
+        {
+          "hook": "beforeWorld",
+          "wallMs": 0.2999997138977051,
+          "outcome": "done"
+        },
+        {
+          "hook": "kit",
+          "wallMs": 0.19999980926513672,
+          "outcome": "done"
+        },
+        {
+          "hook": "constructor",
+          "wallMs": 0,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterWorld",
+          "wallMs": 0,
+          "outcome": "done"
+        }
+      ],
+      "wallMs": 42068.199999809265,
+      "initialBoot": false
+    },
+    {
+      "instance": "far-reach",
+      "hooks": [
+        {
+          "hook": "world",
+          "wallMs": 44568.40000009537,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterPlay",
+          "wallMs": 861.5,
+          "outcome": "done"
+        },
+        {
+          "hook": "play",
+          "wallMs": 61.40000009536743,
+          "outcome": "done"
+        },
+        {
+          "hook": "kit",
+          "wallMs": 8.800000190734863,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterKit",
+          "wallMs": 0.8999996185302734,
+          "outcome": "done"
+        },
+        {
+          "hook": "beforeWorld",
+          "wallMs": 0.5,
+          "outcome": "done"
+        },
+        {
+          "hook": "constructor",
+          "wallMs": 0,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterWorld",
+          "wallMs": 0,
+          "outcome": "done"
+        }
+      ],
+      "wallMs": 45550.800000190735,
+      "initialBoot": false
+    },
+    {
+      "instance": "sunscar-dunes",
+      "hooks": [
+        {
+          "hook": "world",
+          "wallMs": 3773.4000000953674,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterPlay",
+          "wallMs": 643.1999998092651,
+          "outcome": "done"
+        },
+        {
+          "hook": "play",
+          "wallMs": 45.80000019073486,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterKit",
+          "wallMs": 43.09999990463257,
+          "outcome": "done"
+        },
+        {
+          "hook": "beforeWorld",
+          "wallMs": 0.3000001907348633,
+          "outcome": "done"
+        },
+        {
+          "hook": "kit",
+          "wallMs": 0.19999980926513672,
+          "outcome": "done"
+        },
+        {
+          "hook": "constructor",
+          "wallMs": 0.10000038146972656,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterWorld",
+          "wallMs": 0,
+          "outcome": "done"
+        }
+      ],
+      "wallMs": 4562.5,
+      "initialBoot": false
+    },
+    {
+      "instance": "driftwood-isle",
+      "hooks": [
+        {
+          "hook": "world",
+          "wallMs": 16728.699999809265,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterPlay",
+          "wallMs": 971.1999998092651,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterKit",
+          "wallMs": 97.5,
+          "outcome": "done"
+        },
+        {
+          "hook": "play",
+          "wallMs": 38.59999990463257,
+          "outcome": "done"
+        },
+        {
+          "hook": "kit",
+          "wallMs": 0.7000002861022949,
+          "outcome": "done"
+        },
+        {
+          "hook": "beforeWorld",
+          "wallMs": 0.09999990463256836,
+          "outcome": "done"
+        },
+        {
+          "hook": "constructor",
+          "wallMs": 0,
+          "outcome": "done"
+        },
+        {
+          "hook": "afterWorld",
+          "wallMs": 0,
+          "outcome": "done"
+        }
+      ],
+      "wallMs": 17865.299999713898,
+      "initialBoot": false
+    }
+  ],
+  "firstCrossroad": {
+    "at": 208053.6,
+    "feet": {
+      "x": 266.5528790415219,
+      "y": 0.4508198552302482,
+      "z": 277.5260391132506
+    },
+    "windowMs": 1000,
+    "compiles": [],
+    "start": 207053.6,
+    "end": 212586.8,
+    "scope": "First road-intersection traversal vicinity, with 1 s padding on either side"
+  },
+  "longTasks": {
+    "available": true,
+    "count": 55,
+    "maximumMs": 1842,
+    "largest": [
+      {
+        "start": 504760.09999990463,
+        "end": 506602.09999990463,
+        "duration": 1842,
+        "name": "self",
+        "overlappingHooks": [
+          {
+            "instance": "driftwood-isle",
+            "hook": "beforeWorld"
+          }
+        ]
+      },
+      {
+        "start": 190821.19999980927,
+        "end": 192252.19999980927,
+        "duration": 1431,
+        "name": "self",
+        "overlappingHooks": []
+      },
+      {
+        "start": 99874.89999961853,
+        "end": 100908.89999961853,
+        "duration": 1034,
+        "name": "self",
+        "overlappingHooks": [
+          {
+            "instance": "pine-hollow",
+            "hook": "beforeWorld"
+          }
+        ]
+      },
+      {
+        "start": 196887.7999997139,
+        "end": 197915.7999997139,
+        "duration": 1028,
+        "name": "self",
+        "overlappingHooks": []
+      },
+      {
+        "start": 68294.39999961853,
+        "end": 68932.39999961853,
+        "duration": 638,
+        "name": "self",
+        "overlappingHooks": []
+      },
+      {
+        "start": 30408.799999713898,
+        "end": 30967.799999713898,
+        "duration": 559,
+        "name": "self",
+        "overlappingHooks": []
+      }
+    ]
+  },
+  "errors": [],
+  "journalErrors": [],
+  "finalRefusals": {},
+  "issues": [],
+  "overall": "FAIL: cadence and crossing-install gates; complete one-circuit route with zero refusals. Timing load retained.",
+  "criteria": {
+    "cadenceP95Ms": 33.3,
+    "hybridInstallWallMs": 33,
+    "loadWarningAbove": 15,
+    "phoneMemoryPlayingBytes": 1000000000
+  },
+  "observations": {
+    "routeLongTasksOver50Ms": 35,
+    "shaderCompileCallsThroughoutDocument": 1300,
+    "sampledFeetMinimumMetres": 0.008898514414613423,
+    "gameErrors": 0,
+    "journalErrors": 0,
+    "phoneReading": false,
+    "simulatorUsed": false
+  },
+  "protocol": {
+    "device": "iPhone 16 Pro viewport, Mac Chromium Metal",
+    "viewport": [
+      402,
+      874
+    ],
+    "renderScale": 2,
+    "settings": {
+      "tier": "phone",
+      "fps": "auto",
+      "tex": "auto",
+      "memorySaver": "off",
+      "developer": false
+    },
+    "muted": true,
+    "initialPoseSeedOnly": true,
+    "heldInputRoutes": true,
+    "hoverSpeedLimitMetresPerSecond": 30,
+    "networkBitsPerSecond": 5000000,
+    "helperReadsEveryMs": 250,
+    "freshBrowserContext": true,
+    "serviceWorkers": "blocked",
+    "sameDocumentFence": true,
+    "measuredStandingFrames": 300,
+    "firstCrossroadCompileScope": "Vicinity traversal interval, 1 s padding either side; WebGL2 compileShader calls only"
+  },
+  "limitations": [
+    "One completed cold six-cell circuit; no three-run physical-phone/tab-survival verdict.",
+    "Frame deltas are intervals between drawn game frames; install pauses are retained as long gaps, not called single CPU tasks.",
+    "33.4 ms p95 is retained against the exact 33.3 ms criterion, including its sub-millisecond quantization sensitivity at the normal 30 fps phone cap.",
+    "Hook walls include asset waits, explicit network stalls, yields and GPU work, not only CPU. Long-task overlaps do not establish causal owners.",
+    "Template data installation has no HybridHookTiming rows; its <=33 ms installation is unmeasured, never claimed passed.",
+    "Endpoint playingModelMB values are allocator predictions, not measured physical memory or continuous peaks.",
+    "Nalati/template have no entry in the generic destinationSky bookkeeping; this run does not establish visual sky parity."
+  ],
+  "harness": {
+    "proof": "20261009T174735-sf22-g270-pins-54433",
+    "gatesSha256": "e95d55554b476068c7d1aac26e6dbd7334d8e441893855fd4d4e4ecf17aedf92",
+    "launcherSha256": "68b4459c2c79be114923c1c63361de9153b4000ed61083061fdae34114318641",
+    "routeHelperSha256": "978bc3946b2f5d2b3706f50e299136cc856d128c57f89b9c1012806085f6e331",
+    "planHelperSha256": "df0570c0a99750946d9dd86fb013d7db24c49dd3b5350ba433b16eb469265a9d"
+  }
+}
