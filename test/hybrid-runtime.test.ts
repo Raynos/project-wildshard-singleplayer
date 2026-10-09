@@ -159,7 +159,9 @@ it('finishes road preparation with hooks and parent slots unpublished, then acti
     expect(f.app.debug.snapshot()).toEqual({}); expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
     const hooks = f.session.timings().completed.length;
     expect(await f.session.enter({ instance: 'template-1', slug: 'template' })).toBe(true);
-    expect(f.session.timings().completed).toHaveLength(hooks); expect(constructions).toBe(1); expect(entered).toBe(1);
+    expect(f.session.timings().completed).toHaveLength(hooks + 1);
+    expect(f.session.timings().completed.at(-1)).toMatchObject({ hook: 'activate', outcome: 'done' });
+    expect(constructions).toBe(1); expect(entered).toBe(1);
     expect(f.parent.objects['hybrid']).toBe('template-1'); expect(f.app.input.contexts).toContain('hybrid.input');
     f.session.leave(); expect(f.app.input.contexts).toEqual([]); expect(f.app.registry).toBe(road);
     expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);

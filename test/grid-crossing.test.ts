@@ -24,6 +24,23 @@ function fixture() {
   return { crossing, loading, prepare, checkpoint, stow, interior, changed, frame: () => frame,
     ready: () => { admitted = true; }, quota: (blocked: boolean) => { durable = !blocked; } };
 }
+
+it('reports only synchronous committed work, including checkpoint and changed callbacks, without charging preparation waits', async () => {
+  let now = 100;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now), f = fixture();
+  try {
+    f.crossing.request('pine-hollow'); now += 10_000;
+    const staged = f.prepare('pine-hollow'); await Promise.resolve(); f.ready();
+    f.checkpoint.mockImplementation(() => { now += 2; return true; });
+    staged.commit.mockImplementation(() => { now += 3; });
+    f.changed.mockImplementation(() => { now += 4; });
+    expect(f.crossing.step(false)).toBe(true);
+    expect(f.crossing.timings()).toEqual([{ from: 'driftwood-isle', to: 'pine-hollow', start: 10_100, end: 10_109 }]);
+    const copy = [...f.crossing.timings()]; copy.length = 0;
+    expect(f.crossing.timings()).toHaveLength(1);
+    expect(f.crossing.step(true)).toBe(false); expect(f.crossing.timings()).toHaveLength(1);
+  } finally { clock.mockRestore(); }
+});
 it('stows at the interior edge before a strip reframe and never switches on asynchronous completion', async () => {
   const f = fixture(); f.crossing.step(true); expect(f.interior).toHaveBeenCalledWith('driftwood-isle');
   f.crossing.step(false); expect(f.stow).toHaveBeenCalledWith('driftwood-isle');

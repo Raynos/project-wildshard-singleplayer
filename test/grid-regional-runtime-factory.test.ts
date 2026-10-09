@@ -140,7 +140,9 @@ it('prepares the complete claimed world on the road with inactive equipment and 
     expect(warm).toHaveBeenCalledOnce(); expect(prepared.checkpoint()).toBe(true);
     const hooks = session.timings().completed.length;
     prepared.loadout.interior(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
-    expect(session.timings().completed).toHaveLength(hooks); expect(f.world.game.scene.children[0]?.visible).toBe(true);
+    expect(session.timings().completed).toHaveLength(hooks + 1);
+    expect(session.timings().completed.at(-1)).toMatchObject({ hook: 'activate', outcome: 'done' });
+    expect(f.world.game.scene.children[0]?.visible).toBe(true);
     for (const system of f.app.systemsByPhase().update) system.run(1 / 60, 1);
     expect(ticks).toBe(1); expect(f.herd).toHaveBeenCalledOnce();
   } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }

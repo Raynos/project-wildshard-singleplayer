@@ -46,7 +46,7 @@ export interface HybridRuntimeState { readonly instance: string | null; readonly
 /** Entered installation timing in the page performance clock; bounded diagnostics, never a readiness signal. */
 export interface HybridHookTiming {
   readonly instance: string;
-  readonly hook: 'beforeWorld' | 'constructor' | 'world' | 'afterWorld' | 'kit' | 'afterKit' | 'play' | 'afterPlay';
+  readonly hook: 'beforeWorld' | 'constructor' | 'world' | 'afterWorld' | 'kit' | 'afterKit' | 'play' | 'afterPlay' | 'activate';
   readonly start: number;
   readonly end: number;
   readonly outcome: 'done' | 'failed';
@@ -380,10 +380,16 @@ export class HybridRuntimeSession {
       const parked = this.retained.get(cell.instance);
       if (parked !== undefined && !parked.scope.disposed && parked.retained !== undefined) {
         if (preparing) return true;
-        parked.retained.slots.activate();
-        try { parked.retained.hooks.activate(); }
-        catch (error) { parked.retained.slots.deactivate(); throw error; }
-        this.active = parked; return true;
+        const start = diagnosticNow(); let outcome: HybridHookTiming['outcome'] = 'failed';
+        try {
+          parked.retained.slots.activate();
+          try { parked.retained.hooks.activate(); }
+          catch (error) { parked.retained.slots.deactivate(); throw error; }
+          this.active = parked; outcome = 'done'; return true;
+        } finally {
+          this.completedHooks.push(Object.freeze({ instance: cell.instance, hook: 'activate', start, end: diagnosticNow(), outcome }));
+          if (this.completedHooks.length > 32) this.completedHooks.shift();
+        }
       }
       const Plugin = await this.prepare(cell.instance);
       if (generation !== this.generation || resident.scope.disposed) return false;

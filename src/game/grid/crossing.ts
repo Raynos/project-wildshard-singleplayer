@@ -1,4 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridAssembly, GridPoint } from './assembly';
 import type { GridLoadout } from './wallet';
 
@@ -20,6 +21,10 @@ export interface GridCrossingState {
   readonly current: string | null; readonly target: string | null;
   readonly phase: 'settled' | 'preparing' | 'ready' | 'blocked' | 'save-pending' | 'save-failed'; readonly issue: string | null;
 }
+/** Synchronous checkpoint + frame commit + changed callbacks; excludes asynchronous approach preparation. */
+export interface GridCrossingTiming {
+  readonly from: string | null; readonly to: string | null; readonly start: number; readonly end: number;
+}
 /** Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. */
 export class GridCrossing {
   private current: string | null;
@@ -31,6 +36,7 @@ export class GridCrossing {
   private disposed = false;
   private inside: boolean | undefined;
   private readonly ports: GridCrossingPorts;
+  private readonly completed: GridCrossingTiming[] = [];
   constructor(current: string | null, ports: GridCrossingPorts) { this.current = current; this.target = current; this.ports = ports; }
   /** Start or supersede destination preparation without retiring the current frame. */
   request(target: string | null): void {
@@ -67,6 +73,7 @@ export class GridCrossing {
     const prepared = this.prepared;
     if ((this.phase !== 'ready' && this.phase !== 'save-pending') || prepared === undefined || !this.ports.ready(this.target)) return false;
     const from = this.current, to = this.target;
+    const start = diagnosticNow();
     if (from !== null) {
       let saved: GridCheckpointResult;
       try { saved = this.ports.checkpoint(from); }
@@ -80,8 +87,13 @@ export class GridCrossing {
       this.issue = error instanceof Error ? error.message : String(error); return false;
     }
     this.prepared = undefined; this.current = to; this.inside = undefined; this.phase = 'settled'; this.issue = null;
-    this.ports.changed(from, to); return true;
+    this.ports.changed(from, to);
+    this.completed.push(Object.freeze({ from, to, start, end: diagnosticNow() }));
+    if (this.completed.length > 32) this.completed.shift();
+    return true;
   }
+  /** Copy the last 32 committed transitions in the same diagnostic clock as browser long tasks. */
+  timings(): readonly GridCrossingTiming[] { return [...this.completed]; }
   /** State is copied so consumers cannot move a frame without committing its prepared transition. */
   state(): GridCrossingState { return { current: this.current, target: this.target, phase: this.phase, issue: this.issue }; }
   /** Explicit quota/storage retry reuses the prepared destination; fixed ticks never spam a failed durable write. */
