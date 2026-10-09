@@ -38,15 +38,15 @@ export function readPublicGridWitness() {
     runtimeLevel:window.__wildshard.world.game.level.id};
 }
 
-/** G233 requires over-cap regions absent from the public catalogue, even when admission would refuse them.
+/** G258 opens the three approved hybrids; other unfinished regions still need Developer or DEVSERVER.
  * @param {import('./public-grid.mjs').PublicGridWitness} witness @param {boolean} requireTemplate */
 export function publicGridWitnessFailures(witness, requireTemplate) {
   const failures = [], state = witness.state;
   if (witness.developer || witness.savedDeveloper !== false) failures.push('Developer is not saved and effective OFF');
   if (state.home !== 'driftwood-isle' || witness.runtimeLevel !== 'driftwood-isle') failures.push('Public home is not borrowed Driftwood');
   if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Borrowed home has no positive admitted residency claim');
-  if (state.cells.some(row => !['driftwood-isle','_template'].includes(row.slug))) failures.push('Developer-only region is present in the public catalogue');
-  if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template'].includes(row.slug)))) failures.push('A refused native shard became a runtime resident');
+  if (state.cells.some(row => !['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach'].includes(row.slug))) failures.push('Developer-only region is present in the public catalogue');
+  if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach'].includes(row.slug)))) failures.push('An unlisted region became a runtime resident');
   if (requireTemplate && !state.cells.some(row => row.slug === '_template' && row.instance === state.inside
     && row.instance === state.live.live.current && state.live.live.residents.includes(row.instance))) failures.push('Public template entry and residency were not witnessed');
   return failures;

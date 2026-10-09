@@ -37,17 +37,17 @@ const registry = new LiveGridHost(assembly, {
   },
 });
 try {
-  // G233: public copies replace Pine/Nalati. G198 open plots remain platform ground, never candidates;
-  // only the three nearby templates fit this cold readiness radius, and Developer-only shards never fetch.
+  // G258 makes the hybrids public, but this fixture only permits cheap template prefetch. G198 plots stay
+  // platform ground, never candidates; nearby hybrids must not bypass the prefetchable port.
   registry.beforeFixed();
-  assert.deepEqual(registry.state().pending, ['template-3', 'template-4', 'template-5']);
+  assert.deepEqual(registry.state().pending, ['template-3']);
   await registry.prefetch(registry.state().pending);
-  for (const id of ['template-3', 'template-4', 'template-5']) assert.equal(registry.ready(id), true);
+  for (const id of ['template-3']) assert.equal(registry.ready(id), true);
   assert.equal(registry.ready('nalati-grasslands'), false); assert.equal(registry.ready('pine-hollow'), false);
-  for (const id of ['template-1', 'template-2']) assert.equal(attempts.get(id), undefined); // outside the cold readiness radius: no new eager world
-  for (const id of ['nalati-grasslands', 'pine-hollow']) assert.equal(attempts.get(id), undefined);
+  for (const id of ['template-2']) assert.equal(attempts.get(id), undefined); // outside the cold readiness radius: no new eager world
+  for (const id of ['nalati-grasslands', 'pine-hollow', 'far-reach']) assert.equal(attempts.get(id), undefined);
   for (let tick = 0; tick < 20; tick++) registry.beforeFixed();
-  for (const id of ['template-3', 'template-4', 'template-5']) assert.equal(attempts.get(id), 1);
+  for (const id of ['template-3']) assert.equal(attempts.get(id), 1);
   assert.equal(registry.state().residents.length <= 3, true);
   console.info(JSON.stringify({ warmed: registry.state().residents, waitingWallsClosed: true, repeatedFetches: 0 }));
 } finally { registry.dispose(); player.motor.dispose(); page.dispose(); }

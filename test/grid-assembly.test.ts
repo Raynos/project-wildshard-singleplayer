@@ -12,30 +12,29 @@ it('assembles shipped, Developer and DEVSERVER grids exclusively from the platfo
     const nine = devserver && nineDragon ? 1 : 0; // G198: the cells without a shard alternate Template copies and open plots
     expect(grid.cells).toHaveLength(6 + nine); expect(grid.plots).toHaveLength(3 - nine); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
     expect(grid.cell('driftwood-isle').cell).toEqual([0, 0]);
-    expect(grid.cell(developer ? 'pine-hollow' : 'template-1').cell).toEqual([0, 1]);
-    expect(grid.cell(developer ? 'nalati-grasslands' : 'template-4').cell).toEqual([1, 0]);
+    expect(grid.cell('pine-hollow').cell).toEqual([0, 1]);
+    expect(grid.cell('nalati-grasslands').cell).toEqual([1, 0]);
     expect(grid.at(-555, 0)?.slug).toBe(developer ? 'sunscar-dunes' : '_template');
-    expect(grid.at(0, -555)?.slug).toBe(developer ? 'far-reach' : '_template');
+    expect(grid.at(0, -555)?.slug).toBe('far-reach');
     expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : undefined);
     expect(grid.plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', 'open-plot-sw', ...(nine === 1 ? [] : ['open-plot-se'])]);
-    expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(5 - (developer ? 4 : 0));
+    expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(2 - (developer ? 1 : 0));
   }
   expect(new GridAssembly({ developer: false, devserver: true }).at(555, -555)?.slug).toBe('nine-dragon-stack');
   expect(catalogue.placements).toHaveLength(7);
 });
 
-it('keeps every G233 over-cap hybrid out of the public catalogue without relying on budget refusal', () => {
+it('admits G258 Pine, Nalati and Sky Reach in the same public and Developer cells', () => {
   const publicGrid = new GridAssembly({ developer: false, devserver: false });
-  expect(new Set(publicGrid.cells.map(cell => cell.slug))).toEqual(new Set(['driftwood-isle', '_template']));
   const developerGrid = new GridAssembly({ developer: true, devserver: false });
   for (const slug of ['pine-hollow', 'nalati-grasslands', 'far-reach']) {
-    expect(catalogue.grid.cells.some(cell => cell.slug === slug)).toBe(false);
-    expect(publicGrid.cells.some(cell => cell.slug === slug)).toBe(false);
-    expect(catalogue.grid.developer.some(cell => cell.slug === slug)).toBe(true);
-    expect(developerGrid.cell(slug).slug).toBe(slug);
+    expect(catalogue.grid.cells.some(cell => cell.slug === slug)).toBe(true);
+    expect(catalogue.grid.developer.some(cell => cell.slug === slug)).toBe(false);
+    expect(publicGrid.cell(slug)).toEqual(developerGrid.cell(slug));
   }
-  expect(publicGrid.cell('template-1').cell).toEqual(developerGrid.cell('pine-hollow').cell);
-  expect(publicGrid.cell('template-4').cell).toEqual(developerGrid.cell('nalati-grasslands').cell);
+  expect(publicGrid.cells.map(cell => cell.slug)).toEqual(['pine-hollow', '_template', '_template', 'driftwood-isle', 'nalati-grasslands', 'far-reach']);
+  expect(publicGrid.cells.some(cell => cell.slug === 'sunscar-dunes')).toBe(false);
+  expect(developerGrid.cell('sunscar-dunes').cell).toEqual(publicGrid.cell('template-3').cell);
 });
 
 it('keeps stable instance ids independent of signed coordinates and derives reversible per-cell render origins', () => {
@@ -53,7 +52,7 @@ it('keeps stable instance ids independent of signed coordinates and derives reve
 
 it('supplies an explicit open-sea fog profile for every missing outer neighbour', () => {
   const grid = new GridAssembly({ developer: false, devserver: false }), corner = grid.cell('template-2');
-  expect(grid.neighbour(corner, 'west')).toBe(grid.cell('template-1'));
+  expect(grid.neighbour(corner, 'west')).toBe(grid.cell('pine-hollow'));
   expect(grid.neighbour(corner, 'north')).toBe(grid.emptyNeighbour); expect(grid.neighbour(corner, 'east')).toBe(grid.emptyNeighbour);
   expect(grid.emptyNeighbour.level).toBe(0); expect(grid.emptyNeighbour.edge.heights).toHaveLength(257);
   expect(grid.emptyNeighbour.edge.heights.every((value) => value === 0)).toBe(true); expect(grid.emptyNeighbour.fog.far).toBeGreaterThan(grid.emptyNeighbour.fog.near);

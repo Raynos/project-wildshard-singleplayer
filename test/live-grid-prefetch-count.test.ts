@@ -34,7 +34,7 @@ it('reserves both borrowed home and the active cell before prefetching, without 
   });
   const settle = async (): Promise<void> => { for (let turn = 0; turn < 100; turn++) await Promise.resolve(); };
   try {
-    const target = assembly.cell('template-1'); player.position.set(target.origin.x, 0, target.origin.z);
+    const target = assembly.cell('pine-hollow'); player.position.set(target.origin.x, 0, target.origin.z);
     await registry.prefetch([target.instance]);
     const crossing = await registry.prepare(home.instance, target.instance); crossing.commit();
     expect(registry.current()).toBe(target.instance);

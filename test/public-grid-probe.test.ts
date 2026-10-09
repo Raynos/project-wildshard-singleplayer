@@ -50,10 +50,21 @@ it('requires effective public mode and excludes every Developer-only runtime res
   for (const change of checks) {const row=witness();row.state.cells=[...cells];change(row);expect(publicGridWitnessFailures(row,false).length).toBeGreaterThan(0);}
 });
 
-it('rejects over-cap regions in the public catalogue even with real cap-refusal receipts', () => {
+it('allows the G258 public hybrids without fabricating admission or residency', () => {
   for (const slug of ['pine-hollow','nalati-grasslands','far-reach']) {
     const row=witness();row.state.cells=[...cells,{instance:slug,slug,cell:[0,1]}];
+    row.state.live.live.residents=[slug];
+    expect(publicGridWitnessFailures(row,false)).toEqual([]);
     row.refusals[slug]='too-big';row.cellScreens=[{instance:slug,status:'refused',issue:'Over the memory cap'}];
+    // This catalogue witness preserves the actual refusal. It never claims a walk into that cell passed.
+    expect(row.refusals[slug]).toBe('too-big');
+    expect(publicGridWitnessFailures(row,true)).toContain('Public template entry and residency were not witnessed');
+  }
+});
+
+it('still excludes unfinished Signal Dunes and Nine Dragon from the public catalogue', () => {
+  for (const slug of ['sunscar-dunes','nine-dragon-stack']) {
+    const row=witness();row.state.cells=[...cells,{instance:slug,slug,cell:[0,1]}];
     expect(publicGridWitnessFailures(row,false)).toContain('Developer-only region is present in the public catalogue');
   }
 });

@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { execPath } from 'node:process';
 import { expect, it } from 'vitest';
 
-it('warms public templates inside the cold bound without admitting Developer-only neighbours', () => {
+it('warms eligible public templates inside the cold bound without eagerly loading hybrid neighbours', () => {
   const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live-waiting.mjs'], { encoding: 'utf8', timeout: 20_000 });
-  expect(JSON.parse(output)).toEqual({ warmed: ['template-3', 'template-4', 'template-5'], waitingWallsClosed: true, repeatedFetches: 0 });
+  expect(JSON.parse(output)).toEqual({ warmed: ['template-3'], waitingWallsClosed: true, repeatedFetches: 0 });
 });

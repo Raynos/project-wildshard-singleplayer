@@ -40,10 +40,10 @@ describe('§3.3 table: the assembly per mode and both switches together', () => 
     const rows = cells(mode, cell);
     return { shards: rows.filter((row) => row.slug !== '_template').length, templates: rows.filter((row) => row.slug === '_template').length };
   };
-  it('shipped: Driftwood + 5 templates (+ 3 open plots, G198); Developer: 5 + 1; DEVSERVER adds its cell at (+1, −1), and its row swaps it back', () => {
-    expect(count(MODES.shipped)).toEqual({ shards: 1, templates: 5 });
+  it('shipped: G258 opens 4 shards + 2 templates (+ 3 open plots, G198); Developer: 5 + 1; DEVSERVER adds its cell at (+1, −1), and its row swaps it back', () => {
+    expect(count(MODES.shipped)).toEqual({ shards: 4, templates: 2 });
     expect(count(MODES.developer)).toEqual({ shards: 5, templates: 1 });
-    expect(count(MODES.devserver)).toEqual({ shards: 2, templates: 5 });
+    expect(count(MODES.devserver)).toEqual({ shards: 5, templates: 2 });
     expect(count(MODES.both)).toEqual({ shards: 6, templates: 1 });
     expect(count(MODES.both, false)).toEqual({ shards: 5, templates: 1 });
     expect(cells(MODES.both).find((row) => row.cell[0] === 1 && row.cell[1] === -1)?.slug).toBe('nine-dragon-stack');

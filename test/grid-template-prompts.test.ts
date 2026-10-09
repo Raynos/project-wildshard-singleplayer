@@ -72,8 +72,8 @@ describe('template copy prompts in the grid (template-prompts)', () => {
 
   it('the minimap names a neighbour only across the road inside its disc, never pinned to the rim like a title', () => {
     const assembly = new GridAssembly({ developer: false, devserver: false });
-    const home = assembly.cells.find((cell) => cell.slug === 'driftwood-isle'), copy = assembly.cells.find((cell) => cell.instance === 'template-1');
-    if (home === undefined || copy === undefined) throw new Error('Missing the public grid\'s home or template-1');
+    const home = assembly.cells.find((cell) => cell.slug === 'driftwood-isle'), copy = assembly.cells.find((cell) => cell.instance === 'pine-hollow');
+    if (home === undefined || copy === undefined) throw new Error('Missing the public grid\'s home or Pine');
     const cells = new GridCellEvents(); cells.enter({ instance: copy.instance, slug: copy.slug });
     const rects = roadRects(assembly, home);
     const seen = new Set<string>();
