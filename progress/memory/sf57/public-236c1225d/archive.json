@@ -1,0 +1,67 @@
+{
+  "appPin": "236c1225d8c0e23d72ea7f2037307e93270d8a9f",
+  "build": {
+    "build": "236c122-mv0i9ovc",
+    "time": "2026-10-09T05:09:19.369Z"
+  },
+  "files": [
+    {
+      "name": "shipped-cells.json",
+      "archivedAs": "shipped-cells.json.br",
+      "bytes": 7926553,
+      "sha256": "02a7a52889c8a03094178d3f32769a998706dbc35d9c2f6b3ef4145494df9491"
+    },
+    {
+      "name": "shipped-cells-native.jsonl",
+      "archivedAs": "shipped-cells-native.jsonl.br",
+      "bytes": 452585,
+      "sha256": "632782640b2d6d302597646c70631941505f24c83bd7c8c12fce3c4e8676906f"
+    },
+    {
+      "name": "shipped-cells-gl.jsonl",
+      "archivedAs": "shipped-cells-gl.jsonl.br",
+      "bytes": 342984593,
+      "sha256": "59363db399a5e583eecc5d847def7aa203e4ea1dec4cf2a4ee31f0996d7ab0da"
+    },
+    {
+      "name": "shipped-cells-gl-events.jsonl",
+      "archivedAs": "shipped-cells-gl-events.jsonl.br",
+      "bytes": 23562740,
+      "sha256": "283cb2f6bd086c2897b4814b09778241ce2743edbe8d9e37713227deefa751f2"
+    },
+    {
+      "name": "shipped-road.json",
+      "archivedAs": "shipped-road.json.br",
+      "bytes": 445189,
+      "sha256": "31775f8afcdbc0d26f94117781ec34b2fc8b18c46a2677026734ffa696d0a5c7"
+    },
+    {
+      "name": "shipped-road-native.jsonl",
+      "archivedAs": "shipped-road-native.jsonl.br",
+      "bytes": 5882,
+      "sha256": "03fcc5c91f9442c37bd1f436611d95adff6945d9274590eda0648d2f63e63685"
+    },
+    {
+      "name": "shipped-road-gl.jsonl",
+      "archivedAs": "shipped-road-gl.jsonl.br",
+      "bytes": 1306841,
+      "sha256": "9da3f09dfe8ecc3a613f8ba454d265b920c872f422db6fef9e9da3f1b92bd5fc"
+    },
+    {
+      "name": "shipped-road-gl-events.jsonl",
+      "archivedAs": "shipped-road-gl-events.jsonl.br",
+      "bytes": 1252056,
+      "sha256": "218284b62ddf74140acb9023a79dbe42cc970b56b92db41f089f5b295c23547b"
+    },
+    {
+      "name": "shipped-cells-gl-uploads.jsonl",
+      "bytes": 0,
+      "note": "raw upload trace off"
+    },
+    {
+      "name": "shipped-road-gl-uploads.jsonl",
+      "bytes": 0,
+      "note": "raw upload trace off"
+    }
+  ]
+}

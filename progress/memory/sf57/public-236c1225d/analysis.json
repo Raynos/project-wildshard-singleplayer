@@ -1,0 +1,392 @@
+{
+  "method": "Original fixed-PID footprint + labelled live GL. Original grader windows, upper median, actual census within unchanged 1.5s fence only for settled values. Complete reconciled journal may supply exact GL at blocked peak timestamps; no interpolation. Independent GPU process never added. Component medians are separate; combined median is computed from paired samples. Bytes are decimal; no VM-map or heap probes.",
+  "driveStarted": "2026-10-09T05:11:35.472Z",
+  "partialLastCircuit": true,
+  "pin": "236c1225d8c0e23d72ea7f2037307e93270d8a9f",
+  "functionalPass": true,
+  "seconds": 1827.212,
+  "circuits": 4,
+  "routes": 46,
+  "routeFailures": [],
+  "errors": [],
+  "failure": null,
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 835700381,
+    "loadingPeakBytes": 912807565,
+    "phoneEstimateBytes": 1169980533.3999999,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791522681.488,
+        "end": 1791522695.472,
+        "samples": 14,
+        "bytes": 731819717
+      },
+      {
+        "cycle": 1,
+        "start": 1791523552.974,
+        "end": 1791523563.064,
+        "samples": 10,
+        "bytes": 742701845
+      },
+      {
+        "cycle": 2,
+        "start": 1791523852.12,
+        "end": 1791523862.832,
+        "samples": 11,
+        "bytes": 746666869
+      },
+      {
+        "cycle": 3,
+        "start": 1791524154.501,
+        "end": 1791524164.878,
+        "samples": 10,
+        "bytes": 750315781
+      },
+      {
+        "cycle": 4,
+        "start": 1791524456.365,
+        "end": 1791524466.625,
+        "samples": 10,
+        "bytes": 753499045
+      }
+    ],
+    "baselineDeltaBytes": [
+      -14847152,
+      -3965024,
+      0,
+      3648912,
+      6832176
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": true,
+        "peakBytes": 778091221,
+        "troughBytes": 727166589
+      },
+      {
+        "cycle": 1,
+        "complete": true,
+        "peakBytes": 835700381,
+        "troughBytes": 742285045
+      },
+      {
+        "cycle": 2,
+        "complete": true,
+        "peakBytes": 766849157,
+        "troughBytes": 746233685
+      },
+      {
+        "cycle": 3,
+        "complete": true,
+        "peakBytes": 788797385,
+        "troughBytes": 750083925
+      },
+      {
+        "cycle": 4,
+        "complete": false,
+        "peakBytes": 757683577,
+        "troughBytes": 753760061
+      }
+    ],
+    "recovery": false,
+    "calibration": false,
+    "ratios": [
+      {
+        "cycle": 1,
+        "raw": 1.6355942411061426,
+        "adjusted": 0.9749276820620584
+      },
+      {
+        "cycle": 2,
+        "raw": 1.6443261036481667,
+        "adjusted": 0.9836595446040824
+      },
+      {
+        "cycle": 3,
+        "raw": 1.6523618174324821,
+        "adjusted": 0.991695258388398
+      },
+      {
+        "cycle": 4,
+        "raw": 1.6593720710105118,
+        "adjusted": 0.9987055119664277
+      }
+    ],
+    "missingGlSamples": 0,
+    "sampling": true,
+    "leakZero": true,
+    "admitted": [
+      "template-1",
+      "template-2",
+      "template-3",
+      "driftwood-isle",
+      "template-4",
+      "template-5"
+    ],
+    "refused": [],
+    "attemptedEveryCell": true,
+    "crossroads": 16,
+    "rehearsal": false,
+    "limitation": null
+  },
+  "glSampling": {
+    "journal": 44,
+    "observed": 1856,
+    "missing": 0,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "settled": [
+    {
+      "cycle": 0,
+      "start": 1791522681.488,
+      "end": 1791522695.472,
+      "samples": 14,
+      "webContentBytes": 488853248,
+      "glBytes": 242966469,
+      "combinedBytes": 731819717,
+      "accountedBytes": 453585779,
+      "gpuProcessBytes": 176376352
+    },
+    {
+      "cycle": 1,
+      "start": 1791523552.974,
+      "end": 1791523563.064,
+      "samples": 10,
+      "webContentBytes": 497356856,
+      "glBytes": 245344989,
+      "combinedBytes": 742701845,
+      "accountedBytes": 454086855,
+      "gpuProcessBytes": 193743464
+    },
+    {
+      "cycle": 2,
+      "start": 1791523852.12,
+      "end": 1791523862.832,
+      "samples": 11,
+      "webContentBytes": 501321880,
+      "glBytes": 245344989,
+      "combinedBytes": 746666869,
+      "accountedBytes": 454086855,
+      "gpuProcessBytes": 195414632
+    },
+    {
+      "cycle": 3,
+      "start": 1791524154.501,
+      "end": 1791524164.878,
+      "samples": 10,
+      "webContentBytes": 504959128,
+      "glBytes": 245356653,
+      "combinedBytes": 750315781,
+      "accountedBytes": 454086855,
+      "gpuProcessBytes": 195398248
+    },
+    {
+      "cycle": 4,
+      "start": 1791524456.365,
+      "end": 1791524466.625,
+      "samples": 10,
+      "webContentBytes": 508154056,
+      "glBytes": 245344989,
+      "combinedBytes": 753499045,
+      "accountedBytes": 454086855,
+      "gpuProcessBytes": 195578472
+    }
+  ],
+  "growth": {
+    "firstCircuit": 2,
+    "lastCircuit": 4,
+    "deltaBytes": {
+      "webContentBytes": 6832176,
+      "glBytes": 0,
+      "combinedBytes": 6832176,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 163840
+    },
+    "averageBytesPerCircuit": {
+      "webContentBytes": 3416088,
+      "glBytes": 0,
+      "combinedBytes": 3416088,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 81920
+    },
+    "fits": {
+      "webContentBytes": {
+        "points": 3,
+        "slopeBytesPerCircuit": 3416088,
+        "rSquared": 0.9986048289048586
+      },
+      "glBytes": {
+        "points": 3,
+        "slopeBytesPerCircuit": 0,
+        "rSquared": 0
+      },
+      "combinedBytes": {
+        "points": 3,
+        "slopeBytesPerCircuit": 3416088,
+        "rSquared": 0.9984540188024276
+      },
+      "accountedBytes": {
+        "points": 3,
+        "slopeBytesPerCircuit": 0,
+        "rSquared": null
+      },
+      "gpuProcessBytes": {
+        "points": 3,
+        "slopeBytesPerCircuit": 81920,
+        "rSquared": 0.6756756756756757
+      }
+    }
+  },
+  "deltas": [
+    {
+      "fromCircuit": 2,
+      "toCircuit": 3,
+      "webContentBytes": 3637248,
+      "glBytes": 11664,
+      "combinedBytes": 3648912,
+      "accountedBytes": 0,
+      "gpuProcessBytes": -16384
+    },
+    {
+      "fromCircuit": 3,
+      "toCircuit": 4,
+      "webContentBytes": 3194928,
+      "glBytes": -11664,
+      "combinedBytes": 3183264,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 180224
+    }
+  ],
+  "peak": {
+    "at": 1791523634.933,
+    "phase": "drive",
+    "cycle": 1,
+    "webContentBytes": 531009664,
+    "glBytes": 246085149,
+    "combinedBytes": 777094813,
+    "accountedBytes": 450390377,
+    "gpuProcessBytes": 195414632,
+    "webContentIntervalHighBytes": 589615232,
+    "combinedIntervalHighBytes": 835700381,
+    "overCapBytes": 0,
+    "glSource": "original census",
+    "current": null,
+    "inside": null,
+    "residents": [
+      "template-1",
+      "template-2",
+      "template-4"
+    ]
+  },
+  "peaks": {
+    "webContentIntervalHigh": {
+      "at": 1791523634.933,
+      "phase": "drive",
+      "bytes": 589615232
+    },
+    "gl": {
+      "at": 1791522882.134,
+      "phase": "drive",
+      "bytes": 249176381
+    },
+    "gpuProcess": {
+      "at": 1791523889.483,
+      "phase": "drive",
+      "bytes": 198609536
+    },
+    "anyPhaseCombined": {
+      "at": 1791522662.734,
+      "phase": "loading",
+      "bytes": 912807565
+    }
+  },
+  "perLap": [
+    {
+      "cycle": 0,
+      "complete": true,
+      "samples": 862,
+      "peakBytes": 778091221,
+      "troughBytes": 730619293,
+      "webContentPeakBytes": 528961496,
+      "allWebContentPeakBytes": 556947864,
+      "glPeakBytes": 249176381,
+      "accountedPeakBytes": 462178449,
+      "gpuProcessPeakBytes": 196102760,
+      "wasmPeakBytes": 52494336,
+      "overCapBytes": 0
+    },
+    {
+      "cycle": 1,
+      "complete": true,
+      "samples": 298,
+      "peakBytes": 835700381,
+      "troughBytes": 742285045,
+      "webContentPeakBytes": 589615232,
+      "allWebContentPeakBytes": 593369736,
+      "glPeakBytes": 249129725,
+      "accountedPeakBytes": 460362293,
+      "gpuProcessPeakBytes": 198396544,
+      "wasmPeakBytes": 52494336,
+      "overCapBytes": 0
+    },
+    {
+      "cycle": 2,
+      "complete": true,
+      "samples": 300,
+      "peakBytes": 766849157,
+      "troughBytes": 746233685,
+      "webContentPeakBytes": 518901936,
+      "allWebContentPeakBytes": 555424464,
+      "glPeakBytes": 249129725,
+      "accountedPeakBytes": 460362293,
+      "gpuProcessPeakBytes": 198609536,
+      "wasmPeakBytes": 52494336,
+      "overCapBytes": 0
+    },
+    {
+      "cycle": 3,
+      "complete": true,
+      "samples": 300,
+      "peakBytes": 788797385,
+      "troughBytes": 750083925,
+      "webContentPeakBytes": 541888712,
+      "allWebContentPeakBytes": 579803880,
+      "glPeakBytes": 249129725,
+      "accountedPeakBytes": 461331997,
+      "gpuProcessPeakBytes": 197724776,
+      "wasmPeakBytes": 52494336,
+      "overCapBytes": 0
+    },
+    {
+      "cycle": 4,
+      "complete": false,
+      "samples": 56,
+      "peakBytes": 757683577,
+      "troughBytes": 753760061,
+      "webContentPeakBytes": 512413896,
+      "allWebContentPeakBytes": 551164648,
+      "glPeakBytes": 246723465,
+      "accountedPeakBytes": 455217871,
+      "gpuProcessPeakBytes": 196643432,
+      "wasmPeakBytes": 52494336,
+      "overCapBytes": 0
+    }
+  ],
+  "textures": {
+    "mode": "img",
+    "why": "auto: driftwood-isle's KTX2 set is not cached (yet)",
+    "probe": null
+  },
+  "homeResidency": {
+    "instance": "driftwood-isle",
+    "bytes": 341781982
+  },
+  "leg": "cells",
+  "coverage": "Public shipped layout: Driftwood home + template copies, including first-circuit road tour."
+}

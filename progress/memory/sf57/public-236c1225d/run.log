@@ -1,0 +1,96 @@
+serve-build: building 236c1225d8c0e23d72ea7f2037307e93270d8a9f 236c1225d → /private/tmp/claude-501/sp-builders/sf57-qualify3/soak-run/out/serve/20261009-000822-4402/dist
+serve-build: pid 27167, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4402
+PREPARED /private/tmp/claude-501/sp-builders/sf57-qualify3/soak-run/out/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sf57-qualify3/soak-run/out/GO only after go
+sim-lane: created sf57-sp-x3-shipped-15752 (43B63F32-F633-4FD2-9D36-BD9BF2F67922)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[   1.0s] WebContent 38060 gone during loading
+[  37.2s] phase -> baseline-0
+{"layout":"shipped","cycle":0,"route":"driftwood-isle-to-template-1","seconds":0.011}
+[  62.4s] phase -> drive
+{"layout":"shipped","cycle":0,"route":"template-1-to-template-2","seconds":27.813}
+{"layout":"shipped","cycle":0,"route":"template-2-to-template-3","seconds":70.954}
+{"layout":"shipped","cycle":0,"route":"template-3-to-template-4","seconds":131.229}
+{"layout":"shipped","cycle":0,"route":"template-4-to-template-5","seconds":192.049}
+{"layout":"shipped","cycle":0,"route":"template-5-to-driftwood-isle","seconds":231.337}
+{"layout":"shipped","cycle":0,"route":"home-to-road-tour","seconds":293.175}
+{"layout":"shipped","cycle":0,"route":"road-0","seconds":371.64}
+{"layout":"shipped","cycle":0,"route":"road-1","seconds":371.767}
+{"layout":"shipped","cycle":0,"route":"road-2","seconds":392.939}
+{"layout":"shipped","cycle":0,"route":"road-3","seconds":413.718}
+{"layout":"shipped","cycle":0,"route":"road-4","seconds":434.489}
+{"layout":"shipped","cycle":0,"route":"road-5","seconds":456.011}
+{"layout":"shipped","cycle":0,"route":"road-6","seconds":476.936}
+{"layout":"shipped","cycle":0,"route":"road-7","seconds":498.438}
+{"layout":"shipped","cycle":0,"route":"road-8","seconds":519.335}
+{"layout":"shipped","cycle":0,"route":"road-9","seconds":540.317}
+{"layout":"shipped","cycle":0,"route":"road-10","seconds":561.628}
+{"layout":"shipped","cycle":0,"route":"road-11","seconds":583.592}
+{"layout":"shipped","cycle":0,"route":"road-12","seconds":605.258}
+{"layout":"shipped","cycle":0,"route":"road-13","seconds":626.411}
+{"layout":"shipped","cycle":0,"route":"road-14","seconds":647.438}
+{"layout":"shipped","cycle":0,"route":"road-15","seconds":668.36}
+{"layout":"shipped","cycle":0,"route":"road-16","seconds":689.128}
+{"layout":"shipped","cycle":0,"route":"road-17","seconds":729.225}
+{"layout":"shipped","cycle":0,"route":"road-tour-to-home","seconds":788.275}
+[ 909.8s] phase -> settle-1
+{"layout":"shipped","cycle":1,"route":"driftwood-isle-to-template-1","seconds":867.597}
+[ 929.9s] phase -> drive
+{"layout":"shipped","cycle":1,"route":"template-1-to-template-2","seconds":883.956}
+{"layout":"shipped","cycle":1,"route":"template-2-to-template-3","seconds":923.3}
+{"layout":"shipped","cycle":1,"route":"template-3-to-template-4","seconds":984.702}
+{"layout":"shipped","cycle":1,"route":"template-4-to-template-5","seconds":1045.736}
+{"layout":"shipped","cycle":1,"route":"template-5-to-driftwood-isle","seconds":1085.137}
+[1208.7s] phase -> settle-2
+{"layout":"shipped","cycle":2,"route":"driftwood-isle-to-template-1","seconds":1167.387}
+[1229.8s] phase -> drive
+{"layout":"shipped","cycle":2,"route":"template-1-to-template-2","seconds":1184.473}
+{"layout":"shipped","cycle":2,"route":"template-2-to-template-3","seconds":1224.494}
+{"layout":"shipped","cycle":2,"route":"template-3-to-template-4","seconds":1285.676}
+{"layout":"shipped","cycle":2,"route":"template-4-to-template-5","seconds":1347.031}
+{"layout":"shipped","cycle":2,"route":"template-5-to-driftwood-isle","seconds":1387.074}
+[1511.6s] phase -> settle-3
+{"layout":"shipped","cycle":3,"route":"driftwood-isle-to-template-1","seconds":1469.421}
+[1531.8s] phase -> drive
+{"layout":"shipped","cycle":3,"route":"template-1-to-template-2","seconds":1486.045}
+{"layout":"shipped","cycle":3,"route":"template-2-to-template-3","seconds":1526.077}
+{"layout":"shipped","cycle":3,"route":"template-3-to-template-4","seconds":1587.532}
+{"layout":"shipped","cycle":3,"route":"template-4-to-template-5","seconds":1648.879}
+{"layout":"shipped","cycle":3,"route":"template-5-to-driftwood-isle","seconds":1688.898}
+[1813.5s] phase -> settle-4
+{"layout":"shipped","cycle":4,"route":"driftwood-isle-to-template-1","seconds":1771.171}
+[1833.6s] phase -> drive
+{"layout":"shipped","cycle":4,"route":"template-1-to-template-2","seconds":1787.862}
+[1889.9s] phase -> unloaded
+[1912.1s] phase -> done
+{"phases": {"loading": {"samples": 37, "seconds": 36.2, "gamePid": 36867, "gameHighGB": 0.627, "gameSampledGB": 0.625, "allWebContentGB": 0.669, "gpuProcessGB": 0.18}, "baseline-0": {"samples": 25, "seconds": 24.2, "gamePid": 36867, "gameHighGB": 0.531, "gameSampledGB": 0.527, "allWebContentGB": 0.571, "gpuProcessGB": 0.178}, "drive": {"samples": 1735, "seconds": 1826.5, "gamePid": 36867, "gameHighGB": 0.59, "gameSampledGB": 0.554, "allWebContentGB": 0.629, "gpuProcessGB": 0.201}, "settle-1": {"samples": 20, "seconds": 19.2, "gamePid": 36867, "gameHighGB": 0.498, "gameSampledGB": 0.498, "allWebContentGB": 0.538, "gpuProcessGB": 0.194}, "settle-2": {"samples": 21, "seconds": 20.1, "gamePid": 36867, "gameHighGB": 0.502, "gameSampledGB": 0.502, "allWebContentGB": 0.542, "gpuProcessGB": 0.197}, "settle-3": {"samples": 20, "seconds": 19.1, "gamePid": 36867, "gameHighGB": 0.506, "gameSampledGB": 0.506, "allWebContentGB": 0.545, "gpuProcessGB": 0.196}, "settle-4": {"samples": 20, "seconds": 19.1, "gamePid": 36867, "gameHighGB": 0.509, "gameSampledGB": 0.509, "allWebContentGB": 0.549, "gpuProcessGB": 0.196}, "unloaded": {"samples": 22, "seconds": 21.1, "gamePid": 36867, "gameHighGB": 0.509, "gameSampledGB": 0.509, "allWebContentGB": 0.548, "gpuProcessGB": 0.166}}, "lost": [{"pid": 38060, "phase": "loading", "elapsed": 1.0}]}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":835700381,"loadingPeakBytes":912807565,"phoneEstimateBytes":1169980533.3999999,"baselines":[{"cycle":0,"start":1791522681.488,"end":1791522695.472,"samples":14,"bytes":731819717},{"cycle":1,"start":1791523552.974,"end":1791523563.064,"samples":10,"bytes":742701845},{"cycle":2,"start":1791523852.12,"end":1791523862.832,"samples":11,"bytes":746666869},{"cycle":3,"start":1791524154.501,"end":1791524164.878,"samples":10,"bytes":750315781},{"cycle":4,"start":1791524456.365,"end":1791524466.625,"samples":10,"bytes":753499045}],"baselineDeltaBytes":[-14847152,-3965024,0,3648912,6832176],"loops":[{"cycle":0,"complete":true,"peakBytes":778091221,"troughBytes":727166589},{"cycle":1,"complete":true,"peakBytes":835700381,"troughBytes":742285045},{"cycle":2,"complete":true,"peakBytes":766849157,"troughBytes":746233685},{"cycle":3,"complete":true,"peakBytes":788797385,"troughBytes":750083925},{"cycle":4,"complete":false,"peakBytes":757683577,"troughBytes":753760061}],"recovery":false,"calibration":false,"ratios":[{"cycle":1,"raw":1.6355942411061426,"adjusted":0.9749276820620584},{"cycle":2,"raw":1.6443261036481667,"adjusted":0.9836595446040824},{"cycle":3,"raw":1.6523618174324821,"adjusted":0.991695258388398},{"cycle":4,"raw":1.6593720710105118,"adjusted":0.9987055119664277}],"missingGlSamples":0,"sampling":true,"leakZero":true,"admitted":["template-1","template-2","template-3","driftwood-isle","template-4","template-5"],"refused":[],"attemptedEveryCell":true,"crossroads":16,"rehearsal":false,"limitation":null}
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[  16.1s] phase -> unloaded
+[  22.1s] phase -> done
+{"phases": {"loading": {"samples": 16, "seconds": 15.1, "gamePid": 31368, "gameHighGB": 0.731, "gameSampledGB": 0.607, "allWebContentGB": 0.751, "gpuProcessGB": 0.192}, "unloaded": {"samples": 6, "seconds": 5.0, "gamePid": 31368, "gameHighGB": 0.53, "gameSampledGB": 0.53, "allWebContentGB": 0.559, "gpuProcessGB": 0.162}}, "lost": []}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":0,"loadingPeakBytes":841916425,"phoneEstimateBytes":0,"baselines":[],"baselineDeltaBytes":[],"loops":[],"recovery":false,"calibration":false,"ratios":[],"missingGlSamples":0,"sampling":true,"leakZero":true,"admitted":[],"refused":[],"attemptedEveryCell":true,"crossroads":0,"rehearsal":false,"limitation":null,"failure":"Error: Error: Grid floor starts in driftwood-isle, expected null\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:254:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:165:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:356:40"}
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+                                                                                                      ^
+
+Error: /Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh exited 1
+    at ChildProcess.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36:103)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at Socket.<anonymous> (node:internal/child_process:481:11)
+    at Socket.emit (node:events:509:28)
+    at Pipe.<anonymous> (node:net:351:12)
+
+Node.js v24.18.1

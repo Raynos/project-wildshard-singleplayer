@@ -1,0 +1,22 @@
+{
+  "sha": "236c1225d8c0e23d72ea7f2037307e93270d8a9f",
+  "out": "/private/tmp/claude-501/sp-builders/sf57-qualify3/soak-run/out",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4402/",
+      "version": {
+        "build": "236c122-mv0i9ovc",
+        "time": "2026-10-09T05:09:19.369Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells",
+    "road"
+  ],
+  "rehearsal": false
+}
