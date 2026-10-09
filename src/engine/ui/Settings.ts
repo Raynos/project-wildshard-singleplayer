@@ -125,6 +125,7 @@ export const OPTION_VALUES = {
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
+  shadowBias: ['new', 'old'],                          // E435: three's PCF with the receiver-plane depth bias (src/engine/world/shadowFilter.ts, no shadow acne) or the old plain filter — a reload
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
@@ -142,7 +143,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   tex: { def: 'auto', params: [], url: () => null },
   
-  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, shadowBias: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -210,7 +211,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     tex: option('tex'),
     
     
-    memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'),
+    memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), shadowBias: option('shadowBias'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

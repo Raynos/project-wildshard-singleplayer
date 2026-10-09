@@ -167,6 +167,7 @@ const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['s
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
+  opt('shadowBias', 'look', engineString('s_shadow_bias'), [['new', engineString('s_shadow_bias_new')], ['old', engineString('s_shadow_bias_old')]], { reload: true, ask: 'E435', reviewBy: '2026-11-30', note: engineString('s_shadow_bias_note') }),
   opt('graphMaterials', 'look', engineString('s_graph_materials'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_materials_note') }),
 
   // ── Sky & weather ──

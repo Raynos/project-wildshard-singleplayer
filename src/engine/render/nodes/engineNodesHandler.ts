@@ -23,7 +23,8 @@
  *    does not reach node materials yet: the handler warns once.
  * 4. **The engine's shadow filter** (`shadowFilter.ts`, E138): where the tent is installed, every shadow-casting light
  *    without a filter of its own gets the tent as its node filter (`tentShadowFilter.ts`), so node and family
- *    materials share one penumbra.
+ *    materials share one penumbra; where the chunk carries the receiver-plane bias instead (E435), the same biased PCF
+ *    (`planeBiasShadowFilter.ts`).
  *
  * 5. **The sun's cascades and the shadow fade** (`cascadeLightNode.ts`): a DirectionalLight the sky rig registered as
  *    a cascade is gated to its depth slice as the CSM chunk gates it, with the fade's ghost shadow mixed in.
@@ -36,9 +37,10 @@ import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { nodeObject, workingToColorSpace } from 'three/tsl';
 import { fogPatches } from '../fogPatches';
-import { tentShadowFilterOn } from '../../world/shadowFilter';
+import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { engineFog } from './engineFog';
 import { tentShadowFilter } from './tentShadowFilter';
+import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
 import { diagnosticNow } from '../../core/clock';
@@ -183,13 +185,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
   }
 
-  /** the frame's lights: every shadow caster without a node filter of its own gets the engine tent; the fade's ghosts are left out */
+  /** the frame's lights: every shadow caster without a node filter of its own gets the engine's filter (the tent, else the
+   *  receiver-plane biased PCF, E435); the fade's ghosts are left out */
   override updateLights(lights: THREE.Light[]): void {
-    if (tentShadowFilterOn()) {
+    const filter = tentShadowFilterOn() ? tentShadowFilter : planeBiasShadowFilterOn() ? planeBiasShadowFilter : null;
+    if (filter !== null) {
       for (const light of lights) {
         const shadow: unknown = Reflect.get(light, 'shadow');
         if (!(shadow instanceof THREE.LightShadow) || !light.castShadow) continue;
-        if (Reflect.get(shadow, 'filterNode') === undefined) Reflect.set(shadow, 'filterNode', tentShadowFilter);
+        if (Reflect.get(shadow, 'filterNode') === undefined) Reflect.set(shadow, 'filterNode', filter);
       }
     }
     // the fade's ghosts light nothing (intensity 0) and lend their maps to their cascades: no light node of their own

@@ -70,9 +70,52 @@ export function tentShadowFilterOn(): boolean { return tentOn; }
  * type the renderer must use.
  */
 export function installShadowFilter(): THREE.ShadowMapType {
+  if (tentOn) return THREE.PCFShadowMap; // a later level's sky: the chunk already carries it
   const chunk = THREE.ShaderChunk.shadowmap_pars_fragment;
   if (!PCF_BODY.test(chunk)) { console.warn('[sky] shadowmap_pars_fragment changed: the E138 shadow filter is off'); return THREE.PCFShadowMap; }
   THREE.ShaderChunk.shadowmap_pars_fragment = chunk.replace(PCF_BODY, TENT);
   tentOn = true;
   return THREE.PCFShadowMap;
+}
+
+/**
+ * Shadow acne fix (E435, op-shadow): three's own 5-tap PCF (r186) compares every tap of its Vogel disc, up to
+ * `shadow.radius` texels from the fragment, against the fragment's own depth. On a flat lit face the receiver's depth
+ * changes across that disc by `radius × texel × tan(light angle)`: on the phone tier's one 1024² cascade (≈ 12.6 cm a
+ * texel) at radius 2 that is ≈ 0.3 m on ground under a 40° sun, about twice the 7 cm depth bias plus the 5 cm normal
+ * bias, so the outer taps fall under the surface itself and every large flat face shows regular light / dark bands.
+ * Radius 0 removes them (measured on a flat clay level), so the cure is per tap, not a bigger constant bias (that lifts
+ * contact shadows off their feet): the tent's receiver-plane depth bias (Isidoro 2006), the depth slope along the
+ * receiver from the screen derivatives of the shadow coordinate, applied only toward the light, so a tap's own receiver
+ * never shadows it while a real occluder still does. Same taps, kernel and noise as three's: every shard's penumbra
+ * keeps its look. The derivatives are taken at the top of getShadow, before its frustum branch.
+ */
+const PCF_HEAD = /(float getShadow\( sampler2DShadow shadowMap, vec2 shadowMapSize, float shadowIntensity, float shadowBias, float shadowRadius, vec4 shadowCoord \) \{\s*float shadow = 1\.0;\s*shadowCoord\.xyz \/= shadowCoord\.w;\s*shadowCoord\.z \+= shadowBias;)/;
+const PCF_TAPS = /vec2 texelSize = vec2\( 1\.0 \) \/ shadowMapSize;([\s\S]*?)shadow = \(\s*texture\( shadowMap, vec3\( shadowCoord\.xy \+ vogelDiskSample\( 0, 5, phi \) \* radius, shadowCoord\.z \) \)[\s\S]*?\) \* 0\.2;/;
+const PLANE_HEAD = /* glsl */`$1
+			// receiver-plane depth bias (shadowFilter.ts): d(depth)/d(uv) along the receiver, clamped where it turns edge-on
+			vec3 rpbDx = dFdx( shadowCoord.xyz ), rpbDy = dFdy( shadowCoord.xyz );
+			float rpbDet = rpbDx.x * rpbDy.y - rpbDx.y * rpbDy.x;
+			vec2 rpbSlope = abs( rpbDet ) > 1e-12 ? clamp( vec2( rpbDy.y * rpbDx.z - rpbDx.y * rpbDy.z, rpbDx.x * rpbDy.z - rpbDy.x * rpbDx.z ) / rpbDet, -2.0, 2.0 ) : vec2( 0.0 );`;
+const PLANE_TAPS = /* glsl */`vec2 texelSize = vec2( 1.0 ) / shadowMapSize;$1#define RPB_TAP( k ) texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( k, 5, phi ) * radius, shadowCoord.z + min( 0.0, dot( vogelDiskSample( k, 5, phi ) * radius, rpbSlope ) ) ) )
+				shadow = ( RPB_TAP( 0 ) + RPB_TAP( 1 ) + RPB_TAP( 2 ) + RPB_TAP( 3 ) + RPB_TAP( 4 )
+				#undef RPB_TAP
+				) * 0.2;`;
+
+let planeBiasOn = false;
+/** three's PCF carries the receiver-plane bias (node materials get the same: render/nodes/planeBiasShadowFilter.ts); off under the tent */
+export function planeBiasShadowFilterOn(): boolean { return planeBiasOn && !tentOn; }
+
+/**
+ * Patch the receiver-plane bias into three's 5-tap PCF (once, at boot, before any material compiles). The tent
+ * (installShadowFilter) has its own and still installs over it: the patched body keeps PCF_BODY's two ends. False when
+ * the chunk is not the one this was written against (a three upgrade): the plain filter then stays.
+ */
+export function installPlaneBiasShadowFilter(): boolean {
+  if (planeBiasOn || tentOn) return planeBiasOn;
+  const chunk = THREE.ShaderChunk.shadowmap_pars_fragment;
+  if (!PCF_HEAD.test(chunk) || !PCF_TAPS.test(chunk)) { console.warn('[sky] shadowmap_pars_fragment changed: the shadow receiver-plane bias is off'); return false; }
+  THREE.ShaderChunk.shadowmap_pars_fragment = chunk.replace(PCF_HEAD, PLANE_HEAD).replace(PCF_TAPS, PLANE_TAPS);
+  planeBiasOn = true;
+  return true;
 }
