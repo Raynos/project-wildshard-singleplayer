@@ -1,7 +1,7 @@
 # Plan: MARKETING-SITE — the home of Project Wildshard (E465)
 
 **State:** `in progress` 2026-10-09 — Jake's picks are in (§7): key + ritual, the name is **Project Wildshard**, the
-author door is waitlist + Discord + mail, public from day one. Now (Jake: "start building and more mockups in parallel"): **MS4 the scaffold + a public v1 from round 2**, and **MS2 rounds 3 (desktop) and 4 (logo)**; before that, **MS2, the mockup series** (Jake: *"make a series
+author door is waitlist + Discord + mail, public from day one. Live at **https://wildshard-site.vercel.app** (public): round 2's page in violet with the Cell logo and round 3 B's two-column desktop layout; the waitlist form posts to `/api/waitlist` (live once the hourly deploy ships it). Picks so far: rounds 1–4 (§8). Next: MS7/MS16 admin tab + Discord, MS8 share cards, MS6/MS14 the generated road and devlog, MS11 motion, MS19 FAQ answers (Jake's), MS22 (Jake: *"make a series
 of mock-ups for me to review with you so that we can actually figure that out and build it together"*). Open: which
 domain(s) to buy (MS9, Jake's; the shortlist is in the row). Nothing built yet.
 
@@ -114,6 +114,7 @@ wildshard`), the door becomes *install the skill*; when the API exists, *request
 | MS19 | **FAQ** (idea 10) — is it free, do I need a Claude subscription to build, which devices, who owns my shard, what can't a shard do. The pricing and ownership answers are Jake's words (asked as picks before they go live) | every answer is either a fact from the plans or Jake's | marketing agent + Jake |
 | MS20 | **Press kit** (idea 11) — logo, screenshots, the trailer, one-paragraph blurbs, as one download page. Needs a logo first: a logo mockup round | the kit page and its zip are live | marketing agent |
 | MS21 | **Install it** (idea 12) — "Add to Home Screen" for the PWA now; App Store / Play links when NATIVE-APPS ships | the install steps are on the site | marketing agent |
+| MS22 | **A sharp desktop hero** — the Driftwood aerial behind the hero is a 780 px capture, soft at 1440 wide: capture a ≥ 2000 px landscape aerial of Driftwood Isle from the real game for the desktop hero | the desktop hero is sharp at 1440 × 900 | marketing agent |
 
 ## 5. Not in this plan
 
