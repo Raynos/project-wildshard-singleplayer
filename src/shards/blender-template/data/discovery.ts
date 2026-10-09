@@ -16,5 +16,11 @@ export const DISCOVERY = {
   budgets: BUDGETS,
   assetGlobs: ['public/assets/blender-template/map/**'],
   minimap: { image: '/assets/blender-template/map/top.webp' },
+  // the full map's places (SF66, sp-x6's list; test/map-coverage.test.ts holds the door and the guardian on the hall)
+  pois: [
+    { id: 'hall', name: 'The hall', x: 0, z: 32, r: 14 }, { id: 'bridge', name: 'North bridge', x: 0, z: 209, r: 14 },
+    { id: 'east', name: 'East canopy', x: 205, z: 0, r: 20 }, { id: 'west', name: 'West steps', x: -210, z: 0, r: 20 },
+    { id: 'south', name: 'South arch', x: 0, z: -211, r: 18 },
+  ],
   tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
 };
