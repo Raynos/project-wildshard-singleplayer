@@ -74,23 +74,33 @@ the upload ritual → the shard flies up and docks into the glowing grid → pla
 next, each in its own look → the camera pulls out over the 5 × 5 grid → "Play it in the browser. Build it in Claude
 Code." · wildshard.io.
 
-### 3.2 How it could be made
+### 3.2 How it could be made (Jake, 2026-10-09)
+
+A straight Blender render is out (Jake: *"making a video in Blender is going to be absolute dog shit … we know that"*).
+Blender's job is the **grey blockout and the camera**: boxy shapes, our real GLBs where they help, a directed camera,
+and the passes a model can follow (depth, normals, line art, flat colour IDs). An AI model makes it look good. The
+source can also be **a capture from the alpha game**, remastered. Three ways, all local (CT0: no paid cloud model):
 
 | Way | How | Strength | Risk |
 |---|---|---|---|
-| **1 · Image-to-video from keyframes** | keyframes in the concept-art style (codex `image_gen` or Qwen-Image-2.1, as for the site's concept art), animated 5–10 s at a time by a video model: an open local one on the M5 Max (Wan-class or LTX-class, fetched under the model lock) or a paid cloud one (Veo / Kling / Seedance class) | fastest to a cinematic look; matches the site's concept art | shot-to-shot consistency, the "AI video" sheen, per-model licence terms, cloud cost |
-| **2 · Blender, rendered offline** | the shards' committed GLBs plus new hero pieces in Blender scripts (the repo's rule), Cycles path tracing, a scripted camera | full control, the real shards' shapes, no model licence questions | the most work by far; looks only as good as what we model |
-| **3 · Hybrid** | Blender for what must be exact (the grid, the cube, the beacons, the docking), image-to-video for the living moments (players, weather, faces), one grade over both | each tool where it is strong | two pipelines to keep in one look |
+| **A · Image-to-video** | a keyframe still (codex `image_gen` or Qwen-Image-2.1, in the concept-art style) animated 5–10 s at a time by an open video model | the fastest to a cinematic look | the camera and layout are the model's guess, not directed; shot-to-shot consistency |
+| **B · Blender grey → video-to-video** | the grey blockout (or an in-game capture) rendered with its passes and fed as the control video to an open video model that remasters it (VACE / control-style), first frame and style from a remastered still | we direct the camera and the layout; the model only paints | does an open model on this Mac hold the look over 5–10 s; speed on MPS |
+| **C · Per-frame image-to-image** | every frame of the grey blockout or the in-game capture restyled by an image model (img2img with depth / edge control, never text-to-image), then made temporally consistent (keyframe propagation, flow warping, deflicker, "on twos" at 12 fps) | exact framing; the image models we already run well | flicker: text-to-image per frame is a shit show (Jake); 24 images per second is slow |
 
-**Recommendation: CT1 decides it with one shot made all three ways** (the shard docking into the grid, ~6 s), shown to
-Jake as one labelled A / B / C video, before any trailer-length work.
+Research before the build (2026-10-09, two research lanes): which open video models do control-video and image-to-video,
+their licences for a shipped asset, and whether they run on the M5 Max; and the community's best practice (Reddit, X)
+for grey-blockout previs into AI video, camera direction, per-frame restyle and the finish. Findings land in §3.4.
+
+**CT1 tests all three on the same shot** (the shard docking into the grid, ~6 s, one Blender grey blockout plus one
+in-game capture as sources) and shows Jake one labelled A / B / C video. Then we feel it out: the winner, or a mix per
+shot, makes the trailer.
 
 ### 3.3 Rows
 
 | # | Row | Done when | Owner |
 |---|---|---|---|
 | CT0 | ✅ **Jake's picks** (2026-10-09): the bake-off, local models and Blender only, no paid cloud model (§5) | answers recorded | Jake |
-| CT1 | **Bake-off** — the docking shot made ways 1, 2 and 3, way 1 with an open video model run locally (fetched to `~/projects/weights` under the model lock, its licence checked for a shipped asset); one labelled A / B / C video | Jake picks a way | trailer agent |
+| CT1 | **Bake-off** — the docking shot as a Blender grey blockout (script-built, `scripts/blender/`) and an in-game capture, then made ways A, B and C with open models run locally (fetched to `~/projects/weights` under the model lock, each licence checked for a shipped asset); one labelled A / B / C video, iPhone portrait board plus the 16:9 clips | Jake picks a way, or a mix per shot | trailer agent |
 | CT2 | **Script and boards** — the §3.1 script rewritten with Jake, then a storyboard of 12–20 keyframes in the concept-art style | Jake has read the board | trailer agent + Jake |
 | CT3 | **Shots** — every shot made the picked way | the shots exist at 1080p | trailer agent |
 | CT4 | **Score, cut, ship** — a MiniMax cue, MOSS / SA3 SFX, the cut, the "Concept trailer · not gameplay" label, the site's slot | wildshard.io plays it | trailer agent |
@@ -105,4 +115,7 @@ A Steam page trailer (FINISH-LINE SC4 keeps the 45 s cut), the app-store preview
 - **The alpha label: all three**: the opening card, the "ALPHA · IN ENGINE" corner bug on every frame, the end card.
 - **The Claude Code beat: in**: a real session, sped up and captioned, into the grey-to-final time-lapse.
 - **The cinematic bake-off: local models and Blender only**: no paid cloud video model.
+- **The three ways (Jake, after the picks):** Blender for the grey blockout and the camera only, never the final render;
+  then A image-to-video, B grey → video-to-video remaster, C per-frame image-to-image (never text-to-image) from the
+  grey or an in-game capture. *"You have to test all these approaches and feel it out, vibe it out."*
 - Shards (default, not asked): the six playable ones; the Template stays out.
