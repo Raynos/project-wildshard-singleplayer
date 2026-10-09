@@ -22,7 +22,14 @@
 #
 #   scripts/auto-push.sh            (post-commit runs it; safe to run by hand)
 set -uo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || exit 0
+# Run from a private snapshot (bash reads a script as it goes; an edit landing in the shared tree mid-run must not change
+# this run). Each locked round below runs a fresh copy of the tree's pusher, so a busy pusher still picks up its edits.
+if [ -z "${AUTO_PUSH_SNAP:-}" ]; then
+  snap="$(mktemp -t auto-push)" && cp "$0" "$snap" || exit 1
+  AUTO_PUSH_SNAP="$snap" exec bash "$snap" "$@"
+fi
+cd "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || { rm -f "$AUTO_PUSH_SNAP"; exit 0; }
+trap 'rm -f "$AUTO_PUSH_SNAP"' EXIT
 common="$(git rev-parse --path-format=absolute --git-common-dir)"
 gitdir="$(git rev-parse --path-format=absolute --git-dir)"
 
@@ -38,14 +45,15 @@ pending="$common/auto-push.pending"
 
 if [ "${1:-}" != --locked ]; then
   touch "$pending"
-  # A private snapshot, like push-main.sh: an edit landing in the shared tree mid-run must not change this run.
-  snap="$(mktemp -t auto-push)" && cp "$0" "$snap" || exit 1
   # Holder exits only after it found no mark; a start that lost the lock race marked first, so re-check after release.
   while [ -e "$pending" ]; do
-    lockf -k -t 0 "$lock" bash "$snap" --locked
-    [ $? -eq 75 ] && break # another instance holds the lock: it (or its launcher) sees our mark
+    body="$(mktemp -t auto-push)" && cp scripts/auto-push.sh "$body" || break # the tree's current pusher, per round
+    AUTO_PUSH_SNAP="$body" lockf -k -t 0 "$lock" bash "$body" --locked
+    rc=$?
+    rm -f "$body"
+    [ "$rc" -eq 75 ] && break # another instance holds the lock: it (or its launcher) sees our mark
   done
-  rm -f "$snap"
+  rm -f "$AUTO_PUSH_SNAP"
   exit 0
 fi
 
@@ -100,6 +108,8 @@ while [ -e "$pending" ]; do
   rm -f "$pending"
   sleep "${AUTO_PUSH_SETTLE:-10}"
   [ -e "$common/auto-push.off" ] && { note "off switch present: stopping"; exit 0; }
+  # The pusher was edited: hand the round back to the launcher, which runs a fresh copy.
+  if ! cmp -s "$0" scripts/auto-push.sh; then touch "$pending"; note "scripts/auto-push.sh changed: restarting"; exit 0; fi
   # The coordinator's measurement quiet window (frame floor, soak, Simulator): a push gate would spoil the reading.
   if [ -e "$common/quiet" ]; then
     note "quiet window (.git/quiet): waiting"
