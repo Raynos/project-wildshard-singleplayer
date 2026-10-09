@@ -1,0 +1,398 @@
+{
+  "mode": "grid",
+  "phases": {
+    "titleMs": 4047,
+    "gameplayMs": 13613
+  },
+  "telemetryPosts": 1,
+  "lifecycleReports": 0,
+  "gridNavigationObserved": true,
+  "elapsedMs": 14000,
+  "fatal": [],
+  "ready": true,
+  "entered": true,
+  "revealing": false,
+  "frameGate": true,
+  "frame": 23,
+  "shard": "platform.grid",
+  "grid": {
+    "home": "driftwood-isle",
+    "inside": "driftwood-isle",
+    "feet": {
+      "x": 0,
+      "z": -194
+    },
+    "cells": [
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow",
+        "cell": [
+          0,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template",
+        "cell": [
+          1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes",
+        "cell": [
+          -1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle",
+        "cell": [
+          0,
+          0
+        ],
+        "shows": "playing"
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach",
+        "cell": [
+          0,
+          -1
+        ],
+        "shows": "far proxy"
+      }
+    ],
+    "strips": 40,
+    "road": {
+      "segments": 24,
+      "junctions": 16,
+      "roundabouts": 4,
+      "signs": 124,
+      "lights": 364,
+      "draws": 3
+    },
+    "seams": {
+      "triangles": 92164,
+      "draws": 5,
+      "buckets": {
+        "ground": 76334,
+        "stone": 8394,
+        "rock": 6428,
+        "rail": 504,
+        "curtain": 504
+      }
+    },
+    "softWalls": {
+      "closed": 20
+    },
+    "shimmer": {
+      "borders": 24,
+      "status": null
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "far-reach",
+          "status": "loading"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "status": "loading"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "loading"
+        }
+      ],
+      "draws": 13
+    },
+    "plots": {
+      "plots": [
+        {
+          "instance": "open-plot-nw",
+          "visible": true,
+          "entries": {
+            "north": {
+              "billboard": "sky-race",
+              "demo": "alien-plain"
+            },
+            "east": {
+              "billboard": "night-market",
+              "demo": "desert-ruin"
+            },
+            "south": {
+              "billboard": "frozen-lighthouse",
+              "demo": "ink-valley"
+            },
+            "west": {
+              "billboard": "canyon-railway",
+              "demo": "sky-race"
+            }
+          }
+        },
+        {
+          "instance": "open-plot-sw",
+          "visible": true,
+          "entries": {
+            "north": {
+              "billboard": "coral-reef",
+              "demo": "night-market"
+            },
+            "east": {
+              "billboard": "alien-plain",
+              "demo": "frozen-lighthouse"
+            },
+            "south": {
+              "billboard": "desert-ruin",
+              "demo": "canyon-railway"
+            },
+            "west": {
+              "billboard": "ink-valley",
+              "demo": "coral-reef"
+            }
+          }
+        },
+        {
+          "instance": "open-plot-se",
+          "visible": true,
+          "entries": {
+            "north": {
+              "billboard": "frozen-lighthouse",
+              "demo": "ink-valley"
+            },
+            "east": {
+              "billboard": "canyon-railway",
+              "demo": "sky-race"
+            },
+            "south": {
+              "billboard": "coral-reef",
+              "demo": "night-market"
+            },
+            "west": {
+              "billboard": "alien-plain",
+              "demo": "frozen-lighthouse"
+            }
+          }
+        }
+      ],
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 38914
+    },
+    "ringsReady": true,
+    "residentMB": 497.52,
+    "playingMB": 915.16,
+    "accountedBytes": 497523642,
+    "rings": {
+      "far": 6,
+      "l1": 3,
+      "l0": 0,
+      "refused": 0,
+      "inFlight": 0,
+      "queued": 0
+    },
+    "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "driftwood-isle",
+      "highway": 0,
+      "weights": {
+        "driftwood-isle": 1
+      },
+      "air": [
+        0.36,
+        0.7,
+        1
+      ],
+      "grade": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "roadSky": 0,
+      "skies": {
+        "driftwood-isle": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 1720320,
+          "reserved": 2752512
+        }
+      },
+      "chain": {
+        "owner": "driftwood-isle",
+        "weight": 1,
+        "lut": true,
+        "values": [
+          0.3,
+          0,
+          0.2,
+          0,
+          0
+        ],
+        "post": [
+          0.4,
+          1,
+          0.08,
+          0.35,
+          -1,
+          -1
+        ],
+        "fx": {
+          "carrier": null,
+          "weight": 0,
+          "vol": [
+            0,
+            0.55
+          ],
+          "chroma": 0,
+          "grain": 0,
+          "target": [
+            1,
+            1
+          ],
+          "depth": "scene",
+          "sceneDepth": false
+        }
+      }
+    },
+    "live": {
+      "live": {
+        "current": "driftwood-isle",
+        "worldFeet": {
+          "x": -0.0000018150471721156691,
+          "y": 1.204399994657433,
+          "z": -193.9999985725939
+        },
+        "crossings": 1,
+        "transitions": [
+          {
+            "from": null,
+            "to": "driftwood-isle"
+          }
+        ],
+        "residents": [
+          "driftwood-isle"
+        ],
+        "pending": [],
+        "issues": {},
+        "gameplayReady": true,
+        "continuations": {
+          "entries": 0,
+          "storedChars": 0,
+          "capacityChars": 0,
+          "claimedBytes": 0
+        }
+      },
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "stowed": false,
+      "renderOrigin": {
+        "x": 0,
+        "z": 0
+      },
+      "runtimeTiming": {
+        "current": null,
+        "completed": [
+          {
+            "instance": "driftwood-isle",
+            "hook": "beforeWorld",
+            "start": 7103.299999713898,
+            "end": 7103.89999961853,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "constructor",
+            "start": 7106.599999904633,
+            "end": 7106.699999809265,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "world",
+            "start": 7114.89999961853,
+            "end": 7756.599999904633,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "afterWorld",
+            "start": 7757.5,
+            "end": 7757.599999904633,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "kit",
+            "start": 7766.299999713898,
+            "end": 7766.599999904633,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "afterKit",
+            "start": 7782.699999809265,
+            "end": 7877.099999904633,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "play",
+            "start": 7887.199999809265,
+            "end": 7955.299999713898,
+            "outcome": "done"
+          },
+          {
+            "instance": "driftwood-isle",
+            "hook": "afterPlay",
+            "start": 7967.89999961853,
+            "end": 7968.299999713898,
+            "outcome": "done"
+          }
+        ]
+      },
+      "hoverCap": 14,
+      "homeActive": null
+    },
+    "life": [
+      {
+        "instance": "template-2",
+        "creatures": 3,
+        "frozen": true,
+        "views": {
+          "targets": 3,
+          "posed": 3,
+          "particles": 0,
+          "capacity": 6,
+          "tick": 42
+        },
+        "failed": null
+      }
+    ]
+  },
+  "faults": [],
+  "reports": []
+}

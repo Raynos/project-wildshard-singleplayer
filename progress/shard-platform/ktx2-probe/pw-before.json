@@ -1,0 +1,34 @@
+{
+ "chromium/pine-hollow": {
+  "textures": "n/a",
+  "kinds": {
+   "other": 684,
+   "compressed": 891
+  },
+  "logs": []
+ },
+ "chromium/far-reach": {
+  "textures": "n/a",
+  "kinds": {
+   "other": 187,
+   "compressed": 37
+  },
+  "logs": []
+ },
+ "webkit/pine-hollow": {
+  "textures": "n/a",
+  "kinds": {
+   "other": 684,
+   "compressed": 891
+  },
+  "logs": []
+ },
+ "webkit/far-reach": {
+  "textures": "n/a",
+  "kinds": {
+   "other": 187,
+   "compressed": 37
+  },
+  "logs": []
+ }
+}

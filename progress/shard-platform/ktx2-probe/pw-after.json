@@ -1,0 +1,346 @@
+{
+ "chromium/pine-hollow": {
+  "textures": {
+   "mode": "ktx2",
+   "why": "auto: images-first playing estimate 1273195441 exceeds 1000000000",
+   "probe": {
+    "ran": true,
+    "note": "12 formats ok",
+    "families": {
+     "astc": true,
+     "etc2": true,
+     "bptc": true,
+     "s3tc": true
+    },
+    "formats": [
+     {
+      "family": "astc",
+      "format": "RGBA_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "astc",
+      "format": "SRGB8_ALPHA8_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGBA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ALPHA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "RGBA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "SRGB_ALPHA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGBA_S3TC_DXT5",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_ALPHA_S3TC_DXT5",
+      "ok": true
+     }
+    ],
+    "veto": null
+   }
+  },
+  "kinds": {
+   "other": 684,
+   "compressed": 891
+  },
+  "logs": [
+   "info: [ktx2] probe: 12 formats ok (astc etc2 bptc s3tc)"
+  ]
+ },
+ "chromium/far-reach": {
+  "textures": {
+   "mode": "ktx2",
+   "why": "auto: level tier texture policy",
+   "probe": {
+    "ran": true,
+    "note": "12 formats ok",
+    "families": {
+     "astc": true,
+     "etc2": true,
+     "bptc": true,
+     "s3tc": true
+    },
+    "formats": [
+     {
+      "family": "astc",
+      "format": "RGBA_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "astc",
+      "format": "SRGB8_ALPHA8_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGBA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ALPHA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "RGBA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "SRGB_ALPHA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGBA_S3TC_DXT5",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_ALPHA_S3TC_DXT5",
+      "ok": true
+     }
+    ],
+    "veto": null
+   }
+  },
+  "kinds": {
+   "other": 187,
+   "compressed": 37
+  },
+  "logs": [
+   "info: [ktx2] probe: 12 formats ok (astc etc2 bptc s3tc)"
+  ]
+ },
+ "webkit/pine-hollow": {
+  "textures": {
+   "mode": "ktx2",
+   "why": "auto: images-first playing estimate 1273195441 exceeds 1000000000",
+   "probe": {
+    "ran": true,
+    "note": "12 formats ok",
+    "families": {
+     "astc": true,
+     "etc2": true,
+     "bptc": true,
+     "s3tc": true
+    },
+    "formats": [
+     {
+      "family": "astc",
+      "format": "RGBA_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "astc",
+      "format": "SRGB8_ALPHA8_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGBA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ALPHA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "RGBA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "SRGB_ALPHA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGBA_S3TC_DXT5",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_ALPHA_S3TC_DXT5",
+      "ok": true
+     }
+    ],
+    "veto": null
+   }
+  },
+  "kinds": {
+   "other": 684,
+   "compressed": 891
+  },
+  "logs": [
+   "info: [ktx2] probe: 12 formats ok (astc etc2 bptc s3tc)"
+  ]
+ },
+ "webkit/far-reach": {
+  "textures": {
+   "mode": "ktx2",
+   "why": "auto: level tier texture policy",
+   "probe": {
+    "ran": true,
+    "note": "12 formats ok",
+    "families": {
+     "astc": true,
+     "etc2": true,
+     "bptc": true,
+     "s3tc": true
+    },
+    "formats": [
+     {
+      "family": "astc",
+      "format": "RGBA_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "astc",
+      "format": "SRGB8_ALPHA8_ASTC_4x4",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ETC2",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "RGBA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "etc2",
+      "format": "SRGB8_ALPHA8_ETC2_EAC",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "RGBA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "bptc",
+      "format": "SRGB_ALPHA_BPTC_UNORM",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "RGBA_S3TC_DXT5",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_S3TC_DXT1",
+      "ok": true
+     },
+     {
+      "family": "s3tc",
+      "format": "SRGB_ALPHA_S3TC_DXT5",
+      "ok": true
+     }
+    ],
+    "veto": null
+   }
+  },
+  "kinds": {
+   "other": 187,
+   "compressed": 37
+  },
+  "logs": [
+   "info: [ktx2] probe: 12 formats ok (astc etc2 bptc s3tc)"
+  ]
+ }
+}
