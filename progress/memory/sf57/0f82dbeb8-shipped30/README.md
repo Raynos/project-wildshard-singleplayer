@@ -14,4 +14,12 @@ Coordinator authorized reuse of the frame-floor's existing public entry: `public
 
 Exact retry: one new preview of app pin0f82dbeb8, `--layouts=shipped --legs=cells --route-scope=catalogue`, plain30, Driftwood +template1–5 and first-circuit road tour, light/coalesced observer, rawOFF, kernel footprint only, no heap/VM probes. Preserve failures; no result is claimed before completion. Pending offline reader `analyse.mjs` uses the original ruler/fence/settled windows and separates WC/GL/accounted/GPU. The coordinator pushes; the lane handoff contains current ownership and continuation.
 
+## Attempt 2: public boot passed; borrowed-home route proof refused
+
+App0f82dbeb8 / harness0dae1f0ba, HTTP/disk build `0f82dbe-mv0coicj`. DeveloperOFF public grid boot succeeded. Initial source admission then timed out after120s: `Grid floor source driftwood-isle did not become an entered ready resident`. The public grid borrows the native Driftwood home, so it correctly is absent from live.residents. The floor source witness already supports explicit borrowedHome with matching instance/level and a positive admitted home claim; the soak plans omitted it. Return-home and home-retirement requirements also need that explicit retained-home model, with strict destination proof rather than weakened resident checks.
+
+There were **zero routes, circuits or settled windows**. App errors/GPU losses/native disappearance/disposal errors0; all15 scope counters0. Loading-only ruler947.714445MB. Travel peak0 is unmeasured; no cap or no-tab-kill verdict. The grader's refused catalogue is unvisited, not actual refused admissions. `attempt-2-borrowed-home/` preserves every raw byte losslessly with SHA256 manifest and the unchanged offline analysis.
+
+All owned native/preview resources closed; sim0/1, port4402 closed and owned shutdown deviceC1AF7464-ABE8-4BB6-9164-C58133AC7225 deleted. No third attempt. Per the3% budget instruction, the lane stops at a precise continuation in `progress/shard-platform/handoffs/sp-x3.md`: add the explicit strict borrowed-home source/return/retention route model and tests, land by CAS, then get the next Simulator slot for plain30. No game/UI/policy change is needed.
+
 Plan-State: unchanged.

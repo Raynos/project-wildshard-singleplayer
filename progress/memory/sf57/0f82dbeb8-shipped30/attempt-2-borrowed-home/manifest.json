@@ -1,0 +1,21 @@
+{
+  "sha": "0f82dbeb8106ee950383ae196e74ef3525fc5034",
+  "out": "/private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30-retry",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4402/",
+      "version": {
+        "build": "0f82dbe-mv0coicj",
+        "time": "2026-10-09T02:32:45.457Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells"
+  ],
+  "rehearsal": true
+}

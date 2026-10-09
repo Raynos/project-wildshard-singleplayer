@@ -1,0 +1,26 @@
+serve-build: building 0f82dbeb8106ee950383ae196e74ef3525fc5034 0f82dbeb8 → /private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30-retry/serve/20261008-213225-4402/dist
+serve-build: pid 73212, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4402
+PREPARED /private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30-retry/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30-retry/GO only after go
+sim-lane: created sf57-sp-x3-shipped-70397 (C1AF7464-ABE8-4BB6-9164-C58133AC7225)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[ 147.9s] phase -> unloaded
+[ 154.0s] phase -> done
+{"phases": {"loading": {"samples": 147, "seconds": 146.9, "gamePid": 88996, "gameHighGB": 0.733, "gameSampledGB": 0.649, "allWebContentGB": 0.769, "gpuProcessGB": 0.184}, "unloaded": {"samples": 6, "seconds": 5.0, "gamePid": 88996, "gameHighGB": 0.557, "gameSampledGB": 0.557, "allWebContentGB": 0.596, "gpuProcessGB": 0.154}}, "lost": []}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":0,"loadingPeakBytes":947714445,"phoneEstimateBytes":0,"baselines":[],"baselineDeltaBytes":[],"loops":[],"recovery":false,"calibration":false,"ratios":[],"missingGlSamples":0,"sampling":true,"leakZero":true,"admitted":[],"refused":["template-1","template-2","template-3","driftwood-isle","template-4","template-5"],"attemptedEveryCell":false,"crossroads":0,"rehearsal":true,"limitation":"Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.","failure":"Error: Error: Grid floor source driftwood-isle did not become an entered ready resident\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:214:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:161:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:352:40"}
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+                                                                                                      ^
+
+Error: /Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh exited 1
+    at ChildProcess.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36:103)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:306:5)
+
+Node.js v24.18.1

@@ -1,0 +1,9 @@
+{
+  "pin": "0f82dbeb8106ee950383ae196e74ef3525fc5034",
+  "harness": "0dae1f0ba0ff9b0c20a1d297841b6f4a9c6daad4",
+  "version": {
+    "build": "0f82dbe-mv0coicj",
+    "time": "2026-10-09T02:32:45.457Z"
+  },
+  "flags": "shipped/cells/catalogue30, public intent, DeveloperOFF, rawOFF, no heap/VM inspection"
+}

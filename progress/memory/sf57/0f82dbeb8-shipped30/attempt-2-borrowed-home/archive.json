@@ -1,0 +1,61 @@
+{
+  "appPin": "0f82dbeb8106ee950383ae196e74ef3525fc5034",
+  "harnessPin": "0dae1f0ba0ff9b0c20a1d297841b6f4a9c6daad4",
+  "build": "0f82dbe-mv0coicj",
+  "files": [
+    {
+      "name": "shipped-cells.json",
+      "archivedAs": "shipped-cells.json.br",
+      "bytes": 451096,
+      "sha256": "334a7b470f8ac280d1ee434051e21bd042316d2bef05c56a857c6ad3bdc218b3"
+    },
+    {
+      "name": "shipped-cells-native.jsonl",
+      "archivedAs": "shipped-cells-native.jsonl.br",
+      "bytes": 36968,
+      "sha256": "66517ae4228f81435d73edbbbd796b9102398a420e5e9d80fc4a687b44642b97"
+    },
+    {
+      "name": "shipped-cells-gl.jsonl",
+      "archivedAs": "shipped-cells-gl.jsonl.br",
+      "bytes": 18476175,
+      "sha256": "0ccc5318a9b5cc04a16e12db8a5645993eaff652ddb938af28200a45ac2c78a1"
+    },
+    {
+      "name": "shipped-cells-gl-events.jsonl",
+      "archivedAs": "shipped-cells-gl-events.jsonl.br",
+      "bytes": 1331831,
+      "sha256": "0b2910e38455acd68d8bbe6aea37ae556536bfb85cb739f45e6fa966f7cd7420"
+    },
+    {
+      "name": "shipped-cells-gl-uploads.jsonl",
+      "archivedAs": "shipped-cells-gl-uploads.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "manifest.json",
+      "archivedAs": "manifest.json",
+      "bytes": 465,
+      "sha256": "a771a249e77fb1c5d82f8974dd56d6408cfec906740975f1099e37cef5936c17"
+    },
+    {
+      "name": "preflight.json",
+      "archivedAs": "preflight.json",
+      "bytes": 305,
+      "sha256": "3bb16c292eb747ad6c53fd353357b21ed586fd66290748f3a76d3f61a47a2209"
+    },
+    {
+      "name": "run.log",
+      "archivedAs": "run.log",
+      "bytes": 3217,
+      "sha256": "0d6cf59f1b66bb43c65664f22e38e9e9d3462dd601ad73ee438a13353bfbdfd1"
+    },
+    {
+      "name": "shipped-cells.phase",
+      "archivedAs": "shipped-cells.phase",
+      "bytes": 4,
+      "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+    }
+  ]
+}
