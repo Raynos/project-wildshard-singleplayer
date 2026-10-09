@@ -12,7 +12,6 @@ import { cullToSlice, installCascadeCull } from './cascadeCull';
 import { fogUniforms, isUnderwater } from './Atmosphere';
 import type { LevelSpec } from '../level/spec';
 import { SOFT_RADII, installPlaneBiasShadowFilter, installShadowFilter } from './shadowFilter';
-import { setting } from '../ui/Settings';
 import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
 import { patchPointLightSkip } from './pointLightSkip';
 import { registerCascades } from './cascadeLights';
@@ -158,8 +157,8 @@ export class SkyRig {
     const filter = shadows?.filter === 'tent' && rig.phone;
     if (filter) this.renderer.shadowMap.type = installShadowFilter();
     // E435: every other rig gets three's own PCF with a receiver-plane depth bias, or big flat lit faces band with acne
-    // (shadowFilter.ts); Debug ▸ Look ▸ Shadow bias: Old keeps the plain filter
-    else if (setting('shadowBias') === 'new') installPlaneBiasShadowFilter();
+    // Jake picked the receiver-plane bias; the phone tent retains its own filter and bias.
+    else installPlaneBiasShadowFilter();
     patchCSMShaderChunk();
     // E147: a stepped clock's shadow steps may crossfade (shadowFade.ts). E153 (the user's pick A+B, "they all look the
     // same, use the cheapest"): the fading-out ghost is sampled with the 3×3 tent (4 taps)

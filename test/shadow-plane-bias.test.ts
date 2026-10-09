@@ -3,8 +3,12 @@
  * patch must land on r186's chunk, keep three's taps, take its derivatives before the frustum branch, and leave the tent
  * (E138) able to install over it on a later level.
  */
+// oxlint-disable-next-line import/no-nodejs-modules -- Assert the picked boot path has no retired variant branch.
+import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { describe, expect, test } from 'vitest';
+import { OPTION_VALUES } from '../src/engine/ui/Settings';
+import { DEBUG_ROWS } from '../src/engine/ui/debugOptions';
 import { installPlaneBiasShadowFilter, installShadowFilter, planeBiasShadowFilterOn, tentShadowFilterOn } from '../src/engine/world/shadowFilter';
 
 /** the 2D PCF getShadow's source (the first `sampler2DShadow` getShadow up to its return) */
@@ -53,4 +57,13 @@ describe('receiver-plane shadow bias', () => {
     expect(THREE.ShaderChunk.shadowmap_pars_fragment).toBe(tented);
     THREE.ShaderChunk.shadowmap_pars_fragment = stock;
   });
+});
+
+test('keeps the picked bias on every non-tent rig and retires its Debug choice', () => {
+  const rig = readFileSync('src/engine/world/skyRig.ts', 'utf8');
+  expect(rig).toContain('if (filter) this.renderer.shadowMap.type = installShadowFilter();');
+  expect(rig).toContain('else installPlaneBiasShadowFilter();');
+  expect(rig).not.toContain("setting('shadowBias')");
+  expect(Object.hasOwn(OPTION_VALUES, 'shadowBias')).toBe(false);
+  expect(DEBUG_ROWS.some(row => row.id === 'shadowBias')).toBe(false);
 });
