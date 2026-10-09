@@ -7,7 +7,11 @@ import { LOWERED_SEA } from '../world/sea';
 import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captain';
+import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
 import navmeshBaked from './navmesh.baked.json' with { type: 'json' };
+
+/** The tick protocol's command allowance (sdk/tickProtocol.ts): a tick never carries more. */
+const MAX_COMMANDS = 1024;
 
 /** The browser's baked navmesh (public/assets/baked/driftwood-isle/navmesh.bin), from its exact-bytes copy
  *  (scripts/bake-driftwood-navmesh.mjs), parsed by the engine's renderer-free navmesh module. */
@@ -41,19 +45,26 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
  * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts), and the
  * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
- * runtime/captain.ts). Not yet owned (fail-closed, see the SF72 handoff): the swords, the quest and its facts, and the entry
- * proof; `finish` refuses.
+ * runtime/captain.ts), and the two swords on the swept melee family's own clock (a player command's attack is a light tap at
+ * its target; runtime/swords.ts). Not yet owned (fail-closed, see the SF72 handoff): the quest and its facts (the iron
+ * sword's pickup among them: the wooden sword stays in hand), and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
-  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh();
+  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows);
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
-    // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (data/items.ts)
+    // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (runtime/swords.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     if (!context.restoring) addDriftwoodWorld(host, bake);
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     installCaptain(host, bake, island);
+    // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
+    installDriftwoodSwords(host, swords, island, () => {
+      const list = context.commands();
+      for (let i = 0; i < MAX_COMMANDS; i++) { const command = list[i]; if (command === undefined) break; if (command.kind === 'player' && command.attack !== undefined) return command.attack.targetId; }
+      return null;
+    });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
   } };

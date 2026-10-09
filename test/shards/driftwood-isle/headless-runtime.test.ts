@@ -12,6 +12,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { Rng } from '../../../src/engine/core/rng';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
+import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { DRIFTWOOD_ISLE, PRACTICE_CRAB } from '../../../src/shards/driftwood-isle/manifest';
 import { MONKEY } from '../../../src/shards/driftwood-isle/species/monkey';
@@ -20,6 +21,8 @@ import { driftwoodBake } from '../../../src/shards/driftwood-isle/runtime/baked'
 import { CAPTAIN_SCALE, DRIFTWOOD_FIGHT, FAUNA_DRAWS, ISLAND_STEP } from '../../../src/shards/driftwood-isle/runtime/keeper';
 import { ALTAR_FLAG, CAPTAIN_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/captain';
 import { CAPTAIN } from '../../../src/shards/driftwood-isle/species/captain';
+import { SWORDS_STEP, driftwoodSwordProfiles } from '../../../src/shards/driftwood-isle/runtime/swords';
+import { SWORD_IRON, SWORD_WOOD } from '../../../src/game/weapons/starterMeleeProfile';
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
 import { prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
@@ -30,13 +33,20 @@ beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
 });
-const effects = { commands: () => [], emit: () => { throw new Error('the island keeper emits no gameplay effects'); } };
-const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
+/** the tick's commands every booted host reads (the swords' attack taps); empty unless a test fills it */
+let tape: readonly HeadlessCommand[] = [];
+const effects = { commands: () => tape, emit: () => { throw new Error('the island keeper emits no gameplay effects'); } };
+const boot = (): SimHost => { tape = []; const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
 const restore = (saved: string): SimHost => {
   const decoded = decodeSimSnapshot(saved), ports = { ...plan.ports, rapier };
   return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...effects }); });
 };
 const bake = driftwoodBake();
+/** stand the player `gap` m in front of `actor` (on the floor), facing it */
+const standBy = (host: SimHost, actor: { position: Vector3 }, gap: number): void => {
+  const at = new Vector3(actor.position.x, 0, actor.position.z + gap); at.y = bake.floorAt(at.x, at.z) + 0.3;
+  host.player.motor.resetAt(at); host.player.position.copy(at); host.player.yaw = 0;
+};
 /** The player's tape: off the pier landing up the path past the practice crab, then away north and back. */
 const route = [new Vector3(-7, 0, -150), new Vector3(-7, 0, -120), new Vector3(-20, 0, -90), new Vector3(-7, 0, -100)];
 function step(host: SimHost): void {
@@ -283,6 +293,46 @@ it.each([0, 1, 700, 3700])('restores exactly at tick %i (install, mid-walk, afte
     expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ISLAND_STEP)).toBe(true);
   } finally { restored?.dispose(); original.dispose(); }
 }, 90_000);
+
+it('swings the swords on the swept melee clock: the combo\'s blows land on the named target within reach, a blow staggers, and a mid-swing restore is exact', () => {
+  // the page's profiles (loadout/rows.ts): the starter wooden / iron sword with the declared rows' numbers
+  const [wood, iron] = driftwoodSwordProfiles(source.items.rows);
+  expect([wood.id, wood.damage, wood.reach, wood.cooldown, wood.heavyCharge, wood.comboGap, wood.chainLag, wood.moves]).toEqual(['weapon.sword', 12, 2.2, 0.08, 0.45, SWORD_WOOD.comboGap, SWORD_WOOD.chainLag, SWORD_WOOD.moves]);
+  expect([iron.id, iron.damage]).toEqual([SWORD_IRON.id, 28]);
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const crab = original.entities.get('creature:13'); if (crab === undefined) throw new Error('missing big crab');
+    const blows: { amount: number; move: string | undefined; weapon: string | undefined }[] = [];
+    original.events.on('damage.dealt', ({ req }) => { if (req.weaponId !== undefined) blows.push({ amount: req.amount, move: req.moveId, weapon: req.weaponId }); }, original.scope);
+    standBy(original, crab, 1.6);
+    const still = { moveX: 0, moveZ: 0, yaw: 0 }, tap: HeadlessCommand[] = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'creature:13' } }];
+    // a tap every 8 ticks for a second: the light combo runs slash → backhand → finisher, each blow struck once
+    for (let tick = 0; tick < 60; tick++) { tape = tick % 8 === 0 ? tap : []; original.step(still); }
+    tape = [];
+    const swords = v.parse(v.object({ swings: v.number(), hits: v.number() }), JSON.parse(v.parse(v.string(), snapshotSimHost(original).adapters.find(a => a.id === SWORDS_STEP)?.state)));
+    expect(swords.swings).toBeGreaterThanOrEqual(3); expect(swords.hits).toBe(blows.length);
+    expect(blows.slice(0, 3)).toEqual([{ amount: 12, move: 'move.slash', weapon: 'weapon.sword' }, { amount: 12, move: 'move.backhand', weapon: 'weapon.sword' }, { amount: 16, move: 'move.finisher', weapon: 'weapon.sword' }]);
+    expect(crab.stunned || !crab.alive).toBe(true);
+    // a target past the reach is never struck: the clock swings, the blade meets nothing
+    const boar = original.entities.get('creature:1'); if (boar === undefined) throw new Error('missing boar');
+    standBy(original, boar, 6); const before = blows.length;
+    for (let tick = 0; tick < 40; tick++) { tape = tick % 8 === 0 ? [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'creature:1' } }] : []; original.step(still); }
+    expect(blows.length).toBe(before);
+    // up close the blow lands and the boar staggers (the hunting brain hears it); mid-swing the continuation is exact
+    standBy(original, boar, 1.4);
+    for (let tick = 0; tick < 12; tick++) { tape = tick === 0 ? [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'creature:1' } }] : []; original.step(still); }
+    expect(blows.length).toBe(before + 1); expect(boar.stunned).toBe(true);
+    tape = [];
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 240; tick++) {
+      tape = tick % 10 === 0 ? [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'creature:1' } }] : [];
+      original.step(still); restored.step(still);
+    }
+    tape = [];
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { tape = []; restored?.dispose(); original.dispose(); }
+}, 60_000);
 
 it('refuses a saved roster whose recipe no longer matches the baked spec', () => {
   const host = boot();

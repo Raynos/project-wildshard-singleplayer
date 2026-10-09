@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { ATTACK_TURN, HuntBrain, type HuntBody, type HuntGround, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { canReach } from '@wildshard/engine/ai/reach';
@@ -124,8 +124,8 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  *
  * Known differences from the browser (the SF72 handoff): a charge's contact is tested at the start of the next tick (for
  * a body its band stepped), against the player where the charging tick saw it (the host steps bodies after its systems),
- * so its knockback starts one tick later; no 'target.attack' / 'target.dodge' wakes (no weapon or dodge is owned yet); no player
- * push-out (`clearBody`); the coconuts float on the swell at the host clock (the browser's ocean clock starts with its view).
+ * so its knockback starts one tick later; no 'target.dodge' wake (the tick protocol has no dodge; the swords' swing wakes
+ * through `alarm`, runtime/swords.ts); no player push-out (`clearBody`); the coconuts float on the swell at the host clock (the browser's ocean clock starts with its view).
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
@@ -135,6 +135,11 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** AnimalManager.spawn of the captain at his pool (the finale's spawn): the manager's next entity id and spawn draws, the
    *  creature floor, his authored fight; at the end of the manager's list. Once. */
   spawnCaptain: () => HuntBody;
+  /** AnimalManager's 'weapon.fired' wake (interruptTargets 'target.attack'): every live aggressive or sensing body decides
+   *  now (the captain, a self-thinking species with no `tick`, is never interrupted). */
+  alarm: () => void;
+  /** AnimalManager.staggered: a blow's stagger on a fauna body reaches the hunting brain (a self-thinking species holds). */
+  staggered: (a: AnimalSim, strength: number, running: boolean) => void;
   /** On restore, reinstall the bodies spawned in play after every other install-time registration (no-op when fresh). */
   settle: () => void;
 } {
@@ -414,7 +419,14 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (body.actor === null) throw new Error('The Driftwood captain did not spawn');
     return body.actor;
   };
-  const island = { bodies: () => bodies, hunt, captain: () => captain?.actor ?? null, spawnCaptain };
+  const alarm = (): void => {
+    for (let i = 0; i < BODY_COUNT; i++) { const a = bodies[i]?.actor ?? null; if (a !== null && a.alive && (a.aggressive || hunt.sensed(a))) wake(i); }
+  };
+  const staggered = (a: AnimalSim, strength: number, running: boolean): void => {
+    const body = bodies.find(b => b.actor === a && b.brain === null)?.actor ?? null;
+    if (body !== null) hunt.staggered(body, strength, running);
+  };
+  const island = { bodies: () => bodies, hunt, captain: () => captain?.actor ?? null, spawnCaptain, alarm, staggered };
   if (saved === undefined) { keep(); return { ...island, settle: () => undefined }; }
 
   const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === ISLAND_STEP)?.state);
