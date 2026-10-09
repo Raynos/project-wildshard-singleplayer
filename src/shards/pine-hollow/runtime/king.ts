@@ -54,8 +54,10 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
   protected override readonly thrallLanes: Lane<PineHuntBody>[];
   /** the bodies made: his parked prewarm is used once (the page spawned it at boot and keeps it while he lives) */
   private madeFirst = false;
-  constructor(host: SimHost, private readonly ports: PineKingPorts) {
+  private readonly ports: PineKingPorts;
+  constructor(host: SimHost, ports: PineKingPorts) {
     super(host.level.seed);
+    this.ports = ports;
     const reach = (a: PineHuntBody, target: { x: number; y: number; z: number }): boolean => canReach(a, target, host.physics);
     const player = host.player;
     this.ctx = {

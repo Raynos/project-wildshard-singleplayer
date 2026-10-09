@@ -81,12 +81,13 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
   protected readonly who: (typeof PINE_ELITE_ANIMALS)[string];
   readonly streams: PineEliteStreams;
   override readonly def: (typeof PINE_ELITE_DEFS)[string];
-  constructor(id: string, readonly env: PineEliteWorld<B>, seed?: number) {
+  readonly env: PineEliteWorld<B>;
+  constructor(id: string, env: PineEliteWorld<B>, seed?: number) {
     const def = PINE_ELITE_DEFS[id];
     if (def === undefined) throw new Error(`no elite '${id}'`);
     // the level seed's own streams (eliteStreams.ts), never Math.random or the page's salted ones: the same elite every boot
     const streams = pineEliteStreams(def.id, seed);
-    super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def;
+    super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def; this.env = env;
     this.streams = streams;
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);

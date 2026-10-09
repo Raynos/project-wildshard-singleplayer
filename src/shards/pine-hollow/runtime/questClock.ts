@@ -7,7 +7,8 @@ export interface PineClockPorts {
 /** Actual shipping night/dawn decisions, extracted unchanged in SF24 for the same-engine replay oracle. */
 export class LegacyPineClock {
   private dawnT = -1;
-  constructor(private readonly ports: PineClockPorts) {}
+  private readonly ports: PineClockPorts;
+  constructor(ports: PineClockPorts) { this.ports = ports; }
   night(): void {
     this.ports.publish('night.consume', 0);
     if (this.ports.night() < 0.5 && this.ports.hasClock()) this.ports.publish('night.start', 6);

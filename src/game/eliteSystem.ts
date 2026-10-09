@@ -123,7 +123,13 @@ export class EliteCore<S extends EliteCoreScript> {
   private saveT = 0;
   private lastDusk = false;
 
-  constructor(private readonly host: EliteCoreHost, private readonly hooks: EliteCoreHooks<S>, private readonly slug: string, private readonly persistence: EliteCorePersistence) {
+  private readonly host: EliteCoreHost;
+  private readonly hooks: EliteCoreHooks<S>;
+  private readonly slug: string;
+  private readonly persistence: EliteCorePersistence;
+
+  constructor(host: EliteCoreHost, hooks: EliteCoreHooks<S>, slug: string, persistence: EliteCorePersistence) {
+    this.host = host; this.hooks = hooks; this.slug = slug; this.persistence = persistence;
     this.saved = persistence.read(slug);
   }
 
