@@ -3,9 +3,9 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring player tape, Captain continuation and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "9286a12b5a77ae588ccbc0877e9d00904505417b4fb816b85a6a4710cfe9cb2d",
+  "inputs": "4ce7e2bce9d20c2df7399d5a64ebb37f743591b0e77cbaf44bd1f36ed93b5b51",
   "open": [
-    "Page pushout/contact phase and sailor animation-after-body phase are not reproduced exactly by the fixed-step host.",
+    "Animated page rig hit volumes used by pushout and weapon contacts are not reproduced by the native dimension-only body ports.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
     "The reward camera/player carry, zipline and every optional treasure/sea-glass path are not covered by this tape.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "282edad2e897c5bc02940c183a7a3feca353be67c0ec43ee496f912903d587db",
+    "hash": "13ec54bf2cf5bccd8e2f178448e1eb0bc72640fc9ec3eb1959a78c76a1a3fef9",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -65,10 +65,10 @@
   },
   "replay": {
     "status": "passed",
-    "resumedFrom": "tick-20000",
-    "prefixTicks": 1878,
+    "resumedFrom": "tick-10000",
+    "prefixTicks": 8339,
     "checkpointCaptured": true,
-    "checkpointTick": 21878,
+    "checkpointTick": 18339,
     "hp": 190,
     "encounter": {
       "boss": {
@@ -89,11 +89,11 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 916,
-    "hash": "31661d800b1b2cbc7537f3cf49327e51018777de92be4548f26bc36c697fe883",
-    "replayHash": "31661d800b1b2cbc7537f3cf49327e51018777de92be4548f26bc36c697fe883",
+    "hash": "fa2b089d032e1c94b5560b77ae8ed55dc2f568df72a054e67e19de11edd2113c",
+    "replayHash": "fa2b089d032e1c94b5560b77ae8ed55dc2f568df72a054e67e19de11edd2113c",
     "effects": [
       {
-        "tick": 22660,
+        "tick": 19120,
         "effect": {
           "kind": "fact",
           "name": "driftwood.quest",
@@ -101,7 +101,7 @@
         }
       },
       {
-        "tick": 22660,
+        "tick": 19120,
         "effect": {
           "kind": "fact",
           "name": "driftwood.quest",
@@ -115,7 +115,7 @@
   },
   "ledger": {
     "status": "passed",
-    "resumedTick": 21878,
+    "resumedTick": 18339,
     "ticksExecuted": 916,
     "rules": 10,
     "facts": [
@@ -184,7 +184,7 @@
       },
       {
         "name": "driftwood.crab10",
-        "tick": 13786,
+        "tick": 11386,
         "entity": "crab10:1",
         "origin": {
           "kind": "engine",
@@ -193,7 +193,7 @@
       },
       {
         "name": "driftwood.crab10",
-        "tick": 13993,
+        "tick": 11401,
         "entity": "crab10:2",
         "origin": {
           "kind": "engine",
@@ -201,35 +201,8 @@
         }
       },
       {
-        "name": "driftwood.crab10",
-        "tick": 14198,
-        "entity": "crab10:3",
-        "origin": {
-          "kind": "engine",
-          "source": "actor.died"
-        }
-      },
-      {
-        "name": "driftwood.crab10",
-        "tick": 14658,
-        "entity": "crab10:4",
-        "origin": {
-          "kind": "engine",
-          "source": "actor.died"
-        }
-      },
-      {
-        "name": "driftwood.crab10",
-        "tick": 14670,
-        "entity": "crab10:5",
-        "origin": {
-          "kind": "engine",
-          "source": "actor.died"
-        }
-      },
-      {
         "name": "driftwood.shards",
-        "tick": 16656,
+        "tick": 13160,
         "entity": "shards:3",
         "origin": {
           "kind": "engine",
@@ -238,7 +211,7 @@
       },
       {
         "name": "driftwood.glass",
-        "tick": 20354,
+        "tick": 16815,
         "entity": "glass:4",
         "origin": {
           "kind": "engine",
@@ -247,7 +220,7 @@
       },
       {
         "name": "driftwood.quest",
-        "tick": 22660,
+        "tick": 19120,
         "entity": "quest:1",
         "origin": {
           "kind": "engine",
@@ -292,7 +265,7 @@
         "shard": "driftwood-isle",
         "id": "crab10",
         "title": "Crabby",
-        "count": 5,
+        "count": 2,
         "threshold": 10,
         "earned": false
       },

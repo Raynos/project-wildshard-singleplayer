@@ -160,7 +160,7 @@ export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeP
     const saved = v.parse(Saved, JSON.parse(value));
     state.held = saved.held; state.queued = saved.queued; state.struck = saved.struck; state.target = saved.target; state.swings = saved.swings; state.hits = saved.hits;
     clocks[0].restore(saved.clocks[0]); clocks[1].restore(saved.clocks[1]);
-  } });
+  } }, 'afterBodies');
   return {
     held: () => state.held,
     equip: index => { if (index === state.held) return; clocks[state.held].stop(); state.queued = false; state.target = null; state.held = index; },

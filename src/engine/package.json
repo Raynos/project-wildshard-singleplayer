@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./entities/bodyClear": "./entities/bodyClear.ts",
     "./physics/navmesh": "./physics/navmesh.ts",
     "./physics/navmeshLoad": "./physics/navmeshLoad.ts",
     "./entities/ids": "./entities/ids.ts",

@@ -110,18 +110,19 @@ it('starts every pier and jetty where its 15 m socket ends, on whole piling bays
   const { pierStart, seaRamp, level } = G164_LOWERED, deckY = level + 1.2;
   expect(pierStart).toBe(PIER_START); expect(PIER_START).toBe(ENTRY_ASPHALT); expect(pierStart % 3).toBe(0); // pilings stay put
   expect(deckY).toBeCloseTo(SHORE_LEVEL + 1.2 - WORLD_DROP, 12); // the deck where it stood, lowered
-  const params: PierParams = { length: 60 - pierStart, width: 4, pileDepth: 8, landing: null, pennantDir: [0, 1], seaRamp: { run: seaRamp, landY: -deckY } };
+  const params: PierParams = { length: 60 - pierStart, width: 4, pileDepth: 8, landing: null, pennantDir: [0, 1], seaRamp: { run: seaRamp, landY: -deckY, flare: ENTRY_WIDTH } };
   expect(deckY + pierDeckAt(params, 0)).toBe(0); // the ramp's foot is the socket's road height
   expect(pierDeckAt(params, seaRamp)).toBe(0); expect(pierDeckAt(params, seaRamp / 2)).toBeCloseTo(-deckY / 2);
-  // council C3-R2-C2: the ramp runs >= 8 m at <= 8 deg from the socket's inner edge, and its collider is pitched the same
+  // council C3-R2-C2: the ramp runs >= 8 m at <= 8 deg from the socket's inner edge, and its hull's top face follows the same slope
   expect(seaRamp).toBeGreaterThanOrEqual(8); expect(Math.atan2(deckY, seaRamp) * 180 / Math.PI).toBeLessThanOrEqual(8);
-  const pitched = pierColliders(params).filter((d) => d.kind === 'box' && d.rot !== undefined);
-  expect(pitched).toHaveLength(1);
-  for (const d of pitched) if (d.kind === 'box' && d.rot !== undefined) expect(2 * Math.asin(Math.abs(d.rot.x)) * 180 / Math.PI).toBeLessThanOrEqual(8);
+  const hull = pierColliders(params).find((d) => d.kind === 'hull');
+  if (hull?.kind !== 'hull') throw new Error('Flared sea ramp needs its actual hull');
+  expect(Array.from(hull.points)).toEqual([-4.25, -deckY, 0, -4.25, -deckY - 0.2, 0, 4.25, -deckY, 0, 4.25, -deckY - 0.2, 0, -2.25, 0, seaRamp, -2.25, -0.2, seaRamp, 2.25, 0, seaRamp, 2.25, -0.2, seaRamp].map(Math.fround));
   // nothing of the pier stands in the socket above road height (own z = metres in from the pier's start): only the
-  // ramp's 0.2 m foot slab reaches in, flush with the socket, its top at road height (the pitched ramp box rises from it)
+  // ramp's 0.2 m foot slab reaches in, flush with the socket, its top at road height (the flared hull rises from it)
   for (const desc of pierColliders(params)) {
-    if (desc.kind !== 'box') throw new Error('The pier collides as boxes');
+    if (desc.kind === 'hull') continue;
+    if (desc.kind !== 'box') throw new Error('Unexpected pier collider');
     if (desc.rot !== undefined || pierStart + desc.z - desc.hz >= ENTRY_ASPHALT - 1e-9) continue;
     expect(pierStart + desc.z - desc.hz).toBeCloseTo(ENTRY_ASPHALT - 0.2, 9); expect(deckY + desc.y + desc.hy).toBeCloseTo(0, 9);
   }

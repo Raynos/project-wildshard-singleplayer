@@ -1,0 +1,85 @@
+{
+  "diagnostic": "1f97f1300928bfb0ce62eeb99a9e3fa2fca10c7e",
+  "base": "e29ce89a5e1c7e7565b3c32b03c65c8021531a8d",
+  "captures": {
+    "pine-hollow": {
+      "unchangedContent": true,
+      "changedFields": [],
+      "newInputs": [
+        "src/engine/entities/bodyClear.ts"
+      ],
+      "changedInputs": [
+        "src/engine/entities/AnimalManager.ts"
+      ]
+    },
+    "driftwood-isle": {
+      "unchangedContent": true,
+      "changedFields": [],
+      "newInputs": [
+        "src/engine/entities/bodyClear.ts"
+      ],
+      "changedInputs": [
+        "src/engine/entities/AnimalManager.ts",
+        "src/shards/driftwood-isle/models/pier.ts",
+        "src/shards/driftwood-isle/runtime/index.ts",
+        "src/shards/driftwood-isle/world/Pier.ts",
+        "src/shards/driftwood-isle/world/build.ts",
+        "src/shards/driftwood-isle/world/pierRamps.ts"
+      ]
+    },
+    "nalati-grasslands": {
+      "unchangedContent": false,
+      "changedFields": [
+        "spawns"
+      ],
+      "newInputs": [
+        "src/engine/entities/bodyClear.ts"
+      ],
+      "changedInputs": [
+        "src/engine/entities/AnimalManager.ts"
+      ],
+      "earlyFrameExceptions": [
+        {
+          "id": "creature:21",
+          "field": "mem._graze",
+          "before": 0.0002199997901916504,
+          "after": 0.0004400006294250488,
+          "units": "seconds"
+        },
+        {
+          "id": "creature:23",
+          "field": "yaw",
+          "before": -2.4983115445867004,
+          "after": -2.498531545425934,
+          "units": "radians"
+        }
+      ],
+      "classification": "Only first-seen early-RAF clocks/heading differ; actual captured data retained. Source has documented pre-manager shepherd frame; placements/recipes/groups/colliders unchanged."
+    }
+  },
+  "spots": {
+    "unchangedContent": true,
+    "newInputs": [
+      "src/engine/world/interact/prompts.ts"
+    ]
+  },
+  "map": {
+    "byteIdentical": false,
+    "before": "bc0a3345dc8ab9a2389f90f458b68b4d0f46e8df077c226e7f6b7f08693de0e8",
+    "after": "65fd59cd622ce556cb867b3bdf1d2abbf1c13f7ee6b139d2a2eb05dc67b57535",
+    "bytes": 99612,
+    "score": {
+      "ssim": 0.9946023338568778,
+      "full": 0.9946023338568778,
+      "masked": 0,
+      "note": null
+    },
+    "parentSelfScore": {
+      "ssim": 0.994207587902395,
+      "full": 0.994207587902395,
+      "masked": 0,
+      "note": null
+    },
+    "classification": "Official live-map captures include ambient animation. Before/after SSIM exceeds repeated unchanged-parent score; actual flared/flat builder geometry fingerprints match exactly."
+  }
+}

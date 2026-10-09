@@ -39,10 +39,8 @@ export interface PierSeaRamp {
   readonly run: number;
   /** the sand at the sea end, own y (the deck's top is 0) */
   readonly landY: number;
-  /** SF72 (pick (c), flared ramps): the ramp's full width at the sea end, narrowing straight to the deck's width at the
-   *  top of its run (Driftwood's 8 m entry socket, so the road's outer lanes walk up it, not into the sea); absent: the
-   *  ramp is the deck's width all the way (the straight ramp) */
-  readonly flare?: number;
+  /** the full entry width at the sea end, narrowing to the deck at the top (Jake's flared-ramp pick) */
+  readonly flare: number;
 }
 
 export interface PierParams {
@@ -176,7 +174,7 @@ export function pierDeckAt(p: PierParams, along: number): number {
  *  straight from half the flare at the sea end to half the deck at the ramp's top */
 export function pierHalfWidthAt(p: PierParams, along: number): number {
   const sea = p.seaRamp, half = p.width / 2;
-  if (sea?.flare === undefined || along >= sea.run) return half;
+  if (sea === undefined || along >= sea.run) return half;
   const t = Math.max(0, along) / sea.run;
   return sea.flare / 2 + (half - sea.flare / 2) * t;
 }
@@ -221,7 +219,7 @@ export function pierColliders(p: PierParams): ColliderDesc[] {
   const length = p.length, rampFrom = p.landing?.rampFrom ?? length, landY = p.landing?.landY ?? 0;
   const ramped = length > rampFrom + 0.1, sea = p.seaRamp;
   out.push(slab(sea === undefined ? -0.2 : sea.run, ramped ? rampFrom : length + 0.2, 0, 0.15));
-  if (sea?.flare !== undefined) {
+  if (sea !== undefined) {
     // SF72: the flared sea-end ramp, a trapezoid slab (a hull): its top face on the line (0, landY) → (run, 0), half the
     // flare wide at the sea end narrowing to half the deck at the top (each + 0.25, as the deck's slab), 0.2 m thick; plus
     // 0.2 m of flat sand-level deck before it, the flare's width
@@ -231,12 +229,6 @@ export function pierColliders(p: PierParams): ColliderDesc[] {
     }
     out.push({ kind: 'hull', x: 0, y: 0, z: 0, points: new Float32Array(points) });
     out.push(slab(-0.2, 0, sea.landY, 0.1, wide));
-  } else if (sea !== undefined) {
-    // SF46: the sea-end ramp, its top face on the line (0, landY) → (run, 0), plus 0.2 m of flat sand-level deck before it
-    const rise = -sea.landY, pitch = -Math.atan2(rise, sea.run), half = Math.hypot(sea.run, rise) / 2, hy = 0.1;
-    const nAlong = Math.sin(pitch), nUp = Math.cos(pitch);
-    out.push({ kind: 'box', x: 0, y: sea.landY / 2 - hy * nUp, z: sea.run / 2 - hy * nAlong, hx: halfW, hy, hz: half, rot: { x: Math.sin(pitch / 2), y: 0, z: 0, w: Math.cos(pitch / 2) } });
-    out.push(slab(-0.2, 0, sea.landY, 0.1));
   }
   if (ramped) {
     // the ramp: its top face on the line (rampFrom, 0) → (length, landY); pitched about the pier's across axis
@@ -292,14 +284,9 @@ function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeometry; cl
   if (p.seaRamp === undefined) for (const s of [-1, 1]) add(put(new THREE.BoxGeometry(0.22, 0.28, flat + 0.4), flat / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
   else {
     // SF46: the bearers start where the sea-end ramp tops out; the ramp has its own pitched pair
-    const rise = -p.seaRamp.landY, len = Math.hypot(seaRun, rise), ang = -Math.atan2(rise, seaRun);
+    const rise = -p.seaRamp.landY;
     for (const s of [-1, 1]) add(put(new THREE.BoxGeometry(0.22, 0.28, flat - seaRun + 0.2), (flat + seaRun) / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
     for (const s of [-1, 1]) {
-      if (p.seaRamp.flare === undefined) {
-        const g = new THREE.BoxGeometry(0.22, 0.28, len); g.rotateX(ang);
-        add(put(g, seaRun / 2, s * (width / 2 - 0.35), bearerY - rise / 2), C.plankDark, 0.05);
-        continue;
-      }
       // SF72: on a flared ramp each bearer runs under its own edge, from the sea end's flare in to the deck's width
       const from = s * (p.seaRamp.flare / 2 - 0.35), to = s * (width / 2 - 0.35), dir = new THREE.Vector3(to - from, rise, seaRun);
       const g = new THREE.BoxGeometry(0.22, 0.28, dir.length());
@@ -368,7 +355,7 @@ function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeometry; cl
   }
   // ── the sea end: a low kick board so the deck reads as an end, not a cut (SF72: none on a flared sea ramp, where it
   // hung at deck height over the ramp's foot; the ramp meets the landing) ──
-  if (p.seaRamp?.flare === undefined) add(put(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);
+  if (p.seaRamp === undefined) add(put(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);
   return { deck: mergeGeometries(parts, false), cloth };
 }
 

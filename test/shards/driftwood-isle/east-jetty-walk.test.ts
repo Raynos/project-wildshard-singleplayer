@@ -1,3 +1,4 @@
+import { ENTRY_WIDTH } from '../../../src/engine/core/config';
 import { expect, it } from 'vitest';
 import { Scope } from '../../../src/engine/app/scope';
 import { withOwner } from '../../../src/engine/app/ownership';
@@ -22,7 +23,7 @@ it.each([1, -1])('walks the actual east jetty in direction %i without extending 
   const scope = new Scope('east-jetty'), physics = new Physics(await loadRapier(await (await fetch(wasmInline)).arrayBuffer()));
   const { pierStart: cut, level, seaRamp } = G164_LOWERED;
   const pier = withOwner(scope, () => new Pier(fakeWorld().sky, { x: jetty.x + Math.sin(jetty.rot) * cut, z: 0, rot: jetty.rot,
-    length: jetty.length - cut, width: 3, deckY: level + 1.2, landing: jetty.landing ?? false, seaRamp }).build());
+    length: jetty.length - cut, width: 3, deckY: level + 1.2, landing: jetty.landing ?? false, seaRamp: { run: seaRamp, flare: ENTRY_WIDTH } }).build());
   const placed = pier.placed; if (placed === null) throw new Error('Missing actual placed pier');
   expect(pier.floorHeightAt(177.7, 0)).toBeUndefined();
   expect(pier.floorHeightAt(178, 0)).toBeCloseTo(terrain.heightAt(178, 0) + 0.12, 3);

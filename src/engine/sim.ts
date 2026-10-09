@@ -138,6 +138,7 @@ export class SimHost {
   physics: Physics;
   readonly player: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
+  private readonly afterCallbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly weapons = new Map<string, StrikeSpec>();
   private readonly dynamicActors = new Set<string>();
   private readonly targetIds = new Map<string, string>();
@@ -274,7 +275,7 @@ export class SimHost {
    * The installer reinstalls the saved dynamic roster before restore; native motors belong to this host, never its caller.
    */
   spawn(spawn: SimSpawn): AnimalSim {
-    if (this.disposed || this.entities.has(spawn.id) || spawn.id === this.player.id || this.adapters.has(`runtime.actor.${spawn.id}`) || this.callbacks.has(`runtime.actor.${spawn.id}`)
+    if (this.disposed || this.entities.has(spawn.id) || spawn.id === this.player.id || this.adapters.has(`runtime.actor.${spawn.id}`) || this.hasStep(`runtime.actor.${spawn.id}`)
       || !/^[a-zA-Z0-9._:-]{1,128}$/u.test(spawn.id) || ![spawn.seed, spawn.scale, spawn.at.x, spawn.at.y, spawn.at.z, spawn.yaw].every(Number.isFinite) || spawn.scale <= 0) throw new Error('Invalid dynamic simulation actor');
     const recipe = structuredClone(spawn), contract = JSON.stringify(recipe);
     const actor = withOwner(null, () => this.createActor(recipe));
@@ -445,17 +446,19 @@ export class SimHost {
     this.stepSystems(); this.events.flush('fixed.post');
   }
   /** Preflight a fixed-step registration without installing a callback or consuming any simulation state. */
-  hasStep(id: string): boolean { return this.callbacks.has(id); }
-  /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
-  onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {
-    if (this.disposed || this.callbacks.has(id) || this.adapters.has(id)) throw new Error(`Invalid simulation registration ${id}`);
-    this.callbacks.set(id, run); if (adapter !== undefined) this.adapters.set(id, adapter);
+  hasStep(id: string): boolean { return this.callbacks.has(id) || this.afterCallbacks.has(id); }
+  /** Scoped fixed-step work before bodies by default; afterBodies matches equipment following creature contact.
+   * Removing a registration releases its future snapshot adapter. Registration order remains snapshot order. */
+  onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter, phase: 'beforeBodies' | 'afterBodies' = 'beforeBodies'): () => void {
+    if (this.disposed || this.hasStep(id) || this.adapters.has(id)) throw new Error(`Invalid simulation registration ${id}`);
+    const callbacks = phase === 'afterBodies' ? this.afterCallbacks : this.callbacks;
+    callbacks.set(id, run); if (adapter !== undefined) this.adapters.set(id, adapter);
     let registered = true;
     let forget: () => void = () => undefined;
     const remove = (): void => {
       if (!registered) return;
       registered = false; forget(); // an early remove drops the host scope's hold on `run`
-      this.callbacks.delete(id); this.adapters.delete(id);
+      callbacks.delete(id); this.adapters.delete(id);
     };
     forget = this.scope.capture('disposers', remove); return remove;
   }
@@ -629,6 +632,7 @@ export class SimHost {
       entity.step(dt);
       hooks?.after?.(id, entity, dt);
     }
+    for (const run of this.afterCallbacks.values()) run(FIXED_STEP, this);
   }
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
   advance(seconds: number, command?: SimCommand): number {

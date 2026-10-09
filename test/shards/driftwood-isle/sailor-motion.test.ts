@@ -32,3 +32,12 @@ it('matches the actual shipping rise/sink and deck smoothing for 10k body frames
     else if (restored !== undefined) { stepSailorMotion(restored, dt); expect(restored).toEqual(native); }
   }
 }, 15_000);
+
+
+it('keeps the renderer-free rise transition inside the shipping animation distance fence', () => {
+  const page = readFileSync('src/engine/entities/AnimalManager.ts', 'utf8');
+  const keeper = readFileSync('src/shards/driftwood-isle/runtime/keeper.ts', 'utf8');
+  const distance = /const ANIM_LOD = (\d+);/u.exec(page)?.[1];
+  expect(distance).toBeDefined(); expect(keeper).toContain(`const ANIM_LOD = ${String(distance)};`);
+  expect(keeper).toContain("if (body.kind === 'sailor' && sailorNear) stepSailorMotion(a, dt);");
+});

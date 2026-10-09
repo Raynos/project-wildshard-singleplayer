@@ -81,7 +81,7 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
   type Ports = typeof ports;
   const wrap = (brain: { think: (c: Ports) => void; act: (c: Ports) => void }, policy: { snapshot: () => SimValue; restore: (value: SimValue) => void }): EnemyBrain => ({
     decide: dt => { ports.dt = dt; ports.t = host.clock.now; brain.think(ports); },
-    move: dt => { ports.dt = dt; ports.t = host.clock.now; brain.act(ports); if (kind === 'sailor') stepSailorMotion(actor, dt); },
+    move: dt => { ports.dt = dt; ports.t = host.clock.now; brain.act(ports); },
     snapshot: () => policy.snapshot(),
     restore: value => { policy.restore(value); },
   });

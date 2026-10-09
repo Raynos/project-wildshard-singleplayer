@@ -36,7 +36,6 @@ import { deckPlacements, deckRects, deckSlabs, onDeck } from './entryDeck';
 import { entryDeck } from '../models/entryDeck';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
-import { pierRampPick } from './pierRamps';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -80,9 +79,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield')]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
-  // SF72 (pick (c)): each sea ramp flares from the full entry socket at the landing to its deck; the Debug row keeps the old
-  // straight ramps for Jake's pick (./pierRamps.ts)
-  const cut = lowered.pierStart, seaRamp = { seaRamp: lowered.seaRamp, ...(pierRampPick() === 'flared' ? { seaFlare: ENTRY_WIDTH } : {}) };
+  // Jake's SF72 pick: each sea ramp flares from the full entry socket at the landing to its deck.
+  const cut = lowered.pierStart, seaRamp = { seaRamp: { run: lowered.seaRamp, flare: ENTRY_WIDTH } };
   // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];

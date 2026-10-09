@@ -7,7 +7,7 @@ export function pinePhysicsInputs(root) {
   const paths = ['layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/fauna.ts']
     .map(path => `src/shards/pine-hollow/${path}`);
   // the shared creature rows Pine's herds derive their simulation fields from, the manager and the hunting brain that roll them
-  paths.push('scripts/bake-pine-physics.mjs', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
+  paths.push('scripts/bake-pine-physics.mjs', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

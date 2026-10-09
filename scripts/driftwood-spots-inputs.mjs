@@ -14,7 +14,7 @@ const MOVERS = new Set(['src/shards/driftwood-isle/data/movers.ts']);
  */
 export function driftwoodSpotsInputs(root) {
   const paths = ['shard.config.ts', 'manifest.ts', 'runtime/finale.ts'].map(path => `src/shards/driftwood-isle/${path}`);
-  paths.push('src/engine/world/interact/Interactables.ts', 'src/engine/world/interact/pickup.ts', 'src/engine/physics/terrain.ts');
+  paths.push('src/engine/world/interact/Interactables.ts', 'src/engine/world/interact/prompts.ts', 'src/engine/world/interact/pickup.ts', 'src/engine/physics/terrain.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

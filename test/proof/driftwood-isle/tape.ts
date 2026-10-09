@@ -50,7 +50,13 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   go(154.7, -1.3); act('hold-winch', 'winch:up'); act('strongbox', 'shard:wreck');
   go(152.7, 3); tick([{ kind: 'script', actorId: 'driftwood.interact', value: 1 }]); await mark('wreck');
   walk([[152, 2.5], [150.5, 1.8], [149, 1.2], [147, 0.8]]);
-  for (const [id, a] of host.entities) if (a.kind === 'crab' && a.alive && Math.hypot(a.position.x - 144.9, a.position.z - 9.9) < 20) await fight(id, 1.2, 50);
+  // Clear the actual plate approach in nearest-first order. Chasing the first roster crab through the wreck's solid hull is not a player route.
+  const plateCrabs = [...host.entities].filter(([, a]) => a.kind === 'crab' && a.alive && Math.hypot(a.position.x - 144.9, a.position.z - 9.9) < 12);
+  const threats = plateCrabs.length;
+  for (let i = 0; i < threats; i++) {
+    plateCrabs.sort(([, a], [, b]) => a.position.distanceToSquared(host.player.position) - b.position.distanceToSquared(host.player.position));
+    const row = plateCrabs.shift(); if (row !== undefined) await fight(row[0], 1.2, 50);
+  }
   const state = v.parse(v.object({ barrel: v.object({ handle: v.number() }) }), host.adapters.get(QUEST_STEP)?.snapshot());
   const body = host.physics.world.getRigidBody(state.barrel.handle), at = (): ReturnType<typeof body.translation> => body.translation();
   const home = { x: 147.5, z: 3.5 }, plate = { x: 144.9, z: 9.9 };

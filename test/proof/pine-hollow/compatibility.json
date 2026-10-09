@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "126b222bc2b5e24e15bec4bb6e0c1ec1d1eca3195dfc47142de0cb4a8ba49c1d",
+  "inputs": "eea6cca66434423584edf5200043442079298c99c52da2dfb12961c631f95cc3",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",

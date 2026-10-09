@@ -1,7 +1,7 @@
 {
-  "inputs": "4d2175e600a41ed373c31f8b4d77c98d288149a8bcdc00ee05289924eca4f1fc",
-  "tape": "c10f826f681d7acdef18324337440a5e4f1672d0b2a64c5dcc1c26d9838d8026",
-  "ticks": 22794,
+  "inputs": "4ce7e2bce9d20c2df7399d5a64ebb37f743591b0e77cbaf44bd1f36ed93b5b51",
+  "tape": "2cfc3356171e68cb146109fef67ceef1ece208f1dcf67b2f76e9f1d2fa457128",
+  "ticks": 19255,
   "effects": [
     {
       "tick": 1011,
@@ -60,7 +60,7 @@
       }
     },
     {
-      "tick": 13786,
+      "tick": 11386,
       "effect": {
         "kind": "fact",
         "name": "driftwood.crab10",
@@ -68,7 +68,7 @@
       }
     },
     {
-      "tick": 13993,
+      "tick": 11401,
       "effect": {
         "kind": "fact",
         "name": "driftwood.crab10",
@@ -76,31 +76,7 @@
       }
     },
     {
-      "tick": 14198,
-      "effect": {
-        "kind": "fact",
-        "name": "driftwood.crab10",
-        "actorId": "crab10:3"
-      }
-    },
-    {
-      "tick": 14658,
-      "effect": {
-        "kind": "fact",
-        "name": "driftwood.crab10",
-        "actorId": "crab10:4"
-      }
-    },
-    {
-      "tick": 14670,
-      "effect": {
-        "kind": "fact",
-        "name": "driftwood.crab10",
-        "actorId": "crab10:5"
-      }
-    },
-    {
-      "tick": 16656,
+      "tick": 13160,
       "effect": {
         "kind": "fact",
         "name": "driftwood.shards",
@@ -108,7 +84,7 @@
       }
     },
     {
-      "tick": 20354,
+      "tick": 16815,
       "effect": {
         "kind": "fact",
         "name": "driftwood.glass",
@@ -116,7 +92,7 @@
       }
     },
     {
-      "tick": 22660,
+      "tick": 19120,
       "effect": {
         "kind": "fact",
         "name": "driftwood.quest",
@@ -124,7 +100,7 @@
       }
     },
     {
-      "tick": 22660,
+      "tick": 19120,
       "effect": {
         "kind": "fact",
         "name": "driftwood.quest",
@@ -136,15 +112,15 @@
     {
       "name": "spawn",
       "tick": 0,
-      "sha": "831a8bc0b4286e37675590a15af06262b6768107d0bbfa70cfee1e377f20cd4c",
-      "digest": "8be9215131c6a0b01b2915764ac7f4a5f60502989704bc3341a928045734e18e",
+      "sha": "1a46bc7e5c8a3c08a5f05892a79fa4d5214d4983d1625ba1c9847a261eb3d9ff",
+      "digest": "e3b8eb07689989c54c57752bcadcc550f00840149f806da38829f18f48ff4c25",
       "profile": []
     },
     {
       "name": "tick-10000",
       "tick": 10000,
-      "sha": "bc01b3afdad48fa636ed61271a3ac861f2f86409cd77e172615fb65b66931ea7",
-      "digest": "282edad2e897c5bc02940c183a7a3feca353be67c0ec43ee496f912903d587db",
+      "sha": "9cc8b5e6a033a46a98345f00333626443f8c21ade34253006dcb765891b1c7e0",
+      "digest": "13ec54bf2cf5bccd8e2f178448e1eb0bc72640fc9ec3eb1959a78c76a1a3fef9",
       "profile": [
         [
           "wildshard.save.v2.device",
@@ -161,30 +137,10 @@
       ]
     },
     {
-      "name": "tick-20000",
-      "tick": 20000,
-      "sha": "f3d925465bf387d9f2c5aa266e2c090555babd66b366c1dd78e1dc2b40d08df7",
-      "digest": "e3894a79cbf84026096daef767dc59c661a4e90db9f23116eb49cb75db083605",
-      "profile": [
-        [
-          "wildshard.save.v2.device",
-          "{\"keys\":{}}"
-        ],
-        [
-          "wildshard.save.v2.global",
-          "{\"keys\":{}}"
-        ],
-        [
-          "wildshard.save.v2.profile",
-          "{\"keys\":{\"platform.ledger\":{\"v\":1,\"data\":{\"facts\":{\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:1\\\",1011,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:1\",\"tick\":1011,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:2\\\",1499,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:2\",\"tick\":1499,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"castaway:1\\\",1777,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"castaway:1\",\"tick\":1777,\"ordinal\":0,\"name\":\"driftwood.castaway\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:3\\\",5003,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:3\",\"tick\":5003,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:1\\\",6218,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:1\",\"tick\":6218,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"sailor:1\\\",10704,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"sailor:1\",\"tick\":10704,\"ordinal\":0,\"name\":\"driftwood.sailor\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:2\\\",11101,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:2\",\"tick\":11101,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:1\\\",13786,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:1\",\"tick\":13786,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:2\\\",13993,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:2\",\"tick\":13993,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:3\\\",14198,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:3\",\"tick\":14198,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:4\\\",14658,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:4\",\"tick\":14658,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:5\\\",14670,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:5\",\"tick\":14670,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:3\\\",16656,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:3\",\"tick\":16656,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}}},\"entitlements\":{},\"items\":{},\"achievements\":{\"[\\\"driftwood-isle\\\",\\\"glass\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"glass\",\"title\":\"Sea Glass Hoarder\",\"count\":3,\"threshold\":15,\"earned\":false},\"[\\\"driftwood-isle\\\",\\\"castaway\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"castaway\",\"title\":\"Honorary Castaway\",\"count\":1,\"threshold\":1,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"shards\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"shards\",\"title\":\"Keeper of the Ring\",\"count\":3,\"threshold\":3,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"sailor\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"sailor\",\"title\":\"Deckhand's Nightmare\",\"count\":1,\"threshold\":1,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"crab10\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"crab10\",\"title\":\"Crabby\",\"count\":5,\"threshold\":10,\"earned\":false}}}}}}"
-        ]
-      ]
-    },
-    {
       "name": "captain",
-      "tick": 21878,
-      "sha": "e96d0a9881f9b06b61b274ef1b79314be690cf9df0cf5c7d8a6537784ecaca1a",
-      "digest": "b371c9729cf516b87e8281067739331e2ce4dec572dbd1941bf6cacf3ba0a235",
+      "tick": 18339,
+      "sha": "f1f090b3d647dad8f36ff7f813c2da92dc603967c01dfe2341c1e7d6dc4d9655",
+      "digest": "a3f13c78b77d2c7d532fa2b295807662e50e8a67f2fc85417072b191ecf09c9c",
       "profile": [
         [
           "wildshard.save.v2.device",
@@ -196,10 +152,10 @@
         ],
         [
           "wildshard.save.v2.profile",
-          "{\"keys\":{\"platform.ledger\":{\"v\":1,\"data\":{\"facts\":{\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:1\\\",1011,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:1\",\"tick\":1011,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:2\\\",1499,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:2\",\"tick\":1499,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"castaway:1\\\",1777,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"castaway:1\",\"tick\":1777,\"ordinal\":0,\"name\":\"driftwood.castaway\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:3\\\",5003,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:3\",\"tick\":5003,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:1\\\",6218,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:1\",\"tick\":6218,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"sailor:1\\\",10704,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"sailor:1\",\"tick\":10704,\"ordinal\":0,\"name\":\"driftwood.sailor\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:2\\\",11101,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:2\",\"tick\":11101,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:1\\\",13786,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:1\",\"tick\":13786,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:2\\\",13993,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:2\",\"tick\":13993,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:3\\\",14198,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:3\",\"tick\":14198,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:4\\\",14658,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:4\",\"tick\":14658,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:5\\\",14670,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:5\",\"tick\":14670,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:3\\\",16656,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:3\",\"tick\":16656,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:4\\\",20354,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:4\",\"tick\":20354,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}}},\"entitlements\":{},\"items\":{},\"achievements\":{\"[\\\"driftwood-isle\\\",\\\"glass\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"glass\",\"title\":\"Sea Glass Hoarder\",\"count\":4,\"threshold\":15,\"earned\":false},\"[\\\"driftwood-isle\\\",\\\"castaway\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"castaway\",\"title\":\"Honorary Castaway\",\"count\":1,\"threshold\":1,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"shards\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"shards\",\"title\":\"Keeper of the Ring\",\"count\":3,\"threshold\":3,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"sailor\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"sailor\",\"title\":\"Deckhand's Nightmare\",\"count\":1,\"threshold\":1,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"crab10\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"crab10\",\"title\":\"Crabby\",\"count\":5,\"threshold\":10,\"earned\":false}}}}}}"
+          "{\"keys\":{\"platform.ledger\":{\"v\":1,\"data\":{\"facts\":{\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:1\\\",1011,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:1\",\"tick\":1011,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:2\\\",1499,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:2\",\"tick\":1499,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"castaway:1\\\",1777,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"castaway:1\",\"tick\":1777,\"ordinal\":0,\"name\":\"driftwood.castaway\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:3\\\",5003,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:3\",\"tick\":5003,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:1\\\",6218,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:1\",\"tick\":6218,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"sailor:1\\\",10704,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"sailor:1\",\"tick\":10704,\"ordinal\":0,\"name\":\"driftwood.sailor\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:2\\\",11101,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:2\",\"tick\":11101,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:1\\\",11386,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:1\",\"tick\":11386,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"crab10:2\\\",11401,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"crab10:2\",\"tick\":11401,\"ordinal\":0,\"name\":\"driftwood.crab10\",\"origin\":{\"kind\":\"engine\",\"source\":\"actor.died\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"shards:3\\\",13160,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"shards:3\",\"tick\":13160,\"ordinal\":0,\"name\":\"driftwood.shards\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}},\"[\\\"driftwood-witness\\\",\\\"driftwood-isle\\\",2,\\\"glass:4\\\",16815,0]\":{\"instance\":\"driftwood-witness\",\"shard\":\"driftwood-isle\",\"revision\":2,\"entity\":\"glass:4\",\"tick\":16815,\"ordinal\":0,\"name\":\"driftwood.glass\",\"origin\":{\"kind\":\"engine\",\"source\":\"quest.progress\"}}},\"entitlements\":{},\"items\":{},\"achievements\":{\"[\\\"driftwood-isle\\\",\\\"glass\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"glass\",\"title\":\"Sea Glass Hoarder\",\"count\":4,\"threshold\":15,\"earned\":false},\"[\\\"driftwood-isle\\\",\\\"castaway\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"castaway\",\"title\":\"Honorary Castaway\",\"count\":1,\"threshold\":1,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"shards\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"shards\",\"title\":\"Keeper of the Ring\",\"count\":3,\"threshold\":3,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"sailor\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"sailor\",\"title\":\"Deckhand's Nightmare\",\"count\":1,\"threshold\":1,\"earned\":true},\"[\\\"driftwood-isle\\\",\\\"crab10\\\"]\":{\"shard\":\"driftwood-isle\",\"id\":\"crab10\",\"title\":\"Crabby\",\"count\":2,\"threshold\":10,\"earned\":false}}}}}}"
         ]
       ]
     }
   ],
-  "endDigest": "bbc0abc84a93291b274e185f3617ab1d12085753d61f1a7132e9850e84d61837"
+  "endDigest": "427d5e21bff298702ab36ae3604e52f9ce82254e52e8faccbd5c6f8854ee08bb"
 }

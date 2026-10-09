@@ -1,3 +1,4 @@
+import { clearBody as clearNativeBody } from './bodyClear';
 import { EntityIds } from './ids';
 import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
@@ -136,7 +137,7 @@ export type Herd = HuntHerd<Animal>;
 /** the far LOD distance of the per-frame animation (m) */
 const ANIM_LOD = 140;
 /** E297 body clearance: the player's capsule radius (Player.ts RADIUS) + a margin for the camera's near plane (m) */
-const CLEAR_PLAYER = 0.38 + 0.3;
+
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
@@ -154,35 +155,8 @@ export interface BodyClearable {
   headWorld: (out: THREE.Vector3) => THREE.Vector3;
 }
 
-/**
- * E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than its
- * own radius + CLEAR_PLAYER is moved straight back out through its physics motor, so a wall or a rock behind it stops it
- * (then the player's own knock-back does the rest). No motor, no move (E323: physics owns collision, nothing is pushed
- * blind into a wall). No motor means a ridden horse (Mount's body carries it) or a world without physics: every live,
- * shown animal near the player has one, since CreatureBodies.sync runs first in the update. True when it pushed.
- */
-export function clearBody(a: BodyClearable, player: THREE.Vector3): boolean {
-  const motor = a.motor;
-  if (motor === null) return false;
-  if (Math.abs(player.y - a.position.y) > 2.5) return false;
-  a.bodyCapsule(_a, _b); a.headWorld(_c);
-  // the segment rump (_a) → head (_c), flattened
-  const sx = _c.x - _a.x, sz = _c.z - _a.z, len2 = sx * sx + sz * sz;
-  const t = len2 > 1e-6 ? THREE.MathUtils.clamp(((player.x - _a.x) * sx + (player.z - _a.z) * sz) / len2, 0, 1) : 0;
-  const qx = _a.x + sx * t, qz = _a.z + sz * t;
-  let ox = qx - player.x, oz = qz - player.z;
-  const dist = Math.hypot(ox, oz);
-  const min = Math.max(a.dims.bodyRadius, a.dims.headRadius) * a.scale + CLEAR_PLAYER;
-  if (dist >= min) return false;
-  if (dist > 1e-3) { ox /= dist; oz /= dist; } else { ox = -Math.sin(a.yaw); oz = -Math.cos(a.yaw); } // dead centre: straight back
-  const push = min - dist;
-  const x0 = a.position.x, z0 = a.position.z, y = a.position.y;
-  _d.set(ox * push, 0, oz * push);
-  motor.move(a.position, _d, true);
-  a.position.y = y; // the motor ignores the terrain: the animal's ground follow owns y
-  a.mesh.position.x += a.position.x - x0; a.mesh.position.z += a.position.z - z0; // this frame's pose already went out
-  return true;
-}
+/** Shared renderer-free law; the page mesh follows the same native displacement. */
+export function clearBody(a: BodyClearable, player: THREE.Vector3): boolean { return clearNativeBody(a, player); }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Blood: a pooled particle burst + pooled ground decals

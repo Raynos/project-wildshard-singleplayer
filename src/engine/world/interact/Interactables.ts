@@ -30,7 +30,6 @@ import { boxInFrame, type BoxSpec as Collider } from '../../physics/box';
 import { boxDesc, type Piece } from '../registry';
 import type { Physics } from '../../physics/Physics';
 import type { GroupName } from '../../physics/groups';
-import { castSegment, lineOfSight } from '../../physics/query';
 import { overlapBox, type Body } from '../../physics/bodies';
 import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, type BarrelEnv } from './barrel';
 import { waterLevel } from '../Heightfield';
@@ -39,6 +38,7 @@ import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDe
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
 import { walkInPickup } from './pickup';
+import { pickPrompt, promptVisible, setPromptSight, PROMPT_SIGHT_SLACK } from './prompts';
 
 export interface InteractEvent {
   type: 'open' | 'locked' | 'take' | 'lever' | 'door' | 'press' | 'release' | 'light' | 'sit' | 'use' | 'found' | 'barrel-reset';
@@ -126,28 +126,17 @@ const parked = (c: Collider): boolean => c.yTop < -1e5;
  */
 export interface Sight { slack: number; body?: object | null }
 /** the slack of a prompt nobody described (a pickup orb, an NPC's head, a zipline platform) */
-export const SIGHT_SLACK = 0.5;
-const sights = new WeakMap<Interactable, Sight>();
-export function setSight(it: Interactable, s: Sight): void { sights.set(it, s); }
+export const SIGHT_SLACK = PROMPT_SIGHT_SLACK;
+export function setSight(it: Interactable, s: Sight): void { setPromptSight(it, s); }
 
 /** Does `eye` see the prompt? — no world surface between them but its own body. No physics world (boot, node) → yes. */
 export function canSee(physics: Physics | null, eye: { x: number; y: number; z: number }, it: Interactable): boolean {
-  if (!physics) return true;
-  const s = sights.get(it);
-  if (lineOfSight(physics, eye, it.position, s?.slack ?? SIGHT_SLACK)) return true;
-  const body = s?.body;
-  return body !== undefined && body !== null && castSegment(physics, eye, it.position)?.owner === body;
+  return promptVisible(physics, eye, it);
 }
 
 /** The nearest prompt within its own radius of `eye` that `eye` can see (main.ts's "[E] …" pick, and so the E key). */
 export function pickInteractable<T extends Interactable>(list: readonly T[], eye: THREE.Vector3, physics: Physics | null): T | undefined {
-  let best = Infinity, pick: T | undefined, weakBest = Infinity, weak: T | undefined;
-  for (const it of list) {
-    const d = it.position.distanceTo(eye);
-    if (it.weak === true) { if (d < it.radius && d < weakBest && canSee(physics, eye, it)) { weakBest = d; weak = it; } continue; }
-    if (d < it.radius && d < best && canSee(physics, eye, it)) { best = d; pick = it; }
-  }
-  return pick ?? weak;
+  return pickPrompt(list, eye, physics);
 }
 
 const T = (x: number, y: number, z: number, out: THREE.Matrix4, rx = 0, ry = 0, rz = 0, s = 1): void => {

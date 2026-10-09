@@ -36,7 +36,7 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 
 /** Every named result is scoped; the remaining page laws below keep whole-shard admission closed. */
 export const OPEN = [
-  'Page pushout/contact phase and sailor animation-after-body phase are not reproduced exactly by the fixed-step host.',
+  'Animated page rig hit volumes used by pushout and weapon contacts are not reproduced by the native dimension-only body ports.',
   'Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.',
   'The reward camera/player carry, zipline and every optional treasure/sea-glass path are not covered by this tape.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',

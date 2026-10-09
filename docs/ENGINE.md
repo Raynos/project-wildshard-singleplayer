@@ -1849,9 +1849,18 @@ The composition root installs the gold coin geometry recipe with `installCoinMod
 The embedding root loads Rapier WASM and supplies it to `createSimHost(level, { rapier })`; plain level data
 defines the heightfield, player, creature identities, strike timings and quests. `step(command)` advances one
 60 Hz tick; `advance(seconds, command)` retains its fixed-step accumulator. Each host owns its physics,
-clock, RNG, events, entities, damage pipeline, flags, quest progress and timers. `onStep(id, run, adapter?)`
-registers scoped per-instance behaviour with optional continuation state; `SimSlots` provides typed script
-memory, module globals, quest data and ledger dedupe slots for the F1 adapters. `dispose()` frees the host.
+clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
+`onStep(id, run, adapter?, phase?)` registers scoped per-instance behaviour with optional continuation state.
+The default `beforeBodies` phase preserves existing fixed-step order; `afterBodies` runs after every creature
+body and its contact hook, for equipment that follows the creature loop. `useBodyStep({ before, after })`
+wraps each actual body step once, in actor order; paused bodies run neither hook. Installation and restore
+register the same phases without advancing them. `SimSlots` provides typed script memory, module globals,
+quest data and ledger dedupe slots for the F1 adapters. `dispose()` frees the host.
+
+`@wildshard/engine/entities/bodyClear` defines the renderer-free `clearBody(actor, player)` law: an overlapping
+creature moves through its native motor, respecting walls while retaining its ground-follow height.
+The page AnimalManager forwards to this same law; an optional mesh receives the displacement after its pose
+was drawn. No motor means no displacement.
 
 
 Trusted deferred keepers use `SimHost.spawn(SimSpawn)` and `retire(id)`. A spawn copies its pure
