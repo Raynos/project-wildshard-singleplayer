@@ -9,6 +9,7 @@
     "./runtime/viewmodel/rigArms": "./runtime/viewmodel/rigArms.ts",
     "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
+    "./species": "./species.ts",
     "./flyers": "./flyers.ts",
     "./grazers": "./grazers.ts",
     "./version": "./version.ts",

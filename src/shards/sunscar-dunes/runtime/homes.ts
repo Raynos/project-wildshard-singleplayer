@@ -7,10 +7,10 @@ import { patrolDiver } from '@wildshard/sdk/flyers';
 import { RAY_BRAIN, STRIDER_BRAIN } from '../data/brains';
 import { SIGNAL_SPAWNS } from '../data/spawns';
 import { RAY_HOME, SEED } from '../data/layout';
-import { DUNE_RAY } from './species/duneRay';
-import { DUNE_STRIDER } from './species/strider';
-import { SKITTERER_DATA } from './species/skitterer';
-import { MATRIARCH_DATA } from './species/matriarch';
+import { DUNE_RAY } from '../data/species/duneRay';
+import { DUNE_STRIDER } from '../data/species/strider';
+import { SKITTERER_DATA } from '../data/species/skitterer';
+import { MATRIARCH_DATA } from '../data/species/matriarch';
 import { homeBrain } from './homeBrains';
 
 /** The homes keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */

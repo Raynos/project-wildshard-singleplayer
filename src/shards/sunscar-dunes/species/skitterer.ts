@@ -1,4 +1,5 @@
-import { SKITTERER_DATA, SkittererBrain } from '../runtime/species/skitterer';
+import { SkittererBrain } from '../runtime/species/skitterer';
+import { SKITTERER_DATA } from '../data/species/skitterer';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';

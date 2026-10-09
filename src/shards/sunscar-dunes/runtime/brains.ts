@@ -1,18 +1,21 @@
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { ChallengeGrazerBrain } from '@wildshard/engine/ai/challengeGrazer';
 import { PatrolDiverBrain } from '@wildshard/engine/ai/patrolDiver';
 import { challengeGrazer } from '@wildshard/sdk/grazers';
 import { patrolDiver } from '@wildshard/sdk/flyers';
 import { STRIDER_BRAIN, RAY_BRAIN } from '../data/brains';
-import { DUNE_STRIDER, CHARGE, HORNS } from './species/strider';
-import { DUNE_RAY, SWOOP } from './species/duneRay';
+import { CHARGE, HORNS } from './species/strider';
+import { DUNE_STRIDER } from '../data/species/strider';
+import { SWOOP } from './species/duneRay';
+import { DUNE_RAY } from '../data/species/duneRay';
 import { SAND_SKITTERER } from '../species/skitterer';
 import { slot } from './species/skitterer';
 import { DUNE_MATRIARCH } from '../species/matriarch';
 import { RAY_HOME } from '../data/layout';
 
-type Actor = Parameters<NonNullable<typeof DUNE_STRIDER.think>>[0];
-type Context = Parameters<NonNullable<typeof DUNE_STRIDER.think>>[1];
-interface Selection { rows: (typeof DUNE_STRIDER)[]; witness: (actor: Actor) => string | null }
+type Actor = Parameters<NonNullable<SpeciesRow['think']>>[0];
+type Context = Parameters<NonNullable<SpeciesRow['think']>>[1];
+interface Selection { rows: SpeciesRow[]; witness: (actor: Actor) => string | null }
 
 /** SF27: data-selected ordinary policies; shared steering, flight, tokens, held memory and unique boss stay native. */
 export function declaredDuneRows(): Selection {

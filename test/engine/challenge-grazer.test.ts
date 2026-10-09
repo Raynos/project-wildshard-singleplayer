@@ -4,7 +4,7 @@ import type { Animal } from '../../src/engine/entities/AnimalView';
 import { registerSpecies } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/runtime/species/strider';
+import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/data/species/strider';
 import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
 import { slot } from '../../src/shards/sunscar-dunes/runtime/species/skitterer';
 import { StriderBrain, CHARGE, HORNS, STRIDE } from '../fixtures/grazer-oracle/strider';

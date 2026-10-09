@@ -4,7 +4,7 @@ import type { Animal } from '../../src/engine/entities/AnimalView';
 import { registerSpecies } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import { DUNE_RAY } from '../../src/shards/sunscar-dunes/runtime/species/duneRay';
+import { DUNE_RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
 import { DuneRayBrain, SWOOP, RAY } from '../fixtures/flight-oracle/patrol';
 import { RAY_HOME } from '../../src/shards/sunscar-dunes/data/layout';

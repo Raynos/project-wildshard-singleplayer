@@ -1,14 +1,19 @@
+import { strike as admitStrike } from '@wildshard/sdk/species';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA, MATRIARCH } from '../../data/species/matriarch';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
-import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import * as v from 'valibot';
-import { STRINGS } from '../../data/strings';
 import type { SimValue } from '@wildshard/engine/sim';
 import { Vector3 } from 'three';
 import { BASIN } from '../../data/layout';
+
+export const MAW: StrikeSpec = strikeFromData(admitStrike(MAW_DATA));
+export const TAIL_SWEEP: StrikeSpec = strikeFromData(admitStrike(TAIL_SWEEP_DATA));
+export const BUFFET: StrikeSpec = strikeFromData(admitStrike(BUFFET_DATA));
 
 const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));
@@ -19,27 +24,6 @@ export interface MatriarchPorts<A extends AnimalSim> {
   steer: (actor: A, yaw: number, speed: number, turn: number) => void;
   flight: { steer: (actor: A, yaw: number, speed: number, altitude: number, turn: number) => void };
 }
-
-/**
- * The Dune Matriarch's numbers. `mem.phase` (0 dives, 1 storm, 2 grounded) and `mem.fight` (1 while the boss fight
- * runs) are written by the boss script (`combat/matriarch.ts`); `mem.rise` (0 → 1) by its intro.
- */
-export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9, skim: 4.2,
-  /** Grounded she lies on the sand (`lieAlt`) and holds `standOff` m from the player (her centre): at 3.6× her nose is 6.4 m
-   * ahead of it, so she fills the lower half of the view and the lash (7 m) still lands on her head and back. */
-  lieAlt: 0.2, standOff: 9 } as const;
-export const MATRIARCH_HP = 600;
-/** Her dive: a wide sphere swoop; in the storm she dives more often. */
-export const MAW: StrikeSpec = { id: 'sunscar.matriarch.dive', shape: { kind: 'sphere', radius: 4 }, windup: 0.35, active: 0.5, recover: 0.6, cooldown: 2,
-  range: 10, damage: 18, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 1 };
-/**
- * Grounded: a tail sweep all round her (telegraphed by the tail lifting; her tail reaches 11.5 m) and a forward wing
- * buffet. World metres: actor units would scale them by 3.6, a 25 m ring the player could not leave.
- */
-export const TAIL_SWEEP: StrikeSpec = { id: 'sunscar.matriarch.tail', shape: { kind: 'ring', inner: 0, outer: 12 }, windup: 1.0, active: 0.25, recover: 1.0, cooldown: 4,
-  range: 11.5, damage: 16, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 2 };
-export const BUFFET: StrikeSpec = { id: 'sunscar.matriarch.buffet', shape: { kind: 'arc', radius: 11, halfAngle: 0.8 }, windup: 0.7, active: 0.2, recover: 0.8, cooldown: 2.2,
-  range: 10.5, damage: 12, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 1 };
 
 const CATALOGUE = [MAW, TAIL_SWEEP, BUFFET], GROUNDED = [TAIL_SWEEP, BUFFET], DIVE = [MAW];
 
@@ -110,8 +94,3 @@ export class MatriarchBrain<A extends AnimalSim = Animal> extends CreatureBrain<
     ctx.flight.steer(a, this.yawTo(BASIN.x + Math.sin(around) * MATRIARCH.circleR, BASIN.z + Math.cos(around) * MATRIARCH.circleR), MATRIARCH.speed, high, 1.1);
   }
 }
-export const MATRIARCH_DATA: SpeciesRow = { id: 'sunscar.creature.duneMatriarch', kind: 'duneMatriarch', label: STRINGS.matriarch, aggressive: true, lockable: true, blood: false,
-  // She is huge and circles the bowl far out: lock from 60 m (sol-lock).
-  flight: { altitude: MATRIARCH.alt, above: 'ground', climbRate: 7, diveRate: 20, lockRange: 60 },
-  variants: [{ id: 'matriarch', label: STRINGS.matriarch, weight: 1, rarity: 'legendary', scale: [3.6, 3.6], hp: MATRIARCH_HP }] };
-

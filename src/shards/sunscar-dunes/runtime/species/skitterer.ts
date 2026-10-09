@@ -1,12 +1,15 @@
+import { strike as admitStrike } from '@wildshard/sdk/species';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { BITE_DATA, SKITTER } from '../../data/species/skitterer';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
-import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import * as v from 'valibot';
-import { STRINGS } from '../../data/strings';
 import type { SimValue } from '@wildshard/engine/sim';
+
+export const BITE: StrikeSpec = strikeFromData(admitStrike(BITE_DATA));
 
 const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));
@@ -16,12 +19,6 @@ export interface SkittererPorts<A extends AnimalSim> {
   reach: (actor: A) => boolean; claim: (actor: A) => boolean; hurt: (damage: number) => void;
   steer: (actor: A, yaw: number, speed: number, turn: number) => void;
 }
-
-/** The pack numbers (metres, m/s, seconds). */
-export const SKITTER = { wake: 13, sleep: 34, burst: 0.55, run: 5.6, ring: 2.2, retreat: 1.1, rebury: 5 } as const;
-/** The bite: a short point strike after a rear-up telegraph. */
-export const BITE: StrikeSpec = { id: 'sunscar.skitterer.bite', shape: { kind: 'point', radius: 1.4 }, windup: 0.38, active: 0.15, recover: 0.45, cooldown: 1.3,
-  range: 1.9, damage: 6, tags: ['creature.sandSkitterer'], weight: () => 1 };
 
 /** A stable small integer per animal (its seed hashed), so pack members pick their own ring angles. */
 export const slot = (a: Pick<AnimalSim, 'seed'>, n: number): number => Math.floor(Math.abs(Math.sin(a.seed * 12.9898 + 1.7) * 43758.5)) % n;
@@ -89,6 +86,3 @@ export class SkittererBrain<A extends AnimalSim = Animal> extends CreatureBrain<
     ctx.steer(a, goal, d < 1.2 ? 0 : SKITTER.run, 8);
   }
 }
-export const SKITTERER_DATA: SpeciesRow = { id: 'sunscar.creature.sandSkitterer', kind: 'sandSkitterer', label: STRINGS.skitterer, aggressive: true, lockable: true, blood: false,
-  variants: [{ id: 'dusk', label: STRINGS.skitterer, weight: 1, rarity: 'common', scale: [0.9, 1.1], hp: 24 }] };
-

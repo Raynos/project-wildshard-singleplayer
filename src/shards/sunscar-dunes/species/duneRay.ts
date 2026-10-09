@@ -1,4 +1,4 @@
-import { DUNE_RAY } from '../runtime/species/duneRay';
+import { DUNE_RAY } from '../data/species/duneRay';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';

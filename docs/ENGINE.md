@@ -2016,6 +2016,8 @@ projectile or script lane. Existing families without it keep their previous row.
 
 `@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry.
 
+`@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
+
 
 ### Exported creature skins and clips
 

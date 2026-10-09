@@ -1,4 +1,5 @@
-import { MATRIARCH_DATA, MatriarchBrain } from '../runtime/species/matriarch';
+import { MatriarchBrain } from '../runtime/species/matriarch';
+import { MATRIARCH_DATA } from '../data/species/matriarch';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';

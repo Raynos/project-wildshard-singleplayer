@@ -1,4 +1,4 @@
-import { DUNE_STRIDER } from '../runtime/species/strider';
+import { DUNE_STRIDER } from '../data/species/strider';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BoxGeometry, ConeGeometry, CylinderGeometry, IcosahedronGeometry, type BufferGeometry } from 'three';

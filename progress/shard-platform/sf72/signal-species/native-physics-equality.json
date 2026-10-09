@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "reference": "ee95f378b4b836ed502a7043d849c93ab99b77c0",
+  "capture": "ee238bcf55b7945bf50ae6a6986beae600c58bf4",
+  "homes": 13,
+  "pieces": 10,
+  "bosses": 1,
+  "comparison": "Full native specs, seeds, scales, colliders, spot data and profile identical; only provenance/build/input hashes differ"
+}

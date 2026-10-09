@@ -1,0 +1,26 @@
+{
+  "before": {
+    "publicLines": 815,
+    "customLines": 3257,
+    "runtimeLines": 785,
+    "trustedRuntimeLines": 217,
+    "publicShare": 0.20014734774066797,
+    "legacy": {
+      "generators": 878,
+      "data": 283,
+      "runtime": 4558
+    }
+  },
+  "after": {
+    "publicLines": 853,
+    "customLines": 3243,
+    "runtimeLines": 769,
+    "trustedRuntimeLines": 217,
+    "publicShare": 0.208251953125,
+    "legacy": {
+      "generators": 878,
+      "data": 345,
+      "runtime": 4518
+    }
+  }
+}

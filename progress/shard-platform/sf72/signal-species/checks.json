@@ -1,0 +1,30 @@
+{
+  "focused": {
+    "files": 28,
+    "passed": 105
+  },
+  "adapterFocused": {
+    "files": 2,
+    "passed": 22
+  },
+  "full": {
+    "base": "f983de200b2b54ccde9cb551cc41188c24445222",
+    "cleanCandidate": "25fb848169cd2eb471e50991780d5766c1ec88dd",
+    "followup": "Two old test imports updated to new defining data modules before full-suite acquisition",
+    "files": 1056,
+    "passed": 5851,
+    "seconds": 132.89,
+    "heavyTicket": 1010
+  },
+  "rootStrict": true,
+  "touchedRootConfigTypedLint": true,
+  "privateIndexHooks": true,
+  "bootCases": 4,
+  "bootFaults": 0,
+  "walkLegs": 7,
+  "stuck": 0,
+  "oracleTicks": 30000,
+  "oracleStrikes": 25,
+  "pineSkyProductionChanged": false,
+  "nativePhysicsMatchesLandedLash": true
+}

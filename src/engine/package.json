@@ -22,6 +22,7 @@
     "./ai/reach": "./ai/reach.ts",
     "./ai/species": "./ai/species.ts",
     "./ai/strikes": "./ai/strikes.ts",
+    "./ai/strikeRows": "./ai/strikeRows.ts",
     "./ai/strikeState": "./ai/strikeState.ts",
     "./ai/view/DebugOverlay": "./ai/view/DebugOverlay.ts",
     "./ai/weighted": "./ai/weighted.ts",

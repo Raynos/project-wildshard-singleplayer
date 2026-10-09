@@ -7,9 +7,9 @@ import { declaredDuneRows } from '../../src/shards/sunscar-dunes/runtime/brains'
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
 import { GALE_WISP, GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
-import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/runtime/species/strider';
+import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/data/species/strider';
 import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
-import { DUNE_RAY } from '../../src/shards/sunscar-dunes/runtime/species/duneRay';
+import { DUNE_RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
 import { setHome, bindPlayerPush, homeOf } from '../../src/shards/far-reach/species/rig';
 import { creature } from '../fake/creature';
@@ -78,7 +78,7 @@ describe('live declared grazer/flyer species callbacks', () => {
     expect(replay(kind, true)).toEqual(replay(kind, false));
   });
   it('has one declared ordinary policy table with unchanged unique/native rows and no shipping fallback callbacks', () => {
-    for (const row of rows) { expect(row.think).toBeUndefined(); expect(row.act).toBeUndefined(); }
+    for (const row of rows) { expect(Reflect.get(row, 'think')).toBeUndefined(); expect(Reflect.get(row, 'act')).toBeUndefined(); }
     const sky = declaredSkyRows(), dune = declaredDuneRows();
     expect(sky.rows.map(row => row.id)).toEqual([DRIFT_RAY, SKY_GOAT, GALE_WISP].map(row => row.id).concat(STORM_ROC.id));
     expect(dune.rows.map(row => row.kind)).toEqual(['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch']);
