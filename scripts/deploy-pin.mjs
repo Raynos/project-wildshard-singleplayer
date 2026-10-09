@@ -118,6 +118,15 @@ export function productionLive(sha, query = ghApi) {
   return false;
 }
 
+/** Reuse only a completed successful main push workflow for this exact commit, never a release or neighbour SHA.
+ * @param {string} sha @param {(args:string[])=>string} [query] @returns {boolean} */
+export function ciGreen(sha, query = ghApi) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('push CI requires an exact 40-hex SHA');
+  const runs = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&head_sha=${sha}&per_page=1`,
+    '--jq', '.workflow_runs[].head_sha']).trim().split('\n');
+  return runs.includes(sha);
+}
+
 /** The newest successful push CI on main with a separate, successful real boot on that exact SHA. macOS boot
  * queueing never holds push CI, and an unproven/failing boot can never become a release pin.
  * @param {(args:string[])=>string} [query] @returns {string} */
@@ -176,8 +185,10 @@ function main() {
     if (!bootGreen(sha) && !(pin.mode === 'pinned' && productionLive(sha))) {
       throw new Error(`release refused: ${sha} has neither a green boot-smoke nor prior production proof`);
     }
+    const ciPassed = pin.mode === 'newest-ci-green' || ciGreen(sha);
     console.log(sha);
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\n`);
+    console.error(`Release selection: mode=${pin.mode}, exact push CI=${ciPassed}`);
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=${ciPassed}\n`);
     return 0;
   }
   if (cmd === 'check-gate') {

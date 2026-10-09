@@ -74,19 +74,13 @@ it('boots public Pine through real SHARD SELECT as well as Driftwood, Developer 
   expect(source).toContain("page.locator('.ws-grid-reveal').dispatchEvent('pointerdown')");
 });
 
-it('releases after a successful smoke without granting its build job dispatch permission or overriding pins', () => {
+it('keeps hourly/manual promotion and reuses only an exact successful push-CI proof', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   const job = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
-  const boundary = job.indexOf('\n  release:');
-  expect(boundary).toBeGreaterThan(0);
-  const smoke = job.slice(0, boundary), release = job.slice(boundary);
-  expect(smoke).toContain('actions: read');
-  expect(smoke).not.toContain('actions: write');
-  expect(release).toContain('needs: boot-smoke');
-  expect(release).toContain("if: needs.boot-smoke.result == 'success'");
-  expect(release).toContain('actions: write');
-  expect(release).toContain('ref: main');
-  expect(release).toContain("require('./.github/deploy-pin.json').mode");
-  expect(release).toContain('if [ "$mode" = newest-ci-green ]; then');
-  expect(release).toContain('gh workflow run deploy.yml --ref main');
-  expect(release).not.toContain('force=true');
+  expect(job).not.toContain('gh workflow run deploy');
+  expect(workflow).toContain('cron: \'17 * * * *\'');
+  expect(workflow).toContain(`elif [ "\${{ steps.pin.outputs.ci_green }}" != true ]; then\n            pnpm test`);
+  expect(workflow).toContain('python3 scripts/heavy-lane.py build -- pnpm exec vite build');
+  expect(workflow).toContain('node scripts/check-chunks.mjs dist');
+  expect(workflow).toContain('node "$RUNNER_TEMP/deploy-version.mjs" verify');
 });

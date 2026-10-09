@@ -6,3 +6,5 @@ export function newestCiGreen(query?: (args: string[]) => string): string;
 export function logProvesProduction(sha: string, log: string): boolean;
 /** Prove a build was previously live, using its verified status or historical successful release logs. */
 export function productionLive(sha: string, query?: (args: string[]) => string): boolean;
+/** Whether this exact commit already passed the complete main push-CI workflow. */
+export function ciGreen(sha: string, query?: (args: string[]) => string): boolean;

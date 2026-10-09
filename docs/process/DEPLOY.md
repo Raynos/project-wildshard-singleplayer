@@ -3,8 +3,7 @@
 Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-03).
 
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
-  deploys after a successful boot smoke in `newest-ci-green` mode, at :17 each hour, or from
-  `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
+  deploys at :17 each hour or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it
   with `vercel deploy --prebuilt`, so Vercel does not repeat the build.
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
@@ -13,7 +12,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **Push / PR CI runs vitest once, in 6 parallel shard jobs** (E429): `build-and-deploy` runs typecheck, lint,
   `pnpm run test:checks` (the node checks of `pnpm test`) and the builds; `vitest` (matrix 1–6) runs
   `vitest run --shard=i/6 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs` (the same numbers
-  as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. Releases keep the plain `pnpm test`.
+  as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. Releases reuse that complete test proof when the
+  selected exact SHA has a successful main push-CI run (SF74 W0); they still build and check chunks and verify
+  production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
+  from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate's cache** (2026-10-09): the gate runs `vitest related` and skips unchanged
   bake / audit steps (GIT.md), so a transitive break the cache missed shows up here first; fix it like any red run.
 - **CI's vitest is Linux x64 under coverage: other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
@@ -39,12 +41,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   commit and drives the real title, Driftwood gameplay and Developer grid home. Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A missing, pending or failing
   latest smoke status excludes that candidate; selection can still return an older proven build. Successful smoke
-  completion dispatches a fresh release in `newest-ci-green` mode, closing the race where an earlier manual or
-  scheduled release selected the already-live older build. The release rechecks CI, exact-SHA smoke and current pin
-  policy; it never forces deployment. Smoke runs following manual/scheduled releases are intentionally skipped
-  (only push CI or explicit smoke dispatch runs the proof), so inspect the run event as well as its SHA. This
-  promotion job has its own Actions-write permission; the smoke/build job remains Actions-read. Pinned and
-  `newest-green` modes keep their existing release schedule. An explicit emergency rollback may instead return to any SHA
+  completion makes the candidate eligible for the next hourly/manual release; it does not change Jake's hourly
+  cadence. An earlier release may correctly select the already-live older build while the new smoke is pending.
+  Smoke runs following manual/scheduled releases are intentionally skipped (only push CI or explicit smoke dispatch
+  runs the proof), so inspect the run event as well as its SHA. An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a
   successful historical release job's exact full pin plus matching production-version reading. Pin history alone
   is insufficient. The OTA reader enforces the same proof. `force`

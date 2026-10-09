@@ -1,4 +1,4 @@
-# Pushes and pull requests run the gates. Production releases after a successful boot, hourly or on manual dispatch.
+# Pushes and pull requests run the gates. Production deploys hourly or on manual dispatch.
 # A release resolves .github/deploy-pin.json's policy; newest-ci-green requires push CI and an exact-SHA boot proof.
 # It checks /version.json and skips only when that selected commit is already live.
 # GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
@@ -120,12 +120,18 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: pnpm run lint
 
-      # A release runs the whole `pnpm test` here. Push / PR CI runs its node checks here and the vitest suite once, in
-      # the 6 `vitest` shard jobs below, whose coverage the `coverage` job merges and ratchets (E429).
+      # SF74 W0: exact successful push CI already includes all six vitest shards and coverage. Reuse that proof
+      # for a release; unproven historical pins still run the whole suite. Every path keeps the build + chunk check.
       - name: Test
         if: steps.live.outputs.skip != 'true'
         run: |
-          if [ "$DEPLOY" = true ]; then pnpm test; else pnpm run test:checks; fi
+          if [ "$DEPLOY" != true ]; then
+            pnpm run test:checks
+          elif [ "${{ steps.pin.outputs.ci_green }}" != true ]; then
+            pnpm test
+          else
+            echo 'Exact selected SHA passed push CI; reusing its complete test proof.'
+          fi
           python3 scripts/heavy-lane.py build -- pnpm exec vite build
           node scripts/check-chunks.mjs dist
 

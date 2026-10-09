@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { bootGreen, logProvesProduction, newestCiGreen, productionLive } from '../scripts/deploy-pin.mjs';
+import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, productionLive } from '../scripts/deploy-pin.mjs';
 
 const a = 'a'.repeat(40), b = 'b'.repeat(40), c = 'c'.repeat(40);
 function fixture(statuses: Record<string, string>, candidates = `${a}\n${b}\n${c}`) {
@@ -78,4 +78,14 @@ it('refuses never-shipped SHAs and expired historical evidence', () => {
   };
   expect(productionLive(a, query)).toBe(false);
   expect(() => productionLive('main', query)).toThrow('exact 40-hex SHA');
+});
+
+it('reuses complete push CI only for an exact main SHA, refusing missing or neighbouring results', () => {
+  const query = (result: string) => (args: string[]): string => {
+    expect(args[0]).toContain(`branch=main&event=push&status=success&head_sha=${a}&per_page=1`);
+    return result;
+  };
+  expect(ciGreen(a, query(a))).toBe(true);
+  for (const result of ['', b, 'not-a-sha']) expect(ciGreen(a, query(result))).toBe(false);
+  expect(() => ciGreen('main', query(a))).toThrow('exact 40-hex SHA');
 });
