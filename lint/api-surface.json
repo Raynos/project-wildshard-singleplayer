@@ -5519,6 +5519,36 @@
         "from": "@wildshard/engine/entities/animalPose"
       },
       {
+        "name": "AnimalRigContext",
+        "kind": "type",
+        "doc": "Custom species read the shipping scalar context and write only transforms and owned actor motion.",
+        "from": "@wildshard/engine/entities/animalRig"
+      },
+      {
+        "name": "AnimalRigJoint",
+        "kind": "interface",
+        "doc": "A joint's numeric local transform. Real visual bones and renderer-free joints satisfy the same port.",
+        "from": "@wildshard/engine/entities/animalRig"
+      },
+      {
+        "name": "applyAnimalRoot",
+        "kind": "function",
+        "doc": "Shipping root tilt/flinch law. The actor's position is copied only after custom motion has completed.",
+        "from": "@wildshard/engine/entities/animalRig"
+      },
+      {
+        "name": "QuadrupedPoseClock",
+        "kind": "interface",
+        "doc": "Actor-owned clocks sampled after the scheduled body/overlay phase, plus its corpse leg spread.",
+        "from": "@wildshard/engine/entities/animalRig"
+      },
+      {
+        "name": "QuadrupedRigPose",
+        "kind": "class",
+        "doc": "The shipping scalar-to-joint expressions, without a skeleton, geometry, renderer or scheduler.",
+        "from": "@wildshard/engine/entities/animalRig"
+      },
+      {
         "name": "AnimalMotor",
         "kind": "interface",
         "doc": "Collision-only displacement port; the creature retains its own feet position.",
@@ -20356,13 +20386,13 @@
       {
         "name": "measureSimulation",
         "kind": "function",
-        "doc": "Build report observations stop at 60 ticks; they never run the expensive entry walk reserved for validate.",
+        "doc": "Build warms up, then samples three fixed windows; it never runs the expensive entry walk reserved for validate.",
         "from": "@wildshard/sdk/headless"
       },
       {
         "name": "SimulationObservations",
         "kind": "interface",
-        "doc": "A fixed 60-tick offline observation; scripts exclude native physics, checkpoints and IPC.",
+        "doc": "Offline observation: 60 warm-up ticks and three 60-tick windows. CPU uses the least interrupted window p95; raw maxima and all fuel remain visible. Scripts exclude native physics, checkpoints and IPC.",
         "from": "@wildshard/sdk/headless"
       },
       {

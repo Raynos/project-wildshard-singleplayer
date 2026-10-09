@@ -2098,7 +2098,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2347 exports, grouped by the module to import them from.
+2352 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2255,6 +2255,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/entities/AnimalFactory`: `AnimalFactory`, `AnimalKind`, `AnimalMaterial`, `AnimalModel`, `AnimalRig`, `AnimalStyle`, `AnimalVariant`, `DEFAULT_CREATURE_RENDER`, `SHELL_LAYERS`
 - `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BodyClearable`, `clearBody`, `Herd`, `WanderGoalQuery`
 - `@wildshard/engine/entities/animalPose`: `AnimalPoseInput`, `AnimalPoseLaw`, `AnimalPoseRecipe`, `P_COUNT`
+- `@wildshard/engine/entities/animalRig`: `AnimalRigContext`, `AnimalRigJoint`, `applyAnimalRoot`, `QuadrupedPoseClock`, `QuadrupedRigPose`
 - `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalPoseSample`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
 - `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/bodyClear`: `BodyClearable`, `clearBody`

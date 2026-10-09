@@ -334,6 +334,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [webkit-mem-reading.mjs](./webkit-mem-reading.mjs)
 - [wildshard.d.mts](./wildshard.d.mts)
 - [wildshard.mjs](./wildshard.mjs)
+- [witness-manifests.d.mts](./witness-manifests.d.mts)
+- [witness-manifests.mjs](./witness-manifests.mjs)
 
 ## Folders
 

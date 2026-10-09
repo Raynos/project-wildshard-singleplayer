@@ -128,8 +128,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `groupBrain` | function | @wildshard/sdk/groupBrains | Validate a pack or guarded-herd controller before loading its native world recipes. |
 | `GroupBrainData` | type | @wildshard/sdk/groupBrains | One admitted group policy and its explicit ordered stable actor roster. |
 | `HeadlessSimulation` | class | @wildshard/sdk/headless | A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. |
-| `measureSimulation` | function | @wildshard/sdk/headless | Build report observations stop at 60 ticks; they never run the expensive entry walk reserved for validate. |
-| `SimulationObservations` | interface | @wildshard/sdk/headless | A fixed 60-tick offline observation; scripts exclude native physics, checkpoints and IPC. |
+| `measureSimulation` | function | @wildshard/sdk/headless | Build warms up, then samples three fixed windows; it never runs the expensive entry walk reserved for validate. |
+| `SimulationObservations` | interface | @wildshard/sdk/headless | Offline observation: 60 warm-up ticks and three 60-tick windows. CPU uses the least interrupted window p95; raw maxima and all fuel remain visible. Scripts exclude native physics, checkpoints and IPC. |
 | `validateSimulation` | function | @wildshard/sdk/headless | Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker. |
 | `createTrustedHeadlessAdapter` | function | @wildshard/sdk/headlessRuntime | Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers). |
 | `createTrustedHeadlessResident` | function | @wildshard/sdk/headlessRuntime | Load the explicitly selected trusted entry (`TrustedHeadlessRuntime`, a local file module, never a shardfile URL) and |

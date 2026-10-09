@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2367 members; 842 without a doc line (—).
+2372 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -926,6 +926,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `AnimalPoseLaw` | class | @wildshard/engine/entities/animalPose | Renderer-free shipping scalar pose law. Reuses its Float32 buffers; advancement allocates nothing. |
 | `AnimalPoseRecipe` | interface | @wildshard/engine/entities/animalPose | Existing authored dimensions and pose modifiers; no model, rig, scene or active world. |
 | `P_COUNT` | const | @wildshard/engine/entities/animalPose | Width of the shipping numeric pose-channel buffer. |
+| `AnimalRigContext` | type | @wildshard/engine/entities/animalRig | Custom species read the shipping scalar context and write only transforms and owned actor motion. |
+| `AnimalRigJoint` | interface | @wildshard/engine/entities/animalRig | A joint's numeric local transform. Real visual bones and renderer-free joints satisfy the same port. |
+| `applyAnimalRoot` | function | @wildshard/engine/entities/animalRig | Shipping root tilt/flinch law. The actor's position is copied only after custom motion has completed. |
+| `QuadrupedPoseClock` | interface | @wildshard/engine/entities/animalRig | Actor-owned clocks sampled after the scheduled body/overlay phase, plus its corpse leg spread. |
+| `QuadrupedRigPose` | class | @wildshard/engine/entities/animalRig | The shipping scalar-to-joint expressions, without a skeleton, geometry, renderer or scheduler. |
 | `AnimalMotor` | interface | @wildshard/engine/entities/AnimalSim | Collision-only displacement port; the creature retains its own feet position. |
 | `AnimalPoseSample` | interface | @wildshard/engine/entities/AnimalSim | Mutable presentation sample. A view owns this buffer; sampling never advances authoritative state. |
 | `AnimalSim` | class | @wildshard/engine/entities/AnimalSim | Creature state and motion. All world services arrive as ports; there is no scene, rig or active app. |
