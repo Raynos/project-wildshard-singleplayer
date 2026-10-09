@@ -1,16 +1,7 @@
 # sp-x4 handoff
 
-Contact seam landed `794c4e1287c96ea3322feb9f3b731490f492038b`: afterBodies/bodyClear,
-same-tick Driftwood contacts, flared-only ramps, actual physics/spots/map captures. Full 5945 tests,
-boot 2/2 and walk 8/8 zero stuck; compatibility remains false for the documented open list.
+Contact/afterBodies/bodyClear and flared-only ramps landed 794c4e128. Crossed-input refresh landed 25661521c; Pine King/ranged defining bake 03d69480b and Nalati reins 6f1ff85b5 are now incorporated.
 
-Crossed-input forward (commit containing this handoff): official re-record of all four checkpoint sets
-on clean `49a7a133feaa3cd5ef3949280baba12e606f51b1`, including SF73 `2f765d83b`.
-All 14 snapshot gzip payloads and the command tape remain byte-identical; only six JSON input fields
-change. Real Pine/Driftwood compatibility outcomes match exactly. See
-`sf72/crossed-witness-refresh/` for hashes and proof. Pine paths release to sp-x2 after this defining SHA;
-it must rebuild its King/ranged/material candidate on that SHA before its one actual bake.
+This commit arms the unchanged Driftwood worker continuation assertion with failure-only canonical snapshots and field-level diffs. Actual checkpoints plus compatibility record reproduce every payload and outcome, changing only the loaded-input fence. See sf72/replay-diagnostics/. No resources owned; coordinator alone pushes. Release this defining SHA to x1 host seam, x2 Driftwood faceHeads relocation and x5 G258 claim; each rebuilds from HEAD.
 
-No owned browsers, previews or Simulator. Coordinator alone pushes. Next: posed head/body volumes via
-game/combat/collisionPose from the exact AnimalView scalar blend, then optional gameplay, bounded
-ecology and camera/prompt laws. No plan edits, no wildshard-v, no look changes.
+Next approved slices: renderer-free scalar AnimalView pose leaf with a source-hashed 10k oracle; additive CollisionPose joint Euler order/scale/y-axis capsules preserving King defaults; actual rest-chain bakes and native volume publication at the shipping phase. Contact reads last-published matrices before render propagation: do not publish fresh FK early. Private preflight only exists in sp-x4 scratch, no page or native activation yet. Every affected creature shard needs an actual bake and loaded witness refresh on the final merged tree; announce and serialize before landing. Then optional rewards/zipline, bounded ecology and shared prompt/camera laws. Compatibility stays false until every listed outcome is proven. No plan edits or wildshard-v messages.

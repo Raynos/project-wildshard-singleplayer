@@ -15,6 +15,7 @@ import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { TickCommandSchema, TickEffectSchema, type HeadlessCommand, type HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { canonicalSimDigest } from '../../fake/simState';
+import { simMismatchError } from '../../fake/simMismatch';
 import { playDriftwood } from './tape';
 
 export const ENTRY = 'runtime/headless.ts';
@@ -194,7 +195,10 @@ export async function replayProof(rapier: Rapier): Promise<object> {
       if (i < cp.tick + 60) {
         const commit = await worker.step([{ source: 'witness.tape', commands }]);
         if (JSON.stringify(commit.effects) !== JSON.stringify(restored.effects)) throw new Error('SDK worker effects diverged');
-        if (i === cp.tick + 59 && canonicalSimDigest(commit.snapshot) !== digest(restored)) throw new Error('SDK worker continuation diverged');
+        if (i === cp.tick + 59) {
+          const workerHash = canonicalSimDigest(commit.snapshot), expectedSnapshot = snapshotSimHost(restored.host), expectedHash = canonicalSimDigest(expectedSnapshot);
+          if (workerHash !== expectedHash) throw simMismatchError('SDK worker continuation diverged', expectedSnapshot, commit.snapshot, { expected: expectedHash, actual: workerHash });
+        }
       }
     }
     const endHash = digest(original), replayHash = digest(restored); sameEffects(a, b); sameEffects(a, expected(m, cp.tick, until));
