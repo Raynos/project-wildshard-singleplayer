@@ -1916,8 +1916,8 @@ Coverage: 5046/5046 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $.rows.weather[].states[].numbers.wet | number | required | finite [function; not executed]; min_value 0; max_value 1 |
 | $.rows.weather[].states[].numbers.wind | number | required | finite [function; not executed]; min_value 0; max_value 1 |
 | $.runtime | strict_object | optional; default null; nullable; default undefined | check [function; not executed] "runtime spawns are declared exactly when runtime.binds names spawns" |
-| $.runtime.binds | array | optional; default undefined | max_length 5; check [function; not executed] "unique runtime-bound sections" |
-| $.runtime.binds[] | picklist "quests", "ledger", "items", "spawns", "state" | required |  |
+| $.runtime.binds | array | optional; default undefined | max_length 7; check [function; not executed] "unique runtime-bound sections" |
+| $.runtime.binds[] | picklist "quests", "ledger", "items", "spawns", "state", "terrain", "props" | required |  |
 | $.runtime.cost | strict_object | optional; default undefined | check [function; not executed] "Runtime cost must contain a positive safe measured content bound" |
 | $.runtime.cost.device | string | required | min_length 1; max_length 200 |
 | $.runtime.cost.engineBaseMB | number | required | finite [function; not executed]; min_value 0 |
@@ -4771,8 +4771,8 @@ Coverage: 5046/5046 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $sdk["./shardfile"].ShardfileSchema.rows.weather[].states[].numbers.wet | number | required | finite [function; not executed]; min_value 0; max_value 1 |
 | $sdk["./shardfile"].ShardfileSchema.rows.weather[].states[].numbers.wind | number | required | finite [function; not executed]; min_value 0; max_value 1 |
 | $sdk["./shardfile"].ShardfileSchema.runtime | strict_object | optional; default null; nullable; default undefined | check [function; not executed] "runtime spawns are declared exactly when runtime.binds names spawns" |
-| $sdk["./shardfile"].ShardfileSchema.runtime.binds | array | optional; default undefined | max_length 5; check [function; not executed] "unique runtime-bound sections" |
-| $sdk["./shardfile"].ShardfileSchema.runtime.binds[] | picklist "quests", "ledger", "items", "spawns", "state" | required |  |
+| $sdk["./shardfile"].ShardfileSchema.runtime.binds | array | optional; default undefined | max_length 7; check [function; not executed] "unique runtime-bound sections" |
+| $sdk["./shardfile"].ShardfileSchema.runtime.binds[] | picklist "quests", "ledger", "items", "spawns", "state", "terrain", "props" | required |  |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost | strict_object | optional; default undefined | check [function; not executed] "Runtime cost must contain a positive safe measured content bound" |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.device | string | required | min_length 1; max_length 200 |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.engineBaseMB | number | required | finite [function; not executed]; min_value 0 |

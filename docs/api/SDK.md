@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-225 members; 0 without a doc line (—).
+227 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -163,6 +163,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
 | `CombatAudio` | type | @wildshard/sdk/runtime/audio/combatCues | Existing mixer operations consumed by the trusted combat-cue router. |
 | `sharedCombatCues` | const | @wildshard/sdk/runtime/audio/combatCues | Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy. |
+| `bindPlayerEffects` | const | @wildshard/sdk/runtime/effects | Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called. |
+| `StatusMovement` | type | @wildshard/sdk/runtime/effects | Independent status-effect movement channels, separate from equipment and traversal multipliers. |
 | `Bow` | const | @wildshard/sdk/runtime/weapons/Bow | The one platform bow constructor; the SDK owns no second draw clock, projectile pool or presentation implementation. |
 | `BowInstance` | type | @wildshard/sdk/runtime/weapons/Bow | The shared drawn-projectile instance; view recipes and profiles are supplied by its owner. |
 | `BowOptions` | type | @wildshard/sdk/runtime/weapons/Bow | Row, profile and unlock policy supplied to the trusted family constructor. |

@@ -14,6 +14,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-chunk.mjs](./bake-chunk.mjs)
 - [bake-coats.mjs](./bake-coats.mjs)
 - [bake-geometry.mjs](./bake-geometry.mjs)
+- [bake-hybrid-tiles.mjs](./bake-hybrid-tiles.mjs)
 - [bake-island-cover.mjs](./bake-island-cover.mjs)
 - [bake-ktx2.cache.json](./bake-ktx2.cache.json)
 - [bake-ktx2.list.json](./bake-ktx2.list.json)

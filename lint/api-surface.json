@@ -16452,6 +16452,12 @@
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {
+        "name": "runtimeBoundWorldFiles",
+        "kind": "function",
+        "doc": "The immutable files only a runtime-bound world section references (G227): the terrain's collider and tile files, the",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "RuntimeCoins",
         "kind": "type",
         "doc": "A runtime's coin port: what a declared quest or an encounter pays, in whole coins.",
@@ -19766,6 +19772,18 @@
         "kind": "const",
         "doc": "Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy.",
         "from": "@wildshard/sdk/runtime/audio/combatCues"
+      },
+      {
+        "name": "bindPlayerEffects",
+        "kind": "const",
+        "doc": "Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called.",
+        "from": "@wildshard/sdk/runtime/effects"
+      },
+      {
+        "name": "StatusMovement",
+        "kind": "type",
+        "doc": "Independent status-effect movement channels, separate from equipment and traversal multipliers.",
+        "from": "@wildshard/sdk/runtime/effects"
       },
       {
         "name": "Bow",

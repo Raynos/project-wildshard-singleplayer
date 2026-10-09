@@ -2326,7 +2326,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-702 exports, grouped by the module to import them from.
+703 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2410,7 +2410,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
 - `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `HybridHookTiming`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeOptions`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
-- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeActor`, `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `bindRuntimeState`, `RuntimeActor`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
+- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeActor`, `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `bindRuntimeState`, `RuntimeActor`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `runtimeBoundWorldFiles`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `shardItemFamilies`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
@@ -2501,7 +2501,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-219 exports, grouped by the module to import them from.
+221 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2542,6 +2542,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/reportCard`: `PerformanceObservations`, `performanceReport`, `PerformanceReport`, `performanceReportLines`, `performanceTargetIssues`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/sdk/runtime/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
+- `@wildshard/sdk/runtime/effects`: `bindPlayerEffects`, `StatusMovement`
 - `@wildshard/sdk/runtime/weapons/Bow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
 - `@wildshard/sdk/runtime/weapons/Melee`: `Melee`, `meleeActor`, `MeleeInstance`

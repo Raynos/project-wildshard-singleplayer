@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-702 members; 112 without a doc line (—).
+703 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -479,6 +479,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `runtimeBinds` | function | @wildshard/game/shardfile/hybridRows | The sections `source` declares its runtime binds; empty for a pure-data shard. |
 | `RuntimeBoss` | interface | @wildshard/game/shardfile/hybridRows | A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. |
 | `RuntimeBossOptions` | interface | @wildshard/game/shardfile/hybridRows | Boss identity policy for a runtime adopting spawn data without changing its existing save identities. |
+| `runtimeBoundWorldFiles` | function | @wildshard/game/shardfile/hybridRows | The immutable files only a runtime-bound world section references (G227): the terrain's collider and tile files, the |
 | `RuntimeCoins` | type | @wildshard/game/shardfile/hybridRows | A runtime's coin port: what a declared quest or an encounter pays, in whole coins. |
 | `RuntimeFacts` | interface | @wildshard/game/shardfile/hybridRows | Emit one declared fact for an entity; the platform ledger decides the grant. |
 | `RuntimeHome` | interface | @wildshard/game/shardfile/hybridRows | One kept home: its declared row's place, the creature living there now and the seconds left before it refills. |
