@@ -1,8 +1,11 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 
-/** The generated models (C6): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. */
-export type DuneMeshName = 'caravan' | 'dry-well' | 'waymark-brazier' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';
-export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan', 'dry-well', 'waymark-brazier', 'dune-strider', 'dune-matriarch', 'caravan-scout', 'whip-glove'];
+/**
+ * The generated models (C6): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. The
+ * facet-painted caravan and waymark brazier stay on disk, unloaded: the camp draws wagon-hd2 and every brazier brazier-hd.
+ */
+export type DuneMeshName = 'dry-well' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';
+export const DUNE_MESHES: readonly DuneMeshName[] = ['dry-well', 'dune-strider', 'dune-matriarch', 'caravan-scout', 'whip-glove'];
 /**
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
@@ -36,8 +39,7 @@ const HD_URLS: Readonly<Record<DuneHdName, string>> = {
 };
 export const duneHdUrl = (name: DuneHdName): string => HD_URLS[name];
 const URLS: Readonly<Record<DuneMeshName, string>> = {
-  caravan: '/assets/sunscar-dunes/models/caravan/caravan.glb', 'dry-well': '/assets/sunscar-dunes/models/dry-well/dry-well.glb',
-  'waymark-brazier': '/assets/sunscar-dunes/models/waymark-brazier/waymark-brazier.glb', 'dune-strider': '/assets/sunscar-dunes/models/dune-strider/dune-strider.glb',
+  'dry-well': '/assets/sunscar-dunes/models/dry-well/dry-well.glb', 'dune-strider': '/assets/sunscar-dunes/models/dune-strider/dune-strider.glb',
   // loop 2 (art/sunscar-dunes/round-11-loop-2/props.json): the Matriarch's own body, Sefa the caravan scout, the gloved fist on the whip's handle
   'dune-matriarch': '/assets/sunscar-dunes/models/dune-matriarch/dune-matriarch.glb', 'caravan-scout': '/assets/sunscar-dunes/models/caravan-scout/caravan-scout.glb',
   'whip-glove': '/assets/sunscar-dunes/models/whip-glove/whip-glove.glb',

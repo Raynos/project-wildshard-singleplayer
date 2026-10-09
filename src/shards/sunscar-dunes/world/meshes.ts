@@ -11,7 +11,8 @@ import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandard
  * (`art/sunscar-dunes/round-7-models/props.json`, built into `public/assets/sunscar-dunes/models/<name>/<name>.glb`).
  * Each is loaded once behind the loading screen (`preloadDuneMeshes`, the plugin's `world` hook) and kept as one flat
  * non-indexed geometry: position, the facet colour (rgb × the baked AO in COLOR_0's alpha) and flat normals. A model
- * that fails to load leaves its code model in place.
+ * that fails to load is a page fault (`console.error`: the boot smoke and the tests fail on it, SF72), never a silent
+ * stand-in: the places and the tower stand undrawn without it.
  */
 
 const ready = new Map<DuneMeshName, BufferGeometry>();
@@ -44,7 +45,7 @@ async function load(name: DuneMeshName): Promise<void> {
     g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
     g.computeVertexNormals(); g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
     cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
-  } catch (e: unknown) { console.warn(`[sunscar-dunes] ${name} not loaded, the code model stands in:`, e); }
+  } catch (e: unknown) { console.error(`[sunscar-dunes] the generated model ${name} did not load:`, e); }
 }
 
 const hd = new Map<DuneHdName, Object3D>();
@@ -250,10 +251,10 @@ async function loadHd(name: DuneHdName): Promise<void> {
     });
     retainCachedResources(gltf.scene); hd.set(name, gltf.scene);
     cacheUntilDisposed(gltf.scene, () => { if (hd.get(name) === gltf.scene) { hd.delete(name); loading = null; } });
-  } catch (e: unknown) { console.warn(`[sunscar-dunes] ${name} not loaded, the flat model stands in:`, e); }
+  } catch (e: unknown) { console.error(`[sunscar-dunes] the generated model ${name} did not load:`, e); }
 }
 
-/** Load every generated model once (a failed one is skipped). */
+/** Load every generated model once (a failed one is skipped and faulted). */
 export function preloadDuneMeshes(): Promise<void> {
   loading ??= Promise.all([...DUNE_MESHES.filter(name => !ready.has(name)).map(load), ...DUNE_HD.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
   return loading;

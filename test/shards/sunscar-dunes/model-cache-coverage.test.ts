@@ -39,7 +39,7 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
     const bytes = readFileSync(`public${url}`);
     return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
   });
-  const warnings = vi.spyOn(console, 'warn');
+  const warnings = vi.spyOn(console, 'warn'), faults = vi.spyOn(console, 'error');
   const initial = new Set(app.assets.retained().map(row => row.key));
   try {
     for (const mode of ['standalone', 'grid'] as const) {
@@ -58,11 +58,11 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
         const sum = (kind: 'cpu' | 'gpu'): number => [...allocations.values()].filter(row => row.kind === kind).reduce((total, row) => total + row.bytes, 0);
         expect(sum('cpu')).toBe(4_394_860); expect(sum('gpu')).toBe(5_792_960);
         const commons = page.allocator.entries().filter(row => row.category === 'commons');
-        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(53_837_632);
+        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(53_171_704);
         expect(commons.reduce((total, row) => total + row.accountedBytes, 0)).toBeGreaterThan(0);
         expect(commons.filter(row => row.coveredBy !== undefined).reduce((total, row) => total + row.bytes, 0)).toBeLessThanOrEqual(bytes);
         expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);
-        expect(warnings).not.toHaveBeenCalled();
+        expect(warnings).not.toHaveBeenCalled(); expect(faults).not.toHaveBeenCalled(); // a model that did not load is a page fault
       } finally {
         for (const row of app.assets.retained()) if (!initial.has(row.key)) app.assets.evictCached(row.key);
         resident.dispose(); lease?.release(); page.dispose(); renderer.dispose();
@@ -70,7 +70,7 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
       expect(page.allocator.entries()).toEqual([]);
     }
   } finally {
-    loaded.mockRestore(); warnings.mockRestore();
+    loaded.mockRestore(); warnings.mockRestore(); faults.mockRestore();
     for (const [key, descriptor] of [['ImageBitmap', priorBitmap], ['createImageBitmap', priorDecode], ['self', priorSelf]] as const) {
       if (descriptor === undefined) Reflect.deleteProperty(globalThis, key); else Object.defineProperty(globalThis, key, descriptor);
     }
