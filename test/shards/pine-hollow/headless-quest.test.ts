@@ -206,3 +206,29 @@ it('restores exactly mid-dawn, across the sunrise\'s fast-forward and the lanter
     expect(host.flags.has('seen:dawn')).toBe(false); // the caption holds till 12 s
   } finally { host.dispose(); }
 }, 30_000);
+
+
+it('takes all eight captured carved tokens and restores their flags and ledger without a second grant', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    for (let i = 0; i < 8; i++) {
+      const id = `token-${i + 1}`, spot = row(id), command = PINE_ACT.token1 + i;
+      press(host, tick, spot, command, 3); // strict reach: an out-of-range use does not take it
+      expect(host.flags.has(`taken:${id}`)).toBe(false);
+      press(host, tick, spot, command);
+      expect(host.flags.has(`taken:${id}`)).toBe(true); expect(host.flags.has(`token:${i + 1}`)).toBe(true);
+      const count = tick.facts.length;
+      press(host, tick, spot, command); expect(tick.facts).toHaveLength(count);
+    }
+    expect(host.flags.count('token:')).toBe(8);
+    expect(tick.facts.filter(fact => fact.startsWith('pine.feat.tokens/')))
+      .toEqual(Array.from({ length: 8 }, (_, i) => `pine.feat.tokens/tokens:${i + 1}`));
+    expect(quest.pack.snapshot()).toEqual({ counts: {}, order: [] });
+    const saved = snapshotSimHost(host), count = tick.facts.length;
+    resumed = restore(tick, saved);
+    expect(tick.facts).toHaveLength(count); expectSameSimSnapshot(snapshotSimHost(resumed), saved);
+    for (let i = 0; i < 8; i++) press(resumed, tick, row(`token-${i + 1}`), PINE_ACT.token1 + i);
+    expect(tick.facts).toHaveLength(count); expect(resumed.flags.count('token:')).toBe(8);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
