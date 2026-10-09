@@ -76,7 +76,8 @@ export class PageResidency {
     let detach: () => void;
     try {
       detach = game.observeComposerAllocation(bytes => {
-        const next = this.allocator.reservePageComponent('page:composer', composerReservation(bytes, tier), PHONE_COMPOSER_CALIBRATION, this.composerCover());
+        const reserved = composerReservation(bytes, tier);
+        const next = this.allocator.reservePageComponent('page:composer', reserved, PHONE_COMPOSER_CALIBRATION, this.composerCover(reserved));
         if (next === null) throw new Error('Composer admission deferred by the shared budget');
         const previous = lease; lease = next; previous?.release();
       });
@@ -87,10 +88,18 @@ export class PageResidency {
 
   constructor(allocator = new ResidencyAllocator()) { this.allocator = allocator; }
 
-  /** SF57: a measured whole-page home was read through this same composer, so it covers the composer while it lives. */
-  private composerCover(): string | undefined {
+  /** SF57: a measured whole-page home was read through this same composer, so it covers the composer while it lives, but
+   * only while the composer still fits inside that reading beside what the home already covers (its retained commons).
+   * A larger composer (a bigger drawing buffer than the census's) is charged uncovered, the same fallback the asset bridge
+   * gives a retained cache that overflows the reading; covering it anyway threw at boot (Signal Dunes, 70 MB phone composer
+   * against a 49 MB home). */
+  private composerCover(bytes: number): string | undefined {
     const claim = this.claim;
-    return claim !== undefined && this.wholePage && this.allocator.has(`sim:${claim.instance}`) ? `sim:${claim.instance}` : undefined;
+    if (claim === undefined || !this.wholePage) return undefined;
+    const id = `sim:${claim.instance}`, entries = this.allocator.entries(), home = entries.find(entry => entry.id === id);
+    if (home === undefined) return undefined;
+    const others = entries.reduce((sum, entry) => sum + (entry.id !== 'page:composer' && entry.coveredBy === id ? entry.bytes : 0), 0);
+    return others + bytes <= home.bytes ? id : undefined;
   }
 
   /** The same policy follows early admission, the grid and every warning surface; never a second allocator. */

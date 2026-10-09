@@ -48,6 +48,34 @@ describe('SF57: a measured whole-page home covers the page composer', () => {
     expect(() => allocator.markMeasuredPage('sim:missing')).toThrow('live sim claim');
   });
 
+  it('charges a composer larger than the measured home uncovered instead of refusing the boot', () => {
+    const owner = new PageResidency(new ResidencyAllocator());
+    owner.admitHome('sunscar-dunes', 49_369_323, true);
+    const { game, emit } = composerHarness(), renderer = new Scope('renderer');
+    owner.bindComposer(game, renderer, 'phone');
+    expect(() => { emit(70_154_380); }).not.toThrow();
+    expect(owner.allocator.entries().find(e => e.id === 'page:composer')).toMatchObject({ accountedBytes: 70_154_380 });
+    expect(owner.allocator.entries().find(e => e.id === 'page:composer')?.coveredBy).toBeUndefined();
+    expect(owner.allocator.cost().accounted).toBe(49_369_323 + 70_154_380 + 36);
+    expect(owner.allocator.cost().input.engineBase).toBe(CONTENT_CAPS.engineBase - PHONE_COMPOSER_CALIBRATION - 36);
+    // a resize that fits again is covered again
+    emit(40_000_000);
+    expect(owner.allocator.entries().find(e => e.id === 'page:composer')).toMatchObject({ accountedBytes: 0, coveredBy: 'sim:sunscar-dunes' });
+    renderer.dispose(); owner.dispose();
+  });
+
+  it('charges the composer uncovered when the home already covers its retained caches up to the reading', () => {
+    const owner = new PageResidency(new ResidencyAllocator());
+    owner.admitHome('sunscar-dunes', 49_369_323, true);
+    const commons = owner.allocator.reserve({ id: 'commons:retained:1:gpu', category: 'commons', owner: 'platform', bytes: 48_245_228, distance: 0, needed: true, coveredBy: 'sim:sunscar-dunes' });
+    const { game, emit } = composerHarness(), renderer = new Scope('renderer');
+    owner.bindComposer(game, renderer, 'phone');
+    expect(() => { emit(13_140_636); }).not.toThrow();
+    expect(owner.allocator.entries().find(e => e.id === 'page:composer')?.coveredBy).toBeUndefined();
+    expect(owner.allocator.cost().accounted).toBe(49_369_323 + 13_140_636 + 36);
+    commons?.release(); renderer.dispose(); owner.dispose();
+  });
+
   it('charges the composer again once the measured home is gone', () => {
     const allocator = new ResidencyAllocator();
     const home = allocator.reserve({ id: 'sim:home', category: 'sim', owner: 'home', bytes: 300_000_000, distance: 0, needed: true });
