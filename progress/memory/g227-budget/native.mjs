@@ -132,6 +132,8 @@ try {
   report.stage = 'grid-load'; save();
   if (standalone) {
     await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.world?.player)", 240000);
+    // The standalone boot rewrites the global save once after load; wait for the seeded settings to be back on disk.
+    await until(`JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data?.memorySaver === ${JSON.stringify(memorySaver)}`, 30000);
     await sleep(4000);
   } else {
   await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)", 240000);

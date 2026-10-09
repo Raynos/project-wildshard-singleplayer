@@ -1,0 +1,69 @@
+{
+ "schema": "memory-report-input/1",
+ "pin": "b491354-mv033tge, b491354-mv074goi",
+ "device": "iPhone 17 Pro Simulator (wildshard-iphone), Safari, captured as the phone tier",
+ "settings": {
+  "tier": "phone",
+  "renderScale": 2,
+  "textures": "Auto",
+  "developer": true,
+  "memorySaver": true,
+  "muted": true,
+  "coldRuns": 3,
+  "provenance": "Fixed ruler (native.mjs --vmmap=last --census=final): no vmmap and no census before any reading. The template centre is the public grid (Developer off, Memory saver off). road: runs 578.2, 600.0, 626.5 MB WC+GL, median run nalati-v-2.json.gz; road: engine unattributed {'gpu': 1747620, 'ram': 0} recomputed from its rows as {'ram': 1048576, 'gpu': 1747620}; pine-hollow-centre: runs 737.3, 750.5, 765.0 MB WC+GL, median run pine-v-1.json.gz; pine-hollow-centre: engine unattributed {'gpu': 2577804, 'ram': 0} recomputed from its rows as {'ram': 1179656, 'gpu': 2577804}; nalati-grasslands-centre: runs 753.1, 775.2, 806.3 MB WC+GL, median run nalati-v-2.json.gz; far-reach-centre: runs 729.9, 732.8, 821.9 MB WC+GL, median run sky-v-3.json.gz; far-reach-centre: engine unattributed {'gpu': 12932428, 'ram': 0} recomputed from its rows as {'ram': 1048576, 'gpu': 12932428}; _template-centre: runs 761.8, 771.1, 795.1 MB WC+GL, median run public-v-1.json.gz; _template-centre: engine unattributed {'gpu': 2812964, 'ram': 0} recomputed from its rows as {'ram': 1065344, 'gpu': 2812964}"
+ },
+ "centres": [
+  "driftwood-isle",
+  "pine-hollow",
+  "nalati-grasslands",
+  "_template",
+  "sunscar-dunes",
+  "far-reach",
+  "nine-dragon-stack"
+ ],
+ "poses": [
+  {
+   "name": "nine-dragon-stack-centre",
+   "unavailable": "Nine Dragon is not in the grid catalogue; no grid centre capture exists"
+  },
+  {
+   "name": "road",
+   "native": {
+    "file": "b491354/nalati-v-2.json.gz",
+    "label": "neutral-road"
+   },
+   "attribution": "attribution-road.json.gz"
+  },
+  {
+   "name": "pine-hollow-centre",
+   "native": {
+    "file": "b491354/pine-v-1.json.gz",
+    "label": "pine-hollow-centre"
+   },
+   "attribution": "attribution-pine-hollow-centre.json.gz"
+  },
+  {
+   "name": "nalati-grasslands-centre",
+   "native": {
+    "file": "b491354/nalati-v-2.json.gz",
+    "label": "nalati-grasslands-centre"
+   }
+  },
+  {
+   "name": "far-reach-centre",
+   "native": {
+    "file": "b491354/sky-v-3.json.gz",
+    "label": "sky-island"
+   },
+   "attribution": "attribution-far-reach-centre.json.gz"
+  },
+  {
+   "name": "_template-centre",
+   "native": {
+    "file": "b491354/public-v-1.json.gz",
+    "label": "public-template-centre"
+   },
+   "attribution": "attribution-_template-centre.json.gz"
+  }
+ ]
+}

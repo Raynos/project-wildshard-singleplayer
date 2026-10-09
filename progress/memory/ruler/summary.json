@@ -1,0 +1,1673 @@
+{
+ "nalati": {
+  "attempts": 2,
+  "valid": 2,
+  "failures": [],
+  "builds": [
+   "b491354-mv033tge"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 564.4,
+     "min": 547.1,
+     "max": 581.8
+    },
+    "glMB": {
+     "median": 180.9,
+     "min": 180.9,
+     "max": 180.9
+    },
+    "combinedMB": {
+     "median": 745.3,
+     "min": 728.0,
+     "max": 762.7
+    },
+    "highCombinedMB": {
+     "median": 750.4,
+     "min": 735.8,
+     "max": 765.0
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 581.783152,
+      "glMB": 180.920235,
+      "combinedMB": 762.703387,
+      "highCombinedMB": 765.029963,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 547.06548,
+      "glMB": 180.920235,
+      "combinedMB": 727.985715,
+      "highCombinedMB": 735.751779,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "nalati-grasslands-entry": {
+    "wcMB": {
+     "median": 765.4,
+     "min": 756.0,
+     "max": 774.9
+    },
+    "glMB": {
+     "median": 278.6,
+     "min": 278.6,
+     "max": 278.6
+    },
+    "combinedMB": {
+     "median": 1044.1,
+     "min": 1034.6,
+     "max": 1053.5
+    },
+    "highCombinedMB": {
+     "median": 1045.7,
+     "min": 1037.6,
+     "max": 1053.7
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 774.86876,
+      "glMB": 278.638728,
+      "combinedMB": 1053.507488,
+      "highCombinedMB": 1053.736864,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 756.010776,
+      "glMB": 278.638728,
+      "combinedMB": 1034.649504,
+      "highCombinedMB": 1037.565856,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "nalati-grasslands-centre": {
+    "wcMB": {
+     "median": 816.4,
+     "min": 797.9,
+     "max": 835.0
+    },
+    "glMB": {
+     "median": 275.1,
+     "min": 275.1,
+     "max": 275.1
+    },
+    "combinedMB": {
+     "median": 1091.6,
+     "min": 1073.1,
+     "max": 1110.1
+    },
+    "highCombinedMB": {
+     "median": 1091.6,
+     "min": 1073.1,
+     "max": 1110.2
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 797.904688,
+      "glMB": 275.147204,
+      "combinedMB": 1073.051892,
+      "highCombinedMB": 1073.117428,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 834.965296,
+      "glMB": 275.147204,
+      "combinedMB": 1110.1125,
+      "highCombinedMB": 1110.178036,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "neutral-road": {
+    "wcMB": {
+     "median": 818.6,
+     "min": 802.4,
+     "max": 834.9
+    },
+    "glMB": {
+     "median": 101.2,
+     "min": 101.2,
+     "max": 101.2
+    },
+    "combinedMB": {
+     "median": 919.8,
+     "min": 903.6,
+     "max": 936.1
+    },
+    "highCombinedMB": {
+     "median": 920.0,
+     "min": 903.6,
+     "max": 936.4
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 802.36116,
+      "glMB": 101.194294,
+      "combinedMB": 903.555454,
+      "highCombinedMB": 903.571838,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 834.916144,
+      "glMB": 101.194294,
+      "combinedMB": 936.110438,
+      "highCombinedMB": 936.356198,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "nalati-v": {
+  "attempts": 3,
+  "valid": 3,
+  "failures": [],
+  "builds": [
+   "b491354-mv074goi"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 552.8,
+     "min": 536.7,
+     "max": 583.3
+    },
+    "glMB": {
+     "median": 180.9,
+     "min": 180.9,
+     "max": 180.9
+    },
+    "combinedMB": {
+     "median": 733.7,
+     "min": 717.6,
+     "max": 764.2
+    },
+    "highCombinedMB": {
+     "median": 757.7,
+     "min": 731.5,
+     "max": 766.7
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 536.710768,
+      "glMB": 180.920235,
+      "combinedMB": 717.631003,
+      "highCombinedMB": 731.524683,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 552.767064,
+      "glMB": 180.920235,
+      "combinedMB": 733.687299,
+      "highCombinedMB": 757.722675,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 583.257808,
+      "glMB": 180.920235,
+      "combinedMB": 764.178043,
+      "highCombinedMB": 766.717587,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "nalati-grasslands-entry": {
+    "wcMB": {
+     "median": 564.9,
+     "min": 514.8,
+     "max": 619.0
+    },
+    "glMB": {
+     "median": 278.6,
+     "min": 278.6,
+     "max": 278.6
+    },
+    "combinedMB": {
+     "median": 843.5,
+     "min": 793.4,
+     "max": 897.7
+    },
+    "highCombinedMB": {
+     "median": 843.9,
+     "min": 793.8,
+     "max": 897.9
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 514.772808,
+      "glMB": 278.638728,
+      "combinedMB": 793.411536,
+      "highCombinedMB": 793.788368,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 564.85872,
+      "glMB": 278.638728,
+      "combinedMB": 843.497448,
+      "highCombinedMB": 843.890664,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 619.040752,
+      "glMB": 278.638728,
+      "combinedMB": 897.67948,
+      "highCombinedMB": 897.941624,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "nalati-grasslands-centre": {
+    "wcMB": {
+     "median": 500.1,
+     "min": 477.9,
+     "max": 531.1
+    },
+    "glMB": {
+     "median": 275.1,
+     "min": 275.1,
+     "max": 275.1
+    },
+    "combinedMB": {
+     "median": 775.2,
+     "min": 753.1,
+     "max": 806.3
+    },
+    "highCombinedMB": {
+     "median": 776.0,
+     "min": 753.1,
+     "max": 806.3
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 477.925192,
+      "glMB": 275.1449,
+      "combinedMB": 753.070092,
+      "highCombinedMB": 753.086476,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 500.06,
+      "glMB": 275.1449,
+      "combinedMB": 775.2049,
+      "highCombinedMB": 775.991332,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 531.124208,
+      "glMB": 275.1449,
+      "combinedMB": 806.269108,
+      "highCombinedMB": 806.334644,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "neutral-road": {
+    "wcMB": {
+     "median": 498.8,
+     "min": 477.0,
+     "max": 525.3
+    },
+    "glMB": {
+     "median": 101.2,
+     "min": 101.2,
+     "max": 101.2
+    },
+    "combinedMB": {
+     "median": 600.0,
+     "min": 578.2,
+     "max": 626.5
+    },
+    "highCombinedMB": {
+     "median": 600.2,
+     "min": 578.4,
+     "max": 626.7
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 477.04048,
+      "glMB": 101.194294,
+      "combinedMB": 578.234774,
+      "highCombinedMB": 578.38223,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 498.765688,
+      "glMB": 101.194294,
+      "combinedMB": 599.959982,
+      "highCombinedMB": 600.189358,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "3",
+      "wcMB": 525.275144,
+      "glMB": 101.194294,
+      "combinedMB": 626.469438,
+      "highCombinedMB": 626.731582,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "pine-every": {
+  "attempts": 2,
+  "valid": 2,
+  "failures": [],
+  "builds": [
+   "b491354-mv033tge"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 560.6,
+     "min": 557.7,
+     "max": 563.4
+    },
+    "glMB": {
+     "median": 180.9,
+     "min": 180.9,
+     "max": 180.9
+    },
+    "combinedMB": {
+     "median": 741.5,
+     "min": 738.6,
+     "max": 744.4
+    },
+    "highCombinedMB": {
+     "median": 757.2,
+     "min": 749.5,
+     "max": 764.8
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 563.449504,
+      "glMB": 180.920235,
+      "combinedMB": 744.369739,
+      "highCombinedMB": 764.849715,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 557.68224,
+      "glMB": 180.920235,
+      "combinedMB": 738.602475,
+      "highCombinedMB": 749.530627,
+      "censusAtThisPose": true
+     }
+    ]
+   },
+   "pine-hollow-entry": {
+    "wcMB": {
+     "median": 743.2,
+     "min": 722.7,
+     "max": 763.7
+    },
+    "glMB": {
+     "median": 231.7,
+     "min": 230.0,
+     "max": 233.5
+    },
+    "combinedMB": {
+     "median": 974.9,
+     "min": 952.7,
+     "max": 997.2
+    },
+    "highCombinedMB": {
+     "median": 998.2,
+     "min": 997.2,
+     "max": 999.2
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 722.66972,
+      "glMB": 229.998622,
+      "combinedMB": 952.668342,
+      "highCombinedMB": 997.249206,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 763.711376,
+      "glMB": 233.493866,
+      "combinedMB": 997.205242,
+      "highCombinedMB": 999.204066,
+      "censusAtThisPose": true
+     }
+    ]
+   },
+   "pine-hollow-centre": {
+    "wcMB": {
+     "median": 875.2,
+     "min": 865.9,
+     "max": 884.4
+    },
+    "glMB": {
+     "median": 231.3,
+     "min": 231.3,
+     "max": 231.3
+    },
+    "combinedMB": {
+     "median": 1106.4,
+     "min": 1097.2,
+     "max": 1115.6
+    },
+    "highCombinedMB": {
+     "median": 1106.4,
+     "min": 1097.2,
+     "max": 1115.7
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 884.396184,
+      "glMB": 231.251376,
+      "combinedMB": 1115.64756,
+      "highCombinedMB": 1115.663944,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 865.914816,
+      "glMB": 231.251376,
+      "combinedMB": 1097.166192,
+      "highCombinedMB": 1097.231728,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "pine-final": {
+  "attempts": 2,
+  "valid": 2,
+  "failures": [],
+  "builds": [
+   "b491354-mv033tge"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 502.8,
+     "min": 467.4,
+     "max": 538.3
+    },
+    "glMB": {
+     "median": 180.9,
+     "min": 180.9,
+     "max": 180.9
+    },
+    "combinedMB": {
+     "median": 683.7,
+     "min": 648.3,
+     "max": 719.2
+    },
+    "highCombinedMB": {
+     "median": 699.5,
+     "min": 670.8,
+     "max": 728.1
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 538.267272,
+      "glMB": 180.920235,
+      "combinedMB": 719.187507,
+      "highCombinedMB": 728.149579,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 467.357392,
+      "glMB": 180.920235,
+      "combinedMB": 648.277627,
+      "highCombinedMB": 670.772883,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-entry": {
+    "wcMB": {
+     "median": 830.5,
+     "min": 798.3,
+     "max": 862.8
+    },
+    "glMB": {
+     "median": 231.7,
+     "min": 230.0,
+     "max": 233.5
+    },
+    "combinedMB": {
+     "median": 1062.3,
+     "min": 1031.8,
+     "max": 1092.8
+    },
+    "highCombinedMB": {
+     "median": 1062.6,
+     "min": 1031.8,
+     "max": 1093.4
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 798.265424,
+      "glMB": 233.493866,
+      "combinedMB": 1031.75929,
+      "highCombinedMB": 1031.792058,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 862.801976,
+      "glMB": 229.996318,
+      "combinedMB": 1092.798294,
+      "highCombinedMB": 1093.388118,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-centre": {
+    "wcMB": {
+     "median": 929.3,
+     "min": 914.1,
+     "max": 944.5
+    },
+    "glMB": {
+     "median": 231.3,
+     "min": 231.2,
+     "max": 231.3
+    },
+    "combinedMB": {
+     "median": 1160.6,
+     "min": 1145.4,
+     "max": 1175.7
+    },
+    "highCombinedMB": {
+     "median": 1161.6,
+     "min": 1145.4,
+     "max": 1177.9
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 914.14948,
+      "glMB": 231.251376,
+      "combinedMB": 1145.400856,
+      "highCombinedMB": 1145.433624,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 944.476288,
+      "glMB": 231.249072,
+      "combinedMB": 1175.72536,
+      "highCombinedMB": 1177.85528,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "pine-fponly": {
+  "attempts": 3,
+  "valid": 2,
+  "failures": [
+   {
+    "file": "pine-fponly-3.json.gz",
+    "failure": "Error: EEXIST: file already exists, open '/private/tmp/claude-501/sp-builders/ruler/runs/pine-fponly-3.json.sampler.log'",
+    "stage": "cold-reset"
+   }
+  ],
+  "builds": [
+   "b491354-mv033tge"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 531.1,
+     "min": 528.9,
+     "max": 533.4
+    },
+    "glMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "combinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "highCombinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 533.352024,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 528.944728,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-entry": {
+    "wcMB": {
+     "median": 497.3,
+     "min": 487.4,
+     "max": 507.1
+    },
+    "glMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "combinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "highCombinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 487.444584,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 507.056208,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-centre": {
+    "wcMB": {
+     "median": 484.0,
+     "min": 478.3,
+     "max": 489.8
+    },
+    "glMB": {
+     "median": 231.3,
+     "min": 231.3,
+     "max": 231.3
+    },
+    "combinedMB": {
+     "median": 715.3,
+     "min": 709.5,
+     "max": 721.0
+    },
+    "highCombinedMB": {
+     "median": 715.4,
+     "min": 709.5,
+     "max": 721.2
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 478.269544,
+      "glMB": 231.251376,
+      "combinedMB": 709.52092,
+      "highCombinedMB": 709.52092,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 489.787544,
+      "glMB": 231.251376,
+      "combinedMB": 721.03892,
+      "highCombinedMB": 721.235528,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "pine-glonly": {
+  "attempts": 3,
+  "valid": 2,
+  "failures": [
+   {
+    "file": "pine-glonly-2.json.gz",
+    "failure": "Error: EEXIST: file already exists, open '/private/tmp/claude-501/sp-builders/ruler/runs/pine-glonly-2.json.sampler.log'",
+    "stage": "cold-reset"
+   }
+  ],
+  "builds": [
+   "b491354-mv033tge"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 533.4,
+     "min": 513.6,
+     "max": 553.1
+    },
+    "glMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "combinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "highCombinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 553.127584,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 513.609304,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-entry": {
+    "wcMB": {
+     "median": 748.1,
+     "min": 734.7,
+     "max": 761.6
+    },
+    "glMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "combinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "highCombinedMB": {
+     "median": NaN,
+     "min": NaN,
+     "max": NaN
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 761.581624,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 734.711864,
+      "glMB": null,
+      "combinedMB": null,
+      "highCombinedMB": null,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-centre": {
+    "wcMB": {
+     "median": 915.0,
+     "min": 903.2,
+     "max": 926.7
+    },
+    "glMB": {
+     "median": 231.3,
+     "min": 231.3,
+     "max": 231.3
+    },
+    "combinedMB": {
+     "median": 1146.2,
+     "min": 1134.4,
+     "max": 1158.0
+    },
+    "highCombinedMB": {
+     "median": 1146.7,
+     "min": 1134.5,
+     "max": 1158.9
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 903.172224,
+      "glMB": 231.251376,
+      "combinedMB": 1134.4236,
+      "highCombinedMB": 1134.538288,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "3",
+      "wcMB": 926.748776,
+      "glMB": 231.251376,
+      "combinedMB": 1158.000152,
+      "highCombinedMB": 1158.884888,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "pine-v": {
+  "attempts": 3,
+  "valid": 3,
+  "failures": [],
+  "builds": [
+   "b491354-mv033tge",
+   "b491354-mv074goi"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 460.1,
+     "min": 437.5,
+     "max": 529.9
+    },
+    "glMB": {
+     "median": 180.9,
+     "min": 180.9,
+     "max": 180.9
+    },
+    "combinedMB": {
+     "median": 641.0,
+     "min": 618.4,
+     "max": 710.9
+    },
+    "highCombinedMB": {
+     "median": 664.4,
+     "min": 618.8,
+     "max": 714.1
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 460.050056,
+      "glMB": 180.920235,
+      "combinedMB": 640.970291,
+      "highCombinedMB": 664.448563,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 437.472904,
+      "glMB": 180.920235,
+      "combinedMB": 618.393139,
+      "highCombinedMB": 618.819123,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 529.944104,
+      "glMB": 180.920235,
+      "combinedMB": 710.864339,
+      "highCombinedMB": 714.124755,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-entry": {
+    "wcMB": {
+     "median": 538.7,
+     "min": 501.6,
+     "max": 557.2
+    },
+    "glMB": {
+     "median": 233.5,
+     "min": 233.5,
+     "max": 233.5
+    },
+    "combinedMB": {
+     "median": 772.2,
+     "min": 735.1,
+     "max": 790.7
+    },
+    "highCombinedMB": {
+     "median": 775.2,
+     "min": 735.6,
+     "max": 796.0
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 538.677472,
+      "glMB": 233.493866,
+      "combinedMB": 772.171338,
+      "highCombinedMB": 775.15325,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 501.567712,
+      "glMB": 233.493866,
+      "combinedMB": 735.061578,
+      "highCombinedMB": 735.553122,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 557.240304,
+      "glMB": 233.493866,
+      "combinedMB": 790.73417,
+      "highCombinedMB": 795.993434,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "pine-hollow-centre": {
+    "wcMB": {
+     "median": 519.3,
+     "min": 506.0,
+     "max": 533.7
+    },
+    "glMB": {
+     "median": 231.3,
+     "min": 231.3,
+     "max": 231.3
+    },
+    "combinedMB": {
+     "median": 750.5,
+     "min": 737.3,
+     "max": 765.0
+    },
+    "highCombinedMB": {
+     "median": 750.7,
+     "min": 737.4,
+     "max": 765.1
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 519.26248,
+      "glMB": 231.251376,
+      "combinedMB": 750.513856,
+      "highCombinedMB": 750.743232,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 506.040592,
+      "glMB": 231.251376,
+      "combinedMB": 737.291968,
+      "highCombinedMB": 737.357504,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "3",
+      "wcMB": 533.729336,
+      "glMB": 231.251376,
+      "combinedMB": 764.980712,
+      "highCombinedMB": 765.111784,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "public-v": {
+  "attempts": 4,
+  "valid": 3,
+  "failures": [
+   {
+    "file": "public-v-2.json.gz",
+    "failure": "Error: Developer is not saved and effective OFF",
+    "stage": "home-settled"
+   }
+  ],
+  "builds": [
+   "b491354-mv074goi"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 545.0,
+     "min": 536.3,
+     "max": 564.5
+    },
+    "glMB": {
+     "median": 243.7,
+     "min": 243.7,
+     "max": 243.7
+    },
+    "combinedMB": {
+     "median": 788.7,
+     "min": 780.0,
+     "max": 808.2
+    },
+    "highCombinedMB": {
+     "median": 791.4,
+     "min": 780.3,
+     "max": 808.5
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 544.968496,
+      "glMB": 243.733613,
+      "combinedMB": 788.702109,
+      "highCombinedMB": 791.389085,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 564.481768,
+      "glMB": 243.733613,
+      "combinedMB": 808.215381,
+      "highCombinedMB": 808.510317,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "4",
+      "wcMB": 536.268496,
+      "glMB": 243.733613,
+      "combinedMB": 780.002109,
+      "highCombinedMB": 780.297021,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "public-road": {
+    "wcMB": {
+     "median": 538.2,
+     "min": 533.3,
+     "max": 555.3
+    },
+    "glMB": {
+     "median": 244.9,
+     "min": 244.9,
+     "max": 244.9
+    },
+    "combinedMB": {
+     "median": 783.0,
+     "min": 778.1,
+     "max": 800.2
+    },
+    "highCombinedMB": {
+     "median": 783.1,
+     "min": 778.3,
+     "max": 800.4
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 533.286704,
+      "glMB": 244.858553,
+      "combinedMB": 778.145257,
+      "highCombinedMB": 778.341865,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 555.33952,
+      "glMB": 244.858553,
+      "combinedMB": 800.198073,
+      "highCombinedMB": 800.427449,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "4",
+      "wcMB": 538.152728,
+      "glMB": 244.858553,
+      "combinedMB": 783.011281,
+      "highCombinedMB": 783.060433,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "public-template-centre": {
+    "wcMB": {
+     "median": 523.6,
+     "min": 514.2,
+     "max": 547.5
+    },
+    "glMB": {
+     "median": 247.5,
+     "min": 247.5,
+     "max": 247.5
+    },
+    "combinedMB": {
+     "median": 771.1,
+     "min": 761.8,
+     "max": 795.1
+    },
+    "highCombinedMB": {
+     "median": 795.1,
+     "min": 771.1,
+     "max": 797.2
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 523.571448,
+      "glMB": 247.534381,
+      "combinedMB": 771.105829,
+      "highCombinedMB": 771.122213,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "3",
+      "wcMB": 547.524736,
+      "glMB": 247.534381,
+      "combinedMB": 795.059117,
+      "highCombinedMB": 795.059117,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "4",
+      "wcMB": 514.216088,
+      "glMB": 247.534381,
+      "combinedMB": 761.750469,
+      "highCombinedMB": 797.205469,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "sky-v": {
+  "attempts": 3,
+  "valid": 3,
+  "failures": [],
+  "builds": [
+   "b491354-mv033tge",
+   "b491354-mv074goi"
+  ],
+  "poses": {
+   "home-settled": {
+    "wcMB": {
+     "median": 552.4,
+     "min": 528.2,
+     "max": 554.3
+    },
+    "glMB": {
+     "median": 180.9,
+     "min": 180.9,
+     "max": 180.9
+    },
+    "combinedMB": {
+     "median": 733.3,
+     "min": 709.2,
+     "max": 735.2
+    },
+    "highCombinedMB": {
+     "median": 749.4,
+     "min": 709.7,
+     "max": 752.0
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 554.258008,
+      "glMB": 180.920235,
+      "combinedMB": 735.178243,
+      "highCombinedMB": 751.971867,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 552.406712,
+      "glMB": 180.920235,
+      "combinedMB": 733.326947,
+      "highCombinedMB": 749.350523,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 528.240288,
+      "glMB": 180.920235,
+      "combinedMB": 709.160523,
+      "highCombinedMB": 709.701195,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "sky-road": {
+    "wcMB": {
+     "median": 558.5,
+     "min": 532.3,
+     "max": 566.6
+    },
+    "glMB": {
+     "median": 94.1,
+     "min": 94.1,
+     "max": 94.1
+    },
+    "combinedMB": {
+     "median": 652.6,
+     "min": 626.4,
+     "max": 660.7
+    },
+    "highCombinedMB": {
+     "median": 652.7,
+     "min": 626.5,
+     "max": 660.8
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 566.595208,
+      "glMB": 94.09643,
+      "combinedMB": 660.691638,
+      "highCombinedMB": 660.757174,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 558.4852,
+      "glMB": 94.09643,
+      "combinedMB": 652.58163,
+      "highCombinedMB": 652.712702,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 532.319904,
+      "glMB": 94.09643,
+      "combinedMB": 626.416334,
+      "highCombinedMB": 626.48187,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "sky-lip": {
+    "wcMB": {
+     "median": 527.5,
+     "min": 513.6,
+     "max": 561.8
+    },
+    "glMB": {
+     "median": 187.3,
+     "min": 183.8,
+     "max": 187.3
+    },
+    "combinedMB": {
+     "median": 714.9,
+     "min": 701.0,
+     "max": 745.6
+    },
+    "highCombinedMB": {
+     "median": 714.9,
+     "min": 701.1,
+     "max": 748.7
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 561.778528,
+      "glMB": 183.841908,
+      "combinedMB": 745.620436,
+      "highCombinedMB": 748.74978,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 527.51968,
+      "glMB": 187.337152,
+      "combinedMB": 714.856832,
+      "highCombinedMB": 714.922368,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 513.626024,
+      "glMB": 187.337152,
+      "combinedMB": 700.963176,
+      "highCombinedMB": 701.110632,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "sky-board": {
+    "wcMB": {
+     "median": 519.3,
+     "min": 506.5,
+     "max": 564.4
+    },
+    "glMB": {
+     "median": 187.3,
+     "min": 183.8,
+     "max": 187.3
+    },
+    "combinedMB": {
+     "median": 706.7,
+     "min": 693.9,
+     "max": 748.3
+    },
+    "highCombinedMB": {
+     "median": 706.7,
+     "min": 693.9,
+     "max": 753.2
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 564.4164,
+      "glMB": 183.841908,
+      "combinedMB": 748.258308,
+      "highCombinedMB": 753.189892,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 519.344064,
+      "glMB": 187.337152,
+      "combinedMB": 706.681216,
+      "highCombinedMB": 706.681216,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 506.515392,
+      "glMB": 187.337152,
+      "combinedMB": 693.852544,
+      "highCombinedMB": 693.885312,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "sky-gate": {
+    "wcMB": {
+     "median": 519.0,
+     "min": 515.2,
+     "max": 589.5
+    },
+    "glMB": {
+     "median": 187.3,
+     "min": 183.8,
+     "max": 187.3
+    },
+    "combinedMB": {
+     "median": 706.4,
+     "min": 702.6,
+     "max": 773.3
+    },
+    "highCombinedMB": {
+     "median": 706.4,
+     "min": 702.7,
+     "max": 776.7
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 589.500376,
+      "glMB": 183.843204,
+      "combinedMB": 773.34358,
+      "highCombinedMB": 776.718684,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 519.032816,
+      "glMB": 187.338448,
+      "combinedMB": 706.371264,
+      "highCombinedMB": 706.371264,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 515.248064,
+      "glMB": 187.338448,
+      "combinedMB": 702.586512,
+      "highCombinedMB": 702.668432,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "sky-island": {
+    "wcMB": {
+     "median": 552.4,
+     "min": 549.5,
+     "max": 641.6
+    },
+    "glMB": {
+     "median": 180.3,
+     "min": 180.3,
+     "max": 180.3
+    },
+    "combinedMB": {
+     "median": 732.8,
+     "min": 729.9,
+     "max": 821.9
+    },
+    "highCombinedMB": {
+     "median": 733.1,
+     "min": 730.0,
+     "max": 838.6
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 641.55256,
+      "glMB": 180.34796,
+      "combinedMB": 821.90052,
+      "highCombinedMB": 838.563048,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "2",
+      "wcMB": 549.539968,
+      "glMB": 180.34796,
+      "combinedMB": 729.887928,
+      "highCombinedMB": 730.019,
+      "censusAtThisPose": true
+     },
+     {
+      "run": "3",
+      "wcMB": 552.423552,
+      "glMB": 180.34796,
+      "combinedMB": 732.771512,
+      "highCombinedMB": 733.05004,
+      "censusAtThisPose": true
+     }
+    ]
+   }
+  }
+ },
+ "standalone-v-1.failed": {
+  "attempts": 1,
+  "valid": 0,
+  "failures": [
+   {
+    "file": "standalone-v-1.failed-1791506627.json.gz",
+    "failure": "Error: Memory saver fixture did not activate: expected on, observed undefined",
+    "stage": "standalone-spawn"
+   }
+  ],
+  "builds": [],
+  "poses": {}
+ },
+ "standalone-v": {
+  "attempts": 4,
+  "valid": 4,
+  "failures": [],
+  "builds": [
+   "b491354-mv074goi"
+  ],
+  "poses": {
+   "standalone-spawn": {
+    "wcMB": {
+     "median": 538.2,
+     "min": 527.7,
+     "max": 545.5
+    },
+    "glMB": {
+     "median": 260.3,
+     "min": 260.3,
+     "max": 260.3
+    },
+    "combinedMB": {
+     "median": 798.5,
+     "min": 787.9,
+     "max": 805.8
+    },
+    "highCombinedMB": {
+     "median": 801.8,
+     "min": 789.3,
+     "max": 830.3
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 540.57756,
+      "glMB": 260.26196,
+      "combinedMB": 800.83952,
+      "highCombinedMB": 830.347128,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 545.525504,
+      "glMB": 260.26196,
+      "combinedMB": 805.787464,
+      "highCombinedMB": 806.885192,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 527.683328,
+      "glMB": 260.26196,
+      "combinedMB": 787.945288,
+      "highCombinedMB": 789.288776,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "4",
+      "wcMB": 535.908144,
+      "glMB": 260.26196,
+      "combinedMB": 796.170104,
+      "highCombinedMB": 796.72716,
+      "censusAtThisPose": false
+     }
+    ]
+   },
+   "standalone-centre": {
+    "wcMB": {
+     "median": 527.6,
+     "min": 522.6,
+     "max": 532.0
+    },
+    "glMB": {
+     "median": 259.4,
+     "min": 259.4,
+     "max": 259.4
+    },
+    "combinedMB": {
+     "median": 787.0,
+     "min": 782.0,
+     "max": 791.5
+    },
+    "highCombinedMB": {
+     "median": 787.0,
+     "min": 782.0,
+     "max": 791.6
+    },
+    "runs": [
+     {
+      "run": "1",
+      "wcMB": 524.521288,
+      "glMB": 259.446184,
+      "combinedMB": 783.967472,
+      "highCombinedMB": 783.983856,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "2",
+      "wcMB": 530.665216,
+      "glMB": 259.446184,
+      "combinedMB": 790.1114,
+      "highCombinedMB": 790.1114,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "3",
+      "wcMB": 522.555136,
+      "glMB": 259.446184,
+      "combinedMB": 782.00132,
+      "highCombinedMB": 782.00132,
+      "censusAtThisPose": false
+     },
+     {
+      "run": "4",
+      "wcMB": 532.025136,
+      "glMB": 259.446184,
+      "combinedMB": 791.47132,
+      "highCombinedMB": 791.586008,
+      "censusAtThisPose": false
+     }
+    ]
+   }
+  }
+ },
+ "standalone-v-2.failed": {
+  "attempts": 2,
+  "valid": 0,
+  "failures": [
+   {
+    "file": "standalone-v-2.failed-1791506725.json.gz",
+    "failure": "Error: Memory saver fixture did not activate: expected on, observed undefined",
+    "stage": "standalone-spawn"
+   },
+   {
+    "file": "standalone-v-2.failed-1791506795.json.gz",
+    "failure": "Error: Readiness timed out: JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data?.memorySaver === \"on\"",
+    "stage": "grid-load"
+   }
+  ],
+  "builds": [],
+  "poses": {}
+ }
+}

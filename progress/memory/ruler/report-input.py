@@ -8,11 +8,11 @@ import glob, gzip, json, os, re, statistics, sys
 
 runs, out = sys.argv[1], sys.argv[2]
 POSES = [  # (report pose name, arm, native label)
-    ('road', 'nalati', 'neutral-road'),
-    ('pine-hollow-centre', 'pine-final', 'pine-hollow-centre'),
-    ('nalati-grasslands-centre', 'nalati', 'nalati-grasslands-centre'),
-    ('far-reach-centre', 'sky', 'sky-island'),
-    ('_template-centre', 'public', 'public-template-centre'),
+    ('road', 'nalati-v', 'neutral-road'),
+    ('pine-hollow-centre', 'pine-v', 'pine-hollow-centre'),
+    ('nalati-grasslands-centre', 'nalati-v', 'nalati-grasslands-centre'),
+    ('far-reach-centre', 'sky-v', 'sky-island'),  # the worst entered Sky pose in all three runs
+    ('_template-centre', 'public-v', 'public-template-centre'),
 ]
 
 
@@ -47,14 +47,31 @@ for name, arm, label in POSES:
     candidates.sort()
     total, path = candidates[(len(candidates) - 1) // 2]
     provenance.append(f"{name}: runs {', '.join(f'{t:.1f}' for t, _ in candidates)} MB WC+GL, median run {os.path.basename(path)}")
-    poses.append({'name': name, 'native': {'file': os.path.relpath(path, os.path.dirname(os.path.abspath(out))), 'label': label}})
+    entry = {'name': name, 'native': {'file': os.path.relpath(path, os.path.dirname(os.path.abspath(out))), 'label': label}}
+    snap = next(s for s in load(path)['snapshots'] if s['label'] == label)
+    scalar = snap.get('memoryAttribution')
+    if scalar:
+        # The engine snapshot counts `unattributed` by label identity (src/engine/core/memoryAttribution.ts snapshot()), so
+        # an allocation explicitly labelled 'unattributed' lands in totals but not in unattributed, and the report refuses
+        # it. Recompute that one field from the snapshot's own rows; every allocation is kept unchanged.
+        fixed = {'ram': 0, 'gpu': 0}
+        for row in scalar['allocations']:
+            if row['owner'] == 'unattributed':
+                fixed[row['domain']] += row['bytes']
+        if fixed != scalar['unattributed']:
+            sidecar = os.path.join(os.path.dirname(os.path.abspath(out)), f'attribution-{name}.json.gz')
+            with gzip.open(sidecar, 'wt') as handle:
+                json.dump({**scalar, 'unattributed': fixed}, handle)
+            entry['attribution'] = os.path.basename(sidecar)
+            provenance.append(f"{name}: engine unattributed {scalar['unattributed']} recomputed from its rows as {fixed}")
+    poses.append(entry)
 
 manifest = {
     'schema': 'memory-report-input/1',
     'pin': ', '.join(sorted(builds)) or 'none',
     'device': 'iPhone 17 Pro Simulator (wildshard-iphone), Safari, captured as the phone tier',
     'settings': {'tier': 'phone', 'renderScale': 2, 'textures': 'Auto', 'developer': True, 'memorySaver': True, 'muted': True,
-                 'coldRuns': 3, 'provenance': 'Fixed ruler (native.mjs --census=final): no in-page census before any reading. '
+                 'coldRuns': 3, 'provenance': 'Fixed ruler (native.mjs --vmmap=last --census=final): no vmmap and no census before any reading. '
                  'The template centre is the public grid (Developer off, Memory saver off). ' + '; '.join(provenance)},
     'centres': ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', '_template', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack'],
     'poses': [{'name': 'nine-dragon-stack-centre', 'unavailable': 'Nine Dragon is not in the grid catalogue; no grid centre capture exists'}] + poses,
