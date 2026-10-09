@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, SEED } from '@wildshard/engine/core/config';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -17,6 +17,8 @@ import { BOULDER_SHAPES, ROCK_SOLID_ABOVE, boulderSizes, loadMossyBoulder, mossy
 import { loadTreeStump, treeStump } from '../models/treeStump';
 import { fallenLog, fallenLogSize, loadFallenLog } from '../models/fallenLog';
 import { pineModels } from './context';
+import { inEntryLanes } from './entryLanes';
+import source from '../shard.config';
 
 /**
  * Pine Hollow's forest props (E315 M2: the scatter; the things are models in ../models/): mossy boulders
@@ -111,7 +113,7 @@ export class Props {
     const shapes = sizes.map((s, k) => ({ ...s, k }));
     /** per shape, in scatter order: the batch / instance order the old builder drew in */
     const byShape: Placement<MossyBoulderParams>[][] = shapes.map(() => []);
-    let n = 0, tries = 0;
+    let n = 0, tries = 0, gated = 0;
     while (n < 380 && tries++ < 30000) {
       // half the boulders line the trails (where the player actually walks), the rest follow the slopes
       let x: number, z: number;
@@ -134,11 +136,14 @@ export class Props {
       const sink = shape.height * scale * (0.18 + 0.35 * smoothstep(0.05, 0.3, slope) + rng.range(0, 0.1));
       const m = Props.place(x, z, rng.range(0, Math.PI * 2), scale, sink, 0.85);
       const above = shape.height * scale - sink;                  // height showing above ground
+      // a solid boulder standing in a declared entry's lanes is left out (its draws taken and its slot counted, so the rest
+      // of the scatter stands exactly where it was): a player walking in from the grid's road meets nothing in the canyon
+      if (above > ROCK_SOLID_ABOVE && inEntryLanes(source.entryways, CHUNK_HALF, x, z)) { n++; gated++; continue; }
       byShape[shape.k]?.push(Props.at(m, { variant: BOULDER_SHAPES[shape.k] ?? 'a', params: { solid: above > ROCK_SOLID_ABOVE } }));
       if (above > 1.0) this.colliders.push({ x, z, hw: r * 0.6, hd: r * 0.6, rot: 0, yTop: heightAt(x, z) + above, yBottom: heightAt(x, z) - 1 });
       n++;
     }
-    this.counts.rocks = n;
+    this.counts.rocks = n - gated;
     return byShape.flat();
   }
 
@@ -146,8 +151,8 @@ export class Props {
   private stumps(): Placement<Record<string, never>>[] {
     const rng = new Rng(SEED + 202);
     const out: Placement<Record<string, never>>[] = [];
-    let tries = 0;
-    while (out.length < 70 && tries++ < 20000) {
+    let tries = 0, gated = 0;
+    while (out.length + gated < 70 && tries++ < 20000) {
       let x: number, z: number;
       if (rng.next() < 0.4) {
         const c = rng.pick(CABIN_SITES);
@@ -161,8 +166,10 @@ export class Props {
       const [, ny] = normalAt(x, z, 1.0);
       if (ny < 0.8) continue;
       if (!this.treeFree(x, z, 1.2)) continue;
-      const scale = rng.range(0.8, 1.35);
-      out.push(Props.at(Props.place(x, z, rng.range(0, Math.PI * 2), scale, 0.06 * scale, 0.7)));
+      const scale = rng.range(0.8, 1.35), m = Props.place(x, z, rng.range(0, Math.PI * 2), scale, 0.06 * scale, 0.7);
+      // every stump collides: one standing in a declared entry's lanes is left out, its draws taken and its slot counted
+      if (inEntryLanes(source.entryways, CHUNK_HALF, x, z)) { gated++; continue; }
+      out.push(Props.at(m));
     }
     this.counts.stumps = out.length;
     return out;

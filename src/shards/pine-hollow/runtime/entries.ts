@@ -1,5 +1,6 @@
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
+import { ENTRY_LANE_DEPTH } from '../world/entryLanes';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { EDGE_WALL_INSET } from '@wildshard/engine/physics/terrain';
 
@@ -7,7 +8,7 @@ import { EDGE_WALL_INSET } from '@wildshard/engine/physics/terrain';
 export interface PineEntryway { readonly edge: 'north' | 'east' | 'south' | 'west'; readonly kind?: string | undefined }
 /** The player's capsule (the engine's edge walk's), its lane count per opening and the walk's length into the Hollow. */
 const CAPSULE = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;
-const LANES = 23, WALK = 50, START = 249.55, MAX_TICKS = 600, HALF = 250;
+const LANES = 23, WALK = ENTRY_LANE_DEPTH, START = 249.55, MAX_TICKS = 600, HALF = 250;
 
 /** One of the standalone page's four edge walls (engine addEdgeWalls: 1 m half-thick slabs at the chunk's rim, −60 … 400 m),
  *  told by its exact geometry in the bake; a level inside the platform grid has none (the grid owns its edge). */

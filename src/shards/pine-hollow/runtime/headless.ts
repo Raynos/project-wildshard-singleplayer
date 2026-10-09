@@ -66,8 +66,8 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * lever-action's trigger at that body, its HEAVY hold draws the longbow, a `pine.weapon` script command swaps), and the
  * Warden's Hollow (runtime/quest.ts: its declared rows and every beat's prompt at the page's baked point, by `pine.interact`
  * script commands; the stag's walk; Hale's night and the dawn on the host's day clock; its feats' facts). The page's day
- * clock steps on the host (`useDayClock`). The entry proof (runtime/entries.ts) walks the grid's world and refuses today:
- * four boulders stand in the east, south and west entry canyons, so `finish` refuses (see the SF72 handoff).
+ * clock steps on the host (`useDayClock`). The entry proof (runtime/entries.ts) walks a real capsule through all 92 lanes of
+ * the grid's world (the scatter keeps the entry canyons clear, world/entryLanes.ts).
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets, rapier }) => {
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
