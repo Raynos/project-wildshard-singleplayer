@@ -26,6 +26,8 @@
  *                                                      reads here. A half-downloaded set has no marker: images.
  * G188: a measured images-first playing estimate above the phone cap selects KTX2 on the first visit.
  * An explicit Debug pick still wins; desktop is unchanged.
+ * Whatever picks KTX2, the KTX2 capability probe (src/engine/render/ktx2Probe.ts) runs once first and turns it into Images
+ * when this GPU samples mipmapped compressed textures wrong in every compressed format the transcoder could target.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
  * running resident. A grid page can build multiple residents, each with its own TexturePolicyBinding.
  * The explicit Debug pick applies to that page's build. The
@@ -37,6 +39,7 @@ import { GPU_FILES as ENGINE_GPU_FILES } from './ktx2.generated';
 import { TIER } from '../core/tier';
 import { CONTENT_CAPS, PAGE_LEVEL } from '../core/config';
 import { setting } from '../ui/Settings';
+import { ktx2Probe, ktx2ProbeResult, type Ktx2Probe } from '../render/ktx2Probe';
 
 export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
 const GPU_FILES = { phone: { ...ENGINE_GPU_FILES.phone }, desktop: { ...ENGINE_GPU_FILES.desktop } };
@@ -115,10 +118,21 @@ export function texModeWhy(): { mode: TexMode; why: string } {
       if (state.policy !== undefined) state.resolved = state.policy;
       else state.resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
     }
+    // last, whatever picked KTX2 (the Debug pick included): a GPU that samples the transcoder's only compressed targets
+    // wrong when mipmapped loads images (render/ktx2Probe.ts — the iOS Simulator's zeroed sRGB ASTC / ETC2 mips)
+    if (state.resolved.mode === 'ktx2') {
+      const veto = ktx2Probe().veto;
+      if (veto !== null) state.resolved = { mode: 'img', why: `${state.resolved.why}; overruled: ${veto}` };
+    }
   } finally { resolving = false; }
   return state.resolved;
 }
 export const texMode = (): TexMode => texModeWhy().mode;
+
+/** what this page's textures load as and why, with the KTX2 capability probe's result (`__wildshard.textures()`, the perf panel) */
+export function textureReport(): { mode: TexMode; why: string; probe: Ktx2Probe | null } {
+  return { ...texModeWhy(), probe: ktx2ProbeResult() };
+}
 
 /** the KTX2 stand-in of `served` (a path, after tierUrl) in mode `tex`, or undefined */
 export function standIn(served: string, tex: TexMode): string | undefined {

@@ -22,6 +22,7 @@ import type { AppState, Phase } from '../app/systems';
 import { memoryAttribution, type MemorySnapshot } from '../core/memoryAttribution';
 import { placementCensus, type PlacementCensus } from '../models/place';
 import { ownerCensus } from '../app/ownership';
+import { textureReport } from '../boot/gpuFiles';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }
@@ -124,6 +125,8 @@ export interface ProbeApp {
 export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
   /** Scalar allocation storage and native-ruler provenance; available independently of a retired level. */
   memory?: () => MemorySnapshot;
+  /** What the page's textures load as (KTX2 / images), why, and the KTX2 capability probe's verdict (render/ktx2Probe.ts). */
+  textures?: () => ReturnType<typeof textureReport>;
   version: 1; world: W | undefined; shard: { slug: string } & Record<string, unknown>;
   /** Pinned harness: immutable boot snapshot. Otherwise captured lazily on its first explicit read. */
   readonly boot: Fingerprint;
@@ -373,7 +376,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get placement() { return placementCensus(); },
       get owners() { return ownerCensus(); },
     }),
-    version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
+    version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), textures: textureReport, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
@@ -463,7 +466,7 @@ function scopedProbe<W extends ProbeWorld>(source: EngineProbe<W>, scope: Scope)
     return live;
   };
   return {
-    version: 1, get boot() { boot ??= structuredClone(read().boot); return boot; }, memory: () => memoryAttribution.snapshot(),
+    version: 1, get boot() { boot ??= structuredClone(read().boot); return boot; }, memory: () => memoryAttribution.snapshot(), textures: textureReport,
     get world() { return live?.world; },
     requireWorld: () => read().requireWorld(),
     get shard() { return live?.shard ?? { slug }; },

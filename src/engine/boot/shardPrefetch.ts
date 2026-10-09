@@ -41,6 +41,7 @@ import { bootParts, packFor } from './pack';
 import { gpuUrl, versionedUrl } from './bytes';
 import { isRegisteredGpuFile, registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
 import { BASIS_PATH } from '../core/ktx2';
+import { ktx2ProbeResult } from '../render/ktx2Probe';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
@@ -224,7 +225,9 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
     //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.
     const picked = setting('tex');
-    const modeFor = (def: BootLevel): TexMode => (picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
+    // a GPU the capability probe already turned to images (render/ktx2Probe.ts) loads images next time too: no KTX2 sets
+    const vetoed = (ktx2ProbeResult()?.veto ?? null) !== null;
+    const modeFor = (def: BootLevel): TexMode => (vetoed ? 'img' : picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
     for (const def of order) {
       const urls = shardPrefetchList(def, def === active ? texMode() : modeFor(def));
       state.shards[def.slug] = { files: urls.length, hit: 0, stored: 0, failed: 0, bytes: 0 };
@@ -233,7 +236,7 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     // 2. (E157 B) then each shard's KTX2 set — this shard's first: Auto boots it with KTX2 from the next launch on. Files
     //    already cached are hits (nothing fetched), so every session re-confirms the set and re-writes its marker.
     const hashes = new Map<string, string>();
-    if (picked !== 'img') for (const def of order) {
+    if (picked !== 'img' && !vetoed) for (const def of order) {
       const urls = ktx2Set(def);
       if (urls.length === 0) continue;
       hashes.set(def.slug, setHash(urls));

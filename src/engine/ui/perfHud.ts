@@ -16,7 +16,7 @@ import { saveStorage } from '../saves/slots';
  *             long tasks where the browser reports them (Chrome; WebKit: n/a)
  *   COUNTS    the game's (main.ts `addCounts`: animals alive / near / on motors / chasing / fleeing, the elite, Rapier
  *             bodies …), audio sources playing, DOM mutations a second, draw calls, triangles, shader programs, GPU memory
- *   DEVICE    dpr, canvas, tier, the fps cap, visibility, engine
+ *   DEVICE    dpr, canvas, tier, the fps cap, visibility, engine; the texture mode (KTX2 / images), why, and the KTX2 probe
  *   the sparkline: the last 120 frames' ms (the 33 ms line), coloured by what dominated each — update (amber), render
  *             (cyan), gpu~ (magenta)
  *   REC 30 S  a 30-second recording (every frame's split + the counts at 4 Hz) → a summary with the top 5 spike frames and
@@ -25,6 +25,8 @@ import { saveStorage } from '../saves/slots';
 import type { Game } from '../core/Game';
 import { TIER, frameCapFps } from '../core/tier';
 import { frameCost, BUCKETS, SUBS, type FrameRecord } from '../core/frameCost';
+import { textureReport } from '../boot/gpuFiles';
+import { ktx2ProbeLine } from '../render/ktx2Probe';
 
 const savedStorage = saveStorage('device');
 
@@ -242,6 +244,7 @@ export class PerfHud {
     L.push(`gpu mem: ${g('textures')} textures · ${g('geometries')} geometries`);
     L.push('DEVICE');
     L.push(device(this.game));
+    L.push(textureLine());
     if (this.abLabel !== '') L.push(`A/B OFF: ${this.abLabel}`);
     this.out.textContent = L.join('\n');
     this.drawSpark();
@@ -284,6 +287,12 @@ function device(game: Game): string {
   return engineString('s_eca1db0e98e6', [devicePixelRatio, cv.width, cv.height, TIER, cap > 0 ? engineString('s_49bfa9d144a2', [cap]) : engineString('s_b4dc66dde806'), document.visibilityState, webkit || /iPhone|iPad/.test(ua) ? engineString('s_c5228b57a26a') : engineString('s_a37430e22cd0'), navigator.hardwareConcurrency]);
 }
 
+/** textures: what this page loads (KTX2 / images) and why, and the KTX2 capability probe's verdict (render/ktx2Probe.ts) */
+function textureLine(): string {
+  const t = textureReport();
+  return `textures ${t.mode} · ${t.why}\nktx2 probe ${ktx2ProbeLine(t.probe)}`;
+}
+
 function pct(v: number[], p: number): number { const s = [...v].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(s.length * p))] ?? 0; }
 
 /** the recording's summary: what Jake pastes back */
@@ -293,6 +302,7 @@ function recSummary(frames: readonly RecFrame[], max: Counts, game: Game, abOff:
   L.push(`${appIdentity().name.toUpperCase()} PERF REC · build ${buildId() || '?'} · ${new Date().toISOString().slice(0, 16)}`);
   L.push(`${location.pathname}${location.search}`);
   L.push(device(game).replace('\n', ' · '));
+  L.push(textureLine());
   if (abOff !== '') L.push(`A/B off at the end: ${abOff}`);
   L.push(`${frames.length} frames in ${f1(secs)} s = ${f1(frames.length / Math.max(0.001, secs))} fps`);
   L.push(`${pad('ms', 9)}   p50    p95    max`);

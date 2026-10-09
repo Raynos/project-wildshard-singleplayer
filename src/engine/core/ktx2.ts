@@ -3,7 +3,8 @@ import { pageScope } from '../app/resources';
  * The KTX2 side of the texture loaders (E157, src/engine/boot/gpuFiles.ts says what and why).
  *
  *   initKtx2(renderer)            once the renderer exists (core/assets.ts setAnisotropy): detects the GPU's compressed
- *                                 formats (ASTC · BC7 · ETC2 · S3TC …) and starts fetching the Basis transcoder
+ *                                 formats (ASTC · BC7 · ETC2 · S3TC …), less any family the capability probe saw sample
+ *                                 wrong when mipmapped (render/ktx2Probe.ts), and starts fetching the Basis transcoder
  *                                 (/basis/r<three>/, copied from three by vite/basis.ts), so it is warm before the first file
  *   ktx2Texture(served)           the KTX2 stand-in of a file the tier fetches, as a CompressedTexture — or null (none, or
  *                                 KTX2 off): the caller then loads the image as before. One transcode per file per wave;
@@ -29,6 +30,7 @@ import { memorySaverOn } from '../render/memorySaver';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
 import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
+import { applyKtx2Probe } from '../render/ktx2Probe';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -41,6 +43,12 @@ function createLoader(): KTX2Loader {
   made.workerPool = new ScopedWorkerPool(pageScope);
   return made;
 }
+/** the GPU's formats, less every family the capability probe saw sample wrong when mipmapped (render/ktx2Probe.ts) */
+function detect(made: KTX2Loader, renderer: Renderer): KTX2Loader {
+  made.detectSupport(renderer);
+  applyKtx2Probe(made.workerConfig);
+  return made;
+}
 
 /** detect the GPU's formats and start the transcoder download (idempotent) */
 export function initKtx2(renderer: Renderer): void {
@@ -48,7 +56,7 @@ export function initKtx2(renderer: Renderer): void {
   if (texMode() !== 'ktx2') return;
   markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)'); // this build's (a shard built with images restores in place)
   if (loader !== null) return; // the formats are the GPU's: one loader for every KTX2 build
-  loader = createLoader().detectSupport(renderer);
+  loader = detect(createLoader(), renderer);
   loader.init().catch((e: unknown) => { console.warn('[ktx2] transcoder failed to load', e); });
 }
 
@@ -57,7 +65,7 @@ function ktx2Loader(): KTX2Loader {
   if (loader !== null) return loader;
   const probe = probeRenderer();
   try {
-    const made = createLoader().detectSupport(probe);
+    const made = detect(createLoader(), probe);
     loader = made;
     return made;
   } finally { probe.dispose(); probe.forceContextLoss(); }
