@@ -1,0 +1,248 @@
+{
+ "leg": "cells",
+ "sha": "83c71943631e102d83e33e6dfc5916df5a3c5a57",
+ "grader": "phase by max(native timestamp, gl.at)",
+ "moved": [],
+ "recorded": {
+  "functionalPass": true,
+  "memoryPass": false,
+  "gatePass": false,
+  "sampling": true,
+  "recovery": false,
+  "calibration": true,
+  "leakZero": true,
+  "peakBytes": 857292049,
+  "loadingPeakBytes": 906040757,
+  "ratios": [
+   {
+    "cycle": 1,
+    "raw": 1.7092040443949648,
+    "adjusted": 1.01758366207856
+   },
+   {
+    "cycle": 2,
+    "raw": 1.724728542803853,
+    "adjusted": 1.0331081604874481
+   },
+   {
+    "cycle": 3,
+    "raw": 1.7316029911991353,
+    "adjusted": 1.0399826088827304
+   },
+   {
+    "cycle": 4,
+    "raw": 1.7354559806842047,
+    "adjusted": 1.0438355983677998
+   }
+  ],
+  "loops": [
+   {
+    "cycle": 0,
+    "complete": true,
+    "peakBytes": 817264561,
+    "troughBytes": 727871125
+   },
+   {
+    "cycle": 1,
+    "complete": true,
+    "peakBytes": 857292049,
+    "troughBytes": 740712181
+   },
+   {
+    "cycle": 2,
+    "complete": true,
+    "peakBytes": 774323141,
+    "troughBytes": 747528045
+   },
+   {
+    "cycle": 3,
+    "complete": true,
+    "peakBytes": 830036009,
+    "troughBytes": 750968733
+   },
+   {
+    "cycle": 4,
+    "complete": false,
+    "peakBytes": 757050561,
+    "troughBytes": 752279549
+   }
+  ],
+  "baselineDeltaBytes": [
+   -15551712,
+   -6733968,
+   0,
+   2981888,
+   4653176
+  ],
+  "admitted": [
+   "template-1",
+   "template-2",
+   "template-3",
+   "driftwood-isle",
+   "template-4",
+   "template-5"
+  ],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false
+ },
+ "regraded": {
+  "functionalPass": true,
+  "memoryPass": false,
+  "gatePass": false,
+  "sampling": true,
+  "recovery": false,
+  "calibration": true,
+  "leakZero": true,
+  "peakBytes": 857292049,
+  "loadingPeakBytes": 906040757,
+  "ratios": [
+   {
+    "cycle": 1,
+    "raw": 1.7092040443949648,
+    "adjusted": 1.01758366207856
+   },
+   {
+    "cycle": 2,
+    "raw": 1.724728542803853,
+    "adjusted": 1.0331081604874481
+   },
+   {
+    "cycle": 3,
+    "raw": 1.7316029911991353,
+    "adjusted": 1.0399826088827304
+   },
+   {
+    "cycle": 4,
+    "raw": 1.7354559806842047,
+    "adjusted": 1.0438355983677998
+   }
+  ],
+  "loops": [
+   {
+    "cycle": 0,
+    "complete": true,
+    "peakBytes": 817264561,
+    "troughBytes": 727871125
+   },
+   {
+    "cycle": 1,
+    "complete": true,
+    "peakBytes": 857292049,
+    "troughBytes": 740712181
+   },
+   {
+    "cycle": 2,
+    "complete": true,
+    "peakBytes": 774323141,
+    "troughBytes": 747528045
+   },
+   {
+    "cycle": 3,
+    "complete": true,
+    "peakBytes": 830036009,
+    "troughBytes": 750968733
+   },
+   {
+    "cycle": 4,
+    "complete": false,
+    "peakBytes": 757050561,
+    "troughBytes": 752279549
+   }
+  ],
+  "baselineDeltaBytes": [
+   -15551712,
+   -6733968,
+   0,
+   2981888,
+   4653176
+  ],
+  "admitted": [
+   "template-1",
+   "template-2",
+   "template-3",
+   "driftwood-isle",
+   "template-4",
+   "template-5"
+  ],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false
+ },
+ "drive": {
+  "start": 1791534054.472,
+  "end": 1791535885.688
+ },
+ "perLap": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "samples": 865,
+   "peakBytes": 817264561,
+   "troughBytes": 729340105,
+   "webContentPeakBytes": 572084184,
+   "allWebContentPeakBytes": 610146808,
+   "glPeakBytes": 249129725,
+   "accountedPeakBytes": 442131012,
+   "gpuProcessPeakBytes": 196250168,
+   "wasmPeakBytes": 52494336,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "samples": 301,
+   "peakBytes": 857292049,
+   "troughBytes": 740712181,
+   "webContentPeakBytes": 612094104,
+   "allWebContentPeakBytes": 650599096,
+   "glPeakBytes": 249129725,
+   "accountedPeakBytes": 440142356,
+   "gpuProcessPeakBytes": 198822480,
+   "wasmPeakBytes": 52494336,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "samples": 300,
+   "peakBytes": 774323141,
+   "troughBytes": 747528045,
+   "webContentPeakBytes": 525193416,
+   "allWebContentPeakBytes": 553294568,
+   "glPeakBytes": 249176381,
+   "accountedPeakBytes": 440142356,
+   "gpuProcessPeakBytes": 198806096,
+   "wasmPeakBytes": 52494336,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 3,
+   "complete": true,
+   "samples": 298,
+   "peakBytes": 830036009,
+   "troughBytes": 750968733,
+   "webContentPeakBytes": 583127336,
+   "allWebContentPeakBytes": 592354120,
+   "glPeakBytes": 249129725,
+   "accountedPeakBytes": 440142356,
+   "gpuProcessPeakBytes": 198249040,
+   "wasmPeakBytes": 52494336,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 4,
+   "complete": false,
+   "samples": 55,
+   "peakBytes": 757050561,
+   "troughBytes": 752279549,
+   "webContentPeakBytes": 512102720,
+   "allWebContentPeakBytes": 549247840,
+   "glPeakBytes": 246723465,
+   "accountedPeakBytes": 434894982,
+   "gpuProcessPeakBytes": 196954680,
+   "wasmPeakBytes": 52494336,
+   "overCapBytes": 0
+  }
+ ]
+}

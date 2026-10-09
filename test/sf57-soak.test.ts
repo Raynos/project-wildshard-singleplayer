@@ -179,6 +179,16 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(() => soakDriveBounds({ driveStarted: '1970-01-01T00:01:40.000Z' })).toThrow('no recorded end');
     expect(() => gradeSoak({ ...witness(), drive: null })).toThrow('recorded drive boundaries');
   });
+  it('times a joined sample by the later of its native timestamp and its GL read (gl.at)', () => {
+    const drive = { start: 100, end: 1811.755 };
+    // 83c719436's road leg: the native half 0.101 s before the end, the GL half 0.067 s after it (teardown, GL 42.9 MB).
+    const late = { phase: 'drive', elapsed: 1811.654, gl: { at: 1811.822 } };
+    // A sample wholly inside the drive (GL read on either side of the native stamp) keeps its tag.
+    const inside = [{ phase: 'drive', elapsed: 900, gl: { at: 900.4 } }, { phase: 'settle-2', elapsed: 1200, gl: { at: 1199.6 } }, { phase: 'drive', elapsed: 1811.7, gl: { at: 1811.755 } }];
+    expect(soakPhaseByTime([...inside, late], drive).map((row) => row.phase)).toEqual(['drive', 'settle-2', 'drive', 'unloaded']);
+    // No GL half (or a non-finite one) falls back to the native timestamp.
+    expect(soakPhaseByTime([{ phase: 'drive', elapsed: 1811.7 }, { phase: 'drive', elapsed: 1811.7, gl: { at: Number.NaN } }], drive).map((row) => row.phase)).toEqual(['drive', 'drive']);
+  });
   it('grades a post-teardown sample the sampler still tagged drive as unloaded, so it never sets a lap trough', () => {
     const value = witness(), late = value.samples.at(-1);
     if (late === undefined) throw new Error('Missing witness reading');

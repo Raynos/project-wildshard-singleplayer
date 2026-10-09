@@ -68,3 +68,12 @@ checked), `summarize.mjs` → `summary-*.json` (recorded verdicts and the number
 `road-whatif.mjs` → `road-whatif.json`, `attempt-1/`. Cleanup: the parent's finally stopped the preview; sim lane 0/1.
 
 Plan-State: unchanged
+
+## Regrade with the gl.at grader (sf57-spike)
+
+`scripts/soak/route.ts` now phases a joined sample by `max(native timestamp, gl.at)`, the latest moment any part of it
+was read. `regrade.mjs <dir> <leg>` → `regrade-glat-{road,cells}.json` (recorded verdict beside the regrade, plus every
+sample the rule moved). **Road:** exactly one sample moved, the one `road-whatif.json` named (native 0.101 s before the
+end, GL read 0.067 s after it, GL 42.9 MB, now `unloaded`). Road memory and gate now PASS: loops 838.0 / 768.6,
+783.9 / 768.3, 782.3 / 768.0, partial 782.3 / 767.9. **Cells:** nothing moved, so it is unchanged (rule (b) still fails
+on loop 2's transient; the cause and fix are in `../spike-census/`).

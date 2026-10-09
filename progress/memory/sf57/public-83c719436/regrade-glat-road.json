@@ -1,0 +1,205 @@
+{
+ "leg": "road",
+ "sha": "83c71943631e102d83e33e6dfc5916df5a3c5a57",
+ "grader": "phase by max(native timestamp, gl.at)",
+ "moved": [
+  {
+   "elapsed": 1791537766.485,
+   "glAt": 1791537766.653,
+   "nativeOnlyPhase": "drive",
+   "phase": "unloaded",
+   "footprintMB": 526.2,
+   "glMB": 42.9
+  }
+ ],
+ "recorded": {
+  "functionalPass": true,
+  "memoryPass": false,
+  "gatePass": false,
+  "sampling": true,
+  "recovery": false,
+  "calibration": true,
+  "leakZero": true,
+  "peakBytes": 837959453,
+  "loadingPeakBytes": 994681057,
+  "ratios": [
+   {
+    "cycle": 1,
+    "raw": 1.842180489114164,
+    "adjusted": 1.1250670342717723
+   },
+   {
+    "cycle": 2,
+    "raw": 1.8416714150533278,
+    "adjusted": 1.1245579602109361
+   },
+   {
+    "cycle": 3,
+    "raw": 1.8385382985615577,
+    "adjusted": 1.121424843719166
+   }
+  ],
+  "loops": [
+   {
+    "cycle": 0,
+    "complete": true,
+    "peakBytes": 837959453,
+    "troughBytes": 768598685
+   },
+   {
+    "cycle": 1,
+    "complete": true,
+    "peakBytes": 783941629,
+    "troughBytes": 768287461
+   },
+   {
+    "cycle": 2,
+    "complete": true,
+    "peakBytes": 782254077,
+    "troughBytes": 768041701
+   },
+   {
+    "cycle": 3,
+    "complete": false,
+    "peakBytes": 782328013,
+    "troughBytes": 569175412
+   }
+  ],
+  "baselineDeltaBytes": [
+   3982624,
+   212968,
+   0,
+   -1310720
+  ],
+  "admitted": [],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false
+ },
+ "regraded": {
+  "functionalPass": true,
+  "memoryPass": true,
+  "gatePass": true,
+  "sampling": true,
+  "recovery": true,
+  "calibration": true,
+  "leakZero": true,
+  "peakBytes": 837959453,
+  "loadingPeakBytes": 994681057,
+  "ratios": [
+   {
+    "cycle": 1,
+    "raw": 1.842180489114164,
+    "adjusted": 1.1250670342717723
+   },
+   {
+    "cycle": 2,
+    "raw": 1.8416714150533278,
+    "adjusted": 1.1245579602109361
+   },
+   {
+    "cycle": 3,
+    "raw": 1.8385382985615577,
+    "adjusted": 1.121424843719166
+   }
+  ],
+  "loops": [
+   {
+    "cycle": 0,
+    "complete": true,
+    "peakBytes": 837959453,
+    "troughBytes": 768598685
+   },
+   {
+    "cycle": 1,
+    "complete": true,
+    "peakBytes": 783941629,
+    "troughBytes": 768287461
+   },
+   {
+    "cycle": 2,
+    "complete": true,
+    "peakBytes": 782254077,
+    "troughBytes": 768041701
+   },
+   {
+    "cycle": 3,
+    "complete": false,
+    "peakBytes": 782328013,
+    "troughBytes": 767868773
+   }
+  ],
+  "baselineDeltaBytes": [
+   3982624,
+   212968,
+   0,
+   -1310720
+  ],
+  "admitted": [],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false
+ },
+ "drive": {
+  "start": 1791535953.884,
+  "end": 1791537766.586
+ },
+ "perLap": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "samples": 510,
+   "peakBytes": 837959453,
+   "troughBytes": 768598685,
+   "webContentPeakBytes": 596512728,
+   "allWebContentPeakBytes": 614930984,
+   "glPeakBytes": 247803869,
+   "accountedPeakBytes": 434054622,
+   "gpuProcessPeakBytes": 196790888,
+   "wasmPeakBytes": 52363264,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "samples": 469,
+   "peakBytes": 783941629,
+   "troughBytes": 768287461,
+   "webContentPeakBytes": 540971040,
+   "allWebContentPeakBytes": 580213312,
+   "glPeakBytes": 247803869,
+   "accountedPeakBytes": 433078890,
+   "gpuProcessPeakBytes": 194464360,
+   "wasmPeakBytes": 52232192,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "samples": 472,
+   "peakBytes": 782254077,
+   "troughBytes": 768041701,
+   "webContentPeakBytes": 534777888,
+   "allWebContentPeakBytes": 571284032,
+   "glPeakBytes": 247803869,
+   "accountedPeakBytes": 433742466,
+   "gpuProcessPeakBytes": 196643432,
+   "wasmPeakBytes": 52232192,
+   "overCapBytes": 0
+  },
+  {
+   "cycle": 3,
+   "complete": false,
+   "samples": 350,
+   "peakBytes": 782328013,
+   "troughBytes": 767868773,
+   "webContentPeakBytes": 534564896,
+   "allWebContentPeakBytes": 571185728,
+   "glPeakBytes": 247763117,
+   "accountedPeakBytes": 438750912,
+   "gpuProcessPeakBytes": 194857576,
+   "wasmPeakBytes": 52232192,
+   "overCapBytes": 0
+  }
+ ]
+}

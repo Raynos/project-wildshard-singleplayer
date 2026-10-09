@@ -1,7 +1,7 @@
 interface Cell { readonly instance: string; readonly slug: string; readonly cell: readonly number[] }
 interface Point { readonly x: number; readonly z: number }
 interface Step extends Point { readonly kind: string; readonly instance?: string; readonly slug?: string; readonly id?: string; readonly seconds?: number }
-interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readonly unlabelled: number; readonly unlabelledBytes?: number; readonly assets?: readonly { readonly owner: string; readonly bytes: number }[]; readonly accountedBytes: number | null; readonly cycle: number | null; readonly settled?: boolean }
+interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readonly unlabelled: number; readonly unlabelledBytes?: number; readonly assets?: readonly { readonly owner: string; readonly bytes: number }[]; readonly accountedBytes: number | null; readonly cycle: number | null; readonly settled?: boolean; readonly at?: number }
 /** Unlabelled GL bytes in a reading. A zero-byte handle created a moment before its label is a create-then-label race that
  * holds nothing; any unlabelled byte still fails sampling. Older readings without the byte field use their per-label groups
  * (the census files an unlabelled resource under owner `unlabelled`); a count with no bytes to show is a failure. */
@@ -39,16 +39,19 @@ export function soakDriveBounds(result: { readonly driveStarted?: string; readon
 }
 const drivePhase = /^(drive|settle)/u;
 /** The phase is decided by the sample's timestamp against the recorded drive boundaries, not by the tag the sampler read
- * before it measured (it reads the phase file first, so a tag can only lag). A drive or settle tag stamped after the
+ * before it measured (it reads the phase file first, so a tag can only lag). A joined sample is timed by the LATEST
+ * moment any part of it was read: `max(native timestamp, gl.at)`, so a GL half read after the drive's end (the teardown
+ * had already freed GL) cannot set a drive trough (SF57, 83c719436's road leg). A drive or settle tag read after the
  * drive's end is `unloaded`; inside the window the worker's own sub-phase tags stand. Without boundaries, or with a drive
  * tag before the drive started, this refuses rather than guesses. */
-export function soakPhaseByTime<T extends { readonly phase: string; readonly elapsed: number }>(samples: readonly T[], drive: SoakDrive | null): T[] {
+export function soakPhaseByTime<T extends { readonly phase: string; readonly elapsed: number; readonly gl?: { readonly at?: number } }>(samples: readonly T[], drive: SoakDrive | null): T[] {
   if (drive !== null && (!Number.isFinite(drive.start) || !Number.isFinite(drive.end) || drive.end < drive.start)) throw new Error('Soak drive boundaries are invalid');
   return samples.map((row) => {
     if (!drivePhase.test(row.phase)) return row;
     if (drive === null) throw new Error('Soak drive samples need the recorded drive boundaries');
     if (row.elapsed < drive.start) throw new Error(`Soak sample tagged ${row.phase} before the recorded drive start`);
-    return row.elapsed > drive.end ? { ...row, phase: 'unloaded' } : row;
+    const glAt = row.gl?.at, readAt = glAt !== undefined && Number.isFinite(glAt) ? Math.max(row.elapsed, glAt) : row.elapsed;
+    return readAt > drive.end ? { ...row, phase: 'unloaded' } : row;
   });
 }
 interface Witness { readonly drive: SoakDrive | null; readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
