@@ -1,0 +1,22 @@
+{
+  "sha": "b464b62e70a21a502b6fc82f76ab212f80a34d21",
+  "out": "/private/tmp/claude-501/sp-builders/sf57-relaunch/sf57-b464b62e7",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4405/",
+      "version": {
+        "build": "b464b62-mv0wc44u",
+        "time": "2026-10-09T11:43:07.203Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells",
+    "road"
+  ],
+  "rehearsal": false
+}

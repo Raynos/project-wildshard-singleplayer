@@ -1,0 +1,49 @@
+{
+ "leg": "road",
+ "gamePid": 37678,
+ "samples": 1803,
+ "top": [
+  {
+   "mb": 12.3,
+   "at": 609.1,
+   "route": "c1 road-3 +14.7 s"
+  },
+  {
+   "mb": 12.2,
+   "at": 610.1,
+   "route": "c1 road-3 +15.7 s"
+  },
+  {
+   "mb": 8.7,
+   "at": 752.1,
+   "route": "c1 road-10 +11.4 s"
+  },
+  {
+   "mb": 8,
+   "at": 66.7,
+   "route": "c0 home-to-road +66.7 s"
+  },
+  {
+   "mb": 8,
+   "at": 464.2,
+   "route": "c0 road-17 +29.5 s"
+  },
+  {
+   "mb": 8,
+   "at": 1225.1,
+   "route": "c2 road-10 +11.6 s"
+  },
+  {
+   "mb": 8,
+   "at": 1699.2,
+   "route": "c3 road-10 +11.0 s"
+  },
+  {
+   "mb": 7.9,
+   "at": 415.9,
+   "route": "c0 road-16 +20.8 s"
+  }
+ ],
+ "atLeast20MB": 0,
+ "atLeast40MB": 0
+}

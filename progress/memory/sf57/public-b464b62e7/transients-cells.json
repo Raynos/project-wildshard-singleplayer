@@ -1,0 +1,49 @@
+{
+ "leg": "cells",
+ "gamePid": 22098,
+ "samples": 1801,
+ "top": [
+  {
+   "mb": 32.5,
+   "at": 1222,
+   "route": "c2 template-2-to-template-3 +8.4 s"
+  },
+  {
+   "mb": 25.4,
+   "at": 73.5,
+   "route": "c0 template-2-to-template-3 +7.5 s"
+  },
+  {
+   "mb": 22.6,
+   "at": 194.3,
+   "route": "c0 template-4-to-template-5 +7.8 s"
+  },
+  {
+   "mb": 22.1,
+   "at": 20.2,
+   "route": "c0 driftwood-isle-to-template-1 +20.2 s"
+  },
+  {
+   "mb": 21.5,
+   "at": 34.3,
+   "route": "c0 template-1-to-template-2 +9.9 s"
+  },
+  {
+   "mb": 21.1,
+   "at": 21.2,
+   "route": "c0 driftwood-isle-to-template-1 +21.2 s"
+  },
+  {
+   "mb": 15,
+   "at": 19.2,
+   "route": "c0 driftwood-isle-to-template-1 +19.2 s"
+  },
+  {
+   "mb": 12.3,
+   "at": 1215.9,
+   "route": "c2 template-2-to-template-3 +2.3 s"
+  }
+ ],
+ "atLeast20MB": 6,
+ "atLeast40MB": 0
+}

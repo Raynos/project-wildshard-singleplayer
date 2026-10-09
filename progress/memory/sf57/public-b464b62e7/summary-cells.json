@@ -1,0 +1,172 @@
+{
+ "leg": "cells",
+ "sha": "b464b62e70a21a502b6fc82f76ab212f80a34d21",
+ "purpose": "QUALIFYING: prepared conversions, continuous route",
+ "seconds": 1811.852,
+ "circuits": 4,
+ "failure": null,
+ "textures": {
+  "mode": "img",
+  "why": "auto: driftwood-isle's KTX2 set is not cached (yet)",
+  "probe": null
+ },
+ "renderScale": 2,
+ "developer": false,
+ "recorded": {
+  "functionalPass": true,
+  "memoryPass": false,
+  "gatePass": false,
+  "sampling": true,
+  "recovery": false,
+  "calibration": true,
+  "leakZero": true,
+  "missingGlSamples": 0,
+  "admitted": [
+   "template-1",
+   "template-2",
+   "template-3",
+   "driftwood-isle",
+   "template-4",
+   "template-5"
+  ],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false,
+  "peakMB": 839.3,
+  "loadingPeakMB": 932.9
+ },
+ "playingPeak": {
+  "combinedMB": 839.3,
+  "webContentMB": 592.4,
+  "glMB": 246.9,
+  "t": 1270.2,
+  "phase": "drive",
+  "cycle": 2
+ },
+ "loadingPeak": {
+  "combinedMB": 932.9,
+  "webContentMB": 689.1,
+  "glMB": 243.7,
+  "t": 23.1,
+  "phase": "loading",
+  "cycle": null
+ },
+ "ratios": [
+  {
+   "cycle": 1,
+   "adjusted": 1.052
+  },
+  {
+   "cycle": 2,
+   "adjusted": 1.066
+  },
+  {
+   "cycle": 3,
+   "adjusted": 1.075
+  },
+  {
+   "cycle": 4,
+   "adjusted": 1.078
+  }
+ ],
+ "loops": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "peakMB": 795.9,
+   "troughMB": 745.8
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "peakMB": 813.4,
+   "troughMB": 755.7
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "peakMB": 839.3,
+   "troughMB": 762
+  },
+  {
+   "cycle": 3,
+   "complete": true,
+   "peakMB": 779.1,
+   "troughMB": 764.8
+  },
+  {
+   "cycle": 4,
+   "complete": false,
+   "peakMB": 770.4,
+   "troughMB": 767.1
+  }
+ ],
+ "baselineDeltaMB": [
+  -11.8,
+  -6.1,
+  0,
+  3.9,
+  5.3
+ ],
+ "settled": [
+  {
+   "stop": "c0",
+   "samples": 10,
+   "webContentMB": 507.6,
+   "glMB": 243,
+   "accountedMB": 433.3
+  },
+  {
+   "stop": "c1",
+   "samples": 10,
+   "webContentMB": 510.9,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  },
+  {
+   "stop": "c2",
+   "samples": 11,
+   "webContentMB": 517,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  },
+  {
+   "stop": "c3",
+   "samples": 10,
+   "webContentMB": 520.8,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  },
+  {
+   "stop": "c4",
+   "samples": 11,
+   "webContentMB": 522.3,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  }
+ ],
+ "sampler": {
+  "samples": 1871,
+  "maxGapS": 1.02,
+  "qos": "user-interactive",
+  "load1m": {
+   "min": 5.12,
+   "max": 84.86,
+   "mean": 28.21
+  },
+  "slowestRead": {
+   "readMs": 16.3,
+   "listMs": 16.2,
+   "elapsed": 1052.76,
+   "phase": "drive"
+  }
+ },
+ "routes": 46,
+ "routeFailures": 0,
+ "entries": 27,
+ "evictions": 61,
+ "errors": 0,
+ "leak": {
+  "disposalErrors": 0
+ }
+}

@@ -1,0 +1,147 @@
+{
+ "leg": "road",
+ "sha": "b464b62e70a21a502b6fc82f76ab212f80a34d21",
+ "purpose": "QUALIFYING: prepared conversions, continuous route",
+ "seconds": 1814.399,
+ "circuits": 3,
+ "failure": null,
+ "textures": {
+  "mode": "img",
+  "why": "auto: driftwood-isle's KTX2 set is not cached (yet)",
+  "probe": null
+ },
+ "renderScale": 2,
+ "developer": false,
+ "recorded": {
+  "functionalPass": true,
+  "memoryPass": true,
+  "gatePass": true,
+  "sampling": true,
+  "recovery": true,
+  "calibration": true,
+  "leakZero": true,
+  "missingGlSamples": 0,
+  "admitted": [],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false,
+  "peakMB": 825.6,
+  "loadingPeakMB": 890.6
+ },
+ "playingPeak": {
+  "combinedMB": 825.6,
+  "webContentMB": 582.6,
+  "glMB": 243,
+  "t": 21.1,
+  "phase": "baseline-0",
+  "cycle": 0
+ },
+ "loadingPeak": {
+  "combinedMB": 890.6,
+  "webContentMB": 741.4,
+  "glMB": 149.2,
+  "t": 6,
+  "phase": "loading",
+  "cycle": null
+ },
+ "ratios": [
+  {
+   "cycle": 1,
+   "adjusted": 1.12
+  },
+  {
+   "cycle": 2,
+   "adjusted": 1.121
+  },
+  {
+   "cycle": 3,
+   "adjusted": 1.121
+  }
+ ],
+ "loops": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "peakMB": 825.6,
+   "troughMB": 766.9
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "peakMB": 781.7,
+   "troughMB": 767
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "peakMB": 781.9,
+   "troughMB": 767.5
+  },
+  {
+   "cycle": 3,
+   "complete": false,
+   "peakMB": 779.4,
+   "troughMB": 767.7
+  }
+ ],
+ "baselineDeltaMB": [
+  5,
+  -0.2,
+  0,
+  0
+ ],
+ "settled": [
+  {
+   "stop": "c0",
+   "samples": 12,
+   "webContentMB": 530.9,
+   "glMB": 243,
+   "accountedMB": 433.3
+  },
+  {
+   "stop": "c1",
+   "samples": 10,
+   "webContentMB": 525.9,
+   "glMB": 242.7,
+   "accountedMB": 418.3
+  },
+  {
+   "stop": "c2",
+   "samples": 10,
+   "webContentMB": 526.2,
+   "glMB": 242.7,
+   "accountedMB": 418.3
+  },
+  {
+   "stop": "c3",
+   "samples": 10,
+   "webContentMB": 526.2,
+   "glMB": 242.7,
+   "accountedMB": 418.3
+  }
+ ],
+ "sampler": {
+  "samples": 1866,
+  "maxGapS": 1.022,
+  "qos": "user-interactive",
+  "load1m": {
+   "min": 8.83,
+   "max": 136.33,
+   "mean": 32.66
+  },
+  "slowestRead": {
+   "readMs": 16,
+   "listMs": 15.9,
+   "elapsed": 336.12,
+   "phase": "drive"
+  }
+ },
+ "routes": 71,
+ "routeFailures": 0,
+ "entries": 0,
+ "evictions": 34,
+ "errors": 0,
+ "leak": {
+  "disposalErrors": 0
+ }
+}
