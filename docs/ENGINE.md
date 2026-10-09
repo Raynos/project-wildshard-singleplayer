@@ -2007,7 +2007,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2272 exports, grouped by the module to import them from.
+2274 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2165,7 +2165,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/entities/lowpoly`: `crestSpikes`, `facetGeometry`, `lowPolyMaterials`, `LowPolyMaterials`, `oneMaterial`, `patchEyeGlow`
 - `@wildshard/engine/entities/species/loft`: `boneIndex`, `isLowPoly`, `loft`, `lowPolySides`, `mix`, `Paint`, `paintNoise`, `paletteColors`, `registerToonPaint`, `RGB`, `S`, `setLowPoly`, `setShag`, `setShapeFn`, `skinPlain`, `srgb`, `Station`, `TEX_M`, `toonPaint`, `ToonPaint`, `tube`
 - `@wildshard/engine/entities/species/look`: `CreatureHull`, `EyeSpot`, `SpeciesLook`, `SpeciesService`, `speciesWithLook`
-- `@wildshard/engine/entities/species/registry`: `AnimalDims`, `AnimalSpecies`, `BoneDef`, `creatureSoundDefaults`, `CreatureSoundDefaults`, `EnemyWorld`, `FurStyle`, `hasSpecies`, `Rarity`, `RARITY_ORDER`, `registeredSpecies`, `registerSpecies`, `RigAnimCtx`, `rollVariant`, `setCreatureSoundDefaults`, `setSpeciesResolver`, `speciesDef`, `SpeciesDef`, `speciesKinds`, `ThinkCtx`, `validateCreatureBones`, `variantDef`, `VariantDef`, `variantMods`, `VariantMods`
+- `@wildshard/engine/entities/species/registry`: `AnimalDims`, `AnimalSpecies`, `BoneDef`, `creatureSoundDefaults`, `CreatureSoundDefaults`, `EnemyWorld`, `FurStyle`, `hasSpecies`, `Rarity`, `RARITY_ORDER`, `registeredSpecies`, `registerSpecies`, `RigAnimCtx`, `rollVariant`, `setCreatureSoundDefaults`, `setSpeciesResolver`, `speciesDef`, `SpeciesDef`, `speciesKinds`, `ThinkCtx`, `validateCreatureBones`, `variantDef`, `VariantDef`, `variantMods`, `VariantMods`, `variantOf`, `VariantTable`
 - `@wildshard/engine/entities/species/rigs`: `bump`, `clamp`, `lookAngles`, `NO_FUR`, `smooth01`, `squashBody`, `step`
 - `@wildshard/engine/events/events`: `EVENT_FLUSH_LIMIT`, `Events`, `ListenerOptions`
 - `@wildshard/engine/events/maps`: `AskInput`, `AskMap`, `AskOutput`, `CrouchAnswer`, `CrouchRequest`, `EventMap`, `FaultEvent`, `Tag`, `TagMap`
@@ -2390,7 +2390,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-827 exports, grouped by the module to import them from.
+832 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2534,6 +2534,8 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/systems/npc/npcRig`: `footPlan`, `LEG_BONE_NAMES`, `legBones`, `LegBuilt`, `legPose`, `LegPoseIn`, `legRigOf`, `NpcFace`, `NpcModel`, `NpcRig`, `NpcRigProfile`, `NpcRow`, `rigLegs`, `WALK`
 - `@wildshard/game/systems/species/bear`: `BEAR`, `BEAR_TUNING`
 - `@wildshard/game/systems/species/boar`: `BOAR`, `BOAR_TUNING`
+- `@wildshard/game/systems/species/deer`: `DEER`, `DEER_PALETTE`
+- `@wildshard/game/systems/species/elk`: `ELK`, `ELK_PALETTE`, `ELK_TUNING`
 - `@wildshard/game/systems/species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
 - `@wildshard/game/systems/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
 - `@wildshard/game/systems/tools/hoverboard`: `Hoverboard`, `HOVERBOARD_TOOL`

@@ -5771,6 +5771,18 @@
         "from": "@wildshard/engine/entities/species/registry"
       },
       {
+        "name": "variantOf",
+        "kind": "function",
+        "doc": "`variantDef` over a given species row (a renderer-free host's own rows, not the registry).",
+        "from": "@wildshard/engine/entities/species/registry"
+      },
+      {
+        "name": "VariantTable",
+        "kind": "type",
+        "doc": "The species fields a variant lookup or roll reads: a registered SpeciesDef and a renderer-free SpeciesRow both satisfy it.",
+        "from": "@wildshard/engine/entities/species/registry"
+      },
+      {
         "name": "bump",
         "kind": "const",
         "doc": "a unit bump: 0 → 1 → 0 over [a, b]",
@@ -18274,6 +18286,36 @@
         "kind": "const",
         "doc": "",
         "from": "@wildshard/game/systems/species/boar"
+      },
+      {
+        "name": "DEER",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/deer"
+      },
+      {
+        "name": "DEER_PALETTE",
+        "kind": "const",
+        "doc": "Deer — red-deer proportions: 0.92 m at the spine, long neck, stags carry a 6-point rack.",
+        "from": "@wildshard/game/systems/species/deer"
+      },
+      {
+        "name": "ELK",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/elk"
+      },
+      {
+        "name": "ELK_PALETTE",
+        "kind": "const",
+        "doc": "Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck",
+        "from": "@wildshard/game/systems/species/elk"
+      },
+      {
+        "name": "ELK_TUNING",
+        "kind": "const",
+        "doc": "The elk's hunting loop — NOT the deer baseline. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s.",
+        "from": "@wildshard/game/systems/species/elk"
       },
       {
         "name": "BEAR_LOOK",

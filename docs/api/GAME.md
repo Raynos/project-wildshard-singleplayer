@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-827 members; 155 without a doc line (—).
+832 members; 157 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -761,6 +761,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `BEAR_TUNING` | const | @wildshard/game/systems/species/bear | — |
 | `BOAR` | const | @wildshard/game/systems/species/boar | — |
 | `BOAR_TUNING` | const | @wildshard/game/systems/species/boar | — |
+| `DEER` | const | @wildshard/game/systems/species/deer | — |
+| `DEER_PALETTE` | const | @wildshard/game/systems/species/deer | Deer — red-deer proportions: 0.92 m at the spine, long neck, stags carry a 6-point rack. |
+| `ELK` | const | @wildshard/game/systems/species/elk | — |
+| `ELK_PALETTE` | const | @wildshard/game/systems/species/elk | Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck |
+| `ELK_TUNING` | const | @wildshard/game/systems/species/elk | The elk's hunting loop — NOT the deer baseline. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. |
 | `BEAR_LOOK` | const | @wildshard/game/systems/species/view/bear | — |
 | `BEAR_PALETTE` | const | @wildshard/game/systems/species/view/bear | Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown / |
 | `BOAR_LOOK` | const | @wildshard/game/systems/species/view/boar | — |

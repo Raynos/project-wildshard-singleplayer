@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2289 members; 843 without a doc line (—).
+2291 members; 843 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -968,6 +968,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `VariantDef` | interface | @wildshard/engine/entities/species/registry | — |
 | `variantMods` | function | @wildshard/engine/entities/species/registry | Fully-populated gameplay multipliers for a variant (missing keys → 1 / species default). |
 | `VariantMods` | interface | @wildshard/engine/entities/species/registry | Per-variant gameplay multipliers, applied by AnimalManager at spawn on top of the species' HuntTuning. |
+| `variantOf` | function | @wildshard/engine/entities/species/registry | `variantDef` over a given species row (a renderer-free host's own rows, not the registry). |
+| `VariantTable` | type | @wildshard/engine/entities/species/registry | The species fields a variant lookup or roll reads: a registered SpeciesDef and a renderer-free SpeciesRow both satisfy it. |
 | `bump` | const | @wildshard/engine/entities/species/rigs | a unit bump: 0 → 1 → 0 over [a, b] |
 | `clamp` | const | @wildshard/engine/entities/species/rigs | — |
 | `lookAngles` | function | @wildshard/engine/entities/species/rigs | the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped |
