@@ -1,3 +1,4 @@
+import type { NalatiPersistence } from './persistence';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
 import { directorVariant } from '@wildshard/game/shardfile/directorClient';
@@ -67,6 +68,7 @@ export interface NalatiPlay {
 }
 
 export interface Nalati {
+  readonly persistence: NalatiPersistence | undefined;
   /** every frame (main.ts game.onUpdate) */
   /** the river, brook and waterfall (world agent) */
   water: NalatiWater;
@@ -114,7 +116,7 @@ export interface Nalati {
   skins: NalatiSkinLocker;
 }
 
-export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress): Promise<Nalati> {
+export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
   const { game, sky } = ctx;
   const slice = slicer(0, progress);
   let completed = 0;
@@ -301,7 +303,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   let devMode: string | null = null, devT = 0, devNext: (() => void) | null | undefined;
   let painter: NalatiSkinPainter | null = null, syncT = 0;
   const nalati: Nalati = {
-    water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan, skins: new NalatiSkinLocker(),
+    persistence, water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
+    skins: new NalatiSkinLocker(persistence === undefined ? undefined : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
     attachAnimals(animals) {
       attachedAnimals = animals;
       animals.wetAt = nalatiWetAt;
@@ -320,7 +323,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = installStealth(plugin, { player, wildlife: () => wildlife, isMounted: () => extra.mounted, crouchHere: () => ride !== null && ride.taming.view.trust !== null });
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = wireRide({ ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       installRide(plugin, ride);
 

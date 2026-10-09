@@ -49,8 +49,8 @@ export const NALATI_SKINS: readonly NalatiSkinDef[] = [
 export class NalatiSkinLocker extends CosmeticsLocker<NalatiSkinSlot, NalatiSkinDef> {
   readonly effects = new EffectService(NALATI_SKINS.map((skin) => nalatiSkinEffect(skin.id, skin.slot)));
   readonly effectTarget: EffectTarget = { attributes: {} };
-  constructor() {
-    super('nalati-grasslands', NALATI_SKINS, { save: savedSlot, autoWear: true, slot: (row) => row.slot });
+  constructor(save: Pick<typeof savedSlot, 'read' | 'write'> = savedSlot) {
+    super('nalati-grasslands', NALATI_SKINS, { save, autoWear: true, slot: (row) => row.slot });
     this.changed = () => { this.syncEffects(); };
     this.syncEffects();
   }

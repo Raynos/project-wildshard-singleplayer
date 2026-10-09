@@ -8,6 +8,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
+import type { NalatiPersistence } from '../runtime/persistence';
 import { Mount } from './Mount';
 import { Bow } from '@wildshard/kit/weapons/bow/family';
 import { Taming } from './Taming';
@@ -50,7 +51,7 @@ const BOLT_PANIC = 35;
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
 function voice(name: string): AnimalSound { return name; }
 
-export interface RideCtx { ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
+export interface RideCtx { persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 export interface RidePlay { toast: (text: string) => void }
 
 export interface Ride {
@@ -83,6 +84,7 @@ export function wireRide(ctx: RideCtx): Ride {
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   const mount = new Mount({
     player: ctx.player, forest: ctx.forest,
+    ...(ctx.persistence === undefined ? {} : { names: ctx.persistence.horseNames }),
     isDrawing,
     hurt: (d) => { hurt(d); },
     restAt: { x: rest.x, z: rest.z },
@@ -91,6 +93,7 @@ export function wireRide(ctx: RideCtx): Ride {
   for (const h of ctx.wildlife.campHorses) mount.addMountable(h, 'Camp horse');
   const hud = new RideHUD(mount, ctx.camera, ctx.ctx);
   const taming = new Taming({
+    ...(ctx.persistence === undefined ? {} : { bond: ctx.persistence.bond }),
     player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,
     hurt: (d) => { hurt(d); }, toast: (t) => { play?.toast(t); },
   });

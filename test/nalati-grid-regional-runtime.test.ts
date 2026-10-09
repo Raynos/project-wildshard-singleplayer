@@ -23,6 +23,7 @@ import type { ShardWorld } from '../src/game/shard/world';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { Progress } from '../src/game/Progress';
 import { Inventory } from '../src/game/Inventory';
+import { INPUT_CONTEXTS } from '../src/game/inputContexts';
 import { NALATI_GRASSLANDS } from '../src/shards/nalati-grasslands/manifest';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import RuntimePlugin from '../src/shards/nalati-grasslands/runtime/index';
@@ -53,6 +54,8 @@ function pageGame(scope: Scope, app: App): Game {
 function fixture() {
   const home = { ...toLevelSpec(NALATI_GRASSLANDS), id: 'home', ground: { terrain: field(3) }, spawns: [] }; configureLevel(home);
   const app = new App(), scope = app.engineScope.child('grid.page'), homePhysics = new Physics(rapier);
+  // The real page installs these before a trusted runtime adopts its declared weapon rows.
+  for (const context of INPUT_CONTEXTS) app.input.register(context, scope);
   const homeRegistry = new WorldRegistry(); app.registryValue = homeRegistry; app.levelScope = scope;
   const game = pageGame(scope, app), doubles = fakeWorld();
   const player = doubles.player;

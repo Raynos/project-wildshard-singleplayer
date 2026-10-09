@@ -6,6 +6,7 @@ import { regionalRuntimeAccountedBytes } from '../../../src/game/grid/regionalRu
 import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifest';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { NALATI_RUNTIME_COST } from '../../../src/shards/nalati-grasslands/data/runtimeCost';
+import { NALATI_RUNTIME_SPAWNS } from '../../../src/shards/nalati-grasslands/data/spawns';
 
 const originalFetch = globalThis.fetch, originalNavigator = globalThis.navigator;
 afterEach(() => { vi.stubGlobal('fetch', originalFetch); vi.stubGlobal('navigator', originalNavigator); });
@@ -22,7 +23,7 @@ it('discovers Nalati grid data without changing its standalone descriptor or tru
     if (product === null) throw new Error('Nalati grid declaration missing');
     expect(fetchSource.mock.calls).toEqual([['http://localhost:5173/shardfiles/nalati-grasslands/shard.json']]);
     expect(product.options.firstParty).toBe(true);
-    expect(product.admitted.source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST });
+    expect(product.admitted.source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: NALATI_RUNTIME_SPAWNS });
     expect(product.admitted.source.edge).toEqual(source.edge);
     expect(regionalRuntimeAccountedBytes(product.admitted, NALATI_GRASSLANDS)).toBe(489_909_910);
     product.release();

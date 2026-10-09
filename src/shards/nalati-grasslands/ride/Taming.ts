@@ -41,6 +41,8 @@ import { tulparSave as savedSlot } from './saves';
  */
 
 export interface TamingOpts {
+  /** Bonded-horse identity owned by the declared runtime state. */
+  bond?: { read: () => string | null; write: (value: string) => void };
   player: Player;
   mount: Mount;
   animals: AnimalManager;
@@ -89,7 +91,7 @@ export class Taming {
 
   constructor(private readonly opts: TamingOpts) {
     let saved: string | null = null;
-    try { saved = savedSlot.read('nalati-grasslands'); } catch { /* no storage: not remembered */ }
+    try { saved = opts.bond === undefined ? savedSlot.read('nalati-grasslands') : opts.bond.read(); } catch { /* no storage: not remembered */ }
     if (saved === '1' || saved === ARGYMAQ_KIND) this.spawnTulpar(this.opts.rest.x + 2.6, this.opts.rest.z + 3.5, Math.atan2(this.opts.rest.face.x, this.opts.rest.face.z), saved === ARGYMAQ_KIND);
   }
 
@@ -275,7 +277,7 @@ export class Taming {
     }
     const t = this.spawnTulpar(x, z, yaw, argymaq);
     m.mount(t);
-    try { savedSlot.write(argymaq ? ARGYMAQ_KIND : '1', 'nalati-grasslands'); } catch { /* not remembered */ }
+    this.opts.bond?.write(argymaq ? ARGYMAQ_KIND : '1');
     this.opts.toast?.(argymaq
       ? 'ARGYMAQ is yours — he takes Tulpar\'s place at the camp\'s rail · whistle (X / HORSE) to call him'
       : 'TULPAR is yours · he waits at the camp\'s hitching rail · whistle (X / HORSE) to call him');

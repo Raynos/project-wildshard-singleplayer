@@ -11,6 +11,8 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { QuestLine, type QuestState } from '@wildshard/engine/quest/core';
 import { NpcTalk, QuestChip, placesWithDiscovery, type LiveMarker, type Places } from '@wildshard/engine/quest/view';
 import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
+import type { NalatiPersistence } from './runtime/persistence';
+import { bindNalatiQuests } from './runtime/quests';
 import type { ProgressSink } from '@wildshard/game/Progress';
 import { elitesSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -55,7 +57,7 @@ export interface NalatiBosses {
   titan: { fight: { tied: boolean }; boss: { defeated: boolean } | null };
 }
 
-export interface NalatiAdventureWorld<A extends { kind: string; combatActor: () => Actor } = { kind: string; combatActor: () => Actor }> {
+export interface NalatiAdventureWorld<A extends { kind: string; variant?: string; combatActor: () => Actor } = { kind: string; combatActor: () => Actor }> {
   ctx?: ShardContext;
   game: { scene: THREE.Scene; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   sky: Sky;
@@ -67,6 +69,7 @@ export interface NalatiAdventureWorld<A extends { kind: string; combatActor: () 
   audio: { weaponSwap: () => void };
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
   progress?: ProgressSink;
+  persistence?: NalatiPersistence;
   fullMap?: { setPois: (source: () => MapPoi[], opts?: { declutter?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
   registry?: WorldRegistry | undefined;
   /** Nalati's riding + taming (src/shards/nalati-grasslands/ride/ride.ts): the mount for the kokpar, the bonded horse for the quest */
@@ -104,20 +107,20 @@ const REWARD: Record<string, { event: string; title: string }> = {
 /** a chapter's achievement is announced by its reward caption (chapter, title earned): main.ts's generic achievement toast
  *  stays quiet for these, or on the phone three banners stack over the caption saying the same thing */
 export const CAPTIONED_EVENTS: ReadonlySet<string> = new Set(Object.values(REWARD).map((r) => r.event));
-function elitesFelled(): Set<string> {
+function elitesFelled(read = () => elitesSave.read('nalati-grasslands')): Set<string> {
   const out = new Set<string>();
   try {
-    const all: unknown = elitesSave.read('nalati-grasslands');
+    const all: unknown = read();
     if (typeof all !== 'object' || all === null) return out;
     for (const [id, v] of Object.entries(all as Record<string, unknown>)) if (typeof v === 'object' && v !== null && 'kills' in v && typeof v.kills === 'number' && v.kills > 0) out.add(id);
   } catch { /* nothing saved */ }
   return out;
 }
 
-export function installNalatiAdventure<A extends { kind: string; combatActor: () => Actor }>(w: NalatiAdventureWorld<A>): NalatiAdventure | null {
+export function installNalatiAdventure<A extends { kind: string; variant?: string; combatActor: () => Actor }>(w: NalatiAdventureWorld<A>): NalatiAdventure | null {
   const scope = w.ctx?.scope ?? resourceScope();
   if (w.chunk.slug !== 'nalati-grasslands') return null;
-  const flags = new Flags(w.chunk.slug);
+  const flags = w.persistence?.flags ?? new Flags(w.chunk.slug);
   if (w.params?.has('resetquest') === true) flags.reset();
   for (const f of (w.params?.get('questflags') ?? '').split(',')) if (f.trim() !== '') flags.set(f.trim());
 
@@ -131,7 +134,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
   if (!w.registry) w.game.scene.add(people.group);
 
   // ── the quest line, the chip, the dialogue ──
-  const line = new QuestLine(NALATI_QUESTS, flags);
+  const line = w.ctx === undefined || w.persistence === undefined ? new QuestLine(NALATI_QUESTS, flags) : bindNalatiQuests(w.ctx, flags, w.persistence.facts);
   const markers = (): LiveMarker[] => (line.active?.markers() ?? []).map((m) => ({ id: m.id, label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
   const chip = new QuestChip({
     chip: () => {
@@ -212,7 +215,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     // the storm feathers: one per named elite felled (the saved elite store, re-read every 2 s)
     if (t - eliteT > 2) {
       eliteT = t;
-      for (const id of elitesFelled()) if (FEATHER_ELITES.some((e) => e.id === id)) flags.set(`felled:${id}`);
+      for (const id of elitesFelled(w.persistence === undefined ? undefined : () => w.persistence?.elites.read(w.chunk.slug) ?? {})) if (FEATHER_ELITES.some((e) => e.id === id)) flags.set(`felled:${id}`);
       const n = FEATHER_ELITES.filter((e) => flags.has(`felled:${e.id}`)).length;
       FEATHER_FLAGS.forEach((f, i) => { if (i < n && !flags.has(f)) { flags.set(f); if (line.active?.def.id === 'father-wind') w.hud.toast(`Storm feather · ${i + 1} / ${FEATHER_FLAGS.length}`); } });
     }
@@ -235,18 +238,28 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
   let chained = false;
   if (w.ctx !== undefined) {
     chained = true;
-    w.ctx.on('actor.died', ({ actor }) => { if (w.animals?.animals.some((a) => a.kind === BALBAL_KIND && a.combatActor() === actor) === true) carving(); });
+    w.ctx.on('actor.died', ({ actor }) => {
+      const animal = w.animals?.animals.find((a) => a.combatActor() === actor);
+      if (animal === undefined) return;
+      w.persistence?.kill(animal.kind, animal.variant);
+      if (animal.kind === BALBAL_KIND) carving();
+    });
   }
   const chainKill = (): void => {
     chained = true;
     const an = w.animals;
     if (!an) return;
-    app.events.on('actor.died', ({ actor }) => { if (an.animals.some((a) => a.kind === BALBAL_KIND && a.combatActor() === actor)) carving(); }, scope);
+    app.events.on('actor.died', ({ actor }) => {
+      const animal = an.animals.find((a) => a.combatActor() === actor);
+      if (animal === undefined) return;
+      w.persistence?.kill(animal.kind, animal.variant);
+      if (animal.kind === BALBAL_KIND) carving();
+    }, scope);
   };
 
   // ── achievements: the chapter + the kokpar as event rows (counts read back from the flags, like Driftwood's Feats) ──
   const feats = (): void => {
-    const p = w.progress;
+    const p = w.persistence === undefined ? w.progress : { recordEvent: w.persistence.feat };
     if (!p) return;
     if (flags.has('won:kokpar')) p.recordEvent('kokpar', 1);
     for (const q of line.chapters) { const r = REWARD[q.def.id]; if (r && q.isComplete) p.recordEvent(r.event, 1); }

@@ -22,16 +22,18 @@ describe('saved names', () => {
   it('round-trips per horse (its registered name + kind + variant: the track horse is not the camp bay), and survives no storage', () => {
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); } });
+    let records: Record<string, string> = {};
+    const names = { read: () => ({ ...records }), write: (value: Record<string, string>) => { records = { ...value }; } };
     const bay = horseKey({ kind: 'horse', variant: 'camp-bay' }, 'Camp horse'), black = horseKey({ kind: 'horse', variant: 'camp-black' }, 'Camp horse');
     const track = horseKey({ kind: 'horse', variant: 'camp-bay' }, 'Track horse');
     expect(bay).toBe('Camp horse|horse:camp-bay');
-    expect(savedHorseName(bay)).toBeNull();
-    saveHorseName(bay, 'Kara Jorga');
-    expect(savedHorseName(bay)).toBe('Kara Jorga');
-    expect(savedHorseName(black)).toBeNull();
-    expect(savedHorseName(track)).toBeNull();
+    expect(savedHorseName(bay, names)).toBeNull();
+    saveHorseName(bay, 'Kara Jorga', names);
+    expect(savedHorseName(bay, names)).toBe('Kara Jorga');
+    expect(savedHorseName(black, names)).toBeNull();
+    expect(savedHorseName(track, names)).toBeNull();
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } });
-    expect(savedHorseName(bay)).toBe('Kara Jorga');
-    expect(() => { saveHorseName(bay, 'X'); }).not.toThrow();
+    expect(savedHorseName(bay, names)).toBe('Kara Jorga');
+    expect(() => { saveHorseName(bay, 'X', names); }).not.toThrow();
   });
 });

@@ -1,17 +1,17 @@
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
-import { horseNamesSave as savedSlot } from './saves';
+import type { NalatiRecord } from '../runtime/persistence';
 
 
 /**
  * The names you give your horses at the hitching rail (NALATI-FINISH B1, N13 "renaming the horse at the rail"). Kept in
- * localStorage `ws.nalati.horseNames` ({ "<key>": "Name" }), so a name outlives the session and follows the horse.
+ * the bounded declared `nalati.horse-names` state ({ "<key>": "Name" }), so names survive reload per placement.
  * The key is per horse, not per look (E328): the horse's registered name + its kind and variant (`horseKey`), so the camp's
  * bay ('Camp horse|horse:camp-bay'), the horse playground's track horse ('Track horse|horse:camp-bay', the same coat),
  * the camp's black, Tulpar and Argymaq each keep their own. Mount.addMountable takes an explicit id to override it.
  *
  *   cleanHorseName('  kara  jorga ') → 'Kara Jorga'   (trimmed, spaces folded, ≤ 16 characters, letters / digits / ' - .)
- *   savedHorseName(key) → string | null ;  saveHorseName(key, name) ;  horseKey(a, registeredName)
+ *   savedHorseName(key, names) → string | null ;  saveHorseName(key, name, names) ;  horseKey(a, registeredName)
  */
 
 export const HORSE_NAME_MAX = 16;
@@ -28,17 +28,11 @@ export function cleanHorseName(raw: string): string {
 /** a horse's key in the store: the name it was registered under + its kind and variant ('Camp horse|horse:camp-bay') */
 export const horseKey = (a: Pick<Animal, 'kind' | 'variant'>, registered: string): string => `${registered}|${a.kind}:${a.variant}`;
 
-function readAll(): Record<string, string> { return savedSlot.read('nalati-grasslands'); }
-
-export function savedHorseName(key: string): string | null {
-  const n = readAll()[key];
+export function savedHorseName(key: string, names: NalatiRecord<Record<string, string>>): string | null {
+  const n = names.read()[key];
   return n !== undefined && n.length > 0 ? n : null;
 }
 
-export function saveHorseName(key: string, name: string): void {
-  try {
-    const all = readAll();
-    all[key] = name;
-    savedSlot.write(all, 'nalati-grasslands');
-  } catch { /* no storage: the name lasts this session */ }
+export function saveHorseName(key: string, name: string, names: NalatiRecord<Record<string, string>>): void {
+  const all = names.read(); all[key] = name; names.write(all);
 }

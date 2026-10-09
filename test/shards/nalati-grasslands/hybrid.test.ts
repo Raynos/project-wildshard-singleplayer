@@ -8,6 +8,7 @@ import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { ShardPlugin } from '../../../src/game/shard/plugin';
 import Plugin from '../../../src/shards/nalati-grasslands/plugin';
 import { NALATI_RUNTIME_COST } from '../../../src/shards/nalati-grasslands/data/runtimeCost';
+import { NALATI_RUNTIME_SPAWNS } from '../../../src/shards/nalati-grasslands/data/spawns';
 
 it.each(['legacy', 'shardfile'])('enters Nalati as %s from SHARD SELECT (SF65), with identical LEGACY stage contexts and no data admission', async (choice) => {
   const legacy = vi.fn(), hybrid = vi.fn();
@@ -37,7 +38,7 @@ it.each(['legacy', 'shardfile'])('enters Nalati as %s from SHARD SELECT (SF65), 
       expect(prepare).toHaveBeenCalledTimes(1);
       expect(prepare).toHaveBeenCalledWith(context);
     }
-    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST });
+    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: NALATI_RUNTIME_SPAWNS });
   } finally { app.engineScope.dispose(); }
   expect(scope.census.disposers).toBe(0);
 });

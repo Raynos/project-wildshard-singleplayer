@@ -28,7 +28,7 @@ import type { NalatiWeather } from '../world/installWeather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import { Boss, type BossDef } from '@wildshard/game/Boss';
+import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
@@ -941,6 +941,7 @@ export class StormTitanFight implements BossScript {
 // ─────────────────────────────── the wiring ───────────────────────────────
 
 export interface TitanPlay {
+  persistence?: BossPersistence;
   animals: AnimalManager;
   wildlife: Wildlife | null;
   ride: Ride | null;
@@ -1040,7 +1041,7 @@ export class StormTitan {
       toast: play.toast, feed: play.feed,
       ...(play.music ? { music: play.music } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
-    }, this.ui, 'nalati-grasslands');
+    }, this.ui, 'nalati-grasslands', play.persistence);
     app.encounters.boss('storm-titan', this.boss, game.levelScope);
     play.interactables.push(this.prompt);
     if (this.boss.rewardTaken) play.upgradeSabre?.(this.naizagai);

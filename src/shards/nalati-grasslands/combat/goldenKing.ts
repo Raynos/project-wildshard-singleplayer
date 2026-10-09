@@ -27,7 +27,7 @@ import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../world/KurganDungeon';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import { Boss, type BossDef } from '@wildshard/game/Boss';
+import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 
 import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
 
@@ -83,6 +83,7 @@ function standOnFloor(a: Animal): void { a.levelGround = true; a.sampleTerrain()
 export interface FightHost {
   player: Player;
   animals: AnimalManager;
+  spawnKing?: () => Animal | null;
   /** the player takes `dmg` from the King / a hazard (routed to the shared damage pipeline) */
   hurt: (dmg: number, throughWalls?: boolean) => void;
   feed: (text: string) => void;
@@ -128,7 +129,8 @@ export class GoldenKingFight implements BossScript {
     if (k === null || !k.alive) {
       if (k !== null) this.retire(k);
       d.world(COFFIN.x, 0, COFFIN.z, _v);
-      k = this.host.animals.spawn(GOLDEN_KING, _v.x, _v.z, 0, 'king');
+      k = this.host.spawnKing === undefined ? this.host.animals.spawn(GOLDEN_KING, _v.x, _v.z, 0, 'king') : this.host.spawnKing();
+      if (k === null) throw new Error('The declared Golden King body could not be spawned');
       k.herd = -1;
       standOnFloor(k);
       this.king = k;
@@ -627,7 +629,9 @@ function isTiny(o: THREE.Object3D): boolean {
 
 
 export interface KurganPlay {
+  persistence?: BossPersistence;
   animals: AnimalManager;
+  spawnKing?: () => Animal | null;
   setWeaponsEnabled: (on: boolean) => void;
   bow: Bow | null;
   upgradeBow: (power: GoldenBowPower) => void;
@@ -683,6 +687,7 @@ export class KurganBoss {
     this.ui = new BossBar();
     this.fight = new GoldenKingFight(this.dungeon, {
       player, animals: play.animals,
+      ...(play.spawnKing === undefined ? {} : { spawnKing: play.spawnKing }),
       hurt: (dmg, throughWalls) => { const k = this.fight?.king; if (k) encounterHit(k, dmg, 'boss.golden-king', player.position, throughWalls); },
       feed: play.feed,
     });
@@ -705,7 +710,7 @@ export class KurganBoss {
       toast: play.toast, feed: play.feed,
       ...(play.music ? { music: play.music } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
-    }, this.ui, 'nalati-grasslands');
+    }, this.ui, 'nalati-grasslands', play.persistence);
     app.encounters.boss('golden-king', this.boss, game.levelScope);
     // the King starts outside every list until you walk in; the reward, once won, is yours at every boot
     this.fight.reset(0);

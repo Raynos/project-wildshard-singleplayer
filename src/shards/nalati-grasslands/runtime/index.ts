@@ -24,6 +24,10 @@ import { AR15, BOW, SABRE, SPEAR } from '../weapons/equipment';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from '../adventure';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
+import source from '../shard.config';
+import { bindNalatiPersistence, type NalatiPersistence } from './persistence';
+import { bindNalatiItems } from './items';
+import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 
 function host(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;
@@ -35,12 +39,14 @@ function host(ctx: ShardContext): ShardRuntime {
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
   private loadout: NalatiLoadout | null = null;
+  private persistence: NalatiPersistence | null = null;
   private runtime(): Nalati { if (this.rt === null) throw new Error('Nalati world hook has not run'); return this.rt; }
 
   override async world(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, step = shell.step;
     if (world === null || step === null) throw new Error('Nalati world requires counted boot steps');
     const { game, sky, forest, registry } = world;
+    this.persistence = bindNalatiPersistence(ctx, source, world.chunk.slug);
     ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await import('@wildshard/engine/world/Grass');
@@ -58,7 +64,7 @@ export class NalatiPlugin extends ShardPlugin {
     shell.overhead.push(grass.group, particles.group);
     shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
     await step('cabins', () => undefined);
-    this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress))));
+    this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence))));
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)
@@ -86,6 +92,7 @@ export class NalatiPlugin extends ShardPlugin {
       const kit = buildNalatiLoadout(world, targets, nolock);
       this.loadout = kit;
       const rifle = new Rifle(world, targets, { row: AR15, allowUnlocked: nolock, muzzleLight: true });
+      bindNalatiItems(ctx, { bow: kit.bow, sabre: kit.sabre, spear: kit.spear, rifle });
       return Promise.resolve({ primary: kit.base, rifle, secondary: null, extras: kit.extras, order: ['bow', 'sabre', 'spear'], install: (weapons) => { kit.install(weapons); } });
     };
   }
@@ -95,6 +102,10 @@ export class NalatiPlugin extends ShardPlugin {
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
     const { player, game, sky, params, chunk, registry } = world;
     const { animals, weapons, hud, audio, music, progress, fullMap } = h;
+    const persistence = this.persistence;
+    if (persistence === null) throw new Error('Nalati declared progression has not been bound');
+    persistence.bindProgress(progress);
+    const king = bindRuntimeBoss(ctx, source, 'nalati.golden-king', undefined, { identity: 'runtime' });
     const wildlife = rt.wildlife;
     if (wildlife === null) throw new Error('Nalati creatures have not been built');
     const hurt = (tag: DamageRequest['sourceTags'][number], amount: number, cause: DamageRequest['cause'], toast?: string): void => {
@@ -116,16 +127,16 @@ export class NalatiPlugin extends ShardPlugin {
     const common = { animals, setWeaponsEnabled: (on: boolean) => { weapons.setEnabled(on); }, refill: () => { kit.refill(); }, interactables: shell.interactables, params,
       toast: (text: string) => { hud.toast(text); }, feed: (text: string) => { hud.killFeed(text); }, pickupHum: (on: boolean) => { audio.pickupHum(on); },
       music: (event: 'death' | 'pickup' | 'victory' | 'phase' | 'intro') => { if (event === 'death' || event === 'pickup') music.sting(event); else if (event === 'victory') music.sting('chunk'); else music.combat(1); } };
-    rt.boss.bind({ ...common, bow: kit.bow, upgradeBow: (power) => { kit.upgradeBow(weapons, power); } });
-    rt.elites.bind({ animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables: shell.interactables, params,
-      toast: common.toast, feed: common.feed, record: (kind, variant) => { progress.recordKill(kind, variant); progress.recordEvent(kind); }, pickupHum: common.pickupHum,
-      sound: (name, at) => { audio.animal(name, at, player.position, player.yaw); }, sting: (event) => { if (event === 'kill') music.sting('chunk'); else music.combat(event === 'phase2' ? 1 : 0.8); } });
-    rt.titan.bind({ ...common, wildlife, ride, get sabre() { return kit.sabre; }, upgradeSabre: (power) => { kit.upgradeSabre(weapons, power); },
+    ctx.scope.run(() => rt.boss.bind({ ...common, persistence: persistence.bosses, spawnKing: () => king.spawn(), bow: kit.bow, upgradeBow: (power) => { kit.upgradeBow(weapons, power); } }));
+    ctx.scope.run(() => rt.elites.bind({ persistence: persistence.elites, animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables: shell.interactables, params,
+      toast: common.toast, feed: common.feed, record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, pickupHum: common.pickupHum,
+      sound: (name, at) => { audio.animal(name, at, player.position, player.yaw); }, sting: (event) => { if (event === 'kill') music.sting('chunk'); else music.combat(event === 'phase2' ? 1 : 0.8); } }));
+    ctx.scope.run(() => rt.titan.bind({ ...common, persistence: persistence.bosses, wildlife, ride, get sabre() { return kit.sabre; }, upgradeSabre: (power) => { kit.upgradeSabre(weapons, power); },
       hurt: (amount, why) => { hurt('boss.storm-titan', amount, { kind: 'storm-titan', label: 'the Storm Titan' }, why); },
-      record: (kind, variant) => { progress.recordKill(kind, variant); progress.recordEvent(kind); }, ownSkin: (id) => { rt.skins.own(id); } });
+      record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, ownSkin: (id) => { rt.skins.own(id); } }));
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
-    if (ride !== null) ride.taming.onBonded = () => { progress.recordEvent('tame'); };
+    if (ride !== null) ride.taming.onBonded = () => { persistence.feat('tame'); };
     ctx.on('player.died', () => { if (ride?.mounted === true) ride.mount.dismount(); });
     ctx.on('player.respawned', () => { kit.refill(); });
     const health = ctx.app.player;
@@ -134,7 +145,7 @@ export class NalatiPlugin extends ShardPlugin {
       health?.checkpoint(scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
     });
     ctx.answer('feat.toast', (value) => ({ ...value, allowed: value.allowed && (value.event === undefined || !CAPTIONED_EVENTS.has(value.event)) }));
-    const quest = installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: rt, params });
+    const quest = installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, progress, persistence, fullMap, ride, animals, nalati: rt, params });
     await quest?.people.ready;
     if (ctx.scope.disposed) throw new Error('Nalati was unloaded during the camp people model load');
     if (quest !== null) { ctx.bag.fragment('finds', { id: 'nalati.finds', render: (panel) => { renderFinds(panel, nalatiFinds(quest.flags)); } }); shell.hooks.questFlags = () => quest.flags.all.slice().sort(); }

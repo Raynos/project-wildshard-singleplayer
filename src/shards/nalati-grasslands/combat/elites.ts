@@ -36,7 +36,7 @@ import { horseSaddle } from '../species/horse';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
-import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '@wildshard/game/Elite';
+import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, type ElitePersistence } from '@wildshard/game/Elite';
 
 
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
@@ -854,6 +854,7 @@ export interface ElitesCtx {
 }
 
 export interface ElitesPlay {
+  persistence?: ElitePersistence;
   animals: AnimalManager;
   wildlife: Wildlife | null;
   /** B8's taming (src/shards/nalati-grasslands/ride/Taming.ts) — Argymaq hands over to it when BROKEN; null until it is wired */
@@ -897,7 +898,7 @@ export class NalatiElites {
       ...(play.sting ? { sting: play.sting } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
       ownSkin: (s) => { this.skins.add(s); },
-    }, bar, 'nalati-grasslands');
+    }, bar, 'nalati-grasslands', play.persistence);
     this.elites = elites;
     const env: Env = {
       game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,

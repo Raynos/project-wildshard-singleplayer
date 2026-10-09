@@ -19,6 +19,7 @@ import { Bow } from '@wildshard/kit/weapons/bow/family';
 import { Sabre, type MountState } from '../runtime/weapons/Sabre';
 import { Spear } from '../runtime/weapons/Spear';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';
+import type { NalatiRecord } from '../runtime/persistence';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 
 /**
@@ -77,6 +78,8 @@ import { horseKey, savedHorseName, saveHorseName } from './horseNames';
  */
 
 export interface MountOpts {
+  /** Per-placement names; the runtime binds their platform state before mounting exists. */
+  names?: NalatiRecord<Record<string, string>>;
   player: Player;
   forest: Forest;
   /** DRAW latched / the bow drawing: the horse holds its heading */
@@ -229,7 +232,7 @@ export class Mount {
    *  A name you gave it at the rail (horseNames.ts, saved under `key`: per horse, E328) wins over `fallback` */
   addMountable(a: Animal, fallback: string, key = horseKey(a, fallback)): void {
     if (this.mountables.some((m) => m.a === a)) return;
-    const name = savedHorseName(key) ?? fallback;
+    const name = (this.opts.names === undefined ? null : savedHorseName(key, this.opts.names)) ?? fallback;
     if (name !== fallback) a.label = name;
     a.mem['owned'] = 1;
     const it: Interactable = { position: a.position, radius: 3.3, label: `Mount ${name}`, onInteract: () => { if (this.horse === a) this.dismount(); else if (this.horse === null) this.mount(a); } };
@@ -250,7 +253,7 @@ export class Mount {
     const m = this.mountables.find((x) => x.a === a);
     if (m === undefined || name.length === 0) return;
     m.name = name; a.label = name;
-    saveHorseName(m.key, name);
+    if (this.opts.names !== undefined) saveHorseName(m.key, name, this.opts.names);
   }
   nameOf(a: Animal): string | null { return this.mountables.find((x) => x.a === a)?.name ?? null; }
 
