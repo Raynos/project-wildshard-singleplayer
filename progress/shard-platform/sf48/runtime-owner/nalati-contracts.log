@@ -1,0 +1,13 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:6:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:7:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 /Users/raynos/projects/games/wildshard-singleplayer
+
+
+ Test Files  40 passed (40)
+      Tests  148 passed (148)
+   Start at  17:33:07
+   Duration  21.87s (transform 80%, tests 10%, setup 7%, import 2%, environment 1%)
+

@@ -1,6 +1,12 @@
-# sp-x3 handoff — 2026-10-08, idle
+# sp-x3 handoff — 2026-10-08, Nalati runtime-owner binding
 
-Idle at the coordinator's request. No retry, browser, Simulator, build or full suite is running or queued. No owned preview remains to stop. The coordinator alone pushes; no plan edits.
+Nalati SF48-p active wiring landed in `a4ffb1c2d1156a795e926db2d1e26847babfce31` (private index from current HEAD, hooks/CAS, ancestor/subject/stat verified). Defining persistence `6f0c98036`, Progress/ledger projection `70e2a5094`, generic state `245591848` (sp-x4), and migration/helpers `28fe9f479` precede it. The coordinator alone pushes and regenerates; no plan edits.
+
+Proof: clean full 949 files / 5,418 pass / 14 skip; strict, typed lint, ratchet and hooks green. First full 5,390 pass / 14 skip / one regional fixture setup refusal is retained; the fixture now installs the page's actual input contexts, assertions unchanged. The coordinator-approved late Scope.run ownership fix passes 3 files / 8 tests. One muted Chromium phone run passed standalone/reload and Driftwood → road → Nalati (30.164 m inside) → road, browser/disposal errors 0 and 15 scope counters zero. No memory-cap claim: the known Developer Nalati warning remains.
+
+Mandatory map rebake was repeated after `9b8885ad9` landed new geometry: the same source commit includes hash `adc9732dfd0fe0a1de3731f44b93feb510e19854cc3c07ae2dac3dc4a30f1b8a`, 134,476 bytes. Committed geometry/voxel/autosave changes are preserved. Approved cumulative Nalati imports: engine +6, game +11, SDK +5; generated outputs remain the pusher's job.
+
+Evidence: `progress/shard-platform/sf48/runtime-owner/`. No owned browser, Simulator, preview, build or full suite remains running or queued; :4400 was stopped after the final map bake. Scratch `/private/tmp/claude-501/sp-builders/sp-x3/nalati-runtime-binding` retains small blobs/logs/landing scripts for review. Exact next step is coordinator gate/push of the source and this receipt. Do not start another run without a new assignment. The prior SF57 work below remains parked.
 
 ## Exact next step, after coordinator GO
 

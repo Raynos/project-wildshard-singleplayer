@@ -1,0 +1,65 @@
+{
+  "base": "http://127.0.0.1:4406/",
+  "device": "iPhone 16 Pro",
+  "errors": [
+    "Cannot read properties of undefined (reading 'waiting')",
+    "Cannot read properties of undefined (reading 'waiting')"
+  ],
+  "stages": [
+    {
+      "stage": "standalone",
+      "rows": [
+        {
+          "id": "sabre",
+          "row": "weapon.sabre",
+          "context": "weapon.melee"
+        },
+        {
+          "id": "rifle",
+          "row": "weapon.rifle",
+          "context": "weapon.ranged",
+          "ammo": 30
+        },
+        {
+          "id": "bow",
+          "row": "weapon.bow",
+          "context": "weapon.bow",
+          "ammo": 24
+        },
+        {
+          "id": "spear",
+          "row": "weapon.spear",
+          "context": "weapon.spear",
+          "ammo": 3
+        }
+      ],
+      "horseNames": {
+        "Camp horse|horse:camp-bay": "Kara"
+      },
+      "quest": true,
+      "achievement": {
+        "count": 1,
+        "earned": true
+      }
+    },
+    {
+      "stage": "standalone-reload",
+      "horseNames": {
+        "Camp horse|horse:camp-bay": "Kara"
+      },
+      "achievement": {
+        "count": 1,
+        "earned": true
+      }
+    }
+  ],
+  "version": {
+    "build": "cfe4122-mv04r9ej",
+    "time": "2026-10-08T22:50:57.928Z"
+  },
+  "failure": "page.evaluate: Error: Grid floor starts in driftwood-isle, expected null\n    at stageFloorGrid (eval at evaluate (:311:30), <anonymous>:31:83)\n    at eval (eval at evaluate (:311:30), <anonymous>:45:3)\n    at eval (<anonymous>)\n    at UtilityScript.evaluate (<anonymous>:311:30)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at runFloorGridRoute (/Users/raynos/projects/games/wildshard-singleplayer/scripts/frame-floor-grid.mjs:57:14)\n    at /private/tmp/claude-501/sp-builders/sp-x3/nalati-runtime-binding/capture.mjs:60:45",
+  "failurePage": {
+    "url": "http://127.0.0.1:4406/",
+    "text": "DODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nHOVER\n0\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND · NOTHING HAS BEEN GENERATED HERE\n‹\n›\nN\nMEMORY\nALL LOADED 908 / 1000 MB (91%)\nDRIFTWOOD ISLE 322% OF BUDGET\n5 SHARDS OK\nSHARED 135.4 MB\nWHO LIT THE FIRE?\nCASTAWAY\n123 M\n▲\nHOLD TO SKIP\nTHE SEALED RING · OPENED\nDRIFTWOOD ISLE\nTHE PLANET IN THE RING, AT GOLDEN HOUR\nCLOSE\nMAREN'S COUNTER\nDRIFTWOOD ISLE\nMAREN · TRADER\n30\n33 ms\nRESUME\nPAUSED\nDRIFTWOOD ISLE\nEXIT TO MAIN\nSETTINGS\nSAVES\nGAMEPLAY\nAIM ASSIST\nVIBRATION\nCONTROLS\nLOOK SPEED\n1.00×\nAUDIO\nMASTER VOLUME\nMUSIC\nMUSIC STYLE\nPiano\nOrchestral\nFolk\nSynth\nMusic: MiniMax-Music3\nSound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI\nLOCK-ON\nLOCK-ON CAMERA\nFollow\nGentle\nOff\nAUTO RE-LOCK\nLOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.\nREVIEW\nUNLOCK\nPlaytesters: the password turns on in-game notes (F8 / ✎) with a screenshot.\nDEVELOPER\nDEVELOPER MODE\nShows the frame meter, the build id, the loading details and the Debug settings.\nDEVELOPER TOOLS\nDIAGNOSTICS AND UNFINISHED WORK\nDEBUG\nFOR PLAYTESTS — GOES AWAY WHEN THE GAME SHIPS\nSAVE\nExport your progress as a file, or import a saved file.\nEXPORT\nIMPORT\nRELOAD TO APPLY\nTAP OUTSIDE OR ESC TO RESUME"
+  }
+}

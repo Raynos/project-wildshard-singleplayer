@@ -1,0 +1,73 @@
+{
+  "ask": "E435",
+  "row": "SF48-p",
+  "cleanCandidate": "0431850a2c3ec2541a2ee2b8868c486d55888a56",
+  "browserCandidate": "cfe4122b33635dac3679bda0f95bc84b9983b5b9",
+  "focused": {
+    "files": 40,
+    "tests": 148,
+    "exitCode": 0
+  },
+  "strict": {
+    "command": "pnpm exec tsc --noEmit --incremental false",
+    "exitCode": 0
+  },
+  "typedLint": {
+    "config": ".oxlintrc.json",
+    "exitCode": 0
+  },
+  "ratchet": {
+    "command": "node lint/ratchet.mjs",
+    "exitCode": 0
+  },
+  "precommit": {
+    "privateIndex": true,
+    "exitCode": 0
+  },
+  "browser": {
+    "stages": 5,
+    "errors": 0,
+    "disposalErrors": 0,
+    "scopeCountersZero": 15,
+    "entryDepthMetres": 30.1637016671575
+  },
+  "map": {
+    "candidate": "a0e83ff1b5487e54a2def86d1fcc8c1372204b59",
+    "preservedGeometry": "9b8885ad93b6fce78276101a8ffb72ef4eee0e79",
+    "tilesHash": "adc9732dfd0fe0a1de3731f44b93feb510e19854cc3c07ae2dac3dc4a30f1b8a",
+    "bytes": 134476
+  },
+  "full": {
+    "status": "passed",
+    "ticket": 435,
+    "files": 949,
+    "passed": 5418,
+    "skipped": 14,
+    "exitCode": 0,
+    "seconds": 177.19
+  },
+  "approvedGraphIncreases": {
+    "approver": "wildshard-new",
+    "engine": 6,
+    "game": 11,
+    "sdk": 5
+  },
+  "firstFull": {
+    "filesPassed": 940,
+    "filesFailed": 1,
+    "passed": 5390,
+    "failed": 1,
+    "skipped": 14,
+    "cause": "Regional fixture omitted platform input contexts; installs actual INPUT_CONTEXTS now, assertions unchanged."
+  },
+  "lateScopeCorrection": {
+    "approvedBy": "wildshard-new",
+    "files": 3,
+    "tests": 8,
+    "exitCode": 0,
+    "strict": 0,
+    "typedLint": 0
+  },
+  "sourceCommit": "a4ffb1c2d1156a795e926db2d1e26847babfce31",
+  "sourceParent": "acc27dcd6ea93f2c79a4a541e687bc063166d918"
+}

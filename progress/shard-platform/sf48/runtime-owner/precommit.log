@@ -1,0 +1,29 @@
+check-graph: shards/nalati-grasslands → engine rises by 3; coordinator approval required in the serialized regeneration commit
+check-graph: shards/nalati-grasslands → game rises by 3; coordinator approval required in the serialized regeneration commit
+check-graph: shards/nalati-grasslands → sdk rises by 1; coordinator approval required in the serialized regeneration commit
+SHARD-PLATFORM SF48-p: bind Nalati progression and equipment to declared rows (E435)
+
+ public/assets/nalati-grasslands/map/top.webp       | Bin 134568 -> 134476 bytes
+ src/shards/nalati-grasslands/adventure.ts          |  33 +++++++++----
+ src/shards/nalati-grasslands/combat/elites.ts      |   5 +-
+ src/shards/nalati-grasslands/combat/goldenKing.ts  |  11 +++--
+ src/shards/nalati-grasslands/combat/stormTitan.ts  |   5 +-
+ src/shards/nalati-grasslands/data/items.ts         |  21 ++++++++
+ src/shards/nalati-grasslands/data/spawns.ts        |   4 ++
+ src/shards/nalati-grasslands/look/map.baked.json   |   4 +-
+ src/shards/nalati-grasslands/ride/Mount.ts         |   7 ++-
+ src/shards/nalati-grasslands/ride/Taming.ts        |   6 ++-
+ src/shards/nalati-grasslands/ride/horseNames.ts    |  20 +++-----
+ src/shards/nalati-grasslands/ride/ride.ts          |   5 +-
+ src/shards/nalati-grasslands/runtime/index.ts      |  29 +++++++----
+ src/shards/nalati-grasslands/runtime/items.ts      |  34 +++++++++++++
+ src/shards/nalati-grasslands/runtime/state.ts      |   9 ++--
+ src/shards/nalati-grasslands/shard.config.ts       |   8 ++-
+ .../nalati-grasslands/weapons/nalatiSkins.ts       |   4 +-
+ test/nalati-grid-regional-runtime.test.ts          |   3 ++
+ .../nalati-grasslands/grid-discovery.test.ts       |   3 +-
+ test/shards/nalati-grasslands/horse-names.test.ts  |  16 +++---
+ test/shards/nalati-grasslands/hybrid-rows.test.ts  |  55 +++++++++++++++++++++
+ test/shards/nalati-grasslands/hybrid.test.ts       |   3 +-
+ 22 files changed, 224 insertions(+), 61 deletions(-)
+

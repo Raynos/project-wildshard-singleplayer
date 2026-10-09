@@ -1,0 +1,58 @@
+{
+  "base": "http://127.0.0.1:4406/",
+  "device": "iPhone 16 Pro",
+  "errors": [],
+  "stages": [
+    {
+      "stage": "standalone",
+      "rows": [
+        {
+          "id": "sabre",
+          "row": "weapon.sabre",
+          "context": "weapon.melee"
+        },
+        {
+          "id": "rifle",
+          "row": "weapon.rifle",
+          "context": "weapon.ranged",
+          "ammo": 30
+        },
+        {
+          "id": "bow",
+          "row": "weapon.bow",
+          "context": "weapon.bow",
+          "ammo": 24
+        },
+        {
+          "id": "spear",
+          "row": "weapon.spear",
+          "context": "weapon.spear",
+          "ammo": 3
+        }
+      ],
+      "horseNames": {
+        "Camp horse|horse:camp-bay": "Kara"
+      },
+      "quest": true,
+      "achievement": {
+        "count": 1,
+        "earned": true
+      }
+    },
+    {
+      "stage": "standalone-reload",
+      "horseNames": {
+        "Camp horse|horse:camp-bay": "Kara"
+      },
+      "achievement": {
+        "count": 1,
+        "earned": true
+      }
+    }
+  ],
+  "version": {
+    "build": "cfe4122-mv04r9ej",
+    "time": "2026-10-08T22:50:57.928Z"
+  },
+  "failure": "locator.click: Timeout 240000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ws-main-grid')\u001b[22m\n\n    at /private/tmp/claude-501/sp-builders/sp-x3/nalati-runtime-binding/capture.mjs:47:39"
+}
