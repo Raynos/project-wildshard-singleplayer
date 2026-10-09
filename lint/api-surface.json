@@ -7572,6 +7572,12 @@
         "from": "@wildshard/engine/physics/terrain"
       },
       {
+        "name": "resampleTerrain",
+        "kind": "function",
+        "doc": "Resample the terrain collider from the live heightfield (the same lattice it was built on): a level look's painter that",
+        "from": "@wildshard/engine/physics/terrain"
+      },
+      {
         "name": "TerrainCut",
         "kind": "interface",
         "doc": "A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`.",
@@ -17196,6 +17202,30 @@
         "from": "@wildshard/game/shardfile/runtime"
       },
       {
+        "name": "bindRuntimeProductTerrain",
+        "kind": "function",
+        "doc": "Bind a runtime's declared terrain tiles from its product reader (`runtimeProduct`) under `scope`; see `bindRuntimeTerrain`.",
+        "from": "@wildshard/game/shardfile/runtimeProduct"
+      },
+      {
+        "name": "provideRuntimeProduct",
+        "kind": "function",
+        "doc": "A grid cell's admitted product, read by its resident runtime while `scope` lives (the cell's resident scope).",
+        "from": "@wildshard/game/shardfile/runtimeProduct"
+      },
+      {
+        "name": "runtimeProduct",
+        "kind": "function",
+        "doc": "The reader for a trusted runtime's own declaration: its grid cell's admitted product while one is resident, else standalone.",
+        "from": "@wildshard/game/shardfile/runtimeProduct"
+      },
+      {
+        "name": "RuntimeProduct",
+        "kind": "interface",
+        "doc": "The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,",
+        "from": "@wildshard/game/shardfile/runtimeProduct"
+      },
+      {
         "name": "LOOK_LUT_BYTES",
         "kind": "const",
         "doc": "A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format).",
@@ -17634,6 +17664,330 @@
         "from": "@wildshard/game/systems/audio/combatCues"
       },
       {
+        "name": "fogGLSL",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/fogProgram"
+      },
+      {
+        "name": "configureGrassField",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "flowerPatchAt",
+        "kind": "function",
+        "doc": "0..1 flower-drift strength",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "flowerSpeciesAt",
+        "kind": "function",
+        "doc": "0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts)",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "grassBaseHeightAt",
+        "kind": "function",
+        "doc": "Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "grassBloomAt",
+        "kind": "function",
+        "doc": "0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/shards/level/look/grass.ts)",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "GrassFieldLayout",
+        "kind": "interface",
+        "doc": "Authored meadow geography is supplied by the level plugin.",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "grassToneAt",
+        "kind": "function",
+        "doc": "0 = fresh valley green … 1 = plateau gold",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "groundColorAt",
+        "kind": "function",
+        "doc": "the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "TALL_GRASS",
+        "kind": "const",
+        "doc": "tall-grass height of the stealth fields (m)",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "trailGrass",
+        "kind": "function",
+        "doc": "trails: a bare bed (1.6 m half-width, the authored meadow's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "makeMistTexture",
+        "kind": "function",
+        "doc": "Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only.",
+        "from": "@wildshard/game/systems/looks/particles"
+      },
+      {
+        "name": "Particles",
+        "kind": "class",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/particles"
+      },
+      {
+        "name": "rainCurtain",
+        "kind": "function",
+        "doc": "Camera-local, world-anchored streak quads. Both authored programs retain their exact source.",
+        "from": "@wildshard/game/systems/looks/rainCurtain"
+      },
+      {
+        "name": "RainCurtainSpec",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/rainCurtain"
+      },
+      {
+        "name": "RainProgram",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/rainCurtain"
+      },
+      {
+        "name": "grassHeightAt",
+        "kind": "function",
+        "doc": "Effective grass height at (x, z) in metres, including trampling (a fresh track lays it to ~15 %).",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "GrassTrample",
+        "kind": "class",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "MAX_MOVERS",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "RECOVER",
+        "kind": "const",
+        "doc": "seconds a fully flattened patch takes to stand back up (design: 20 s)",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "trample",
+        "kind": "const",
+        "doc": "the world's trample map (a singleton — movers anywhere push into it)",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "TRAMPLE_GLSL",
+        "kind": "const",
+        "doc": "GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir)",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "ARM_CLIPS",
+        "kind": "const",
+        "doc": "Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical.",
+        "from": "@wildshard/game/systems/viewmodel/armClips"
+      },
+      {
+        "name": "armClipNames",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/armClips"
+      },
+      {
+        "name": "SWIM_CLIPS",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/armClips"
+      },
+      {
+        "name": "armConst",
+        "kind": "function",
+        "doc": "An arm's constants from its rest owner pose and shoulder: the upper arm length is anatomical (`Lu`), the rest elbow is",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "ArmConst",
+        "kind": "interface",
+        "doc": "one arm's constant measures (set at the rest pose)",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "ArmWorld",
+        "kind": "interface",
+        "doc": "world (rig-space) transforms of one arm's bones, in BONES order",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "BONES",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "buildBones",
+        "kind": "function",
+        "doc": "the bone world transforms from solved points and the (clamped) hand orientation",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "frameYZ",
+        "kind": "function",
+        "doc": "a rotation whose +y is `y` and whose +z leans toward `z`",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "GRIP",
+        "kind": "const",
+        "doc": "the grip centre in JIAN-local: where the moves pivot and the hand's offset is measured",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "HandSpec",
+        "kind": "interface",
+        "doc": "the hand in its owner's local frame (JIAN-local for the right: blender/hand_model.py; GAUNTLET-local for the left)",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "JointAngles",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "LEFT_HAND",
+        "kind": "const",
+        "doc": "the left fist + gauntlet in GAUNTLET-local, after LEFT_SCALE (+y elbow → claw hub at the origin, +z the back of the forearm)",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "LEFT_SCALE",
+        "kind": "const",
+        "doc": "the Fei Zhua assets were modelled 1.2× a human forearm: the bake scales the whole left arm by this (about the hub)",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "LIMITS",
+        "kind": "const",
+        "doc": "wrist limits (degrees): pronation + / supination −, extension + / flexion −, radial + / ulnar − (a jian grip lives",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "measure",
+        "kind": "function",
+        "doc": "the joint angles of an arm from its points and the hand's orientation (degrees)",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "Pose",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "RIGHT_HAND",
+        "kind": "const",
+        "doc": "the right hand in JIAN-local: the diagonal jian grip (blender/hand_model.py DiagonalHand, round 13): the back of the",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "settleLeft",
+        "kind": "function",
+        "doc": "The left rest: turn the authored gauntlet frame until its forearm axis is the one the IK reaches, so the rest owner",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "Side",
+        "kind": "type",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "signedAngle",
+        "kind": "function",
+        "doc": "signed angle from a to b about axis n (all ⟂ n not required: projected) in radians",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "softLimit",
+        "kind": "function",
+        "doc": "soft limit: identity to 80 % of the bound on each side, a tanh knee up to the bound",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "solveArm",
+        "kind": "function",
+        "doc": "Solve one arm. `owner` = the authored pose of the hand's owner frame (right: the jian, JIAN-local → rig; left: the",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "TWISTS",
+        "kind": "const",
+        "doc": "twist bones: position along the forearm (share of its length from the elbow) and the share of the roll they carry",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "twoBone",
+        "kind": "function",
+        "doc": "two-bone IK: shoulder S, target W (moved into reach), pole P → elbow E (and the W it reached)",
+        "from": "@wildshard/game/systems/viewmodel/armRig"
+      },
+      {
+        "name": "RigArms",
+        "kind": "class",
+        "doc": "first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag)",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
+        "name": "RigMeta",
+        "kind": "interface",
+        "doc": "vm_root's extras (bake.mjs): each clip's side / loop / the engine's timing, the blade per weapon, the swim water line",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
+        "name": "RigState",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
+        "name": "swordArmsOf",
+        "kind": "function",
+        "doc": "a sword viewmodel built on rigged arms (its offset, framing and sky setup)",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
+        "name": "VM_FOV",
+        "kind": "const",
+        "doc": "the viewmodel's vertical field (degrees): the clips' canonical camera",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
+        "name": "VmFrame",
+        "kind": "interface",
+        "doc": "A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
+        "name": "vmScale",
+        "kind": "function",
+        "doc": "the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees)",
+        "from": "@wildshard/game/systems/viewmodel/rigArms"
+      },
+      {
         "name": "applyTravelCarry",
         "kind": "function",
         "doc": "Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly.",
@@ -17934,120 +18288,6 @@
         "kind": "function",
         "doc": "Defer rendered particles until the authored world hook has its terrain and backdrop.",
         "from": "@wildshard/kit/lookApi"
-      },
-      {
-        "name": "fogGLSL",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/looks/fogProgram"
-      },
-      {
-        "name": "configureGrassField",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "flowerPatchAt",
-        "kind": "function",
-        "doc": "0..1 flower-drift strength",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "flowerSpeciesAt",
-        "kind": "function",
-        "doc": "0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts)",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "grassBaseHeightAt",
-        "kind": "function",
-        "doc": "Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "grassBloomAt",
-        "kind": "function",
-        "doc": "0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/shards/level/look/grass.ts)",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "GrassFieldLayout",
-        "kind": "interface",
-        "doc": "Authored meadow geography is supplied by the level plugin.",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "grassToneAt",
-        "kind": "function",
-        "doc": "0 = fresh valley green … 1 = plateau gold",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "groundColorAt",
-        "kind": "function",
-        "doc": "the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "TALL_GRASS",
-        "kind": "const",
-        "doc": "tall-grass height of the stealth fields (m)",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "trailGrass",
-        "kind": "function",
-        "doc": "trails: a bare bed (1.6 m half-width, the authored meadow's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m",
-        "from": "@wildshard/kit/looks/grassField"
-      },
-      {
-        "name": "makeMistTexture",
-        "kind": "function",
-        "doc": "Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only.",
-        "from": "@wildshard/kit/looks/particles"
-      },
-      {
-        "name": "Particles",
-        "kind": "class",
-        "doc": "",
-        "from": "@wildshard/kit/looks/particles"
-      },
-      {
-        "name": "grassHeightAt",
-        "kind": "function",
-        "doc": "Effective grass height at (x, z) in metres, including trampling (a fresh track lays it to ~15 %).",
-        "from": "@wildshard/kit/looks/trample"
-      },
-      {
-        "name": "GrassTrample",
-        "kind": "class",
-        "doc": "",
-        "from": "@wildshard/kit/looks/trample"
-      },
-      {
-        "name": "MAX_MOVERS",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/looks/trample"
-      },
-      {
-        "name": "RECOVER",
-        "kind": "const",
-        "doc": "seconds a fully flattened patch takes to stand back up (design: 20 s)",
-        "from": "@wildshard/kit/looks/trample"
-      },
-      {
-        "name": "trample",
-        "kind": "const",
-        "doc": "the world's trample map (a singleton — movers anywhere push into it)",
-        "from": "@wildshard/kit/looks/trample"
-      },
-      {
-        "name": "TRAMPLE_GLSL",
-        "kind": "const",
-        "doc": "GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir)",
-        "from": "@wildshard/kit/looks/trample"
       },
       {
         "name": "bear",
@@ -18362,198 +18602,6 @@
         "from": "@wildshard/kit/species/view/boar"
       },
       {
-        "name": "ARM_CLIPS",
-        "kind": "const",
-        "doc": "Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical.",
-        "from": "@wildshard/kit/viewmodel/armClips"
-      },
-      {
-        "name": "armClipNames",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/armClips"
-      },
-      {
-        "name": "SWIM_CLIPS",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/armClips"
-      },
-      {
-        "name": "armConst",
-        "kind": "function",
-        "doc": "An arm's constants from its rest owner pose and shoulder: the upper arm length is anatomical (`Lu`), the rest elbow is",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "ArmConst",
-        "kind": "interface",
-        "doc": "one arm's constant measures (set at the rest pose)",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "ArmWorld",
-        "kind": "interface",
-        "doc": "world (rig-space) transforms of one arm's bones, in BONES order",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "BONES",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "buildBones",
-        "kind": "function",
-        "doc": "the bone world transforms from solved points and the (clamped) hand orientation",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "frameYZ",
-        "kind": "function",
-        "doc": "a rotation whose +y is `y` and whose +z leans toward `z`",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "GRIP",
-        "kind": "const",
-        "doc": "the grip centre in JIAN-local: where the moves pivot and the hand's offset is measured",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "HandSpec",
-        "kind": "interface",
-        "doc": "the hand in its owner's local frame (JIAN-local for the right: blender/hand_model.py; GAUNTLET-local for the left)",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "JointAngles",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "LEFT_HAND",
-        "kind": "const",
-        "doc": "the left fist + gauntlet in GAUNTLET-local, after LEFT_SCALE (+y elbow → claw hub at the origin, +z the back of the forearm)",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "LEFT_SCALE",
-        "kind": "const",
-        "doc": "the Fei Zhua assets were modelled 1.2× a human forearm: the bake scales the whole left arm by this (about the hub)",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "LIMITS",
-        "kind": "const",
-        "doc": "wrist limits (degrees): pronation + / supination −, extension + / flexion −, radial + / ulnar − (a jian grip lives",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "measure",
-        "kind": "function",
-        "doc": "the joint angles of an arm from its points and the hand's orientation (degrees)",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "Pose",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "RIGHT_HAND",
-        "kind": "const",
-        "doc": "the right hand in JIAN-local: the diagonal jian grip (blender/hand_model.py DiagonalHand, round 13): the back of the",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "settleLeft",
-        "kind": "function",
-        "doc": "The left rest: turn the authored gauntlet frame until its forearm axis is the one the IK reaches, so the rest owner",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "Side",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "signedAngle",
-        "kind": "function",
-        "doc": "signed angle from a to b about axis n (all ⟂ n not required: projected) in radians",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "softLimit",
-        "kind": "function",
-        "doc": "soft limit: identity to 80 % of the bound on each side, a tanh knee up to the bound",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "solveArm",
-        "kind": "function",
-        "doc": "Solve one arm. `owner` = the authored pose of the hand's owner frame (right: the jian, JIAN-local → rig; left: the",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "TWISTS",
-        "kind": "const",
-        "doc": "twist bones: position along the forearm (share of its length from the elbow) and the share of the roll they carry",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "twoBone",
-        "kind": "function",
-        "doc": "two-bone IK: shoulder S, target W (moved into reach), pole P → elbow E (and the W it reached)",
-        "from": "@wildshard/kit/viewmodel/armRig"
-      },
-      {
-        "name": "RigArms",
-        "kind": "class",
-        "doc": "first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag)",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
-        "name": "RigMeta",
-        "kind": "interface",
-        "doc": "vm_root's extras (bake.mjs): each clip's side / loop / the engine's timing, the blade per weapon, the swim water line",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
-        "name": "RigState",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
-        "name": "swordArmsOf",
-        "kind": "function",
-        "doc": "a sword viewmodel built on rigged arms (its offset, framing and sky setup)",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
-        "name": "VM_FOV",
-        "kind": "const",
-        "doc": "the viewmodel's vertical field (degrees): the clips' canonical camera",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
-        "name": "VmFrame",
-        "kind": "interface",
-        "doc": "A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
-        "name": "vmScale",
-        "kind": "function",
-        "doc": "the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees)",
-        "from": "@wildshard/kit/viewmodel/rigArms"
-      },
-      {
         "name": "Bow",
         "kind": "type",
         "doc": "Compatibility name for the original starter Bow binding; all trusted callers share its identity.",
@@ -18828,24 +18876,6 @@
         "kind": "const",
         "doc": "Compatibility name for the original starter SWAP_GLYPHS binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/ui"
-      },
-      {
-        "name": "rainCurtain",
-        "kind": "function",
-        "doc": "Camera-local, world-anchored streak quads. Both authored programs retain their exact source.",
-        "from": "@wildshard/kit/weather/rainCurtain"
-      },
-      {
-        "name": "RainCurtainSpec",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/weather/rainCurtain"
-      },
-      {
-        "name": "RainProgram",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/weather/rainCurtain"
       }
     ],
     "sdk": [
@@ -19790,6 +19820,102 @@
         "kind": "type",
         "doc": "Independent status-effect movement channels, separate from equipment and traversal multipliers.",
         "from": "@wildshard/sdk/runtime/effects"
+      },
+      {
+        "name": "ARM_CLIPS",
+        "kind": "const",
+        "doc": "Engine clip names mapped to the authored arm rigs' track names (metadata only; source tracks stay byte-identical).",
+        "from": "@wildshard/sdk/runtime/viewmodel/armClips"
+      },
+      {
+        "name": "armClipNames",
+        "kind": "const",
+        "doc": "The engine clip names an alias table declares, for a rig contract.",
+        "from": "@wildshard/sdk/runtime/viewmodel/armClips"
+      },
+      {
+        "name": "SWIM_CLIPS",
+        "kind": "const",
+        "doc": "The swim stroke and tread aliases of an arm rig with swim clips.",
+        "from": "@wildshard/sdk/runtime/viewmodel/armClips"
+      },
+      {
+        "name": "HandSpec",
+        "kind": "type",
+        "doc": "A hand in its owner's local frame: wrist, forearm axis and length, the hand's long and dorsal axes.",
+        "from": "@wildshard/sdk/runtime/viewmodel/armRig"
+      },
+      {
+        "name": "JointAngles",
+        "kind": "type",
+        "doc": "One arm's measured wrist pronation / flexion / deviation and elbow angles (degrees).",
+        "from": "@wildshard/sdk/runtime/viewmodel/armRig"
+      },
+      {
+        "name": "LEFT_HAND",
+        "kind": "const",
+        "doc": "The left hand of the standard two-bone arm.",
+        "from": "@wildshard/sdk/runtime/viewmodel/armRig"
+      },
+      {
+        "name": "measure",
+        "kind": "const",
+        "doc": "Measure one arm's joint angles from shoulder, elbow, wrist and hand orientation.",
+        "from": "@wildshard/sdk/runtime/viewmodel/armRig"
+      },
+      {
+        "name": "RIGHT_HAND",
+        "kind": "const",
+        "doc": "The right hand of the standard two-bone arm.",
+        "from": "@wildshard/sdk/runtime/viewmodel/armRig"
+      },
+      {
+        "name": "RigArms",
+        "kind": "const",
+        "doc": "The one platform arm player; the SDK owns no second parse cache, mixer or channel implementation.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "RigArmsInstance",
+        "kind": "type",
+        "doc": "A baked first-person arm rig played on two clip channels (or its swim loops); the owner supplies the GLB, contract and bake.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "RigMeta",
+        "kind": "type",
+        "doc": "The rig's clip metadata (side, loop, timing), blade spans and optional water line, read from its root extras.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "RigState",
+        "kind": "type",
+        "doc": "Per-frame walk speed, step phase and look velocity driving the arm player.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "swordArmsOf",
+        "kind": "const",
+        "doc": "Adapt a rig to the trusted sword family's animated-arms port with the owner's offset, framing and sky setup.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "VM_FOV",
+        "kind": "const",
+        "doc": "The clips' canonical vertical field of view in degrees.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "VmFrame",
+        "kind": "type",
+        "doc": "The viewmodel's camera-space framing: size, pitch, yaw and roll about the eye.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
+      },
+      {
+        "name": "vmScale",
+        "kind": "const",
+        "doc": "The root x / y scale that draws a rig framed for the viewmodel field through a wider world camera.",
+        "from": "@wildshard/sdk/runtime/viewmodel/rigArms"
       },
       {
         "name": "Bow",

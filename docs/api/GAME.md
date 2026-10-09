@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-703 members; 112 without a doc line (—).
+761 members; 126 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -602,6 +602,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RuntimeDeclaration` | type | @wildshard/game/shardfile/runtime | Serializable declaration of the trusted TypeScript that remains during an 80/20 conversion. |
 | `RuntimeSchema` | const | @wildshard/game/shardfile/runtime | A first-party transition entry, relative to its own shard folder; never an asset URL or arbitrary import. |
 | `TrustedRuntimeEntry` | interface | @wildshard/game/shardfile/runtime | Trusted composition-root binding; the declaration can select only the entry belonging to the same shard. |
+| `bindRuntimeProductTerrain` | function | @wildshard/game/shardfile/runtimeProduct | Bind a runtime's declared terrain tiles from its product reader (`runtimeProduct`) under `scope`; see `bindRuntimeTerrain`. |
+| `provideRuntimeProduct` | function | @wildshard/game/shardfile/runtimeProduct | A grid cell's admitted product, read by its resident runtime while `scope` lives (the cell's resident scope). |
+| `runtimeProduct` | function | @wildshard/game/shardfile/runtimeProduct | The reader for a trusted runtime's own declaration: its grid cell's admitted product while one is resident, else standalone. |
+| `RuntimeProduct` | interface | @wildshard/game/shardfile/runtimeProduct | The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes, |
 | `LOOK_LUT_BYTES` | const | @wildshard/game/shardfile/schema | A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). |
 | `parseShardfile` | function | @wildshard/game/shardfile/schema | Parse untrusted JSON as a validated shardfile, or throw a Valibot error. |
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |
@@ -675,6 +679,60 @@ The game layer's public modules (src/game/package.json `exports`).
 | `WaterSchema` | const | @wildshard/game/shardfile/water | Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. |
 | `CombatAudio` | interface | @wildshard/game/systems/audio/combatCues | Sound operations supplied by the owning mixer; the router allocates no audio resources. |
 | `sharedCombatCues` | function | @wildshard/game/systems/audio/combatCues | Shared synth fallback retains the methods which own today's literal sound tap ids. |
+| `fogGLSL` | const | @wildshard/game/systems/looks/fogProgram | — |
+| `configureGrassField` | function | @wildshard/game/systems/looks/grassField | — |
+| `flowerPatchAt` | function | @wildshard/game/systems/looks/grassField | 0..1 flower-drift strength |
+| `flowerSpeciesAt` | function | @wildshard/game/systems/looks/grassField | 0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts) |
+| `grassBaseHeightAt` | function | @wildshard/game/systems/looks/grassField | Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it |
+| `grassBloomAt` | function | @wildshard/game/systems/looks/grassField | 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/shards/level/look/grass.ts) |
+| `GrassFieldLayout` | interface | @wildshard/game/systems/looks/grassField | Authored meadow geography is supplied by the level plugin. |
+| `grassToneAt` | function | @wildshard/game/systems/looks/grassField | 0 = fresh valley green … 1 = plateau gold |
+| `groundColorAt` | function | @wildshard/game/systems/looks/grassField | the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled |
+| `TALL_GRASS` | const | @wildshard/game/systems/looks/grassField | tall-grass height of the stealth fields (m) |
+| `trailGrass` | function | @wildshard/game/systems/looks/grassField | trails: a bare bed (1.6 m half-width, the authored meadow's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m |
+| `makeMistTexture` | function | @wildshard/game/systems/looks/particles | Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only. |
+| `Particles` | class | @wildshard/game/systems/looks/particles | — |
+| `rainCurtain` | function | @wildshard/game/systems/looks/rainCurtain | Camera-local, world-anchored streak quads. Both authored programs retain their exact source. |
+| `RainCurtainSpec` | interface | @wildshard/game/systems/looks/rainCurtain | — |
+| `RainProgram` | interface | @wildshard/game/systems/looks/rainCurtain | — |
+| `grassHeightAt` | function | @wildshard/game/systems/looks/trample | Effective grass height at (x, z) in metres, including trampling (a fresh track lays it to ~15 %). |
+| `GrassTrample` | class | @wildshard/game/systems/looks/trample | — |
+| `MAX_MOVERS` | const | @wildshard/game/systems/looks/trample | — |
+| `RECOVER` | const | @wildshard/game/systems/looks/trample | seconds a fully flattened patch takes to stand back up (design: 20 s) |
+| `trample` | const | @wildshard/game/systems/looks/trample | the world's trample map (a singleton — movers anywhere push into it) |
+| `TRAMPLE_GLSL` | const | @wildshard/game/systems/looks/trample | GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) |
+| `ARM_CLIPS` | const | @wildshard/game/systems/viewmodel/armClips | Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical. |
+| `armClipNames` | const | @wildshard/game/systems/viewmodel/armClips | — |
+| `SWIM_CLIPS` | const | @wildshard/game/systems/viewmodel/armClips | — |
+| `armConst` | function | @wildshard/game/systems/viewmodel/armRig | An arm's constants from its rest owner pose and shoulder: the upper arm length is anatomical (`Lu`), the rest elbow is |
+| `ArmConst` | interface | @wildshard/game/systems/viewmodel/armRig | one arm's constant measures (set at the rest pose) |
+| `ArmWorld` | interface | @wildshard/game/systems/viewmodel/armRig | world (rig-space) transforms of one arm's bones, in BONES order |
+| `BONES` | const | @wildshard/game/systems/viewmodel/armRig | — |
+| `buildBones` | function | @wildshard/game/systems/viewmodel/armRig | the bone world transforms from solved points and the (clamped) hand orientation |
+| `frameYZ` | function | @wildshard/game/systems/viewmodel/armRig | a rotation whose +y is `y` and whose +z leans toward `z` |
+| `GRIP` | const | @wildshard/game/systems/viewmodel/armRig | the grip centre in JIAN-local: where the moves pivot and the hand's offset is measured |
+| `HandSpec` | interface | @wildshard/game/systems/viewmodel/armRig | the hand in its owner's local frame (JIAN-local for the right: blender/hand_model.py; GAUNTLET-local for the left) |
+| `JointAngles` | interface | @wildshard/game/systems/viewmodel/armRig | — |
+| `LEFT_HAND` | const | @wildshard/game/systems/viewmodel/armRig | the left fist + gauntlet in GAUNTLET-local, after LEFT_SCALE (+y elbow → claw hub at the origin, +z the back of the forearm) |
+| `LEFT_SCALE` | const | @wildshard/game/systems/viewmodel/armRig | the Fei Zhua assets were modelled 1.2× a human forearm: the bake scales the whole left arm by this (about the hub) |
+| `LIMITS` | const | @wildshard/game/systems/viewmodel/armRig | wrist limits (degrees): pronation + / supination −, extension + / flexion −, radial + / ulnar − (a jian grip lives |
+| `measure` | function | @wildshard/game/systems/viewmodel/armRig | the joint angles of an arm from its points and the hand's orientation (degrees) |
+| `Pose` | interface | @wildshard/game/systems/viewmodel/armRig | — |
+| `RIGHT_HAND` | const | @wildshard/game/systems/viewmodel/armRig | the right hand in JIAN-local: the diagonal jian grip (blender/hand_model.py DiagonalHand, round 13): the back of the |
+| `settleLeft` | function | @wildshard/game/systems/viewmodel/armRig | The left rest: turn the authored gauntlet frame until its forearm axis is the one the IK reaches, so the rest owner |
+| `Side` | type | @wildshard/game/systems/viewmodel/armRig | — |
+| `signedAngle` | function | @wildshard/game/systems/viewmodel/armRig | signed angle from a to b about axis n (all ⟂ n not required: projected) in radians |
+| `softLimit` | function | @wildshard/game/systems/viewmodel/armRig | soft limit: identity to 80 % of the bound on each side, a tanh knee up to the bound |
+| `solveArm` | function | @wildshard/game/systems/viewmodel/armRig | Solve one arm. `owner` = the authored pose of the hand's owner frame (right: the jian, JIAN-local → rig; left: the |
+| `TWISTS` | const | @wildshard/game/systems/viewmodel/armRig | twist bones: position along the forearm (share of its length from the elbow) and the share of the roll they carry |
+| `twoBone` | function | @wildshard/game/systems/viewmodel/armRig | two-bone IK: shoulder S, target W (moved into reach), pole P → elbow E (and the W it reached) |
+| `RigArms` | class | @wildshard/game/systems/viewmodel/rigArms | first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag) |
+| `RigMeta` | interface | @wildshard/game/systems/viewmodel/rigArms | vm_root's extras (bake.mjs): each clip's side / loop / the engine's timing, the blade per weapon, the swim water line |
+| `RigState` | interface | @wildshard/game/systems/viewmodel/rigArms | — |
+| `swordArmsOf` | function | @wildshard/game/systems/viewmodel/rigArms | a sword viewmodel built on rigged arms (its offset, framing and sky setup) |
+| `VM_FOV` | const | @wildshard/game/systems/viewmodel/rigArms | the viewmodel's vertical field (degrees): the clips' canonical camera |
+| `VmFrame` | interface | @wildshard/game/systems/viewmodel/rigArms | A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing |
+| `vmScale` | function | @wildshard/game/systems/viewmodel/rigArms | the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees) |
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
 | `consumeTravelHandoff` | function | @wildshard/game/travel/travel | — |

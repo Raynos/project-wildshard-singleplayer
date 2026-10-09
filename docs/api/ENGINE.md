@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2268 members; 835 without a doc line (—).
+2269 members; 835 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1267,6 +1267,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `addTerrain` | function | @wildshard/engine/physics/terrain | — |
 | `cutTerrain` | function | @wildshard/engine/physics/terrain | Push the physics heightfield down inside `cuts` (PHYSICS P4): where the drawn terrain pokes up through a walk-in |
 | `EDGE_WALL_INSET` | const | @wildshard/engine/physics/terrain | Inner faces of the edge walls sit here; with the player's 0.4 m capsule the centre stops 1.2 m inside the chunk. |
+| `resampleTerrain` | function | @wildshard/engine/physics/terrain | Resample the terrain collider from the live heightfield (the same lattice it was built on): a level look's painter that |
 | `TerrainCut` | interface | @wildshard/engine/physics/terrain | A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`. |
 | `terrainGrid` | function | @wildshard/engine/physics/terrain | The mesh's vertex heights, row-major (index iz × res + ix), x and z from −size/2 to +size/2. |
 | `toColumnMajor` | function | @wildshard/engine/physics/terrain | The row-major grid in Rapier's column-major (row = z, column = x) layout. |

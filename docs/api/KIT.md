@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-166 members; 47 without a doc line (—).
+112 members; 33 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -22,25 +22,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `ITEM_VIEW_LIFT` | const | @wildshard/kit/items/declared | The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item: |
 | `loadGrassField` | function | @wildshard/kit/lookApi | Meadow placement and trampling are runtime services. |
 | `loadParticles` | function | @wildshard/kit/lookApi | Defer rendered particles until the authored world hook has its terrain and backdrop. |
-| `fogGLSL` | const | @wildshard/kit/looks/fogProgram | — |
-| `configureGrassField` | function | @wildshard/kit/looks/grassField | — |
-| `flowerPatchAt` | function | @wildshard/kit/looks/grassField | 0..1 flower-drift strength |
-| `flowerSpeciesAt` | function | @wildshard/kit/looks/grassField | 0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts) |
-| `grassBaseHeightAt` | function | @wildshard/kit/looks/grassField | Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it |
-| `grassBloomAt` | function | @wildshard/kit/looks/grassField | 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/shards/level/look/grass.ts) |
-| `GrassFieldLayout` | interface | @wildshard/kit/looks/grassField | Authored meadow geography is supplied by the level plugin. |
-| `grassToneAt` | function | @wildshard/kit/looks/grassField | 0 = fresh valley green … 1 = plateau gold |
-| `groundColorAt` | function | @wildshard/kit/looks/grassField | the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled |
-| `TALL_GRASS` | const | @wildshard/kit/looks/grassField | tall-grass height of the stealth fields (m) |
-| `trailGrass` | function | @wildshard/kit/looks/grassField | trails: a bare bed (1.6 m half-width, the authored meadow's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m |
-| `makeMistTexture` | function | @wildshard/kit/looks/particles | Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only. |
-| `Particles` | class | @wildshard/kit/looks/particles | — |
-| `grassHeightAt` | function | @wildshard/kit/looks/trample | Effective grass height at (x, z) in metres, including trampling (a fresh track lays it to ~15 %). |
-| `GrassTrample` | class | @wildshard/kit/looks/trample | — |
-| `MAX_MOVERS` | const | @wildshard/kit/looks/trample | — |
-| `RECOVER` | const | @wildshard/kit/looks/trample | seconds a fully flattened patch takes to stand back up (design: 20 s) |
-| `trample` | const | @wildshard/kit/looks/trample | the world's trample map (a singleton — movers anywhere push into it) |
-| `TRAMPLE_GLSL` | const | @wildshard/kit/looks/trample | GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) |
 | `bear` | const | @wildshard/kit/models/creatures | black and brown bears, and their old ones |
 | `boar` | const | @wildshard/kit/models/creatures | wild boar: sows to the old boars, and the spawn-only variants a level asks for by name |
 | `deer` | const | @wildshard/kit/models/creatures | red deer: hinds, stags and their rare coats (the ghost stag, the great stag) |
@@ -93,38 +74,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `BEAR_PALETTE` | const | @wildshard/kit/species/view/bear | Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown / |
 | `BOAR_LOOK` | const | @wildshard/kit/species/view/boar | — |
 | `BOAR_PALETTE` | const | @wildshard/kit/species/view/boar | Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head. |
-| `ARM_CLIPS` | const | @wildshard/kit/viewmodel/armClips | Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical. |
-| `armClipNames` | const | @wildshard/kit/viewmodel/armClips | — |
-| `SWIM_CLIPS` | const | @wildshard/kit/viewmodel/armClips | — |
-| `armConst` | function | @wildshard/kit/viewmodel/armRig | An arm's constants from its rest owner pose and shoulder: the upper arm length is anatomical (`Lu`), the rest elbow is |
-| `ArmConst` | interface | @wildshard/kit/viewmodel/armRig | one arm's constant measures (set at the rest pose) |
-| `ArmWorld` | interface | @wildshard/kit/viewmodel/armRig | world (rig-space) transforms of one arm's bones, in BONES order |
-| `BONES` | const | @wildshard/kit/viewmodel/armRig | — |
-| `buildBones` | function | @wildshard/kit/viewmodel/armRig | the bone world transforms from solved points and the (clamped) hand orientation |
-| `frameYZ` | function | @wildshard/kit/viewmodel/armRig | a rotation whose +y is `y` and whose +z leans toward `z` |
-| `GRIP` | const | @wildshard/kit/viewmodel/armRig | the grip centre in JIAN-local: where the moves pivot and the hand's offset is measured |
-| `HandSpec` | interface | @wildshard/kit/viewmodel/armRig | the hand in its owner's local frame (JIAN-local for the right: blender/hand_model.py; GAUNTLET-local for the left) |
-| `JointAngles` | interface | @wildshard/kit/viewmodel/armRig | — |
-| `LEFT_HAND` | const | @wildshard/kit/viewmodel/armRig | the left fist + gauntlet in GAUNTLET-local, after LEFT_SCALE (+y elbow → claw hub at the origin, +z the back of the forearm) |
-| `LEFT_SCALE` | const | @wildshard/kit/viewmodel/armRig | the Fei Zhua assets were modelled 1.2× a human forearm: the bake scales the whole left arm by this (about the hub) |
-| `LIMITS` | const | @wildshard/kit/viewmodel/armRig | wrist limits (degrees): pronation + / supination −, extension + / flexion −, radial + / ulnar − (a jian grip lives |
-| `measure` | function | @wildshard/kit/viewmodel/armRig | the joint angles of an arm from its points and the hand's orientation (degrees) |
-| `Pose` | interface | @wildshard/kit/viewmodel/armRig | — |
-| `RIGHT_HAND` | const | @wildshard/kit/viewmodel/armRig | the right hand in JIAN-local: the diagonal jian grip (blender/hand_model.py DiagonalHand, round 13): the back of the |
-| `settleLeft` | function | @wildshard/kit/viewmodel/armRig | The left rest: turn the authored gauntlet frame until its forearm axis is the one the IK reaches, so the rest owner |
-| `Side` | type | @wildshard/kit/viewmodel/armRig | — |
-| `signedAngle` | function | @wildshard/kit/viewmodel/armRig | signed angle from a to b about axis n (all ⟂ n not required: projected) in radians |
-| `softLimit` | function | @wildshard/kit/viewmodel/armRig | soft limit: identity to 80 % of the bound on each side, a tanh knee up to the bound |
-| `solveArm` | function | @wildshard/kit/viewmodel/armRig | Solve one arm. `owner` = the authored pose of the hand's owner frame (right: the jian, JIAN-local → rig; left: the |
-| `TWISTS` | const | @wildshard/kit/viewmodel/armRig | twist bones: position along the forearm (share of its length from the elbow) and the share of the roll they carry |
-| `twoBone` | function | @wildshard/kit/viewmodel/armRig | two-bone IK: shoulder S, target W (moved into reach), pole P → elbow E (and the W it reached) |
-| `RigArms` | class | @wildshard/kit/viewmodel/rigArms | first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag) |
-| `RigMeta` | interface | @wildshard/kit/viewmodel/rigArms | vm_root's extras (bake.mjs): each clip's side / loop / the engine's timing, the blade per weapon, the swim water line |
-| `RigState` | interface | @wildshard/kit/viewmodel/rigArms | — |
-| `swordArmsOf` | function | @wildshard/kit/viewmodel/rigArms | a sword viewmodel built on rigged arms (its offset, framing and sky setup) |
-| `VM_FOV` | const | @wildshard/kit/viewmodel/rigArms | the viewmodel's vertical field (degrees): the clips' canonical camera |
-| `VmFrame` | interface | @wildshard/kit/viewmodel/rigArms | A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing |
-| `vmScale` | function | @wildshard/kit/viewmodel/rigArms | the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees) |
 | `Bow` | type | @wildshard/kit/weapons/bow/family | Compatibility name for the original starter Bow binding; all trusted callers share its identity. |
 | `BowInstance` | type | @wildshard/kit/weapons/bow/family | The one shared starter bow instance. |
 | `BowOptions` | type | @wildshard/kit/weapons/bow/family | Options for the trusted starter bow constructor. |
@@ -171,6 +120,3 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `Thrown` | const | @wildshard/kit/weapons/thrown/Thrown | The kit uses the one platform constructor and ammunition implementation. |
 | `ThrownProfile` | type | @wildshard/kit/weapons/thrown/Thrown | Transitional kit name for the platform's authored ammunition and flight profile. |
 | `SWAP_GLYPHS` | const | @wildshard/kit/weapons/ui | Compatibility name for the original starter SWAP_GLYPHS binding; all trusted callers share its identity. |
-| `rainCurtain` | function | @wildshard/kit/weather/rainCurtain | Camera-local, world-anchored streak quads. Both authored programs retain their exact source. |
-| `RainCurtainSpec` | interface | @wildshard/kit/weather/rainCurtain | — |
-| `RainProgram` | interface | @wildshard/kit/weather/rainCurtain | — |

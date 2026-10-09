@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-227 members; 0 without a doc line (—).
+243 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -165,6 +165,22 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `sharedCombatCues` | const | @wildshard/sdk/runtime/audio/combatCues | Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy. |
 | `bindPlayerEffects` | const | @wildshard/sdk/runtime/effects | Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called. |
 | `StatusMovement` | type | @wildshard/sdk/runtime/effects | Independent status-effect movement channels, separate from equipment and traversal multipliers. |
+| `ARM_CLIPS` | const | @wildshard/sdk/runtime/viewmodel/armClips | Engine clip names mapped to the authored arm rigs' track names (metadata only; source tracks stay byte-identical). |
+| `armClipNames` | const | @wildshard/sdk/runtime/viewmodel/armClips | The engine clip names an alias table declares, for a rig contract. |
+| `SWIM_CLIPS` | const | @wildshard/sdk/runtime/viewmodel/armClips | The swim stroke and tread aliases of an arm rig with swim clips. |
+| `HandSpec` | type | @wildshard/sdk/runtime/viewmodel/armRig | A hand in its owner's local frame: wrist, forearm axis and length, the hand's long and dorsal axes. |
+| `JointAngles` | type | @wildshard/sdk/runtime/viewmodel/armRig | One arm's measured wrist pronation / flexion / deviation and elbow angles (degrees). |
+| `LEFT_HAND` | const | @wildshard/sdk/runtime/viewmodel/armRig | The left hand of the standard two-bone arm. |
+| `measure` | const | @wildshard/sdk/runtime/viewmodel/armRig | Measure one arm's joint angles from shoulder, elbow, wrist and hand orientation. |
+| `RIGHT_HAND` | const | @wildshard/sdk/runtime/viewmodel/armRig | The right hand of the standard two-bone arm. |
+| `RigArms` | const | @wildshard/sdk/runtime/viewmodel/rigArms | The one platform arm player; the SDK owns no second parse cache, mixer or channel implementation. |
+| `RigArmsInstance` | type | @wildshard/sdk/runtime/viewmodel/rigArms | A baked first-person arm rig played on two clip channels (or its swim loops); the owner supplies the GLB, contract and bake. |
+| `RigMeta` | type | @wildshard/sdk/runtime/viewmodel/rigArms | The rig's clip metadata (side, loop, timing), blade spans and optional water line, read from its root extras. |
+| `RigState` | type | @wildshard/sdk/runtime/viewmodel/rigArms | Per-frame walk speed, step phase and look velocity driving the arm player. |
+| `swordArmsOf` | const | @wildshard/sdk/runtime/viewmodel/rigArms | Adapt a rig to the trusted sword family's animated-arms port with the owner's offset, framing and sky setup. |
+| `VM_FOV` | const | @wildshard/sdk/runtime/viewmodel/rigArms | The clips' canonical vertical field of view in degrees. |
+| `VmFrame` | type | @wildshard/sdk/runtime/viewmodel/rigArms | The viewmodel's camera-space framing: size, pitch, yaw and roll about the eye. |
+| `vmScale` | const | @wildshard/sdk/runtime/viewmodel/rigArms | The root x / y scale that draws a rig framed for the viewmodel field through a wider world camera. |
 | `Bow` | const | @wildshard/sdk/runtime/weapons/Bow | The one platform bow constructor; the SDK owns no second draw clock, projectile pool or presentation implementation. |
 | `BowInstance` | type | @wildshard/sdk/runtime/weapons/Bow | The shared drawn-projectile instance; view recipes and profiles are supplied by its owner. |
 | `BowOptions` | type | @wildshard/sdk/runtime/weapons/Bow | Row, profile and unlock policy supplied to the trusted family constructor. |
