@@ -2,9 +2,9 @@
  * Pine Hollow's two rides (PINE-HOLLOW-REMASTER PH-C1 beat 3, PH-C8 the canoe secret), on the landmarks PH-B3 built:
  *
  *   ZipRide   "[E] Ride the zipline" on the lookout's launch jetty: a trolley on the cable (PineLandmarks' sagging chord,
- *             1.2 % of the span) carries you 197 m down to the landing in the Hollow — gravity along the wire minus drag
- *             (Driftwood's Zipline.ts rule, 16 m/s tops), the camera rolls a little in the wind, you drop the last metre
- *             onto the landing's deck. The cable and both decks are the landmarks'; this only adds the trolley (1 draw).
+ *             1.2 % of the span) carries you 197 m down to the landing in the Hollow on the wire's law (zipWire.ts, the
+ *             headless quest's too), the camera rolls a little in the wind, you drop the last metre onto the landing's
+ *             deck. The cable and both decks are the landmarks'; this only adds the trolley (1 draw).
  *   CanoeRide "[E] Paddle to the islet" at the canoe on the pond's W shore: the canoe slides off the bank (the landmarks'
  *             drawn-up canoe is hidden while it is out), 20 m across the still water to the islet, you step ashore;
  *             "[E] Paddle back" from the islet's beach. 1 draw while out.
@@ -16,25 +16,21 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { POND } from '../layout';
 import { npcMaterial, PartKit } from '../models/people';
+import { ZIP_LAUNCH_V, ZIP_START, ZIP_VMAX, ZipWire, type ZipState } from './zipWire';
 
 interface Rider { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean }
-
-const G = 9.8, DRAG = 0.012, VMAX = 16, HANG = 3.15, SAG = 0.012;
-const _a = new THREE.Vector3(), _b = new THREE.Vector3();
 
 export class ZipRide {
   readonly prompt: Interactable;
   readonly trolley: THREE.Mesh;
   onRide?: (on: boolean) => void;
   private riding = false;
-  private s = 0; private v = 0; private len: number; private sag: number;
-  private dir = new THREE.Vector3();
+  private readonly ride: ZipState = { s: 0, v: 0 };
+  private readonly wire: ZipWire;
   private roll = 0;
 
-  constructor(sky: Sky, private readonly top: THREE.Vector3, private readonly bottom: THREE.Vector3, launch: THREE.Vector3, private readonly landing: THREE.Vector3) {
-    this.len = top.distanceTo(bottom);
-    this.sag = this.len * SAG;
-    this.dir.subVectors(bottom, top).setY(0).normalize();
+  constructor(sky: Sky, top: THREE.Vector3, bottom: THREE.Vector3, launch: THREE.Vector3, private readonly landing: THREE.Vector3) {
+    this.wire = new ZipWire(top, bottom);
     const k = new PartKit();
     k.add(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12), '#3a3d42', 0, 0, 0, 0, 0, Math.PI / 2);
     k.add(new THREE.BoxGeometry(0.07, 0.24, 0.22), '#7a2e22', 0, -0.07, 0);
@@ -50,42 +46,33 @@ export class ZipRide {
 
   get isRiding(): boolean { return this.riding; }
 
-  /** the cable at arc position s */
-  at(s: number, out: THREE.Vector3): THREE.Vector3 {
-    const t = THREE.MathUtils.clamp(s / this.len, 0, 1);
-    return out.lerpVectors(this.top, this.bottom, t).setY(this.top.y + (this.bottom.y - this.top.y) * t - 4 * this.sag * t * (1 - t));
-  }
-
   private park(): void {
-    this.at(0.7, this.trolley.position);
-    this.trolley.rotation.set(0, Math.atan2(this.dir.x, this.dir.z) + Math.PI / 2, 0);
+    this.wire.at(ZIP_START, this.trolley.position);
+    this.trolley.rotation.set(0, Math.atan2(this.wire.dir.x, this.wire.dir.z) + Math.PI / 2, 0);
   }
 
   start(): void {
     if (this.riding) return;
-    this.riding = true; this.s = 0.7; this.v = 2.5; this.roll = 0;
+    this.riding = true; this.ride.s = ZIP_START; this.ride.v = ZIP_LAUNCH_V; this.roll = 0;
     this.onRide?.(true);
   }
 
   /** per frame, after the player's own update: while riding the cable owns the position */
   update(dt: number, p: Rider, camera: THREE.Camera): void {
     if (!this.riding) return;
-    const slope = -(this.at(this.s + 0.5, _a).y - this.at(this.s, _b).y) / 0.5;
-    this.v = Math.min(VMAX, Math.max(1.5, this.v + (G * slope * 0.9 - DRAG * this.v * this.v) * dt));
-    this.s += this.v * dt;
-    this.at(this.s, this.trolley.position);
-    this.trolley.rotation.z = Math.sin(this.s * 0.7) * 0.05;
+    const ride = this.ride, holding = this.wire.step(ride, dt);
+    this.wire.at(ride.s, this.trolley.position);
+    this.trolley.rotation.z = Math.sin(ride.s * 0.7) * 0.05;
     p.carried = true;
-    p.position.copy(this.trolley.position); p.position.y -= HANG;
+    this.wire.rider(ride.s, p.position);
     p.velocity.set(0, 0, 0);
     // the wind on the wire: a slow roll that grows with the speed
     this.roll += dt;
-    camera.rotation.z += Math.sin(this.roll * 1.3) * 0.012 * (this.v / VMAX);
-    if (this.s >= this.len - 2.0) {
+    camera.rotation.z += Math.sin(this.roll * 1.3) * 0.012 * (ride.v / ZIP_VMAX);
+    if (!holding) {
       this.riding = false;
       p.carried = false;
-      p.position.set(this.landing.x - this.dir.x * 0.6, Math.max(p.position.y, this.landing.y + 0.05), this.landing.z - this.dir.z * 0.6);
-      p.velocity.set(this.dir.x * 2.5, 0, this.dir.z * 2.5);
+      this.wire.dismount(this.landing, p.position.y, p.position, p.velocity);
       this.park();
       this.onRide?.(false);
     }

@@ -13,6 +13,7 @@ import { PINE_PHASES } from '../look/dayKeys';
 import { PINE_FEATS } from '../feats';
 import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
+import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
 import baked from './spots.baked.json' with { type: 'json' };
 
 /** The script command actor that carries Pine's [E] prompts (`{ kind: 'script', actorId: PINE_INTERACT, value: PINE_ACT.* }`). */
@@ -26,9 +27,6 @@ export const QUEST_STEP = 'pine.quest';
 const EYE = 1.68;
 /** Interactables.ts: the kit's prompt radius. */
 const PROMPT_R = 2.5;
-/** ZipRide (quest/rides.ts): gravity along the wire minus drag, 1.5–16 m/s, the rider 3.15 m under the trolley, a 1.2 % sag;
- *  it starts 0.7 m down the wire at 2.5 m/s and lets go 2 m short of the end, onto the landing at 2.5 m/s. */
-const G = 9.8, DRAG = 0.012, VMIN = 1.5, VMAX = 16, HANG = 3.15, SAG = 0.012, START = 0.7, LAUNCH_V = 2.5, LET_GO = 2.0;
 /** questClock's two fast-forwards: to night over 6 s, to just past sunrise over 7 s */
 const NIGHT_PHASE = PINE_PHASES.night, SUNRISE_PHASE = PINE_PHASES.sunrise + 0.012;
 const MAX_COMMANDS = 1024, MAX_SETS = 16;
@@ -155,27 +153,21 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
   const clock = new LegacyPineClock({ seen: () => flags.has('seen:dawn'), hasClock: () => ports.day() !== null, night: ports.night, publish });
 
-  // ── the ride down the wire (ZipRide) ──
-  const { top, bottom, landing } = spots.zip, len = Math.hypot(bottom.x - top.x, bottom.y - top.y, bottom.z - top.z), sag = len * SAG;
-  const dl = Math.hypot(bottom.x - top.x, bottom.z - top.z), dir = { x: (bottom.x - top.x) / dl, z: (bottom.z - top.z) / dl };
-  const wire = new Vector3(), ahead = new Vector3();
-  const cable = (s: number, out: Vector3): Vector3 => {
-    const t = Math.min(1, Math.max(0, s / len));
-    return out.set(top.x + (bottom.x - top.x) * t, top.y + (bottom.y - top.y) * t - 4 * sag * t * (1 - t), top.z + (bottom.z - top.z) * t);
-  };
+  // ── the ride down the wire (the page's ZipRide law, quest/zipWire.ts) ──
+  const cable = new ZipWire(spots.zip.top, spots.zip.bottom), landing = spots.zip.landing;
+  const hang = new Vector3(), walkOn = new Vector3();
   const state = { zip: { on: false, s: 0, v: 0 }, rifle: false };
   const carry = (p: Vector3): void => { host.player.motor.resetAt(p); host.player.position.copy(p); host.playerFall.vy = 0; host.playerFall.grounded = false; };
   const ride = (dt: number): void => {
     const zip = state.zip; if (!zip.on) return;
-    const slope = -(cable(zip.s + 0.5, ahead).y - cable(zip.s, wire).y) / 0.5;
-    zip.v = Math.min(VMAX, Math.max(VMIN, zip.v + (G * slope * 0.9 - DRAG * zip.v * zip.v) * dt));
-    zip.s += zip.v * dt;
-    cable(zip.s, wire); wire.y -= HANG;
-    if (zip.s < len - LET_GO) { carry(wire); return; }
-    // the drop onto the landing's deck, walking on at 2.5 m/s down the wire's line
+    const holding = cable.step(zip, dt);
+    cable.rider(zip.s, hang);
+    if (holding) { carry(hang); return; }
+    // the drop onto the landing's deck, walking on down the wire's line
     zip.on = false;
-    carry(wire.set(landing.x - dir.x * 0.6, Math.max(wire.y, landing.y + 0.05), landing.z - dir.z * 0.6));
-    host.impulsePlayer(ahead.set(dir.x * LAUNCH_V, 0, dir.z * LAUNCH_V));
+    cable.dismount(landing, hang.y, hang, walkOn);
+    carry(hang);
+    host.impulsePlayer(walkOn);
     flags.set('used:ph-zip');
   };
 
@@ -191,7 +183,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (value === PINE_ACT.pond) { lantern('pond', 'taken:pond-glass'); return; }
     if (value === PINE_ACT.ridge) { lantern('ridge', 'taken:ridge-flint'); return; }
     if (value === PINE_ACT.den) { lantern('den', 'talked:ranger'); return; }
-    if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) { state.zip.on = true; state.zip.s = START; state.zip.v = LAUNCH_V; } return; }
+    if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) { state.zip.on = true; state.zip.s = ZIP_START; state.zip.v = ZIP_LAUNCH_V; } return; }
     if (value === PINE_ACT.rifle) { if (!flags.has(LEVER_FLAG) && near(spots.rifle, spots.rifle.radius)) { flags.set(LEVER_FLAG); state.rifle = true; } return; }
     const r = rowOf(value);
     if (r !== null && near(r.prompt, radius(r))) interact(r);
