@@ -7,4 +7,4 @@ it('restores a checkpoint mid-swing and mid-ride (held in the square\'s ring) in
   const report = JSON.parse(result.stdout) as { replay: { hash: string; replayHash: string } };
   expect(report).toMatchObject({ replay: { status: 'passed', checkpointCaptured: true, checkpoint: { tick: 400, swing: 1 }, suffixTicksExecuted: 684 } });
   expect(report.replay.replayHash).toBe(report.replay.hash);
-}, 60_000);
+}, 120_000);

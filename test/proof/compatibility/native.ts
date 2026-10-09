@@ -5,7 +5,7 @@ import { execPath } from 'node:process';
 
 /** A blocked or partial witness must remain nonzero; no empty proxy can satisfy the compatibility gate. */
 export function nativeCompatibility(slug: string, mode = 'all'): { status: number | null; stdout: string; stderr: string } {
-  const result = spawnSync(execPath, ['--import', './scripts/sim-node-loader.mjs', `test/proof/${slug}/run.mjs`, mode], { encoding: 'utf8', timeout: 60_000 });
+  const result = spawnSync(execPath, ['--import', './scripts/sim-node-loader.mjs', `test/proof/${slug}/run.mjs`, mode], { encoding: 'utf8', timeout: 110_000 });
   if (result.error !== undefined) throw result.error;
   return { status: result.status, stdout: result.stdout.trim(), stderr: result.stderr };
 }

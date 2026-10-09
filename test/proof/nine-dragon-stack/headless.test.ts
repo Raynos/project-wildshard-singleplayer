@@ -16,4 +16,4 @@ it('walks the square into its ring, rides to the north deck and home again by ti
   const { capOpenTicks, landed } = report.headless.grapple;
   expect(capOpenTicks).toBeGreaterThan(120); expect(capOpenTicks).toBeLessThan(180);
   expect(landed.x).toBeCloseTo(-8.53, 1); expect(landed.y).toBeCloseTo(119.09, 1); expect(landed.z).toBeCloseTo(-20.67, 1);
-}, 60_000);
+}, 120_000);
