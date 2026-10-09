@@ -11,7 +11,7 @@ import { painterlyUniforms, setPainterlyLook, syncPainterlySun, updatePainterly 
 import { SkyRig } from '../src/engine/world/skyRig';
 import { applyLevelLight, holdPageLight, regionLightSwap } from '../src/game/grid/regionLight';
 import { wind } from '../src/engine/world/steppeWind';
-import { windStrength } from '../src/engine/world/wind';
+import { windStrength } from '../src/engine/world/windStrength';
 import { NALATI_GRASSLANDS } from '../src/shards/nalati-grasslands/manifest';
 import { SkyRig as NalatiSkyRig, copyLook, makeLook } from '../src/shards/nalati-grasslands/look/skyRig';
 import { LightCheat } from '../src/shards/nalati-grasslands/look/light';

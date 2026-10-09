@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { windStrength } from './wind';
+import { windStrength } from './windStrength';
 
 /**
  * The one wind of the world (Nalati: grass, arrows, clouds, flags, smoke, trees, storms).
@@ -29,6 +29,18 @@ import { windStrength } from './wind';
 
 /** metres per second that equals the old `uWindStrength = 1` (Pine Hollow's calm day) */
 const REF_SPEED = 5;
+
+/**
+ * A Wind's whole continuation as plain numbers (SF72: a renderer-free host saves its own wind in its snapshot): the
+ * smoothed and unwandered base, the gustiness, the clocks, the wander switch and the target it eases toward. `dirX` /
+ * `dirZ`, the uniforms and the bridged strength follow from these.
+ */
+export interface WindState {
+  speed: number; dir: number; gustiness: number; time: number; travel: number; wander: boolean;
+  baseSpeed: number; baseDir: number;
+  target: { speed: number; dir: number; gustiness: number; rate: number };
+}
+const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
 export const WIND_GLSL = /* glsl */`
 uniform vec2 uWindDir;      // unit, the heading the wind blows toward (world xz)
@@ -76,6 +88,31 @@ export class Wind {
   /** the unwandered base heading / speed the smoothing converges on */
   private baseSpeed = 5;
   private baseDir = 1.95;
+  /** the legacy sway strength this wind bridges (the world's `windStrength`; a renderer-free host passes a box of its own) */
+  private readonly strength: { value: number };
+
+  constructor(strength: { value: number } = windStrength) { this.strength = strength; }
+
+  /** The wind's continuation (WindState), exact. */
+  snapshot(): WindState {
+    const { speed, dir, gustiness, time, travel, wander, baseSpeed, baseDir } = this, t = this.target;
+    return { speed, dir, gustiness, time, travel, wander, baseSpeed, baseDir, target: { speed: t.speed, dir: t.dir, gustiness: t.gustiness, rate: t.rate } };
+  }
+
+  /** Put a saved continuation back exactly (the derived heading vector, uniforms and bridged strength with it); refuses a
+   *  malformed state before changing anything. */
+  restore(state: WindState): void {
+    const t = state.target;
+    if (![state.speed, state.dir, state.gustiness, state.time, state.travel, state.baseSpeed, state.baseDir, t.speed, t.dir, t.gustiness, t.rate].every(finite) || typeof state.wander !== 'boolean')
+      throw new RangeError('Invalid wind state');
+    this.speed = state.speed; this.dir = state.dir; this.gustiness = state.gustiness; this.time = state.time; this.travel = state.travel; this.wander = state.wander;
+    this.baseSpeed = state.baseSpeed; this.baseDir = state.baseDir;
+    this.target.speed = t.speed; this.target.dir = t.dir; this.target.gustiness = t.gustiness; this.target.rate = t.rate;
+    this.syncDir();
+    const u = this.uniforms;
+    u.uWindSpeed.value = this.speed; u.uWindGustiness.value = this.gustiness; u.uWindTravel.value = this.travel; u.uWindTime.value = this.time;
+    this.strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
+  }
 
   /** Ease toward a new wind over ~`seconds` (weather, storms, a dev switch). */
   setTarget(speed: number, dir: number, gustiness = this.target.gustiness, seconds = 8): void {
@@ -118,7 +155,7 @@ export class Wind {
     u.uWindTravel.value = this.travel;
     u.uWindTime.value = this.time;
     // bridge: trees / undergrowth / Pine-Hollow-style grass sway with the same strength
-    windStrength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
+    this.strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
   }
 
   /** gust field 0..1 at (x, z) — identical to WIND_GLSL `windGust` */
@@ -153,10 +190,10 @@ export class Wind {
    */
   hold(): () => void {
     const speed = this.speed, dir = this.dir, gustiness = this.gustiness, wander = this.wander, target = { ...this.target };
-    const baseSpeed = this.baseSpeed, baseDir = this.baseDir, strength = windStrength.value;
+    const baseSpeed = this.baseSpeed, baseDir = this.baseDir, strength = this.strength.value;
     return () => {
       this.speed = speed; this.dir = dir; this.gustiness = gustiness; this.wander = wander; Object.assign(this.target, target);
-      this.baseSpeed = baseSpeed; this.baseDir = baseDir; windStrength.value = strength;
+      this.baseSpeed = baseSpeed; this.baseDir = baseDir; this.strength.value = strength;
       this.uniforms.uWindSpeed.value = speed; this.uniforms.uWindGustiness.value = gustiness;
       this.syncDir();
     };
