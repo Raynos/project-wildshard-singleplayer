@@ -1,0 +1,302 @@
+{
+  "productionPin": "e1696207dc0c8b1d73421f40d459b8c0ab081fec",
+  "diagnosticCommit": "6b74ba9f07dc32f9797c07c74abdd0f01c296082",
+  "date": "2026-10-09",
+  "arm": "Simulator, forced-compressed (requested phone-memory diagnostic; equivalence unverified)",
+  "override": "Only gpuFiles.ts probe veto ignored. No cap/claim/catalogue/settings/physics changes; never shipped. Transcoder family filtering remains active.",
+  "cells": {
+    "seconds": 1807.798,
+    "circuits": 4,
+    "functionalPass": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 1755898862,
+      "loadingPeakBytes": 776131487,
+      "phoneEstimateBytes": 2458258406.7999997,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791580925.056,
+          "end": 1791580935.121,
+          "samples": 10,
+          "bytes": 714454259
+        },
+        {
+          "cycle": 1,
+          "start": 1791581820.842,
+          "end": 1791581831.331,
+          "samples": 10,
+          "bytes": 1197772677
+        },
+        {
+          "cycle": 2,
+          "start": 1791582115.436,
+          "end": 1791582125.568,
+          "samples": 10,
+          "bytes": 1274750117
+        },
+        {
+          "cycle": 3,
+          "start": 1791582404.025,
+          "end": 1791582414.357,
+          "samples": 10,
+          "bytes": 1521411357
+        },
+        {
+          "cycle": 4,
+          "start": 1791582701.218,
+          "end": 1791582711.682,
+          "samples": 10,
+          "bytes": 1415079221
+        }
+      ],
+      "baselineDeltaBytes": [
+        -560295858,
+        -76977440,
+        0,
+        246661240,
+        140329104
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": true,
+          "peakBytes": 1419274450,
+          "troughBytes": 616297158
+        },
+        {
+          "cycle": 1,
+          "complete": true,
+          "peakBytes": 1634594986,
+          "troughBytes": 1119333546
+        },
+        {
+          "cycle": 2,
+          "complete": true,
+          "peakBytes": 1590109493,
+          "troughBytes": 1149254950
+        },
+        {
+          "cycle": 3,
+          "complete": true,
+          "peakBytes": 1755898862,
+          "troughBytes": 1326662010
+        },
+        {
+          "cycle": 4,
+          "complete": false,
+          "peakBytes": 1578247174,
+          "troughBytes": 1327800106
+        }
+      ],
+      "recovery": false,
+      "calibration": false,
+      "ratios": [
+        {
+          "cycle": 1,
+          "raw": 2.715338391951711,
+          "adjusted": 2.0352414643562313
+        },
+        {
+          "cycle": 2,
+          "raw": 2.891946006316967,
+          "adjusted": 2.211354735663183
+        },
+        {
+          "cycle": 3,
+          "raw": 3.4515309621590937,
+          "adjusted": 2.7709396915053093
+        },
+        {
+          "cycle": 4,
+          "raw": 3.210301883653857,
+          "adjusted": 2.5297106130000726
+        }
+      ],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow",
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "refused": [],
+      "attemptedEveryCell": true,
+      "crossroads": 16,
+      "rehearsal": false,
+      "limitation": null
+    },
+    "perLap": [
+      {
+        "cycle": 0,
+        "complete": true,
+        "samples": 890,
+        "peakBytes": 1419274450,
+        "troughBytes": 616297158,
+        "webContentPeakBytes": 1168216144,
+        "allWebContentPeakBytes": 1172756912,
+        "glPeakBytes": 323442842,
+        "accountedPeakBytes": 441915098,
+        "gpuProcessPeakBytes": 321325936,
+        "wasmPeakBytes": 69926912,
+        "overCapBytes": 419274450
+      },
+      {
+        "cycle": 1,
+        "complete": true,
+        "samples": 293,
+        "peakBytes": 1634594986,
+        "troughBytes": 1119333546,
+        "webContentPeakBytes": 1394266480,
+        "allWebContentPeakBytes": 1394891496,
+        "glPeakBytes": 343646010,
+        "accountedPeakBytes": 441113594,
+        "gpuProcessPeakBytes": 374885232,
+        "wasmPeakBytes": 70189056,
+        "overCapBytes": 634594986
+      },
+      {
+        "cycle": 2,
+        "complete": true,
+        "samples": 286,
+        "peakBytes": 1590109493,
+        "troughBytes": 1149254950,
+        "webContentPeakBytes": 1365840432,
+        "allWebContentPeakBytes": 1383144336,
+        "glPeakBytes": 344854926,
+        "accountedPeakBytes": 440793194,
+        "gpuProcessPeakBytes": 377342904,
+        "wasmPeakBytes": 69926912,
+        "overCapBytes": 590109493
+      },
+      {
+        "cycle": 3,
+        "complete": true,
+        "samples": 296,
+        "peakBytes": 1755898862,
+        "troughBytes": 1326662010,
+        "webContentPeakBytes": 1411043936,
+        "allWebContentPeakBytes": 1413225432,
+        "glPeakBytes": 344854926,
+        "accountedPeakBytes": 440793194,
+        "gpuProcessPeakBytes": 476302312,
+        "wasmPeakBytes": 70189056,
+        "overCapBytes": 755898862
+      },
+      {
+        "cycle": 4,
+        "complete": false,
+        "samples": 30,
+        "peakBytes": 1578247174,
+        "troughBytes": 1327800106,
+        "webContentPeakBytes": 1234080376,
+        "allWebContentPeakBytes": 1251417072,
+        "glPeakBytes": 344854926,
+        "accountedPeakBytes": 440793194,
+        "gpuProcessPeakBytes": 394480616,
+        "wasmPeakBytes": 69926912,
+        "overCapBytes": 578247174
+      }
+    ],
+    "gamePid": 97198
+  },
+  "road": {
+    "functionalPass": false,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 0,
+      "loadingPeakBytes": 609982903,
+      "phoneEstimateBytes": 0,
+      "baselines": [],
+      "baselineDeltaBytes": [],
+      "loops": [],
+      "recovery": false,
+      "calibration": false,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [],
+      "refused": [],
+      "attemptedEveryCell": true,
+      "crossroads": 0,
+      "rehearsal": false,
+      "limitation": null
+    },
+    "failure": "Error: Safari inspector timeout: Runtime.evaluate\n    at Timeout._onTimeout (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/inspector.mjs:30:80)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+    "circuits": 0
+  },
+  "peak": {
+    "peakMatchesRecorded": true,
+    "peakEpoch": 1791582438.918007,
+    "peakWebContentMB": 1377.505888,
+    "peakKernelIntervalMB": 1411.043936,
+    "peakLabelledGlMB": 344.854926,
+    "peakCurrent": "pine-hollow"
+  },
+  "settledHome": [
+    {
+      "cycle": 0,
+      "count": 10,
+      "webContentMB": 515.624392,
+      "labelledGlMB": 198.321963,
+      "accountedMB": 441.816806,
+      "loadMedian": 41.575,
+      "wasmCapacityMB": 32.833536
+    },
+    {
+      "cycle": 1,
+      "count": 10,
+      "webContentMB": 970.780872,
+      "labelledGlMB": 226.934461,
+      "accountedMB": 441.113594,
+      "loadMedian": 24.28,
+      "wasmCapacityMB": 69.926912
+    },
+    {
+      "cycle": 2,
+      "count": 10,
+      "webContentMB": 1046.131128,
+      "labelledGlMB": 228.610797,
+      "accountedMB": 440.793194,
+      "loadMedian": 17.355,
+      "wasmCapacityMB": 69.926912
+    },
+    {
+      "cycle": 3,
+      "count": 10,
+      "webContentMB": 1292.775984,
+      "labelledGlMB": 228.610797,
+      "accountedMB": 440.793194,
+      "loadMedian": 44.98,
+      "wasmCapacityMB": 69.926912
+    },
+    {
+      "cycle": 4,
+      "count": 10,
+      "webContentMB": 1186.468424,
+      "labelledGlMB": 228.610797,
+      "accountedMB": 440.793194,
+      "loadMedian": 38.1,
+      "wasmCapacityMB": 69.926912
+    }
+  ],
+  "findings": [
+    "Recorded peak reproduces fixed game-PID interval high + live labelled GL; GPU-process footprint is not added.",
+    "Home GL plateaus after circuit 2; ASTC textures are absent at every later home boundary.",
+    "Home WC grows across circuits and partly falls on circuit 4; high plateau and live compressed-GL leak are not established.",
+    "Calibration is an accounting ratio, not evidence of two driver copies. Veto-only override is a mixed-format arm, not a proven phone-equivalent renderer."
+  ],
+  "investigation": "One fresh all-six-cell circuit with SF64 owners/passive WebKit categories is pending the Pine floor. No heap snapshot/GC planned.",
+  "phoneVerdict": "M2 physical-phone memory/no-tab-kill verdict remains Jake G269; this record supplies no phone pass."
+}
