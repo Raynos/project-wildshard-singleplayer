@@ -2,17 +2,17 @@ import { expect, it } from 'vitest';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { DialogueClock } from '../../../src/engine/quest/dialogueClock';
 import { lineFor } from '../../../src/engine/quest/core';
-import { RANGER } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { RANGER, MILLER, TRADER } from '../../../src/shards/pine-hollow/quest/wardensHollow';
 import { PineDialogue } from '../../../src/shards/pine-hollow/runtime/dialogue';
 
 const at = { x: 12, y: 3, z: -8 }, feet = { ...at, y: at.y - 1.68 };
-it('matches every authored Hale line under keyboard advances, typing and the page opening guard', () => {
-  for (const entry of RANGER.dialogue) {
+it('matches every authored NPC line under keyboard advances, typing and the page opening guard', () => {
+  for (const npc of [RANGER, MILLER, TRADER]) for (const entry of npc.dialogue) {
     const flags = new Flags('pine-dialogue', false), pageFlags = new Flags('pine-dialogue', false);
     for (const flag of entry.when?.all ?? []) { flags.set(flag); pageFlags.set(flag); }
-    const selected = lineFor(RANGER, pageFlags);
+    const selected = lineFor(npc, pageFlags);
     if (selected === null) throw new Error('No authored dialogue');
-    const talk = new PineDialogue(flags, at, 3.2), page = new DialogueClock();
+    const talk = new PineDialogue(flags, at, 3.2, npc), page = new DialogueClock();
     talk.use(); page.open(selected.lines);
     let elapsed = 0;
     for (let tick = 0; tick < 1000 && page.isOpen; tick++) {
@@ -42,4 +42,13 @@ it('restores the reading guard and rejects incompatible continuation without fla
   expect(flags.all).toEqual(['talked:ranger']);
   talk.use(); talk.step(0, { ...feet, x: at.x + 6 }); expect(talk.active).toBe(false);
   talk.use(); talk.dismiss(); expect(talk.active).toBe(false); expect(flags.all).toEqual(['talked:ranger']);
+});
+
+it('refuses another authored NPC continuation before changing the active reading session', () => {
+  const flags = new Flags('pine-dialogue-npc', false);
+  const miller = new PineDialogue(flags, at, 3.2, MILLER), trader = new PineDialogue(flags, at, 3.2, TRADER);
+  miller.use(); trader.use(); miller.step(0.1, feet);
+  const before = miller.snapshot();
+  expect(() => miller.prepareRestore(trader.snapshot())).toThrow();
+  expect(miller.snapshot()).toEqual(before); expect(flags.all).toEqual([]);
 });

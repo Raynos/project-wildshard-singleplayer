@@ -40,7 +40,8 @@ const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: 
 const Point = v.strictObject(xyz), Prompt = v.strictObject({ ...xyz, radius: finite });
 const Spots = v.object({ version: v.literal(1),
   rows: v.array(v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: finite, prompt: v.nullable(Point) })),
-  talk: Prompt, lanterns: v.strictObject({ pond: Prompt, ridge: Prompt, den: Prompt }),
+  people: v.exactOptional(v.pipe(v.array(v.strictObject({ kind: v.picklist(['ranger', 'miller', 'trader']), prompt: Prompt, at: Point })), v.length(3), v.check(people => new Set(people.map(person => person.kind)).size === 3))),
+  board: v.exactOptional(Prompt), talk: Prompt, lanterns: v.strictObject({ pond: Prompt, ridge: Prompt, den: Prompt }),
   zip: v.strictObject({ prompt: Prompt, top: Point, bottom: Point, landing: Point }), rifle: Prompt });
 /** The page's placements (scripts/bake-pine-spots.mjs), strictly. */
 export type PineSpots = v.InferOutput<typeof Spots>;

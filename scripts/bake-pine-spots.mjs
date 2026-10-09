@@ -41,12 +41,21 @@ try {
       return { id, kind: lv.def.kind, ...xyz(lv.position), yaw: lv.yaw, prompt: lv.prompt ? xyz(lv.prompt.position) : null };
     });
     const ranger = q.people.find(p => p.kind === 'ranger');
+    if (ranger === undefined) throw new Error('Pine has one Hale prompt');
+    const people = ['ranger', 'miller', 'trader'].map(kind => {
+      const matches = q.people.filter(person => person.kind === kind), person = matches[0];
+      if (matches.length !== 1 || person === undefined) throw new Error(`Pine has one ${kind} prompt`);
+      return { kind, prompt: { ...xyz(person.prompt.position), radius: person.prompt.radius }, at: xyz(person.fig.talkPoint) };
+    });
+    const boards = window.__wildshard.world.interactables.filter(p => p.label.startsWith('Read the contract board'));
+    if (boards.length !== 1) throw new Error('Pine has one contract board prompt');
+    const board = { ...xyz(boards[0].position), radius: boards[0].radius };
     const lanterns = Object.fromEntries(['pond', 'ridge', 'den'].map(id => [id, { ...xyz(q.lanterns[id].position), radius: q.lanterns[id].radius }]));
     const zip = q.zip;
     const rifle = window.__wildshard.world.interactables.filter(p => p.label === 'Take the lever-action');
     if (rifle.length !== 1) throw new Error('Pine has one lever-action pickup');
     return {
-      rows: kit, talk: { ...xyz(ranger.prompt.position), radius: ranger.prompt.radius }, lanterns,
+      rows: kit, people, board, talk: { ...xyz(ranger.prompt.position), radius: ranger.prompt.radius }, lanterns,
       zip: { prompt: { ...xyz(zip.prompt.position), radius: zip.prompt.radius }, top: xyz(zip.wire.top), bottom: xyz(zip.wire.bottom), landing: xyz(zip.landing) },
       rifle: { ...xyz(rifle[0].position), radius: rifle[0].radius },
     };
@@ -56,6 +65,6 @@ try {
   if (errors.length > 0) throw new Error(`Invalid Pine spots bake: ${JSON.stringify(errors)}`);
   const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', ...first };
   writeFileSync(resolve(root, 'src/shards/pine-hollow/runtime/spots.baked.json'), `${JSON.stringify(result, null, 1)}\n`);
-  console.log(`bake-pine-spots: ${first.rows.length} table rows, Hale, three lanterns, the zipline and the lever-action, exact repeated browser equality`);
+  console.log(`bake-pine-spots: ${first.rows.length} table rows, three NPCs, lodge board, three lanterns, zipline and lever-action, exact repeated browser equality`);
   await context.close();
 } finally { await browser.close(); }

@@ -1,19 +1,21 @@
 import * as v from 'valibot';
 import { NpcDialogue, type DialogueFlags } from '@wildshard/game/quest/dialogue';
+import type { NpcDef } from '@wildshard/engine/quest/core';
 import { RANGER } from '../quest/wardensHollow';
 
 const KEY_DELAY = 0.15;
 const Saved = v.strictObject({ dialogue: v.unknown(), elapsed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(KEY_DELAY)) });
 interface Point { readonly x: number; readonly y: number; readonly z: number }
 
-/** Hale's renderer-free reading session. Use is the page's keyboard action; a back action or walking off cancels. */
+/** An authored Pine NPC's renderer-free reading session (Hale by default). Use is the page's keyboard action; a back action or walking off cancels. */
 export class PineDialogue {
   private readonly dialogue: NpcDialogue;
   private elapsed = 0;
   private readonly at: Point;
   private readonly radius: number;
-  constructor(flags: DialogueFlags, at: Point, radius: number) {
-    this.dialogue = new NpcDialogue(RANGER, flags); this.at = at; this.radius = radius;
+  private readonly npc: NpcDef;
+  constructor(flags: DialogueFlags, at: Point, radius: number, npc: NpcDef = RANGER) {
+    this.npc = npc; this.dialogue = new NpcDialogue(npc, flags); this.at = at; this.radius = radius;
   }
   get active(): boolean { return this.dialogue.clock.isOpen; }
   use(): void {
@@ -33,7 +35,7 @@ export class PineDialogue {
   }
   prepareRestore(value: unknown): () => void {
     if (value === null) return () => { this.dismiss(); };
-    const saved = v.parse(Saved, value), candidate = new NpcDialogue(RANGER, { has: () => false, set: () => undefined });
+    const saved = v.parse(Saved, value), candidate = new NpcDialogue(this.npc, { has: () => false, set: () => undefined });
     candidate.restore(saved.dialogue);
     if (!candidate.clock.isOpen) throw new RangeError('A saved Pine dialogue must still be open');
     const commit = this.dialogue.prepareRestore(saved.dialogue);
