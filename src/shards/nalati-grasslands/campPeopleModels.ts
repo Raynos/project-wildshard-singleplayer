@@ -30,7 +30,7 @@ import * as THREE from 'three';
 import { rawFromGltf } from './world/glbPaint';
 
 
-import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from '@wildshard/game/systems/npc/figureRig';
+import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from './models/npc/figureRig';
 
 
 const DIR = '/assets/nalati/models/people/';

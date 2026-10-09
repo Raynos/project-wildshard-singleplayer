@@ -4,7 +4,7 @@
  *
  * FAILS (exit 1) on a broken rule, anywhere:
  *   1. `defineModel(` outside `src/engine/models/` and `src/shards/<slug>/models/`
- *   2. a file under `src/shards/<slug>/models/` that defines no model (a models folder holds models only)
+ *   2. a file under `src/shards/<slug>/models/` that defines no model and is not an exact declared model support module
  *   3. a model id not prefixed by its folder: `<slug>/…` in a shard's models, `shared/…` in src/engine/models/
  *   4. a shard importing another shard's models (`src/shards/<a>/**` → `shards/<b>/models/`)
  *   5. `src/engine/models/` importing a shard (`shards/…`): the contract stays shard-agnostic
@@ -190,6 +190,12 @@ function countsOf(code) {
   };
 }
 
+// Literal SF54 relocation: these two helpers support Nalati's People model; no directory-wide exception.
+const MODEL_SUPPORT = new Map([
+  ['src/shards/nalati-grasslands/models/npc/figureRig.ts', 'Fits, weights and merges the authored camp figures used by models/people.ts.'],
+  ['src/shards/nalati-grasslands/models/npc/figureMotion.ts', 'Publishes the camp figure poses used by the People model and its entered runtime.'],
+]);
+
 const SHARD_MODELS = /^src\/shards\/([^/]+)\/models\//;
 const SHARD_FILE = /^src\/shards\/([^/]+)\//;
 /** Pine Hollow's remaining generic world builders retain their report area after the move. */
@@ -308,7 +314,7 @@ export function checkModels(files) {
     const defines = [...code.matchAll(/defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
     const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0);
     if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
-    if (inShardModels && calls === 0) violations.push(`${file}: a file in a models folder that defines no model`);
+    if (inShardModels && calls === 0 && !MODEL_SUPPORT.has(file)) violations.push(`${file}: a file in a models folder that defines no model`);
     for (const id of defines) {
       const want = inShardModels ? `${inShardModels[1]}/` : 'shared/';
       if ((inShardModels || inShared) && !id.startsWith(want)) violations.push(`${file}: model id '${id}' must start with '${want}'`);

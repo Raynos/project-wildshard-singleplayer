@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { stepNpcFigure, npcFigurePose, type NpcFigureState } from '../../../src/game/systems/npc/figureMotion';
-import { fitNpcFigure, mergeNpcFigures } from '../../../src/game/systems/npc/figureRig';
+import { stepNpcFigure, npcFigurePose, type NpcFigureState } from '../../../src/shards/nalati-grasslands/models/npc/figureMotion';
+import { fitNpcFigure, mergeNpcFigures } from '../../../src/shards/nalati-grasslands/models/npc/figureRig';
 import { CAMP_MOTION } from '../../../src/shards/nalati-grasslands/campPeopleProfiles';
 import before from './camp-motion-before.json';
 

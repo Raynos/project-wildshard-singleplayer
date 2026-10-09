@@ -29,6 +29,15 @@ describe('check-models: a registry add with an object (E323)', () => {
     expect(checkModels({ [file]: "registry.add({ id: 'x', colliders: [{ kind: 'box', hx: 1, hy: 1, hz: 1 }] });" }).violations).toEqual([]);
   });
 
+  it('permits only the declared People model support files, retaining the contract for other helpers', () => {
+    for (const name of ['figureRig', 'figureMotion']) {
+      expect(checkModels({ [`src/shards/nalati-grasslands/models/npc/${name}.ts`]: 'export function support() {}' }).violations).toEqual([]);
+    }
+    for (const file of ['src/shards/nalati-grasslands/models/npc/newHelper.ts', 'src/shards/another/models/npc/figureRig.ts']) {
+      expect(checkModels({ [file]: 'export function support() {}' }).violations).toContain(`${file}: a file in a models folder that defines no model`);
+    }
+  });
+
   it('the whole tree holds with the stricter finder', () => {
     expect(checkModels().violations).toEqual([]);
   });
