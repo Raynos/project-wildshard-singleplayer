@@ -67,7 +67,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `.vercelignore` line with `/` (E41). A red gate is yours to fix before the push. Rare escape: `SKIP_VERCEL_GATE=1`.
   **Gate cache** (`scripts/gate-cache.mjs`, state in `.git/gate-cache/`): bake-check and the node audits skip when every
   file they read last time (traced by `scripts/gate-trace.mjs`) is byte-identical, and vitest runs `vitest related` on
-  the files changed since its last green gate. Every 8th gate, 6 h after the last full one, a package / config /
+  the files changed since its last green gate, plus every test whose text (or a test fixture's) names a changed file:
+  spawned scripts and fixtures sit outside vite's import graph (SF74 W12). Timings land in `.git/gate-timings.jsonl` and
+  `.git/push-timings.jsonl`. Every 8th gate, 6 h after the last full one, a package / config /
   test-setup change, a deleted module and `GATE_FULL=1` run everything; CI always does (2026-10-09: 277 s → 57 s).
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and

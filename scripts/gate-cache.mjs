@@ -91,6 +91,50 @@ function record(/** @type {string} */ step, /** @type {string} */ tree, /** @typ
 /** Files that make `vitest related` unsafe: they change how every test runs. */
 const GLOBAL = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig[^/]*\.json|vitest[^/]*|vite\.config\.ts|test\/(setup|fake|helpers?)\b|scripts\/vitest-lane\.ts)/u;
 const MAX_RELATED = 150;
+const TEXT_FILE = /\.(?:[cm]?[jt]s|py|sh|json)$/u, TEST_FILE = /\.test\.[cm]?[jt]s$/u;
+/** A changed file's names in another file's text: its repo path, and its basename when that is distinctive. */
+const needles = (/** @type {string} */ file) => {
+  const base = file.split('/').pop() ?? file;
+  return base.length < 8 || /^(?:index|mod|types?|util|main)\./u.test(base) ? [file] : [file, base];
+};
+/**
+ * Tests that reach a changed file outside vite's import graph (a spawned script, a Python or shell fixture, an fs read):
+ * their text names the file, directly or through a test fixture that names it (up to three hops). 2026-10-09:
+ * test/sim-memory-interval.test.ts runs test/fixtures/soak/native-interval.py, which loads scripts/sim-mem-phases.py,
+ * so `vitest related` never selected it for a change to the sampler.
+ * @param {string} tree @param {string[]} changed @returns {string[]}
+ */
+export function textReferencedTests(tree, changed) {
+  const files = globSync(['test/**/*', 'api-tests/**/*', 'drafts/test/**/*', 'admin/test/**/*'], { cwd: tree })
+    .map(String).filter((file) => TEXT_FILE.test(file) && !file.split('/').includes('node_modules'));
+  /** @type {Map<string, string>} */
+  const text = new Map();
+  const read = (/** @type {string} */ file) => {
+    let body = text.get(file);
+    if (body === undefined) {
+      try { const path = resolve(tree, file), stat = statSync(path); body = stat.isFile() && stat.size < 2_000_000 ? readFileSync(path, 'utf8') : ''; } catch { body = ''; }
+      text.set(file, body);
+    }
+    return body;
+  };
+  const tests = new Set(), seen = new Set(changed);
+  let frontier = changed;
+  for (let hop = 0; hop < 3 && frontier.length > 0; hop++) {
+    const keys = frontier.flatMap(needles);
+    /** @type {string[]} */
+    const next = [];
+    for (const file of files) {
+      const isTest = TEST_FILE.test(file);
+      if (!isTest && seen.has(file)) continue;
+      const body = read(file);
+      if (!keys.some((key) => body.includes(key))) continue;
+      if (isTest) tests.add(file);
+      else { seen.add(file); next.push(file); }
+    }
+    frontier = next;
+  }
+  return [...tests].sort((a, b) => a.localeCompare(b));
+}
 function vitestPlan(/** @type {string} */ tree, /** @type {string} */ sha) {
   const saved = readJson(join(stateDir(), 'vitest.json'));
   const base = typeof saved?.sha === 'string' ? saved.sha : '';
@@ -103,7 +147,9 @@ function vitestPlan(/** @type {string} */ tree, /** @type {string} */ sha) {
   if (diff(['--diff-filter=D']).some((file) => /^(src|test|scripts|api|lint)\//u.test(file))) return 'full';
   // Files Vercel drops are not in the tree; vitest related only takes files that exist there.
   const present = changed.filter((file) => existsSync(resolve(tree, file)));
-  return present.length === 0 ? 'none' : present.join('\n');
+  const selected = [...new Set([...present, ...textReferencedTests(tree, changed)])];
+  if (selected.length > MAX_RELATED) return 'full';
+  return selected.length === 0 ? 'none' : selected.join('\n');
 }
 
 function fullDue() {
