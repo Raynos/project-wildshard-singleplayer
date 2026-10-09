@@ -12,7 +12,6 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { isDev, onDev } from '@wildshard/engine/core/devMode';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
-import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import type { ResidencyAllocator } from './allocator';
 import { BUDGET_CATEGORIES, megabytes, PLATFORM_OWNER, readBudgetPoints, type BudgetCategory, type BudgetPoints, type BudgetShard, type PointsTone } from './budgetPoints';
 import { memoryRows, type MemoryGrouping, type MemorySort } from './memoryRows';
@@ -87,8 +86,8 @@ export function memoryFootprint(snapshot: MemorySnapshot, calibrated: number): M
   return { bytes, source: measured === null ? 'calibrated' : 'native', gpu: Math.round(gpu * scale), ram: Math.round(ram * scale), remainder, share: bytes > 0 ? remainder / bytes : 0 };
 }
 /** The 1.0 GB cap gauge: owned GPU, owned RAM and the unattributed remainder as one stacked bar with the cap line on it. */
-function footprintGauge(foot: MemoryFootprint): HTMLElement {
-  const cap = CONTENT_CAPS.playing, span = Math.max(cap, foot.bytes) * 1.08, pct = (bytes: number): string => `${(bytes / span * 100).toFixed(2)}%`;
+function footprintGauge(foot: MemoryFootprint, cap: number): HTMLElement {
+  const span = Math.max(cap, foot.bytes) * 1.08, pct = (bytes: number): string => `${(bytes / span * 100).toFixed(2)}%`;
   const box = el('div', 'ws-grid-budget-gauge'); data(box, 'source', foot.source); data(box, 'footprint-bytes', foot.bytes);
   const tone: PointsTone = foot.share < UNATTRIBUTED_TARGET ? 'green' : foot.share < 2 * UNATTRIBUTED_TARGET ? 'amber' : 'red';
   box.append(row(foot.source === 'native' ? 'FOOTPRINT · NATIVE WC + GL' : 'FOOTPRINT · SIMULATOR-CALIBRATED', MB(foot.bytes), foot.bytes > cap ? 'red' : null));
@@ -112,7 +111,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   let allocationScope: Scope | null = null;
   const label = (owner: string): string => (owner === PLATFORM_OWNER ? TEXT.road : host.name(owner));
 
-  const memorySection = (snapshot: MemorySnapshot, calibrated: number): HTMLElement => {
+  const memorySection = (snapshot: MemorySnapshot, calibrated: number, cap: number): HTMLElement => {
     allocationScope?.dispose();
     const entered = scope.child('ui.budget-memory'); allocationScope = entered;
     const sec = el('section', 'ws-grid-budget-sec'); data(sec, 'memory', 'observed');
@@ -123,7 +122,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
     sec.append(row('NATIVE WC + LABELLED GL', measured === null ? 'NOT SAMPLED' : MB(measured.webContentBytes + measured.labelledGpuBytes),
       measured !== null && measured.webContentBytes + measured.labelledGpuBytes > 1e9 ? 'red' : null));
     if (measured !== null) sec.append(el('p', 'ws-grid-budget-memory-note', `${new Date(measured.sampledAt).toISOString()} · ${measured.source}`));
-    sec.append(footprintGauge(memoryFootprint(snapshot, calibrated)));
+    sec.append(footprintGauge(memoryFootprint(snapshot, calibrated), cap));
     sec.append(el('p', 'ws-grid-budget-memory-note', 'GPU is allocated storage. RAM is live storage / capacity, not physical footprint. Neither is added to WebContent. Native unobserved RAM remains unknown.'));
     const controls = el('div', 'ws-grid-budget-tools');
     const pick = (name: string, choices: readonly (readonly [string, string])[], value: string, changed: (value: string) => void): void => {
@@ -190,7 +189,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
     const worst = el('section', 'ws-grid-budget-sec');
     worst.append(el('h4', 'ws-grid-budget-h', `${TEXT.worst} ${TEXT.tiles}`),
       ...points.tiles.slice(0, WORST_TILES).map((tile) => row(tile.id, `${megabytes(tile.bytes)}/${megabytes(tile.budget)} · ${tile.points}`, tile.tone)));
-    detail.replaceChildren(cross, ...(memory === null ? [] : [memorySection(memory, crossroads.playing)]), ...shards, ...(points.tiles.length > 0 ? [worst] : []));
+    detail.replaceChildren(cross, ...(memory === null ? [] : [memorySection(memory, crossroads.playing, crossroads.playingCap)]), ...shards, ...(points.tiles.length > 0 ? [worst] : []));
   };
 
   function refresh(): void {
