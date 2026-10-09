@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2363 members; 842 without a doc line (—).
+2367 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1044,7 +1044,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `pointScale` | function | @wildshard/engine/fx/ParticlePool | pixels per metre at 1 m for a screen-sized point (`gl_PointSize = size * uScale / depth`): the drawing buffer's height |
 | `AimCommand` | interface | @wildshard/engine/input/commands | World-space aim is command data, independent of camera shake, bob and render interpolation. |
 | `FightCommand` | interface | @wildshard/engine/input/commands | Weapon action plus its detached world-space aim, shared by live input and replay. |
+| `LocalMovementCommand` | interface | @wildshard/engine/input/commands | Additive raw-input protocol. New fields require version 1; absent fields retain legacy command bytes. |
+| `LocalSteer` | interface | @wildshard/engine/input/commands | Raw local inputs, kept separate because keyboard holds and analog strength can select different motion. |
 | `PlayerCommand` | interface | @wildshard/engine/input/commands | Resolved device input for one fixed step. Replays supply these values directly. |
+| `validateLocalMovement` | function | @wildshard/engine/input/commands | Reject malformed/new-version movement before a host changes clocks or physics. |
 | `listenDom` | function | @wildshard/engine/input/dom | Scoped widget gestures keep DOM event typing and dispose with their owner. Gameplay uses actions. |
 | `listenPage` | function | @wildshard/engine/input/dom | A page-wide input listener (E362 AG18): a drag that leaves its widget, "a touch anywhere" that dismisses or skips, |
 | `mountDom` | function | @wildshard/engine/input/dom | — |
@@ -1721,6 +1724,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SimHost` | class | @wildshard/engine/sim | A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. |
 | `SimHostPorts` | interface | @wildshard/engine/sim | Borrowed client state is stepped and disposed by its existing world owner. |
 | `SimLevel` | interface | @wildshard/engine/sim | A renderer-free level. F1 installs richer behaviours through scoped step callbacks. |
+| `SimPlayerDriver` | interface | @wildshard/engine/sim | One owned host's alternative player-motion law, without changing its single physics/system authority. |
 | `SimSlots` | interface | @wildshard/engine/sim | Script instance memory, module globals, authored quest data and ledger dedupe live on the host. |
 | `SimSpawn` | interface | @wildshard/engine/sim | One authored creature spawn, with its instance identity independent of view or streaming. |
 | `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |

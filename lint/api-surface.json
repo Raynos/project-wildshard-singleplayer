@@ -6229,9 +6229,27 @@
         "from": "@wildshard/engine/input/commands"
       },
       {
+        "name": "LocalMovementCommand",
+        "kind": "interface",
+        "doc": "Additive raw-input protocol. New fields require version 1; absent fields retain legacy command bytes.",
+        "from": "@wildshard/engine/input/commands"
+      },
+      {
+        "name": "LocalSteer",
+        "kind": "interface",
+        "doc": "Raw local inputs, kept separate because keyboard holds and analog strength can select different motion.",
+        "from": "@wildshard/engine/input/commands"
+      },
+      {
         "name": "PlayerCommand",
         "kind": "interface",
         "doc": "Resolved device input for one fixed step. Replays supply these values directly.",
+        "from": "@wildshard/engine/input/commands"
+      },
+      {
+        "name": "validateLocalMovement",
+        "kind": "function",
+        "doc": "Reject malformed/new-version movement before a host changes clocks or physics.",
         "from": "@wildshard/engine/input/commands"
       },
       {
@@ -10294,6 +10312,12 @@
         "name": "SimLevel",
         "kind": "interface",
         "doc": "A renderer-free level. F1 installs richer behaviours through scoped step callbacks.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimPlayerDriver",
+        "kind": "interface",
+        "doc": "One owned host's alternative player-motion law, without changing its single physics/system authority.",
         "from": "@wildshard/engine/sim"
       },
       {
