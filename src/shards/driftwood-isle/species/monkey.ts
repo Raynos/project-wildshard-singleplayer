@@ -7,7 +7,7 @@ import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
+import { MONKEY_VARIANTS } from './monkeyVariants';
 import { MonkeyBrain, pickPerch, setPerch, type MonkeyMem, ST_PERCH, ST_GROUND_IDLE, ST_ATTACK, ST_DROP, ST_GROUND, ST_RETURN, ST_CLIMB,
   THROW_R, THROW_DUR, BITE_R, BITE_DAMAGE, BITE_DUR, UNDER_R, UNDER_T, RUN, HOLD_R } from './monkeyPolicy';
 import * as THREE from 'three';
@@ -326,10 +326,7 @@ export const MONKEY: SpeciesRow = {
   walkSpeed: 1.2,
   chargeDamage: BITE_DAMAGE,
   sounds: { call: 'monkey_chatter', hurt: 'monkey_shriek', callEvery: [6, 18] },
-  variants: [
-    { id: 'monkey', label: 'Coconut monkey', weight: 85, rarity: 'common', scale: [1.25, 1.4], hp: 30 },
-    { id: 'elder', label: engineString('s_d5584ccb3432'), weight: 15, rarity: 'uncommon', scale: [1.5, 1.6], hp: 45 },
-  ],
+  variants: MONKEY_VARIANTS,
   tick: 'ai',
   act: actMonkey,
   think: thinkMonkey,

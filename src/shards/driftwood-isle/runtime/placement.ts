@@ -35,15 +35,17 @@ export interface EnemyPlacementInputs {
  * groups at the tidepools (one big, the rest small, `enemyCount('tidepool')`), the lone practice crab, the monkey troops in
  * the densest palm groves (≥ 60 m from the spawn, ≥ 30 m from the wreck, ≥ 45 m apart) and the sailor in the wreck's
  * hold, all from the placement stream `Rng(SEED ^ 0xe11e)`. The bodies' own draws (scale, seeds, variants) are the
- * creature manager's stream, not this one.
+ * creature manager's stream, not this one. `centres` is each herd's `addHerd` point (the tidepool, the practice spot, the
+ * troop's grove palm).
  */
-export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlacement[]; herds: number } {
-  const rng = new Rng(inputs.seed ^ 0xe11e), out: EnemyPlacement[] = [], palms = inputs.palms;
+export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlacement[]; herds: number; centres: { x: number; z: number }[] } {
+  const rng = new Rng(inputs.seed ^ 0xe11e), out: EnemyPlacement[] = [], palms = inputs.palms, at: { x: number; z: number }[] = [];
   if (inputs.crabSites.length > MAX_SITES || palms.length > MAX_PALMS) throw new Error('Driftwood placement inputs exceed their bounds');
   let herds = 0;
   for (let k = 0; k < Math.min(inputs.crabSites.length, MAX_SITES); k++) {
     const s = inputs.crabSites[k], n = enemyCount('tidepool', () => rng.next()), herd = herds++;
     if (s === undefined || n > MAX_GROUP) throw new Error('Driftwood crab group exceeds its bound');
+    at.push({ x: s.x, z: s.z });
     for (let i = 0; i < Math.min(n, MAX_GROUP); i++) {
       const ang = rng.range(0, Math.PI * 2), r = i === 0 ? 0 : rng.range(1.2, 2.8);
       const x = s.x + Math.cos(ang) * r, z = s.z + Math.sin(ang) * r;
@@ -52,6 +54,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
     }
   }
   out.push({ kind: 'crab', variant: 'small', x: PRACTICE_AT.x, z: PRACTICE_AT.z, yaw: 0, herd: herds++, practice: true });
+  at.push({ x: PRACTICE_AT.x, z: PRACTICE_AT.z });
   if (palms.length >= 4) {
     // grove density: neighbours within 10 m
     const score = palms.map((p) => palms.filter((q) => q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10).length);
@@ -71,6 +74,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
       const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);
       const n = Math.min(grove.length, enemyCount('grove', () => rng.next())), herd = herds++;
       if (n > MAX_GROUP) throw new Error('Driftwood troop exceeds its bound');
+      at.push({ x: c.x, z: c.z });
       for (let i = 0; i < Math.min(n, MAX_GROUP); i++) {
         const p = grove[i];
         if (p === undefined) continue;
@@ -81,7 +85,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
   // the hold (Wreck.ts hull frame: local x starboard, z stern): the sailor rises 2 m forward of the iron sword
   const h = WRECK_SITE.heading, cs = Math.cos(h), sn = Math.sin(h);
   out.push({ kind: 'sailor', variant: 'sailor', x: WRECK_SITE.x + 0.5 * cs + 2.2 * sn, z: WRECK_SITE.z - 0.5 * sn + 2.2 * cs, yaw: h + Math.PI, herd: -1 });
-  return { enemies: out, herds };
+  return { enemies: out, herds, centres: at };
 }
 
 /** The wreck hold's centre (Enemies.ts `habitat.hold`): local (0, 3.2) in the hull frame. */
