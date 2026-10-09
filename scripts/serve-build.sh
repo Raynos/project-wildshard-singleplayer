@@ -179,10 +179,15 @@ link_tree() {
 }
 link_tree "$SRC/public" "$OUT"
 
+PREVIEW_CFG="$BASE/$stamp/vite.preview.mjs"
+cat > "$PREVIEW_CFG" <<JS
+import { previewConfig } from '$SRC/vite/preview.ts';
+export default { ...previewConfig(), root: '$SRC' };
+JS
 cd "$SRC" || exit 1
 # A tool runner retires its process group when the calling command exits. nohup ignores HUP, but stays in that
 # group: the preview died and the lane reaper correctly deleted its registered export. Give it its own session.
-pid="$(node --input-type=module - "$CFG" "$OUT" "$PORT" "$BASE/$stamp/preview.log" <<'PREVIEW_NODE'
+pid="$(node --input-type=module - "$PREVIEW_CFG" "$OUT" "$PORT" "$BASE/$stamp/preview.log" <<'PREVIEW_NODE'
 import { spawn } from 'node:child_process';
 import { openSync, closeSync } from 'node:fs';
 const [config, outDir, port, log] = process.argv.slice(2);
