@@ -4,7 +4,10 @@
 // behaviour across that move: the digests below were recorded from the pre-extraction AnimalManager (0f2ce839a) on the
 // same scripted inputs, and every think tick's decisions, motion and the shared Rng(SEED + 31) stream must match
 // them bit for bit — per family (grazer, charger, hunter) and per fight style (crossbow, telegraphed, E297 rules).
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+// Platform-stable (ci-green, 2026-10-09): V8's native sin / cos / exp / atan2 / pow round differently on arm64 and x64,
+// which flipped hunter / crossbow's charges on the Linux CI runner. The whole file runs on test/fake/portableMath over
+// its own analytic HILLS; the digests were re-recorded on 0f2ce839a that way, and HEAD matches them on arm64 and x64.
+import { afterAll, afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Scene, Vector3 } from 'three';
 import { Scope } from '../../src/engine/app/scope';
 import { withOwner } from '../../src/engine/app/ownership';
@@ -13,14 +16,26 @@ import type { Animal } from '../../src/engine/entities/AnimalView';
 import { Rng } from '../../src/engine/core/rng';
 import { activeLevel, bindLevelSelection } from '../../src/engine/level/selection';
 import type { FightRules, LevelSpec } from '../../src/engine/level/spec';
-import { heightAt } from '../../src/engine/world/Heightfield';
+import { heightAt, overrideTerrain } from '../../src/engine/world/Heightfield';
+import { buildTerrain } from '../../src/engine/world/terrainField';
+import { installPortableMath } from '../fake/portableMath';
 import { fakeWorld } from '../fake/world';
 import { legacyDouble } from '../fake/FakeGame';
 import type { Forest } from '../../src/engine/world/forest/Forest';
 
+const restoreMath = installPortableMath();
+afterAll(() => { restoreMath(); });
+
 const FAMILIES = { grazer: [['deer', 3], ['elk', 2]], charger: [['boar', 3]], hunter: [['bear', 3]] } as const;
 const STYLES: Readonly<Record<string, FightRules>> = { crossbow: { telegraphed: false }, telegraphed: { telegraphed: true }, rules: { telegraphed: true, attackers: 2 } };
 const FRAMES = 4400, DT = 0.05;
+/** the oracle's own ground: rolling hills over the herds' clearing. Driftwood's landscape (the default level's) raises
+ *  to non-integer powers with `**`, which runs V8's native pow and so differs between arm64 and x64; these hills use
+ *  only the portable Math and the seeded simplex noise. */
+const HILLS = buildTerrain(4031, {
+  landscape: (x, z, { n, n2 }) => 2 + n.fbm(x * 0.015, z * 0.015, 3) * 7 + n2.get(x * 0.06, z * 0.06) * 0.8 + Math.sin(x * 0.04) * Math.cos(z * 0.035) * 2.5,
+  trails: [], cabinSites: [],
+});
 
 /** FNV-1a over the exact bits of every number (and the char codes of every string) */
 class Digest {
@@ -54,6 +69,7 @@ function run(family: keyof typeof FAMILIES, style: string): { digest: string; th
   const base = activeLevel();
   const level: LevelSpec = { ...base, fight: { ...base.fight, ...fight, ...(fight.attackers === undefined ? { attackers: Infinity } : {}) }, spawns: [], faunaTuning: {} };
   const unbind = bindLevelSelection(level);
+  const unterrain = overrideTerrain({ heightAt: HILLS.heightAt, normalAt: HILLS.normalAt, splatAt: HILLS.splatAt, trailDistance: HILLS.trailDistance, cabinMask: HILLS.cabinMask, pondMask: HILLS.pondMask, waterLevel: HILLS.waterLevel, streamAt: () => null });
   const scope = new Scope(`hunt-oracle-${family}-${style}`);
   try {
     return withOwner(scope, () => {
@@ -114,20 +130,20 @@ function run(family: keyof typeof FAMILIES, style: string): { digest: string; th
       }
       return { digest: d.hex, thinks, states, events };
     });
-  } finally { scope.dispose(); unbind(); }
+  } finally { scope.dispose(); unterrain(); unbind(); }
 }
 
-/** recorded from the pre-extraction AnimalManager (see the header) */
+/** recorded from the pre-extraction AnimalManager (0f2ce839a) under the portable Math (see the header) */
 const GOLDEN: Readonly<Record<string, unknown>> = {
-  'grazer/crossbow': {"digest":"8af45b32","thinks":12473,"states":{"idle":2662,"wander":3466,"graze":8347,"alert":3499,"flee":4026},"events":89},
-  'grazer/telegraphed': {"digest":"8af45b32","thinks":12473,"states":{"idle":2662,"wander":3466,"graze":8347,"alert":3499,"flee":4026},"events":89},
-  'grazer/rules': {"digest":"8af45b32","thinks":12473,"states":{"idle":2662,"wander":3466,"graze":8347,"alert":3499,"flee":4026},"events":89},
-  'charger/crossbow': {"digest":"84be2758","thinks":10694,"states":{"idle":547,"wander":2323,"alert":1990,"flee":2117,"graze":6108,"charge":115},"events":122},
-  'charger/telegraphed': {"digest":"7cdeb296","thinks":11526,"states":{"idle":925,"wander":2876,"alert":2393,"flee":2735,"graze":4171,"charge":100},"events":121},
-  'charger/rules': {"digest":"aa448e84","thinks":13200,"states":{"idle":246,"wander":853,"alert":365,"stalk":9423,"charge":1902,"graze":411},"events":491},
-  'hunter/crossbow': {"digest":"6875e075","thinks":13200,"states":{"idle":85,"alert":83,"stalk":10324,"charge":2708},"events":867},
-  'hunter/telegraphed': {"digest":"601d1c57","thinks":13200,"states":{"idle":85,"alert":83,"stalk":9211,"charge":3821},"events":652},
-  'hunter/rules': {"digest":"dccc6b68","thinks":13200,"states":{"idle":85,"alert":83,"stalk":10376,"charge":2656},"events":554},
+  'grazer/crossbow': {"digest":"871f3ca0","thinks":10949,"states":{"idle":1401,"wander":3132,"graze":10243,"alert":2263,"flee":4961},"events":38},
+  'grazer/telegraphed': {"digest":"871f3ca0","thinks":10949,"states":{"idle":1401,"wander":3132,"graze":10243,"alert":2263,"flee":4961},"events":38},
+  'grazer/rules': {"digest":"871f3ca0","thinks":10949,"states":{"idle":1401,"wander":3132,"graze":10243,"alert":2263,"flee":4961},"events":38},
+  'charger/crossbow': {"digest":"7c42a81b","thinks":12201,"states":{"idle":1145,"wander":1557,"alert":2186,"flee":2653,"graze":5509,"charge":150},"events":128},
+  'charger/telegraphed': {"digest":"656126ff","thinks":11012,"states":{"idle":1305,"wander":2026,"alert":1857,"flee":2309,"graze":5611,"charge":92},"events":78},
+  'charger/rules': {"digest":"5d1f819e","thinks":13200,"states":{"idle":312,"wander":316,"alert":258,"stalk":8461,"charge":3433,"graze":420},"events":751},
+  'hunter/crossbow': {"digest":"96873a89","thinks":13200,"states":{"idle":85,"alert":83,"stalk":10643,"charge":2389},"events":1465},
+  'hunter/telegraphed': {"digest":"ebc90173","thinks":13200,"states":{"idle":85,"alert":83,"stalk":5990,"charge":7042},"events":1115},
+  'hunter/rules': {"digest":"54b6194b","thinks":13200,"states":{"idle":85,"alert":83,"stalk":9227,"charge":3805},"events":709},
   'placement': {"level":"driftwood-isle","herds":5,"animals":13,"digest":"640562b7"},
 };
 
