@@ -16170,6 +16170,30 @@
         "from": "@wildshard/game/shard/declaredUi"
       },
       {
+        "name": "installShards",
+        "kind": "function",
+        "doc": "Install the committed discovery list and its exact reviewed legacy inventory identities. Save/instance slugs are never changed.",
+        "from": "@wildshard/game/shard/list"
+      },
+      {
+        "name": "legacyContentIdentity",
+        "kind": "function",
+        "doc": "The original content namespace of an exact registered copy, or undefined for an ordinary shard.",
+        "from": "@wildshard/game/shard/list"
+      },
+      {
+        "name": "shardContentIdentity",
+        "kind": "function",
+        "doc": "Declared content ids retain their inventoried primary namespace in frozen copies; ordinary ids and all save identities stay unchanged.",
+        "from": "@wildshard/game/shard/list"
+      },
+      {
+        "name": "shards",
+        "kind": "function",
+        "doc": "every shard, sorted by `order`",
+        "from": "@wildshard/game/shard/list"
+      },
+      {
         "name": "bakedMapUrl",
         "kind": "function",
         "doc": "The URL the maps fetch for a shard's baked map image (`ChunkMapDef.image`), versioned by the build: /assets is cached as",

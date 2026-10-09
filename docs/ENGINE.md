@@ -2498,7 +2498,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-902 exports, grouped by the module to import them from.
+906 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2560,6 +2560,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shard/declaredPlumbing`: `installDeclaredPlumbing`, `PlumbingHandles`, `PlumbingPorts`
 - `@wildshard/game/shard/declaredRows`: `declaredCompendium`, `declaredDay`, `declaredLootPresentation`, `declaredSpeciesLook`, `declaredWeather`
 - `@wildshard/game/shard/declaredUi`: `DeclaredUiPorts`, `mountDeclaredUi`
+- `@wildshard/game/shard/list`: `installShards`, `legacyContentIdentity`, `shardContentIdentity`, `shards`
 - `@wildshard/game/shard/manifest`: `bakedMapUrl`, `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `OceanDef`, `PondDef`, `RGB`, `ShardEntries`, `ShardEntryMode`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`

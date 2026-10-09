@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-902 members; 159 without a doc line (—).
+906 members; 159 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -327,6 +327,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `declaredWeather` | function | @wildshard/game/shard/declaredRows | Expand a table of authored outputs into the existing seeded weather mechanism. |
 | `DeclaredUiPorts` | interface | @wildshard/game/shard/declaredUi | the engine's HUD ports plus the shard's Bag |
 | `mountDeclaredUi` | function | @wildshard/game/shard/declaredUi | SF7f: draw a shardfile's `ui` declarations. Markers, counters, boss panels and relabels go to the engine's shared HUD; |
+| `installShards` | function | @wildshard/game/shard/list | Install the committed discovery list and its exact reviewed legacy inventory identities. Save/instance slugs are never changed. |
+| `legacyContentIdentity` | function | @wildshard/game/shard/list | The original content namespace of an exact registered copy, or undefined for an ordinary shard. |
+| `shardContentIdentity` | function | @wildshard/game/shard/list | Declared content ids retain their inventoried primary namespace in frozen copies; ordinary ids and all save identities stay unchanged. |
+| `shards` | function | @wildshard/game/shard/list | every shard, sorted by `order` |
 | `bakedMapUrl` | function | @wildshard/game/shard/manifest | The URL the maps fetch for a shard's baked map image (`ChunkMapDef.image`), versioned by the build: /assets is cached as |
 | `CabinSite` | interface | @wildshard/game/shard/manifest | — |
 | `ChunkAssets` | interface | @wildshard/game/shard/manifest | Texture / model ids under `public/assets/` (see `scripts/fetch-assets.mjs`). |
