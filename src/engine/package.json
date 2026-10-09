@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./entities/bodyClear": "./entities/bodyClear.ts",
+    "./entities/animalPose": "./entities/animalPose.ts",
     "./physics/navmesh": "./physics/navmesh.ts",
     "./physics/navmeshLoad": "./physics/navmeshLoad.ts",
     "./entities/ids": "./entities/ids.ts",

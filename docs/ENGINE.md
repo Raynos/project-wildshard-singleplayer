@@ -1420,6 +1420,10 @@ It writes only caller-owned vectors; collision queries, pickup cadence, attachme
 
 Import `AnimalSim` from `@wildshard/engine/entities/AnimalSim` for creature state, motion, attack clocks, geometric perception and damage without a rig. Its `AnimalSimSpec` supplies authored dimensions and multipliers; `AnimalSimPorts` supplies height, floor, time, random and damage services, and `AnimalMotor` supplies collision displacement. `step(dt)` advances the body and attack clock. Every instance has a stable `entityId`.
 
+`@wildshard/engine/entities/animalPose` defines `AnimalPoseLaw`, `AnimalPoseInput`, `AnimalPoseRecipe` and `P_COUNT` (27 numeric pose channels). Supply existing dimensions and reuse the law's input object; `advance(dt, t, near)` preserves the shipping Float32 gait blend, overlays, clocks, terrain ease and far-LOD freeze. `sampleTerrain(heightAt)` runs at the caller's existing sample cadence; body movement, actor clocks, custom bones and matrix publication stay caller-owned. `onFootfall` receives the existing strength once per crossing. The leaf imports no renderer or active app and installs no scheduler.
+
+`snapshot()` / `restore(string)` preserve the bounded blend/foot history and scalar IEEE bits, including signed zero. Restore validates before mutation and neither advances clocks nor emits footsteps. Restore the actor's own clocks separately and feed them into the input before advancing; the pose snapshot owns no actor or physics state. A posed-volume caller must preserve when the page publishes its bone matrices: shipping contact checks may read the previous published pose before render propagation. This additive leaf alone changes no page update or hit-volume path.
+
 The client imports `Animal` from `@wildshard/engine/entities/AnimalView`. It extends the same simulation and retains skeletal pose, posed hit volumes, LOD, hit flash and ragdolls. `canReach(actor, target, physics)` requires the owning physics world explicitly.
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.

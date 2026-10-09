@@ -1,0 +1,9 @@
+# Additive renderer-free animal scalar pose law
+
+The new defining leaf extracts shipping AnimalView gait blending, pose generators, hit/death overlays, clock decay, terrain samples/ease and far-LOD freeze. A frozen test-only copy of the production expression bodies is fenced by the captured source SHA and per-section hashes. Existing page and native callers are unchanged in this slice; custom bones, body motion and world-matrix publication remain with their owners.
+
+Each of Driftwood's five actual baked kind/dimension/seed/scale rows runs 10,000 frames against the shipping oracle, covering 60/30/20 Hz and zero-dt frames, all gaits, look, attacks, brace, death, flight/level-ground branches, terrain sampling and far freeze. Float32 buffers compare by exact bits, every scalar and decayed actor clock compares exactly, and footfalls match in order. A fresh law restores at frame 5,000, with actor inputs restored separately, and reproduces the remaining 5,000 frames and events exactly. Malformed/nonfinite restores refuse atomically; signed-zero bits are retained; restore emits no events and consumes no random draws.
+
+The public leaf is additive and unused by production in this commit. It changes no baked or witness input. The next slice forwards AnimalView to this leaf and captures actual rest chains/volumes, with all affected creature bakes and witnesses refreshed on the final merged source. Contact reads last-published bone matrices before render propagation; fresh FK must not be published early. Whole-shard Driftwood compatibility remains false.
+
+Validation: clean immutable export with generated outputs bootstrapped locally; queued full suite 1099 files / 6002 tests green, 208.76 s. Root strict, typed lint, seven focused oracle/restore tests, private hooks and plain Node public-module import all passed. Builders commit no generated outputs.
