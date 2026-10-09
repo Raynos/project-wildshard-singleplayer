@@ -16554,6 +16554,48 @@
         "from": "@wildshard/game/shardfile/groupRuntime"
       },
       {
+        "name": "HomeKeeperSpec",
+        "kind": "interface",
+        "doc": "What a home keeper is given: its rows, its native recipes, its stream seed, its cadence and its policies.",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
+        "name": "installHomeKeeper",
+        "kind": "function",
+        "doc": "Declared creature homes in a renderer-free host (SHARD-PLATFORM SF72): the platform's spawn, death and respawn rules",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
+        "name": "KeptBossBody",
+        "kind": "interface",
+        "doc": "The encounter's handle on the boss body: `draw` spawns it with the stream's six draws, `free` retires its id and token.",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
+        "name": "KeptBossRow",
+        "kind": "interface",
+        "doc": "A declared boss row (`runtime.spawns.bosses`): one more body of the same keeper, never refilled; its encounter draws and frees it.",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
+        "name": "KeptHome",
+        "kind": "interface",
+        "doc": "A home as the keeper lends it to `beforeStep` and `homes()`: its declared id and kind, its live body and refill clock.",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
+        "name": "KeptHomeRow",
+        "kind": "interface",
+        "doc": "A declared home the keeper refills (`runtime.spawns.homes`): `respawn` seconds after its body falls, a fresh one.",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
+        "name": "KeptPolicy",
+        "kind": "interface",
+        "doc": "One live body's policy, built at its spawn: decisions on the keeper's cadence, movement every tick, its own continuation.",
+        "from": "@wildshard/game/shardfile/homeKeeper"
+      },
+      {
         "name": "HybridCellBinding",
         "kind": "interface",
         "doc": "Interior events for one catalogue resident; another cell never activates its trusted hooks.",

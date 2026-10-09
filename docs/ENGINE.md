@@ -2391,7 +2391,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-832 exports, grouped by the module to import them from.
+839 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2477,6 +2477,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/grazers`: `ChallengeGrazerSchema`, `parseChallengeGrazer`, `parseRamGrazer`, `RamGrazerSchema`, `ShardChallengeGrazer`, `ShardRamGrazer`
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
+- `@wildshard/game/shardfile/homeKeeper`: `HomeKeeperSpec`, `installHomeKeeper`, `KeptBossBody`, `KeptBossRow`, `KeptHome`, `KeptHomeRow`, `KeptPolicy`
 - `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `HybridHookTiming`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeOptions`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
 - `@wildshard/game/shardfile/hybridRows`: `bindRuntimeActor`, `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `bindRuntimeState`, `RuntimeActor`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `runtimeBoundWorldFiles`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `shardItemFamilies`, `ShardItems`

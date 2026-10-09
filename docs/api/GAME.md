@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-832 members; 157 without a doc line (—).
+839 members; 157 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -472,6 +472,13 @@ The game layer's public modules (src/game/package.json `exports`).
 | `DeclaredPackRecipe` | interface | @wildshard/game/shardfile/groupRuntime | Trusted pack perception, prey/contact identities and per-actor steering observations. Recipe construction is pure. |
 | `prepareDeclaredGroupBrains` | function | @wildshard/game/shardfile/groupRuntime | Validate every roster and recipe without draws, memory writes or registration. Install after all controller preflight; restore skips setup. |
 | `PreparedGroupBrains` | interface | @wildshard/game/shardfile/groupRuntime | Pure preparation lets a loader preflight its other controllers before initialization and callback registration. |
+| `HomeKeeperSpec` | interface | @wildshard/game/shardfile/homeKeeper | What a home keeper is given: its rows, its native recipes, its stream seed, its cadence and its policies. |
+| `installHomeKeeper` | function | @wildshard/game/shardfile/homeKeeper | Declared creature homes in a renderer-free host (SHARD-PLATFORM SF72): the platform's spawn, death and respawn rules |
+| `KeptBossBody` | interface | @wildshard/game/shardfile/homeKeeper | The encounter's handle on the boss body: `draw` spawns it with the stream's six draws, `free` retires its id and token. |
+| `KeptBossRow` | interface | @wildshard/game/shardfile/homeKeeper | A declared boss row (`runtime.spawns.bosses`): one more body of the same keeper, never refilled; its encounter draws and frees it. |
+| `KeptHome` | interface | @wildshard/game/shardfile/homeKeeper | A home as the keeper lends it to `beforeStep` and `homes()`: its declared id and kind, its live body and refill clock. |
+| `KeptHomeRow` | interface | @wildshard/game/shardfile/homeKeeper | A declared home the keeper refills (`runtime.spawns.homes`): `respawn` seconds after its body falls, a fresh one. |
+| `KeptPolicy` | interface | @wildshard/game/shardfile/homeKeeper | One live body's policy, built at its spawn: decisions on the keeper's cadence, movement every tick, its own continuation. |
 | `HybridCellBinding` | interface | @wildshard/game/shardfile/hybrid | Interior events for one catalogue resident; another cell never activates its trusted hooks. |
 | `HybridHookTiming` | interface | @wildshard/game/shardfile/hybrid | Entered installation timing in the page performance clock; bounded diagnostics, never a readiness signal. |
 | `hybridInstallation` | function | @wildshard/game/shardfile/hybrid | Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. |
