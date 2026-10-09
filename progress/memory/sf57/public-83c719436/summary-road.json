@@ -1,0 +1,131 @@
+{
+ "leg": "road",
+ "sha": "83c71943631e102d83e33e6dfc5916df5a3c5a57",
+ "purpose": "QUALIFYING: prepared conversions, continuous route",
+ "seconds": 1812.702,
+ "circuits": 3,
+ "failure": null,
+ "textures": {
+  "mode": "img",
+  "why": "auto: driftwood-isle's KTX2 set is not cached (yet)",
+  "probe": null
+ },
+ "renderScale": 2,
+ "developer": false,
+ "recorded": {
+  "functionalPass": true,
+  "memoryPass": false,
+  "gatePass": false,
+  "sampling": true,
+  "recovery": false,
+  "calibration": true,
+  "leakZero": true,
+  "missingGlSamples": 0,
+  "admitted": [],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false,
+  "peakMB": 838,
+  "loadingPeakMB": 994.7
+ },
+ "playingPeak": {
+  "combinedMB": 838,
+  "webContentMB": 596.5,
+  "glMB": 241.4,
+  "t": 118.7,
+  "phase": "drive",
+  "cycle": 0
+ },
+ "loadingPeak": {
+  "combinedMB": 994.7,
+  "webContentMB": 775.5,
+  "glMB": 219.2,
+  "t": 5.9,
+  "phase": "loading",
+  "cycle": null
+ },
+ "ratios": [
+  {
+   "cycle": 1,
+   "adjusted": 1.125
+  },
+  {
+   "cycle": 2,
+   "adjusted": 1.125
+  },
+  {
+   "cycle": 3,
+   "adjusted": 1.121
+  }
+ ],
+ "loops": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "peakMB": 838,
+   "troughMB": 768.6
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "peakMB": 783.9,
+   "troughMB": 768.3
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "peakMB": 782.3,
+   "troughMB": 768
+  },
+  {
+   "cycle": 3,
+   "complete": false,
+   "peakMB": 782.3,
+   "troughMB": 569.2
+  }
+ ],
+ "baselineDeltaMB": [
+  4,
+  0.2,
+  0,
+  -1.3
+ ],
+ "settled": [
+  {
+   "stop": "c0",
+   "samples": 10,
+   "webContentMB": 531.5,
+   "glMB": 243,
+   "accountedMB": 433.3
+  },
+  {
+   "stop": "c1",
+   "samples": 10,
+   "webContentMB": 527.9,
+   "glMB": 242.7,
+   "accountedMB": 418.3
+  },
+  {
+   "stop": "c2",
+   "samples": 10,
+   "webContentMB": 527.7,
+   "glMB": 242.7,
+   "accountedMB": 418.3
+  },
+  {
+   "stop": "c3",
+   "samples": 11,
+   "webContentMB": 526.4,
+   "glMB": 242.7,
+   "accountedMB": 418.3
+  }
+ ],
+ "routes": 71,
+ "routeFailures": 0,
+ "entries": 0,
+ "evictions": 34,
+ "errors": 0,
+ "leak": {
+  "disposalErrors": 0
+ }
+}

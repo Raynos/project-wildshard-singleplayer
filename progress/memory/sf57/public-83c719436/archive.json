@@ -1,0 +1,38 @@
+{
+ "shipped-cells.json": {
+  "rawBytes": 7916328,
+  "sha256": "655e662101e06fed2dac6f704309739f4a803b2912153977637f0228aa97e25e"
+ },
+ "shipped-cells-native.jsonl": {
+  "rawBytes": 452495,
+  "sha256": "1364244f7ba463c01853e97a013d67ffc264d2326ac131ef14ca0f3975375c9b"
+ },
+ "shipped-cells-gl.jsonl": {
+  "rawBytes": 343981894,
+  "sha256": "f9f3eca0d5ba60613c3786a4a58dbaf98ff7803f9578b0a4d185ae3e096f77d2"
+ },
+ "shipped-cells-gl-events.jsonl": {
+  "rawBytes": 23561143,
+  "sha256": "bdbb426a70d8d667bbb482d9b9d009781b7eb3e6d07c0d8a2481f300938519e5"
+ },
+ "shipped-road.json": {
+  "rawBytes": 6587978,
+  "sha256": "e2c20ce320491254bad7614b54bbb3e344fa4ffbc623713dd783e4091c775568"
+ },
+ "shipped-road-native.jsonl": {
+  "rawBytes": 441928,
+  "sha256": "07f98cbbcda4510abf177e20fce5858a125cd11d9220d70ca66b730402bbb7e9"
+ },
+ "shipped-road-gl.jsonl": {
+  "rawBytes": 292895375,
+  "sha256": "598c6776cba6a6911b92efec09eff7c1778697b3937c0ca65fbeecf994ef9f7a"
+ },
+ "shipped-road-gl-events.jsonl": {
+  "rawBytes": 20802318,
+  "sha256": "1dbb4ed053309ef1ae29129853063bc63f75d900a57190d788bee4ae7809a7fd"
+ },
+ "attempt-1/shipped-cells.json": {
+  "rawBytes": 4136,
+  "sha256": "4578f122a48db0a3c2fb8fe1d46510545676a9610a0e193014291ab8a3d43644"
+ }
+}

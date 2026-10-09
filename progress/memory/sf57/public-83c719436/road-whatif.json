@@ -1,0 +1,39 @@
+{
+ "whatIf": "phase by max(native timestamp, gl.at); not a verdict",
+ "moved": [
+  {
+   "elapsed": 1791537766.485,
+   "glAt": 1791537766.653,
+   "glBytes": 42949972
+  }
+ ],
+ "memoryPass": true,
+ "gatePass": true,
+ "recovery": true,
+ "loops": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "peakMB": 838,
+   "troughMB": 768.6
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "peakMB": 783.9,
+   "troughMB": 768.3
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "peakMB": 782.3,
+   "troughMB": 768
+  },
+  {
+   "cycle": 3,
+   "complete": false,
+   "peakMB": 782.3,
+   "troughMB": 767.9
+  }
+ ]
+}

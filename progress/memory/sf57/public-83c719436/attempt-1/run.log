@@ -1,0 +1,22 @@
+serve-build: building 83c71943631e102d83e33e6dfc5916df5a3c5a57 83c719436 → /private/tmp/claude-501/sp-builders/sf57-fresh/soak/out/serve/20261009-030106-4403/dist
+serve-build: pid 64497, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4403
+PREPARED /private/tmp/claude-501/sp-builders/sf57-fresh/soak/out/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sf57-fresh/soak/out/GO only after go
+sim-lane: created sf57-sp-x3-shipped-87430 (8B62895B-5284-41C0-AC4F-5E946DEBE59C)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":0,"loadingPeakBytes":0,"phoneEstimateBytes":0,"baselines":[],"baselineDeltaBytes":[],"loops":[],"recovery":false,"calibration":false,"ratios":[],"missingGlSamples":0,"sampling":false,"leakZero":false,"admitted":[],"refused":[],"attemptedEveryCell":true,"crossroads":0,"rehearsal":false,"limitation":null,"failure":"Error: 'Runtime' domain was not found\n    at receive (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/inspector.mjs:17:40)\n    at WebSocket.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/inspector.mjs:26:10)\n    at WebSocket.emit (node:events:509:28)\n    at Receiver.receiverOnMessage (/Users/raynos/node_modules/ws/lib/websocket.js:1239:20)\n    at Receiver.emit (node:events:509:28)\n    at Receiver.dataMessage (/Users/raynos/node_modules/ws/lib/receiver.js:633:14)\n    at Receiver.getData (/Users/raynos/node_modules/ws/lib/receiver.js:532:10)\n    at Receiver.startLoop (/Users/raynos/node_modules/ws/lib/receiver.js:190:16)\n    at Receiver._write (/Users/raynos/node_modules/ws/lib/receiver.js:117:10)\n    at writeOrBuffer (node:internal/streams/writable:570:12)"}
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+                                                                                                      ^
+
+Error: /Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh exited 1
+    at ChildProcess.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36:103)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:306:5)
+
+Node.js v24.18.1

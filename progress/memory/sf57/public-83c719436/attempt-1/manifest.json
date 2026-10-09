@@ -1,0 +1,22 @@
+{
+  "sha": "83c71943631e102d83e33e6dfc5916df5a3c5a57",
+  "out": "/private/tmp/claude-501/sp-builders/sf57-fresh/soak/out",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4403/",
+      "version": {
+        "build": "83c7194-mv0on6cv",
+        "time": "2026-10-09T08:07:43.743Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells",
+    "road"
+  ],
+  "rehearsal": false
+}
