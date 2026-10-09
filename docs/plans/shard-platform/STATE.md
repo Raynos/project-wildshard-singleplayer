@@ -21,17 +21,15 @@
 
 **Live:** production **1c74e431-mv1exih9** (2026-10-09 20:23 UTC) carries G258 public Pine/Nalati/Sky, G266 Signal tiles-only, G270 public grid, G271 saver off, the shadow fix. Deploy unstuck: W0 `46397ef46` committed (no duplicate full test for a CI-green pin; pushing now); deploys stay hourly. **SF74 pipeline is owned by the plan agent's sf74-speed lane;** no coordinator lane is on pipeline work now (op-pipeline, op-witness and op-process are finished; their commits are listed in wall-clock-plan.md).
 
-**Lanes (5 Codex + 5 Opus):**
-- **sp-x1:** Nalati SF72.
-- **sp-x2:** Pine SF72.
-- **sp-x4:** Driftwood SF72.
-- **sp-x5:** deploy → delete the shadow-bias row (Jake: keep new) → SF57 re-soak on G270 → SF22 gates.
-- **sp-x6:** blender-template card facade + far-deck seams.
-- **op-floor:** fps on HEAD, all shards and grids.
-- **op-loading:** SF67, no task > 100 ms.
-- **op-memdbg:** SF64 panel/report (< 10 % unattributed not reachable this session).
-- **op-process:** G273–G275 CI and hook cuts.
-- **op-bfill:** fill the Blender cell per G220 (Jake), board + video.
+**Lanes (5 Codex + 5 Opus; G285 re-mix):**
+- **Bakes:**
+  - Pine static builders: op-pinebake (Opus; logCabin, then crags/trees/homestead/undergrowth).
+  - Driftwood static builders: sp-x6 after the Blender card lands (models/, then GroundCover/Cove/BlenderIsland).
+  - Nine Dragon facade/hero/stair-street + ledger rule: the next free Opus slot (op-floor's when it finishes).
+- **Nalati headless witness:** sp-x1 (elites, Kokbori, Qyran done; Qara night next).
+- **M2:** sp-x5 (SF57 re-soak on G270, SF22 gates); Jake's three phone runs.
+- **Still on SF72 gameplay:** sp-x2 Pine (King FK activation etc.), sp-x4 Driftwood (posed volumes).
+- **Other Opus:** op-signal (Signal 20.9 → 25.4 % candidate), op-sky (Sky 9.6 → 18.1 % candidate), op-bfill (fill the Blender cell, G220), op-floor (fps on HEAD: desktop 7/8, Pine cabin GPU-bound at vsync; Simulator 8/8).
 
 **Unowned, next as slots free:**
 - **SF72:** Signal (~3.5k view lines to bake, Opus), Sky (~4.5k, Opus), Nine Dragon (ledger, Jian, gates, portal rides; Codex).
