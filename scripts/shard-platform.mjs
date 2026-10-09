@@ -162,11 +162,22 @@ export function shardLines(root = ROOT) {
   }
   return out;
 }
-/** Files are executable proofs, run by the push gate's vitest step; absence never masquerades as success. */
+/**
+ * Files are executable proofs, run by the push gate's vitest step; absence never masquerades as success. A shard with a
+ * canonical witness result (`test/proof/<slug>/compatibility.json`, written only from a real run) reads its headless /
+ * replay / ledger / compatible flags from that result: a fail-closed witness test file exists but proves a refusal, so
+ * its presence alone must never read as a pass. `transitional` holds until the trusted runtime is gone AND the witnesses
+ * pass.
+ */
 export function milestoneFlags(slug, row, root = ROOT) {
   const proof = (name) => existsSync(resolve(root, `test/proof/${slug}/${name}.test.ts`));
-  return { boot: proof('boot'), headless: proof('headless'), replay: proof('replay'), ledger: proof('ledger'),
-    gridReady: proof('grid-ready'), compatible: proof('headless') && proof('replay') && proof('ledger'), transitional: row.runtimeLines > 0 };
+  const witnessPath = resolve(root, `test/proof/${slug}/compatibility.json`);
+  const witness = existsSync(witnessPath) ? JSON.parse(readFileSync(witnessPath, 'utf8')) : null;
+  const passed = (name) => proof(name) && (witness === null || (witness[name]?.status === 'passed'
+    && (name !== 'ledger' || witness.ledger.gameplayEmissionProven === true)));
+  const headless = passed('headless'), replay = passed('replay'), ledger = passed('ledger');
+  const compatible = headless && replay && ledger && (witness === null || (witness.compatible === true && witness.audit?.exitStatus === 0));
+  return { boot: proof('boot'), headless, replay, ledger, gridReady: proof('grid-ready'), compatible, transitional: row.runtimeLines > 0 || !compatible };
 }
 export function checkShares(recorded, lines) {
   const failures = [];

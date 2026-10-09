@@ -147,4 +147,19 @@ describe('SF6 platform measures', () => {
       expect(milestoneFlags('alpha', row, root)).toEqual({ boot: true, headless: true, replay: true, ledger: true, gridReady: true, compatible: true, transitional: true });
     });
   });
+  it('reads a canonical witness result over the test files, so a fail-closed witness never reads as a pass', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/a.ts', 'export const a = 1;\n');
+      const row = alpha(root);
+      for (const name of ['headless', 'replay', 'ledger']) put(`test/proof/alpha/${name}.test.ts`, '/* fail-closed witness */\n');
+      const witness = (status: string, emitted: boolean, compatible: boolean, exitStatus: number): string => JSON.stringify({ audit: { exitStatus }, compatible,
+        headless: { status }, replay: { status }, ledger: { status: status === 'passed' ? 'passed' : 'partial', gameplayEmissionProven: emitted } });
+      put('test/proof/alpha/compatibility.json', witness('blocked', false, false, 1));
+      expect(milestoneFlags('alpha', row, root)).toMatchObject({ headless: false, replay: false, ledger: false, compatible: false, transitional: true });
+      put('test/proof/alpha/compatibility.json', witness('passed', false, false, 1));
+      expect(milestoneFlags('alpha', row, root)).toMatchObject({ headless: true, replay: true, ledger: false, compatible: false, transitional: true });
+      put('test/proof/alpha/compatibility.json', witness('passed', true, true, 0));
+      expect(milestoneFlags('alpha', row, root)).toMatchObject({ headless: true, replay: true, ledger: true, compatible: true, transitional: false });
+    });
+  });
 });
