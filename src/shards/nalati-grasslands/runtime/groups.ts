@@ -7,7 +7,8 @@ import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../data/brains';
 import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
 import { wildEnv, type WildEnv } from '../creatures/env';
 import { ARGYMAQ } from '../combat/eliteRoster';
-import { nativeHerdPorts, nativePackPorts, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
+import { nativeHerdPorts, nativePackPorts, passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
+import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { NalatiBody } from './headless';
 
 /** The declared groups of a renderer-free host: Wildlife's pack and wild herd, and Argymaq's herd with him as its stallion. */
@@ -26,6 +27,12 @@ export interface NalatiGroups {
 const installed = new WeakMap<SimHost, NalatiGroups>();
 /** The declared groups installed into `host` (its tests and, next, its decisions read them), or undefined. */
 export function nalatiGroupsOf(host: SimHost): NalatiGroups | undefined { return installed.get(host); }
+
+/** A stampede's pass-through on the host's own body capsule (its CharacterMotor under the physics body LOD; a body past it
+ *  has none to set), the page's rule (runtime/groupPorts.ts passThroughPlayer). */
+export function hostPassThrough(actor: AnimalSim, through: boolean): void {
+  passThroughPlayer(actor.motor instanceof CharacterMotor ? actor.motor : null, through);
+}
 
 const unbound = (what: string) => (): never => { throw new Error(`Nalati headless ${what} is not modelled yet (sf72-nalati5 handoff)`); };
 
@@ -59,7 +66,8 @@ export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
  * the herds see the living wolves as threats (Wildlife's `nearestFoal` / `nearestWolf`); prey is an actor (`actor:<id>`), the
  * flock's sheep are not modelled. Checked against the bake's tick-0 continuations
  * (test/shards/nalati-grasslands/headless-runtime.test.ts). Their wild view is `env` when given (the host's, which its
- * weather step keeps current), else a fresh one (nalatiHeadlessEnv). Not yet: their decisions (the groups never tick here).
+ * weather step keeps current), else a fresh one (nalatiHeadlessEnv). They decide on the creatures' step
+ * (runtime/headlessCreatures.ts), whose adapter carries their continuations.
  */
 export function installNalatiGroups(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly { readonly kind: string; readonly members: readonly string[] }[]; normalY: (x: number, z: number) => number; grass: NalatiGrassView; env?: WildEnv }): NalatiGroups {
   const byId = new Map(ports.bodies.map(b => [b.boot.id, b.actor] as const));
@@ -67,7 +75,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const policies = new WeakMap<AnimalSim, Parameters<PackPorts<AnimalSim>['register']>[1]>();
   const group: NativeGroupHost<AnimalSim> = { sharedRng: () => host.rng.stream('ai'), register: (a, director) => { policies.set(a, director); } };
   const packOf = new WeakMap<AnimalSim, PackBrain<AnimalSim>>();
-  const world: NativeGroupWorld<AnimalSim> = { env: ports.env ?? nalatiHeadlessEnv(ports.grass), normalY: ports.normalY, passThrough: unbound('stampede pass-through'), packOf: a => packOf.get(a) ?? null };
+  const world: NativeGroupWorld<AnimalSim> = { env: ports.env ?? nalatiHeadlessEnv(ports.grass), normalY: ports.normalY, passThrough: hostPassThrough, packOf: a => packOf.get(a) ?? null };
   const identity = {
     preyIdentity: (prey: unknown): string => {
       const found = ports.bodies.find(b => b.actor === prey);

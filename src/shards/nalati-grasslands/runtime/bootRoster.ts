@@ -1,4 +1,4 @@
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import { spawnRolls } from '@wildshard/engine/ai/hunt';
 import type { VariantDef, VariantTable } from '@wildshard/engine/entities/species/registry';
 import { SHEEPDOG_VARIANTS, WOLF_SPECIES } from '../species/wolf';
@@ -29,10 +29,11 @@ export function nalatiSpawnSpecies(): (kind: string) => VariantTable {
   return kind => { const row = rows.get(kind); if (row === undefined) throw new Error(`Nalati has no creature row '${kind}'`); return row; };
 }
 
-/** One body the manager spawned at boot: its id and rolled recipe, its herd slot (−1: none), and where it stood. */
+/** One body the manager spawned at boot: its id and rolled recipe, its herd slot (−1: none), where it stood, and where
+ *  the hunting brain adopted it: the manager stream before its memory's three draws and the spawn spot (HuntBrain.adopt). */
 export interface NalatiBootBody {
   readonly id: string; readonly kind: string; readonly variant: VariantDef; readonly seed: number; readonly scale: number;
-  herd: number; readonly position: { x: number; z: number }; yaw: number;
+  herd: number; readonly position: { x: number; z: number }; yaw: number; readonly adopted: { readonly stream: RngState; readonly x: number; readonly z: number };
 }
 /** A herd as the manager keeps it: its kind, centre and members (a sheepdog's herd is set on the dog but holds no one). */
 export interface NalatiBootHerd { readonly kind: string; readonly cx: number; readonly cz: number; readonly members: NalatiBootBody[] }
@@ -50,14 +51,17 @@ export interface NalatiBootClock { readonly phase: string; readonly storm: boole
  */
 export function nalatiBootRoster(ground: WildGround, clock: NalatiBootClock, species: (kind: string) => VariantTable = nalatiSpawnSpecies()): {
   bodies: NalatiBootBody[]; parked: NalatiBootBody[]; herds: NalatiBootHerd[];
+  /** the manager stream after the boot (its decisions' `ThinkCtx.rng` and every later spawn draw on from here) */
+  stream: RngState;
 } {
   const rng = new Rng(NALATI_CREATURE_STREAM), bodies: NalatiBootBody[] = [], parked: NalatiBootBody[] = [], herds: NalatiBootHerd[] = [];
   let next = 0;
   /** AnimalManager.spawnAnimal's draws: the spawn rolls, then HuntBrain.adopt's three (timer, fleeUntil, callT). */
   const spawn = (kind: string, x: number, z: number, yaw: number, variant: string): NalatiBootBody => {
     const r = spawnRolls(rng, kind, variant, bodies.some(b => b.kind === kind && b.variant.rarity === 'legendary'), species);
+    const adopted = { stream: rng.snapshot(), x, z };
     for (let i = 0; i < 3; i++) rng.next();
-    const body: NalatiBootBody = { id: `creature:${String(next++)}`, kind, variant: r.variant, seed: r.seed, scale: r.scale, herd: -1, position: { x, z }, yaw };
+    const body: NalatiBootBody = { id: `creature:${String(next++)}`, kind, variant: r.variant, seed: r.seed, scale: r.scale, herd: -1, position: { x, z }, yaw, adopted };
     bodies.push(body);
     return body;
   };
@@ -91,5 +95,5 @@ export function nalatiBootRoster(ground: WildGround, clock: NalatiBootClock, spe
       join(herd)(spawn(who.kind, def.lair.x, def.lair.z, 0, who.variant));
     } else throw new Error(`Nalati boot roster does not model the ${id} elite (${clock.phase}${clock.storm ? ', storm' : ''})`);
   });
-  return { bodies, parked, herds };
+  return { bodies, parked, herds, stream: rng.snapshot() };
 }

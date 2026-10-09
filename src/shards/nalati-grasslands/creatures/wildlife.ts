@@ -14,6 +14,7 @@ import { declaredGroupFactories } from '../runtime/groupDeclared';
 import { APP_GROUP_HOST } from '../runtime/groupHost';
 import { Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
+import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
 import { NALATI_WILDLIFE, placeDog, placeHerd, placePack, type WildlifeLayout, type WildPlacer } from './wildPlacement';
 import { HITCH_HORSE_SPOTS } from '../world/layout';
@@ -167,6 +168,8 @@ export class Wildlife {
     return best;
   }
 
+  /** the trample map's push, read when called (wildEnv.trample is rebound when the grass is wired) */
+  private readonly pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { wildEnv.trample(x, z, r, s, vx, vz); };
   /** every frame: the player into wildEnv, the flocks' crowd update */
   update(dt: number, t: number, player: WildPlayer, extra: { mounted?: boolean; health01?: number } = {},
     advanceFlock?: (flock: Flock, index: number, playerSpeed: number) => void): void {
@@ -183,13 +186,7 @@ export class Wildlife {
     dogWolves.length = 0;
     for (const w of this.wolves) if (w.alive) dogWolves.push(w);
     // the grass parts around every moving wolf / horse / dog near the player (GrassTrample's live movers + the map)
-    for (const a of this.animals.animals) {
-      if (!a.alive || a.speed < 0.6 || (a.kind !== 'wolf' && a.kind !== 'horse' && a.kind !== 'sheepdog')) continue;
-      const dx = a.position.x - p.x, dz = a.position.z - p.z;
-      if (dx * dx + dz * dz > 80 * 80) continue;
-      const r = (a.kind === 'horse' ? 0.8 : a.kind === 'wolf' ? 0.5 : 0.4) * a.scale;
-      wildEnv.trample(a.position.x, a.position.z, r, Math.min(1, a.speed / 6), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
-    }
+    pushWildMovers(this.animals.animals, p.x, p.z, this.pushTrample);
     for (const [index, f] of this.flocks.entries()) {
       if (advanceFlock !== undefined) advanceFlock(f, index, this.speed); else f.update(dt, t, p, this.speed, dogWolves);
     }

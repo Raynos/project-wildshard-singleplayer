@@ -43,10 +43,16 @@ export interface NativeGroupWorld<A extends AnimalSim> {
   readonly passThrough: (actor: A, player: boolean) => void;
   readonly packOf: (actor: A) => { scare: (x: number, z: number, radius: number) => void } | null;
 }
+/** A stampede's (and the stallion's charge's) pass-through on a body's physics capsule (R3): the player's group let through,
+ *  or blocked by everything again; a body with no capsule this tick (past the body LOD) has nothing to set. The page and a
+ *  renderer-free host run this one rule. */
+export function passThroughPlayer(motor: { passThrough: (kinds: readonly GroupName[]) => void } | null, through: boolean): void {
+  motor?.passThrough(through ? THROUGH_PLAYER : BLOCKED);
+}
 /** The page's world: `wildEnv`, the installed terrain's normal, the body's own motor, the shared pack lookup. */
 export const PAGE_GROUP_WORLD: NativeGroupWorld<Animal> = {
   env: wildEnv, normalY: (x, z) => normalAt(x, z)[1],
-  passThrough: (actor, through) => { actor.motor?.passThrough(through ? THROUGH_PLAYER : BLOCKED); },
+  passThrough: (actor, through) => { passThroughPlayer(actor.motor, through); },
   packOf: actor => Pack.of(actor),
 };
 /** Shipping sensing, token and strike recipes consume only a host-owned species context with native contact LOS. */

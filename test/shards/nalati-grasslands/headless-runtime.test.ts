@@ -11,7 +11,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, nalatiLightningGround, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { NALATI_NAVMESH_ASSET, NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, nalatiLightningGround, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { Wind } from '../../../src/engine/world/steppeWind';
 import { lightLevel } from '../../../src/shards/nalati-grasslands/look/wildLight';
 import { exposeTrees, steppeStorm, stepStorm, stormWind, yurtShelters } from '../../../src/shards/nalati-grasslands/world/weatherStep';
@@ -20,9 +20,11 @@ import { SEED } from '../../../src/shards/nalati-grasslands/world/terrain';
 import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifest';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
+import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
+import { KNOCKDOWN_TIME } from '../../../src/shards/nalati-grasslands/creatures/knockdown';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
-const assets = new Map([[NALATI_TERRAIN_ASSET, new Uint8Array(readFileSync(NALATI_TERRAIN_ASSET))]]);
+const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
@@ -119,6 +121,7 @@ it('walks 2k ticks: every body stays finite on the ground, on the page\'s distan
   try {
     const groups = nalatiGroupsOf(host); if (groups === undefined) throw new Error('no groups');
     const { trample } = groups.grass, spots: { x: number; z: number }[] = [];
+    const start = new Map([...host.entities].map(([id, a]) => [id, { x: a.position.x, z: a.position.z }] as const));
     for (let tick = 0; tick < 2000; tick++) {
       walk(host); spots.push({ x: host.player.position.x, z: host.player.position.z });
       if (tick !== 1000) continue;
@@ -131,6 +134,12 @@ it('walks 2k ticks: every body stays finite on the ground, on the page\'s distan
     const p = host.player.position;
     expect(p.z).toBeLessThan(220); expect(p.y).toBeGreaterThan(heightAt(p.x, p.z) - 0.3);
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
+    // the groups decide on the host's brain clocks (runtime/headlessCreatures.ts): the wild herd near the walk grazes and drifts,
+    // every member; the owned saddled horses, the unhosted dog and Aqbars stand, and Argymaq's far pasture is past the bands
+    const moved = new Set([...host.entities].filter(([id, a]) => { const s0 = start.get(id); return s0 !== undefined && Math.hypot(a.position.x - s0.x, a.position.z - s0.z) > 0.5; }).map(([id]) => id));
+    const wild = bake.actors.filter(a => a.herd === 1).map(a => a.id), still = bake.actors.filter(a => a.herd === -1 || a.herd === 2 || a.herd === 3).map(a => a.id);
+    expect(wild.length).toBe(15);
+    expect(wild.filter(id => !moved.has(id))).toEqual([]); expect(still.filter(id => moved.has(id))).toEqual([]);
     // the page's day clock on the host's tick: the hour a 60 Hz page frame clock reaches, past the boot's day into golden
     const page = nalatiDayClock(); for (let i = 0; i < 2000; i++) page.update(1 / 60);
     expect(host.dayClock?.hour).toBe(page.hour); expect(host.dayClock?.dayPhase).toBe('golden');
@@ -163,6 +172,37 @@ it('restores mid-walk exactly: the reinstalled roster and the host continue step
       expect(JSON.stringify(trample)).toMatch(/^\{"trail":\[[^\]]+\],"map":\{"cells":\[\d+,/u);
       expectSameSimSnapshot(snapshotSimHost(b), sa);
     } finally { b.dispose(); }
+  } finally { a.dispose(); }
+});
+
+it('restores mid-stampede exactly: the groups\' continuations and the bodies\' pass-through on their capsules are saved; a knock-down dashes the player along the blow', () => {
+  const a = boot();
+  try {
+    for (let tick = 0; tick < 30; tick++) walk(a);
+    const groups = nalatiGroupsOf(a), herd = groups?.herds[0]; if (groups === undefined || herd === undefined) throw new Error('no wild herd');
+    // the player beside the wild herd (inside the physics body LOD, so its horses hold capsules), then a stampede from its
+    // far side (the page's `disturb` within 15 m): the fleeing horses run through him on foot
+    const px = herd.cx, pz = herd.cz + 14;
+    a.player.position.set(px, heightAt(px, pz) + 0.1, pz); a.player.motor.resetAt(a.player.position);
+    const still = { moveX: 0, moveZ: 0, yaw: 0 };
+    for (let tick = 0; tick < 10; tick++) a.step(still);
+    herd.stampede(herd.cx, herd.cz - 12);
+    const through = (host: SimHost): string[] => [...host.entities].filter(([, e]) => e.motor instanceof CharacterMotor && e.motor.passThroughKinds().length > 0).map(([id]) => id);
+    for (let tick = 0; tick < 120 && through(a).length === 0; tick++) a.step(still);
+    const ghosts = through(a);
+    expect(ghosts.length).toBeGreaterThan(0);
+    const b = restore(snapshotSimHost(a));
+    try {
+      expect(through(b)).toEqual(ghosts);
+      for (let i = 0; i < 30; i++) { a.step(still); b.step(still); }
+      expectSameSimSnapshot(snapshotSimHost(b), snapshotSimHost(a));
+    } finally { b.dispose(); }
+    // runtime/state.ts onKnockdown's rule (creatures/knockdown.ts) on the host's player: 7 m/s along the blow for 0.28 s
+    groups.env.onKnockdown?.(0, 2, 1);
+    expect(a.playerDash).toEqual({ t: KNOCKDOWN_TIME, vx: 0, vz: 7 });
+    const z0 = a.player.position.z;
+    for (let i = 0; i < 17; i++) a.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(a.player.position.z - z0).toBeGreaterThan(0.8);
   } finally { a.dispose(); }
 });
 

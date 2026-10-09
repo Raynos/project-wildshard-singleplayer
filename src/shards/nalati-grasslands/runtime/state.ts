@@ -6,6 +6,7 @@ import { createNativeFlocks, type NativeFlocks } from './flockDeclared';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
 import { wildEnv } from '../creatures/env';
+import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
@@ -257,10 +258,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     else if (name === 'stallion-beaten') toastOnce(name, 'The stallion gives ground', 30);
   };
   if (!retainsRuntimeServices(plugin)) wildEnv.onEvent = onSignal;
-  // bowled over (the stallion's charge, a stampede): shoved along the blow, a red flash
+  // bowled over (the stallion's charge, a stampede): shoved along the blow (creatures/knockdown.ts, the host's rule too), a red flash
+  const knocked = { x: 0, z: 0 };
   const onKnockdown = (dirX: number, dirZ: number, strength: number): void => {
-    const l = Math.hypot(dirX, dirZ) || 1, v = 7 * Math.max(0.4, Math.min(1.5, strength));
-    player.dash((dirX / l) * v, (dirZ / l) * v, 0.28);
+    knockdownDash(dirX, dirZ, strength, knocked);
+    player.dash(knocked.x, knocked.z, KNOCKDOWN_TIME);
     play?.flash();
     toastOnce('knockdown', 'Knocked down!', 4);
   };

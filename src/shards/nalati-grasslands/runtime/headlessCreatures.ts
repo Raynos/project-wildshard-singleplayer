@@ -1,0 +1,261 @@
+import * as v from 'valibot';
+import { Vector3 } from 'three';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { SimHost } from '@wildshard/engine/sim';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { HuntBrain, HURT_ARC, type HuntBody, type HuntGround, type HuntMemory, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
+import type { PackBrain } from '@wildshard/engine/ai/pack';
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
+import { WOLF_SPECIES } from '../species/wolf';
+import { HORSE_SPECIES } from '../species/horse';
+import { LEOPARD_SPECIES } from '../species/leopard';
+import { ARGYMAQ, argymaqDefinition } from '../combat/eliteRoster';
+import { TERRAIN } from '../world/terrain';
+import { nalatiWetAt } from '../wet';
+import { pushWildMovers } from '../look/trampleMovers';
+import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
+import { actHorseBody, actWolfBody, decideHorse, decideWolf, horseHeld } from './groupDispatch';
+import { NALATI_CREATURE_STREAM, type NalatiBootHerd } from './bootRoster';
+import type { NalatiGroups } from './groups';
+import type { NalatiBody } from './headless';
+
+/** The creatures' fixed-step id (its continuation's adapter). */
+export const NALATI_CREATURES_STEP = 'nalati.creatures';
+/** The level's chunk half (m): the hunting brain's hard clamp (core/config.ts CHUNK_HALF). */
+const CHUNK_HALF = 250;
+/** The bodies whose decisions belong to a system this host does not run yet: the flock's dog (creatures/flock.ts
+ *  `thinkSheepdog`) and Aqbars (combat/elites.ts, the leopard's elite brain). Their brain clocks still run, as the page's. */
+const UNHOSTED = new Set(['sheepdog', 'leopard']);
+/** Bounds for the frame loops: the manager's load-time list (35 bodies) and the declared groups (a pack, two herds). */
+const BODY_MAX = 64, GROUP_MAX = 8;
+
+/** A renderer-free body as the hunting brain reads it: never hidden here (no view), no ground tilt to sample. */
+export type NalatiHuntBody = AnimalSim & HuntBody;
+
+/**
+ * Nalati's creature rows as the manager's hunting brain reads them (HuntConfig.species), renderer-free: the shipping wolf,
+ * horse and leopard rows and Argymaq's (combat/eliteRoster.ts, from the horse's stallion, as the elites register it). The
+ * flock's dog has no row here: its species module is the flock's (not hosted), and the brain never adopts it.
+ */
+export function nalatiHuntSpecies(): (kind: string) => HuntSpecies {
+  const stallion = HORSE_SPECIES.variants.find(variant => variant.id === 'stallion');
+  if (stallion === undefined) throw new Error('Nalati horse has no stallion');
+  const rows = new Map<string, HuntSpecies>([['wolf', WOLF_SPECIES], ['horse', HORSE_SPECIES], ['leopard', LEOPARD_SPECIES], [ARGYMAQ, argymaqDefinition(HORSE_SPECIES, stallion)]]);
+  return kind => { const row = rows.get(kind); if (row === undefined) throw new Error(`Nalati hunting brain has no row '${kind}'`); return row; };
+}
+
+/** The hunting brain's ground as the page's manager builds it over Nalati's level (AnimalManager's HuntGround): the baked grid
+ *  the page installs, Nalati's terrain field's trails, cabins, water and stream, its walkers' water (wet.ts) and the forest. */
+export function nalatiHuntGround(grid: BakedGrid, trees: (x: number, z: number, r: number) => readonly HuntTree[]): HuntGround {
+  const s = bakedSamplers(grid), stream = TERRAIN.streamAt;
+  return {
+    heightAt: s.heightAt, normalY: (x, z) => s.normalAt(x, z)[1], trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask,
+    inChunk: (x, z, margin) => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin,
+    streamAt: (x, z) => stream === undefined ? null : stream(x, z), waterLevel: () => TERRAIN.waterLevel(), pond: () => TERRAIN.pond,
+    // the river is a basin body (manifest.ts ground.water), not an open sea
+    sea: () => false, wetAt: nalatiWetAt, trees, treeless: () => false, terrain: () => true, chunkHalf: CHUNK_HALF,
+  };
+}
+
+const finite = v.pipe(v.number(), v.finite());
+const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
+const Memory = v.record(v.string(), v.union([finite, v.boolean(), v.array(v.tuple([finite, finite, finite]))]));
+const Saved = v.strictObject({ rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
+  seen: v.array(v.boolean()), memories: v.array(v.tuple([v.string(), Memory])), herds: v.array(v.tuple([finite, finite])),
+  // the declared groups' continuations (PackBrain / HerdBrain `snapshot()`), packs then herds: they decide on this step
+  groups: v.array(v.string()) });
+type SavedMemory = v.InferOutput<typeof Memory>;
+const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Nalati hunting path'); return [p.x, p.y, p.z]; };
+function saveMemory(memory: HuntMemory): SavedMemory {
+  const out: SavedMemory = {};
+  Object.keys(memory).forEach(key => {
+    const value: unknown = Reflect.get(memory, key);
+    out[key] = Array.isArray(value) ? value.map(point) : typeof value === 'boolean' ? value : Number(value);
+  });
+  return out;
+}
+function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
+  const keys = Object.keys(memory);
+  if (keys.length !== Object.keys(saved).length) throw new Error('Incompatible Nalati hunting memory');
+  keys.forEach(key => {
+    const value = saved[key], known: unknown = Reflect.get(memory, key);
+    if (value === undefined || Array.isArray(value) !== Array.isArray(known) || (!Array.isArray(value) && typeof value !== typeof known)) throw new Error(`Incompatible Nalati hunting memory ${key}`);
+    Reflect.set(memory, key, Array.isArray(value) ? value.map(([x, y, z]) => new Vector3(x, y, z)) : value);
+  });
+}
+
+/** The host's creatures, for its tests: the hunting brain over the manager's stream and the bodies it decides for. */
+export interface NalatiHostCreatures { readonly hunt: HuntBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[] }
+const installed = new WeakMap<SimHost, NalatiHostCreatures>();
+/** The creatures installed into `host`, or undefined. */
+export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefined { return installed.get(host); }
+
+/**
+ * The creature manager's and Wildlife's frame on the host's fixed step (SF72), after the grass and the weather (the page's
+ * worldUpdate order, then `engine.creatures.update`):
+ *
+ * - Wildlife's frame (creatures/wildlife.ts `update`): the player's heading and health into the wild view (the host's player
+ *   stands, on foot), the moving wolves, horses and dog part the grass (look/trampleMovers.ts `pushWildMovers`, the page's one
+ *   law), and a stampeding herd scares every pack within 20 m of its centre.
+ * - The manager's think loop (AnimalManager.update): its smoothed player speed, the hunting brain's clock (engine/ai/hunt.ts
+ *   over the manager's own stream, `Rng(SEED + 31)` continuing from the boot roster, every body's memory adopted where the page
+ *   adopted it), then in list order a 'lost.sight' wake for a hunter that loses its line to the player and each body's decision
+ *   on its band's brain clock (`brainDt`): a wolf by its pack and a free horse (Argymaq too) by its herd (runtime/groupDispatch.ts,
+ *   the page's rules), on a ThinkCtx with the brain's navmesh steering (`navSteer`), its paths and confine, the herd's centre
+ *   easing after.
+ * - Each body's step (`useBodyStep`): its `act` before it moves (a committed lunge or charge), and after it, on this melee
+ *   shard, a running charge's contact (`chargeContact`); a creature's blow is the page's PlayerHurt.creature (`feel.blow`).
+ *
+ * A stampede runs through the player on foot on the bodies' own capsules (`passThroughPlayer`), and a knock-down (the stallion's
+ * charge, a stampede) dashes the host's player along the blow (creatures/knockdown.ts, `SimHost.dashPlayer`, the page's
+ * `Player.dash`); the creatures' signals are the page's `creature.signal` event. Not hosted yet (fail-closed in the runtime's
+ * `finish`): the flock, its dog's decisions and the raid director, Aqbars' elite brain, the marmots, a
+ * dodge's 'target.dodge' wake and a weapon's 'target.attack' wake (the host fires no weapon).
+ */
+export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
+  trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']> }): NalatiHostCreatures {
+  const { groups } = ports, player = host.player.position, env = groups.env;
+  const rng = new Rng(NALATI_CREATURE_STREAM);
+  // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it (its tags per kind, made once)
+  const tags = new Map<string, `${string}.${string}`[]>(), hitPoint = new Vector3(), hitDir = new Vector3();
+  const tagsOf = (kind: string): `${string}.${string}`[] => {
+    let row = tags.get(kind);
+    if (row === undefined) { row = [`creature.${kind}`, 'feel.blow', 'cover.checked']; tags.set(kind, row); }
+    return row;
+  };
+  const charge = (a: AnimalSim, damage: number): void => {
+    hitPoint.copy(a.position); hitDir.set(0, 0, 0);
+    host.combat.hit({ source: 'env', sourceTags: tagsOf(a.kind), target: host.player.health, amount: damage, point: hitPoint, dir: hitDir, cause: { kind: a.kind, label: a.label } });
+  };
+  const hunt = new HuntBrain<NalatiHuntBody>({ rng, fight: { telegraphed: true }, faunaTuning: () => undefined, species: nalatiHuntSpecies() }, {
+    ground: nalatiHuntGround(ports.grid, ports.trees), nav: () => ports.nav, reach: (a, p) => canReach(a, p, host.physics),
+    wanderGoal: () => { throw new Error('Nalati headless wander goal is not modelled (every hosted body thinks for itself)'); },
+    unaware: () => false, now: () => host.clock.now * 1000, sound: () => undefined, charge,
+  }, new Vector3());
+  // the page's index.ts: the packs, the herds and the dog steer round what the navmesh walls off
+  hunt.navSteer = true;
+  if (ports.bodies.length > BODY_MAX) throw new Error(`Nalati headless hosts at most ${String(BODY_MAX)} manager bodies`);
+  const bodies = ports.bodies.map(b => Object.assign(b.actor, { hidden: false, sampleTerrain: (): void => undefined }));
+  // the manager's herds (its hunting brain's), as the boot roster added them
+  ports.herds.forEach(h => { hunt.addHerd(h.kind, h.cx, h.cz); });
+  bodies.forEach(a => { if (a.herd >= 0) hunt.herds[a.herd]?.members.push(a); });
+  // every body's memory where the page adopted it (the stream at its three draws); the dog's species is the flock's, unhosted
+  ports.bodies.forEach((b, i) => {
+    const a = bodies[i];
+    if (a === undefined || b.boot.kind === 'sheepdog') return;
+    rng.restore(b.boot.adopted.stream); hunt.adopt(a, b.boot.adopted.x, b.boot.adopted.z);
+  });
+  rng.restore(ports.stream);
+  const packOf = new Map<AnimalSim, PackBrain<AnimalSim>>(), herdOf = new Map<AnimalSim, HerdBrain<AnimalSim>>();
+  // the groups this step decides for, whose continuations its adapter carries
+  const decided: readonly (PackBrain<AnimalSim> | HerdBrain<AnimalSim>)[] = [...groups.packs, ...groups.herds];
+  groups.packs.forEach(p => { p.members.forEach(m => { packOf.set(m, p); }); });
+  groups.herds.forEach(h => { h.members.forEach(m => { herdOf.set(m, h); }); if (h.stallion !== null) herdOf.set(h.stallion, h); });
+  // the creatures' signals (runtime/state.ts onSignal: the event; its toasts are the HUD's)
+  env.onEvent = (name, x, z) => { host.events.emit('creature.signal', { name, x, z }); };
+  // bowled over (runtime/state.ts onKnockdown: its flash and toast are the HUD's): the one dash rule on the host's player
+  const knocked = { x: 0, z: 0 };
+  env.onKnockdown = (x, z, strength) => { knockdownDash(x, z, strength, knocked); host.dashPlayer(knocked.x, knocked.z, KNOCKDOWN_TIME); };
+
+  const speed = { init: false, x: 0, z: 0, v: 0 };
+  const seen = bodies.map(() => false);
+  let clock = 0;
+  // AnimalManager.thinkCtx / customContext: one context, its per-body fields set before each call
+  const c = {
+    dt: 0, t: 0, player, playerSpeed: 0, rng, calm: false, herd: null as NalatiHuntBody[] | null,
+    hurt: (_damage: number): void => undefined, sound: (_name: string): void => undefined,
+    steer: (a: AnimalSim, yaw: number, s: number, turn: number): void => { hunt.steerAny(asHunt(a), yaw, s, turn); },
+    pathYaw: (a: AnimalSim, x: number, z: number, every = 1): number => hunt.pathYawFor(asHunt(a), x, z, every),
+    confine: (a: AnimalSim): void => { hunt.confine(asHunt(a)); },
+    reach: (a: AnimalSim): boolean => canReach(a, player, host.physics),
+    claim: groups.claim, mayAttack: groups.mayAttack,
+  };
+  const byActor = new Map<AnimalSim, NalatiHuntBody>(bodies.map(a => [a, a] as const));
+  function asHunt(a: AnimalSim): NalatiHuntBody { const b = byActor.get(a); if (b === undefined) throw new Error(`Nalati headless body ${a.entityId} is not the manager's`); return b; }
+  // the body the context speaks for (customContext's `hurt` closes over it on the page)
+  let current: NalatiHuntBody | null = null;
+  c.hurt = damage => { const a = current; if (a !== null && hunt.facing(a, player, HURT_ARC) && canReach(a, player, host.physics)) charge(a, damage); };
+  const context = (a: NalatiHuntBody, dt: number): typeof c => {
+    c.dt = dt; c.t = host.clock.now; c.playerSpeed = speed.v; current = a;
+    c.herd = a.herd >= 0 ? hunt.herds[a.herd]?.members ?? null : null;
+    return c;
+  };
+  /** AnimalManager.think for a self-thinking species: the dead and the stunned hold, else its own decision, the herd's centre after */
+  const think = (a: NalatiHuntBody, dt: number): void => {
+    if (UNHOSTED.has(a.kind)) return;
+    if (!a.alive) { a.lookWeight = 0; return; }
+    if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
+    const ctx = context(a, dt);
+    if (a.kind === 'wolf') decideWolf(a, ctx, packOf.get(a) ?? null);
+    else if (!horseHeld(a)) decideHorse(a, ctx, herdOf.get(a) ?? null);
+    const herd = a.herd >= 0 ? hunt.herds[a.herd] : undefined;
+    if (herd !== undefined) hunt.updateHerd(herd);
+  };
+  host.useBodyStep({
+    before: (_id, body, dt) => {
+      const a = byActor.get(body);
+      if (a === undefined || !a.alive || a.stunned || UNHOSTED.has(a.kind)) return;
+      if (a.kind === 'wolf') actWolfBody(a, context(a, dt), packOf.get(a) ?? null);
+      else actHorseBody(a, context(a, dt), herdOf.get(a) ?? null);
+    },
+    after: (_id, body) => {
+      const a = byActor.get(body);
+      if (a?.alive === true && !a.stunned && a.state === 'charge') hunt.chargeContact(a, player);
+    },
+  });
+  const pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { env.trample(x, z, r, s, vx, vz); };
+  host.onStep(NALATI_CREATURES_STEP, dt => {
+    // Wildlife's frame: the player into the wild view, the grass movers, a stampede scaring the packs
+    const yaw = host.player.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), fl = Math.hypot(fx, fz);
+    if (fl > 1e-4) { env.playerFwdX = fx / fl; env.playerFwdZ = fz / fl; }
+    env.playerCrouched = false; env.playerMounted = false;
+    const vital = host.player.health.attributes; env.playerHealth01 = vital.health / vital.maxHealth;
+    pushWildMovers(bodies, player.x, player.z, pushTrample);
+    for (let i = 0; i < GROUP_MAX; i++) {
+      const h = groups.herds[i]; if (h === undefined) break;
+      if (h.stampeding) for (let j = 0; j < GROUP_MAX; j++) { const p = groups.packs[j]; if (p === undefined) break; p.scare(h.cx, h.cz, 20); }
+    }
+    // the manager's think loop
+    if (!speed.init) { speed.x = player.x; speed.z = player.z; speed.init = true; }
+    const moved = Math.hypot(player.x - speed.x, player.z - speed.z);
+    speed.x = player.x; speed.z = player.z;
+    speed.v += (Math.min(moved / dt, 9) - speed.v) * (1 - 0.5 ** (dt * 10));
+    hunt.beginTick(dt); clock += dt; hunt.resetRepaths();
+    for (let i = 0; i < BODY_MAX; i++) {
+      const a = bodies[i];
+      if (a === undefined) break;
+      if (a.harnessHold) continue;
+      let urgent = false;
+      if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
+        const line = canReach(a, player, host.physics);
+        urgent = seen[i] === true && !line; seen[i] = line;
+      }
+      const brain = host.brainDt(a.entityId, urgent);
+      if (brain > 0) think(a, brain);
+    }
+  }, {
+    snapshot: () => ({ rng: { ...rng.snapshot() }, clock, speed: { ...speed }, seen: [...seen],
+      memories: bodies.flatMap(a => { const m = hunt.memory(a); return m === undefined ? [] : [[a.entityId, saveMemory(m)] as [string, SavedMemory]]; }),
+      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided.map(g => g.snapshot()) }),
+    restore: value => {
+      const saved = v.parse(Saved, value);
+      if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided.length) throw new Error('Incompatible Nalati creatures continuation');
+      rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
+      // the brain's clock is a sum of the same steps: a fresh brain takes the saved sum exactly
+      hunt.beginTick(saved.clock - clock); clock = saved.clock;
+      const memories = new Map(saved.memories);
+      bodies.forEach(a => {
+        const m = hunt.memory(a), s = memories.get(a.entityId);
+        if ((m === undefined) !== (s === undefined)) throw new Error(`Incompatible Nalati hunting memory for ${a.entityId}`);
+        if (m !== undefined && s !== undefined) loadMemory(m, s);
+      });
+      saved.herds.forEach(([cx, cz], i) => { const h = hunt.herds[i]; if (h !== undefined) { h.cx = cx; h.cz = cz; } });
+      saved.groups.forEach((state, i) => { decided[i]?.restore(state); });
+    },
+  });
+  const out = { hunt, rng, bodies };
+  installed.set(host, out);
+  return out;
+}
