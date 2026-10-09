@@ -13,8 +13,8 @@ export function exportTree(root, sha) {
   const dir=realpathSync(mkdtempSync(join(tmpdir(),'wildshard-parity-'))), ign=join(dir,'ign'); mkdirSync(ign); // canonical (E432)
   execFileSync('git',['init','-q',ign]);
   const patterns=execFileSync('git',['show',`${sha}:.vercelignore`],{cwd:root,encoding:'utf8'}); writeFileSync(join(dir,'ignore'),patterns);
-  const paths=execFileSync('git',['ls-tree','-r','--name-only',sha],{cwd:root,encoding:'utf8'}).trim().split('\n');
-  const ignored=execFileSync('git',['-C',ign,'-c',`core.excludesFile=${join(dir,'ignore')}`,'check-ignore','--no-index','--stdin'],{input:paths.join('\n'),encoding:'utf8'}).trim().split('\n');
+  const paths=execFileSync('git',['ls-tree','-r','--name-only',sha],{cwd:root,encoding:'utf8',maxBuffer:64*1024**2}).trim().split('\n');
+  const ignored=execFileSync('git',['-C',ign,'-c',`core.excludesFile=${join(dir,'ignore')}`,'check-ignore','--no-index','--stdin'],{input:paths.join('\n'),encoding:'utf8',maxBuffer:64*1024**2}).trim().split('\n');
   const excluded=new Set(ignored), keep=paths.filter((p)=>p.startsWith('test/parity/') || !excluded.has(p));
   const tree=join(dir,'tree');mkdirSync(tree);
   const archive=execFileSync('git',['archive',sha,'--',...keep],{cwd:root,maxBuffer:1024**3});
@@ -55,7 +55,7 @@ export function runtimeTree(root,sha) {
   try {
     execFileSync('git',['init','-q',temp]);writeFileSync(join(temp,'ignore'),patterns);
     const paths=entries.map((entry)=>entry.split('\t')[1]??'');
-    const check=execFileSync('git',['-C',temp,'-c',`core.excludesFile=${join(temp,'ignore')}`,'check-ignore','--no-index','--stdin'],{input:paths.join('\n'),encoding:'utf8'});
+    const check=execFileSync('git',['-C',temp,'-c',`core.excludesFile=${join(temp,'ignore')}`,'check-ignore','--no-index','--stdin'],{input:paths.join('\n'),encoding:'utf8',maxBuffer:64*1024**2});
     const ignored=new Set(check.trim().split('\n'));
     const inputs=entries.filter((entry)=>{const path=entry.split('\t')[1]??'';return !ignored.has(path)&&!path.startsWith('test/')&&!path.startsWith('scripts/parity/')&&path!=='scripts/parity.mjs';});
     return createHash('sha256').update(`parity-build-v2-shardfiles\n${process.version}\n${patterns}\n${inputs.join('\n')}`).digest('hex');
