@@ -51,7 +51,7 @@ const RARITY: { id: string; need: number; title: string }[] = [
   { id: 'uncommon', need: 2, title: 'Something unusual' },
   { id: 'rare', need: 1, title: 'A rare coat' },
 ];
-/** the elites by id, with the identity a kill carries (elites.ts PINE_ELITE_ANIMALS — kept here so this stays import-free) */
+/** the elites by id, with the identity a kill carries (eliteRoster.ts PINE_ELITE_ANIMALS — kept here so this stays import-free) */
 export const ELITE_TARGETS: Record<string, { name: string; kind: string; variant: string }> = {
   ironhide: { name: 'Old Ironhide', kind: 'boar', variant: 'ironhide' },
   'ghost-stag': { name: 'the Ghost Stag', kind: 'deer', variant: 'ghost' },

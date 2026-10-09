@@ -11,8 +11,8 @@ import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { GroundTell, type Elites, type EliteDef, type EliteScript } from '@wildshard/game/Elite';
-import type { ItemId } from '@wildshard/game/Inventory';
-import { DEN, BEAR_CAVE } from '../layout';
+import { BEAR_CAVE } from '../layout';
+import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites as swapRolled } from './eliteRoster';
 import type { SkinId } from '../loadout/skins';
 import { Puffs } from './fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
@@ -26,8 +26,8 @@ import { behindPlayer, fadeCooldown, headingTo } from './combatMath';
  * IDENTITY: an elite is its species' legendary / rare variant placed at a lair — kind + variant, never a mesh — so it
  * wears whatever hull the creature lane gives that variant (PH-M1's generated coats), and the journal (compendium
  * shards/pine-hollow.ts `match`), the trophy wall and the achievements see the kill exactly as before. A herd that
- * rolled one of these variants at boot gets an ordinary one of its kind instead (`swapRolledElites`): there is one
- * Old Ironhide, and he lives at his lair.
+ * rolled one of these variants at boot gets an ordinary one of its kind instead (`swapRolledElites`, eliteRoster.ts): there
+ * is one Old Ironhide, and he lives at his lair.
  *
  * AI: the scripts drive their animal from this tick (`own()` in ctx.ts parks it in a state the manager's AI skips), so
  * the species files are untouched:
@@ -58,62 +58,12 @@ import { behindPlayer, fadeCooldown, headingTo } from './combatMath';
 
 const TELL_RED = new THREE.Color(2.4, 0.75, 0.3);
 
-// the lairs (x = WEST, z = NORTH: pineHollowLayout.ts's axis note). Chosen on open ground off the trails, one per zone.
-export const IRONHIDE_LAIR = { x: -44, z: -76, r: 16 };
-export const GHOST_LAIR = { x: 62, z: -100, r: 22 };   // > 110 m from the King's clearing: its bar must never ride into his fight
-export const IMPERIAL_LAIR = { x: -40, z: 78, r: 20 };
-export const BLACKPAW_LAIR = { x: DEN.x + 2, z: DEN.z + 2, r: 20 };
 /** where Blackpaw waits: a step inside the cave mouth (the mouth faces SE: (−sin rot, −cos rot)) */
 const MOUTH = { x: BEAR_CAVE.x - Math.sin(BEAR_CAVE.rot) * 1.5, z: BEAR_CAVE.z - Math.cos(BEAR_CAVE.rot) * 1.5 };
 
-export const PINE_ELITE_DEFS: Record<string, EliteDef> = {
-  ironhide: {
-    id: 'ironhide', name: 'Old Ironhide', epithet: 'Terror of the Hollow', lair: IRONHIDE_LAIR,
-    awareR: 55, engageR: 32, leashR: 85, rule: 'always', respawnMin: 20, signature: 'GORE CHARGE', phase2: 'BOTH TUSKS NOW',
-    drop: { skin: 'ironhide', skinName: 'IRONHIDE', weapon: 'rifle', blurb: 'scarred iron plates, a boar-tusk grip, still warm from the forge', trophyName: "Ironhide's broken tusk" },
-  },
-  'ghost-stag': {
-    id: 'ghost-stag', name: 'The Ghost Stag', epithet: 'The Pale One', lair: GHOST_LAIR,
-    awareR: 70, engageR: 40, leashR: 110, rule: 'always', respawnMin: 20, signature: 'FADE', phase2: "NOW YOU DON'T",
-    drop: { skin: 'ghost-stag', skinName: 'GHOST STAG', weapon: 'crossbow', blurb: "bone-white ash, the stag's own antlers for a prod", trophyName: 'A pale antler that weighs nothing' },
-  },
-  blackpaw: {
-    id: 'blackpaw', name: 'Old Blackpaw', epithet: "The Den's Landlord", lair: BLACKPAW_LAIR,
-    awareR: 30, engageR: 22, leashR: 60, rule: 'always', respawnMin: 20, signature: 'ROAR', phase2: 'WOKEN UP PROPERLY',
-    drop: { skin: 'blackpaw', skinName: 'BLACKPAW', weapon: 'crossbow', blurb: 'bear-black stock, claw-hook nocks, the rent in arrears', trophyName: "Old Blackpaw's claw" },
-  },
-  'imperial-bull': {
-    id: 'imperial-bull', name: 'The Imperial Bull', epithet: 'Seven by Seven', lair: IMPERIAL_LAIR,
-    awareR: 75, engageR: 45, leashR: 110, rule: 'always', respawnMin: 20, signature: 'BUGLE', phase2: 'FULL VOLUME',
-    drop: { skin: 'imperial', skinName: 'IMPERIAL', weapon: 'crossbow', blurb: 'antler-ivory stock, gold fittings, seven tines on the prod', trophyName: 'The seven-tine crown' },
-  },
-};
-
-/** each elite's species variant (its identity) and its trophy */
-export const PINE_ELITE_ANIMALS: Record<string, { kind: string; variant: string; trophy: ItemId }> = {
-  ironhide: { kind: 'boar', variant: 'ironhide', trophy: 'ironhide-tusk' },
-  'ghost-stag': { kind: 'deer', variant: 'ghost', trophy: 'ghost-antler' },
-  blackpaw: { kind: 'bear', variant: 'black-old', trophy: 'blackpaw-claw' },
-  'imperial-bull': { kind: 'elk', variant: 'imperial', trophy: 'imperial-crown' },
-};
-
-/** an ordinary variant of the same kind, for a herd animal that rolled an elite's variant at boot */
-const ORDINARY: Record<string, string[]> = { boar: ['boar', 'sow', 'black'], deer: ['hind', 'stag'], bear: ['black', 'black-blaze'], elk: ['cow', 'bull'] };
-
-/** every herd animal that rolled an elite's variant is replaced by an ordinary one of its kind, in its herd, where it stood */
+/** the boot swap (eliteRoster.ts) through the page's creature manager */
 export function swapRolledElites(animals: AnimalManager): number {
-  let n = 0;
-  const rolled = animals.animals.filter((a) => Object.values(PINE_ELITE_ANIMALS).some((e) => e.kind === a.kind && e.variant === a.variant));
-  for (const a of rolled) {
-    const herd = a.herd, x = a.position.x, z = a.position.z, yaw = a.yaw;
-    retire(animals, a);
-    const b = animals.spawn(a.kind, x, z, yaw, ORDINARY[a.kind] ?? []);
-    b.herd = herd;
-    const h = herd >= 0 ? animals.herds[herd] : undefined;
-    if (h) { const i = h.members.indexOf(a); if (i !== -1) h.members[i] = b; else h.members.push(b); }
-    n++;
-  }
-  return n;
+  return swapRolled({ bodies: animals.animals, herds: animals.herds, retire: (a) => { retire(animals, a); }, spawn: (kind, x, z, yaw, variants) => animals.spawn(kind, x, z, yaw, variants) });
 }
 
 const elitesOwned = new WeakSet<Animal>();
@@ -132,7 +82,7 @@ abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
   override toPlayer(a: Animal): { d: number; yaw: number } { return super.toPlayer(a); }
   voice(name: string, a: Animal): void { voice(this.env.animals, name, a.position); }
   next(): number { return Math.random(); }
-  protected readonly who: { kind: string; variant: string; trophy: ItemId };
+  protected readonly who: (typeof PINE_ELITE_ANIMALS)[string];
   private readonly spawnRng: Rng;
   override readonly def: EliteDef;
   constructor(def: EliteDef, readonly env: Env) {

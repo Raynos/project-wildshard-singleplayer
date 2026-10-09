@@ -19,6 +19,8 @@
     "./systems/species/view/boar": "./systems/species/view/boar.ts",
     "./systems/species/bear": "./systems/species/bear.ts",
     "./systems/species/boar": "./systems/species/boar.ts",
+    "./systems/species/deer": "./systems/species/deer.ts",
+    "./systems/species/elk": "./systems/species/elk.ts",
     "./shardfile/reportCard": "./shardfile/reportCard.ts",
     "./grid/memoryAdmission": "./grid/memoryAdmission.ts",
     "./grid/regionalRuntime": "./grid/regionalRuntime.ts",

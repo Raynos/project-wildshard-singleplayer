@@ -337,10 +337,14 @@ export function hasSpecies(kind: string): boolean { return SPECIES.has(kind); }
 export function speciesKinds(): string[] { return [...SPECIES.keys()]; }
 
 /** The variant table entry, or the species' first (fallback) variant for an unknown id. */
-export function variantDef(kind: string, id: string | undefined): VariantDef {
-  const d = speciesDef(kind);
+export function variantDef(kind: string, id: string | undefined): VariantDef { return variantOf(speciesDef(kind), id); }
+
+/** The species fields a variant lookup or roll reads: a registered SpeciesDef and a renderer-free SpeciesRow both satisfy it. */
+export type VariantTable = Pick<SpeciesDef, 'kind' | 'variants' | 'spawnOnly'>;
+/** `variantDef` over a given species row (a renderer-free host's own rows, not the registry). */
+export function variantOf(d: VariantTable, id: string | undefined): VariantDef {
   const first = d.variants[0];
-  if (first === undefined) throw new Error(`species '${kind}' has no variants`);   // registerSpecies rejects an empty table
+  if (first === undefined) throw new Error(`species '${d.kind}' has no variants`);   // registerSpecies rejects an empty table
   return (id !== undefined && id !== '' ? d.variants.find((v) => v.id === id) ?? d.spawnOnly?.find((v) => v.id === id) : undefined) ?? first;
 }
 
@@ -360,7 +364,7 @@ export function variantMods(species: SpeciesDef, v: VariantDef): VariantMods {
  * Roll one variant by weight with a seeded Rng. `allowed` restricts the pool to those ids (HerdPlan.variants);
  * `excludeLegendary` re-rolls a legendary into the rare tier (the manager caps legendaries at one alive per kind).
  */
-export function rollVariant(species: SpeciesDef, rng: Rng, allowed?: string[], excludeLegendary = false): VariantDef {
+export function rollVariant(species: VariantTable, rng: Rng, allowed?: string[], excludeLegendary = false): VariantDef {
   let pool = allowed !== undefined && allowed.length > 0 ? species.variants.filter((v) => allowed.includes(v.id)) : species.variants;
   if (pool.length === 0) pool = species.variants;
   const pick = (list: VariantDef[]): VariantDef => {

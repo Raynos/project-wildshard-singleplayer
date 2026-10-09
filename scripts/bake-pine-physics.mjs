@@ -3,7 +3,8 @@
 // standalone level's native floor (the terrain heightfield collider exactly as the page built it, crag cuts included),
 // its edge walls and every solid world collider (trunks, rocks, crags, cabins, props), the registry pieces' metadata, the
 // forest's trunk circles the herds' placement reads,
-// and the forest herds' and the Den's model-derived simulation specs, seeds, scales and herd membership at load. Two independent same-page captures must match exactly.
+// the forest herds' and the Den's model-derived simulation specs, seeds, scales and herd membership at load, and the Antler
+// King's parked prewarm bodies (the King and a thrall of each kind). Two independent same-page captures must match exactly.
 // scripts/browser-lane.sh node scripts/bake-pine-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -40,6 +41,14 @@ try {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
       return { id: a.entityId, kind: a.kind, variant: a.variant, herd: a.herd, spec: copy(a.simSpec), seed: a.seed, scale: a.scale,
         scripted: a.scripted === true };
+    });
+    // the Antler King's prewarm (runtime/antlerKing.ts `prewarm`): his body and a thrall of each kind, spawned before the
+    // lair elites and parked out of the manager's list: their ids and draws come between the herds and the elites
+    const fight = window.__antlerKing?.fight;
+    if (fight?.king === undefined || fight.king === null || !Array.isArray(fight.parked)) throw new Error('Missing the Antler King prewarm');
+    const parked = [fight.king, ...fight.parked].map(a => {
+      if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
+      return { id: a.entityId, kind: a.kind, variant: a.variant, spec: copy(a.simSpec), seed: a.seed, scale: a.scale };
     });
     // herd membership is a placement fact; positions and herd centres are not (the page ticks and recentres between
     // captures): the members' placement draws are the next step's (progress/shard-platform/handoffs/sf72-pine.md)
@@ -83,7 +92,7 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, herds, trees, pieces, grounds, solids };
+    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, parked, herds, trees, pieces, grounds, solids };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -95,7 +104,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Pine bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, parked: first.parked, herds: first.herds, trees: first.trees, pieces: first.pieces };
     writeFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-pine-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }

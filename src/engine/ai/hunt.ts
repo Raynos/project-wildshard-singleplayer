@@ -4,7 +4,7 @@ import type { Rng } from '../core/rng';
 import type { FightRules } from '../level/spec';
 import type { HerdPlan } from '../level/data';
 import type { Navmesh } from '../physics/navmesh';
-import { creatureSoundDefaults, rollVariant, speciesDef, variantDef, type SpeciesDef, type VariantDef } from '../entities/species/registry';
+import { creatureSoundDefaults, rollVariant, speciesDef, variantOf, type SpeciesDef, type VariantDef, type VariantTable } from '../entities/species/registry';
 import { AggressionDirector } from './director';
 import { reengage, backoffPoint, aroundPoint, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from '../entities/fightRules';
 
@@ -210,9 +210,9 @@ export type HuntSpecies = Pick<SpeciesDef, 'aggressive' | 'tuning' | 'sounds' | 
 
 /** A spawn's rolls on the shared stream, in order: the variant (when rolled), the scale, the rig seed and the body seed. */
 export interface SpawnRolls { variant: VariantDef; scale: number; rigSeed: number; seed: number }
-export function spawnRolls(rng: Rng, kind: string, variant: string | string[] | undefined, hasLegendary: boolean): SpawnRolls {
-  const sp = speciesDef(kind);
-  const v = typeof variant === 'string' ? variantDef(kind, variant) : rollVariant(sp, rng, variant, hasLegendary);
+export function spawnRolls(rng: Rng, kind: string, variant: string | string[] | undefined, hasLegendary: boolean, species: (kind: string) => VariantTable = speciesDef): SpawnRolls {
+  const sp = species(kind);
+  const v = typeof variant === 'string' ? variantOf(sp, variant) : rollVariant(sp, rng, variant, hasLegendary);
   const scale = rng.range(v.scale[0], v.scale[1]);
   const rigSeed = rng.next();
   return { variant: v, scale, rigSeed, seed: rng.next() };
