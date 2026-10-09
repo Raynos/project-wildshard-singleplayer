@@ -9,10 +9,15 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup. No credentials belong in Git.
-- **Push / PR CI runs vitest once, in 6 parallel shard jobs** (E429): `build-and-deploy` runs typecheck, lint,
-  `pnpm run test:checks` (the node checks of `pnpm test`) and the builds; `vitest` (matrix 1–6) runs
-  `vitest run --shard=i/6 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs` (the same numbers
-  as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. Releases reuse that complete test proof when the
+- **Push / PR CI runs vitest once, in 8 parallel shard jobs** (E429; 8 since SF74 W16): `typecheck-lint` runs
+  typecheck and lint; `build-and-deploy` runs `pnpm run test:checks`' commands (the node checks of `pnpm test`) and the
+  vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build; `vitest`
+  (matrix 1–8) runs `vitest run --shard=i/8 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs`
+  (the same numbers as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. **A push that only touches
+  `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; CI's sparse checkout drops those
+  paths, so it would re-test the parent's tree): that SHA never becomes a release candidate, and production's
+  "newest proven main" is its newest code ancestor, so compare `version.json` with the newest CI-green SHA, not the
+  tip. Releases reuse that complete test proof when the
   selected exact SHA has a successful main push-CI run (SF74 W0); they still build and check chunks and verify
   production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.

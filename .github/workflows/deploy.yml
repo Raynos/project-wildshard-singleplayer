@@ -7,10 +7,23 @@
 name: deploy
 
 on:
+  # SF74 W16: a push or PR that only touches what CI's sparse checkout leaves out (docs/, progress/, art/, sources/) runs
+  # nothing: every job here would test the parent's exact tree (14 % of pushes on 2026-10-09). Such a SHA gets no push
+  # CI run, so newest-ci-green keeps releasing its newest code ancestor, which builds the same game.
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'progress/**'
+      - 'art/**'
+      - 'sources/**'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'progress/**'
+      - 'art/**'
+      - 'sources/**'
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
@@ -113,24 +126,30 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
-      # SF74 W0 / W15: a release pin whose exact SHA passed push CI (this job's typecheck, lint, test:checks, build and
-      # chunk check, plus all six vitest shards and coverage) reuses that proof: no typecheck, lint, test or extra vite
+      # SF74 W0 / W15: a release pin whose exact SHA passed push CI (typecheck-lint, this job's test:checks, build and
+      # chunk check, plus all eight vitest shards and coverage) reuses that proof: no typecheck, lint, test or extra vite
       # build here (24.5 min → ~4 min on 2026-10-09). `vercel build` below still runs `pnpm build` (gen, tsc, shardfiles,
       # vite build) and the chunk check reads its dist. Unproven historical pins still run everything.
       - name: Typecheck
-        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: pnpm run typecheck
 
       - name: Lint
-        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: pnpm run lint
 
       - name: Test
-        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: |
-          if [ "$DEPLOY" != true ]; then pnpm run test:checks; else pnpm test; fi
+          pnpm test
           python3 scripts/heavy-lane.py build -- pnpm exec vite build
           node scripts/check-chunks.mjs dist
+
+      # SF74 W16: push / PR CI runs test:checks' commands and the vite build + chunk check at once (serial ~205 s on the
+      # runner); typecheck and lint run in their own job beside this one, and vitest in its shards.
+      - name: Checks and build (parallel)
+        if: env.DEPLOY != 'true'
+        run: node scripts/ci-checks.mjs 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-chunks.mjs dist'
 
       - name: CSS check
         if: steps.live.outputs.skip != 'true'
@@ -185,8 +204,39 @@ jobs:
             -f context=production-live -f state=success -f description='Exact pin verified live in production' \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
+  # SF74 W16: typecheck and lint beside build-and-deploy (they were ~1.5 min of its serial critical path).
+  typecheck-lint:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm run typecheck
+      - name: Lint
+        run: pnpm run lint
+
   # Push / PR CI runs the vitest suite once, split over parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"; E454, Jake
-  # 2026-10-07: CI must be fast, so 6 ways: each 3-way shard took ~4.5 min and was the run's critical path). Each
+  # 2026-10-07: CI must be fast, so 6 ways: each 3-way shard took ~4.5 min and was the run's critical path; SF74 W16,
+  # 2026-10-09: 8 ways, each 6-way shard took a median 3.6-4.4 min of a 5.6 min run). Each
   # shard writes its istanbul coverage; the `coverage` job merges them (scripts/coverage-merge.mjs measures what one
   # unsharded run measures) and runs the coverage ratchet. A red shard, merge or ratchet fails the run, and deploy-pin's
   # newest-ci-green only takes a push run whose every job passed.
@@ -197,7 +247,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -219,10 +269,10 @@ jobs:
       # links the @wildshard/* workspace packages (E432), so it stays before vitest
       - name: Install
         run: pnpm install --frozen-lockfile
-      - name: Vitest shard ${{ matrix.shard }}/6
+      - name: Vitest shard ${{ matrix.shard }}/8
         run: |
           pnpm gen
-          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/6 --coverage --coverage.reporter=json --reporter=dot
+          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --coverage --coverage.reporter=json --reporter=dot --reporter=github-actions
       - uses: actions/upload-artifact@v4
         with:
           name: vitest-coverage-${{ matrix.shard }}
@@ -253,6 +303,6 @@ jobs:
           path: shards
       - name: Merge coverage and ratchet
         run: |
-          test "$(ls shards/vitest-coverage-*/coverage-final.json | wc -l)" = 6 # every shard's coverage, or the ratchet reads a partial run
+          test "$(find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)" = 8 # every shard's coverage, or the ratchet reads a partial run
           node scripts/coverage-merge.mjs --out coverage/coverage-summary.json shards/vitest-coverage-*/coverage-final.json
           node scripts/coverage-ratchet.mjs

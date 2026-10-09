@@ -86,9 +86,13 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   expect(workflow).toContain('cron: \'17 * * * *\'');
   // SF74 W15: a CI-green pin skips typecheck, lint and the Test step; an unproven pin still runs all three.
   for (const step of ['Typecheck', 'Lint', 'Test']) {
-    expect(workflow).toContain(`- name: ${step}\n        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'`);
+    expect(workflow).toContain(`- name: ${step}\n        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'`);
   }
-  expect(workflow).toContain('if [ "$DEPLOY" != true ]; then pnpm run test:checks; else pnpm test; fi');
+  // SF74 W16: push CI runs test:checks + the build in parallel, typecheck and lint in their own job, vitest in 8 shards.
+  expect(workflow).toContain("- name: Checks and build (parallel)\n        if: env.DEPLOY != 'true'\n        run: node scripts/ci-checks.mjs");
+  expect(workflow).toContain('\n  typecheck-lint:\n');
+  expect(workflow).toContain('shard: [1, 2, 3, 4, 5, 6, 7, 8]');
+  expect(workflow).toContain("find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)\" = 8");
   expect(job).toContain(`group: boot-smoke-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
   expect(workflow).toContain('python3 scripts/heavy-lane.py build -- pnpm exec vite build');
   expect(workflow).toContain('node scripts/check-chunks.mjs dist');
