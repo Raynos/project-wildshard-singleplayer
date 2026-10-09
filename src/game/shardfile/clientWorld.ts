@@ -3,6 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Shardfile } from './schema';
 import type { ClientAssets } from './clientAssets';
 import { terrainResidency } from './residency';
+import { slicer } from '@wildshard/engine/boot/plan';
 import type { RingCamera } from '../grid/rings';
 import type { ResidencyAllocator } from '../grid/allocator';
 
@@ -67,7 +68,11 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Prop tile unloaded while reading');
     return ports.views.props(source.props, key, bytes, scope);
   };
+  // SF67: cached tile reads resolve in microtasks, so the home tiles once installed in one 0.2-0.45 s task; the loop now ends
+  // its task each ~30 ms (the same tiles in the same order)
+  const slice = slicer();
   try { for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) {
+    await slice();
     const key = `1/${x}/${z}`, scope = tileLifetime.child(key);
     if (!reserve(key, scope)) throw new Error('Home coarse tile residency admission deferred');
     const mesh = await terrain(key, scope, false); if (mesh !== null) coarse.set(key, mesh);
@@ -81,6 +86,7 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
       if (ports.scope.disposed) return undefined;
       for (const [key, scope] of fine) if (!selection.fine.has(key)) { scope.dispose(); fine.delete(key); fineTiles.delete(key); }
       for (const key of selection.fine) if (!fine.has(key)) {
+        await slice();
         const scope = tileLifetime.child(key);
         if (!reserve(key, scope)) { scope.dispose(); continue; }
         try { const tiles = [await terrain(key, scope, selection.shadows.has(key)), await tileProps(key, scope)].filter((tile): tile is ResidentTile => tile !== null); if (scope.disposed) return undefined; fineTiles.set(key, tiles); fine.set(key, scope); }
