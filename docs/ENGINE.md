@@ -1872,6 +1872,10 @@ Restore boots a fresh matching level and invokes `install` to register its scope
 authored content and functions stay outside the snapshot. Engine, snapshot and level fingerprints must match.
 Use the returned host for the recorded suffix and dispose it normally. The sim-level fight fixture proves
 identical hashes at five checkpoints after a JSON round trip, including pending damage and moving contacts.
+Logical memory and custom snapshot values preserve `Infinity` and `-Infinity` through the reserved transport object
+`{"$sim.number":"infinity"}` or `{"$sim.number":"-infinity"}`. Native positions, motor state and physics metadata still
+require finite numbers; `NaN`, malformed tags and authored objects using the reserved key refuse. Finite-only snapshots
+retain their previous wire bytes, including signed zero.
 
 The native Node witness is `node --import ./scripts/sim-node-loader.mjs test/fixtures/sim-level/run.mjs`.
 It boots JSON-round-tripped kit species and iron-sword data, runs 10,000 fixed ticks with real Rapier

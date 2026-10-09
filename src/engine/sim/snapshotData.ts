@@ -6,6 +6,11 @@ import type { SimSnapshot } from './snapshot';
 import { DAY_CLOCK_PHASES } from './dayClock';
 
 const finite = v.pipe(v.number(), v.finite());
+// Reserved only in the snapshot transport. Logical clocks/memory can use infinity; native poses and physics stay finite.
+const NUMBER_TAG = '$sim.number';
+const taggedNumber = v.pipe(v.strictObject({ [NUMBER_TAG]: v.picklist(['infinity', '-infinity']) }),
+  v.transform(value => value[NUMBER_TAG] === 'infinity' ? Infinity : -Infinity));
+const scalar = v.union([v.pipe(v.number(), v.check(value => !Number.isNaN(value), 'NaN is not a snapshot number')), taggedNumber]);
 const nonnegative = v.pipe(finite, v.minValue(0));
 const integer = v.pipe(nonnegative, v.safeInteger());
 const uint32 = v.pipe(integer, v.maxValue(0xffffffff));
@@ -25,7 +30,7 @@ const motor = v.strictObject({
     horizontalFreedom: finite, groundColliderHandle: v.nullable(nonnegative) }),
 });
 const simValue: v.GenericSchema<SimValue> = v.lazy(() => v.union([
-  v.null(), v.boolean(), finite, v.string(), v.array(simValue), v.record(v.string(), simValue),
+  v.null(), v.boolean(), scalar, v.string(), v.array(simValue), v.record(v.string(), simValue),
 ]));
 type EventValue = SimSnapshot['player']['health'];
 const eventValue: v.GenericSchema<EventValue> = v.lazy(() => v.variant('kind', [
@@ -51,7 +56,7 @@ const animal = v.strictObject({
   kind: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), label: v.string(),
   state: v.picklist(['idle', 'graze', 'wander', 'alert', 'flee', 'charge', 'stalk', 'dead', 'attack', 'perch', 'rise', 'hide', 'sidestep']),
   mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }),
-  mem: v.record(v.string(), finite), position: vector, lookTarget: vector, pushDir: vector, impulse: vector,
+  mem: v.record(v.string(), scalar), position: vector, lookTarget: vector, pushDir: vector, impulse: vector,
   lastHitT: nullableNumber, attackTurnCap: nullableNumber,
   flight: v.nullable(v.strictObject({ version, altitude: finite, sampleIn: finite, floor: nullableNumber, smoothFloor: nullableNumber })),
 });
@@ -91,7 +96,7 @@ const entries = {
     held: v.nullable(v.strictObject({ value: finite, paused: v.boolean() })), last: v.picklist(DAY_CLOCK_PHASES) })),
   boardColliders: v.optional(v.pipe(v.array(nonnegative), v.minLength(1))), // Rapier handles, as colliderTags'
 };
-const snapshot: v.GenericSchema<SimSnapshot> = v.strictObject({ ...entries,
+const snapshot: v.GenericSchema<unknown, SimSnapshot> = v.strictObject({ ...entries,
   physics: v.pipe(v.array(v.pipe(integer, v.maxValue(255))), v.minLength(1), v.maxLength(maxPhysicsBytes)) });
 const packedSnapshot = v.strictObject({ ...entries,
   physics: v.variant('encoding', [
@@ -105,17 +110,23 @@ const wire = v.strictObject({ format: v.literal('sim.snapshot'), version, snapsh
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 // A JSON-tree fence also rejects cycles/accessors/classes before lazy recursive schemas run.
-function jsonTree(input: unknown, parents = new Set<object>(), depth = 0): void {
+function jsonTree(input: unknown, parents = new Set<object>(), depth = 0, nativeNumbers = false): void {
   if (depth > 64) throw new RangeError('Snapshot nesting exceeds 64');
-  if (input === null || typeof input === 'string' || typeof input === 'boolean' || (typeof input === 'number' && Number.isFinite(input))) return;
+  if (input === null || typeof input === 'string' || typeof input === 'boolean' || (typeof input === 'number' && (Number.isFinite(input) || (nativeNumbers && !Number.isNaN(input))))) return;
   if (typeof input !== 'object' || parents.has(input)) throw new TypeError('Snapshot must contain finite, acyclic JSON data');
   if (!Array.isArray(input) && Object.getPrototypeOf(input) !== Object.prototype && Object.getPrototypeOf(input) !== null) throw new TypeError('Snapshot must contain plain JSON objects');
+  if (Object.hasOwn(input, NUMBER_TAG)) {
+    if (nativeNumbers) throw new TypeError('Snapshot contains a reserved number tag');
+    const tag = Object.getOwnPropertyDescriptor(input, NUMBER_TAG);
+    if (Reflect.ownKeys(input).length !== 1 || tag === undefined || !('value' in tag) || !tag.enumerable
+      || (tag.value !== 'infinity' && tag.value !== '-infinity')) throw new TypeError('Invalid snapshot number tag');
+  }
   parents.add(input);
   for (const key of Reflect.ownKeys(input)) {
     if (Array.isArray(input) && key === 'length') continue;
     const descriptor = Object.getOwnPropertyDescriptor(input, key);
     if (typeof key !== 'string' || descriptor === undefined || !('value' in descriptor) || !descriptor.enumerable) throw new TypeError('Snapshot contains a non-JSON property');
-    jsonTree(descriptor.value, parents, depth + 1);
+    jsonTree(descriptor.value, parents, depth + 1, nativeNumbers);
   }
   parents.delete(input);
 }
@@ -235,6 +246,8 @@ function identities(saved: SimSnapshot, apiVersion: number): SimSnapshot {
 // JSON.parse preserves the valid numeric literal -0; JSON.stringify normally loses its sign.
 function stringify(value: unknown): string {
   if (typeof value === 'number' && Object.is(value, -0)) return '-0';
+  if (value === Infinity) return '{"$sim.number":"infinity"}';
+  if (value === -Infinity) return '{"$sim.number":"-infinity"}';
   if (value === null || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map((item: unknown) => stringify(item)).join(',')}]`;
   if (typeof value === 'object') return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}:${stringify(item)}`).join(',')}}`;
@@ -252,7 +265,7 @@ export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: numb
   if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
   // The byte array is checked in one flat pass; every other field keeps the strict JSON-tree and schema validation.
   const raw = physicsArray(input.physics), metadata = { ...input, physics: [0] };
-  jsonTree(metadata);
+  jsonTree(metadata, new Set(), 0, true);
   const saved = identities(v.parse(snapshot, metadata), apiVersion);
   yield;
   const physics = yield* packedPhysics(raw, physicsBasis);
