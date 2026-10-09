@@ -47,7 +47,7 @@ describe('Debug flag ownership and review dates', () => {
     expect(validateFlags([{ ...tool, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
     const scanned = scannedFlags();
     expect(scanned.filter(value => value.purpose === 'developer').map(value => value.id).sort()).toEqual([
-      'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'shardDirectors', 'storage', 'time', 'weather',
+      'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'groundTiles', 'shardDirectors', 'storage', 'time', 'weather',
     ]);
   });
   it('rejects unknown owners and malformed dates; an overdue row passes and is listed', () => {

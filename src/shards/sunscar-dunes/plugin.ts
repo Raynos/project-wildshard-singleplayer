@@ -29,6 +29,7 @@ import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
 import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
+import { followSandTiles, installSignalDebug } from './look/groundTiles';
 
 // the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file
 declare module '@wildshard/engine/combat/Equipment' {
@@ -143,8 +144,10 @@ export class SignalDunesPlugin extends ShardPlugin {
         scope.onDispose(() => { setDusk(0, true); });
       });
       else { setDusk(duskOf(places), true); ctx.scope.onDispose(() => { setDusk(0, true); }); }
-      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); } });
+      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); followSandTiles(position.x, position.z); } });
     }
+    // M3 tiles-swap (default off): the row (the dusk system below moves the fine tile ring with the player while bound)
+    installSignalDebug(ctx);
     ctx.debug.expose('sunscar', this);
   }
 }

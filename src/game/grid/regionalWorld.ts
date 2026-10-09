@@ -43,7 +43,7 @@ import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/lev
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
-import { addTerrain } from '@wildshard/engine/physics/terrain';
+import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
 import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -63,6 +63,7 @@ import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, ty
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
+import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -163,9 +164,13 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       ports.install?.(host, request);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its collision');
+      // M3 tiles-swap: the admitted product's reader for the resident runtime (a painter that binds its compiled tiles reads it)
+      provideRuntimeProduct(request.admitted, resident);
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
+      // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
+      if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
       terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
       scene.add(terrain.group);
       const trees = level.trees?.factory;

@@ -1,15 +1,18 @@
 import { DUSK, fillAt, keyAt } from './dusk';
 import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Material, type Texture } from 'three';
-import type { LookStrategy } from '@wildshard/engine/render/look';
+import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { GROUND_HALF } from '../layout';
-import { WIND } from '../world/dunes';
+import { GROUND_HALF, SEED, TRAIL } from '../layout';
+import { duneHeight, WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 import { loadPaintedSky } from './painted';
 import { familySand, familySky, SHADOW_HALF, type FamilySand, type FamilySky } from './families';
 import { Scope } from '@wildshard/engine/app/scope';
 import { holdSkirt } from './cube';
+import { buildTerrain } from '@wildshard/engine/world/terrainField';
+import type { Terrain } from '@wildshard/engine/world/Terrain';
+import { bindSandTiles, groundTiles } from './groundTiles';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun ~9° up in front of the spawn view,
@@ -116,6 +119,14 @@ function sandGrainTexture(): DataTexture {
   return tex;
 }
 
+/** The sand's hollow / crest tint at one vertex (round 1): its height `h` against the mean of a 14 m ring around it. */
+function sandTint(heightAt: (x: number, z: number) => number, x: number, z: number, h: number, c: Color): Color {
+  const mean = (heightAt(x + 14, z) + heightAt(x - 14, z) + heightAt(x, z + 14) + heightAt(x, z - 14)) / 4;
+  const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
+  c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.6);
+  return c;
+}
+
 /** The skirt round the painted ground: an 800 m grid, `cell` metres a quad, aligned with the ground's edge. */
 const SKIRT = { out: 520, cell: 8 } as const;
 /**
@@ -168,6 +179,35 @@ export function signalDunesLook(): LookStrategy {
   let painted: { scope: Scope; sky: FamilySky; textures: readonly Texture[] } | null = null;
   // the sand's family material once the terrain painter built it (its adapter is fed in the backdrop's update)
   let sand: FamilySand | null = null;
+  /**
+   * M3 tiles-swap (G227, E435): the same sand over the compiled shardfile terrain tiles (`look/groundTiles.ts`): the baked
+   * maps from the same 257-sample grid of the field as the code-built mesh (so the dune shadows and the trail bed are the
+   * same texels), the tiles in place of that mesh, the skirt as before, and the ground's queries and collider from the
+   * tiles' collider.
+   */
+  const buildTiledSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
+    const segments = 256, side = segments + 1, cell = (GROUND_HALF * 2) / segments, heights = new Float32Array(side * side);
+    for (let iz = 0; iz < side; iz++) for (let ix = 0; ix < side; ix++) heights[iz * side + ix] = field.heightAt(ix * cell - GROUND_HALF, iz * cell - GROUND_HALF);
+    const gridAt = (x: number, z: number): number => {
+      const fx = Math.min(segments - 1e-3, Math.max(0, (x + GROUND_HALF) / cell)), fz = Math.min(segments - 1e-3, Math.max(0, (z + GROUND_HALF) / cell));
+      const ix = Math.floor(fx), iz = Math.floor(fz), u = fx - ix, w = fz - iz, at = (a: number, b: number): number => heights[b * side + a] ?? 0;
+      return (at(ix, iz) * (1 - u) + at(ix + 1, iz) * u) * (1 - w) + (at(ix, iz + 1) * (1 - u) + at(ix + 1, iz + 1) * u) * w;
+    };
+    const shadow = bakeDuneShadow((x, z) => skirtAt(gridAt, x, z)); scope.own(shadow);
+    const trail = bakeTrail((x, z) => field.trailDistance(x, z)); scope.own(trail);
+    const grain = sandGrainTexture(); scope.own(grain);
+    const familyGround = familySand({ grain, trail, shadow }, DUSK.value, scope); sand = familyGround;
+    scope.onDispose(() => { if (sand === familyGround) sand = null; });
+    const material = familyGround.material; terrain.material = material;
+    // the skirt and the tint's ring mean read the analytic field (the code-built mesh's), never the collider the ground binds
+    const analytic = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] }), c = new Color();
+    const skirt = skirtGeometry(analytic.heightAt); scope.own(skirt);
+    const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
+    await bindSandTiles(terrain, field, material, (x, z, h, out, at) => {
+      sandTint(analytic.heightAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
+    }, scope);
+    holdSkirt(skirtMesh, (half) => skirtGeometry(analytic.heightAt, half), scope); // G99: cut back to the cube in a grid cell
+  };
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
       // round 22 (seat C after round 21: a new Fog here orphaned the one the backdrop had bound, so the update's fog edits
@@ -242,6 +282,8 @@ export function signalDunesLook(): LookStrategy {
         rebuild: () => undefined, attachPost: () => undefined };
     },
     terrainPainter: { build: (terrain, field, scope) => {
+      // M3 tiles-swap (default off: the groundTiles Developer tool, look/groundTiles.ts): the compiled shardfile tiles instead of this mesh
+      if (groundTiles()) return buildTiledSand(terrain, field, scope);
       // 256: the baked height grid's own spacing (1.95 m; round 1, R1C-5: 192 blunted the crests)
       const segments = 256, geometry = new PlaneGeometry(GROUND_HALF * 2, GROUND_HALF * 2, segments, segments); geometry.rotateX(-Math.PI / 2);
       scope.own(geometry);
@@ -260,9 +302,7 @@ export function signalDunesLook(): LookStrategy {
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), z = pos.getZ(i), h = pos.getY(i);
         // Hollow vs crest: this vertex against the mean of a 14 m ring around it.
-        const mean = (field.heightAt(x + 14, z) + field.heightAt(x - 14, z) + field.heightAt(x, z + 14) + field.heightAt(x, z - 14)) / 4;
-        const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
-        c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.6);
+        sandTint((hx, hz) => field.heightAt(hx, hz), x, z, h, c);
         colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
       }
       geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));

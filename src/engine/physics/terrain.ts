@@ -50,6 +50,20 @@ export function addTerrain(physics: Physics, grid: Float32Array = terrainGrid(),
   return collider;
 }
 
+/**
+ * Resample the terrain collider from the live heightfield (the same lattice it was built on): a level look's painter that
+ * bound its own ground after the collider was added (`Terrain.groundBound`, a grid region builds its collider first) moves
+ * the collision onto that ground. Returns false when this world has no terrain collider. Cuts made before are not replayed.
+ */
+export function resampleTerrain(physics: Physics): boolean {
+  const g = grounds.get(physics);
+  if (!g) return false;
+  const grid = terrainGrid(g.res, g.size);
+  physics.world.removeCollider(g.collider, false);
+  g.collider = buildGround(physics, grid, g.res, g.size); g.grid = grid;
+  return true;
+}
+
 /** A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`. */
 export interface TerrainCut { x: number; z: number; hw: number; hd: number; yaw: number; below: number }
 

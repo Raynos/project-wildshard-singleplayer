@@ -270,13 +270,14 @@ export function canopyChannel(positions: { readonly count: number; readonly getX
 }
 
 /** what a level look's terrain painter samples: the live heightfield (its bindings swap when the bake lands) */
-function painterField(binding: HeightfieldBinding): PainterField {
+function painterField(binding: HeightfieldBinding, onBound: () => void): PainterField {
   return {
     ready: () => loadBakedTerrain(binding),
     heightAt: (x, z) => binding.field.heightAt(x, z),
     normalAt: (x, z, eps) => binding.field.normalAt(x, z, eps),
     trails: () => binding.field.trails,
     trailDistance: (x, z) => binding.field.trailDistance(x, z),
+    bindGround: (ground) => { binding.install({ heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: binding.field.splatAt }); onBound(); },
   };
 }
 
@@ -289,6 +290,11 @@ export class Terrain {
   }
   set mesh(mesh: THREE.Mesh) { this.builtMesh = mesh; }
   material!: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
+  /**
+   * True once the look's painter bound its own sampled ground (`PainterField.bindGround`): the frame's height queries read
+   * it, so a terrain collider sampled before the painter ran must be resampled (`resampleTerrain`).
+   */
+  groundBound = false;
   /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
   applyCanopy(tex: THREE.DataTexture): void {
     if (this.builtMesh === undefined) return;
@@ -324,7 +330,7 @@ export class Terrain {
     if (ground.structures === true) return this.buildNone();
     if (painter !== undefined) {
       if (scope === undefined || scope.disposed) throw new Error('TerrainPainter.build requires a live owning level scope');
-      await painter.build(this, painterField(captured), scope);
+      await painter.build(this, painterField(captured, () => { this.groundBound = true; }), scope);
       return this;
     }
     const { assets } = binding === undefined ? activeLevel() : binding.level;
