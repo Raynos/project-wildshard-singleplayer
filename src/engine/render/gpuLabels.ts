@@ -41,6 +41,7 @@ function resolved(resource: object, label: Label): Label {
 const RENDERER_INTERNAL: Label = { owner: 'engine/renderer', asset: 'renderer-internal', priority: 0 };
 function hook(name: string): unknown { return typeof window === 'undefined' ? undefined : Reflect.get(window, name); }
 function census(): boolean { return typeof hook('__sc_label_gl') === 'function'; }
+function sampledCensus(): boolean { return hook('__sc_gl_sample_labels') === true; }
 function enabled(): boolean { return isDev() || census(); }
 function emit(name: string, resource: object, label: Label, identity?: object): void {
   if (name === '__sc_label_gl' && label.priority > 0) memoryAttribution.label(resource, label);
@@ -180,7 +181,7 @@ function tree(root: Object3D, owner: string, asset: string, priority: number): v
  * SF69: the per-render walks (the scene each render, the drawn object each draw) without the census harness are
  * amortized. A node or drawn object is (re)labelled when it is new, when its geometry / material / skeleton changed, and
  * otherwise once per refresh window, spread over the window by its id, so labels for late-loaded images and new
- * attributes still arrive within the window and no single frame re-walks the world. The census harness keeps the full
+ * attributes still arrive within the window and no single frame re-walks the world. A sampled census flushes exact labels on read; the explicit full-label harness keeps the full
  * walk on every render and draw. (Walking ~1.4 k visible nodes three times a frame with fresh strings was ≈ 40 % of the
  * desktop grid spawn's main thread, the periodic doubled frame.)
  */
@@ -254,6 +255,7 @@ function drawLabel(object: Object3D, mat: Material): Label {
   drawLabels.set(object, { owner, own, generated, label });
   return label;
 }
+const censusFlushers = new WeakMap<Renderer, () => void>();
 /** Bridge Three resource identity to native uploads for the debugger and the independent census harness. */
 export function installGpuLabels(renderer: Renderer, developer: () => boolean = isDev): void {
   // Bone textures are allocated inside Three after the scene walk, including one-shot warm draws and pooled rigs.
@@ -268,10 +270,33 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
       return this;
     };
   }
+  // Both directions are weak: neither the harness nor this registry keeps retired scenes/renderers alive.
+  const sceneRefs = new Set<WeakRef<Object3D>>(), sceneSeen = new WeakSet<Object3D>();
+  const resourceRefs = new Set<WeakRef<object>>(), resourceSeen = new WeakSet();
+  const sampled = sampledCensus();
+  const flush = (): void => {
+    for (const weak of sceneRefs) {
+      const scene = weak.deref();
+      if (scene === undefined) sceneRefs.delete(weak);
+      else tree(scene, 'engine/scene', `generated/${scene.name || scene.type}`, 1);
+    }
+    // The full walk can improve a texture label after its GL handle already exists.
+    for (const weak of resourceRefs) {
+      const resource = weak.deref();
+      if (resource === undefined) resourceRefs.delete(weak);
+      else if (renderer.properties.has(resource)) renderer.properties.get(resource);
+    }
+  };
+  const register = hook('__sc_gl_register_labels');
+  if (sampled && typeof register === 'function') {
+    censusFlushers.set(renderer, flush);
+    Reflect.apply(register, window, [flush]);
+  }
   const proxies = new WeakMap<object, object>();
   const tags = new WeakMap<object, { owner: string; base: string; priority: number }>();
   const get = renderer.properties.get.bind(renderer.properties);
   renderer.properties.get = (resource) => {
+    if (sampled && resource !== null && typeof resource === 'object' && !resourceSeen.has(resource)) { resourceSeen.add(resource); resourceRefs.add(new WeakRef(resource)); }
     if (isTarget(resource)) {
       const label = resourceLabel(resource);
       remember(resource.texture, derive(label, 'color'));
@@ -286,7 +311,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
       // SF69: outside the census, a handle already tagged with this label is not re-tagged on every property read
       const last = tags.get(value);
       const same = last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority;
-      if (same && !census()) return;
+      if (same && (!census() || sampledCensus())) return;
       if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
       emit('__sc_label_gl', value, derive(label, role));
     };
@@ -318,9 +343,11 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     if (typeof original !== 'function') continue;
     Reflect.set(renderer, method, function labelledRender(this: Renderer, ...args: unknown[]): unknown {
       generation++;
-      if ((developer() || census()) && isObject(args[0])) {
-        if (census()) tree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
-        else amortizedTree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
+      const scene = args[0];
+      if ((developer() || census()) && isObject(scene)) {
+        if (sampled && !sceneSeen.has(scene)) { sceneSeen.add(scene); sceneRefs.add(new WeakRef(scene)); }
+        if (census() && !sampledCensus()) tree(scene, 'engine/scene', `generated/${scene.name || scene.type}`, 1);
+        else amortizedTree(scene, 'engine/scene', `generated/${scene.name || scene.type}`, 1);
       }
       const result: unknown = Reflect.apply(original, this, args);
       return result;
@@ -331,7 +358,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     // keyed on the object's own material (an array for multi-material meshes), not the group's: a per-group key flipped on
     // every draw of a multi-material mesh and re-marked it each time (SF69: ~1.2 MB / frame)
     const own: unknown = Reflect.get(object, 'material');
-    if (!census() && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
+    if ((!census() || sampledCensus()) && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
     const label = drawLabel(object, mat);
     markGeometry(geo, label); markMaterial(mat, label);
     if (Array.isArray(own)) for (const m of own as readonly unknown[]) if (isMaterial(m) && m !== mat) markMaterial(m, label);

@@ -187,3 +187,18 @@ it('retires probe allocations on delivered loss without wrapping native extensio
   expect(rows[0]?.totalBytes).toBe(0);
   expect(rows[0]?.resources).toEqual([]);
 });
+
+it('flushes sampled source labels before returning exactly the existing allocation fields', () => {
+  const rows = census(`
+    const b = gl.createBuffer(), vertices = new Float32Array(9);
+    gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,vertices,0x88e4);
+    let calls = 0;
+    const flush = () => { calls++; window.__sc_label_source(vertices,'late-owner','late/position'); };
+    window.__sc_gl_register_labels(flush);
+    const row = window.__sc_gl()[0].resources[0];
+    if(calls!==1 || row.asset!=='late/position' || row.bytes!==36) throw Error('Census did not flush labels');
+    if(window.__sc_gl_sample_labels!==true) throw Error('Default observer is not sampled');
+  `);
+  expect(rows[0]?.totalBytes).toBe(36);
+  expect(rows[0]?.unlabelled).toBe(0);
+});

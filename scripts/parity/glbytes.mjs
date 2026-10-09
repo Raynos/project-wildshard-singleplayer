@@ -1,6 +1,11 @@
 // SF22b: WebGL allocation census installed before page scripts. Engine creation/upload labels are optional hooks.
 export const GL_INIT = String.raw`(() => { const W = window;
   if (W.__sc_gl) return;
+  // Storage mutations stay exact. Scene labels are flushed only when a reader asks for a census.
+  W.__sc_gl_sample_labels = W.__sc_gl_full_labels !== true;
+  const samplers = new Set();
+  W.__sc_gl_register_labels = (flush) => { samplers.add(new WeakRef(flush)); };
+  const sampleLabels = () => { for (const weak of samplers) { const flush=weak.deref(); if(flush)flush(); else samplers.delete(weak); } };
   const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap(), storage = new WeakMap();
   let scope = null, sequence = 0, operation = null;
   const object = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
@@ -124,7 +129,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   };
   hook(W.WebGL2RenderingContext && W.WebGL2RenderingContext.prototype);
   hook(W.WebGLRenderingContext && W.WebGLRenderingContext.prototype);
-  W.__sc_gl = () => { for (const r of recs) if(r.gl.isContextLost())retire(r.gl); return recs.filter((r) => !r.gl.isContextLost()).map((r) => {
+  W.__sc_gl = () => { sampleLabels(); for (const r of recs) if(r.gl.isContextLost())retire(r.gl); return recs.filter((r) => !r.gl.isContextLost()).map((r) => {
     let tex = 0, levels = 0; const per = [], resources = [];
     for (const [resource, e] of r.tex) { let b = 0, l0 = null; for (const [k, i] of e) { b += i.bytes; levels++; if (k === 0) l0 = i; } tex += b; per.push([b, l0 ? l0.w + 'x' + l0.h + (l0.d > 1 ? 'x' + l0.d : '') : '?', l0 ? '0x' + l0.ifmt.toString(16) : '?', e.size]); resources.push({ ...entry(resource, 'texture', b), subresources: [...e].map(([key, info]) => ({ face: Math.floor(key / 64), level: key % 64, ...info })) }); }
     per.sort((a, b) => b[0] - a[0]);
@@ -134,3 +139,6 @@ export const GL_INIT = String.raw`(() => { const W = window;
     const c = r.gl.canvas; return { resources, totalBytes, listedBytes, reconciled: listedBytes === totalBytes, unlabelled: resources.filter((row) => !row.labelled).length, gl: r.gl, canvas: c ? [c.width, c.height] : null, texBytes: tex, textures: r.tex.size, levels, top: per.slice(0, 12), rbBytes: rb, bufBytes: buf, buffers: r.buf.size, compressedUploads: r.compressed };
   }); };
 })();`;
+
+/** Explicit hot-path diagnostic mode; frame floors never select it. */
+export const GL_FULL_INIT = ['window.__sc_gl_full_labels=true;', GL_INIT].join('');

@@ -5,17 +5,19 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { chromium, devices } from 'playwright';
-import { GL_INIT } from './glbytes.mjs';
+import { GL_INIT, GL_FULL_INIT } from './glbytes.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 
-const [url, output, shard = 'pine-hollow', tier = 'phone'] = process.argv.slice(2);
+const labelMode = process.argv.find(arg => arg.startsWith('--gl-labels='))?.slice(12) ?? 'sampled';
+if (!['sampled', 'full'].includes(labelMode)) throw new Error('GL labels must be sampled or full');
+const [url, output, shard = 'pine-hollow', tier = 'phone'] = process.argv.slice(2).filter(arg => !arg.startsWith('--gl-labels='));
 if (!url || !output || !['phone', 'desktop'].includes(tier)) throw new Error('Usage: glbytes-probe.mjs <preview-url> <output.json> [shard] [phone|desktop]');
 const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(tier === 'phone'
     ? { ...devices['iPhone 16 Pro'], serviceWorkers: 'block' }
     : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
-  await context.addInitScript(GL_INIT);
+  await context.addInitScript(labelMode === 'full' ? GL_FULL_INIT : GL_INIT);
   await context.addInitScript([
     saveFixtureCode({ scope: 'global', key: 'settings', data: { tier, fps: 'auto' }, merge: true }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
@@ -58,7 +60,7 @@ try {
       renderScale:g.renderer.getPixelRatio(),canvas:[g.canvas.width,g.canvas.height],viewport:[innerWidth,innerHeight],
       renderer:g.renderer.getContext().getParameter(g.renderer.getContext().RENDERER)};
   })()`));
-  const record = { version, shard, tier, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
+  const record = { version, shard, tier, labelMode, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);
   console.log(`${shard}.${tier}: ${observed.contexts.reduce((sum, c) => sum + c.resources.length, 0)} resources, ${observed.totalBytes} bytes (${(observed.totalBytes / 2 ** 20).toFixed(2)} MiB), ${observed.unlabelled} unlabelled, reconciled=${observed.reconciled}`);
