@@ -29,6 +29,10 @@ if [ -f "$repo/lint/ratchet.mjs" ]; then
   # the ratchet reads both oxlint configs and (since E362 AG16/17) scripts/guard-counts.mjs; archive only what HEAD has
   paths="src lint .oxlintrc.ratchet.json package.json"
   for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/legacy-shards.mjs; do git -C "$repo" cat-file -e "HEAD:$extra" 2>/dev/null && paths="$paths $extra"; done
+  # SF74: a commit that changed none of the ratchet's inputs cannot move it; skip the export (~24 s of every docs,
+  # test, script or asset commit, 2026-10-09). A commit that touches them is still measured.
+  # shellcheck disable=SC2086 # word-split on purpose: a list of literal paths
+  if git -C "$repo" rev-parse -q --verify HEAD^ >/dev/null && git -C "$repo" diff --quiet HEAD^ HEAD -- $paths; then rm -rf "$tmp"; exit 0; fi
   # shellcheck disable=SC2086 # word-split on purpose: a list of literal paths
   git -C "$repo" archive HEAD -- $paths | tar -x -C "$tmp" 2>/dev/null
   node "$repo/scripts/link-node-modules.mjs" "$repo" "$tmp" # E432: @wildshard/* resolve to this export, not the working tree
