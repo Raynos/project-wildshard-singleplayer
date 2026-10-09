@@ -2520,7 +2520,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-241 exports, grouped by the module to import them from.
+248 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2550,6 +2550,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/grazers`: `challengeGrazer`, `ChallengeGrazerData`, `ramGrazer`, `RamGrazerData`
 - `@wildshard/sdk/groupBrains`: `groupBrain`, `GroupBrainData`
 - `@wildshard/sdk/headless`: `HeadlessSimulation`, `measureSimulation`, `SimulationObservations`, `validateSimulation`
+- `@wildshard/sdk/headlessRuntime`: `createTrustedHeadlessAdapter`, `HeadlessRuntimeInstallation`, `HeadlessRuntimePlan`, `HeadlessRuntimePreparation`, `PrepareHeadlessRuntime`, `trustedHeadlessModule`, `TrustedHeadlessRuntime`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/sdk/meshCollision`: `meshCollision`, `MeshCollisionData`
 - `@wildshard/sdk/migrations`: `DeclaredMigrations`, `MigrationsSchema`, `parseMigrations`

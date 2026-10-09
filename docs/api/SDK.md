@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-247 members; 0 without a doc line (—).
+254 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -122,6 +122,13 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `measureSimulation` | function | @wildshard/sdk/headless | Build report observations stop at 60 ticks; they never run the expensive entry walk reserved for validate. |
 | `SimulationObservations` | interface | @wildshard/sdk/headless | A fixed 60-tick offline observation; scripts exclude native physics, checkpoints and IPC. |
 | `validateSimulation` | function | @wildshard/sdk/headless | Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker. |
+| `createTrustedHeadlessAdapter` | function | @wildshard/sdk/headlessRuntime | Worker-side composition only: owns one real SimHost, its native continuation and its scoped installers. |
+| `HeadlessRuntimeInstallation` | interface | @wildshard/sdk/headlessRuntime | Current tick inputs and buffered effects; only a completed tick publishes them to the parent. |
+| `HeadlessRuntimePlan` | interface | @wildshard/sdk/headlessRuntime | A renderer-free native runtime. Install is synchronous and registers every mutable controller via host.onStep. |
+| `HeadlessRuntimePreparation` | interface | @wildshard/sdk/headlessRuntime | The same admitted bytes and native physics implementation used by the ordinary headless worker. |
+| `PrepareHeadlessRuntime` | type | @wildshard/sdk/headlessRuntime | Export this named factory from the explicitly selected trusted entry. No browser globals or renderer imports. |
+| `trustedHeadlessModule` | function | @wildshard/sdk/headlessRuntime | Restrict trusted code selection to a concrete local ESM entry; data-only clients never invoke this path. |
+| `TrustedHeadlessRuntime` | interface | @wildshard/sdk/headlessRuntime | Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |
