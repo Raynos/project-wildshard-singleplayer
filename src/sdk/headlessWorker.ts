@@ -10,7 +10,7 @@ import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '
 import type { SimCommand } from '@wildshard/engine/sim';
 import { parseShardfile } from './shardfile';
 import { runTickWorker } from './tickWorkerLoop';
-import type { HeadlessEffect } from './tickProtocol';
+import { simPlayerCommand, type HeadlessEffect } from './tickProtocol';
 
 await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()), trustedRuntime: v.exactOptional(v.strictObject({ module: v.string() })) }), raw);
@@ -44,7 +44,7 @@ await runTickWorker(async raw => {
     step: input => {
       scriptMicros = 0; effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
       for (const command of input) {
-        if (command.kind === 'player') player = { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw, ...(command.attack === undefined ? {} : { attack: command.attack }), ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }), ...(command.dodge === undefined ? {} : { dodge: command.dodge }) };
+        if (command.kind === 'player') player = simPlayerCommand(command);
         else if (command.kind === 'script') {
           if (!sim.actors.has(command.actorId)) throw new Error('Unknown command actor'); numeric.set(command.actorId, command.value);
         } else { if (sim.lane === undefined) throw new Error('Event requires a script lane'); sim.lane.enqueue({ type: command.type, target: command.target, value: command.value }); }

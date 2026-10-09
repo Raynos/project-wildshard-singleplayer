@@ -1855,6 +1855,24 @@ defines the heightfield, player, creature identities, strike timings and quests.
 60 Hz tick; `advance(seconds, command)` retains its fixed-step accumulator. Each host owns its physics,
 clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
 `onStep(id, run, adapter?, phase?)` registers scoped per-instance behaviour with optional continuation state.
+`usePlayerDriver({ input, step })` binds one scoped motion law to an owned host with a player motor.
+`input(command, dt, host)` runs before the one native physics step; true delegates the player to
+`step(dt, host)` after physics, skipping the ordinary walk/board/dodge/jump. False runs the ordinary
+motion unchanged. Creature systems, health and fixed-post events still advance exactly once. Borrowed,
+frozen, disposed and duplicate bindings refuse; the returned remover releases the binding early.
+The installer registers its mutable clocks/native handles through a `SimStateAdapter` and reinstalls
+both before restore; `physicsRestored` reconnects its handles after the native world is replaced.
+An absent driver adds no continuation fields and preserves the original snapshot bytes.
+
+**Command version 1.** Optional `steer: {keyX, keyY, stickX, stickY}` preserves raw local
+keyboard/semantic direction and stick strength separately; optional `sprint` / `crouch` are held
+booleans. Any of those fields requires `commandVersion: 1`; finite axes lie in [-1, 1]. Old commands
+omit all four fields and keep their original bytes and motion. `Player.sampleSteer()` reads the
+same semantic directions and touch stick, without combining or normalizing them;
+`sampleCommand(1)` opts a recorder into that detached sample. The ordinary no-argument sample
+is unchanged. SDK tick admission validates the version before any step, and `simPlayerCommand`
+forwards the detached fields to both ordinary and trusted native workers. Alternative motion
+drivers consume the raw fields; their presence alone does not change the default motion law.
 The default `beforeBodies` phase preserves existing fixed-step order; `afterBodies` runs after every creature
 body and its contact hook, for equipment that follows the creature loop. `useBodyStep({ before, after })`
 wraps each actual body step once, in actor order; paused bodies run neither hook. Installation and restore

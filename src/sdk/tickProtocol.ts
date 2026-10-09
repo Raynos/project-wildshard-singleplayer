@@ -1,3 +1,4 @@
+import type { SimCommand } from '@wildshard/engine/sim';
 import * as v from 'valibot';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -9,13 +10,26 @@ export const TickCommandSchema = v.variant('kind', [
   // tick (the touch ATTACK hold, the desktop latch), aimed at `targetId` when the crosshair is on one; the first tick
   // without it releases. The runtime's weapon reads it with its own law (SweptMeleeCore.step's `held`; a hold-to-release
   // weapon's charge); SimHost has no heavy of its own.
-  v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), hover: v.optional(v.literal(true)),
-    jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })) }),
+  v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), hover: v.optional(v.literal(true)),
+    jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })),
+    commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
+      stickX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), stickY: v.pipe(finite, v.minValue(-1), v.maxValue(1)) })), sprint: v.exactOptional(v.boolean()), crouch: v.exactOptional(v.boolean()) }),
+    v.check(command => command.commandVersion === 1 || (command.steer === undefined && command.sprint === undefined && command.crouch === undefined), 'Raw movement requires commandVersion 1')),
   v.strictObject({ kind: v.literal('script'), actorId: text, value: finite }),
   v.strictObject({ kind: v.literal('event'), type: natural, target: natural, value: finite }),
 ]);
 /** A detached input admitted before the fixed tick; every source shares the shard's one command allowance. */
 export type HeadlessCommand = v.InferOutput<typeof TickCommandSchema>;
+/** The same detached player command for both native worker paths; absent optional fields stay absent. */
+export function simPlayerCommand(command: Extract<HeadlessCommand, { kind: 'player' }>): SimCommand {
+  return { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw,
+    ...(command.attack === undefined ? {} : { attack: { ...command.attack } }),
+    ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }),
+    ...(command.dodge === undefined ? {} : { dodge: command.dodge }),
+    ...(command.commandVersion === undefined ? {} : { commandVersion: command.commandVersion }),
+    ...(command.steer === undefined ? {} : { steer: { ...command.steer } }),
+    ...(command.sprint === undefined ? {} : { sprint: command.sprint }), ...(command.crouch === undefined ? {} : { crouch: command.crouch }) };
+}
 /** Command provenance is retained for auditing; splitting a batch never grants another allowance. */
 export interface HeadlessCommandSource { source: string; commands: readonly HeadlessCommand[] }
 export const TickEffectSchema = v.variant('kind', [

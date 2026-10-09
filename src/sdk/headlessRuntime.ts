@@ -2,7 +2,7 @@ import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
-import type { HeadlessCommand, HeadlessEffect } from './tickProtocol';
+import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 
 /** Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL. */
@@ -91,7 +91,7 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     step: input => {
       lend(input);
       let player: Parameters<SimHost['step']>[0];
-      for (const command of input) if (command.kind === 'player') player = { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw, ...(command.attack === undefined ? {} : { attack: command.attack }), ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }), ...(command.dodge === undefined ? {} : { dodge: command.dodge }) };
+      for (const command of input) if (command.kind === 'player') player = simPlayerCommand(command);
       host.step(player);
       if (![host.player.position, ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
     },

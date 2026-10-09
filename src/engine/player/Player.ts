@@ -1,6 +1,6 @@
 import { hoverSpeed } from './hoverSpeed';
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardStepOut } from './board';
-import type { AimCommand, PlayerCommand } from '../input/commands';
+import type { AimCommand, PlayerCommand, LocalSteer } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
 import { dodgeFx, dodgeEnv } from './dodge';
@@ -425,8 +425,16 @@ export class Player {
       direction: { x: -Math.sin(this.yaw) * cos, y: Math.sin(this.pitch), z: -Math.cos(this.yaw) * cos } };
   }
 
-  /** Device edge. The motor never reads keys, touch state or the input service. */
-  sampleCommand(): PlayerCommand {
+  /** Raw local directions from the same controls as movement, without summing keyboard and analog strengths. */
+  sampleSteer(): LocalSteer {
+    const input = this.inputService, keys = this.keys;
+    const held = (action: 'move.forward' | 'move.back' | 'move.left' | 'move.right', key: string): number =>
+      Number(input === null ? keys.has(key) : input.held(action));
+    return { keyX: held('move.right', 'KeyD') - held('move.left', 'KeyA'), keyY: held('move.forward', 'KeyW') - held('move.back', 'KeyS'),
+      stickX: this.touchMove.x, stickY: this.touchMove.y };
+  }
+  /** Device edge. Version 1 adds detached raw steering; ordinary recordings keep their original shape. */
+  sampleCommand(commandVersion?: 1): PlayerCommand {
     const input = this.inputService, k = this.keys;
     return {
       moveX: this.inStr, moveY: this.inFwd, yaw: this.yaw, pitch: this.pitch,
@@ -436,6 +444,7 @@ export class Player {
       dodge: (input?.pressed('dodge') ?? false) || this.dodgeQueued,
       dive: (input?.held('dive') ?? k.has('Space')) || this.touchDive,
       surface: (input?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface,
+      ...(commandVersion === 1 ? { commandVersion, steer: this.sampleSteer() } : {}),
     };
   }
 

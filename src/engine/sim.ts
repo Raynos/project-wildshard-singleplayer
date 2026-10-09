@@ -1,3 +1,4 @@
+import { validateLocalMovement, type LocalMovementCommand } from './input/commands';
 import { Vector3 } from 'three';
 import { Scope } from './app/scope';
 import { withOwner } from './app/ownership';
@@ -58,7 +59,7 @@ export interface SimLevel {
   day?: { start: number };
 }
 /** Resolved world-space movement and an optional targeted attack for one fixed tick. */
-export interface SimCommand {
+export interface SimCommand extends LocalMovementCommand {
   moveX: number; moveZ: number; yaw: number; attack?: { targetId: string };
   /** The HOVER press this tick (SF72): steps on or off the hoverboard, as the client's `hover` action toggles
    * `Player.setHover(!hover)`. A press, not a held state: `advance`, which repeats its command, refuses it. */
@@ -69,6 +70,13 @@ export interface SimCommand {
   /** The DODGE press this tick (SF72): the client Player's dodge (player/dash.ts) toward this command's move, a backstep
    * with none; refused on its 0.8 s cooldown and on the board. A press: `advance` refuses it. */
   dodge?: true;
+}
+/** One owned host's alternative player-motion law, without changing its single physics/system authority.
+ * Input runs before physics and returns true only while it owns motion; step then runs after physics instead of the
+ * ordinary walk/board/dodge/jump. False retains that ordinary law. Register mutable state through a SimStateAdapter. */
+export interface SimPlayerDriver {
+  input: (command: Readonly<SimCommand> | undefined, dt: number, host: SimHost) => boolean;
+  step: (dt: number, host: SimHost) => void;
 }
 /** Each future brain/script instance registers its own continuation state, never a process singleton. */
 export interface SimStateAdapter {
@@ -137,6 +145,7 @@ export class SimHost {
   readonly combat: CombatPipeline;
   physics: Physics;
   readonly player: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
+  private playerDriver: SimPlayerDriver | undefined;
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly afterCallbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly weapons = new Map<string, StrikeSpec>();
@@ -320,6 +329,20 @@ export class SimHost {
   useBodyStep(hooks: SimBodyStep): void {
     if (this.disposed || this.bodyStep !== undefined) throw new Error('Body step hooks belong to one installer, once');
     this.bodyStep = hooks;
+  }
+  /** Bind one active player-motion driver to this owned host. Borrowed, frozen and disposed hosts refuse; the returned
+   * remover releases the scope's reference early. Reinstall alongside its continuation adapter before native restore. */
+  usePlayerDriver(driver: SimPlayerDriver): () => void {
+    if (this.disposed || this.embedded || !this.ownsPlayer || !this.hasPlayerMotor || this.playerDriver !== undefined) throw new Error('Player driver belongs to one owned active host');
+    this.playerDriver = driver;
+    let installed = true;
+    let forget: () => void = () => undefined;
+    const remove = (): void => {
+      if (!installed) return;
+      installed = false; forget();
+      if (this.playerDriver === driver) this.playerDriver = undefined;
+    };
+    forget = this.scope.capture('disposers', remove); return remove;
   }
   /** Whether the host runs on body bands, and with the physics body LOD. */
   get bodyBands(): { physics: boolean } | undefined { return this.bands === undefined ? undefined : { physics: this.bands.physics }; }
@@ -557,56 +580,66 @@ export class SimHost {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!this.hasPlayerMotor) throw new Error('Frozen simulation cannot step');
-    if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+    if (command !== undefined) {
+      if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+      validateLocalMovement(command);
+    }
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
-    // the HOVER press lands in the input phase, the board-only colliders sync in the fixed pre phase (the client's movers)
-    if (command?.hover === true) this.setBoard(!this.playerBoard.on);
+    const driver = this.playerDriver, delegated = driver?.input(command, FIXED_STEP, this) === true;
+    // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
+    if (!delegated && command?.hover === true) this.setBoard(!this.playerBoard.on);
     if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
-    const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall, knocked = this.playerShove, dash = this.playerDash, dodge = this.playerDodge;
-    // the DODGE press, then the dodge clocks, as the client Player's step; the board ends a dash
-    if (command?.dodge === true) this.dodgePlayer(command);
-    if (dodge.cd > 0 || dodge.t > 0) stepDodge(dodge, dash.t > 0, FIXED_STEP);
-    if (this.playerBoard.on) { dash.t = 0; this.stepBoardPlayer(command); }
-    else if (command !== undefined || shoved || knocked.t > 0 || dash.t > 0 || !fall.grounded || fall.vy !== 0) {
-      if (command === undefined) this.wanted.set(0, 0, 0);
-      else {
-        this.player.yaw = command.yaw;
-        this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
-      }
-      if (knocked.t > 0) {
-        // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
-        const k = stepShove(knocked, FIXED_STEP);
-        this.wanted.x = knocked.vx * k * FIXED_STEP; this.wanted.z = knocked.vz * k * FIXED_STEP;
-      } else if (dash.t > 0) {
-        // a dash (dodge / lunge) overrides the walk; its last step brakes; the headless world has no deep water to stop it
-        stepDash(dash, FIXED_STEP, this.player.position.x, this.player.position.z, () => false, this.dashVelocity);
-        this.wanted.x = this.dashVelocity.x * FIXED_STEP; this.wanted.z = this.dashVelocity.z * FIXED_STEP;
-      }
-      if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
-      // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
-      // Walking on the ground (grounded, no vertical speed, a sideways move) the step adds no downward push: the motor's
-      // snap-to-ground holds the feet as the client's one-tick push does, without snagging on a collider seam; the tick
-      // the motor loses the ground takes that tick's gravity, so the fall speed runs exactly the client's from there.
-      // the jump (player/jump.ts) on last step's ground, before the step's gravity, as the client Player's walk
-      if (this.playerJump !== null) jumpClock(this.playerJump, fall.grounded, FIXED_STEP);
-      if (command?.jump === true) {
-        this.playerJump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
-        const vy = jumpLaw(this.playerJump, fall.grounded, fall.vy, COYOTE_MS, false, JUMP_SPEED);
-        if (vy !== null) { fall.vy = vy; fall.grounded = false; this.events.emit('player.jump', true); }
-      }
-      const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
-      if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
-      this.wanted.y += fall.vy * FIXED_STEP;
-      const moved = this.player.motor.move(this.player.position, this.wanted);
-      dashBlocked(dash, moved.horizontalFreedom, this.dashVelocity); // a dash that runs into a wall ends there
-      if (moved.grounded) {
-        // touching down from the air: a hard landing files the client's fall hit (PlayerHurt.fall); the headless ground is dry
-        if (!fall.grounded && hardLanding(fall.vy, 0)) this.combat.hit(hardFallHit(this.player.health, this.player.position));
-        fall.vy = groundedVelocity(fall.vy);
-      } else if (standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
-      fall.grounded = moved.grounded;
+    if (delegated) {
+      driver.step(FIXED_STEP, this);
       if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
+    }
+    else {
+      const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall, knocked = this.playerShove, dash = this.playerDash, dodge = this.playerDodge;
+      // the DODGE press, then the dodge clocks, as the client Player's step; the board ends a dash
+      if (command?.dodge === true) this.dodgePlayer(command);
+      if (dodge.cd > 0 || dodge.t > 0) stepDodge(dodge, dash.t > 0, FIXED_STEP);
+      if (this.playerBoard.on) { dash.t = 0; this.stepBoardPlayer(command); }
+      else if (command !== undefined || shoved || knocked.t > 0 || dash.t > 0 || !fall.grounded || fall.vy !== 0) {
+        if (command === undefined) this.wanted.set(0, 0, 0);
+        else {
+          this.player.yaw = command.yaw;
+          this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
+        }
+        if (knocked.t > 0) {
+          // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
+          const k = stepShove(knocked, FIXED_STEP);
+          this.wanted.x = knocked.vx * k * FIXED_STEP; this.wanted.z = knocked.vz * k * FIXED_STEP;
+        } else if (dash.t > 0) {
+          // a dash (dodge / lunge) overrides the walk; its last step brakes; the headless world has no deep water to stop it
+          stepDash(dash, FIXED_STEP, this.player.position.x, this.player.position.z, () => false, this.dashVelocity);
+          this.wanted.x = this.dashVelocity.x * FIXED_STEP; this.wanted.z = this.dashVelocity.z * FIXED_STEP;
+        }
+        if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
+        // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
+        // Walking on the ground (grounded, no vertical speed, a sideways move) the step adds no downward push: the motor's
+        // snap-to-ground holds the feet as the client's one-tick push does, without snagging on a collider seam; the tick
+        // the motor loses the ground takes that tick's gravity, so the fall speed runs exactly the client's from there.
+        // the jump (player/jump.ts) on last step's ground, before the step's gravity, as the client Player's walk
+        if (this.playerJump !== null) jumpClock(this.playerJump, fall.grounded, FIXED_STEP);
+        if (command?.jump === true) {
+          this.playerJump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
+          const vy = jumpLaw(this.playerJump, fall.grounded, fall.vy, COYOTE_MS, false, JUMP_SPEED);
+          if (vy !== null) { fall.vy = vy; fall.grounded = false; this.events.emit('player.jump', true); }
+        }
+        const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
+        if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
+        this.wanted.y += fall.vy * FIXED_STEP;
+        const moved = this.player.motor.move(this.player.position, this.wanted);
+        dashBlocked(dash, moved.horizontalFreedom, this.dashVelocity); // a dash that runs into a wall ends there
+        if (moved.grounded) {
+          // touching down from the air: a hard landing files the client's fall hit (PlayerHurt.fall); the headless ground is dry
+          if (!fall.grounded && hardLanding(fall.vy, 0)) this.combat.hit(hardFallHit(this.player.health, this.player.position));
+          fall.vy = groundedVelocity(fall.vy);
+        } else if (standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
+        fall.grounded = moved.grounded;
+        if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
+      }
     }
     this.stepSystems();
     this.player.health.update(FIXED_STEP); this.events.flush('fixed.post');
@@ -639,7 +672,10 @@ export class SimHost {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Invalid simulation delta');
-    if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+    if (command !== undefined) {
+      if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+      validateLocalMovement(command);
+    }
     if (command?.hover !== undefined || command?.jump !== undefined || command?.dodge !== undefined) throw new RangeError('A HOVER, JUMP or DODGE press is one tick\'s input; advance repeats its command');
     this.state.accumulator += seconds; let ticks = 0;
     while (this.state.accumulator + Number.EPSILON >= FIXED_STEP) { this.state.accumulator -= FIXED_STEP; this.step(command); ticks++; }
