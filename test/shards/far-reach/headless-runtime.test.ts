@@ -24,6 +24,7 @@ import { PHASES } from '../../../src/shards/far-reach/runtime/rocEncounter';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
 import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/headless';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
@@ -120,12 +121,12 @@ it('restores before and after the goats land, mid-fight, exactly, reinstalling t
       for (let tick = 0; tick < checkpoint; tick++) step(original);
       const saved = serializeSimSnapshot(snapshotSimHost(original));
       restored = restore(saved);
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       for (let tick = 0; tick < 900; tick++) {
         if (tick === 120) { kill(original, 'far.ray.0'); kill(restored, 'far.ray.0'); }
         step(original); step(restored);
       }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === FLOCK_STEP)).toBe(true);
     } finally { restored?.dispose(); original.dispose(); }
   }
@@ -222,7 +223,7 @@ it('restores the Roc encounter mid-fight exactly, its victory paying once on the
       restored = restore(serializeSimSnapshot(snapshotSimHost(original)), fed(resumed));
       const paid = paidOriginal.length;
       for (let tick = checkpoint; tick < checkpoint + 3000; tick++) { crownFight(original, tick); crownFight(restored, tick); }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       expect(resumed).toEqual(paidOriginal.slice(paid));
     } finally { restored?.dispose(); original.dispose(); }
   }
@@ -286,7 +287,7 @@ it('restores the fan\'s cooldowns exactly', () => {
       const commands: HeadlessCommand[] = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'far.goat.0' } }];
       run(original, commands); run(restored, commands);
     }
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { restored?.dispose(); original.dispose(); }
 });
 

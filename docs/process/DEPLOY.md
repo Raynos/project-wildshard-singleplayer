@@ -10,10 +10,22 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup. No credentials belong in Git.
-- **Push / PR CI runs vitest once, in 3 parallel shard jobs** (E429): `build-and-deploy` runs typecheck, lint,
-  `pnpm run test:checks` (the node checks of `pnpm test`) and the builds; `vitest` (matrix 1–3) runs
-  `vitest run --shard=i/3 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs` (the same numbers
+- **Push / PR CI runs vitest once, in 6 parallel shard jobs** (E429): `build-and-deploy` runs typecheck, lint,
+  `pnpm run test:checks` (the node checks of `pnpm test`) and the builds; `vitest` (matrix 1–6) runs
+  `vitest run --shard=i/6 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs` (the same numbers
   as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. Releases keep the plain `pnpm test`.
+- **CI's vitest is Linux x64 under coverage: other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
+  red for hours on both):
+  - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /
+    asin / pow`, or `**` with a non-integer exponent): they round differently on arm64 and x64. Install
+    `test/fake/portableMath.ts` for the file (`installPortableMath()`), keep its terrain analytic, and check the digest
+    under x64 Node too (Rosetta: nodejs.org's darwin-x64 build, `NAPI_RS_NATIVE_LIBRARY_PATH` pointing at
+    `@rolldown/binding-darwin-x64`). Comparing two runs inside one process needs none of this.
+  - **Headless suites' budget:** a test's local time under `--coverage` stays under a third of its timeout. A restore
+    checkpoint costs 10–20 s under coverage (the string round trip of the native world), so: one checkpoint per test
+    (`it.each`), one string round trip per checkpoint, continuations compared with `expectSameSimSnapshot`
+    (`test/fake/simSnapshot.ts`), never `toEqual` on whole snapshots nor serialising both sides to compare. A walk tape
+    is at most 10k ticks per test, with a 60 s budget.
 - **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
   Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every second hour and dispatches
   the deploy when no scheduled run started in the last 119 minutes. `scripts/deploy-backstop/install.sh` (re)installs

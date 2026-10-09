@@ -21,6 +21,7 @@ import { DRIFTWOOD_FIGHT, FAUNA_DRAWS, ISLAND_STEP } from '../../../src/shards/d
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
 import { prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
@@ -96,7 +97,7 @@ it('stands the player on the baked floor and the pier: 10k ticks of walking stay
     expect(p.y).toBeGreaterThan(bake.floorAt(p.x, p.z) - 0.2); expect(Math.hypot(p.x, p.z + 194)).toBeGreaterThan(60); // off the pier, up the path
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
   } finally { host.dispose(); }
-});
+}, 60_000);
 
 it('brings the practice crab back 45 s after it dies once the player is 30 m off, after its shell fades, as a fresh body', () => {
   const host = boot();
@@ -167,7 +168,7 @@ it('runs the fauna through the hunting brain: wander paths on the baked navmesh,
     try {
       const away = (h: SimHost): void => { const p = h.player.position; h.step({ moveX: -p.x / Math.hypot(p.x, p.z), moveZ: -p.z / Math.hypot(p.x, p.z), yaw: 0 }); };
       for (let tick = 0; tick < 900; tick++) { away(host); away(restored); }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(host)));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     } finally { restored.dispose(); }
   } finally { host.dispose(); }
 }, 90_000);
@@ -187,41 +188,42 @@ it('releases a real coconut on a monkey\'s throw: it flies in the host\'s world,
     for (let tick = 0; tick < 5; tick++) original.step({ moveX: 0, moveZ: 0, yaw: 0 });
     expect(dynamic(original)).toBeGreaterThan(0);
     restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     for (let tick = 0; tick < 1500; tick++) {
       original.step({ moveX: 0, moveZ: 0, yaw: 0 }); restored.step({ moveX: 0, moveZ: 0, yaw: 0 });
       most = Math.max(most, dynamic(original));
     }
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     expect(hits).toBeGreaterThan(0); expect(most).toBeGreaterThan(1); expect(most).toBeLessThanOrEqual(16);
   } finally { restored?.dispose(); original.dispose(); }
 }, 90_000);
 
-it('restores exactly at install, mid-walk and after a practice crab came back, reinstalling the saved roster before restore', () => {
-  const checkpoint = (host: SimHost, at: number): void => {
-    for (let tick = host.state.tick; tick < at; tick++) {
-      if (tick === 100) kill(host, bake.habitat.practice);
-      if (tick === 400) kill(host, 'creature:13');
-      if (tick === 600) { const away = new Vector3(-7, bake.floorAt(-7, -100) + 0.5, -100); host.player.motor.resetAt(away); host.player.position.copy(away); }
-      // off the path after the walk: the player waits 43 m from the practice crab's spot while it comes back
-      if (tick < 600) step(host); else host.step({ moveX: 0, moveZ: 0, yaw: 0 });
-    }
-  };
-  for (const at of [0, 1, 700, 3700]) {
-    const original = boot(); let restored: SimHost | undefined;
-    try {
-      checkpoint(original, at);
-      if (at === 3700) expect(original.entities.get('creature:34')?.alive).toBe(true);
-      restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
-      for (let tick = 0; tick < 900; tick++) {
-        if (tick === 120) { kill(original, 'creature:22'); kill(restored, 'creature:22'); }
-        step(original); step(restored);
-      }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
-      expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ISLAND_STEP)).toBe(true);
-    } finally { restored?.dispose(); original.dispose(); }
+/** the restore test's tape up to a checkpoint: walk, two kills, then wait 43 m off while the practice crab comes back */
+const checkpointTape = (host: SimHost, at: number): void => {
+  for (let tick = host.state.tick; tick < at; tick++) {
+    if (tick === 100) kill(host, bake.habitat.practice);
+    if (tick === 400) kill(host, 'creature:13');
+    if (tick === 600) { const away = new Vector3(-7, bake.floorAt(-7, -100) + 0.5, -100); host.player.motor.resetAt(away); host.player.position.copy(away); }
+    // off the path after the walk: the player waits 43 m from the practice crab's spot while it comes back
+    if (tick < 600) step(host); else host.step({ moveX: 0, moveZ: 0, yaw: 0 });
   }
+};
+// One test per checkpoint, each with its own budget: the string round trip of the native world is most of a checkpoint's
+// cost under CI coverage; the continuations compare with expectSameSimSnapshot.
+it.each([0, 1, 700, 3700])('restores exactly at tick %i (install, mid-walk, after a practice crab came back), reinstalling the saved roster before restore', (at) => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    checkpointTape(original, at);
+    if (at === 3700) expect(original.entities.get('creature:34')?.alive).toBe(true);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 900; tick++) {
+      if (tick === 120) { kill(original, 'creature:22'); kill(restored, 'creature:22'); }
+      step(original); step(restored);
+    }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ISLAND_STEP)).toBe(true);
+  } finally { restored?.dispose(); original.dispose(); }
 }, 90_000);
 
 it('refuses a saved roster whose recipe no longer matches the baked spec', () => {

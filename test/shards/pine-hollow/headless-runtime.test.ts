@@ -19,6 +19,7 @@ import type { HuntBody } from '../../../src/engine/ai/hunt';
 import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
 import { PINE_LEVEL_SEED, pineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { BEAR_CAVE } from '../../../src/shards/pine-hollow/layout';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
@@ -159,24 +160,23 @@ it('fades the Ghost Stag when the player walks up on it, and it comes back facin
   } finally { host.dispose(); }
 });
 
-it('restores exactly mid-fight with an elite: Old Ironhide mid-charge, the Ghost Stag faded', () => {
-  for (const [variant, at] of [['ironhide', 170], ['ghost', 230]] as const) {
-    const original = boot(); let restored: SimHost | undefined;
-    try {
-      const body = standByElite(original, variant, variant === 'ghost' ? 8 : 20);
-      for (let tick = 0; tick < at; tick++) {
-        if (tick === 200) original.combat.hit({ source: original.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: body.combatActor(), amount: 1, point: body.position.clone(), dir: new Vector3() });
-        original.step(still);
-      }
-      const mode = elitesState(original).scripts.find(s => s.id === (variant === 'ghost' ? 'ghost-stag' : 'ironhide'))?.mode;
-      expect(mode).toBe(variant === 'ghost' ? 'faded' : 'charge');
-      restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
-      for (let tick = 0; tick < 300; tick++) { original.step(still); restored.step(still); }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
-    } finally { restored?.dispose(); original.dispose(); }
-  }
-}, 60_000);
+// one test per elite (each its own budget), the continuations compared with expectSameSimSnapshot
+it.each([['ironhide', 170], ['ghost', 230]] as const)('restores exactly mid-fight with an elite (%s: Old Ironhide mid-charge, the Ghost Stag faded)', (variant, at) => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const body = standByElite(original, variant, variant === 'ghost' ? 8 : 20);
+    for (let tick = 0; tick < at; tick++) {
+      if (tick === 200) original.combat.hit({ source: original.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: body.combatActor(), amount: 1, point: body.position.clone(), dir: new Vector3() });
+      original.step(still);
+    }
+    const mode = elitesState(original).scripts.find(s => s.id === (variant === 'ghost' ? 'ghost-stag' : 'ironhide'))?.mode;
+    expect(mode).toBe(variant === 'ghost' ? 'faded' : 'charge');
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 300; tick++) { original.step(still); restored.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { restored?.dispose(); original.dispose(); }
+}, 120_000);
 
 it('walks 10k ticks up the trail: the herds graze, wander and notice the player; everything stays finite on the ground', () => {
   const host = boot(), states = new Set<string>();
@@ -204,20 +204,20 @@ it('a boar the player stands next to charges and its blow lands through the host
   } finally { host.dispose(); }
 });
 
-it('restores exactly at install, mid-walk and mid-fight, by an identical install before the host restores', () => {
-  for (const at of [0, 1, 1500, 2100]) {
-    const original = boot(); let restored: SimHost | undefined;
-    try {
-      for (let tick = 0; tick < at; tick++) { if (tick === 1800) standBy(original, 'boar', 7); if (tick < 1800) walk(original); else original.step({ moveX: 0, moveZ: 0, yaw: 0 }); }
-      restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
-      for (let tick = 0; tick < 600; tick++) { walk(original); walk(restored); }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
-      expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ROSTER_STEP)).toBe(true);
-      // the host runs on the page's distance bands and the body LOD; their clocks ride the snapshot
-      expect(original.bodyBands).toEqual({ physics: true }); expect(snapshotSimHost(original).bands).toBeDefined();
-    } finally { restored?.dispose(); original.dispose(); }
-  }
+// One test per checkpoint, so each has its own budget: a checkpoint's string round trip (serialise + decode + restore of
+// the 8.4 MB native world) is most of its cost under CI coverage; the continuations compare with expectSameSimSnapshot.
+it.each([0, 1, 1500, 2100])('restores exactly at tick %i (install, mid-walk, mid-fight), by an identical install before the host restores', (at) => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    for (let tick = 0; tick < at; tick++) { if (tick === 1800) standBy(original, 'boar', 7); if (tick < 1800) walk(original); else original.step({ moveX: 0, moveZ: 0, yaw: 0 }); }
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 600; tick++) { walk(original); walk(restored); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ROSTER_STEP)).toBe(true);
+    // the host runs on the page's distance bands and the body LOD; their clocks ride the snapshot
+    expect(original.bodyBands).toEqual({ physics: true }); expect(snapshotSimHost(original).bands).toBeDefined();
+  } finally { restored?.dispose(); original.dispose(); }
 }, 120_000);
 
 it('keeps the browser\'s navmesh refusing with no level configured: only a host that says datum 0 queries in the bake\'s frame', () => {
