@@ -1,5 +1,5 @@
 // E362 AG20: inspect the commit's index tree, never the shared working copy.
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -18,6 +18,23 @@ const run = (cwd, command, args, options = {}) => {
   return result.stdout;
 };
 
+/** spawnSync's result shape, without blocking: the guards' slow children run side by side (SF74 W14). */
+function spawnAsync(cwd, command, args) {
+  return new Promise((done, fail) => {
+    const child = spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.on('data', (chunk) => { stdout += String(chunk); });
+    child.stderr.on('data', (chunk) => { stderr += String(chunk); });
+    child.on('error', fail);
+    child.on('close', (status) => { done({ status, stdout, stderr }); });
+  });
+}
+const runAsync = async (cwd, command, args) => {
+  const result = await spawnAsync(cwd, command, args);
+  if (result.status !== 0) throw new Error(`${command} failed (${result.status}): ${result.stderr || result.stdout}`);
+  return result.stdout;
+};
+
 /** Extract an immutable Git tree without a pipe that tar may close before Node writes its trailing padding. */
 export function extractGuardArchive(root, tree, paths, destination) {
   const owned = mkdtempSync(join(tmpdir(), 'wildshard-guard-archive-'));
@@ -28,7 +45,12 @@ export function extractGuardArchive(root, tree, paths, destination) {
   } finally { rmSync(owned, { recursive: true, force: true }); }
 }
 
-export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
+/**
+ * The commit holds the shared index.lock for the whole pre-commit hook, so every second here is every agent's wait
+ * (SF74 W14: 138 lock collisions in 6 h, ~6 s per src commit). Setup runs once; shard-coupling (~3 s) and oxlint then
+ * run side by side on the same immutable export.
+ */
+export async function precommitGuards(root = resolve(import.meta.dirname, '..')) {
   if (process.env.SKIP_ARCH_GUARDS === '1') {
     appendFileSync(resolve(root, 'project/sweepguard-ledger.md'), `\n- ${new Date().toISOString()} SKIP_ARCH_GUARDS=1: architecture pre-commit checks bypassed.\n`);
     console.warn('Architecture guards skipped; recorded in project/sweepguard-ledger.md');
@@ -50,8 +72,9 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/runtime-performance.json', 'lint/legacy-shards.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
     extractGuardArchive(root, 'HEAD', predecessorLists, predecessor);
     const snapshot = guardSnapshot(root, tree, scratch, paths);
-    // SF2 observes every shard, including inherited context/class types outside changed files.
-    extractGuardArchive(root, tree, ['src', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json'], scratch);
+    // SF2 observes every shard, including inherited context/class types outside changed files. A manifest change also
+    // needs the generator scripts; one extraction, so no child reads a file while another tar rewrites it.
+    extractGuardArchive(root, tree, ['src', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
@@ -67,10 +90,14 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const lintPaths = paths.filter((p) => existing.has(p));
     const frozen = legacyInventory(scratch);
     const counts = {}, failures = [...checkPlatformRatchets(predecessor, scratch), ...checkLegacyInventory(scratch, frozen)];
-    run(scratch, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
-    if (lintPaths.length > 0) {
-      const result = spawnSync(process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths], { cwd: scratch, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
-      if (result.error) throw result.error;
+    const coupling = runAsync(scratch, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
+    const lint = lintPaths.length > 0 ? spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths]) : null;
+    // Settle every child before reading any result, so a failure never leaves one running against a deleted scratch.
+    const [coupled, linted] = await Promise.allSettled([coupling, lint]);
+    if (coupled.status === 'rejected') throw coupled.reason;
+    if (linted.status === 'rejected') throw linted.reason;
+    const result = linted.value;
+    if (result !== null) {
       if (result.status !== 0 && result.status !== 1) throw new Error(`oxlint failed (${result.status}): ${result.stderr}`);
       const output = JSON.parse(result.stdout);
       if (!Array.isArray(output.diagnostics)) throw new Error('oxlint returned no diagnostics');
@@ -90,8 +117,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     for (const warning of compared.warnings) console.warn(warning);
     if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline, frozen));
     if (manifest) {
-      // Generator checks belong to the staged tree too; export only their small scripts, never public assets.
-      extractGuardArchive(root, tree, ['src', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'], scratch);
+      // Generator checks belong to the staged tree too (its small scripts were exported above, never public assets).
       // Runtime tables are intentionally untracked. Check committed ownership data and existing outputs,
       // initializing absent ephemeral tables in this index export during the same deterministic pass.
       run(scratch, process.execPath, ['--input-type=module', '-e', "import { genShards } from './scripts/gen-shards.mjs'; genShards(undefined, true, true);"]);
@@ -100,6 +126,6 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
-  try { precommitGuards(); }
+  try { await precommitGuards(); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

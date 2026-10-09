@@ -51,12 +51,18 @@ Save them as JPEG / WebP instead:
 EOF
   exit 1
 fi
+# SF74 W14: the commit holds the shared index.lock for this whole hook, so the independent node checks run side by side
+# (each reads the commit's index, none writes it); the hook fails when any of them fails.
+pids=()
 # SF6b: builders land source only; the serialized pusher owns generated measurements and docs.
-node scripts/precommit-generated.mjs || exit 1
+node scripts/precommit-generated.mjs & pids+=($!)
 # E362 AG7: increases warn for exact coordinator approval; reach and cycle checks stay fatal.
-node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) || exit 1
+# shellcheck disable=SC2046 # word-split on purpose: the staged src paths
+node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) & pids+=($!)
 # E423: a staged ask file follows the ask rules (docs/process/ASKS.md: Status vocabulary, folds name a target).
-node scripts/asks.mjs check || exit 1
+node scripts/asks.mjs check & pids+=($!)
 # E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
-node scripts/precommit-guards.mjs || exit 1
-exit 0
+node scripts/precommit-guards.mjs & pids+=($!)
+rc=0
+for pid in "${pids[@]}"; do wait "$pid" || rc=1; done
+exit "$rc"
