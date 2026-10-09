@@ -16,8 +16,7 @@ import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../../weapons/hunterHands';
 import { Firearm } from '@wildshard/sdk/runtime/weapons/Firearm';
-import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { AR15 } from '../../data/firearmProfile';
+import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME, type ActionState, type LeverHooks, type LeverPhase } from '../../weapons/leverAction';
 
 
 
@@ -86,13 +85,6 @@ export interface LeverRifleOptions extends CrossbowOptions {
   model?: LeverModel | null;
 }
 
-export const TUBE_MAX = 6;
-const MAGAZINE = TUBE_MAX + 1, RESERVE_START = 21;
-const CYCLE_DELAY = 0.12;     // s from the shot to the lever starting down
-const LEVER_TIME = 0.56;      // s for the full throw (open + close)
-const ROUND_TIME = 0.4;       // s per cartridge through the gate
-const RELOAD_IN = 0.22, RELOAD_OUT = 0.2; // s to roll into / out of the loading pose
-const AUTO_RELOAD_DELAY = 0.35;
 const KICK_PITCH = THREE.MathUtils.degToRad(1.25);
 const FLASH_FRAMES = 2, FLASH_LIGHT_TIME = 0.06, FLASH_LIGHT = 34;
 const BRASS_COUNT = 4, BRASS_LIFE = 1.8;
@@ -122,7 +114,6 @@ const HAND_TURN = 0.6;
 
 interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean; floor: number }
 /** where the action is: idle (ready), firing (the recoil beat before the cycle), cycling, reloading */
-type Phase = 'idle' | 'beat' | 'cycle' | 'reload';
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -139,18 +130,6 @@ export function leverOpen(u: number): number {
   return 1 - sstep(0.52, 1, u);
 }
 
-/** Rounds-left maths for the tube + chamber (pure; test/shards/pine-hollow/pine-loadout.test.ts) */
-export interface ActionState { tube: number; chambered: boolean; reserve: number }
-/** after a cycle: the chamber takes a round from the tube if it has one */
-export function cycleAction(a: ActionState): ActionState {
-  if (a.chambered || a.tube <= 0) return { ...a };
-  return { ...a, tube: a.tube - 1, chambered: true };
-}
-/** one round through the gate: from the reserve into the tube, if both allow */
-export function feedRound(a: ActionState): ActionState {
-  if (a.tube >= TUBE_MAX || a.reserve <= 0) return { ...a };
-  return { ...a, tube: a.tube + 1, reserve: a.reserve - 1 };
-}
 
 // ───────────────────────────── the Blender model ─────────────────────────────
 
@@ -288,13 +267,6 @@ export function leverSpecimen(sky: Sky, model: LeverModel | null): THREE.Group {
   return g;
 }
 
-export const LEVER_PROFILE: FirearmProfile = {
-  ...AR15, action: 'lever', magazine: 7, reserve: 21, interval: 0.68, reload: 0.4,
-  damageScale: 1.5, range: 320, kick: 1.25 * (Math.PI / 180), spreadAds: 0.06, spreadHip: 0.9,
-  spreadRadius: 'sqrt', bloomShot: 0, bloomMax: 0, movingSpread: 0.5, movingAimReduction: 0.6,
-  brass: { count: 4, life: 1.8 }, tracer: { count: 2, life: 0.09, width: 3 },
-  ads: { blend: 0.17, motion: 0.3, nearMargin: 0.03, sightY: 0.045, rearZ: -0.13, frontZ: -0.512, muzzleZ: -0.535 },
-};
 export class LeverRifle extends Firearm {
   readonly profile = LEVER_PROFILE;
   readonly state: WeaponState & { ammo: number } = { ammo: MAGAZINE, magazine: MAGAZINE, reserve: RESERVE_START, loaded: true, reloading: false, reloadProgress: 0, ads: false };
@@ -316,12 +288,17 @@ export class LeverRifle extends Firearm {
   private readonly targets: Targets | undefined;
   private active = true;
 
-  // the action
-  private tube = TUBE_MAX; private chambered = true; private caseInChamber = false;
-  private phase: Phase = 'idle'; private phaseT = 0;
-  /** reload: rounds pushed this reload, whether to stop after the round in hand, whether the gun was run dry (chamber at the end) */
-  private fed = 0; private planned = 0; private stopAfter = false; private dryAtStart = false;
-  private hammerCocked = true;
+  /** the action (weapons/leverAction.ts, the headless lever's too); the reserve is the HUD state's */
+  private readonly act: LeverAction = new LeverAction(this.state);
+  /** what the action tells the view and the sounds */
+  private readonly hooks: LeverHooks = {
+    cycle: () => { this.equipEvents?.emit('weapon.action', { id: this.row.id, phase: 'cycle' }); this.onCycle?.(); },
+    eject: () => { this.ejectCase(); },
+    chambered: () => { this.syncState(); },
+    reloadStart: () => { this.state.reloadProgress = 0; this.syncState(); this.onReloadStart?.(); },
+    round: () => { this.equipEvents?.emit('weapon.reload', { id: this.row.id, phase: 'round' }); this.onRoundIn?.(); },
+    reloadEnd: () => { this.state.reloadProgress = 0; this.syncState(); this.onReloadEnd?.(); },
+  };
   /** dev (the evidence strip): hold the cycle at u (0..1) — `__weapons.get('rifle').freezeCycle = 0.45`; null = live */
   freezeCycle: number | null = null;
   /** dev: > 0 = the rifle held out side-on for inspection, turned `inspectYaw` rad (π/2: the right side, the gate) */
@@ -494,37 +471,31 @@ export class LeverRifle extends Firearm {
   /** rounds in the gun, the chamber, the reserve → the HUD's state */
   private syncState(): void {
     const s = this.state;
-    s.ammo = this.tube + (this.chambered ? 1 : 0);
-    s.loaded = this.chambered;
-    s.reloading = this.phase === 'reload';
+    s.ammo = this.act.rounds;
+    s.loaded = this.act.chambered;
+    s.reloading = this.act.phase === 'reload';
   }
   /** the action as the pure helpers see it */
-  get action(): ActionState { return { tube: this.tube, chambered: this.chambered, reserve: this.state.reserve }; }
+  get action(): ActionState { return this.act.action; }
+  /** the action's phase (idle, the beat, the throw, a reload) */
+  private get phase(): LeverPhase { return this.act.phase; }
   /** 0..1 through the lever's throw (0 when it is shut) */
-  get cycleU(): number { return this.freezeCycle ?? (this.phase === 'cycle' ? clamp01(this.phaseT / LEVER_TIME) : 0); }
+  get cycleU(): number { return this.freezeCycle ?? this.act.cycleU; }
 
   /** Pull the trigger: fire the chambered round; mid-reload, stop after the round in hand; empty → the dry click + a reload. */
-  protected override reloadingAction(): boolean { return this.phase === 'reload'; }
-  protected override actionReady(): boolean { return this.phase === 'idle'; }
-  protected override roundReady(): boolean { return this.chambered; }
-  protected override onTriggerWhileReloading(): void { if (this.fed > 0 || this.tube > 0 || this.chambered) this.stopAfter = true; }
-  protected override onEmptyTrigger(): void { if (this.tube > 0) this.startCycle(); else if (this.state.reserve > 0) this.reload(); }
+  protected override reloadingAction(): boolean { return this.act.phase === 'reload'; }
+  protected override actionReady(): boolean { return this.act.phase === 'idle'; }
+  protected override roundReady(): boolean { return this.act.chambered; }
+  protected override onTriggerWhileReloading(): void { this.act.triggerWhileReloading(); }
+  protected override onEmptyTrigger(): void { if (this.act.tube > 0) this.startCycle(); else if (this.state.reserve > 0) this.reload(); }
 
-  override reload(): void {
-    if (this.phase !== 'idle' || this.tube >= TUBE_MAX || this.state.reserve <= 0) return;
-    this.phase = 'reload'; this.phaseT = 0; this.fed = 0; this.stopAfter = false; this.dryAtStart = !this.chambered;
-    this.planned = Math.min(TUBE_MAX - this.tube, this.state.reserve);
-    this.state.reloadProgress = 0;
-    this.syncState();
-    this.onReloadStart?.();
-  }
+  override reload(): void { if (this.act.beginReload()) this.hooks.reloadStart(); }
 
   addRounds(n: number): void { this.state.reserve += n; }
   override addBolts(n: number): void { this.addRounds(n); }
 
   protected override fire(): void {
-    this.chambered = false; this.caseInChamber = true; this.hammerCocked = false;
-    this.phase = 'beat'; this.phaseT = 0;
+    this.act.dropHammer();
     this.recoil = 1; this.kickPending = KICK_PITCH;
     this.flashFrames = FLASH_FRAMES; this.flashLightT = FLASH_LIGHT_TIME;
     for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
@@ -534,11 +505,7 @@ export class LeverRifle extends Firearm {
     this.hitscan();
   }
 
-  private startCycle(): void {
-    this.phase = 'cycle'; this.phaseT = 0;
-    this.equipEvents?.emit('weapon.action', { id: this.row.id, phase: 'cycle' });
-    this.onCycle?.();
-  }
+  private startCycle(): void { this.act.throwLever(); this.hooks.cycle(); }
 
   private placeFlashLight(): void {
     this.model.updateWorldMatrix(true, false);
@@ -727,64 +694,28 @@ export class LeverRifle extends Firearm {
   /** the action's clock: the recoil beat → the lever cycle → idle; the reload's rounds */
   private stepAction(dt: number): void {
     if (this.freezeCycle !== null) return;
-    this.phaseT += dt;
-    if (this.phase === 'beat' || this.phase === 'cycle') this.cycle(dt);
-    else if (this.phase === 'reload') this.reloadStep(dt);
-    else if (this.autoReloadDue()) this.reload();
-  }
-  protected override cycle(_dt: number): void {
-    if (this.phase === 'beat' && this.phaseT >= CYCLE_DELAY) this.startCycle();
-    else if (this.phase === 'cycle') {
-      const u = this.phaseT / LEVER_TIME;
-      if (this.caseInChamber && u >= 0.34) { this.caseInChamber = false; this.ejectCase(); }
-      if (u >= 0.2) this.hammerCocked = true;
-      if (u >= 1) {
-        const next = cycleAction(this.action);
-        this.tube = next.tube; this.chambered = next.chambered;
-        this.phase = 'idle'; this.phaseT = 0;
-        this.syncState();
-      }
-    }
-  }
-  protected override reloadStep(_dt: number): void {
-    const s = this.state;
-      const inT = this.phaseT - RELOAD_IN;
-      const done = Math.max(0, Math.floor(inT / ROUND_TIME));
-      while (this.fed < Math.min(done, this.planned)) {
-        const next = feedRound(this.action);
-        this.tube = next.tube; s.reserve = next.reserve; this.fed++;
-        this.equipEvents?.emit('weapon.reload', { id: this.row.id, phase: 'round' });
-        this.onRoundIn?.();
-        if (this.stopAfter || this.tube >= TUBE_MAX || s.reserve <= 0) { this.planned = this.fed; break; }
-      }
-      s.reloadProgress = this.planned > 0 ? clamp01(Math.max(0, inT) / (ROUND_TIME * this.planned)) : 1;
-      if (this.fed >= this.planned && inT >= ROUND_TIME * this.planned) {
-        this.phase = 'idle'; this.phaseT = 0; s.reloadProgress = 0;
-        this.syncState();
-        this.onReloadEnd?.();
-        if (this.dryAtStart && !this.chambered && this.tube > 0) this.startCycle(); // run dry: work the lever to chamber one
-        return;
-      }
-      this.syncState();
+    this.act.step(dt, this.autoReloadDue(), this.hooks);
+    this.state.reloadProgress = this.act.reloadProgress;
+    this.syncState();
   }
   protected override animateAction(_t: number, dt: number): void {
-    const u = this.cycleU, open = this.freezeCycle !== null || this.phase === 'cycle' ? leverOpen(u) : 0;
+    const u = this.cycleU, open = this.freezeCycle !== null || this.act.phase === 'cycle' ? leverOpen(u) : 0;
     this.lever.rotation.x = LEVER_OPEN * open;
     this.bolt.position.z = BOLT_TRAVEL * open;
-    const cocked = this.freezeCycle !== null ? u >= 0.2 : this.hammerCocked;
+    const cocked = this.freezeCycle !== null ? u >= 0.2 : this.act.hammerCocked;
     this.hammer.rotation.x += ((cocked ? HAMMER_COCKED : HAMMER_DOWN) - this.hammer.rotation.x) * Math.min(1, dt * (cocked ? 18 : 60));
     this.poseRound();
     this.poseRightHand(open);
 
   }
   protected override autoReloadDue(): boolean {
-    return this.phase === 'idle' && !this.chambered && this.tube === 0 && this.state.reserve > 0 && this.sinceEmpty > AUTO_RELOAD_DELAY && this.sinceEmpty < 5 && this.active && this.enabled;
+    return this.act.wantsAutoReload && this.sinceEmpty > AUTO_RELOAD_DELAY && this.sinceEmpty < 5 && this.active && this.enabled;
   }
 
   private poseRound(): void {
-    if (this.phase !== 'reload') { this.round.visible = false; return; }
-    const inT = this.phaseT - RELOAD_IN;
-    if (inT < 0 || this.fed >= this.planned) { this.round.visible = false; return; }
+    if (this.act.phase !== 'reload') { this.round.visible = false; return; }
+    const inT = this.act.phaseT - RELOAD_IN;
+    if (inT < 0 || this.act.fed >= this.act.planned) { this.round.visible = false; return; }
     const k = (inT % ROUND_TIME) / ROUND_TIME;
     this.round.visible = k < 0.8;
     const approach = sstep(0, 0.45, k), push = sstep(0.45, 0.8, k);

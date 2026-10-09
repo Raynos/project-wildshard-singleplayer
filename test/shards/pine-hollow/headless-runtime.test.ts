@@ -14,7 +14,7 @@ import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { ROSTER_STEP, type PineHuntBody } from '../../../src/shards/pine-hollow/runtime/roster';
 import { ELITES_STEP } from '../../../src/shards/pine-hollow/runtime/elites';
-import { boltBodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessCrossbow';
+import { bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
 import { parseNavmesh } from '../../../src/engine/physics/navmesh';
 import type { ImperialBull } from '../../../src/shards/pine-hollow/combat/eliteScripts';
@@ -471,10 +471,13 @@ it('takes the King\'s bark at ×0.25 and his ribcage at ×0.6 shut, and a bolt p
     body.bodyCapsule(a, b);
     expect(hit(a.clone())).toBe(25); // the haunch: bark
     expect(hit(a.clone().lerp(b, 0.75))).toBe(60); // the chest: the ribcage, shut
-    // the boltBodyHit test skips a hidden body (the Ghost Stag's fade, a parked King)
+    // the bodyHit test skips a hidden body (the Ghost Stag's fade, a parked King)
     const from = new Vector3(b.x + 10, b.y, b.z), dir = new Vector3(-1, 0, 0);
-    expect(boltBodyHit([body], from, dir, 30)?.body).toBe(body);
+    expect(bodyHit([body], from, dir, 30)?.body).toBe(body);
+    // the analytic cast reaches a body 100 m off (a rifle's line), short of its axis by its girth
+    const far = bodyHit([body], new Vector3(b.x + 100, b.y, b.z), dir, 320)?.distance ?? Infinity;
+    expect(far).toBeGreaterThan(97); expect(far).toBeLessThan(100);
     body.hidden = true;
-    expect(boltBodyHit([body], from, dir, 30)).toBeNull();
+    expect(bodyHit([body], from, dir, 30)).toBeNull();
   } finally { host.dispose(); }
 }, 30_000);

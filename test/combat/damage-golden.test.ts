@@ -1,6 +1,7 @@
 import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { AR15 } from '../../src/shards/nalati-grasslands/data/firearmProfile';
-import { LEVER_PROFILE, LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { LEVER_PROFILE } from '../../src/shards/pine-hollow/weapons/leverAction';
 import { Thrown } from '../../src/engine/combat/Thrown';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';

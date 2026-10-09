@@ -116,7 +116,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
   const bodyBuffer: AnimalSim[] = [];
   const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
-  const crossbow = installPineCrossbow(host, { shots, locked: king.locked, bodies });
+  const crossbow = installPineCrossbow(host, { shots, enabled: () => !king.locked(), bodies });
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
   return { roster, elites, king, crossbow };

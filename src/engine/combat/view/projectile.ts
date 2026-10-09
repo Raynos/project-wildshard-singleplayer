@@ -10,6 +10,7 @@ import type { ImpactSurface } from '../Weapon';
 import type { TargetAnimal, TargetHit, Targets, TargetFrame } from '../types';
 import { floorBelow, sticksIn } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';
+import { projectileFlightStep } from '../projectileFlight';
 
 
 
@@ -82,26 +83,6 @@ const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
 function yawOf(a: TargetAnimal): number { return 'yaw' in a && typeof a.yaw === 'number' ? a.yaw : 0; }
 /** a hidden (harvested, faded) carcass */
 function hiddenOf(a: TargetAnimal): boolean { return 'hidden' in a && a.hidden === true; }
-
-/** Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. */
-export function projectileFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number,
-  kind: Pick<ProjectileKind, 'gravity' | 'drag' | 'windCoupling'>, wind: Readonly<THREE.Vector3> | null = null): void {
-  vel.y -= kind.gravity * h;
-  if (wind !== null && kind.windCoupling > 0) {
-    const sp = vel.length();
-    if (sp > 1e-3) {
-      let x = wind.x - vel.x, y = -vel.y, z = wind.z - vel.z;
-      const along = -(x * vel.x + y * vel.y + z * vel.z) / (sp * sp);
-      x += vel.x * along; y += vel.y * along; z += vel.z * along;
-      const coupling = kind.windCoupling * h;
-      vel.x += x * coupling;
-      vel.y += y * coupling;
-      vel.z += z * coupling;
-    }
-  }
-  vel.multiplyScalar(1 - kind.drag * h * vel.length() * 0.1);
-  pos.addScaledVector(vel, h);
-}
 
 export class Projectiles {
   wind: WindField | null = null;

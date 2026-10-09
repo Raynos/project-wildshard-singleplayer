@@ -16,6 +16,7 @@ import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../../weapons/hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
+import { boltFlightStep } from '../../../weapons/crossbow/flight';
 
 
 
@@ -97,13 +98,6 @@ const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0;
  *  (≥ 7 % of the height, so it stays a ring on a portrait phone). Hidden at the hip, fades in with the ADS blend. */
 const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring on a short post just ahead of the nut
 
-/** Deterministic bolt substep, including the selected ammo/weather multipliers. */
-export function boltFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number,
-  mod: { gravity: number; drag: number }, profile: Pick<CrossbowProfile, 'gravity' | 'drag'> = CROSSBOW_PROFILE): void {
-  vel.y -= profile.gravity * mod.gravity * h;
-  vel.multiplyScalar(1 - profile.drag * mod.drag * h * vel.length() * 0.1);
-  pos.addScaledVector(vel, h);
-}
 
 // ───────────────────────────── procedural textures ─────────────────────────────
 

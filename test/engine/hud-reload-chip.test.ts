@@ -9,8 +9,9 @@ import { LEVER, CROSSBOW, LONGBOW } from '../../src/shards/pine-hollow/weapons/e
 import { AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { SWORD } from '../../src/game/weapons/starterEquipment';
 import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { LeverAction } from '../../src/shards/pine-hollow/weapons/leverAction';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
-import { legacyActor } from '../fake/legacyActor';
+import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 let scope: Scope;
 const parked = hudSlots.snapshot();
@@ -46,10 +47,11 @@ describe('J13 magazine chip reload', () => {
     f.state.reserve = 0; f.hud.setState(f.state); expect(f.glyph.hidden).toBe(false); expect(f.chip.disabled).toBe(true);
   });
   it('taps through the real lever reload method', () => {
-    const f = fixture(), lever = legacyActor(LeverRifle.prototype, {
-      state: { ammo: 4, magazine: 7, reserve: 21, reloading: false, reloadProgress: 0 },
-      tube: 3, chambered: true, phase: 'idle', phaseT: 0, fed: 0, stopAfter: false,
-      equipEvents: undefined, onReloadStart: undefined,
+    const state = { ammo: 4, magazine: 7, reserve: 21, reloading: false, reloadProgress: 0, loaded: true }, act = new LeverAction(state);
+    act.tube = 3;
+    const f = fixture(), lever: LeverRifle = legacyActor(LeverRifle.prototype, {
+      state, act, equipEvents: undefined, onReloadStart: undefined,
+      hooks: { reloadStart: () => { invokeLegacy(lever, 'syncState'); } },
     });
     app.input.bind('reload', () => { lever.reload(); }, scope);
     f.state.bolts = 4; f.hud.setState(f.state); f.chip.click(); expect(lever.state.reloading).toBe(true);

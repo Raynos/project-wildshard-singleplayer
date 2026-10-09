@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { projectileFlightStep, type ProjectileKind } from '../../src/engine/combat/view/projectile';
-import { boltFlightStep } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
+import type { ProjectileKind } from '../../src/engine/combat/view/projectile';
+import { projectileFlightStep } from '../../src/engine/combat/projectileFlight';
+import { boltFlightStep } from '../../src/shards/pine-hollow/weapons/crossbow/flight';
 import { javelinFlightStep } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { arrowKind as bowArrow } from '../../src/shards/nalati-grasslands/weapons/recurve';
 import { arrowKind as longbowArrow } from '../../src/shards/pine-hollow/weapons/longbowView';
