@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2302 members; 843 without a doc line (—).
+2300 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1213,7 +1213,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `WeldBuild` | interface | @wildshard/engine/models/weld | One copy of a site-fitted model as it hands itself to a weld (`ModelDef.weld`, `place(…, { draw: 'merged', weld })`): |
 | `WeldPart` | interface | @wildshard/engine/models/weld | Geometries of one welded copy that merge into one mesh with their unit's of the same material and band. |
 | `WeldView` | class | @wildshard/engine/models/weld | A copy's own share of a batch, still in its root (its selection box, ray hits and triangle count; Explore isolates one |
-| `activeBodies` | function | @wildshard/engine/physics/bodies | — |
 | `Bodies` | class | @wildshard/engine/physics/bodies | — |
 | `Body` | class | @wildshard/engine/physics/bodies | — |
 | `BODY_CAP` | const | @wildshard/engine/physics/bodies | the per-tier cap on awake dynamic bodies (PHYSICS.md §Budgets) |
@@ -1224,7 +1223,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `FixedClock` | interface | @wildshard/engine/physics/bodies | what the service needs of `Game`: its fixed phases and the render interpolation factor |
 | `FloatSpec` | interface | @wildshard/engine/physics/bodies | — |
 | `overlapBox` | function | @wildshard/engine/physics/bodies | Colliders of the kinds in `sees` overlapping a box (half extents `half`, turned `yaw` about +Y, centred at `at`): |
-| `setActiveBodies` | function | @wildshard/engine/physics/bodies | bootstrap sets the shard's body service once the world is built; null before that and in node tests |
 | `boxInFrame` | function | @wildshard/engine/physics/box | Keep a world box aligned in its following frame; translate-only following uses the world's axes. |
 | `BoxSpec` | interface | @wildshard/engine/physics/box | A box specified in world space, rotated by −rot about +Y. |
 | `CharacterMotor` | class | @wildshard/engine/physics/CharacterMotor | — |

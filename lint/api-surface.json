@@ -7248,12 +7248,6 @@
         "from": "@wildshard/engine/models/weld"
       },
       {
-        "name": "activeBodies",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/engine/physics/bodies"
-      },
-      {
         "name": "Bodies",
         "kind": "class",
         "doc": "",
@@ -7311,12 +7305,6 @@
         "name": "overlapBox",
         "kind": "function",
         "doc": "Colliders of the kinds in `sees` overlapping a box (half extents `half`, turned `yaw` about +Y, centred at `at`):",
-        "from": "@wildshard/engine/physics/bodies"
-      },
-      {
-        "name": "setActiveBodies",
-        "kind": "function",
-        "doc": "bootstrap sets the shard's body service once the world is built; null before that and in node tests",
         "from": "@wildshard/engine/physics/bodies"
       },
       {

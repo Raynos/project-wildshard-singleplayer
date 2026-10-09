@@ -2009,7 +2009,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2285 exports, grouped by the module to import them from.
+2283 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2206,7 +2206,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/models/slots`: `SlotGeometry`, `SlotRange`, `SlotRecorder`
 - `@wildshard/engine/models/swimHands`: `swimHands`, `SwimHandsParams`
 - `@wildshard/engine/models/weld`: `flatPositions`, `mergeOrNull`, `nearProxy`, `shadowProxy`, `twoSidedPositions`, `UnitDrawn`, `UnitParts`, `weldAcross`, `WeldBatch`, `WeldBuild`, `WeldPart`, `WeldView`
-- `@wildshard/engine/physics/bodies`: `activeBodies`, `Bodies`, `Body`, `BODY_CAP`, `BodyShape`, `BodySpec`, `Drop`, `DROP_BODY`, `FixedClock`, `FloatSpec`, `overlapBox`, `setActiveBodies`
+- `@wildshard/engine/physics/bodies`: `Bodies`, `Body`, `BODY_CAP`, `BodyShape`, `BodySpec`, `Drop`, `DROP_BODY`, `FixedClock`, `FloatSpec`, `overlapBox`
 - `@wildshard/engine/physics/box`: `boxInFrame`, `BoxSpec`
 - `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
 - `@wildshard/engine/physics/declaredProps`: `installDeclaredPropColliders`, `PropColliderPort`, `PropColliderState`
