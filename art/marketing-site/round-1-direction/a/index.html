@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Project Wildshard</title>
+<meta name="description" content="One world. Every shard built by a player. Play it in the browser. Build it in Claude Code." />
+<meta name="theme-color" content="#050a12" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* Direction A · The Lattice. The page is the world map, drawn in the game's own HUD language. */
+:root {
+  --abyss: #050a12;      /* the night under the grid */
+  --navy: #0b1622;       /* section ground */
+  --glass: rgba(13, 27, 38, 0.8);   /* #0d1b26 at 80 %, the game's panel */
+  --cyan: #8fe3ff;       /* hairlines, seams, live state */
+  --cyan-line: rgba(143, 227, 255, 0.35);
+  --cyan-faint: rgba(143, 227, 255, 0.12);
+  --violet: #a487ff;     /* the second seam colour */
+  --violet-deep: #3a2a7a;
+  --ink: #e8f6ff;        /* text */
+  --mute: #8ea6ba;       /* secondary text */
+  --display: 'Rajdhani', 'Bahnschrift', 'DIN Alternate', sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --gutter: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--abyss); -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--abyss);
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.42;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+/* ---------- shared HUD vocabulary ---------- */
+.label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.label.dim { color: var(--mute); }
+/* 1 px hairline box with corner brackets, like the in-game panels */
+.bk {
+  --c: var(--cyan);
+  --s: 10px;
+  position: relative;
+  border: 1px solid var(--cyan-line);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--s) 1.5px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 1.5px var(--s) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--s) 1.5px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 1.5px var(--s) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--s) 1.5px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 1.5px var(--s) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--s) 1.5px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 1.5px var(--s) no-repeat,
+    var(--glass);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.marker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink);
+  padding: 5px 9px;
+  background: rgba(6, 10, 18, 0.78);
+  border: 1px solid var(--cyan-line);
+  white-space: nowrap;
+}
+.marker::before {
+  content: ""; width: 7px; height: 7px; background: var(--cyan); transform: rotate(45deg);
+  box-shadow: 0 0 8px var(--cyan);
+}
+.marker b { color: var(--cyan); font-weight: 500; }
+
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  height: 54px; padding: 0 18px;
+  font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+  text-decoration: none; border: 0; cursor: pointer;
+}
+.btn.primary {
+  color: #04121b;
+  background: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan), 0 0 28px rgba(143, 227, 255, 0.45);
+}
+.btn.ghost { color: var(--ink); letter-spacing: 0.14em; font-size: 12px; padding: 0 10px; text-align: center; }
+
+/* ---------- sections ---------- */
+section { position: relative; padding: 72px var(--gutter) 0; }
+.coord {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+}
+.coord::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--cyan-line), transparent); }
+h2 {
+  font-family: var(--display); font-weight: 700;
+  font-size: 40px; line-height: 0.98; letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lede { color: var(--mute); margin-top: 16px; max-width: 34ch; }
+.lede strong { color: var(--ink); font-weight: 600; }
+
+/* =========================================================
+   HERO: the lattice
+   ========================================================= */
+.hero {
+  position: relative;
+  height: 100svh; min-height: 760px; max-height: 960px;
+  padding: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 50% 62%, rgba(110, 80, 220, 0.38) 0%, rgba(40, 30, 110, 0.18) 40%, transparent 70%),
+    radial-gradient(90% 40% at 50% 54%, rgba(143, 227, 255, 0.16), transparent 70%),
+    linear-gradient(180deg, #03060c 0%, #071226 42%, #120f33 60%, #050a12 100%);
+}
+.stars { position: absolute; inset: 0 0 45% 0; pointer-events: none; }
+.hud-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 5;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 58px) var(--gutter) 0;
+}
+.hud-top .label { font-size: 10px; }
+.live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); margin-right: 8px; vertical-align: 1px; }
+
+.hero-words {
+  position: absolute; z-index: 5; left: var(--gutter); right: var(--gutter);
+  top: calc(env(safe-area-inset-top, 0px) + 104px);
+}
+.wordmark {
+  font-family: var(--display); font-weight: 700; text-transform: uppercase;
+  line-height: 0.8; letter-spacing: 0.01em;
+}
+.wordmark .pre {
+  display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 13px; letter-spacing: 0.62em; color: var(--cyan); margin-bottom: 10px; padding-left: 3px;
+}
+.wordmark .name {
+  display: block; font-size: 75px; letter-spacing: 0.005em;
+  background: linear-gradient(180deg, #ffffff 30%, #bfeeff 70%, #8fa8ff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(143, 227, 255, 0.35));
+}
+.claim {
+  margin-top: 18px;
+  font-size: 27px; font-weight: 600; line-height: 1.05; color: var(--ink);
+  max-width: 15ch;
+}
+
+/* the 3D plane */
+.lattice-wrap {
+  position: absolute; left: 50%; top: 49%;
+  width: 0; height: 0; transform-style: preserve-3d;
+  perspective: 760px; perspective-origin: 50% -180px;
+}
+.plane {
+  --cell: 104px; --gap: 6px;
+  position: absolute;
+  width: calc(var(--cell) * 5 + var(--gap) * 6);
+  height: calc(var(--cell) * 5 + var(--gap) * 6);
+  left: calc((var(--cell) * 5 + var(--gap) * 6) / -2);
+  top: -150px;
+  transform-style: preserve-3d;
+  transform: rotateX(63deg) rotateZ(-8deg);
+  display: grid;
+  grid-template-columns: repeat(5, var(--cell));
+  grid-template-rows: repeat(5, var(--cell));
+  gap: var(--gap); padding: var(--gap);
+  /* the seams: the gaps between the cells glow */
+  background:
+    linear-gradient(90deg, rgba(164, 135, 255, 0.0), rgba(164, 135, 255, 0.55) 30%, rgba(143, 227, 255, 0.85) 50%, rgba(164, 135, 255, 0.55) 70%, rgba(164, 135, 255, 0)),
+    #1a1450;
+  box-shadow: 0 0 60px 10px rgba(130, 110, 255, 0.35), 0 0 160px 40px rgba(80, 60, 200, 0.25);
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+          mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+}
+.cell { position: relative; transform-style: preserve-3d; }
+.cell .tex {
+  position: absolute; inset: 0; overflow: hidden;
+  background:
+    linear-gradient(var(--cyan-faint) 1px, transparent 1px) 0 0 / 26px 26px,
+    linear-gradient(90deg, var(--cyan-faint) 1px, transparent 1px) 0 0 / 26px 26px,
+    #07101e;
+}
+.cell .tex img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.15) brightness(1.05); }
+.cell.lit .tex { box-shadow: inset 0 0 0 1px rgba(143, 227, 255, 0.7); }
+.cell.lit .tex::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(5, 10, 18, 0.25), transparent 40%);
+}
+.cell.centre .tex { box-shadow: inset 0 0 0 2px #fff, 0 0 30px rgba(255, 255, 255, 0.5); }
+/* light columns rise from the lit cells (projected in 2D from each cell's on-screen centre) */
+.beams2d { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.beam {
+  position: absolute; width: 3px; margin-left: -1.5px;
+  transform-origin: 50% 100%;
+  background: linear-gradient(0deg, rgba(235, 250, 255, 1), rgba(143, 227, 255, 0.7) 22%, rgba(164, 135, 255, 0.25) 70%, transparent);
+  box-shadow: 0 0 12px 2px rgba(143, 227, 255, 0.45);
+  border-radius: 2px;
+}
+.beam::after { /* the foot glow where the column meets the cell */
+  content: ""; position: absolute; left: 50%; bottom: -9px; width: 46px; height: 18px; margin-left: -23px;
+  background: radial-gradient(closest-side, rgba(220, 248, 255, 0.95), rgba(143, 227, 255, 0.35) 55%, transparent);
+  border-radius: 50%;
+}
+.btag { position: absolute; transform: translate(-50%, -100%); }
+.btag .marker { font-size: 8.5px; padding: 4px 8px; letter-spacing: 0.16em; }
+.btag::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 8px; background: var(--cyan-line); }
+
+.hero-fade {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 330px; z-index: 3;
+  background: linear-gradient(180deg, transparent, rgba(5, 10, 18, 0.85) 45%, var(--abyss) 80%);
+  pointer-events: none;
+}
+.hero-foot {
+  position: absolute; z-index: 5; left: var(--gutter); right: var(--gutter);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+}
+.hero-foot .sub { font-size: 19px; font-weight: 600; color: var(--ink); margin-bottom: 16px; }
+.hero-foot .sub span { color: var(--mute); }
+.cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.legend {
+  display: flex; justify-content: space-between; margin-top: 14px;
+}
+.legend .label { font-size: 9px; letter-spacing: 0.2em; }
+
+/* load sequence: cells light outward from the centre, then the beams rise. One orchestrated moment. */
+@media (prefers-reduced-motion: no-preference) {
+  .cell.lit .tex { animation: lightup 0.7s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--d, 0) * 110ms + 250ms); }
+  .beam { animation: rise 0.9s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--d, 0) * 110ms + 700ms); }
+  .btag { animation: tagin 0.5s ease-out both; animation-delay: calc(var(--d, 0) * 110ms + 1300ms); }
+  .plane { animation: seam 6s ease-in-out 1.6s infinite alternate; }
+}
+@keyframes lightup { from { opacity: 0; filter: brightness(3); } to { opacity: 1; filter: none; } }
+@keyframes rise { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes tagin { from { opacity: 0; } to { opacity: 1; } }
+@keyframes seam { from { box-shadow: 0 0 60px 10px rgba(130, 110, 255, 0.35), 0 0 160px 40px rgba(80, 60, 200, 0.25); } to { box-shadow: 0 0 80px 18px rgba(143, 227, 255, 0.4), 0 0 180px 50px rgba(110, 80, 230, 0.3); } }
+
+/* =========================================================
+   THE WORLD
+   ========================================================= */
+.world { padding-top: 40px; }
+.frame { margin-top: 26px; padding: 6px; }
+.frame img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.frame .cap {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 6px 4px;
+}
+.frame .cap .label { font-size: 9.5px; }
+.concept-flag {
+  position: absolute; top: 14px; left: 14px;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #fff; background: rgba(6, 10, 18, 0.82); border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 4px 8px;
+}
+.spec {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  margin-top: 14px; border-top: 1px solid var(--cyan-line); border-bottom: 1px solid var(--cyan-line);
+}
+.spec div { padding: 12px 0 12px 10px; border-left: 1px solid var(--cyan-faint); }
+.spec div:first-child { border-left: 0; padding-left: 0; }
+.spec b { display: block; font-size: 25px; font-weight: 700; line-height: 1; color: var(--ink); }
+.spec .label { font-size: 8.5px; letter-spacing: 0.16em; color: var(--mute); display: block; margin-top: 6px; }
+.split { display: grid; grid-template-columns: 132px 1fr; gap: 14px; margin-top: 18px; align-items: center; }
+.split .shot { padding: 4px; }
+.split .shot img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: 50% 45%; }
+.split p { font-size: 16px; color: var(--mute); }
+.split p strong { color: var(--ink); font-weight: 600; }
+
+/* =========================================================
+   SHARDS
+   ========================================================= */
+.shards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 26px; }
+.shard { display: flex; flex-direction: column; }
+.shard .pic { position: relative; padding: 4px; }
+.shard .pic .crop { position: relative; overflow: hidden; aspect-ratio: 3 / 4.4; }
+.shard .pic img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.shard .pic img.hudcrop { transform: scale(1.18); }
+.shard .pic .cell-id {
+  position: absolute; left: 10px; bottom: 10px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--cyan);
+  background: rgba(6, 10, 18, 0.8); padding: 3px 6px; border: 1px solid var(--cyan-line);
+}
+.shard h3 { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1; margin-top: 12px; }
+.shard p { font-size: 15px; line-height: 1.32; color: var(--mute); margin-top: 6px; }
+.shard.wide { grid-column: 1 / -1; display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: center; }
+.shard.wide .pic .crop { aspect-ratio: 1 / 1; }
+.shard.wide h3 { margin-top: 0; }
+.shard.wide img { filter: saturate(0.4); }
+
+/* =========================================================
+   HOW A SHARD IS MADE
+   ========================================================= */
+.steps { list-style: none; margin-top: 30px; position: relative; }
+.steps::before {
+  content: ""; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px;
+  background: linear-gradient(180deg, var(--cyan), var(--violet));
+  box-shadow: 0 0 10px rgba(143, 227, 255, 0.5);
+}
+.steps li { position: relative; display: grid; grid-template-columns: 36px 1fr; gap: 16px; padding: 10px 0; align-items: start; }
+.steps .n {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--cyan);
+  background: var(--abyss); border: 1px solid var(--cyan);
+  transform: rotate(45deg) scale(0.78);
+  z-index: 1;
+}
+.steps .n span { transform: rotate(-45deg); }
+.steps .t { font-size: 19px; font-weight: 600; line-height: 1.22; padding-top: 6px; }
+.steps code {
+  font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--cyan);
+  background: rgba(143, 227, 255, 0.08); border: 1px solid var(--cyan-faint); padding: 1px 6px;
+}
+
+/* =========================================================
+   UPLOAD RITUAL
+   ========================================================= */
+.ritual-art { margin-top: 26px; padding: 0; overflow: hidden; }
+.ritual-art svg { display: block; width: 100%; height: auto; }
+.coming {
+  position: absolute; top: 12px; left: 12px;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #04121b; background: var(--violet); padding: 4px 8px; font-weight: 700;
+}
+.ritual-art .label.cap { position: absolute; right: 12px; top: 14px; font-size: 9px; color: var(--mute); }
+@media (prefers-reduced-motion: no-preference) {
+  .rbeam { animation: rbeam 2.4s ease-in-out infinite alternate; }
+}
+@keyframes rbeam { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* =========================================================
+   SAFE BY CONSTRUCTION
+   ========================================================= */
+.manifest { margin-top: 26px; padding: 6px 16px; }
+.manifest .row {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+  padding: 13px 0; border-bottom: 1px dashed var(--cyan-faint);
+}
+.manifest .row:last-child { border-bottom: 0; }
+.manifest .k { font-size: 17px; font-weight: 600; }
+.manifest .v { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
+.manifest .v.yes { color: #9ff0c4; }
+.manifest .v.no { color: #ff9a8a; }
+
+/* =========================================================
+   LIVING GRID
+   ========================================================= */
+.grow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+.grow .g { padding: 16px 14px 18px; min-height: 148px; display: flex; flex-direction: column; justify-content: space-between; }
+.grow svg { width: 34px; height: 34px; stroke: var(--cyan); fill: none; stroke-width: 1.5; }
+.grow p { font-size: 17px; font-weight: 600; line-height: 1.15; margin-top: 16px; }
+
+/* =========================================================
+   THE ROAD
+   ========================================================= */
+.road { margin-top: 28px; position: relative; padding-left: 46px; }
+.road::before { /* the highway */
+  content: ""; position: absolute; left: 13px; top: 6px; bottom: 6px; width: 10px;
+  background:
+    linear-gradient(180deg, var(--cyan) 0, var(--cyan) 30%, rgba(164, 135, 255, 0.7) 30%, rgba(164, 135, 255, 0.7) 58%, rgba(143, 227, 255, 0.12) 58%) left / 1px 100% no-repeat,
+    linear-gradient(180deg, var(--cyan) 0, var(--cyan) 30%, rgba(164, 135, 255, 0.7) 30%, rgba(164, 135, 255, 0.7) 58%, rgba(143, 227, 255, 0.12) 58%) right / 1px 100% no-repeat,
+    repeating-linear-gradient(180deg, rgba(232, 246, 255, 0.5) 0 6px, transparent 6px 14px) center / 1px 100% no-repeat;
+}
+.road li { list-style: none; position: relative; padding: 11px 0; }
+.road .dot {
+  position: absolute; left: -36px; top: 13px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--abyss); border: 1.5px solid var(--cyan);
+}
+.road .done .dot { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+.road .doing .dot { border-color: var(--violet); background: linear-gradient(90deg, var(--violet) 50%, var(--abyss) 50%); box-shadow: 0 0 12px rgba(164, 135, 255, 0.7); }
+.road .next .dot { border-color: rgba(143, 227, 255, 0.4); }
+.road .t { font-size: 19px; font-weight: 600; line-height: 1.2; }
+.road .next .t { color: var(--mute); }
+.road .s { display: block; margin-top: 2px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; }
+.road .done .s { color: var(--cyan); }
+.road .doing .s { color: var(--violet); }
+.road .next .s { color: rgba(142, 166, 186, 0.7); }
+
+/* =========================================================
+   WHO
+   ========================================================= */
+.who { padding-top: 64px; }
+.who blockquote {
+  font-size: 26px; font-weight: 600; line-height: 1.12; padding-left: 16px;
+  border-left: 2px solid var(--cyan);
+}
+.crew { display: flex; gap: 6px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+.crew i {
+  width: 18px; height: 18px; display: block; border: 1px solid var(--cyan-line);
+  background: rgba(143, 227, 255, 0.08);
+}
+.crew i.h { background: var(--ink); border-color: var(--ink); border-radius: 50%; }
+.crew .label { margin-left: 8px; font-size: 9px; }
+
+/* =========================================================
+   AUTHOR DOOR
+   ========================================================= */
+.door { margin-top: 84px; padding: 0 0 40px; overflow: hidden; }
+.door-scene {
+  position: relative; height: 330px;
+  background:
+    linear-gradient(180deg, transparent 70%, var(--abyss) 100%),
+    radial-gradient(70% 60% at 50% 62%, rgba(120, 90, 240, 0.45), transparent 75%),
+    linear-gradient(180deg, var(--abyss), #0d0b2a 60%, #0d0b2a 80%, var(--abyss));
+  border-top: 1px solid var(--cyan-line);
+}
+.door-scene .persp { position: absolute; left: 50%; top: 58%; width: 0; height: 0; perspective: 600px; perspective-origin: 50% -120px; }
+.door-cell {
+  position: absolute; width: 340px; height: 340px; left: -170px; top: -170px;
+  transform: rotateX(64deg);
+  transform-style: preserve-3d;
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 5px; padding: 5px;
+  background: linear-gradient(90deg, rgba(164,135,255,.1), rgba(164,135,255,.8) 30%, rgba(143,227,255,1) 50%, rgba(164,135,255,.8) 70%, rgba(164,135,255,.1));
+  -webkit-mask-image: radial-gradient(closest-side, #000 60%, transparent 100%);
+          mask-image: radial-gradient(closest-side, #000 60%, transparent 100%);
+}
+.door-cell > div {
+  background:
+    linear-gradient(var(--cyan-faint) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, var(--cyan-faint) 1px, transparent 1px) 0 0 / 22px 22px,
+    #070f1d;
+}
+.door-cell > div.empty {
+  background:
+    linear-gradient(rgba(143,227,255,.35) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgba(143,227,255,.35) 1px, transparent 1px) 0 0 / 22px 22px,
+    #0c1a33;
+  box-shadow: inset 0 0 0 2px var(--cyan), 0 0 40px rgba(143, 227, 255, 0.6);
+}
+.door-beacon {
+  position: absolute; left: 50%; bottom: 42%; width: 120px; margin-left: -60px; height: 250px;
+  background:
+    linear-gradient(90deg, transparent, rgba(143, 227, 255, 0.0) 20%, rgba(143, 227, 255, 0.22) 50%, rgba(143, 227, 255, 0) 80%, transparent),
+    linear-gradient(0deg, rgba(143,227,255,.0), transparent);
+  -webkit-mask-image: linear-gradient(0deg, #000, transparent);
+          mask-image: linear-gradient(0deg, #000, transparent);
+}
+.door-beacon::after {
+  content: ""; position: absolute; left: 50%; bottom: 0; width: 3px; height: 100%; margin-left: -1.5px;
+  background: linear-gradient(0deg, #fff, var(--cyan) 30%, transparent);
+  box-shadow: 0 0 16px 4px rgba(143, 227, 255, 0.6);
+}
+.door-scene .unclaimed { position: absolute; left: 50%; top: 36px; transform: translateX(-50%); }
+.door-body { padding: 0 var(--gutter); margin-top: -40px; position: relative; z-index: 2; }
+.door h2 { font-size: 58px; line-height: 0.9; text-transform: uppercase; letter-spacing: 0.005em; }
+.door .lede { max-width: 30ch; }
+.wait { margin-top: 24px; padding: 18px 16px 16px; }
+.wait label { display: block; margin-bottom: 7px; }
+.field {
+  width: 100%; font: 500 17px/1.3 var(--display); color: var(--ink);
+  background: rgba(5, 10, 18, 0.7); border: 1px solid var(--cyan-line); border-radius: 0;
+  padding: 12px 12px; margin-bottom: 14px; -webkit-appearance: none; appearance: none;
+}
+.field::placeholder { color: rgba(142, 166, 186, 0.7); }
+textarea.field { min-height: 84px; resize: vertical; }
+.wait .btn { width: 100%; }
+.door-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.mail {
+  display: block; margin-top: 22px; text-align: center;
+  font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--cyan); text-decoration: none;
+}
+.foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 34px var(--gutter) 0; padding: 18px 0 calc(env(safe-area-inset-bottom, 0px) + 26px);
+  border-top: 1px solid var(--cyan-faint);
+}
+.foot .label { font-size: 9px; }
+</style>
+</head>
+<body>
+
+<!-- 1 · HERO ----------------------------------------------------------- -->
+<header class="hero" id="top">
+  <svg class="stars" id="stars" aria-hidden="true"></svg>
+
+  <div class="hud-top">
+    <span class="label"><span class="live-dot"></span>Grid 5 &times; 5</span>
+    <span class="label dim">7 shards live</span>
+  </div>
+
+  <div class="hero-words">
+    <h1 class="wordmark"><span class="pre">Project</span><span class="name">Wildshard</span></h1>
+    <p class="claim">One world. Every shard built by a player.</p>
+  </div>
+
+  <div class="lattice-wrap" aria-hidden="true">
+    <div class="plane" id="plane"></div>
+  </div>
+  <div class="beams2d" id="beams" aria-hidden="true"></div>
+
+  <div class="hero-fade"></div>
+
+  <div class="hero-foot">
+    <p class="sub">Play it in the browser.<br /><span>Build it in Claude Code.</span></p>
+    <div class="cta-row">
+      <a class="btn primary" href="#play">Play now</a>
+      <a class="btn ghost bk" href="#author">Become an author</a>
+    </div>
+    <div class="legend">
+      <span class="label dim">Real in-engine shots</span>
+      <span class="label dim">17 cells unclaimed</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- 2 · THE WORLD ------------------------------------------------------- -->
+<section class="world" id="world">
+  <div class="coord"><span class="label">The world</span></div>
+  <h2>A world made of shards.</h2>
+  <p class="lede">Each shard is <strong>500 &times; 500 &times; 500 metres</strong>, built by one author and placed on a shared grid. A server-owned highway runs between them; glowing seams stitch them together. The first grid is five by five around a fixed centre.</p>
+
+  <figure class="frame bk">
+    <img src="../../../../docs/design/mmo/concept-art/shard-grid-overview.jpg" alt="Concept painting: a grid of distinct biomes stitched by glowing cyan and violet seams, seen from a cliff." />
+    <span class="concept-flag">Concept art</span>
+    <div class="spec">
+      <div><b>500 m</b><span class="label">Each side, and up</span></div>
+      <div><b>5 &times; 5</b><span class="label">The first grid</span></div>
+      <div><b>1</b><span class="label">Author per shard</span></div>
+    </div>
+  </figure>
+
+  <div class="split">
+    <div class="shot bk"><img src="../../../../progress/nalati-grasslands/20261002-0011-0d59505c/aerial-overview.jpg" alt="In-engine aerial of Nalati Grasslands." /></div>
+    <p><strong>In engine today:</strong> Nalati Grasslands from the air, one whole shard.</p>
+  </div>
+</section>
+
+<!-- 3 · SHARDS ---------------------------------------------------------- -->
+<section id="shards">
+  <div class="coord"><span class="label">Playable today</span></div>
+  <h2>Seven shards. Seven looks. One engine.</h2>
+
+  <div class="shards-grid">
+    <article class="shard">
+      <div class="pic bk"><div class="crop"><img src="../../../../public/assets/title/driftwood-isle-portrait.jpg" alt="Driftwood Isle: a wooden pier running out to a low-poly island." style="object-position:50% 30%" /></div><span class="cell-id">B2</span></div>
+      <h3>Driftwood Isle</h3>
+      <p>A bright low-poly island in a toon ocean: pier, sailboat, shrine and wreck.</p>
+    </article>
+    <article class="shard">
+      <div class="pic bk"><div class="crop"><img src="../../../../art/hero-images/round-4-pine-hollow-in-engine/candidate-4-king-lanterns-portrait.jpg" alt="Pine Hollow at night: the Antler King among lanterns." style="object-position:50% 40%" /></div><span class="cell-id">C2</span></div>
+      <h3>Pine Hollow</h3>
+      <p>A boreal hunt from dawn fog to lantern-lit night. Face the Antler King.</p>
+    </article>
+    <article class="shard">
+      <div class="pic bk"><div class="crop"><img src="../../../../art/hero-images/round-3-nalati-in-engine/hero-nalati-grasslands-portrait.jpg" alt="Nalati Grasslands: yurts and horses under painted mountains." style="object-position:50% 50%" /></div><span class="cell-id">D2</span></div>
+      <h3>Nalati Grasslands</h3>
+      <p>The painted steppe on horseback. Tame horses, open the Golden King&rsquo;s kurgan.</p>
+    </article>
+    <article class="shard">
+      <div class="pic bk"><div class="crop"><img class="hudcrop" src="../../../../progress/sunscar-dunes/20261003-1458-a37cbc42/h2-caravan.jpg" alt="Signal Dunes at dusk: a half-buried caravan and a horse on the sand." style="object-position:50% 50%" /></div><span class="cell-id">B3</span></div>
+      <h3>Signal Dunes</h3>
+      <p>Crack the bullwhip, drive off the dune rays and light the signal fire.</p>
+    </article>
+    <article class="shard">
+      <div class="pic bk"><div class="crop"><img src="../../../../progress/far-reach/20261003-0952-6066f959/aerial-overview.jpg" alt="Sky Reach from above: grassy islands over a sea of cloud joined by bridges." style="object-position:50% 62%" /></div><span class="cell-id">D3</span></div>
+      <h3>Sky Reach</h3>
+      <p>Grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride.</p>
+    </article>
+    <article class="shard">
+      <div class="pic bk"><div class="crop"><img src="../../../../public/assets/title/nine-dragon-stack-portrait.jpg" alt="Nine Dragon Stack: Lantern Square's red gate on rain-wet stone." style="object-position:50% 35%" /></div><span class="cell-id">C4</span></div>
+      <h3>Nine Dragon Stack</h3>
+      <p>Lantern Square, halfway up a neon city stacked 500 metres high.</p>
+    </article>
+    <article class="shard wide">
+      <div class="pic bk"><div class="crop"><img src="../../../../progress/normalization/j15/template-play.jpg" alt="The Template: a grey hut on a greybox floor." style="object-position:50% 52%; transform:scale(1.25)" /></div><span class="cell-id">B4</span></div>
+      <div>
+        <h3>The Template</h3>
+        <p>The greybox every new shard starts from.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- 4 · HOW A SHARD IS MADE -------------------------------------------- -->
+<section id="make">
+  <div class="coord"><span class="label">How a shard is made</span></div>
+  <h2>Claude Code is the level editor.</h2>
+  <ol class="steps">
+    <li><span class="n"><span>1</span></span><span class="t">Get a creator key</span></li>
+    <li><span class="n"><span>2</span></span><span class="t">Install the Wildshard skill and SDK in your own Claude Code</span></li>
+    <li><span class="n"><span>3</span></span><span class="t">Describe it. Claude builds it on a floating cube</span></li>
+    <li><span class="n"><span>4</span></span><span class="t"><code>wildshard build</code> and <code>validate</code> check every budget and edge</span></li>
+    <li><span class="n"><span>5</span></span><span class="t">Walk it locally</span></li>
+    <li><span class="n"><span>6</span></span><span class="t">Upload it in the game</span></li>
+  </ol>
+</section>
+
+<!-- 5 · UPLOAD RITUAL --------------------------------------------------- -->
+<section id="ritual">
+  <div class="coord"><span class="label">The upload ritual</span></div>
+  <h2>Uploading is a set piece.</h2>
+  <p class="lede">Plant a beacon at each of the eight corners, a ninth at the centre, and watch your shard rise onto the grid.</p>
+  <div class="ritual-art bk">
+    <svg viewBox="0 0 370 300" role="img" aria-label="Mockup: a shard cube with a beacon at each of its eight corners and a ninth at the centre, rising onto a grid cell.">
+      <defs>
+        <linearGradient id="rb" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.3" stop-color="#8fe3ff" />
+          <stop offset="1" stop-color="#a487ff" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1a1450" />
+          <stop offset="1" stop-color="#2a1f70" />
+        </linearGradient>
+        <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8fe3ff" stop-opacity="0.10" />
+          <stop offset="1" stop-color="#a487ff" stop-opacity="0.02" />
+        </linearGradient>
+        <radialGradient id="glow" cx="0.5" cy="0.66" r="0.6">
+          <stop offset="0" stop-color="#6f55e6" stop-opacity="0.55" />
+          <stop offset="1" stop-color="#050a12" stop-opacity="0" />
+        </radialGradient>
+        <filter id="bl"><feGaussianBlur stdDeviation="2.4" /></filter>
+      </defs>
+      <rect width="370" height="300" fill="#060c18" />
+      <rect width="370" height="300" fill="url(#glow)" />
+      <g stroke="#8fe3ff" stroke-opacity="0.13" stroke-width="1" fill="none"><path d="M-505.0 20.0 L185.0 260.0 M875.0 20.0 L185.0 260.0 M-447.5 40.0 L242.5 280.0 M817.5 40.0 L127.5 280.0 M-390.0 60.0 L300.0 300.0 M760.0 60.0 L70.0 300.0 M-332.5 80.0 L357.5 320.0 M702.5 80.0 L12.5 320.0 M-275.0 100.0 L415.0 340.0 M645.0 100.0 L-45.0 340.0 M-217.5 120.0 L472.5 360.0 M587.5 120.0 L-102.5 360.0 M-160.0 140.0 L530.0 380.0 M530.0 140.0 L-160.0 380.0 M-102.5 160.0 L587.5 400.0 M472.5 160.0 L-217.5 400.0 M-45.0 180.0 L645.0 420.0 M415.0 180.0 L-275.0 420.0 M12.5 200.0 L702.5 440.0 M357.5 200.0 L-332.5 440.0 M70.0 220.0 L760.0 460.0 M300.0 220.0 L-390.0 460.0 M127.5 240.0 L817.5 480.0 M242.5 240.0 L-447.5 480.0 M185.0 260.0 L875.0 500.0 M185.0 260.0 L-505.0 500.0" /></g>
+      <!-- the claimed cell on the grid -->
+      <path d="M185 180 L300 220 L185 260 L70 220 Z" fill="url(#floor)" stroke="#8fe3ff" stroke-width="1.5" />
+      <path d="M185 180 L300 220 L185 260 L70 220 Z" fill="none" stroke="#a487ff" stroke-width="6" stroke-opacity="0.4" filter="url(#bl)" />
+      <!-- the shard volume rising onto it -->
+      <path d="M70 98 L185 138 L185 260 L70 220 Z" fill="url(#wall)" />
+      <path d="M300 98 L185 138 L185 260 L300 220 Z" fill="url(#wall)" opacity="0.6" />
+      <path d="M185 58 L300 98 L185 138 L70 98 Z" fill="#8fe3ff" fill-opacity="0.07" stroke="#8fe3ff" stroke-width="1" stroke-opacity="0.8" />
+      <path d="M70 98 L70 220 M300 98 L300 220 M185 138 L185 260" stroke="#8fe3ff" stroke-width="1" stroke-opacity="0.7" fill="none" />
+      <path d="M185 58 L185 180" stroke="#8fe3ff" stroke-width="1" stroke-opacity="0.35" stroke-dasharray="3 4" fill="none" />
+      <!-- a sketch of the shard's land on its top face -->
+      <path d="M96 99 L124 86 L142 94 L163 77 L190 92 L214 81 L268 99 L232 113 L185 130 L136 113 Z" fill="#2c5d55" fill-opacity="0.6" stroke="#9ff0c4" stroke-opacity="0.5" stroke-width="0.8" />
+      <!-- nine beacons: the eight corners and the centre -->
+      <g class="rbeam" fill="url(#rb)"><rect x="183.5" y="0" width="3" height="58" /><rect x="298.5" y="40" width="3" height="58" /><rect x="183.5" y="80" width="3" height="58" /><rect x="68.5" y="40" width="3" height="58" /><rect x="183.5" y="122" width="3" height="58" /><rect x="298.5" y="162" width="3" height="58" /><rect x="183.5" y="202" width="3" height="58" /><rect x="68.5" y="162" width="3" height="58" /><rect x="182.5" y="120" width="5" height="100" /></g>
+      <g fill="#8fe3ff" fill-opacity="0.35" filter="url(#bl)"><circle cx="185" cy="58" r="8" /><circle cx="300" cy="98" r="8" /><circle cx="185" cy="138" r="8" /><circle cx="70" cy="98" r="8" /><circle cx="185" cy="180" r="8" /><circle cx="300" cy="220" r="8" /><circle cx="185" cy="260" r="8" /><circle cx="70" cy="220" r="8" /><circle cx="185" cy="220" r="13" fill="#a487ff" fill-opacity="0.7" /></g>
+      <g fill="#ffffff"><circle cx="185" cy="58" r="3.5" /><circle cx="300" cy="98" r="3.5" /><circle cx="185" cy="138" r="3.5" /><circle cx="70" cy="98" r="3.5" /><circle cx="185" cy="180" r="3.5" /><circle cx="300" cy="220" r="3.5" /><circle cx="185" cy="260" r="3.5" /><circle cx="70" cy="220" r="3.5" /></g>
+      <circle cx="185" cy="220" r="5" fill="#d9ccff" />
+      <g font-family="JetBrains Mono, monospace" font-size="9" fill="#8ea6ba"><text x="310" y="102">1</text><text x="193" y="52">2</text><text x="54" y="102">3</text><text x="193" y="150">4</text><text x="310" y="224">5</text><text x="193" y="276">6</text><text x="54" y="224">7</text><text x="193" y="176">8</text>
+        <text x="195" y="224" fill="#c9b8ff" letter-spacing="1.6">9 &#183; CENTRE</text>
+      </g>
+    </svg>
+    <span class="coming">Coming</span>
+    <span class="label cap">Mockup</span>
+  </div>
+</section>
+
+<!-- 6 · SAFE ------------------------------------------------------------ -->
+<section id="safe">
+  <div class="coord"><span class="label">Safe by construction</span></div>
+  <h2>Strangers&rsquo; worlds, safe on your phone.</h2>
+  <p class="lede">A shard ships data and baked assets, never code that can touch your browser. Every shard is metered, deterministic and built against a versioned API.</p>
+  <div class="manifest bk" role="list" aria-label="What a shard package holds">
+    <div class="row" role="listitem"><span class="k">Data and baked assets</span><span class="v yes">Ships</span></div>
+    <div class="row" role="listitem"><span class="k">Code that can touch your browser</span><span class="v no">Never</span></div>
+    <div class="row" role="listitem"><span class="k">Metered</span><span class="v yes">Every shard</span></div>
+    <div class="row" role="listitem"><span class="k">Deterministic</span><span class="v yes">Every shard</span></div>
+    <div class="row" role="listitem"><span class="k">Built against a versioned API</span><span class="v yes">Every shard</span></div>
+  </div>
+</section>
+
+<!-- 7 · LIVING GRID ----------------------------------------------------- -->
+<section id="grow">
+  <div class="coord"><span class="label">A living grid</span></div>
+  <h2>Shards that grow.</h2>
+  <div class="grow">
+    <div class="g bk">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="11" cy="12" r="5" /><circle cx="24" cy="12" r="5" /><path d="M2 30c1-7 5-10 9-10s8 3 9 10M15 30c1-7 5-10 9-10s8 3 9 10" /></svg>
+      <p>Co-edit with friends</p>
+    </div>
+    <div class="g bk">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M4 30h26M7 30V15l10-8 10 8v15" /><path d="M13 30v-8h8v8" /><path d="M22 4l8 8" stroke-dasharray="2 2" /></svg>
+      <p>Renovate abandoned shards</p>
+    </div>
+    <div class="g bk">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><rect x="4" y="8" width="26" height="18" /><path d="M9 15h10M9 20h7" /><path d="M24 4v8" /></svg>
+      <p>Your name and title travel with you</p>
+    </div>
+    <div class="g bk">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="10" width="15" height="14" /><rect x="16" y="6" width="15" height="14" /><path d="M7 17h4M20 13h4" /></svg>
+      <p>Two wallets, so no shard can break the economy</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · THE ROAD -------------------------------------------------------- -->
+<section id="road">
+  <div class="coord"><span class="label">The road</span></div>
+  <h2>Where we are.</h2>
+  <ul class="road">
+    <li class="done"><i class="dot"></i><span class="t">Seven single-player shards on one engine</span><span class="s">Shipped</span></li>
+    <li class="done"><i class="dot"></i><span class="t">The shard package</span><span class="s">Shipped</span></li>
+    <li class="doing"><i class="dot"></i><span class="t">The grid: seamless travel between shards</span><span class="s">Building</span></li>
+    <li class="doing"><i class="dot"></i><span class="t">Every shard as data</span><span class="s">Building</span></li>
+    <li class="next"><i class="dot"></i><span class="t">Multiplayer</span><span class="s">Next</span></li>
+    <li class="next"><i class="dot"></i><span class="t">Upload</span><span class="s">Next</span></li>
+    <li class="next"><i class="dot"></i><span class="t">The 25-shard world</span><span class="s">Next</span></li>
+  </ul>
+</section>
+
+<!-- 9 · WHO ------------------------------------------------------------- -->
+<section class="who" id="who">
+  <div class="coord"><span class="label">Who&rsquo;s building it</span></div>
+  <blockquote>Built the way its authors will build: two humans and a fleet of Claude Code agents.</blockquote>
+  <div class="crew" aria-hidden="true">
+    <i class="h"></i><i class="h"></i>
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+</section>
+
+<!-- 10 · AUTHOR DOOR ---------------------------------------------------- -->
+<section class="door" id="author">
+  <div class="door-scene" aria-hidden="true">
+    <div class="persp">
+      <div class="door-cell">
+        <div></div><div></div><div></div>
+        <div></div><div class="empty"></div><div></div>
+        <div></div><div></div><div></div>
+      </div>
+    </div>
+    <div class="door-beacon"></div>
+    <span class="unclaimed marker">Cell <b>D4</b> &nbsp;unclaimed</span>
+  </div>
+  <div class="door-body">
+    <h2>Become an author</h2>
+    <p class="lede">An empty cell on the grid is waiting. Tell us what you&rsquo;d put there.</p>
+
+    <form class="wait bk" onsubmit="event.preventDefault(); this.querySelector('.btn').textContent='On the waitlist';">
+      <label class="label" for="em">Email</label>
+      <input class="field" id="em" type="email" placeholder="you@example.com" autocomplete="email" />
+      <label class="label" for="wb">What would you build?</label>
+      <textarea class="field" id="wb" placeholder="A frozen fjord where you are the last ferryman&hellip;"></textarea>
+      <button class="btn primary" type="submit">Join the waitlist</button>
+    </form>
+
+    <div class="door-links">
+      <a class="btn ghost bk" href="#discord">Join the Discord</a>
+      <a class="btn ghost bk" href="#play" id="play">Play now</a>
+    </div>
+    <a class="mail" href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a>
+  </div>
+  <footer class="foot">
+    <span class="label">Project Wildshard</span>
+    <a class="label dim" href="#top" style="text-decoration:none">Back to the grid</a>
+  </footer>
+</section>
+</main>
+
+<script>
+(function () {
+  // Stars for the night sky (seeded so every load and capture matches).
+  var svg = document.getElementById('stars');
+  var s = 7, rnd = function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  var w = 402, h = 480, out = '';
+  svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+  for (var i = 0; i < 120; i++) {
+    var r = rnd() < 0.08 ? 1.3 : 0.6 + rnd() * 0.5;
+    out += '<circle cx="' + (rnd() * w).toFixed(1) + '" cy="' + (rnd() * h).toFixed(1) + '" r="' + r.toFixed(2) +
+      '" fill="#dff4ff" opacity="' + (0.25 + rnd() * 0.6).toFixed(2) + '"/>';
+  }
+  svg.innerHTML = out;
+
+  // The lattice: a 5 x 5 grid around a fixed centre. The ring of eight holds the seven
+  // playable shards and the Template; the outer sixteen cells are unclaimed.
+  var R = '../../../../';
+  var cells = {
+    '1,1': { src: 'progress/driftwood-isle/20261002-0011-0d59505c/aerial-overview.jpg', pos: '50% 55%', tag: 'Driftwood Isle', beam: 'mid' },
+    '1,2': { src: 'art/hero-images/round-4-pine-hollow-in-engine/hero-pine-hollow-portrait.jpg', pos: '50% 60%' },
+    '1,3': { src: 'art/hero-images/round-3-nalati-in-engine/hero-nalati-grasslands-portrait.jpg', pos: '50% 70%' },
+    '2,1': { src: 'progress/sunscar-dunes/20261003-1458-a37cbc42/aerial-overview.jpg', pos: '50% 50%', filter: 'brightness(1.5) saturate(1.3)' },
+    '2,2': { src: 'public/assets/title/main-crossroads-portrait.jpg', pos: '50% 70%', centre: true, tag: 'Centre', beam: 'tall' },
+    '2,3': { src: 'progress/far-reach/20261003-0952-6066f959/aerial-overview.jpg', pos: '50% 55%', tag: 'Sky Reach', beam: 'low' },
+    '3,1': { src: 'progress/normalization/j15/template-play.jpg', pos: '50% 60%', beam: 'none' },
+    '3,2': { src: 'public/assets/title/nine-dragon-stack-portrait.jpg', pos: '50% 40%', beam: 'none' }
+  };
+  var plane = document.getElementById('plane'), html = '';
+  var heights = { tall: 0.3, mid: 0.19, low: 0.165, short: 0.1, '': 0.12 };
+  for (var r2 = 0; r2 < 5; r2++) {
+    for (var c = 0; c < 5; c++) {
+      var d = cells[r2 + ',' + c];
+      if (!d) { html += '<div class="cell"><div class="tex"></div></div>'; continue; }
+      var dist = Math.abs(r2 - 2) + Math.abs(c - 2);
+      html += '<div class="cell lit' + (d.centre ? ' centre' : '') + '" data-k="' + r2 + ',' + c + '" style="--d:' + dist + '">' +
+        '<div class="tex"><img src="' + R + d.src + '" style="object-position:' + d.pos + (d.filter ? ';filter:' + d.filter : '') + '" alt=""></div></div>';
+    }
+  }
+  plane.innerHTML = html;
+
+  var layer = document.getElementById('beams'), hero = document.querySelector('.hero');
+  function place() {
+    var hb = hero.getBoundingClientRect(), out = '';
+    var lit = plane.querySelectorAll('.cell.lit');
+    for (var i = 0; i < lit.length; i++) {
+      var el = lit[i], d = cells[el.getAttribute('data-k')], b = el.querySelector('.tex').getBoundingClientRect();
+      var x = b.left + b.width / 2 - hb.left, y = b.top + b.height / 2 - hb.top;
+      if (d.beam === 'none') continue;
+      var h = Math.round(hb.height * heights[d.beam || '']);
+      var dd = el.style.getPropertyValue('--d');
+      out += '<div class="beam" style="left:' + x.toFixed(1) + 'px;top:' + (y - h).toFixed(1) + 'px;height:' + h + 'px;--d:' + dd + '"></div>';
+      if (d.tag) out += '<div class="btag" style="left:' + Math.min(Math.max(x, 70), hb.width - 70).toFixed(1) + 'px;top:' + (y - h - 8).toFixed(1) + 'px;--d:' + dd + '"><span class="marker">' + d.tag + '</span></div>';
+    }
+    layer.innerHTML = out;
+  }
+  place();
+  addEventListener('resize', place);
+})();
+</script>
+</body>
+</html>

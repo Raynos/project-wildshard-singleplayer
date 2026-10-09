@@ -125,4 +125,10 @@ plans (SHARD-PLATFORM Part B, then the MMO's). The site only describes them and 
 - **Q3 · The author door: all three**: the waitlist form, a Discord (to be made) and the mail link
   `project.wildshard@gmail.com`. MS7 builds all three.
 - **Q4 · Public from day one.** Every deploy is public; no protection gate.
-- **Open: the domain(s)** (MS9).
+- **Open: the domain(s)** (MS9; Jake 2026-10-09: "I'll figure it out later").
+
+## 8. Mockup rounds (MS2)
+
+| Round | Folder | What | Jake's pick |
+|---|---|---|---|
+| 1 · direction | `art/marketing-site/round-1-direction/` | A The Lattice (the world map at night, the game's UI language), B The Atlas (an explorer's atlas, shards as plates), C The Prompt (a Claude Code terminal, the world opening out of a prompt). Real HTML pages (`<x>/index.html`), first screens `<x>-hero.jpg`, whole pages `<x>-full-<n>.jpg`, `board.jpg` | asked 2026-10-09 |
