@@ -4,7 +4,7 @@ import { buildWhipModel } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
-import { skittererGeometry } from '../species/skitterer';
+import { skittererBody } from '../species/skitterer';
 import { striderSpecimen } from '../species/strider';
 import { rayGeometry } from '../species/duneRay';
 import { matriarchBody } from '../species/matriarch';
@@ -43,7 +43,7 @@ export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', n
     return centred(parts.root, BRAZIERS[0]?.x ?? 0, brazierY, BRAZIERS[0]?.z ?? 0);
   } });
 export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
-  build: () => creature(skittererGeometry()) });
+  build: () => creature(skittererBody()) });
 export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => creature(striderSpecimen()) });
 export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},

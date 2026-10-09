@@ -53,6 +53,11 @@ const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
   caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb',
 };
 export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
+/** The code-built creature bodies baked offline as skinned rig files (SF72: `generators/species.ts` → `scripts/bake-signal-rigs.mjs`), read by `world/meshes.ts`. */
+export const DUNE_RIGS = ['skitterer'] as const;
+export type DuneRigName = (typeof DUNE_RIGS)[number];
+const RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb' };
+export const duneRigUrl = (name: DuneRigName): string => RIG_URLS[name];
 
 /** The flame's flipbook (world/fireFx.ts loadFireBook; art/sunscar-dunes/round-26-fire; E407 row 6). */
 export const FIRE_BOOK_URL = '/assets/sunscar-dunes/fx/fire-book.webp';
@@ -62,9 +67,9 @@ export type PaintedStage = (typeof PAINTED_STAGES)[number];
 const PAINTED_URLS: Readonly<Record<PaintedStage, string>> = { early: '/assets/sunscar-dunes/sky/dusk-early.webp', late: '/assets/sunscar-dunes/sky/dusk-late.webp' };
 export const paintedUrl = (stage: PaintedStage): string => PAINTED_URLS[stage];
 
-/** Signal Dunes downloads its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and its painted dusk skies; the rest is code and every sound is a kit voice. */
+/** Signal Dunes downloads its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`), its baked creature rigs and its painted dusk skies; the rest is code and every sound is a kit voice. */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
-  sky: PAINTED_STAGES.map(paintedUrl), baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl), ...BAKED_PIECES.map(bakedUrl)], art: [FIRE_BOOK_URL], music: [], sfx: [],
+  sky: PAINTED_STAGES.map(paintedUrl), baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl), ...BAKED_PIECES.map(bakedUrl), ...DUNE_RIGS.map(duneRigUrl)], art: [FIRE_BOOK_URL], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/sunscar-dunes/round-24-lut/). */

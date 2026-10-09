@@ -58,7 +58,8 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
         const sum = (kind: 'cpu' | 'gpu'): number => [...allocations.values()].filter(row => row.kind === kind).reduce((total, row) => total + row.bytes, 0);
         expect(sum('cpu')).toBe(4_394_860); expect(sum('gpu')).toBe(5_792_960);
         const commons = page.allocator.entries().filter(row => row.category === 'commons');
-        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(53_171_704);
+        // SF72: + 59,904 for the baked skitterer rig (rigs/skitterer.glb, kept once like the generated models)
+        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(53_231_608);
         expect(commons.reduce((total, row) => total + row.accountedBytes, 0)).toBeGreaterThan(0);
         expect(commons.filter(row => row.coveredBy !== undefined).reduce((total, row) => total + row.bytes, 0)).toBeLessThanOrEqual(bytes);
         expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);

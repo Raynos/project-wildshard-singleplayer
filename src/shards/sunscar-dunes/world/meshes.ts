@@ -3,7 +3,7 @@ import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app
 import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
-import { DUNE_HD, DUNE_MESHES, duneHdUrl, duneMeshUrl, type DuneHdName, type DuneMeshName } from '../boot/files';
+import { DUNE_HD, DUNE_MESHES, DUNE_RIGS, duneHdUrl, duneMeshUrl, duneRigUrl, type DuneHdName, type DuneMeshName, type DuneRigName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
 
 /**
@@ -46,6 +46,40 @@ async function load(name: DuneMeshName): Promise<void> {
     g.computeVertexNormals(); g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
     cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
   } catch (e: unknown) { console.error(`[sunscar-dunes] the generated model ${name} did not load:`, e); }
+}
+
+const rigs = new Map<DuneRigName, BufferGeometry>();
+/**
+ * A baked creature body (SF72, `generators/species.ts`): one skinned geometry, its bone indices and weights in the
+ * `_JOINTS` / `_WEIGHTS` attributes; each copy's flat normals are recomputed from the same positions the code built.
+ */
+async function loadRig(name: DuneRigName): Promise<void> {
+  try {
+    const gltf = await loadRigFile(duneRigUrl(name)), meshes: Mesh[] = [];
+    gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
+    const loaded = meshes[0]?.geometry;
+    if (meshes.length !== 1 || loaded === undefined) throw new Error(`${name}: ${String(meshes.length)} meshes, one baked`);
+    const source = loaded.index === null ? loaded : loaded.toNonIndexed();
+    for (const key of ['position', 'color', '_joints', '_weights']) if (!source.hasAttribute(key)) throw new Error(`${name}: no ${key}`);
+    const p = source.getAttribute('position'), c = source.getAttribute('color'), j = source.getAttribute('_joints'), w = source.getAttribute('_weights');
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(p.array, 3)); g.setAttribute('color', new Float32BufferAttribute(c.array, 3));
+    g.setAttribute('skinIndex', new Uint16BufferAttribute(Uint16Array.from(j.array), 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(w.array, 4));
+    retainCachedResources(g); rigs.set(name, g); source.dispose(); loaded.dispose();
+    cacheUntilDisposed(g, () => { if (rigs.get(name) === g) { rigs.delete(name); loading = null; } });
+  } catch (e: unknown) { console.error(`[sunscar-dunes] the baked rig ${name} did not load:`, e); }
+}
+/** A copy of a baked creature body, or null (not loaded: its load was faulted). */
+export function duneRig(name: DuneRigName): BufferGeometry | null {
+  const g = rigs.get(name)?.clone() ?? null; g?.computeVertexNormals(); return g;
+}
+/** A creature that did not load stands undrawn: one zero-area triangle on bone 0 (a species needs a geometry part). */
+export function undrawnRig(): BufferGeometry {
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(new Float32Array(9), 3)); g.setAttribute('color', new Float32BufferAttribute(new Float32Array(9), 3));
+  g.setAttribute('normal', new Float32BufferAttribute(new Float32Array(9), 3));
+  g.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(12), 4)); g.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], 4));
+  return g;
 }
 
 const hd = new Map<DuneHdName, Object3D>();
@@ -254,9 +288,10 @@ async function loadHd(name: DuneHdName): Promise<void> {
   } catch (e: unknown) { console.error(`[sunscar-dunes] the generated model ${name} did not load:`, e); }
 }
 
-/** Load every generated model once (a failed one is skipped and faulted). */
+/** Load every generated model and baked rig once (a failed one is skipped and faulted). */
 export function preloadDuneMeshes(): Promise<void> {
-  loading ??= Promise.all([...DUNE_MESHES.filter(name => !ready.has(name)).map(load), ...DUNE_HD.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
+  loading ??= Promise.all([...DUNE_MESHES.filter(name => !ready.has(name)).map(load), ...DUNE_HD.filter(name => !hd.has(name)).map(loadHd),
+    ...DUNE_RIGS.filter(name => !rigs.has(name)).map(loadRig)]).then(() => undefined);
   return loading;
 }
 
