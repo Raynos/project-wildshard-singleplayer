@@ -1,0 +1,132 @@
+# Plan: MARKETING-SITE — seriousshit.com, the home of Project Wildshard (E465)
+
+**State:** `draft` 2026-10-09 — a plan only; nothing is built. Research done (this file §1–§2: the vision from
+`sources/WILDSHARD.md`, `docs/design/mmo/`, the Meta repo; the present from SHARD-PLATFORM and the three live sites).
+Waiting on Jake's four picks (§7, Q1–Q4) and his go; the domain is his chore (MS9: seriousshit.com is a HugeDomains
+aftermarket listing, registered since 2014, not a fresh registration).
+
+## 0. Why
+
+Jake (E465, 2026-10-09): *"Project Wild Shard is progressing far enough that I need a marketing website for the
+vision. … We have Wild Shard single player deployed. We have Wild Shard admin deployed. We have Wild Shard drafts
+deployed. So we need the fourth website on Vercel, which is gonna be Project Wild Shard itself, the main website. This
+website's marketing vision, it is telling the story of the end goal. The end goal is the MMO. The main end goal is that
+anyone can install the developer tools, the skill, use their own Claude code, request an API key from the API that has
+not been made yet, and upload content to the MMO. Everyone else who doesn't want to make user-generated content can
+play the MMO."*
+
+The site sells the **destination** (the MMO, built by its players in Claude Code) and proves it with the **road**
+(seven playable shards today, a shard platform that is turning them into uploadable packages).
+
+## 1. The story the site tells
+
+The original pitch (Jake, `sources/WILDSHARD.md`, 2026-09-16) is already the copy:
+
+> *"Unlike a game like minecraft where you build inside the game using the gameplay flows, with project wildshard, you
+> use claude code as the UI for building … Then players can either build in claude code, or play in the browser."*
+
+**Two front doors** (MMO-REQUIREMENTS §1): **play in the browser** (desktop and phone) or **build in Claude Code**.
+Every section serves one door or the bridge between them.
+
+| # | Section | What it says | Source | Media |
+|---|---|---|---|---|
+| 1 | **Hero** | "Play it in the browser. Build it in Claude Code." Two buttons: *Play now* (the live single-player build) and *Become an author* (§1.2) | WILDSHARD.md:9 | the 30 s trailer, re-encoded (§4) |
+| 2 | **The world** | One world made of 500 × 500 × 500 m shards, each built by a player, stitched by a glowing lattice and a server-owned highway; the first grid is 5 × 5 around a fixed centre | VISION.md "The world" | `docs/design/mmo/concept-art/` (labelled **concept art**) |
+| 3 | **Shards you can play today** | One card per shard, each in its own look: Driftwood Isle (toon), Pine Hollow (photoreal), Nalati Grasslands (painterly), Signal Dunes (dusk), Sky Reach (golden hour), Nine Dragon Stack (neon), the Template. One sentence, one in-engine hero, a *Play* deep link | `src/shards/*/manifest.ts`, `progress/<slug>/…/h1..h4` | real in-engine captures only |
+| 4 | **How a shard is made** | Install the Wildshard skill and SDK in *your own* Claude Code → describe the shard → Claude builds it on a floating cube → `wildshard build` / `validate` checks budgets and edges → you walk it locally → you upload it | MMO-REQUIREMENTS §3.2, SHARD-PLATFORM shardfile | a terminal-plus-game split, then the grey-to-final time-lapse (`progress/far-reach/timelapse-heroes.mp4`) |
+| 5 | **The upload ritual** | Plant beacons at the eight corners and a ninth at the centre, then the ~30 s upload sequence: uploading is a set piece, not a CLI | FUNDAMENTALS.md:31, VISION.md "Uploading is a set piece" | a mockup, labelled, until the ritual exists |
+| 6 | **Safe by construction** | A shard ships data and baked assets, never code that reaches your browser's storage, network or other shards; metered, deterministic, versioned. Why strangers' worlds can run on your phone | MMO-REQUIREMENTS §1 constraint, SHARD-PLATFORM 80/20 | a simple diagram: author's machine (code) → shardfile (data) → the world |
+| 7 | **A living grid** | Co-edit, renovate abandoned shards, the centre never goes ghost-town, live updates with players inside; your name and title travel with you; two wallets so no shard can break the economy | VISION.md "Ownership", MMO-REQUIREMENTS M6 / O1–O6 | concept art + icons |
+| 8 | **The road** | Honest milestones: ✅ seven single-player shards on one engine · ✅ the shardfile package · 🟡 the grid (3 × 3, seamless travel) · 🟡 every shard at 80 / 20 · ⬜ multiplayer (two players in one shard) · ⬜ upload (an outside author through the ritual) · ⬜ the 25-shard grid | MMO-REQUIREMENTS §5, SHARD-PLATFORM State line | a progress strip generated at build time (MS6) |
+| 9 | **Who's building it** | raynos and mattesch, and a fleet of Claude Code and Codex agents: the game is itself built the way its authors will build shards | Meta README | the WorldClaw board / drafts site as proof |
+| 10 | **Footer** | Play · Become an author · contact (`project.wildshard@gmail.com`) · credits (the licence conditions the game's Settings ▸ Credits already lists, `src/engine/audio/credits.ts`) | | |
+
+### 1.1 Honesty rules (they hold every row)
+
+- **Concept art is labelled as concept art.** Everything shown as *playable* is a real in-engine capture (JAKE.md: no
+  screenshot cheats). A future feature shown as a mockup says so on the image.
+- **No dates.** The road shows states, not deadlines.
+- **Status comes from the plans, not from copy.** The road strip is generated from the State lines and milestone rows
+  at build time, so it can't drift (MS6).
+- **Phone first.** Jake reads it on his iPhone 17 Pro, portrait Safari; every board and capture is iPhone portrait.
+
+### 1.2 The author door, before the API exists
+
+The upload API "has not been made yet" (Jake). The author door today is **a creator waitlist**: a short form (email,
+optional "what would you build?") that a Vercel function in `api/` writes to Blob, read in the admin site. Q3 decides
+whether that ships or a plain mail link does. When the platform's SDK is public (SHARD-PLATFORM Part B: `npm create
+wildshard`), the door becomes *install the skill*; when the API exists, *request a key*.
+
+## 2. Where things stand (2026-10-09)
+
+- **Three live sites** on Vercel team `raynos-projects`: the game (`wildshard-singleplayer`, hourly from CI-green
+  `main`), `wildshard-admin` (`admin/`, `admin-deploy.yml` on push) and `wildshard-drafts` (`drafts/`, by hand with
+  `drafts/tools/deploy.sh`, pictures on Blob).
+- **SHARD-PLATFORM** is `in progress`: the package (M1) ≈ 99 %, the grid (M2) ≈ 92 %, the seven shards at 80 / 20
+  (M3) ≈ 51 %: 1 of 7 at 80 / 20 (the template), Signal Dunes the first shard to pass the headless replay witness.
+  Servers, netcode, upload, moderation are explicitly not built there: they are the MMO's.
+- **WORLDCLAW** (shards made by Claude from a sentence) is `draft`; its tools and the drafts site are live.
+- **Brand:** none yet. No logo, palette or tagline in any repo. The name is spelled "Project Wildshard", "Project
+  WildShard" and "Wild Shard" in different places (Q2).
+- **Media on disk:** the 15 s and 30 s trailers (`progress/wildshard-trailer-*-music.mp4`, 51 MB raw), per-shard
+  in-engine heroes (`progress/<slug>/2026100*/h1..h4-*.jpg`, `aerial-overview.jpg`), the hero rounds
+  (`art/hero-images/round-3…5/`), the title portraits (`public/assets/title/*-portrait.jpg`), the grid aerial
+  (`art/grid/round-15-cell-aerial/board.jpg`), two concept paintings (768 × 432: too small for a full-bleed hero; MS3
+  re-renders them).
+
+## 3. Shape
+
+- **Where:** a new top-level `site/` in this repo, built like `drafts/` and `admin/` (Vite, static, its own
+  `vite.config.ts` and `vercel-project.json`). It imports nothing from the game layers (no engine, no shards): it is a
+  page about the game, and it must stay light on a phone. A live 3D scene on the page is a later row only if Jake asks.
+- **Vercel project:** `wildshard-site`, **named before the first deploy** (global CLAUDE.md: deploying from an output
+  folder names the project after the folder). Deployed by `site/tools/deploy.sh` from a clean export of HEAD, the
+  same way as the drafts site; `seriousshit.com` and `www.seriousshit.com` attached once Jake owns the domain.
+- **Media:** images re-encoded to AVIF / WebP at phone and desktop widths; videos to ~2–4 MB H.264 + a poster frame,
+  on Vercel Blob like the drafts pictures, never committed raw.
+- **Look:** decided on boards (MS2), not here. Each shard keeps its own look in its card; the site's own frame takes
+  the lattice from the concept art (dark sky, glowing seams) so every shard's look sits inside one world.
+
+## 4. Rows
+
+| # | Row | Done when | Owner |
+|---|---|---|---|
+| MS0 | **Jake's picks** Q1–Q4 (§7) | his answers recorded here | Jake |
+| MS1 | **Copy** — every section's words in one review page (`docs/reviews/marketing-site-copy.md`), from §1, in Jake's own phrasing where he has one | Jake reads it and notes land | marketing agent |
+| MS2 | **Look** — three landing-page directions as one labelled A / B / C board, iPhone portrait (`art/marketing-site/round-1-direction/`), each from real captures plus the lattice | Jake picks one | marketing agent (pick board via the plan agent, per the boards rule) |
+| MS3 | **Media pass** — pick and re-encode the hero video, one hero per shard, the grid aerial; re-render the two concept paintings at ≥ 2560 px from their prompts; poster frames; all on Blob | every §1 image has a ≤ 300 KB phone version | marketing agent |
+| MS4 | **Scaffold** — `site/` (Vite, no game imports), the `wildshard-site` Vercel project, `site/tools/deploy.sh`, `version.json` with the build SHA, the layout check and lint knowing `site/` | a blank page live at `wildshard-site.vercel.app` | marketing agent |
+| MS5 | **Build the sections** §1 rows 1–10 in the picked look | every section on the live URL; Lighthouse mobile ≥ 90; no horizontal scroll at 390 px | marketing agent |
+| MS6 | **The road strip** — a build step reads the milestone rows (SHARD-PLATFORM M1–M3, MMO-REQUIREMENTS §5) into the progress strip | the strip matches the plans at the deployed SHA | marketing agent |
+| MS7 | **Author door** — per Q3: the waitlist form + `api/` function + Blob + an admin tab, or a mail link | a test signup reaches the admin site | marketing agent |
+| MS8 | **Sharing** — Open Graph / Twitter cards per section, favicon, the page title, `robots.txt`, sitemap | the link unfurls with the hero in iMessage | marketing agent |
+| MS9 | **Domain** — Jake buys seriousshit.com (HugeDomains listing); then attach apex + `www` to `wildshard-site`, DNS at the registrar, HTTPS | `https://seriousshit.com` serves the site | Jake (purchase), marketing agent (attach) |
+| MS10 | **Keep it true** — when a SHARD-PLATFORM milestone, a new shard or the SDK ships, the site's road and cards follow (the deploy script is the one step) | a standing row; closes only if the site is retired | marketing agent |
+
+## 5. Not in this plan
+
+The upload API, the creator key service, the SDK's public release, accounts and the MMO itself: they are their own
+plans (SHARD-PLATFORM Part B, then the MMO's). The site only describes them and points at them when they exist.
+
+## 6. Risks
+
+- **Over-promising.** The MMO is the far end of a long road; the road strip and the labels are what keep the site
+  honest.
+- **The name** on a domain like seriousshit.com: the brand line (Q2) decides how the two sit together.
+- **Weight.** The trailer is 51 MB raw; the page budget is ≤ 3 MB on first load at phone width, video lazy.
+
+## 7. Picks for Jake
+
+- **Q1 · Upload: API key or the beacon ritual?** The brief (E465) says creators "request an API key … and upload". The
+  requirements (MMO-REQUIREMENTS U1, FUNDAMENTALS.md:31) say *"No CLI or API upload replaces [the ritual]; the SDK
+  never uploads."* **Recommended:** both, in order: the key is your creator identity (it lets the game sign your upload);
+  the upload itself is the nine-beacon ritual in the game. The site shows key → build → ritual.
+- **Q2 · The name on the site.** seriousshit.com is the address; what is the headline name? **Recommended:**
+  "Project Wildshard" as the game, one spelling everywhere ("Wildshard"), and seriousshit.com as the home it lives at,
+  with no studio name until Jake gives one.
+- **Q3 · The author door today.** **Recommended:** a creator waitlist form (email + "what would you build?") stored on
+  Blob and read in admin, so the site gathers authors before the SDK ships. The alternative is a mail link
+  (`project.wildshard@gmail.com`), no data to hold.
+- **Q4 · Public now or after the domain?** **Recommended:** build and deploy to `wildshard-site.vercel.app` now, behind
+  Vercel deployment protection like the main project, and open it publicly on seriousshit.com when Jake has read MS1 and
+  picked MS2.
