@@ -2,6 +2,10 @@
 
 ## Active step — PUBLIC / shipped plain30, first attempt blocked
 
+**LATEST: harness reuse LANDED `0dae1f0ba0ff9b0c20a1d297841b6f4a9c6daad4`**, source3+first-failure receipt+handoff, hooks/CAS/subject/stat/ancestor verified. Full989files/5508pass/14skip, Node16/scripts strict/lint green. Clean candidate export and first-attempt scratch deleted after archival.
+
+Retry preparation ACTIVE session **69638**: app pin0f82dbeb8106ee950383ae196e74ef3525fc5034, harness0dae1f0ba, fresh scratch **`/private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30-retry`**. Same `node scripts/soak/soak.mjs --prepare --rev=<pin> --out=<scratch> --layouts=shipped --legs=cells --route-scope=catalogue`. Exact next step: wait for manifest, verify HTTP==disk, one shipped base/rawOFF, then scratch/GO (retry authorized). Retain parent; never duplicate a preview, driver or Inspector. Subsequent prose about source landing is historical; source is already landed. No active Simulator yet at this update.
+
 Coordinator GO pin **`0f82dbeb8106ee950383ae196e74ef3525fc5034`** (origin/main). Build ONE queued preview and run ONE 30-minute `--layouts=shipped --legs=cells --route-scope=catalogue` soak; the first circuit includes the road tour. Driftwood home + template-1…5, no omitted catalogue cells. Developer OFF. Light/coalesced journal, raw OFF, kernel footprint only, no vmmap/heap probes. Simulator was free at GO. No new multi-hour task.
 
 First attempt EXITED before drive: 240-second wait for `.ws-main-grid`, absent by policy with Developer OFF / GRID_GATES_PASSED=false. No app errors, GPU/native losses, circuits or settled windows. Loading-only peak767.400MB is not a soak cap verdict. Raw evidence archived under `progress/memory/sf57/0f82dbeb8-shipped30/attempt-1-menu-gated/`. Parent11361 closed own preview39470/:4402 and helpers; sim0/1 verified; owned shutdown device8010DFD8-0A7F-4417-B343-CCC06F978EE9 deleted. No active Simulator/browser/preview now.
