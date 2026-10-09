@@ -1,0 +1,21 @@
+{
+  "sha": "c47de2d8c2fd3ac51a0b780af1457cb7e86b7e20",
+  "out": "/private/tmp/claude-501/sp-builders/public-soak/run-c47de2d8c",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4400/",
+      "version": {
+        "build": "c47de2d-mv0d6oui",
+        "time": "2026-10-09T02:46:53.475Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells"
+  ],
+  "rehearsal": true
+}

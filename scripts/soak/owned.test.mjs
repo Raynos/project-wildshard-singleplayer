@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
@@ -19,7 +19,8 @@ void test('public soak reuses the floor intent without enabling Developer or the
   assert.equal(entry.titleTap, false);
   assert.equal(entry.level, 'driftwood-isle');
   assert.equal(new URL(entry.query, 'http://localhost').searchParams.get('chunk'), 'driftwood-isle');
-  assert.deepEqual(soakGridEntry('dev'), { titleTap: true, level: 'platform.grid', query: '?mute=1&nolock=1&sw=0', fixture: '' });
+  assert.equal(entry.home, 'borrowed');
+  assert.deepEqual(soakGridEntry('dev'), { titleTap: true, level: 'platform.grid', home: 'owned', query: '?mute=1&nolock=1&sw=0', fixture: '' });
   assert.throws(() => soakGridEntry('invalid'), /Unknown soak layout/u);
 });
 
@@ -218,4 +219,31 @@ void test('SF57 permits only the exact premeasurement WebKit target transition',
   await assert.rejects(soakBootPoll(transition, false), /Runtime/u);
   await assert.rejects(soakBootPoll(() => Promise.reject(new Error('Owned-shell load failed: broken')), true), /load failed/u);
   assert.equal(await soakBootPoll(() => Promise.resolve('ready'), true), 'ready');
+});
+
+void test('SF57 public soak travels from and back to the borrowed Driftwood home, retained for the page lifetime', () => {
+  const cells = soakCatalogue(catalogue, 'shipped'), home = 'driftwood-isle';
+  const route = ownedSoakPlans({ cells, home }, 'cells', 'catalogue', 'borrowed');
+  assert.throws(() => ownedSoakPlans({ cells, home }, 'cells', 'catalogue', JSON.parse('"x"')), /Unknown soak home mode/u);
+  const owned = ownedSoakPlans({ cells, home });
+  assert.deepEqual(route.plans.map(p => [p.from, p.to, p.waypoints]), owned.plans.map(p => [p.from, p.to, p.waypoints]));
+  for (const plan of [...route.plans, ...route.coveragePlans]) {
+    assert.equal(plan.borrowedHome, home);
+    assert.ok(!plan.requiredResidents.includes(home) && !(plan.retiredResidents ?? []).includes(home));
+  }
+  assert.equal(route.plans[0].from, home); assert.equal(route.plans.at(-1)?.to, home);
+  assert.deepEqual(owned.plans.at(-1)?.requiredResidents, [home]);
+  assert.deepEqual(owned.coveragePlans?.[0].retiredResidents, [home]);
+  // A real return witness: the floor's checks plus the retained page level and its exact claim.
+  const plan = route.plans.at(-1), from = plan?.from ?? null;
+  const live = (current, residents, crossings, transitions) => ({ current, worldFeet: { x: 0, y: 1, z: 230 }, crossings, transitions, residents, gameplayReady: true });
+  const state = (current, residents, crossings, transitions, claimBytes = 9) => ({ home, inside: current, cells,
+    borrowedHome: { instance: home, level: home, bytes: 9 }, claims: [{ id: `sim:${home}`, owner: home, category: 'sim', bytes: claimBytes }],
+    live: { live: live(current, residents, crossings, transitions), crossing: { phase: 'idle', issue: null } } });
+  const witness = (after) => ({ plan, before: state(from, [from], 4, []), after, trace: [{ seconds: 1, x: 0, y: 1, z: 0, current: null, gameplayReady: true }], elapsedSeconds: 1 });
+  const commits = [{ from, to: null }, { from: null, to: home }];
+  assert.deepEqual(soakWitnessFailures(witness(state(home, [], 6, commits))), []);
+  assert.deepEqual(soakWitnessFailures(witness(state(home, [], 6, commits, 8))), ['Borrowed home destination residency claim was not retained']);
+  assert.ok(soakWitnessFailures(witness(state(home, [home], 6, commits))).includes('Borrowed home also became a regional destination resident'));
+  assert.ok(soakWitnessFailures(witness(state(null, [], 5, commits.slice(0, 1)))).includes('Destination interior gameplay is not ready'));
 });

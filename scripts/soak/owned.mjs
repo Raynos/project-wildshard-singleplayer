@@ -1,21 +1,61 @@
 import { publicGridIntentCode } from '../public-grid.mjs';
+import { gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 /** Reuse the floor's pre-release tap intent; the public menu gate and Developer mode never change.
  * @param {string} layout */
 export function soakGridEntry(layout) {
   if (layout !== 'dev' && layout !== 'shipped') throw new Error('Unknown soak layout');
   const publicGrid = layout === 'shipped';
-  return { titleTap: !publicGrid, level: publicGrid ? 'driftwood-isle' : 'platform.grid',
+  // The public page borrows Driftwood as its level for the page lifetime; Developer homes are owned regions.
+  return { titleTap: !publicGrid, level: publicGrid ? 'driftwood-isle' : 'platform.grid', home: publicGrid ? 'borrowed' : 'owned',
     query: publicGrid ? '?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0' : '?mute=1&nolock=1&sw=0',
     fixture: publicGrid ? publicGridIntentCode({ instance: 'driftwood-isle', slug: 'driftwood-isle' }) : '' };
 }
 
 /** Owned-shell SF57 plans share the floor driver's controls and document/frame fences.
+ * A borrowed home (the public page level) is a source and destination, never a regional resident: it is retained
+ * for the page lifetime, so legs neither require it as a resident nor demand its retirement. soakWitnessFailures
+ * proves the same positive page claim instead.
  * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
  * @param {'cells' | 'road'} leg
  * @param {'catalogue' | 'prepared'} routeScope
+ * @param {string} homeMode 'owned' (Developer grid) or 'borrowed' (public page level)
  */
-export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue') {
+export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue', homeMode = 'owned') {
+  if (homeMode !== 'owned' && homeMode !== 'borrowed') throw new Error('Unknown soak home mode');
+  const route = ownedHomeSoakPlans(state, leg, routeScope);
+  if (homeMode === 'owned') return route;
+  const home = state.home;
+  /** @param {SoakPlan} plan @returns {SoakPlan} */
+  const borrow = plan => ({ ...plan, borrowedHome: home, requiredResidents: plan.requiredResidents.filter(id => id !== home),
+    retiredResidents: (plan.retiredResidents ?? []).filter(id => id !== home) });
+  return { ...route, plans: route.plans.map(borrow), ...(route.coveragePlans ? { coveragePlans: route.coveragePlans.map(borrow) } : {}) };
+}
+
+/** @typedef {{ name: string, from: string | null, to: string | null, movement: string, hoverMaxSpeed: number,
+ *   waypoints: {x:number,z:number}[], requiredResidents: string[], retiredResidents?: string[], crossroads?: string | null,
+ *   borrowedHome?: string }} SoakPlan */
+
+/** Strict borrowed-home witness on top of the floor's: the page level and its `sim:<home>` claim survive every leg.
+ * @param {Parameters<typeof gridFloorWitnessFailures>[0]} witness */
+export function soakWitnessFailures(witness) {
+  const failures = gridFloorWitnessFailures(witness), { plan, before, after } = witness, home = plan.borrowedHome;
+  if (home === undefined) return failures;
+  for (const [label, state] of /** @type {const} */ ([['source', before], ['destination', after]])) {
+    const page = state.borrowedHome, cell = state.cells.find(row => row.instance === home);
+    if (state.home !== home || page?.instance !== home || page.level !== cell?.slug || !Number.isSafeInteger(page.bytes) || page.bytes <= 0) {
+      failures.push(`Borrowed home is not the ${label} page level with a positive claim`);
+    } else if (!(state.claims ?? []).some(claim => claim.id === `sim:${home}` && claim.category === 'sim' && claim.owner === home && claim.bytes === page.bytes)) {
+      failures.push(`Borrowed home ${label} residency claim was not retained`);
+    }
+    if (state.live.live.residents.includes(home)) failures.push(`Borrowed home also became a regional ${label} resident`);
+  }
+  return failures;
+}
+
+/** @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
+ * @param {'cells' | 'road'} leg @param {'catalogue' | 'prepared'} routeScope */
+function ownedHomeSoakPlans(state, leg, routeScope) {
   const pitch = 555, half = pitch / 2, inset = 230;
   const home = state.cells.find(cell => cell.instance === state.home);
   if (home?.slug !== 'driftwood-isle') throw new Error('Soak requires the Driftwood owned home');
@@ -61,7 +101,7 @@ export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue') {
       movement: 'road-hover', hoverMaxSpeed: 30, waypoints: unique, requiredResidents: [cell.instance], retiredResidents: ['driftwood-isle', 'pine-hollow', 'nalati-grasslands'].includes(source.slug) ? [source.instance] : [] });
     source = cell; portal = nextPortal;
   }
-  const road = ownedSoakPlans(state, 'road');
+  const road = ownedHomeSoakPlans(state, 'road', routeScope);
   const first = road.plans[0].waypoints[0];
   const coveragePlans = [{ name: 'home-to-road-tour', from: home.instance, to: null, movement: 'road-hover', hoverMaxSpeed: 30,
     waypoints: [{ x: h.x, z: h.z + half }, { x: first.x, z: h.z + half }, first], requiredResidents: [], retiredResidents: [home.instance] },

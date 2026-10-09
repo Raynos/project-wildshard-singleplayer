@@ -3,7 +3,7 @@ export interface FloorGridLive { current: string | null; worldFeet: { x: number;
 export interface FloorGridState { home: string; inside: string | null;
   cells: { instance: string; slug: string; cell: readonly [number, number] }[];
   borrowedHome?: { instance: string; level: string; bytes: number };
-  claims?: readonly { id: string; owner: string; category: string }[];
+  claims?: readonly { id: string; owner: string; category: string; bytes?: number }[];
   live: { live: FloorGridLive; crossing: { phase: string; issue: string | null } } }
 export interface FloorGridPlan { name: string; from: string | null; to: string | null; movement?: 'road-hover'; hoverMaxSpeed?: number; borrowedHome?: string; start?: { x: number; z: number };
   waypoints: { x: number; z: number }[]; requiredResidents: string[]; retiredResidents?: string[] }

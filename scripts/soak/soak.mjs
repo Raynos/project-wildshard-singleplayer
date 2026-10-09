@@ -24,8 +24,8 @@ import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDia
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry } from './owned.mjs';
-import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures } from './owned.mjs';
+import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
 const flag = (name, fallback = '') => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -142,9 +142,13 @@ async function worker() {
     await until(driver, `Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live)`, 240000, collectGl, true);
     await driver.evaluate('(window.__wildshard.world.hud.enterNow(),true)');
     await until(driver, 'window.__wsReveal?.endedMs != null', 45000, collectGl, true);
-    result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;return {href:location.href,clock:w.game.app.clock.mode,level:w.game.level.id,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state(),settings:JSON.parse(localStorage.getItem('wildshard.save.v2.global')).keys.settings.data,developer:JSON.parse(localStorage.getItem('wildshard.save.v2.device')).keys.devMode.data};})()`);
+    result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;return {href:location.href,clock:w.game.app.clock.mode,level:w.game.level.id,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state(),settings:JSON.parse(localStorage.getItem('wildshard.save.v2.global')).keys.settings.data,developer:JSON.parse(localStorage.getItem('wildshard.save.v2.device')).keys.devMode.data,homeResidency:p.shard.grid.residency().home,textures:(()=>{try{const r=p.textures?.();return r?{mode:r.mode,why:r.why,probe:r.probe&&{ran:r.probe.ran,note:r.probe.note,veto:r.probe.veto}}:null;}catch(error){return String(error);}})()};})()`);
     if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2 || result.metadata.level !== bootEntry.level) throw new Error('Soak requires the owned shell, live clock and 2x render scale');
     if (result.metadata.developer !== (layout === 'dev')) throw new Error('Wrong Developer setting');
+    const homeResidency = result.metadata.homeResidency, entryState = result.metadata.state;
+    // The public page level is the borrowed home: a positive page claim, never a regional resident.
+    if (bootEntry.home === 'borrowed' && (homeResidency?.instance !== entryState.home || !Number.isSafeInteger(homeResidency.bytes) || homeResidency.bytes <= 0
+      || entryState.live.live.residents.includes(entryState.home) || entryState.live.live.current !== entryState.home)) throw new Error('Public soak home is not the borrowed Driftwood page level');
     const cells = result.metadata.state.cells;
     result.catalogue = cells.map(cell => cell.instance);
     result.expected = leg === 'road' ? [] : result.catalogue;
@@ -152,7 +156,7 @@ async function worker() {
     if (layout !== 'shipped' && layout !== 'dev') throw new Error('Unknown soak layout');
     if (!validateSoakCatalogue(cells, soakCatalogue(catalogue, layout))) throw new Error(`Wrong ${layout} catalogue: ${result.catalogue}`);
     result.routeScope = routeScope;
-    result.route = ownedSoakPlans(result.metadata.state, leg, routeScope);
+    result.route = ownedSoakPlans(result.metadata.state, leg, routeScope, bootEntry.home);
     result.openCoverage = result.route.omitted ?? [];
     result.documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
     result.documentId = await driver.evaluate('window.__sf57DocumentId');
@@ -187,7 +191,7 @@ async function worker() {
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
         console.log(JSON.stringify({ layout, cycle, route: plan.name, seconds: (Date.now() - driveStart) / 1000 }));
         const witness = await runFloorGridRoute(page, plan, result.documentOrigin);
-        const failures = gridFloorWitnessFailures(witness);
+        const failures = soakWitnessFailures(witness);
         result.routes.push({ cycle, ...witness, failures });
         if (plan.crossroads) result.crossroads.push(plan.crossroads);
         if (plan.to !== null && plan.to !== plan.from) result.entries.push({ cycle, instance: plan.to, admitted: failures.length === 0, feet: witness.after.live.live.worldFeet });

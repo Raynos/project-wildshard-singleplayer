@@ -1,0 +1,33 @@
+{
+  "appPin": "c47de2d8c2fd3ac51a0b780af1457cb7e86b7e20",
+  "build": {
+    "build": "c47de2d-mv0d6oui",
+    "time": "2026-10-09T02:46:53.475Z"
+  },
+  "files": [
+    {
+      "name": "shipped-cells.json",
+      "archivedAs": "shipped-cells.json.br",
+      "bytes": 7881948,
+      "sha256": "f30d32956c72de351ada7f9a7d03f0e8ed3559938e637d670c2c7c7dbb1c4fb9"
+    },
+    {
+      "name": "shipped-cells-native.jsonl",
+      "archivedAs": "shipped-cells-native.jsonl.br",
+      "bytes": 447605,
+      "sha256": "40a034c119328fe08b0750c2db6ed04794d70a64e1babb8e73938a6943b1fd35"
+    },
+    {
+      "name": "shipped-cells-gl.jsonl",
+      "archivedAs": "shipped-cells-gl.jsonl.br",
+      "bytes": 356757887,
+      "sha256": "7d9105b60b969e9072d8de7f35201ab992e0c8f5c46a69c1cdc80d72283d28a1"
+    },
+    {
+      "name": "shipped-cells-gl-events.jsonl",
+      "archivedAs": "shipped-cells-gl-events.jsonl.br",
+      "bytes": 23465244,
+      "sha256": "306deff4296dcb117c99c6d461bd9572dbb53238baed847ea6570109fa5f959f"
+    }
+  ]
+}

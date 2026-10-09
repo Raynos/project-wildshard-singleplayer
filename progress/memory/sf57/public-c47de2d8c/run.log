@@ -1,0 +1,72 @@
+serve-build: building c47de2d8c2fd3ac51a0b780af1457cb7e86b7e20 c47de2d8c → /private/tmp/claude-501/sp-builders/public-soak/run-c47de2d8c/serve/20261008-214412-4400/dist
+serve-build: pid 86602, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4400
+PREPARED /private/tmp/claude-501/sp-builders/public-soak/run-c47de2d8c/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/public-soak/run-c47de2d8c/GO only after go
+sim-lane: created sf57-sp-x3-shipped-63674 (23CFA683-A1A3-4DBE-8984-65F63587F642)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[  30.2s] phase -> baseline-0
+{"layout":"shipped","cycle":0,"route":"driftwood-isle-to-template-1","seconds":0.169}
+[  58.4s] phase -> drive
+{"layout":"shipped","cycle":0,"route":"template-1-to-template-2","seconds":23.568}
+{"layout":"shipped","cycle":0,"route":"template-2-to-template-3","seconds":66.301}
+{"layout":"shipped","cycle":0,"route":"template-3-to-template-4","seconds":126.356}
+{"layout":"shipped","cycle":0,"route":"template-4-to-template-5","seconds":186.629}
+{"layout":"shipped","cycle":0,"route":"template-5-to-driftwood-isle","seconds":225.668}
+{"layout":"shipped","cycle":0,"route":"home-to-road-tour","seconds":286.457}
+{"layout":"shipped","cycle":0,"route":"road-0","seconds":364.767}
+{"layout":"shipped","cycle":0,"route":"road-1","seconds":364.881}
+{"layout":"shipped","cycle":0,"route":"road-2","seconds":386.065}
+{"layout":"shipped","cycle":0,"route":"road-3","seconds":406.83}
+{"layout":"shipped","cycle":0,"route":"road-4","seconds":427.679}
+{"layout":"shipped","cycle":0,"route":"road-5","seconds":449.036}
+{"layout":"shipped","cycle":0,"route":"road-6","seconds":470.006}
+{"layout":"shipped","cycle":0,"route":"road-7","seconds":491.215}
+{"layout":"shipped","cycle":0,"route":"road-8","seconds":511.963}
+{"layout":"shipped","cycle":0,"route":"road-9","seconds":532.842}
+{"layout":"shipped","cycle":0,"route":"road-10","seconds":554.002}
+{"layout":"shipped","cycle":0,"route":"road-11","seconds":575.334}
+{"layout":"shipped","cycle":0,"route":"road-12","seconds":596.112}
+{"layout":"shipped","cycle":0,"route":"road-13","seconds":616.978}
+{"layout":"shipped","cycle":0,"route":"road-14","seconds":637.909}
+{"layout":"shipped","cycle":0,"route":"road-15","seconds":658.711}
+{"layout":"shipped","cycle":0,"route":"road-16","seconds":679.53}
+{"layout":"shipped","cycle":0,"route":"road-17","seconds":719.229}
+{"layout":"shipped","cycle":0,"route":"road-tour-to-home","seconds":777.669}
+[ 895.3s] phase -> settle-1
+{"layout":"shipped","cycle":1,"route":"driftwood-isle-to-template-1","seconds":857.054}
+[ 915.4s] phase -> drive
+{"layout":"shipped","cycle":1,"route":"template-1-to-template-2","seconds":873.289}
+{"layout":"shipped","cycle":1,"route":"template-2-to-template-3","seconds":912.615}
+{"layout":"shipped","cycle":1,"route":"template-3-to-template-4","seconds":973.233}
+{"layout":"shipped","cycle":1,"route":"template-4-to-template-5","seconds":1033.967}
+{"layout":"shipped","cycle":1,"route":"template-5-to-driftwood-isle","seconds":1073.527}
+[1193.2s] phase -> settle-2
+{"layout":"shipped","cycle":2,"route":"driftwood-isle-to-template-1","seconds":1155.075}
+[1213.4s] phase -> drive
+{"layout":"shipped","cycle":2,"route":"template-1-to-template-2","seconds":1171.415}
+{"layout":"shipped","cycle":2,"route":"template-2-to-template-3","seconds":1211.08}
+{"layout":"shipped","cycle":2,"route":"template-3-to-template-4","seconds":1272.083}
+{"layout":"shipped","cycle":2,"route":"template-4-to-template-5","seconds":1333.221}
+{"layout":"shipped","cycle":2,"route":"template-5-to-driftwood-isle","seconds":1373.127}
+[1492.2s] phase -> settle-3
+{"layout":"shipped","cycle":3,"route":"driftwood-isle-to-template-1","seconds":1454.274}
+[1512.4s] phase -> drive
+{"layout":"shipped","cycle":3,"route":"template-1-to-template-2","seconds":1470.814}
+{"layout":"shipped","cycle":3,"route":"template-2-to-template-3","seconds":1512.19}
+{"layout":"shipped","cycle":3,"route":"template-3-to-template-4","seconds":1573.476}
+{"layout":"shipped","cycle":3,"route":"template-4-to-template-5","seconds":1634.696}
+{"layout":"shipped","cycle":3,"route":"template-5-to-driftwood-isle","seconds":1674.391}
+[1794.1s] phase -> settle-4
+{"layout":"shipped","cycle":4,"route":"driftwood-isle-to-template-1","seconds":1756.909}
+[1815.3s] phase -> drive
+{"layout":"shipped","cycle":4,"route":"template-1-to-template-2","seconds":1773.37}
+[1871.7s] phase -> unloaded
+[1893.8s] phase -> done
+{"phases": {"loading": {"samples": 30, "seconds": 29.2, "gamePid": 89981, "gameHighGB": 0.744, "gameSampledGB": 0.634, "allWebContentGB": 0.779, "gpuProcessGB": 0.183}, "baseline-0": {"samples": 28, "seconds": 27.2, "gamePid": 89981, "gameHighGB": 0.536, "gameSampledGB": 0.524, "allWebContentGB": 0.572, "gpuProcessGB": 0.177}, "drive": {"samples": 1720, "seconds": 1812.2, "gamePid": 89981, "gameHighGB": 0.604, "gameSampledGB": 0.597, "allWebContentGB": 0.643, "gpuProcessGB": 0.208}, "settle-1": {"samples": 20, "seconds": 19.2, "gamePid": 89981, "gameHighGB": 0.519, "gameSampledGB": 0.518, "allWebContentGB": 0.558, "gpuProcessGB": 0.199}, "settle-2": {"samples": 20, "seconds": 19.1, "gamePid": 89981, "gameHighGB": 0.524, "gameSampledGB": 0.523, "allWebContentGB": 0.563, "gpuProcessGB": 0.202}, "settle-3": {"samples": 20, "seconds": 19.1, "gamePid": 89981, "gameHighGB": 0.529, "gameSampledGB": 0.528, "allWebContentGB": 0.568, "gpuProcessGB": 0.203}, "settle-4": {"samples": 21, "seconds": 20.1, "gamePid": 89981, "gameHighGB": 0.531, "gameSampledGB": 0.531, "allWebContentGB": 0.57, "gpuProcessGB": 0.203}, "unloaded": {"samples": 22, "seconds": 21.1, "gamePid": 89981, "gameHighGB": 0.531, "gameSampledGB": 0.531, "allWebContentGB": 0.57, "gpuProcessGB": 0.171}}, "lost": []}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":848838893,"loadingPeakBytes":923495725,"phoneEstimateBytes":1188374450.1999998,"baselines":[{"cycle":0,"start":1791514101.845,"end":1791514114.744,"samples":12,"bytes":759344837},{"cycle":1,"start":1791514961.726,"end":1791514971.793,"samples":10,"bytes":764698737},{"cycle":2,"start":1791515259.714,"end":1791515269.796,"samples":10,"bytes":770045669},{"cycle":3,"start":1791515558.913,"end":1791515569.009,"samples":10,"bytes":775081353},{"cycle":4,"start":1791515861.045,"end":1791515871.639,"samples":10,"bytes":778642429}],"baselineDeltaBytes":[-10700832,-5346932,0,5035684,8596760],"loops":[{"cycle":0,"complete":true,"peakBytes":848838893,"troughBytes":756313773},{"cycle":1,"complete":true,"peakBytes":780700245,"troughBytes":764828681},{"cycle":2,"complete":true,"peakBytes":785799149,"troughBytes":770257533},{"cycle":3,"complete":true,"peakBytes":790146913,"troughBytes":775227681},{"cycle":4,"complete":false,"peakBytes":783538289,"troughBytes":778854293}],"recovery":true,"calibration":false,"ratios":[{"cycle":1,"raw":1.4260657348389283,"adjusted":0.8666039497573106},{"cycle":2,"raw":1.4360370819103616,"adjusted":0.876575296828744},{"cycle":3,"raw":1.4454279911095183,"adjusted":0.8859662060279004},{"cycle":4,"raw":1.4520689442287558,"adjusted":0.8926071591471382}],"missingGlSamples":0,"sampling":true,"leakZero":true,"admitted":["template-1","template-2","template-3","driftwood-isle","template-4","template-5"],"refused":[],"attemptedEveryCell":true,"crossroads":16,"rehearsal":true,"limitation":null}
+SF57 DONE /private/tmp/claude-501/sp-builders/public-soak/run-c47de2d8c
