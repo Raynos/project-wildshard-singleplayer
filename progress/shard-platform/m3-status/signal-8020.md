@@ -95,3 +95,24 @@ client), and the behaviour becomes declared rows that SDK systems run.
 - **the browser whip's unroll delay, second lash, pull and stagger** stay the browser's; headless lands the light /
   heavy crack only.
 The other two belong to move 5 (the generic lash item), so the browser and the witness run one rule.
+
+## 2026-10-09 (op-signal): the remaining-path sizing, and the first generic-system slices
+
+**Sizing (at `c08ce5e69`):** public 853 / custom 3234 (20.9 %), runtime + trusted 806 / 965. Every honest `generators/`
+bake left (the generated creature rigs, the sand maps, the scout / well fits, the whip coil, the dune field, the look
+tables) is ~450 lines, so bakes alone cap out near 32 %. The other ~2,000 custom lines are runtime view code (shader
+patches, fire FX, species animate functions, the whip viewmodel, plugin / quest glue): only generic platform systems
+with Signal's tuned values as rows in its own `data/` can absorb them (E405: one shard's content stays in its folder;
+each system has a second consumer or a test fixture).
+
+| Slice | What moved | Proof |
+|---|---|---|
+| sand bake | `look/render.ts`'s dune-shadow march (896², ~21 M height lookups), trail mask and grain tile → `generators/sand.ts` (`scripts/bake-signal-sand.mjs` → `public/assets/sunscar-dunes/sand/*.bin`, zlib, 227 KB; means in `data/sand.json`); the client uploads the same DataTextures | the live base build's three textures are byte-identical to the bake (sha256); `sand-bake.test.ts` stale gate + client upload; load `terrain` step 1138 → 552 ms phone, 1187 → 517 ms desktop |
+| fire effect rows | `world/fireFx.ts` (270 lines) → generic `@wildshard/game/systems/looks/fireFx` (`createFireFx(style)`); Signal's sizes and look are rows in `data/fire.ts` | `fire-fx.test.ts`: the seven materials' GLSL equals the old code's (comments aside); a second "spirit flame" style fixture |
+| lash item view | the whip's thrown cord, braid, plait tile and held coil → generic `@wildshard/game/systems/items/lashView`; colours, plait and coil path rows in `data/whip.ts` | `whip-view.test.ts`: geometry, colours, textures and UVs hash-equal to the old code's; a second "rope" fixture |
+| rows + faults | asset tables → `data/files.ts`; the unreachable glove-hd / glove-hd2 / wagon-hd shader patches dropped; the strider's code stand-in → the faulted undrawn rig (as the places') | parity below |
+
+Candidate `0692239`: pixels identical to base at all four poses on phone and desktop (0.000 % > 24; base run-to-run
+noise the same), calls / tris / positions identical, physics bake actors and colliders identical (only inputs move), walk
+0 stuck. Share 20.9 → 26.6 % (public 981 / custom 2713). Next by lines absorbed: look-family rows for the shader patches
+in `world/meshes.ts` and `look/sky.ts` (~200), a declared Bullwhip item view (~100), declarative species clips (~60).

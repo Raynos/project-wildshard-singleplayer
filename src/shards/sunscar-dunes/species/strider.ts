@@ -1,29 +1,10 @@
 import { DUNE_STRIDER } from '../data/species/strider';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { BoxGeometry, ConeGeometry, CylinderGeometry, IcosahedronGeometry, type BufferGeometry } from 'three';
-import { bindRigid, duneMesh, fit } from '../world/meshes';
-import { placed, skinParts } from './skin';
+import type { BufferGeometry } from 'three';
+import { bindRigid, duneMesh, fit, undrawnRig } from '../world/meshes';
 
-const HIDE: [number, number, number] = [0.26, 0.13, 0.08], DARK: [number, number, number] = [0.12, 0.06, 0.04], HORN: [number, number, number] = [0.42, 0.34, 0.24];
 const LEGS: readonly [string, number, number][] = [['legFL', -0.42, 0.75], ['legFR', 0.42, 0.75], ['legBL', -0.42, -0.8], ['legBR', 0.42, -0.8]];
-/** A tall, slab-bodied grazer on four long legs, a hump, a low neck and a broad horned head. */
-export function striderGeometry(): ReturnType<typeof skinParts> {
-  const parts = [
-    { geometry: placed(new IcosahedronGeometry(0.75, 1), 0, 2.05, 0, [0.85, 0.75, 1.6]), color: HIDE, bone: 0 },
-    { geometry: placed(new IcosahedronGeometry(0.45, 0), 0, 2.55, -0.2, [1, 0.8, 1.3]), color: DARK, bone: 0 },
-    { geometry: placed(new CylinderGeometry(0.22, 0.32, 1.1, 6), 0, 2.15, 1.35, [1, 1, 1], [1.1, 0, 0]), color: HIDE, bone: 1 },
-    { geometry: placed(new BoxGeometry(0.5, 0.42, 0.7), 0, 1.95, 1.95), color: DARK, bone: 1 },
-    { geometry: placed(new ConeGeometry(0.09, 0.9, 5), 0.35, 2.3, 1.85, [1, 1, 1], [0.6, 0, -0.9]), color: HORN, bone: 1 },
-    { geometry: placed(new ConeGeometry(0.09, 0.9, 5), -0.35, 2.3, 1.85, [1, 1, 1], [0.6, 0, 0.9]), color: HORN, bone: 1 },
-    { geometry: placed(new ConeGeometry(0.1, 0.9, 4), 0, 1.9, -1.55, [1, 1, 1], [-2.2, 0, 0]), color: DARK, bone: 6 },
-  ];
-  LEGS.forEach(([, x, z], i) => {
-    parts.push({ geometry: placed(new CylinderGeometry(0.09, 0.13, 1.0, 5), x, 1.35, z), color: HIDE, bone: 2 + i });
-    parts.push({ geometry: placed(new CylinderGeometry(0.06, 0.08, 0.95, 5), x, 0.48, z), color: DARK, bone: 2 + i });
-  });
-  return skinParts(parts);
-}
 const bones = (): { name: string; parent: string | null; pos: [number, number, number] }[] => [
   { name: 'body', parent: null, pos: [0, 2.0, 0] }, { name: 'head', parent: 'body', pos: [0, 2.2, 1.0] },
   ...LEGS.map(([name, x, z]): { name: string; parent: string; pos: [number, number, number] } => ({ name, parent: 'body', pos: [x, 1.85, z] })),
@@ -49,12 +30,12 @@ function striderMesh(source: BufferGeometry): { bones: ReturnType<typeof bones>;
     ...LEGS.map(([name], i): { name: string; parent: string; pos: [number, number, number] } => ({ name, parent: 'body', pos: top(i) })),
     { name: 'tail', parent: 'body', pos: [0, h * 0.7, tail] }] };
 }
-/** The strider's body: the generated model when it loaded, else the code one. */
+/** The strider's body: the generated model; one that did not load stands undrawn (its load was faulted, SF72). */
 function striderBody(): { bones: ReturnType<typeof bones>; geometry: BufferGeometry; h: number } {
   const source = duneMesh('dune-strider');
-  return source ? striderMesh(source) : { bones: bones(), geometry: striderGeometry(), h: 2.8 };
+  return source ? striderMesh(source) : { bones: bones(), geometry: undrawnRig(), h: 2.8 };
 }
-/** The strider as one skinned geometry for the Model Explorer: the generated model when it loaded. */
+/** The strider as one skinned geometry for the Model Explorer. */
 export const striderSpecimen = (): BufferGeometry => striderBody().geometry;
 export const DUNE_STRIDER_LOOK: SpeciesLook = { id: 'sunscar.look.duneStrider', species: DUNE_STRIDER.id, kind: 'duneStrider', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'sunscar.duneStrider', sockets: ['body', 'head', 'legFL', 'legFR', 'legBL', 'legBR', 'tail'], clips: ['idle', 'walk', 'attack', 'hit', 'die'] },

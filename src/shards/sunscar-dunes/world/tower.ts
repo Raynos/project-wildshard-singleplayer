@@ -1,4 +1,5 @@
-import { addFire, addLampGlow, KEEPER_LAMP, SIGNAL_FIRE } from './fireFx';
+import { addFire, addLampGlow } from './fireFx';
+import { KEEPER_LAMP, SIGNAL_FIRE } from '../data/fire';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PointLight, Vector3 } from 'three';
 import { TOWER } from '../data/layout';
 import tower from '../data/tower.json' with { type: 'json' };

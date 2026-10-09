@@ -1,4 +1,6 @@
-import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, DataTexture, Group, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, RepeatWrapping, RGBAFormat, SphereGeometry, SRGBColorSpace, TubeGeometry, UnsignedByteType, Vector3 } from 'three';
+import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
+import { braidColours, coilPoints as heldCoil, LashCord, plaitedCord, type CordRgb } from '@wildshard/game/systems/items/lashView';
+import { COIL_A, COIL_B, GLOW, LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B } from '../data/whip';
 import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
@@ -16,179 +18,20 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 export const HD_GLOVE = { size: 0.14, pos: [0.02, -0.19, 0] as [number, number, number], rot: [-0.5, 0.5, 0.2] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
-/** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
-const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
-/** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
-const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
-// loop 4: a shade lighter than the glove, so the coil's loops read against both the fist and the dusk sand (mockup D)
-const COIL_A = [0.12, 0.055, 0.022] as const, COIL_B = [0.045, 0.02, 0.009] as const; // linear: a dark brown plait // mockup D: a dark plait with warm highlights
+/** The code fist's leathers: the glove, its cuff and the knob (the generated glove replaces it when its file loads). */
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
-/** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
-const GLOW = 0x120804;
-const RADIAL = 6, SEGMENTS = 30;
 
 const leather = (color: number): MeshStandardMaterial => new MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, emissive: GLOW });
 /** The lash's matte braid as a plain material (no vertex colours), for the pull's wrap coil. */
 export const braidedMaterial = (): MeshStandardMaterial => new MeshStandardMaterial({ color: 0x7a4a26, roughness: 0.85, metalness: 0, emissive: GLOW });
 const braided = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, emissive: GLOW });
 
-/** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture. */
-function braid(geometry: BufferGeometry, rings: number, sides: number, popperRings = 0, a: readonly number[] = STRAND_A, b: readonly number[] = STRAND_B): void {
-  const count = geometry.getAttribute('position').count, colors = new Float32Array(count * 3);
-  for (let v = 0; v < count; v++) {
-    const i = Math.floor(v / sides), j = v % sides;
-    const c = i >= rings - popperRings ? POPPER : (i * 2 + j) % 4 < 2 ? a : b;
-    colors[v * 3] = c[0] ?? 0; colors[v * 3 + 1] = c[1] ?? 0; colors[v * 3 + 2] = c[2] ?? 0;
-  }
-  geometry.setAttribute('color', new BufferAttribute(colors, 3));
-}
+/** Paints a tube's rings with the plait's two strands (the handle's by default), the last `popperRings` the popper. */
+const braid = (geometry: BufferGeometry, rings: number, sides: number, popperRings = 0, a: CordRgb = STRAND_A, b: CordRgb = STRAND_B): void => {
+  braidColours(geometry, rings, sides, popperRings, a, b, POPPER);
+};
 
-/** The lash: one braided tube whose rings are rewritten along a moving curve (no per-frame allocation). */
-export class Lash {
-  readonly mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
-  private readonly positions: Float32Array;
-  private readonly point = new Vector3(); private readonly next = new Vector3();
-  private readonly side = new Vector3(); private readonly up = new Vector3(); private readonly tangent = new Vector3();
-  constructor() {
-    const geometry = new BufferGeometry(), rings = SEGMENTS + 1;
-    this.positions = new Float32Array(rings * RADIAL * 3);
-    const index: number[] = [];
-    for (let s = 0; s < SEGMENTS; s++) for (let r = 0; r < RADIAL; r++) {
-      const a = s * RADIAL + r, b = s * RADIAL + (r + 1) % RADIAL, c = a + RADIAL, d = b + RADIAL;
-      index.push(a, c, b, b, c, d);
-    }
-    geometry.setAttribute('position', new BufferAttribute(this.positions, 3));
-    geometry.setIndex(index);
-    braid(geometry, rings, RADIAL, 2, LASH_A, LASH_B);
-    // matte: a glossy lash catches the low sun along its whole near length
-    const material = braided(); material.roughness = 0.85;
-    this.mesh = new Mesh(geometry, material);
-    this.mesh.visible = false;
-  }
-  /**
-   * Lays the lash from `from` towards `to` (camera space). `ext` 0 → 1 unrolls it; `wave` is the travelling
-   * S-curve's height, which dies out as the lash straightens.
-   */
-  shape(from: Vector3, to: Vector3, ext: number, wave: number, time: number): void {
-    const length = from.distanceTo(to);
-    this.tangent.subVectors(to, from).normalize();
-    this.side.set(1, 0, 0).cross(this.tangent).normalize(); this.up.crossVectors(this.tangent, this.side).normalize();
-    for (let s = 0; s <= SEGMENTS; s++) {
-      const u = s / SEGMENTS, along = u * length * ext;
-      const lift = Math.sin(u * Math.PI) * wave * (1 - ext * 0.7) + Math.sin(u * 9 - time * 40) * wave * 0.25 * u;
-      this.point.copy(from).addScaledVector(this.tangent, along).addScaledVector(this.side, lift).addScaledVector(this.up, -Math.sin(u * 3.1) * 0.05 * length * (1 - ext));
-      // A thong as thick as the handle's keeper (1.3 cm) tapering fast into the thin fall, and a frayed popper that
-      // stays a few pixels wide 7 m out (loop 3: the first metre was a 3 cm cone filling the lower right).
-      const radius = 0.0045 * (1 - u) ** 2.5 + 0.0022 + (u > 0.93 ? 0.002 : 0);
-      for (let r = 0; r < RADIAL; r++) {
-        const a = (r / RADIAL) * Math.PI * 2;
-        this.next.copy(this.point).addScaledVector(this.side, Math.cos(a) * radius).addScaledVector(this.up, Math.sin(a) * radius);
-        const at = (s * RADIAL + r) * 3;
-        this.positions[at] = this.next.x; this.positions[at + 1] = this.next.y; this.positions[at + 2] = this.next.z;
-      }
-    }
-    const position = this.mesh.geometry.getAttribute('position');
-    position.needsUpdate = true;
-    this.mesh.geometry.computeVertexNormals(); this.mesh.geometry.computeBoundingSphere();
-  }
-}
-
-/**
- * The plait's tile, made in code (round 8, council rounds 1-7: the model-space plait read as a checker tape): u along the
- * cord, v round it. Four strand columns round the cord (two face the eye, one chevron spine between them), each leaning 45 deg the other way from its neighbour, so the
- * strands meet in the chevrons a plaited thong shows (mockup D). Each strand is a raised lozenge (a crown, dark creases
- * between); the normal map carries that relief and the roughness map puts a sheen on the crowns only, so the key and
- * the viewer light give each strand its own small highlight.
- */
-const PLAIT = { size: 128, columns: 4, rows: 4 } as const;
-function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTexture } {
-  const n = PLAIT.size, h = new Float32Array(n * n), tone = new Float32Array(n * n);
-  const hash = (a: number, b: number): number => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-    const v = (y + 0.5) / n * PLAIT.columns, col = Math.floor(v), cv = v - col, lean = col % 2 === 0 ? 1 : -1;
-    const q = (x + 0.5) / n * PLAIT.rows + lean * cv, row = Math.floor(q), across = q - row;
-    // the strand's width profile (round crown, creased edges) times its fall-off into the column's spine
-    const crown = Math.sin(Math.PI * across) ** 0.7 * Math.sin(Math.PI * cv) ** 0.35;
-    h[y * n + x] = crown; tone[y * n + x] = hash(row + 17 * col, col * 3.1); // each strand a little lighter or darker
-  }
-  const map = new Uint8Array(n * n * 4), nor = new Uint8Array(n * n * 4), rough = new Uint8Array(n * n * 4);
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-    const i = y * n + x, c = h[i] ?? 0, t = tone[i] ?? 0.5;
-    const dx = (h[y * n + (x + 1) % n] ?? 0) - (h[y * n + (x + n - 1) % n] ?? 0), dy = (h[((y + 1) % n) * n + x] ?? 0) - (h[((y + n - 1) % n) * n + x] ?? 0);
-    // sRGB leather: near-black creases, a dark brown strand, a warmer worn crown
-    const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
-    // round 10 (R9B-4: the crowns' sheen read 51 against the mockup's 103): a lighter copper-brown crown for the light to catch
-    map[i * 4] = Math.round(Math.min(255, (12 + 98 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 58 * base * k) * w));
-    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 38 * base * k) * w)); map[i * 4 + 3] = 255;
-    const s = 4.0, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
-    nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
-    rough[i * 4 + 1] = Math.round(255 * (0.92 - 0.68 * k * k)); rough[i * 4 + 3] = 255; // round 9: a sheen on each crown (strand p99 56 against the mockup's ~140)
-  }
-  const tex = (data: Uint8Array, srgb: boolean): DataTexture => {
-    const t = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
-    t.wrapS = RepeatWrapping; t.wrapT = RepeatWrapping; t.magFilter = LinearFilter; t.minFilter = LinearMipmapLinearFilter;
-    t.generateMipmaps = true; t.anisotropy = 4; if (srgb) t.colorSpace = SRGBColorSpace; t.needsUpdate = true;
-    return t;
-  };
-  return { map: tex(map, true), normal: tex(nor, false), rough: tex(rough, false) };
-}
-
-/**
- * E407 row 4 (the lead after round 14: every mockup shows a compact gloved fist low in the corner holding a ROUND coil of
- * plaited whip, one to two fists across; a thin cord rising from the fist read as nothing): a real coil in the held glove's own
- * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top
- * into a closed coil beside the fist (round 15: see plaitedLoop), and the fall drops out of the frame behind the hand.
- */
-// round 23 (seat B after round 21: one turn ~0.25 wide, its top near y 0.66; A, B and C hold TWO coils ~0.5 wide, tops near
-// 0.60): the fist on the coil's right side, two turns stepped apart, a thicker cord; A / B / C: ~0.5 wide, tops 0.57-0.60
-// (D's and dusk-fire's mockups hang smaller coils: one hold serves every view, three of five hold the big pair)
-// round 24 (seats B and C after round 23: the coils sat ~0.22 too far left, x 0.11-0.60 against the mockups' 0.33-0.86,
-// covering C's plinth, and D's and dusk-fire's mockups hang smaller loops): the handle's top at the coil's upper left
-// (start 2.0), so the two turns hang to the right of it and behind the fist, smaller (rx 0.8, ry 0.85): x ~0.45-0.85, top ~0.6
-// round 25 (seat B after round 24: one hoop, ~0.07 too far right and 0.05 low; the mockups' two SEPARATE loops): the second
-// turn stepped up and to the left of the first (step -0.35, 0.2), the start at 1.8: two rings across x ~0.33-0.80
-export const LOOP = { cord: 0.075, from: [-0.613, 0.922, -0.537], start: 1.8, rx: 0.8, ry: 0.85, face: 0.4, turns: 2, step: [-0.35, 0.2, 0.06], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
-
-/**
- * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing
- * in front of the fingers, the loop under the HUD): a closed upright ellipse, its two turns lying close, the fall dropping
- * behind the hand. Round 17 (seat B: the mockups' loop is a teardrop rising from the fist, not a ring beside it): the
- * cord leaves the handle's top straight into the ellipse at `start` (radians), turns and leaves at its foot for the fall,
- * so no stretch of cord crosses the loop's middle. Round 21 (the lead): `start` 1.3, so the ellipse's centre is below the
- * handle's top and the coil HANGS from the fist, ~1.5 turns.
- */
-function plaitedLoop(): Mesh {
-  const [fx, fy, fz] = LOOP.from, a0 = LOOP.start;
-  // the ellipse placed so its point at `start` is the handle's top (in the plane turned by `face`)
-  const cx = fx - Math.cos(a0) * LOOP.rx * Math.cos(LOOP.face), cy = fy - Math.sin(a0) * LOOP.ry, cz = fz - Math.cos(a0) * LOOP.rx * Math.sin(LOOP.face);
-  const pts: Vector3[] = [];
-  // counter-clockwise as the camera sees it: up the right side, over the top, down the left; ends at the foot
-  const n = 40 * LOOP.turns, sweep = Math.PI * 2 * LOOP.turns - (a0 + Math.PI * 0.5);
-  for (let i = 0; i <= n; i++) {
-    const t = i / n, a = a0 + t * sweep, k = t * (LOOP.turns - 1);
-    const wob = 1 - 0.04 * Math.sin(a * 3 + 0.7);
-    // the ellipse's plane turned back by `face` against the glove's own turn (HD_GLOVE.rot y), so it opens to the camera
-    const ex = Math.cos(a) * LOOP.rx * wob;
-    pts.push(new Vector3(cx + ex * Math.cos(LOOP.face) + LOOP.step[0] * k, cy + Math.sin(a) * LOOP.ry * wob + LOOP.step[1] * k, cz + ex * Math.sin(LOOP.face) + LOOP.step[2] * k + Math.sin(a) * 0.05));
-  }
-  for (const q of LOOP.tail) pts.push(new Vector3(q[0], q[1], q[2]));
-  return plaitedTube(pts, LOOP.cord);
-}
-
-/** A plaited cord along `pts` (true UVs, the plait tile at 45 deg, the viewer-side light and a glancing sheen). */
-function plaitedTube(pts: Vector3[], cord: number): Mesh {
-  const curve = new CatmullRomCurve3(pts, false, 'centripetal'), length = curve.getLength();
-  const geometry = new TubeGeometry(curve, 360, cord, 12, false);
-  const { map, normal, rough } = plaitTextures();
-  const along = length / (PLAIT.rows * (2 * Math.PI * cord) / PLAIT.columns);
-  for (const t of [map, normal, rough]) t.repeat.set(along, 1);
-  const material = new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false });
-  material.userData['sunscarNoRim'] = true;
-  viewerLit(material, [0.42, 0.37, 0.33], 0.16);
-  return new Mesh(geometry, material);
-}
-
-export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: Lash; tip: Vector3; glove: Mesh | null; hd: Group | null }
+export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: LashCord; tip: Vector3; glove: Mesh | null; hd: Group | null }
 
 /**
  * The generated gloved fist on the braided handle (loop 2, P3: `art/sunscar-dunes/round-11-loop-2/ref-glove.jpg` →
@@ -273,7 +116,7 @@ export function buildWhipModel(): WhipParts {
   const coil = new Mesh(coilGeometry, coilMaterial);
   if (made === null) { coil.position.set(0, 0.1, -0.02); coil.rotation.set(0.1, 0.4, 0.1); } else { coil.position.set(0.01, -0.02, -0.01); coil.rotation.set(0.05, 0.35, 0.12); }
   root.add(grip, coil);
-  const lash = new Lash(); root.add(lash.mesh);
+  const lash = new LashCord(LASH_CORD); root.add(lash.mesh);
   // The keeper end of the handle in root space, where the lash leaves the hand.
   const tip = new Vector3(0, made === null ? 0.15 : made.top, 0).applyEuler(grip.rotation);
   // loop 6 (mockup D): the textured hero glove-and-coiled-whip when it loaded, posed as the reference shows it (the fist
@@ -283,7 +126,10 @@ export function buildWhipModel(): WhipParts {
     hd.position.set(...HD_GLOVE.pos); hd.rotation.set(...HD_GLOVE.rot); root.add(hd);
     // the code coil in the glove model's own frame (duneHd: out → holder (scaled) → turn (centred) → the scene)
     const turn = hd.children[0]?.children[0];
-    turn?.add(plaitedLoop());
+    // the coil as one plaited tube (data/whip.ts LOOP, PLAIT), the viewer-side light and a glancing sheen
+    const coilMesh = plaitedCord(heldCoil(LOOP), LOOP.cord, PLAIT);
+    coilMesh.material.userData['sunscarNoRim'] = true; viewerLit(coilMesh.material, [0.42, 0.37, 0.33], 0.16);
+    turn?.add(coilMesh);
     grip.visible = false; coil.visible = false;
   }
   return { root, grip, coil, lash, tip, glove: made?.mesh ?? null, hd };

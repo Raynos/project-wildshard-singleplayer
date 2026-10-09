@@ -6,7 +6,7 @@ import dressing from '../data/dressing.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
 import caravan from '../data/caravan.json' with { type: 'json' };
 import well from '../data/well.json' with { type: 'json' };
-import { BAKED_PIECES, bakedUrl, type BakedPiece } from '../boot/files';
+import { BAKED_PIECES, BAKED_URLS, type BakedPiece } from '../data/files';
 import { warmByFire } from './meshes';
 
 /**
@@ -25,7 +25,7 @@ export type BakedWorld = ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMe
 let last: BakedWorld | null = null;
 /** Load every baked piece behind the loading screen (the plugin's `world` hook); a piece that fails to load is empty. */
 export async function loadBakedWorld(): Promise<BakedWorld> {
-  const names = BAKED_PIECES, loaded = await Promise.all(names.map((piece) => loadBakedKinds(bakedUrl(piece), PIECES[piece].kinds, `sunscar-dunes ${piece}`)));
+  const names = BAKED_PIECES, loaded = await Promise.all(names.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `sunscar-dunes ${piece}`)));
   last = new Map(names.map((name, i) => [name, loaded[i] ?? new Map<string, InstancedMesh>()]));
   return last;
 }

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { bakeSignalSkitterer, skittererGeometry } from '../../../src/shards/sunscar-dunes/generators/species';
-import { DUNE_RIGS, duneRigUrl } from '../../../src/shards/sunscar-dunes/boot/files';
+import { DUNE_RIGS, DUNE_RIG_URLS } from '../../../src/shards/sunscar-dunes/data/files';
 import { duneRig, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
 
 const folder = new URL('../../../public/assets/sunscar-dunes/rigs/', import.meta.url);
@@ -18,7 +18,7 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
   it('the client reads the bake as the code built it: the same positions, colours, flat normals, bones and weights', async () => {
     const parser = new GLTFLoader();
     const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation((url) => {
-      if (url !== duneRigUrl('skitterer')) return Promise.reject(new Error('not this test'));
+      if (url !== DUNE_RIG_URLS.skitterer) return Promise.reject(new Error('not this test'));
       const bytes = readFileSync(`public${url}`);
       return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
     });

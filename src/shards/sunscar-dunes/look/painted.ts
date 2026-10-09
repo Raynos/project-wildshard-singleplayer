@@ -1,5 +1,5 @@
 import { ClampToEdgeWrapping, LinearFilter, RepeatWrapping, SRGBColorSpace, Texture } from 'three';
-import { PAINTED_STAGES, paintedUrl, type PaintedStage } from '../boot/files';
+import { PAINTED_STAGES, PAINTED_URLS, type PaintedStage } from '../data/files';
 
 /**
  * E407 row 5: the painted dusk sky at infinity, one seamless 360° strip per dusk stage (art/sunscar-dunes/round-25-sky:
@@ -19,8 +19,8 @@ export const PAINTED = { dusk: [0.35, 0.95] as const, elevTop: 45, elevBottom: -
 /** A painted strip as an sRGB texture, decoded off the main thread; null when it cannot be had (offline, a test page). */
 async function loadStrip(stage: PaintedStage): Promise<Texture | null> {
   try {
-    const response = await fetch(paintedUrl(stage));
-    if (!response.ok) throw new Error(`${response.status} ${paintedUrl(stage)}`);
+    const response = await fetch(PAINTED_URLS[stage]);
+    if (!response.ok) throw new Error(`${response.status} ${PAINTED_URLS[stage]}`);
     const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
     const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = `sunscar.sky.${stage}`;
     // the heading wraps (no seam at heading 0); the sky is magnified, so no mips

@@ -3,11 +3,14 @@ import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribu
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { GROUND_HALF, SEED, TRAIL } from '../data/layout';
-import { duneHeight, WIND } from '../world/dunes';
+import { duneHeight } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 import { loadPaintedSky } from './painted';
-import { familySand, familySky, SHADOW_HALF, type FamilySand, type FamilySky } from './families';
+import { familySand, familySky, type FamilySand, type FamilySky } from './families';
+import { GRAIN_TILE, KEY_DIR, SAND_FILES, SAND_MAP } from '../data/sand';
+import sandMeans from '../data/sand.json' with { type: 'json' };
+import { skirtAt } from './skirt';
 import { Scope } from '@wildshard/engine/app/scope';
 import { holdSkirt } from './cube';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
@@ -32,7 +35,7 @@ import { bindSandTiles } from './groundTiles';
 // tower; the key is one global art-directed direction that lights the faces the mockups light. Tested on round 13's
 // landform (row-mean-removed r of the dune band): 20 deg left of north gave dusk-fire +0.42, A +0.13 (15 deg: +0.45 / +0.10;
 // 27 deg: +0.36 / +0.13; west and behind-left: -0.18 to +0.09); A does not pass +0.3 under any one key
-export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new Color(1, 0.68, 0.34), intensity: 1.85 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(...KEY_DIR).normalize(), color: new Color(1, 0.68, 0.34), intensity: 1.85 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -45,78 +48,39 @@ const AERIAL_FOG = 0.0013; // round 22 (the lead: subtle in front of ~300 m): 18
 // E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
 const SAND = new Color(0.5, 0.23, 0.075),
   HOLLOW = new Color(0.22, 0.14, 0.12), CREST = new Color(0.64, 0.33, 0.1);
-/** How far (m) and in how many growing steps the bake marches toward the sun for the dunes' cast shadows. */
-const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
-
-/** The baked dune-shadow map's size and reach (E407 row 3: it covered only the 480 m ground; the far skirt's dunes, out to
- *  the range rings, cast no shade): 896 texels a side over +-520 m, 1.16 m a texel. */
-const SHADOW_TEX = 896;
-
 /**
- * Dune self-shadow, baked (R1; loop 2 sharpens it): per texel, march toward the key over the terrain grid's heights;
- * the deepest the ground rises over the ray darkens the key light. A texture, not a vertex attribute, so a crest's
- * shadow edge is drawn at 0.75 m, not smeared across the 2.5 m grid (no shadow map ever reaches 200 m on the phone).
+ * The sand's three baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`): the dune-shadow map (R1, E407
+ * row 3: the key's cast shade marched over the dune field, 1.16 m texels over the shadow's reach), the trail mask (round 2)
+ * and the grain tile (loop 2; R albedo, G / B its bump slope). Each file is a zlib stream of the map's raw bytes, uploaded
+ * as the DataTexture the page used to compute behind the loading screen. A map that fails to load is a page fault
+ * (`console.error`): the sand draws without it (fully lit, no trail, flat grain).
  */
-function bakeDuneShadow(heightAt: (x: number, z: number) => number): DataTexture {
-  const n = SHADOW_TEX, data = new Uint8Array(n * n), texel = (SHADOW_HALF * 2) / n;
-  const flat = Math.hypot(KEY.dir.x, KEY.dir.z), sx = KEY.dir.x / flat, sz = KEY.dir.z / flat, rise = KEY.dir.y / flat;
-  for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
-    const x0 = -SHADOW_HALF + (ix + 0.5) * texel, z0 = -SHADOW_HALF + (iz + 0.5) * texel, h0 = heightAt(x0, z0) + 0.12;
-    let d = SHADOW_MARCH.first, over = 0;
-    for (let k = 0; k < SHADOW_MARCH.steps; k++, d *= SHADOW_MARCH.grow) over = Math.max(over, (heightAt(x0 + sx * d, z0 + sz * d) - (h0 + rise * d)) / (0.25 + d * 0.012)); // E407 row 3: the penumbra grows half as fast (crisp long shadows)
-    data[iz * n + ix] = Math.round(255 * (1 - Math.min(1, Math.max(0, over))));
+async function sandBytes(url: string, length: number, standIn: number): Promise<Uint8Array> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
+    const bytes = new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+    if (bytes.length !== length) throw new Error(`${url}: ${String(bytes.length)} bytes, ${String(length)} baked`);
+    return bytes;
+  } catch (error: unknown) {
+    console.error('[sunscar-dunes] the baked sand map did not load:', error);
+    return new Uint8Array(length).fill(standIn);
   }
-  const tex = new DataTexture(data, n, n, RedFormat, UnsignedByteType);
-  tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
-  return tex;
 }
-
-/** The trail mask (round 2): 1 on the trodden bed, 0 a few metres off it, at the shadow map's 0.75 m texels. */
-function bakeTrail(trailDistance: (x: number, z: number) => number): DataTexture {
-  const n = SHADOW_TEX, data = new Uint8Array(n * n), texel = (GROUND_HALF * 2) / n;
-  for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
-    const d = trailDistance(-GROUND_HALF + (ix + 0.5) * texel, -GROUND_HALF + (iz + 0.5) * texel), t = Math.min(1, Math.max(0, (d - 1.8) / 1.6));
-    data[iz * n + ix] = Math.round(255 * (1 - t * t * (3 - 2 * t)));
-  }
-  const tex = new DataTexture(data, n, n, RedFormat, UnsignedByteType);
-  tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
-  return tex;
-}
-
-/**
- * The sand texture set, made in code (loop 2): a 256² tile, 1.8 m a side, of fine grain. R is the grain's albedo (pale
- * quartz and dark mineral specks in a soft mottle), G / B its bump slope in x / z. Mipmapped, so it never sparkles.
- */
-function sandGrainTexture(): DataTexture {
-  const n = 256, data = new Uint8Array(n * n * 4), h = new Float32Array(n * n);
-  const hash = (x: number, y: number): number => { const s = Math.sin(((x % n + n) % n) * 127.1 + ((y % n + n) % n) * 311.7) * 43758.5453; return s - Math.floor(s); };
-  // value noise at a few periods that divide the tile, so it wraps seamlessly
-  const noise = (x: number, y: number, p: number): number => {
-    const k = n / p, fx = x / k, fy = y / k, ix = Math.floor(fx), iy = Math.floor(fy), u = fx - ix, v = fy - iy;
-    const at = (a: number, b: number): number => hash(((a % p) + p) % p * 7 + p, ((b % p) + p) % p * 13 + p);
-    const su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
-    return (at(ix, iy) * (1 - su) + at(ix + 1, iy) * su) * (1 - sv) + (at(ix, iy + 1) * (1 - su) + at(ix + 1, iy + 1) * su) * sv;
+export async function loadSandMaps(): Promise<{ shadow: DataTexture; trail: DataTexture; grain: DataTexture }> {
+  const [shadowBytes, trailBytes, grainBytes] = await Promise.all([sandBytes(SAND_FILES.shadow, SAND_MAP * SAND_MAP, 255),
+    sandBytes(SAND_FILES.trail, SAND_MAP * SAND_MAP, 0), sandBytes(SAND_FILES.grain, GRAIN_TILE * GRAIN_TILE * 4, 128)]);
+  const mask = (data: Uint8Array): DataTexture => {
+    const tex = new DataTexture(data, SAND_MAP, SAND_MAP, RedFormat, UnsignedByteType);
+    tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
+    return tex;
   };
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) h[y * n + x] = noise(x, y, 64) * 0.5 + noise(x, y, 128) * 0.3 + hash(x, y) * 0.35;
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-    const i = y * n + x, speck = hash(x * 3 + 1, y * 5 + 2), mottle = noise(x, y, 8) * 0.5 + noise(x, y, 16) * 0.5;
-    const albedo = 0.5 + (mottle - 0.5) * 0.35 + (speck > 0.985 ? -0.35 : speck > 0.96 ? 0.22 : 0) + (hash(x, y) - 0.5) * 0.18;
-    const dx = (h[y * n + (x + 1) % n] ?? 0) - (h[y * n + (x + n - 1) % n] ?? 0), dz = (h[((y + 1) % n) * n + x] ?? 0) - (h[((y + n - 1) % n) * n + x] ?? 0);
-    data[i * 4] = Math.round(255 * Math.min(1, Math.max(0, albedo)));
-    data[i * 4 + 1] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + dx * 0.9)));
-    data[i * 4 + 2] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + dz * 0.9)));
-    data[i * 4 + 3] = 255;
-  }
-  // round 17 (the lead's restated rule: no term may change brightness by camera distance; seat B measured the grain fades
-  // 3.4 % dark at the camera): the shader subtracts the tile's own means, so every distance-faded grain term is zero-mean
-  let sumR = 0, sumGlint = 0;
-  const step01 = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
-  for (let i = 0; i < n * n; i++) { const r = (data[i * 4] ?? 0) / 255; sumR += r; sumGlint += step01(0.82, 0.95, r) - step01(0.82, 0.95, 1 - r); }
-  const tex = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
-  tex.userData['meanR'] = sumR / (n * n); tex.userData['meanGlint'] = sumGlint / (n * n);
-  tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.magFilter = LinearFilter; tex.minFilter = LinearMipmapLinearFilter;
-  tex.generateMipmaps = true; tex.anisotropy = 8; tex.needsUpdate = true; // round 5: at the grazing near view the plain mips blurred the grain to grey
-  return tex;
+  const grain = new DataTexture(grainBytes, GRAIN_TILE, GRAIN_TILE, RGBAFormat, UnsignedByteType);
+  // round 17: the shader subtracts the tile's own means, so every distance-faded grain term is zero-mean
+  grain.userData['meanR'] = sandMeans.meanR; grain.userData['meanGlint'] = sandMeans.meanGlint;
+  grain.wrapS = RepeatWrapping; grain.wrapT = RepeatWrapping; grain.magFilter = LinearFilter; grain.minFilter = LinearMipmapLinearFilter;
+  grain.generateMipmaps = true; grain.anisotropy = 8; grain.needsUpdate = true; // round 5: at the grazing near view the plain mips blurred the grain to grey
+  return { shadow: mask(shadowBytes), trail: mask(trailBytes), grain };
 }
 
 /** The sand's hollow / crest tint at one vertex (round 1): its height `h` against the mean of a 14 m ring around it. */
@@ -134,15 +98,6 @@ const SKIRT = { out: 520, cell: 8 } as const;
  * square it sits 2 m under the ground (hidden); on the edge it meets the ground's own heights; outside it eases into
  * smooth swells along the wind.
  */
-/** The skirt's height past the ground's edge (its edge heights easing into swells along the wind); inside, `heightAt`. */
-function skirtAt(heightAt: (x: number, z: number) => number, x: number, z: number): number {
-  const edge = GROUND_HALF, out = Math.max(Math.abs(x), Math.abs(z)) - edge;
-  if (out < -0.5) return heightAt(x, z);
-  const cx = Math.max(-edge, Math.min(edge, x)), cz = Math.max(-edge, Math.min(edge, z));
-  const t = Math.min(1, Math.max(0, out / 60)), e = t * t * (3 - 2 * t);
-  const u = (x * WIND.x + z * WIND.z) / 64, v = (-x * WIND.z + z * WIND.x) / 90;
-  return heightAt(cx, cz) * (1 - e) + (2.5 + 3 * Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2)) * e - 0.05;
-}
 function skirtGeometry(heightAt: (x: number, z: number) => number, reach: number = SKIRT.out): BufferGeometry {
   // G99: a grid cell's skirt ends at its cube (`reach` 250, look/cube.ts); standalone it runs to SKIRT.out
   const n = Math.max(1, Math.round((reach * 2) / SKIRT.cell)), g = new PlaneGeometry(reach * 2, reach * 2, n, n); g.rotateX(-Math.PI / 2);
@@ -186,16 +141,7 @@ export function signalDunesLook(): LookStrategy {
    * collider.
    */
   const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
-    const segments = 256, side = segments + 1, cell = (GROUND_HALF * 2) / segments, heights = new Float32Array(side * side);
-    for (let iz = 0; iz < side; iz++) for (let ix = 0; ix < side; ix++) heights[iz * side + ix] = field.heightAt(ix * cell - GROUND_HALF, iz * cell - GROUND_HALF);
-    const gridAt = (x: number, z: number): number => {
-      const fx = Math.min(segments - 1e-3, Math.max(0, (x + GROUND_HALF) / cell)), fz = Math.min(segments - 1e-3, Math.max(0, (z + GROUND_HALF) / cell));
-      const ix = Math.floor(fx), iz = Math.floor(fz), u = fx - ix, w = fz - iz, at = (a: number, b: number): number => heights[b * side + a] ?? 0;
-      return (at(ix, iz) * (1 - u) + at(ix + 1, iz) * u) * (1 - w) + (at(ix, iz + 1) * (1 - u) + at(ix + 1, iz + 1) * u) * w;
-    };
-    const shadow = bakeDuneShadow((x, z) => skirtAt(gridAt, x, z)); scope.own(shadow);
-    const trail = bakeTrail((x, z) => field.trailDistance(x, z)); scope.own(trail);
-    const grain = sandGrainTexture(); scope.own(grain);
+    const { shadow, trail, grain } = await loadSandMaps(); scope.own(shadow); scope.own(trail); scope.own(grain);
     const familyGround = familySand({ grain, trail, shadow }, DUSK.value, scope); sand = familyGround;
     scope.onDispose(() => { if (sand === familyGround) sand = null; });
     const material = familyGround.material; terrain.material = material;

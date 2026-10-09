@@ -8,7 +8,7 @@ import { cachedResourceAllocations } from '../../../src/engine/render/textureByt
 import { Scope } from '../../../src/engine/app/scope';
 import { ownSceneTree, SceneOwnership } from '../../../src/engine/app/sceneOwnership';
 import { preloadDuneMeshes, duneHd, duneMesh, duneRig } from '../../../src/shards/sunscar-dunes/world/meshes';
-import { DUNE_HD, DUNE_MESHES, DUNE_RIGS } from '../../../src/shards/sunscar-dunes/boot/files';
+import { DUNE_HD, DUNE_MESHES, DUNE_RIGS } from '../../../src/shards/sunscar-dunes/data/files';
 import { legacyDouble } from '../../fake/FakeGame';
 
 it('keeps live Dunes model users valid and reconstructs evicted source caches on three admissions', async () => {

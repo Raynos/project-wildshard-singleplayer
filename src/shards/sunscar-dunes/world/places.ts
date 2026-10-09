@@ -1,4 +1,5 @@
-import { addFire, addLampGlow, COOKFIRE, fireLight, WAYMARK_FIRE } from './fireFx';
+import { addFire, addLampGlow, fireLight } from './fireFx';
+import { COOKFIRE, WAYMARK_FIRE } from '../data/fire';
 import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Material } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
