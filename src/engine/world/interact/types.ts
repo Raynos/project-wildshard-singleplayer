@@ -150,7 +150,7 @@ export const TRANSIENT_PREFIXES = ['plate:'];
 /** Weak actions yield to another reachable prompt. */
 export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }
 
-/** A pickup's look (E405: content registers its own — the kit's, src/kit/models/pickups.ts): its batched model, and the
+/** A pickup's look (E405: content registers its own — the game's, src/game/models/pickups.ts): its batched model, and the
  *  parts drawn up close, each on the lit or the glow batch, bobbing and spinning (`bob`: rest height, amplitude, spin) */
 export interface PickupPart { key: string; batch: 'lit' | 'glow'; geometry: (seed: number) => BufferGeometry; bob?: readonly [number, number, number]; pulse?: number }
 export interface PickupLook { model: ModelDef<Record<string, never>>; batch: 'lit' | 'glow'; lift: number; parts: readonly PickupPart[] }
@@ -163,7 +163,7 @@ export type ChestLook = 'chest' | 'strongbox' | 'treasure';
 export type DoorLook = 'plank' | 'grate' | 'sluice';
 export interface ChestDims { w: number; d: number; h: number; lidH: number }
 /**
- * The props the interaction runtime draws (E405 E417: the props are content, the kit's — src/kit/props/interact.ts —
+ * The props the interaction runtime draws (E405 E417: the props are content, the game's — src/game/systems/props/interact.ts —
  * installed by the composition root; the engine keeps the runtime: the kinds, their poses, colliders and prompts).
  * Every part is a geometry in a local frame with its pivot at the origin; `models` are the catalog rows the runtime
  * places each kind's specimens as.

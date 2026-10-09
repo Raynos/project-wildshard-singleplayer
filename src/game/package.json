@@ -12,6 +12,7 @@
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
+    "./models/pickups": "./models/pickups.ts",
     "./shardfile/reportCard": "./shardfile/reportCard.ts",
     "./grid/memoryAdmission": "./grid/memoryAdmission.ts",
     "./grid/regionalRuntime": "./grid/regionalRuntime.ts",

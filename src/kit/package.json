@@ -8,7 +8,6 @@
     "./effects/starter": "./effects/starter.ts",
     "./icons": "./icons.ts",
     "./models/creatures": "./models/creatures.ts",
-    "./models/pickups": "./models/pickups.ts",
     "./npc/faceHeads": "./npc/faceHeads.ts",
     "./npc/figureMotion": "./npc/figureMotion.ts",
     "./npc/figureRig": "./npc/figureRig.ts",

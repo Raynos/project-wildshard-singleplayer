@@ -11,7 +11,7 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { Bodies } from '../../../src/engine/physics/bodies';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import { installKitProps } from '../../../src/kit/models/interact';
+import { installKitProps } from '../../../src/game/models/interact';
 import { installAdventureInteractables } from '../../../src/shards/driftwood-isle/quest/interactLifetime';
 import { fakeWorld } from '../../fake/world';
 

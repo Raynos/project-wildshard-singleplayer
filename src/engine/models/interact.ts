@@ -1,7 +1,7 @@
 /**
  * The interactables' model helpers (E306 / E315 M1): a lit part (the shared low-poly material), a glowing one (unlit,
- * as the runtime's glow batch) and a floating pickup. The props and their models are content, the kit's
- * (src/kit/props/interact.ts, src/kit/models/interact.ts, E405 E417); the runtime (../world/interact/Interactables.ts)
+ * as the runtime's glow batch) and a floating pickup. The props and their models are content, the game's
+ * (src/game/systems/props/interact.ts, src/game/models/interact.ts, E405 E417); the runtime (../world/interact/Interactables.ts)
  * places them as each kind's rows.
  */
 import * as THREE from 'three';

@@ -114,7 +114,7 @@ async function startSelected(): Promise<void> {
   const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
     retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
-    retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./game/bag/starter.generated')),
+    retried(() => import('./game/models/pickups')), retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);

@@ -14,6 +14,11 @@ arm bakes and `measure` share; they moved unchanged from the kit (SF54). Trusted
 `@wildshard/sdk/runtime/viewmodel/*`, whose facades bind the same values; legacy shard files outside `runtime/`
 import the game modules until their -p port. Nothing installs on import.
 
+`@wildshard/game/models/{interact,pickups}` and `src/game/systems/props/interact.ts` hold the shared interactables' models
+(sea chest, key, door, lever, plate, barrel, beacon, bench, glyph altar) and pickup looks with the low-poly prop
+geometry they are built from, moved unchanged from the kit (SF54). The composition root calls `installKitProps` /
+`installKitPickups`; nothing installs on import. Their baked commons entries are SF54 step 4.
+
 `@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;

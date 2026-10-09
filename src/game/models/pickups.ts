@@ -4,7 +4,7 @@ import { rock } from '@wildshard/engine/world/geometryKit';
 import { interactParts } from '@wildshard/engine/world/interact/kit';
 import { registerPickupLook, type PickupLook } from '@wildshard/engine/world/interact/types';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { coinModel, installCoinModel } from '@wildshard/game/loot/coinModel';
+import { coinModel, installCoinModel } from '../loot/coinModel';
 
 const M = new THREE.Matrix4();
 const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0): THREE.Matrix4 =>
@@ -16,7 +16,7 @@ const done = (kit: LowPolyKit): THREE.BufferGeometry => kit.finish({ ao: false }
  * Each has its batched model (the far draw, the Model Explorer card) and the parts drawn up close, bobbing and spinning.
  * installKitPickups registers them.
  */
-const FILE = 'src/kit/models/pickups.ts';
+const FILE = 'src/game/models/pickups.ts';
 const SEED = 0x1a7e;
 const { lit, glow } = interactParts;
 

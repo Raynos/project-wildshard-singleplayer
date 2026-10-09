@@ -2,7 +2,7 @@
  * The interactables' models (E306 / E315 M1; the kit's since E405 E417): every thing a quest table puts in the world
  * for you to open, pull, press, light or sit on — the sea chest (banded chest, iron strongbox, treasure chest), the
  * hold key, a door (plank, grate, sluice), a lever, a pressure plate, the puzzle barrel, the beacon's brazier, a bench
- * and the glyph altar — built from the kit's props (../props/interact.ts). The engine's interaction runtime
+ * and the glyph altar — built from the shared props (../systems/props/interact.ts). The engine's interaction runtime
  * (src/engine/world/interact/Interactables.ts) places each kind's rows as these models, drawn into its lit / glow
  * batches; `installKitProps` hands it both. A specimen is the thing at rest, closed, its parts posed as the runtime
  * poses them there; a glowing part is drawn unlit, as in the world.
@@ -12,10 +12,10 @@ import { pickup } from '@wildshard/engine/models/interact';
 import { defineModel } from '@wildshard/engine/models/model';
 import { interactParts } from '@wildshard/engine/world/interact/kit';
 import { registerInteractProps, type ChestLook, type DoorLook, type InteractProps } from '@wildshard/engine/world/interact/types';
-import * as Mdl from '../props/interact';
+import * as Mdl from '../systems/props/interact';
 
 const { lit, glow } = interactParts;
-const FILE = 'src/kit/models/interact.ts';
+const FILE = 'src/game/models/interact.ts';
 const SEED = 0x1a7e;
 type Look = ChestLook;
 const at = (x: number, y: number, z: number, rx = 0): THREE.Matrix4 =>

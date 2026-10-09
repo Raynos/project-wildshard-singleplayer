@@ -11,7 +11,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { defineModel } from '@wildshard/engine/models/model';
 import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { carvedTokenGeometry as carvedToken } from '@wildshard/kit/models/pickups';
+import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
 
 const TOKENS = 8, SCALE = 0.6, PITCH = 0.185, LEAN = -0.14;
 
