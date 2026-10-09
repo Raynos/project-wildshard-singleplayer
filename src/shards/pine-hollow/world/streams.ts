@@ -17,8 +17,8 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import { fogGLSL } from '@wildshard/kit/looks/fogProgram';
-import { makeMistTexture } from '@wildshard/kit/looks/particles';
+import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
+import { makeMistTexture } from '@wildshard/game/systems/looks/particles';
 import {
   CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
 } from '../layout';

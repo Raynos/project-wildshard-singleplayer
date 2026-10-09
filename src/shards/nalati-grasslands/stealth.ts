@@ -12,8 +12,8 @@ import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 import type { Wildlife } from './creatures/wildlife';
 
 import type { NalatiLoadout } from './weapons/loadout';
-import { grassBaseHeightAt } from '@wildshard/kit/looks/grassField';
-import { grassHeightAt } from '@wildshard/kit/looks/trample';
+import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
+import { grassHeightAt } from '@wildshard/game/systems/looks/trample';
 import './stealth.css';
 
 /**

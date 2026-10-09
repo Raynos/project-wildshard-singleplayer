@@ -1,4 +1,4 @@
-import { rainCurtain } from '@wildshard/kit/weather/rainCurtain';
+import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
 import { RAIN_PROGRAM } from './rainProgram';
 /**
  * WeatherFX — what the steppe storm looks like (Nalati B10): the storm deck and its shelf cloud rolling in from one

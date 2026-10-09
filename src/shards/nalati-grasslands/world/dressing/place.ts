@@ -22,7 +22,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { normalAt, trailDistance, inChunk, TRAILS } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '@wildshard/kit/looks/grassField';
+import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '@wildshard/game/systems/looks/grassField';
 import { MELT_STREAM as BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, snowValleyX, snowValleyHalf } from '../../layout';
 import { RIVER, riverMask, zoneAt, glacierMask } from '../terrain';
 import { inPoiClearing } from '../clearings';

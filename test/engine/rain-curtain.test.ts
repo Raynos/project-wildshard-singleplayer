@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
-import { rainCurtain } from '../../src/kit/weather/rainCurtain';
+import { rainCurtain } from '../../src/game/systems/looks/rainCurtain';
 import { RAIN_PROGRAM as PINE_RAIN } from '../../src/shards/pine-hollow/world/rainProgram';
 import { RAIN_PROGRAM as STEPPE_RAIN } from '../../src/shards/nalati-grasslands/world/rainProgram';
 import frozen from './fixtures/rain-curtain-e357.json';

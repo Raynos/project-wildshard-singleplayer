@@ -9,10 +9,6 @@
     "./effects/starter": "./effects/starter.ts",
     "./icons": "./icons.ts",
     "./lookApi": "./lookApi.ts",
-    "./looks/fogProgram": "./looks/fogProgram.ts",
-    "./looks/grassField": "./looks/grassField.ts",
-    "./looks/particles": "./looks/particles.ts",
-    "./looks/trample": "./looks/trample.ts",
     "./models/creatures": "./models/creatures.ts",
     "./models/pickups": "./models/pickups.ts",
     "./npc/faceHeads": "./npc/faceHeads.ts",
@@ -34,7 +30,6 @@
     "./weapons/melee/profiles": "./weapons/melee/profiles.ts",
     "./weapons/thrown/Thrown": "./weapons/thrown/Thrown.ts",
     "./weapons/ui": "./weapons/ui.ts",
-    "./weather/rainCurtain": "./weather/rainCurtain.ts",
     "./items/declared": "./items/declared.ts"
   }
 }

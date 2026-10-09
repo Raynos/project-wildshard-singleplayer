@@ -141,7 +141,7 @@ export const DONE = {
     'src/engine/world/Boundary.ts': { why: "the shard's edge — cliffs, walls, the sea wall: world, welded to the ground", counts: { mergeGeometries: 6 } },
     'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
-    'src/kit/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
+    'src/game/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },

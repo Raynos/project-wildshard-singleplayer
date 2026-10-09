@@ -6,6 +6,11 @@ arm bakes and `measure` share; they moved unchanged from the kit (SF54). Trusted
 `@wildshard/sdk/runtime/viewmodel/*`, whose facades bind the same values; legacy shard files outside `runtime/`
 import the game modules until their -p port. Nothing installs on import.
 
+`@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
+(mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
+custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly; the
+kit's `lookApi` lazy loaders now point at them until the Nalati and Pine runtimes switch.
+
 `@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
 as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
 status movement / periodic-damage / death bindings, with no second kit wrapper,

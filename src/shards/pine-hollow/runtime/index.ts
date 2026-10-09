@@ -23,7 +23,7 @@ import { CABIN_SITES } from '../layout';
 import { installStarterEffects } from '@wildshard/kit/effects/install';
 import { STARTER_EFFECTS } from '@wildshard/kit/effects/starter';
 import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
-import type { Particles } from '@wildshard/kit/looks/particles';
+import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/kit/weapons/bow/family';
 import { Crossbow } from './weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';

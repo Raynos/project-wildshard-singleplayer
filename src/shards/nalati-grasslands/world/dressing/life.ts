@@ -23,7 +23,7 @@ import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/pa
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { grassBaseHeightAt } from '@wildshard/kit/looks/grassField';
+import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { BUTTERFLIES, BUTTERFLY_HUES, FLY_SCALE, halfBirdGeo, RAPTORS, wingGeo } from '../../models/ambientLife';
 
 const PHONE = TIER === 'phone';

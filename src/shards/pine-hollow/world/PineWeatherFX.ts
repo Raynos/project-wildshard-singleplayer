@@ -1,4 +1,4 @@
-import { rainCurtain } from '@wildshard/kit/weather/rainCurtain';
+import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
 import { RAIN_PROGRAM } from './rainProgram';
 /**
  * PineWeatherFX — what Pine Hollow's rain looks like (PH-L10): the rain around the camera with the canopy's drips in it,

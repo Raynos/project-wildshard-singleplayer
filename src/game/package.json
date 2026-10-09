@@ -4,6 +4,11 @@
   "type": "module",
   "exports": {
     "./systems/audio/combatCues": "./systems/audio/combatCues.ts",
+    "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
+    "./systems/looks/grassField": "./systems/looks/grassField.ts",
+    "./systems/looks/particles": "./systems/looks/particles.ts",
+    "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
+    "./systems/looks/trample": "./systems/looks/trample.ts",
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
