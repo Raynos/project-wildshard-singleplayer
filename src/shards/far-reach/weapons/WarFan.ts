@@ -1,15 +1,13 @@
 import type { App } from '@wildshard/engine/app/app';
 import { blocks } from '@wildshard/engine/blocks';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
-import type { Actor } from '@wildshard/engine/combat/pipeline';
 import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { Vector2, Vector3, type Texture } from 'three';
 import { FAN_SWING, FAN_GUST } from '../data/items';
 import { FAN_ROW } from './rows';
 import { fanParts } from './fanModel';
+import { FanStrikes, type FanTarget } from './fanStrikes';
 
-/** Anything the fan can strike: a world position and its combat actor. */
-export interface FanTarget { readonly position: Vector3; readonly actor: Actor | null; impulse?: (velocity: Vector3) => void }
 export const SWING = { ...FAN_SWING };
 /** The idle hold (mockup B / C): the fan open at a three-quarter angle, lower right, the hand under it; never over the discs. */
 /** Loop 5 (council R1C-14): raised so the grip and the hand sit above the GUST / DODGE / JUMP cluster. */
@@ -57,17 +55,11 @@ export function motionPose(motion: Motion, k: number): Pose {
   return REST;
 }
 
-/** True when `to` lies inside a cone of `reach` metres and `halfAngle` radians around `dir` from `from`. */
-export function inCone(from: Vector3, dir: Vector3, to: Vector3, reach: number, halfAngle: number): boolean {
-  const d = to.clone().sub(from), len = d.length();
-  if (len > reach) return false; if (len < 1e-3) return true;
-  return d.dot(dir) / (len * Math.max(dir.length(), 1e-6)) >= Math.cos(halfAngle);
-}
-
 /**
  * The war fan (rung 3: nothing in the kit is close). SWING is an arc slash through the damage pipeline; holding it
  * (touch) or HEAVY (mouse 2) gives the heavy slash. GUST blows a cone of wind: every creature in it takes an impulse
- * away from the player and a little damage, which throws it off an island edge when it stands near one.
+ * away from the player and a little damage, which throws it off an island edge when it stands near one. The moves'
+ * cooldowns and contacts are the view-free recipe (weapons/fanStrikes.ts) the renderer-free host runs too.
  */
 export class WarFan extends Weapon {
   private readonly parts = fanParts();
@@ -79,19 +71,21 @@ export class WarFan extends Weapon {
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
   /** True while the fan is put away (riding the hoverboard): it hides and neither swings nor gusts. */
   stowed: () => boolean = () => false;
-  private cooldown = 0; private gustCooldown = 0; private wasHeld = false; private held = 0;
+  private wasHeld = false; private held = 0;
   /** The move playing and how far through it (0…1; 1 = done). */
   motion: Motion = 'swing'; motionK = 1;
   private readonly app: App; private readonly targets: () => readonly FanTarget[];
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
   private readonly vm = blocks.viewmodel({ gain: 0.01, clampYaw: 0.1, clampPitch: 0.1, k: 50, c: 12 });
   private readonly contact: ReturnType<typeof blocks.melee>;
+  private readonly strikes: FanStrikes;
   override get charge(): number { return Math.min(1, this.held / 0.6); }
   /** Paint the silk with the leaf texture (loaded and owned by the plugin's scope). */
   setLeaf(leaf: Texture): void { this.parts.silk.map = leaf; this.parts.silk.color.set(SILK_TINT); this.parts.silk.needsUpdate = true; }
 
   constructor(app: App, targets: () => readonly FanTarget[] = () => []) {
     super(FAN_ROW); this.app = app; this.targets = targets; this.contact = blocks.melee(app.combat);
+    this.strikes = new FanStrikes({ hit: (req) => this.contact.hit(req), targets: () => this.targets() });
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
     this.model.position.set(HOLD.x, HOLD.y, HOLD.z); this.model.rotation.set(HOLD.pitch, HOLD.yaw, HOLD.roll); this.model.scale.setScalar(HOLD.scale);
   }
@@ -110,48 +104,30 @@ export class WarFan extends Weapon {
     return { from, dir };
   }
   swing(heavy: boolean): void {
-    if (this.cooldown > 0 || !this.enabled || this.stowed()) return;
-    this.cooldown = heavy ? SWING.heavyCooldown : SWING.cooldown; this.play(heavy ? 'heavy' : 'swing'); this.onSwing?.(heavy);
+    if (this.strikes.cooldown > 0 || !this.enabled || this.stowed()) return;
+    this.strikes.startSwing(heavy); this.play(heavy ? 'heavy' : 'swing'); this.onSwing?.(heavy);
     const view = this.view(); if (view !== null) this.slash(view.from, view.dir, heavy);
   }
   /** One slash from `from` along `dir`: every target in the arc takes a hit. Returns how many were struck. */
   slash(from: Vector3, dir: Vector3, heavy: boolean): number {
-    let struck = 0;
-    for (const target of this.targets()) {
-      if (target.actor === null || !target.actor.alive || !inCone(from, dir, target.position, SWING.reach + 1, SWING.halfAngle)) continue;
-      const result = this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.far-fan', 'dmg.melee'], target: target.actor,
-        amount: heavy ? SWING.heavy : SWING.light, point: target.position.clone(), dir: dir.clone(), from: from.clone(), weaponId: this.row.id,
-        moveId: heavy ? 'far.fan.heavy' : 'far.fan.light', surface: 'flesh' });
-      if (result !== null) { struck++; this.onHit?.(target.actor.id, false, result.killed); }
-    }
+    const struck = this.strikes.slash(from, dir, heavy, (id, killed) => { this.onHit?.(id, false, killed); });
     if (struck > 0) this.onFire?.();
     return struck;
   }
   gust(): void {
-    if (this.gustCooldown > 0 || !this.enabled || this.stowed()) return;
-    this.gustCooldown = GUST.cooldown; this.play('gust');
+    if (this.strikes.gustCooldown > 0 || !this.enabled || this.stowed()) return;
+    this.strikes.startGust(); this.play('gust');
     const view = this.view(); if (view === null) return;
     this.onGust?.(view.from, view.dir); this.blow(view.from, view.dir);
   }
   /** The GUST cone: an impulse away from `from` (plus a little lift) and a small hit on each target inside it. */
-  blow(from: Vector3, dir: Vector3): number {
-    let blown = 0;
-    for (const target of this.targets()) {
-      if (target.actor === null || !target.actor.alive || !inCone(from, dir, target.position, GUST.reach, GUST.halfAngle)) continue;
-      const away = target.position.clone().sub(from); away.y = 0; if (away.lengthSq() < 1e-4) away.set(dir.x, 0, dir.z); away.normalize();
-      target.impulse?.(away.multiplyScalar(GUST.push).setY(GUST.lift));
-      this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.far-fan', 'dmg.wind'], target: target.actor, amount: GUST.damage,
-        point: target.position.clone(), dir: dir.clone(), from: from.clone(), weaponId: this.row.id, moveId: 'far.fan.gust', surface: 'flesh' });
-      blown++;
-    }
-    return blown;
-  }
+  blow(from: Vector3, dir: Vector3): number { return this.strikes.blow(from, dir); }
   private play(motion: Motion): void { this.motion = motion; this.motionK = 0; }
   override update(dt: number): void {
-    this.cooldown = Math.max(0, this.cooldown - dt); this.gustCooldown = Math.max(0, this.gustCooldown - dt);
+    this.strikes.tick(dt);
     if (!this.enabled || this.holster > 0.001) { this.wasHeld = false; this.held = 0; }
     else if (this.adsHeld) this.held += dt;
-    else if (this.wasHeld) { this.cooldown = 0; this.swing(true); this.held = 0; }
+    else if (this.wasHeld) { this.strikes.cooldown = 0; this.swing(true); this.held = 0; }
     this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
     this.motionK = Math.min(1, this.motionK + dt / MOTIONS[this.motion].seconds);
     this.vm.step(this.spring, new Vector2(), dt);

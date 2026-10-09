@@ -12,9 +12,13 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/far-reach/shard.config';
 import baked from '../../../src/shards/far-reach/runtime/physics.baked.json';
-import { CROWN, GOATS, ROC } from '../../../src/shards/far-reach/layout';
-import type { HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
+import { CROWN, GOATS, ROC, VANES } from '../../../src/shards/far-reach/layout';
+import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
+import { FAN_ACT, FAN_ACTOR, FAN_STEP } from '../../../src/shards/far-reach/runtime/fan';
+import { FAN_ID } from '../../../src/shards/far-reach/weapons/fanStrikes';
+import { FAN_GUST, FAN_SWING, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
+import { FAN_ROW } from '../../../src/shards/far-reach/weapons/rows';
+import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { ROC_STEP } from '../../../src/shards/far-reach/runtime/roc';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
@@ -26,13 +30,12 @@ beforeAll(async () => {
   plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
 });
 const noEffects = { commands: () => [], emit: () => { throw new Error('the flock keeper emits no gameplay effects'); } };
-interface Effects { commands: () => never[]; emit: (effect: HeadlessEffect) => void }
+interface Effects { commands: () => readonly HeadlessCommand[]; emit: (effect: HeadlessEffect) => void }
 const boot = (effects: Effects = noEffects): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
 const restore = (saved: string, effects: Effects = noEffects): SimHost => {
   const decoded = decodeSimSnapshot(saved), ports = { ...plan.ports, rapier };
   return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...effects }); });
 };
-const collect = (into: HeadlessEffect[]): Effects => ({ commands: () => [], emit: effect => { into.push(effect); } });
 /** The player's tape: off Sunrest's north rope bridge onto the windmill isle (its goats, the free ray overhead), then wander. */
 const route = [new Vector3(0, 0, -30), new Vector3(0, 0, -58), new Vector3(4, 0, -66)];
 function step(host: SimHost): void {
@@ -118,24 +121,45 @@ it('shoves the player through the host impulse when a wisp bursts on them', () =
   } finally { host.dispose(); }
 });
 
-/** Stand the player on the crown (the bridge that leads there is not yet owned headless) and fight: chip the Roc down. */
-function crownFight(host: SimHost, tick: number): void {
-  if (tick === 0) host.player.position.set(CROWN.x, CROWN.y, CROWN.z + 6);
-  const roc = host.entities.get('far.roc');
-  if (roc !== undefined && roc.alive && tick > 400 && tick % 240 === 0)
-    host.combat.hit({ source: host.player.health, sourceTags: ['actor.player'], target: roc.combatActor(), amount: 60, point: roc.position.clone(), dir: new Vector3(0, 0, 1), moveId: 'test.chip' }); // a direct test chip: the War Fan is not yet owned
-  host.step();
+/** The tick's commands, read by the runtime's adapters (context.commands) exactly as the worker hands them over. */
+let tape: HeadlessCommand[] = [];
+const fed = (into?: HeadlessEffect[]): Effects => ({ commands: () => tape, emit: effect => { if (into === undefined) throw new Error('unexpected gameplay effect'); into.push(effect); } });
+/** One worker tick: the player command (if any) steps the host, every command reaches the adapters. */
+function run(host: SimHost, commands: HeadlessCommand[]): void {
+  tape = commands;
+  const player = commands.find(command => command.kind === 'player');
+  host.step(player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw, ...(player.attack === undefined ? {} : { attack: player.attack }) } : undefined);
+  tape = [];
+}
+/**
+ * Face the Roc and swing the War Fan at it every tick (its own cooldown gates the swings), heavy and gust in turn. The SimHost
+ * player has no gravity yet (sf72-host adds it): a gale wall's lift floats the player off the crown, out of the fan's reach
+ * of a Roc sweeping its storm, so a direct chip still carries the fight past its flying phases. The fan's own contacts on
+ * the Roc are counted separately (fanOnRoc).
+ */
+function crownFight(host: SimHost, at: number): void {
+  if (at === 0) host.player.position.set(CROWN.x, CROWN.y, CROWN.z + 6);
+  const roc = host.entities.get('far.roc'), p = host.player.position;
+  if (roc === undefined) throw new Error('missing Roc');
+  if (roc.alive && at > 400 && at % 240 === 0)
+    host.combat.hit({ source: host.player.health, sourceTags: ['actor.player'], target: roc.combatActor(), amount: 60, point: roc.position.clone(), dir: new Vector3(0, 0, 1), moveId: 'test.chip' });
+  const yaw = Math.atan2(p.x - roc.position.x, p.z - roc.position.z);
+  run(host, [{ kind: 'player', moveX: 0, moveZ: 0, yaw, attack: { targetId: 'far.roc' } }, { kind: 'script', actorId: FAN_ACTOR, value: at % 2 === 0 ? FAN_ACT.heavy : FAN_ACT.gust }]);
 }
 it('runs the Storm Roc encounter: intro on the crown, phases at 66 % and 33 %, one fact and purse on its first fall', () => {
-  const effects: HeadlessEffect[] = [], host = boot(collect(effects)), states = new Set<string>(), phases = new Set<number>();
-  let lowest = host.player.health.attributes.health;
+  const effects: HeadlessEffect[] = [], host = boot(fed(effects)), states = new Set<string>(), phases = new Set<number>();
+  let lowest = host.player.health.attributes.health, fanOnRoc = 0, fanInIntro = 0, current = 'armed';
+  host.events.on('damage.dealt', ({ req }) => {
+    if (req.weaponId !== FAN_ID || req.target !== host.entities.get('far.roc')?.combatActor()) return;
+    fanOnRoc++; if (current === 'intro') fanInIntro++;
+  }, host.scope);
   try {
     step(host);
     expect(snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state).toContain('"state":"armed"'); // armed at install, waiting at the crown
     for (let tick = 0; tick < 6000 && !host.flags.has(FLAGS.roc); tick++) {
       crownFight(host, tick);
       const encounter = snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state;
-      if (typeof encounter === 'string') { const parsed: unknown = JSON.parse(encounter); if (typeof parsed === 'object' && parsed !== null && 'boss' in parsed && typeof parsed.boss === 'object' && parsed.boss !== null && 'state' in parsed.boss && 'phase' in parsed.boss) { states.add(String(parsed.boss.state)); phases.add(Number(parsed.boss.phase)); } }
+      if (typeof encounter === 'string') { const parsed: unknown = JSON.parse(encounter); if (typeof parsed === 'object' && parsed !== null && 'boss' in parsed && typeof parsed.boss === 'object' && parsed.boss !== null && 'state' in parsed.boss && 'phase' in parsed.boss) { current = String(parsed.boss.state); states.add(current); phases.add(Number(parsed.boss.phase)); } }
       lowest = Math.min(lowest, host.player.health.attributes.health);
     }
     expect(host.flags.has(FLAGS.roc)).toBe(true);
@@ -143,23 +167,86 @@ it('runs the Storm Roc encounter: intro on the crown, phases at 66 % and 33 %, o
     expect([...phases]).toEqual(expect.arrayContaining([0, 1, 2]));
     expect(lowest).toBeLessThan(host.player.health.attributes.maxHealth); // the Roc's own strikes landed through the fight
     expect(effects).toEqual([{ kind: 'fact', name: 'far-reach.roc', actorId: 'far.roc' }, { kind: 'coins', amount: 25, actorId: 'far.roc' }]);
+    expect(fanOnRoc).toBeGreaterThan(0); expect(fanInIntro).toBe(0); // the fan's own contacts land when it stoops, never through the intro
   } finally { host.dispose(); }
 });
 
 it('restores the Roc encounter mid-fight exactly, its victory paying once on the restored host', () => {
   for (const checkpoint of [900, 2000]) {
-    const paidOriginal: HeadlessEffect[] = [], resumed: HeadlessEffect[] = [], original = boot(collect(paidOriginal));
+    const paidOriginal: HeadlessEffect[] = [], resumed: HeadlessEffect[] = [], original = boot(fed(paidOriginal));
     let restored: SimHost | undefined;
     try {
       step(original);
       for (let tick = 0; tick < checkpoint; tick++) crownFight(original, tick);
-      restored = restore(serializeSimSnapshot(snapshotSimHost(original)), collect(resumed));
+      restored = restore(serializeSimSnapshot(snapshotSimHost(original)), fed(resumed));
       const paid = paidOriginal.length;
       for (let tick = checkpoint; tick < checkpoint + 3000; tick++) { crownFight(original, tick); crownFight(restored, tick); }
       expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
       expect(resumed).toEqual(paidOriginal.slice(paid));
     } finally { restored?.dispose(); original.dispose(); }
   }
+});
+
+it('declares the War Fan as its row: the item, the browser row and the shared recipe agree', () => {
+  expect([FAN_ROW.id, SKY_ITEMS.rows[0]?.id, SKY_ITEMS.loadout.primary]).toEqual([FAN_ID, FAN_ID, FAN_ID]);
+  expect(SKY_ITEMS.rows[0]?.light).toMatchObject({ damage: FAN_SWING.light, cooldown: FAN_SWING.cooldown, range: FAN_SWING.reach });
+  expect(SKY_ITEMS.rows[0]?.heavy).toMatchObject({ damage: FAN_SWING.heavy, cooldown: FAN_SWING.heavyCooldown, range: FAN_SWING.reach });
+});
+
+it('swings the War Fan on player attacks: the row\'s light contact, gated by its cooldown, only within its arc', () => {
+  const host = boot(fed());
+  try {
+    run(host, []); // the goats land
+    const goat = host.entities.get('far.goat.0'); if (goat === undefined) throw new Error('missing goat');
+    host.player.position.set(goat.position.x, goat.position.y, goat.position.z + 2.5);
+    const hp = goat.hp, swing = (): void => { run(host, [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'far.goat.0' } }]); };
+    swing(); expect(goat.hp).toBe(hp - FAN_SWING.light);
+    for (let i = 0; i < Math.floor(FAN_SWING.cooldown * 60) - 2; i++) swing();
+    expect(goat.hp).toBe(hp - FAN_SWING.light); // still cooling down
+    for (let i = 0; i < 4; i++) swing();
+    expect(goat.hp).toBe(hp - 2 * FAN_SWING.light);
+    // a target out of reach takes nothing
+    const far = host.entities.get('far.goat.1'), before = far?.hp;
+    for (let i = 0; i < 60; i++) run(host, [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'far.goat.1' } }]);
+    expect(far?.hp).toBe(before);
+  } finally { host.dispose(); }
+});
+
+it('GUSTs along the yaw: the cone pushes and nicks a creature, and turns the vanes only once the notes are read', () => {
+  const host = boot(fed());
+  try {
+    run(host, []);
+    const goat = host.entities.get('far.goat.0'); if (goat === undefined) throw new Error('missing goat');
+    host.player.position.set(goat.position.x, goat.position.y, goat.position.z + 4); // facing -z (yaw 0) at the goat
+    const hp = goat.hp, gust = (): void => { run(host, [{ kind: 'script', actorId: FAN_ACTOR, value: FAN_ACT.gust }]); };
+    gust();
+    expect(goat.hp).toBe(hp - FAN_GUST.damage); expect(goat.hasImpulse).toBe(true);
+    const vane = VANES[0]; if (vane === undefined) throw new Error('missing vane');
+    const toVane = (): void => { host.player.position.set(vane.x, vane.y, vane.z + 6); host.player.yaw = 0; };
+    for (let i = 0; i < FAN_GUST.cooldown * 60; i++) run(host, []);
+    toVane(); gust(); expect(host.flags.has(vaneFlag(vane.id))).toBe(false); // the notes are unread
+    host.flags.set(FLAGS.notes);
+    for (let i = 0; i < FAN_GUST.cooldown * 60; i++) run(host, []);
+    toVane(); gust(); expect(host.flags.has(vaneFlag(vane.id))).toBe(true);
+  } finally { host.dispose(); }
+});
+
+it('restores the fan\'s cooldowns exactly', () => {
+  const original = boot(fed()); let restored: SimHost | undefined;
+  try {
+    run(original, []);
+    const goat = original.entities.get('far.goat.0'); if (goat === undefined) throw new Error('missing goat');
+    original.player.position.set(goat.position.x, goat.position.y, goat.position.z + 2.5);
+    run(original, [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'far.goat.0' } }, { kind: 'script', actorId: FAN_ACTOR, value: FAN_ACT.gust }]);
+    const saved = serializeSimSnapshot(snapshotSimHost(original));
+    expect(snapshotSimHost(original).adapters.find(adapter => adapter.id === FAN_STEP)?.state).toEqual({ cooldown: FAN_SWING.cooldown, gustCooldown: FAN_GUST.cooldown });
+    restored = restore(saved, fed());
+    for (let i = 0; i < 120; i++) {
+      const commands: HeadlessCommand[] = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, attack: { targetId: 'far.goat.0' } }];
+      run(original, commands); run(restored, commands);
+    }
+    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+  } finally { restored?.dispose(); original.dispose(); }
 });
 
 it('refuses a saved roster whose recipe no longer matches the baked spec', () => {

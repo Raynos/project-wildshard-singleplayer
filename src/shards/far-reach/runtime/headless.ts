@@ -11,6 +11,7 @@ import { GALE_WISP } from '../species/galeWisp';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
 import { ROC_ID } from './rocEncounter';
+import { FAN_ACT, FAN_ACTOR, installSkyFan, type FanCommand } from './fan';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -58,8 +59,10 @@ export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]>
  * the browser registers, from the browser-baked native colliders (inactive ones, the hover decks, the updraft and the
  * fallen crown bridge, stay out), with the host's layered WORLD floor queries for flight and falls. Owns the 13 declared
  * bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
- * fact and purse). Not yet owned (fail-closed, see the SF72 handoff): the War Fan as its item, the movers (islet lifts,
- * winch bridge), so the crown is not yet reachable by play, the quest and its facts, and the entry proof; `finish` refuses.
+ * fact and purse) and the War Fan (runtime/fan.ts: the browser fan's own move recipe; a `player.attack` is its light
+ * SWING, `far.fan` script commands its HEAVY and GUST; locked through the Roc's intro). Not yet owned (fail-closed, see the
+ * SF72 handoff): the movers (islet lifts, winch bridge), so the crown is not yet reachable by play, the quest and its
+ * facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
@@ -85,8 +88,14 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
     const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
     const roc = flock.bodies().find(body => body.id === ROC_ID), body = roc?.brain?.roc ?? null;
     if (roc?.actor === null || roc?.actor === undefined || body === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
-    installSkyRoc(host, { roc: roc.actor, body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    const encounter = installSkyRoc(host, { roc: roc.actor, body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
+    // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput)
+    installSkyFan(host, () => encounter.locked() ? [] : context.commands().flatMap((command): FanCommand[] => {
+      if (command.kind === 'player') return command.attack === undefined ? [] : [{ kind: 'swing', targetId: command.attack.targetId }];
+      if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return [];
+      return command.value === FAN_ACT.heavy ? [{ kind: 'heavy' }] : command.value === FAN_ACT.gust ? [{ kind: 'gust' }] : [];
+    }));
     flock.land();
   } };
 };

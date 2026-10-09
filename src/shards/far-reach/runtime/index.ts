@@ -19,7 +19,9 @@ import { isletCalls, type IsletCalls } from '../world/risingIslet';
 import { gustFx } from '../world/windFx';
 import { RISING_ISLETS, type RisingIslet } from '../world/islets';
 import { FALL_TIME } from '../world/distant';
-import { WarFan, inCone, GUST, type FanTarget } from '../weapons/WarFan';
+import { WarFan } from '../weapons/WarFan';
+import type { FanTarget } from '../weapons/fanStrikes';
+import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../species/driftRay';
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../species/skyGoat';
@@ -70,8 +72,6 @@ export const UPDRAFT_LIFT = 12;
 export const GOAT_SPAWN_ABOVE = 2;
 /** How fast the winch lifts the fallen bridge (radians per second). */
 export const RAISE_RATE = 0.55;
-/** How close a GUST must reach a vane to turn it (metres; the cone is the fan's GUST cone, a little longer). */
-export const VANE_REACH = GUST.reach + 2;
 
 /** Every runtime collection is a finite authored roster; refuse overflow instead of silently dropping content. */
 const MAX_RUNTIME_ROWS = 64;
@@ -368,15 +368,8 @@ export class SkyReachPlugin extends ShardPlugin {
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {
-    const built = this.built, flags = this.flags; if (built === null || flags === null || !flags.has(FLAGS.notes)) return 0;
-    let turned = 0;
-    const vanes = boundedRows(built.vanes);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
-      const v = vanes[i]; if (v === undefined) break;
-      if (flags.has(vaneFlag(v.id)) || !inCone(from, dir, v.at, VANE_REACH, GUST.halfAngle + 0.15)) continue;
-      flags.set(vaneFlag(v.id)); turned++; toast(STRINGS.vaneTurned);
-    }
-    return turned;
+    const built = this.built, flags = this.flags; if (built === null || flags === null) return 0;
+    return turnVanes(flags, boundedRows(built.vanes), from, dir, () => { toast(STRINGS.vaneTurned); });
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   private finishRaise(_built: BuiltWorld): void { this.movers?.command('far.winch.bridge', 3); }

@@ -22,7 +22,9 @@ import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
-import { WarFan, GUST, inCone } from '../../../src/shards/far-reach/weapons/WarFan';
+import { WarFan, GUST } from '../../../src/shards/far-reach/weapons/WarFan';
+import { inCone } from '../../../src/shards/far-reach/weapons/fanStrikes';
+import { VANE_HUB } from '../../../src/shards/far-reach/quest/vanes';
 import { DIVE } from '../../../src/shards/far-reach/runtime/strikes';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '../../../src/shards/far-reach/layout';
 import { UPDRAFT_ANGLE, vaneColliders } from '../../../src/shards/far-reach/world/build';
@@ -188,6 +190,8 @@ describe('Sky Reach contract', () => {
     built.winch.onInteract(); tick(app, 1 / 30, 0); expect(built.state.raising).toBe(false);
     built.notes.onInteract(); tick(app, 1 / 30, 0.1); app.events.flush('update'); expect(plugin.quest?.index).toBe(1);
     flags.set(FLAGS.roost); tick(app, 1 / 30, 0.2); app.events.flush('update'); expect(plugin.quest?.index).toBe(2);
+    // the renderer-free host turns the same vanes at the same hubs (runtime/fan.ts)
+    expect(built.vanes.map(vane => [vane.id, vane.at.toArray()])).toEqual(VANES.map(vane => [vane.id, [vane.x, vane.y + VANE_HUB, vane.z]]));
     for (const vane of VANES) expect(plugin.gustVanes(new Vector3(vane.x, vane.y + 1.6, vane.z + 5), new Vector3(0, 0.2, -1).normalize())).toBe(1);
     tick(app, 1 / 30, 0.3); app.events.flush('update'); expect(plugin.quest?.index).toBe(3);
     expect(piece(app, FALLEN_BRIDGE.id)?.active?.()).toBe(false);
