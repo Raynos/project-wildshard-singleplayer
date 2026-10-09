@@ -44,3 +44,5 @@ we get prod deployed and unstuck?"* Source: the 12-hour process audit `progress/
 
 The re-measured 12 hours meet the targets above, and production has stayed within an hour of the newest green main
 for a day.
+
+**Coordinator notes on the auto-pusher (W14, wildshard-new, 2026-10-09):** (1) it must PAUSE during measurement quiet windows: the coordinator will `touch .git/quiet` for frame-floor / soak / Simulator windows and remove it after; auto-push (and ideally any pre-push gate) waits while `.git/quiet` exists. A push gate during op-floor's window just spoiled two floor runs. (2) graph-increase approvals: downward import rises inside a lane's own work are standing-approved (speed rule), so let auto-push run with the coordinator's approval file (`GENERATED_APPROVAL_FILE`, the coordinator will keep a standing one at `.git/generated-approval.json`) and learn listed increases the way scripts/approve_loop does; anything else still pings the coordinator. (3) Fine with everything else.
