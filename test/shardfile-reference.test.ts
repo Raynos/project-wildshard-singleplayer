@@ -95,7 +95,7 @@ describe('schema-derived shardfile reference', () => {
     const document = renderReference(fields, abi, SCRIPT_ABI), paths = new Set(fields.map(row => row.path));
     const coverage = assertReferenceCoverage(fields, abi, document);
     expect(coverage.fields.documented).toBe(fields.length); expect(coverage.abi.documented).toBe(abi.length);
-    expect(fields.find(row => row.path === '$.runtime.binds[]')?.values).toEqual(['"quests"', '"ledger"', '"items"', '"spawns"', '"state"']);
+    expect(fields.find(row => row.path === '$.runtime.binds[]')?.values).toEqual(['"quests"', '"ledger"', '"items"', '"spawns"', '"state"', '"terrain"', '"props"']);
     for (const category of ['homes', 'bosses', 'actors']) for (const key of ['id', 'kind', 'look', 'at', 'yaw']) {
       expect(paths.has(`$.runtime.spawns.${category}[].${key}`)).toBe(true);
     }

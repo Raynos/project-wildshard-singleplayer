@@ -1,0 +1,185 @@
+{
+  "base": "http://127.0.0.1:4777",
+  "device": "iPhone 16 Pro",
+  "steps": [
+    {
+      "visit": 1,
+      "enter": {
+        "done": true,
+        "feet": {
+          "x": 0.001221407874822944,
+          "z": 255.4085030726623
+        },
+        "current": "sunscar-dunes",
+        "ready": true,
+        "seconds": 3.0515
+      }
+    },
+    {
+      "visit": 1,
+      "play": {
+        "questIndex0": 0,
+        "homes": [
+          "sunscar.home:0",
+          "sunscar.home:1",
+          "sunscar.home:2",
+          "sunscar.home:3",
+          "sunscar.home:4",
+          "sunscar.home:5",
+          "sunscar.home:6",
+          "sunscar.home:7",
+          "sunscar.home:8",
+          "sunscar.home:9",
+          "sunscar.home:10",
+          "sunscar.home:11",
+          "sunscar.home:12"
+        ],
+        "matriarch": "dormant",
+        "whip": "sunscar-whip",
+        "current": "sunscar-whip",
+        "questIndex": 1,
+        "crack": {
+          "before": -1,
+          "after": 0
+        }
+      }
+    },
+    {
+      "visit": 1,
+      "leave": {
+        "done": true,
+        "feet": {
+          "x": 0.00017457009380450472,
+          "z": 260.72217865254646
+        },
+        "current": null,
+        "ready": true,
+        "seconds": 3.7267999997138976
+      }
+    },
+    {
+      "visit": 2,
+      "enter": {
+        "done": true,
+        "feet": {
+          "x": 0.00823620569144623,
+          "z": 254.85028241307594
+        },
+        "current": "sunscar-dunes",
+        "ready": true,
+        "seconds": 5.26910000038147
+      }
+    },
+    {
+      "visit": 2,
+      "play": {
+        "questIndex0": 1,
+        "homes": [
+          "sunscar.home:0",
+          "sunscar.home:1",
+          "sunscar.home:2",
+          "sunscar.home:3",
+          "sunscar.home:4",
+          "sunscar.home:5",
+          "sunscar.home:6",
+          "sunscar.home:7",
+          "sunscar.home:8",
+          "sunscar.home:9",
+          "sunscar.home:10",
+          "sunscar.home:11",
+          "sunscar.home:12"
+        ],
+        "matriarch": "dormant",
+        "whip": "sunscar-whip",
+        "current": "sunscar-whip",
+        "questIndex": 1,
+        "crack": {
+          "before": -1,
+          "after": 0
+        }
+      }
+    },
+    {
+      "visit": 2,
+      "leave": {
+        "done": true,
+        "feet": {
+          "x": 0.002253516290920743,
+          "z": 261.40473026048716
+        },
+        "current": null,
+        "ready": true,
+        "seconds": 3.765300000190735
+      }
+    }
+  ],
+  "cells": [
+    {
+      "slug": "pine-hollow",
+      "instance": "pine-hollow",
+      "cell": [
+        0,
+        1
+      ]
+    },
+    {
+      "slug": "_template",
+      "instance": "template-2",
+      "cell": [
+        1,
+        1
+      ]
+    },
+    {
+      "slug": "sunscar-dunes",
+      "instance": "sunscar-dunes",
+      "cell": [
+        -1,
+        0
+      ]
+    },
+    {
+      "slug": "driftwood-isle",
+      "instance": "driftwood-isle",
+      "cell": [
+        0,
+        0
+      ]
+    },
+    {
+      "slug": "nalati-grasslands",
+      "instance": "nalati-grasslands",
+      "cell": [
+        1,
+        0
+      ]
+    },
+    {
+      "slug": "far-reach",
+      "instance": "far-reach",
+      "cell": [
+        0,
+        -1
+      ]
+    }
+  ],
+  "seeded": {
+    "dunes": "sunscar-dunes",
+    "at": [
+      -1,
+      0
+    ]
+  },
+  "census": {
+    "animals": null
+  },
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "missing": [
+    "404 //api/telemetry",
+    "404 //api/telemetry"
+  ]
+}

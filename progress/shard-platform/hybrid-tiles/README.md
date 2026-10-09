@@ -63,3 +63,20 @@ What the adoption needs:
   (`src/sdk/bake/worldCollision.ts`) bound the same way, plus the islands as props tiles.
 - **Sky Reach** (floating islands): mesh collision and props, like Driftwood; the cloud sea stays runtime-drawn.
 - Each binds only what it compiles; an unbound section stays the data client's or the runtime's as today.
+
+## Evidence (a clean export of HEAD + this change, built and served with vite preview)
+
+- Full vitest: 949 files, 5,439 tests; 2 failed, both expected: AG7 (`lint/layer-edges.json`: game → engine +2,
+  sunscar-dunes → engine +1, → sdk +1, for the coordinator's serialized regeneration) and `shardfile-reference` (the
+  `runtime.binds` values gained `terrain` / `props`; expectation updated in the follow-up commit, the generated
+  reference doc is the coordinator's regeneration too).
+- Focused: `test/shards/` 159 files pass (the one failure, `driftwood-isle/sea-lowered`, is another lane's uncommitted
+  movers WIP; it passes on the clean export).
+- Boot smoke (`scripts/parity/boot-smoke.mjs`): standalone PASS ×2, grid PASS, 0 faults. WebKit smoke: pass (14 s).
+  `scripts/test-facade-instancing.mjs`: PASS desktop / phone-tier / iphone-desktop-quality, 0 batches.
+- Grid run (`progress/shard-platform/sf50/close/grid-run.mjs`, muted Chromium, iPhone 16 Pro, Developer on):
+  `grid-run.json`, `entered-1.jpg`, `whip-2.jpg`: enter the Signal Dunes cell with the 81-file product (3.1 s, ready),
+  quest 0 → 1, whip crack, leave, re-enter (5.3 s; quest kept), leave; 0 page errors, only `/api/telemetry` 404s.
+- Map rebaked (`bake-maps.mjs --shards=sunscar-dunes`): tilesHash e6ce0853…, 24,700 bytes (the world is unchanged).
+- Not measured (the runtime draws no tile yet, so there is nothing to compare): pixel parity, physics from tiles, the
+  SF64 ledger and cold-load before / after. The physics-baseline is unchanged by construction (no collider moved).
