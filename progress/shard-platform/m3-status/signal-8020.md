@@ -116,3 +116,25 @@ Candidate `0692239`: pixels identical to base at all four poses on phone and des
 noise the same), calls / tris / positions identical, physics bake actors and colliders identical (only inputs move), walk
 0 stuck. Share 20.9 → 26.6 % (public 981 / custom 2713). Next by lines absorbed: look-family rows for the shader patches
 in `world/meshes.ts` and `look/sky.ts` (~200), a declared Bullwhip item view (~100), declarative species clips (~60).
+
+## 2026-10-09 (op-signal2): look-family rows and the declared Bullwhip view
+
+| Slice | What moved | Proof |
+|---|---|---|
+| surface looks | `world/meshes.ts`' five patches (firelight, viewer light, leather grain, fieldstone plinth, desaturate) → generic `@wildshard/game/systems/looks/surfaceLooks` (`applySurfaceLooks(material, rows, inputs)`; each row one decorate patch whose program key carries the row); rows in `data/surfaces.ts` | `surface-looks.test.ts`: the glove / brazier / camp / coil chains compile to the old GLSL (captured from HEAD over a skeleton of the standard material's includes); ranger-leather / slate-plinth / spirit-fire fixture |
+| dusk dome | `look/sky.ts` → generic `@wildshard/game/systems/looks/duskDome` (`duskDomeMaterial(style, dusk)`); row `data/sky.ts` | the same test: the dome's GLSL equals the old; a clear alien dusk fixture (no cloud deck) |
+| lash weapon | `weapons/Bullwhip.ts`' view and input glue → generic `@wildshard/game/systems/items/lashWeapon` (`LashWeapon` over a `LashView` row: hold, spring, flick, wrap); row `data/whip.ts` WHIP_VIEW | `whip-parity` trace extended with the view (model hold, spring, laid-cord hash, wrap place per frame), pinned from HEAD, green after |
+
+Landed `0ee009b46` (SDK facades `@wildshard/sdk/looks/{surfaceLooks,duskDome}`, `@wildshard/sdk/items/lashWeapon`).
+Candidate `aed94fdfd`: pixels identical to base at all four poses on phone and desktop, calls / tris identical, physics
+bake identical (inputs only), walk 0 stuck, boot smoke and facade instancing PASS, desktop floor 59.88 fps. Share 26.5 →
+29.1 % (public 1013 / custom 2469), runtime 806 / 965.
+
+**Next: declarative species clips (not started).** A generic animator in `@wildshard/game/systems/species/clips` over
+clip rows: per bone channel (`rotation.x|y|z`, `position.y` offset from the bind), an alive value as a sum of terms
+(constant; `amp · sin(rate · t|phase + offset)`, optionally `abs`; a `mem` key × k; `attack ≥ 0 ? attack · k : 0`; a
+speed gait `min(1, |speed| / s) · (speed > run ? a : b)`) and a dead value (constant or `k · clamp(deathT)`), modes
+picked by a `mem` predicate (the Matriarch's grounded phase) and per-bone overrides (the strider's paw stamp). Exactness
+test: snapshot each old `animate` (strider, skitterer, ray, Matriarch) over a grid of (t, phase, speed, attack, deathT,
+mem) before the move, compare bone transforms after; a second fixture species (a grazer) proves it generic. The rows
+then move to `data/species/*`, and the four animate functions (~60 custom lines) go.
