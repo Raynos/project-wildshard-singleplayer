@@ -1,0 +1,48 @@
+name: admin-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'admin/**'
+      - 'scripts/admin-data*'
+      - 'scripts/admin-data/**'
+      - 'scripts/memory-report*.mjs'
+      - 'progress/memory/**'
+      - 'progress/loading/sf67/**'
+      - 'art/playtest/round-*/**'
+      - 'docs/plans/SHARD-PLATFORM.md'
+      - '.github/workflows/admin-deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: admin-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global vercel@59.11.2
+      - run: pnpm gen
+      - run: pnpm exec vitest run admin/test
+      - run: pnpm --dir admin typecheck
+      - name: Deploy committed admin data
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: |
+          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::Missing VERCEL_BUILD_TOKEN'; exit 1; }
+          bash admin/tools/deploy.sh "$GITHUB_SHA"
