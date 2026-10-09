@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { PageResidency } from '../src/game/grid/pageResidency';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { emptyShardfileSource, installManifestShardfile } from '../src/game/shardfile/loader';
 import { installShards, shards } from '../src/game/shard/list';
@@ -39,4 +40,16 @@ it('refuses source identity substitutions and untrusted/cross-origin descriptors
   await expect(installManifestShardfile(f.selected, { ...f.options, fetch: () => Promise.resolve(Response.json({ ...f.source, identity: { ...f.source.identity, slug: 'substitute' } })) }, bindings)).rejects.toThrow('identities differ');
   await expect(installManifestShardfile(f.selected, { ...f.options, offline: true }, bindings)).rejects.toThrow('not been visited');
   expect(shards()).toEqual([f.selected]);
+});
+
+it('preserves the placed home identity and allocator already owned by the page during manifest admission', async () => {
+  const f = fixture(), residency = new PageResidency();
+  const source = { ...f.source, budgets: { ...f.source.budgets, sim: { ...f.source.budgets.sim, resident: 1 } } };
+  try {
+    await installManifestShardfile(f.selected, { ...f.options, fetch: () => Promise.resolve(Response.json(source)) }, { ...bindings, instance: 'template-2', residency });
+    expect(residency.home().instance).toBe('template-2');
+    expect(residency.home().allocator).toBe(residency.allocator);
+    expect(residency.allocator.has('sim:template-2')).toBe(true);
+    expect(residency.allocator.has('sim:template-solo')).toBe(false);
+  } finally { residency.dispose(); }
 });

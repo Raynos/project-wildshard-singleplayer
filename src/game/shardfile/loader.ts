@@ -148,7 +148,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   const admitted = await admitProduct(source, productOptions);
-  return selectSource({ ...clientSource(admitted, productOptions, { ...bindings, instance: firstPartyInstance(manifest.slug) }),
+  return selectSource({ ...clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance }),
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     biome: manifest.biome, blurb: manifest.blurb, card: manifest.card,
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
