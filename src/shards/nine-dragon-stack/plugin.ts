@@ -11,6 +11,7 @@ import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
+import { bindNineItems } from './runtime/items';
 import { STRINGS } from './strings';
 import { installPortals, playerRider, type PortalRide } from './world/portalRide';
 import { entryCapsFor } from './world/entries';
@@ -45,14 +46,20 @@ export class NdPlugin extends ShardPlugin {
       const world = shell.world;
       if (world === null) throw new Error('Nine Dragon equipment requires its world');
       const { ironArms: _ironArms, swim: _swim, ...ownSword } = viewmodel ?? {};
-      return Promise.resolve({ primary: new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword, rig: ownSword.rig ?? swordSupport(world.sky, 'wood'),
-        ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) }), rifle: null, secondary: null });
+      const primary = new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword, rig: ownSword.rig ?? swordSupport(world.sky, 'wood'),
+        ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
+      this.primary = primary;
+      return Promise.resolve({ primary, rifle: null, secondary: null });
     };
   }
   override play(ctx: ShardContext): Promise<void> {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
-    equipment.add(new FeiZhua(ctx), { locked: false });
+    const primary = this.primary;
+    if (primary === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
+    const grapple = new FeiZhua(ctx);
+    bindNineItems(ctx, primary, grapple);
+    equipment.add(grapple, { locked: false });
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
     const world = this.shell?.world, slot = this.ndWorld?.portal;
     if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics));
@@ -61,6 +68,7 @@ export class NdPlugin extends ShardPlugin {
   /** G224: the portals while they run (captures read them through the shard handle) */
   portals: PortalRide | null = null;
   private ndWorld: NineDragonWorld | null = null;
+  private primary: InstanceType<typeof Sword> | null = null;
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {

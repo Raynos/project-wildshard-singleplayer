@@ -2,6 +2,7 @@ import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { ND_AUDIO } from './data/audio';
+import { NINE_ITEMS } from './data/items';
 import { portalLinks, type ShardEdge } from './world/portalPlan';
 import { portalFloorRows } from './world/entries';
 
@@ -18,6 +19,6 @@ const links = new Map(portalLinks().map((row) => [row.edge, row.portal]));
 const portalOf = (edge: ShardEdge): ReturnType<typeof portalLinks>[number]['portal'] => { const portal = links.get(edge); if (portal === undefined) throw new Error(`Nine Dragon declares no portal on its ${edge} edge`); return portal; };
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  accent: 'iris', runtime: { entry: 'runtime/index.ts', cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, items: NINE_ITEMS, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: base.entryways.map((row) => ({ edge: row.edge, at: row.at, width: row.width, kind: 'portalLink' as const, portal: portalOf(row.edge) })),
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [], colliders: portalFloorRows() } });
