@@ -1,61 +1,63 @@
-# Handoff (sf72-sky) — 2026-10-08, SF72 Sky Reach headless, 90-min cap
+# Handoff (sf72-sky) — 2026-10-08, SF72 Sky Reach headless, part 2 (sf72-sky2, 90-min cap)
 
-Coordinator `wildshard-new` pushes. Landed locally with private indices + old-value CAS; no browser, preview or
-Simulator left running. Sky's canonical witness (`test/proof/far-reach/`) is UNCHANGED and still fails closed: the
-runtime does not yet own the War Fan, the movers, the quest, the ledger's quest fact or an entry proof. sp-x4's steps
-1–3 are done, step 4 is done for the Roc encounter only, step 5 is open.
+Coordinator `wildshard-new` pushes. Landed locally with private indices + old-value CAS; no browser or preview of mine
+left running. Sky's canonical witness (`test/proof/far-reach/`) is UNCHANGED and still fails closed: the runtime owns the
+13 bodies, the Roc encounter and now the War Fan, but not yet the movers, the quest, the ledger's quest fact or an entry
+proof.
 
 ## Landed
 
-- `defff10d1` engine: `src/engine/player/impulse.ts` (addImpulse / decayImpulse: e^(-3.5 dt), zero under
-  0.05 m²/s²) shared by `Player.ts` (bit-identical; `test/engine/player-impulse.test.ts` passes unchanged) and
-  `SimHost.impulsePlayer(v)` / `host.playerImpulse`, carried through the motor with the command move, then decayed.
-  Snapshot `player.impulse` is optional (omitted at rest, so unshoved hosts keep their bytes).
-- `66330c07b` runtime: `runtime/headless.ts` (structures-only: `ground:false`, analytic floor -1000, baked boxes /
-  quaternions / hulls, inactive pieces out, `setFloorQuery(floorBelow)`), `runtime/flock.ts` (8 flyers at install in
-  shipping order, 5 goats on the first fixed step on the first WORLD floor under deck + 2; the manager stream
-  `Rng(6417 + 31)`, six draws per spawn, goats' wander draws from it; `groundHeight` / `levelGround` per body;
-  `killBelowWorld` at manifest killY, new engine export `./entities/killHeight`), `runtime/flockBrains.ts` (orbit-diver,
-  burst-flyer with the host impulse, ram-grazer, StormRocBrain with its gale-wall shove injected; contacts as
-  PlayerHurt.creature files them, 70° arc + canReach; no attack cap on Sky). Strikes / variants moved renderer-free
-  (`runtime/strikes.ts`, `runtime/variants.ts`, values unchanged). Rebake: actors + pieces byte-identical.
-- `3361c50c3` Roc encounter: `runtime/rocEncounter.ts` (the view-free BossScript + definition + ROC_ID / BOSS_REWARD),
-  used by `combat/stormRoc.ts` (browser, same behaviour) and `runtime/roc.ts` (BossBrain armed at install,
-  silentBossPresentation, damage.modify shield, death.checkpoint, first fall → `far.roc.down` + fact `far-reach.roc` +
-  25 coins via `context.emit`; `locked()` through the intro). Restore reinstalls landed goats last (`flock.land()`).
+- Part 1: `defff10d1` (engine shove), `66330c07b` (13 creatures headless), `3361c50c3` (the Roc encounter on one
+  shared view-free script).
+- `43d7928cd` War Fan (step 1): `weapons/fanStrikes.ts` is the fan's one view-free move recipe (G51): cooldowns, the
+  SWING / HEAVY arc slash and the GUST cone (impulse + wind hit), run by the browser `WarFan` (viewmodel, input, charge
+  hold, cues stay its own) and by `runtime/fan.ts` (headless adapter `item.weapon.far-reach.fan`; a `player.attack` is
+  the light SWING aimed eye → target body; `script` commands on actor `far.fan` value 1 = HEAVY, 2 = GUST, level along
+  the player's yaw; locked through the Roc's intro; cooldowns are exact continuation). `quest/vanes.ts` (`turnVanes`,
+  `VANE_REACH`, `VANE_HUB`) is the one vane rule the plugin's `gustVanes` and the headless GUST share; a contract test
+  holds the built vane hubs equal to `VANES + VANE_HUB`. Sky physics rebaked: actors + pieces byte-identical.
+  The Roc test still carries the fight with a labelled direct chip (the fan's own contacts are counted and asserted):
+  before sf72-host's fall law a gale wall's lift floated the player off the crown out of reach.
 
 ## Exact next steps (in order)
 
-1. **War Fan** (`weapons/WarFan.ts`, the G51 cone / heavy / impulse recipe; `FAN_ROW`, `data/items.ts`): extract its
-   swing / heavy / GUST math into a renderer-free module both the browser fan and a headless adapter use (as
-   rocEncounter does), driven by `player` command attacks; respect `roc.locked()`; GUST turns vanes (`gustVanes`,
-   `VANE_REACH`) once the notes are read. Replace the zero-damage `host.probe` only through the item; never invent a strike.
-2. **Movers**: `installDeclaredMovers` headless for `MOVERS` (the four islet lifts are the shardfile's compiled
-   behaviour/islet.as rows + road gates; `commandSocketLift` for RIDE / CALL) and the winch bridge (`far.winch.bridge`,
-   command 1 when `far.roost` + `far.vanes`; `far.bridge` flag on raise). Their colliders replace the baked inactive
-   `far.bridge.crown` only through the mover poses.
-3. **Quest**: `quest/install.ts` steps on host flags (notes interact → `far.notes`; roost clear = the three roost rays
-   dead → `far.roost`; vanes → `far.vanes`; raise → `far.bridge`; completion → fact `far-reach.quest` + REWARD 10 coins
-   through the declared quest path, as Signal's `runtime/quest.ts` now does).
-4. **Entry proof**: `proveEntries` riding the four socketLift entries (lanes ≥ 1, steps ≥ 1, liftRides / liftCalls).
-5. **Witness**: point `test/proof/far-reach/run.mjs` at `runtime/headless.ts` through the trusted runtime; headless
-   10k, replay (Roc mid-fight checkpoint + suffix, exact hash), ledger (both facts from gameplay); update
-   compatibility.json / README only from the real run.
+1. **Movers** (coordinator chose option A): admit `behaviour/bridges.as` (module `1371d895…`, in
+   `src/shards/far-reach/assets/`) in `shard.config.ts` `files` + `critical` beside `LIFT_MODULE` (an `assets` graph
+   root is required; `budgets.sim.compressed` becomes the sum), with a generated `data/bridgeModule.ts` emitted by
+   `scripts/bake/movers.mjs` like `liftModule.ts` (don't rerun the whole bake: it rewrites Driftwood's `data/movers.ts`,
+   which had someone's WIP). Map-hash input → official map rebake in the same commit. Check sim / critical ceilings,
+   the shardfile admission tests and Sky's grid admission.
+   - Browser: the trusted plugin fetches both modules by asset URL (`runtime/movers.ts` `modules`), never the admitted
+     bytes. In GRID the product admission (`game/shardfile/product.ts`) already fetches `files` (LIFT today), so the
+     lift module is fetched twice there now; the coordinator wants the plugin to read the admitted bytes when present.
+     Find how a first-party runtime cell reaches `retained.admitted` (`grid/liveSession.ts` `admitRuntime`) and pass it
+     to `installDeclaredMovers` (it takes `shared` or URLs only today).
+   - Headless: build the mover ScriptHost synchronously in `install` (hashes verified once in the async `prepare`, e.g.
+     via `createMoverHost` there and a per-host copy, or the `ScriptHost` / `ScriptWorld` / `moverScriptEntities`
+     exports). Run `MoverRuntime` WITHOUT `adopt` (restore refuses adopted rows) over `SKY_MOVERS` minus the static
+     rope rows (those stay the baked `far.rope.*` pieces, as the browser adopts them); the winch bridge then collides
+     through its own `KinematicMover` (enabled only when raised), replacing the inactive baked `far.bridge.crown`.
+     Permissions for the bridge: `roost + vanes*2` (runtime/index.ts). Continuation as `bindShardfileSim` does
+     (`snapshotState(resetMovers)` / `restoreState` / `physicsRestored: reconnect(resetMovers)`, `beginTick` per step).
+2. **Quest**: `DeclaredQuests(host, shard.quests, { fact, coins })` (Signal's `runtime/quest.ts`); interactions as
+   `script` commands at the browser radii from the eye (keeper talk: head `KEEPER_AT` at DECK + 1.8, r 3.5 → `far.notes`;
+   lectern `NOTES` + 1.3, r 2.6 → `far.notes`; winch `WINCH` + 1.2, r 3 → bridge command 1 when unlocked; islet
+   RIDE / CALL per `world/risingIslet.ts isletCalls` positions → `commandSocketLift`). Roost: the three `far.roost.*`
+   dead after `far.notes` → `far.roost`; all three vane flags → `far.vanes`; bridge raised → `far.bridge`. Completion
+   pays REWARD 10 + fact `far-reach.quest` once.
+3. **Entry proof**: `proveEntries` = `proveSocketLift` per socketLift entry on a fresh host (colliders + movers only),
+   the shardfile's `props.colliders` (landing / gate-isle strips) included as the browser installs them.
+4. **Traversal + witness**: sf72-host's fall law (`1ddf64e42`, `SimHost.playerFall`) and knockback (`3c7c5c8f8`) are
+   in main: drop the Roc test's chip for real fan play, then a four-entrance traversal and the witness flip
+   (`test/proof/far-reach/run.mjs` through the trusted runtime; headless 10k, replay mid-Roc, ledger both facts).
 
-## Host gaps (not built, by the coordinator's call)
+## Proof receipts (43d7928cd)
 
-- The SimHost player has **no gravity**: a shove's lift is carried and never pulled back; walking off an edge floats.
-  A traversal / entry proof over Sky's gaps will need it (or a host fall model) to be honest.
-- No creature-blow knockback: the browser's PlayerHurt also calls `Player.shove` on every creature hit.
-
-## Proof receipts
-
-- Clean-export full Vitest per slice: 994/5539, 999/5561, 1000/5568; strict typecheck, oxlint, ratchet, coupling,
-  graph and hooks green. Graph far-reach→engine +18 then +6, →sdk +3 (approved).
-- Browser (muted Chromium, iPhone 16 Pro, candidates ee87347c4 / efa4013fc): boot smoke 3/3 PASS ×2, 0 faults;
-  `physics-baseline --mode=walk --shard=far-reach` 10 legs, 0 stuck ×2; both bakes matched the landed recipes exactly;
-  a Sky run set down on the crown went intro → fight with the Roc off its perch and stooping, 0 page errors.
-- `shard-platform --json` Sky: public 93 / custom 6041 → 6276, share 0.0152 → 0.0146 after slice 1 (trusted headless
-  code is custom).
+- Candidate on `68bc208e4`: Sky tests 18 files / 60 tests; strict tsc + layers, oxlint, ratchet, coupling, graph,
+  pre-commit hook green. Full Vitest on the prior base 5589 / 5592: AG7 generated-only (the approved +2), and
+  driftwood / pine physics-bake + grid-rail-jump, which fail identically on clean `3c7c5c8f8`.
+- Browser (muted Chromium, iPhone 16 Pro): boot smoke 3/3 PASS (grid included) on `e1e5ae59f`; physics-baseline
+  `--mode=walk --shard=far-reach` 10 legs, 0 stuck; the rebake loaded Sky with 0 page errors, actors/pieces identical.
+- Graph far-reach → engine 118 → 120 (approved).
 
 Plan-State: unchanged.
