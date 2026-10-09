@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2269 members; 835 without a doc line (—).
+2270 members; 835 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -157,6 +157,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `onOwnerDispose` | function | @wildshard/engine/app/ownership | — |
 | `ownedFacade` | function | @wildshard/engine/app/ownership | SF57: an owner only lasts until the first `await` — `withOwner(scope, () => asyncBuild())` sets it for the synchronous |
 | `ownerCensus` | function | @wildshard/engine/app/ownership | Owned async builds pending now and the ambient owner reads seen while any was pending (SF57). |
+| `ownerOr` | function | @wildshard/engine/app/ownership | The owner an enclosing `withOwner` section set (null included: `asShell` means no owner), or `fallback` outside any |
 | `ownerTask` | function | @wildshard/engine/app/ownership | An asynchronous build owned by `scope` (a resident shard's world / kit / play hook): `withOwner`, returning exactly what |
 | `withOwner` | function | @wildshard/engine/app/ownership | — |
 | `pageScope` | const | @wildshard/engine/app/resources | Page services outlive level disposal and never borrow a level's construction owner. |

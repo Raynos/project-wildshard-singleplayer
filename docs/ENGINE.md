@@ -1964,7 +1964,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2252 exports, grouped by the module to import them from.
+2253 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1998,7 +1998,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/app/app`: `App`, `SystemsByPhase`, `TrampleField`
 - `@wildshard/engine/app/cachedAssets`: `cacheUntilDisposed`, `retainCachedResources`
 - `@wildshard/engine/app/identity`: `appIdentity`, `AppIdentity`, `currentProbe`, `harnessPins`, `installAppIdentity`, `installedIdentity`, `setCurrentProbe`
-- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enteredOwner`, `enterOwner`, `onOwnerDispose`, `ownedFacade`, `ownerCensus`, `ownerTask`, `withOwner`
+- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enteredOwner`, `enterOwner`, `onOwnerDispose`, `ownedFacade`, `ownerCensus`, `ownerOr`, `ownerTask`, `withOwner`
 - `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
 - `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
 - `@wildshard/engine/app/sceneOwnership`: `containerResources`, `linkStandIn`, `ownSceneResource`, `ownSceneTree`, `sceneObjectOwner`, `SceneOwnership`, `sceneResourceOwner`, `sceneResources`
@@ -2489,14 +2489,13 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-106 exports, grouped by the module to import them from.
+104 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
 - `@wildshard/kit/effects/starter`: `STARTER_EFFECTS`
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
 - `@wildshard/kit/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
-- `@wildshard/kit/lookApi`: `loadGrassField`, `loadParticles`
 - `@wildshard/kit/models/creatures`: `bear`, `boar`, `deer`
 - `@wildshard/kit/models/pickups`: `carvedToken`, `carvedTokenGeometry`, `doubloon`, `flintKit`, `flintKitGeometry`, `glyphShard`, `glyphShardGeometry`, `installKitPickups`, `resinDrop`, `resinDropGeometry`, `seaGlass`, `seaGlassGeometry`, `tokenRimGeometry`
 - `@wildshard/kit/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`

@@ -897,6 +897,12 @@
         "from": "@wildshard/engine/app/ownership"
       },
       {
+        "name": "ownerOr",
+        "kind": "function",
+        "doc": "The owner an enclosing `withOwner` section set (null included: `asShell` means no owner), or `fallback` outside any",
+        "from": "@wildshard/engine/app/ownership"
+      },
+      {
         "name": "ownerTask",
         "kind": "function",
         "doc": "An asynchronous build owned by `scope` (a resident shard's world / kit / play hook): `withOwner`, returning exactly what",
@@ -18276,18 +18282,6 @@
         "kind": "const",
         "doc": "The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:",
         "from": "@wildshard/kit/items/declared"
-      },
-      {
-        "name": "loadGrassField",
-        "kind": "function",
-        "doc": "Meadow placement and trampling are runtime services.",
-        "from": "@wildshard/kit/lookApi"
-      },
-      {
-        "name": "loadParticles",
-        "kind": "function",
-        "doc": "Defer rendered particles until the authored world hook has its terrain and backdrop.",
-        "from": "@wildshard/kit/lookApi"
       },
       {
         "name": "bear",

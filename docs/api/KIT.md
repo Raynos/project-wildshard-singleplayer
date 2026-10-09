@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-108 members; 33 without a doc line (—).
+106 members; 33 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -16,8 +16,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `installKitIcons` | function | @wildshard/kit/icons | — |
 | `declaredKitItemFamilies` | function | @wildshard/kit/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |
 | `ITEM_VIEW_LIFT` | const | @wildshard/kit/items/declared | The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item: |
-| `loadGrassField` | function | @wildshard/kit/lookApi | Meadow placement and trampling are runtime services. |
-| `loadParticles` | function | @wildshard/kit/lookApi | Defer rendered particles until the authored world hook has its terrain and backdrop. |
 | `bear` | const | @wildshard/kit/models/creatures | black and brown bears, and their old ones |
 | `boar` | const | @wildshard/kit/models/creatures | wild boar: sows to the old boars, and the spawn-only variants a level asks for by name |
 | `deer` | const | @wildshard/kit/models/creatures | red deer: hinds, stags and their rare coats (the ghost stag, the great stag) |
