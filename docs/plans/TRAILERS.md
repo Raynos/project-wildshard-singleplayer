@@ -1,7 +1,8 @@
 # Plan: TRAILERS — an alpha in-engine trailer and a cinematic vision trailer (E466)
 
-**State:** `draft` 2026-10-09 — a plan only; waiting on Jake's picks (TR0, CT0). Part A (the alpha trailer) is built
-first, by this plan's agent; Part B (the cinematic) starts with a one-shot bake-off.
+**State:** `in progress` 2026-10-09 — Jake's picks are in (TR0, CT0, §5). Next: TR2, the capture rig on today's engine.
+Part A (the alpha trailer) is built first, by this plan's agent; Part B (the cinematic) starts with a one-shot bake-off,
+local models and Blender only.
 
 ## 0. Why
 
@@ -53,7 +54,7 @@ Two trailers, two jobs, the same honesty rules as the site (MARKETING-SITE §1.1
 
 | # | Row | Done when | Owner |
 |---|---|---|---|
-| TR0 | **Jake's picks**: length, the alpha label, which shards, the Claude Code beat (§5) | his answers recorded in §5 | Jake |
+| TR0 | ✅ **Jake's picks** (2026-10-09): 60 s, card + corner bug + end card, the Claude Code beat in (§5) | his answers recorded in §5 | Jake |
 | TR1 | **Shot list** — 2–4 candidate moments per shard, scouted as stills from a HEAD build (`--dry`); the best per shard kept, written into `scripts/steam-trailer/shots/<shard>.mjs` (new files for Signal Dunes, Sky Reach and the grid crossing) | a scouting board exists and each shard has its shots as code | trailer agent |
 | TR2 | **Revive the capture rig on today's engine** — boot through the engine's own hooks instead of URL switches (skip intro, no pointer lock, mute, desktop tier, the capture clock X8 added), shots re-pointed at today's world API; one shot per shard captured end to end | `capture.mjs --dry` writes stills for every shard from a clean export of HEAD | trailer agent |
 | TR3 | **Score** — one ~60 s MiniMax Music 3 cue with a quiet open, a build and a peak (4 seeds, `music_scan.py` picks the hits); trailer SFX reused from E168's best takes, new families generated with MOSS v2 **and** SA3, the better take used | the cue and SFX are on disk with their credits | trailer agent |
@@ -88,8 +89,8 @@ Jake as one labelled A / B / C video, before any trailer-length work.
 
 | # | Row | Done when | Owner |
 |---|---|---|---|
-| CT0 | **Jake's picks**: the bake-off, and whether a paid cloud video model may be tried (§5) | answers recorded | Jake |
-| CT1 | **Bake-off** — the docking shot made ways 1, 2 and 3 (way 1 in a local and, if allowed, a cloud model); one labelled A / B / C video | Jake picks a way | trailer agent |
+| CT0 | ✅ **Jake's picks** (2026-10-09): the bake-off, local models and Blender only, no paid cloud model (§5) | answers recorded | Jake |
+| CT1 | **Bake-off** — the docking shot made ways 1, 2 and 3, way 1 with an open video model run locally (fetched to `~/projects/weights` under the model lock, its licence checked for a shipped asset); one labelled A / B / C video | Jake picks a way | trailer agent |
 | CT2 | **Script and boards** — the §3.1 script rewritten with Jake, then a storyboard of 12–20 keyframes in the concept-art style | Jake has read the board | trailer agent + Jake |
 | CT3 | **Shots** — every shot made the picked way | the shots exist at 1080p | trailer agent |
 | CT4 | **Score, cut, ship** — a MiniMax cue, MOSS / SA3 SFX, the cut, the "Concept trailer · not gameplay" label, the site's slot | wildshard.io plays it | trailer agent |
@@ -98,6 +99,10 @@ Jake as one labelled A / B / C video, before any trailer-length work.
 
 A Steam page trailer (FINISH-LINE SC4 keeps the 45 s cut), the app-store previews (NATIVE-APPS), a voice-over.
 
-## 5. Jake's picks
+## 5. Jake's picks (2026-10-09, question tool)
 
-(none yet)
+- **Length: 60 s.**
+- **The alpha label: all three**: the opening card, the "ALPHA · IN ENGINE" corner bug on every frame, the end card.
+- **The Claude Code beat: in**: a real session, sped up and captioned, into the grey-to-final time-lapse.
+- **The cinematic bake-off: local models and Blender only**: no paid cloud video model.
+- Shards (default, not asked): the six playable ones; the Template stays out.
