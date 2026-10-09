@@ -6,7 +6,7 @@ import { expect, it } from 'vitest';
 
 // SF72: the policies a renderer-free Driftwood host runs (the captain's fight, the monkey's perch / strike shell, the crab's
 // and the sailor's brain shells, the shared contact) load in plain Node under the loader that refuses renderer modules.
-const POLICIES = ['species/captainPolicy.ts', 'species/monkeyPolicy.ts', 'species/crab.ts', 'species/sailor.ts', 'combat/strikes.ts'];
+const POLICIES = ['species/captainPolicy.ts', 'species/monkeyPolicy.ts', 'species/crab.ts', 'species/sailor.ts', 'combat/strikes.ts', 'runtime/placement.ts'];
 
 it('imports the Driftwood creature policies without DOM or renderer modules', () => {
   const script = `for (const m of ${JSON.stringify(POLICIES)}) await import('./src/shards/driftwood-isle/' + m);
