@@ -29,6 +29,9 @@ const GRADES = {
   night: 'eq=contrast=1.08:saturation=0.98:gamma=0.97,colorbalance=rs=-0.02:bs=0.05:rh=0.02:bh=-0.01',
   // Nine Dragon Stack carries its own Jiehua grade (the learned LUT, the shoulder): only a touch of contrast to seat it
   'nine-dragon': 'eq=contrast=1.04:saturation=1.03:gamma=0.99',
+  // E466 alpha trailer: Signal Dunes' dusk and Sky Reach's golden hour already carry their grade; seat them only
+  dunes: 'eq=contrast=1.04:saturation=1.02:gamma=0.99',
+  'sky-reach': 'eq=contrast=1.04:saturation=1.03:gamma=0.99',
   none: 'null',
 };
 
@@ -39,6 +42,15 @@ edl.clips.forEach((c, k) => {
     parts.push(out);
     const frames = Math.round((c.at + c.dur) * FPS) - Math.round(c.at * FPS);
     ff(['-f', 'lavfi', '-i', `color=c=black:s=${W}x${H}:r=${FPS}`, '-frames:v', String(frames), '-vf', 'format=yuv444p', '-c:v', 'libx264', '-qp', '4', '-pix_fmt', 'yuv444p', out]);
+    return;
+  }
+  if (c.video) { // a finished 1080p clip made outside the capture (E466: the build-in-Claude-Code beat), cut in as is
+    const out = `${TMP}/${String(k).padStart(2, '0')}-${c.shot}.mkv`;
+    parts.push(out);
+    const frames = Math.round((c.at + c.dur) * FPS) - Math.round(c.at * FPS);
+    ff(['-ss', String(c.in), '-i', c.video, '-frames:v', String(frames), '-vf', `fps=${FPS},scale=${W}:${H}:flags=lanczos,format=yuv444p`,
+      '-an', '-c:v', 'libx264', '-qp', '4', '-pix_fmt', 'yuv444p', out]);
+    console.log(`[edit] ${c.shot} (video) ${c.in}+${c.dur}s`);
     return;
   }
   const dir = `${FR}/${c.shot}`;
@@ -81,9 +93,17 @@ let last = '[pic]';
   chains.push(`${last}[t${k}]overlay=eof_action=pass:format=yuv444[v${k}]`);
   last = `[v${k}]`;
 });
+// edl.overlays [{ png, from, to }]: a still over a span (E466: the ALPHA · IN ENGINE corner bug on every gameplay frame)
+const nT = (edl.titles ?? []).length;
+(edl.overlays ?? []).forEach((o, k) => {
+  inputs.push('-loop', '1', '-framerate', String(FPS), '-i', o.png);
+  chains.push(`[${nT + k + 1}:v]format=rgba[o${k}]`);
+  chains.push(`${last}[o${k}]overlay=shortest=1:format=yuv444:enable='between(t,${o.from},${o.to})'[w${k}]`);
+  last = `[w${k}]`;
+});
 chains.push(`${last}format=yuv420p[vout]`);
 const audio = MIX && MIX !== '-' ? ['-i', MIX] : [];
-const aIdx = (edl.titles ?? []).length + 1;
+const aIdx = nT + (edl.overlays ?? []).length + 1;
 ff([...inputs, ...audio, '-filter_complex', chains.join(';'), '-map', '[vout]', ...(audio.length > 0 ? ['-map', `${aIdx}:a`] : []),
   '-c:v', 'libx264', '-preset', 'slow', '-profile:v', 'high', '-level', '4.2', '-crf', '14', '-maxrate', '40M', '-bufsize', '80M',
   '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-r', String(FPS), '-g', '30',

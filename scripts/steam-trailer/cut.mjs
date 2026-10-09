@@ -3,6 +3,7 @@
 //
 // cuts/<name>.mjs default-exports cut({ TAKE, SFX }) → { edl: { length, clips, titles, size? }, titles, mix, report? }:
 //   steam        E168, the 45 s Steam wishlist trailer (15 s per shard) on MiniMax take 204 (the default)
+//   alpha        E466, the ~63 s alpha trailer on MiniMax take 304 (--build <build-beat.mp4> the Claude Code beat, --bug <png> the corner bug)
 //   nine-dragon  E169 F3, the 15 s Nine Dragon Stack COMING SOON teaser (landscape; `--portrait` = the phone cut's EDL:
 //                the same cut on the portrait captures, size 1080×1920)
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -14,7 +15,7 @@ const NAME = opt('cut', 'steam');
 mkdirSync(OUT, { recursive: true });
 
 const { cut } = await import(`./cuts/${NAME}.mjs`);
-const { edl, titles, mix, report } = cut({ TAKE, SFX, portrait: argv.includes('--portrait') });
+const { edl, titles, mix, report } = cut({ TAKE, SFX, portrait: argv.includes('--portrait'), BUILD: opt('build', ''), BUG: opt('bug', '') });
 
 writeFileSync(`${OUT}/edl.json`, JSON.stringify(edl, null, 1));
 writeFileSync(`${OUT}/titles.json`, JSON.stringify(titles, null, 1));

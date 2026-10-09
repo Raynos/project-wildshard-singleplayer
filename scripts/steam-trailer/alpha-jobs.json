@@ -1,0 +1,16 @@
+{
+  "_doc": "E466 TRAILERS TR3: the 60 s alpha trailer's score. ~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs ../../steam-trailer/alpha-jobs.json --keys trailer/alpha --seeds 301,302,303,304 --out <scratch>; music_scan.py picks the take and its hits. One cue: a quiet drone under the alpha card, a build through six worlds, a breath for the build-in-Claude-Code beat, the climb to one final hit, a ringing tail under the end card.",
+  "lyrics": {
+    "trailer": "[Intro]\n[Instrumental]\n[Build]\n[Instrumental]\n[Break]\n[Climax]\n[Outro]"
+  },
+  "jobs": {
+    "trailer/alpha": {
+      "style": "orchestral",
+      "slot": "trailer",
+      "duration": 70,
+      "lyrics": "trailer",
+      "bpm": 110,
+      "prompt": "Genre: modern hybrid cinematic game trailer music, orchestra with pulsing analog synths. BPM: 110. Key: E minor rising to E major. Instrumental only, no vocals, no choir singing words. A one-minute trailer cue for an open-world adventure made of many different worlds stitched together: a sunny toon island, painted grasslands with horse riders, a photoreal pine forest, dusk desert dunes, golden sky islands, a neon vertical city. Structure: opens with a low warm synth drone and a soft ticking pulse for a few seconds; then shimmering strings and a hopeful piano motif; at about 10 seconds driving low string ostinato and taiko drums enter and the energy builds steadily with a new colour every few bars; at about 40 seconds a sudden breath, everything drops to a clean arpeggiated synth pulse and a held string note; then a riser and the full orchestra returns with a big heroic brass theme, pounding percussion and cymbal swells climbing to a huge climax; ends on one final massive hit at about 56 seconds and a long ringing tail. Production: modern trailer mix, wide, powerful low end, big hall reverb, punchy drums, clear hits."
+    }
+  }
+}

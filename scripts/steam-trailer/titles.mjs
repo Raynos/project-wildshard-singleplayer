@@ -10,7 +10,8 @@ const OUT = process.argv[2];
 const here = new URL('.', import.meta.url).pathname;
 const preview = process.argv[3] === '--preview';
 const PORTRAIT = process.argv.includes('--portrait');
-const cards = preview
+// --preview <cards.json>: one still per card at its `at` (the cards of a cut, e.g. the alpha trailer's)
+const cards = preview && process.argv[4] ? JSON.parse(readFileSync(process.argv[4], 'utf8')) : preview
   ? [{ id: 'p-shard', card: 'shard', dur: 3, kicker: 'Shard I', name: 'Driftwood Isle', sub: 'Sail · Dive · Fight', at: 1.6 },
      { id: 'p-line', card: 'line', dur: 2.5, text: 'Three shards of a broken world', at: 1.4 },
      { id: 'p-end', card: 'end', dur: 4, at: 3 }]
