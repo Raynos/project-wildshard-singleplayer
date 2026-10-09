@@ -1,0 +1,50 @@
+[
+ {
+  "page": "standalone",
+  "pick": "img",
+  "mode": "img",
+  "why": "picked (Settings ▸ Debug ▸ GPU textures: img)",
+  "glMB": 196.3,
+  "texMB": 107.4,
+  "rbMB": 9.1,
+  "bufMB": 79.8,
+  "accountedMB": null,
+  "errors": []
+ },
+ {
+  "page": "standalone",
+  "pick": "ktx2",
+  "mode": "ktx2",
+  "why": "picked (Settings ▸ Debug ▸ GPU textures: ktx2)",
+  "glMB": 175.2,
+  "texMB": 86.2,
+  "rbMB": 9.1,
+  "bufMB": 79.8,
+  "accountedMB": null,
+  "errors": []
+ },
+ {
+  "page": "public",
+  "pick": "img",
+  "mode": "img",
+  "why": "picked (Settings ▸ Debug ▸ GPU textures: img)",
+  "glMB": 241.6,
+  "texMB": 137.6,
+  "rbMB": 9.1,
+  "bufMB": 95,
+  "accountedMB": 525.9,
+  "errors": []
+ },
+ {
+  "page": "public",
+  "pick": "ktx2",
+  "mode": "ktx2",
+  "why": "picked (Settings ▸ Debug ▸ GPU textures: ktx2)",
+  "glMB": 220.5,
+  "texMB": 116.4,
+  "rbMB": 9.1,
+  "bufMB": 95,
+  "accountedMB": 525.9,
+  "errors": []
+ }
+]
