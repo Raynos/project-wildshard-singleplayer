@@ -374,3 +374,62 @@ it('steps the page\'s own day clock: a witness started just before dusk (SimLeve
   } finally { host.dispose(); }
 }, 30_000);
 
+
+/** Pine's parts with a night the test turns (a held dusk-free clock) and the facts the King files. */
+function kingParts(): { parts: PineInstall; clock: { night: number }; facts: string[] } {
+  const clock = { night: 1 }, facts: string[] = [];
+  return { clock, facts, parts: { ...pineParts(), night: () => clock.night, fact: (name, entity) => { facts.push(`${name}/${entity}`); } } };
+}
+/** Stand the player `d` m south of the King's clearing, on the ground. */
+function standAtClearing(host: SimHost, d: number): void {
+  const at = new Vector3(KINGS_CLEARING.x, heightAt(KINGS_CLEARING.x, KINGS_CLEARING.z + d) + 0.3, KINGS_CLEARING.z + d);
+  host.player.motor.resetAt(at); host.player.position.copy(at);
+}
+
+it('parks the Antler King by day (out of sight, kept for tonight) and a restore keeps him hidden', () => {
+  const { parts, clock } = kingParts(), { host, king } = bootWith(parts);
+  try {
+    standAtClearing(host, 50); // within 80 m, outside the stones: he comes and waits
+    host.step(still);
+    expect([king.boss.state, king.fight.king?.entityId, king.fight.king?.hidden]).toEqual(['armed', 'creature:161', false]);
+    clock.night = 0; host.step(still);
+    expect([king.boss.state, king.fight.king?.entityId, king.fight.king?.hidden]).toEqual(['dormant', 'creature:161', true]);
+    const saved = snapshotSimHost(host), restored = restoreWith(parts, saved);
+    try {
+      expect(restored.entities.get('creature:161')).toMatchObject({ kind: 'antler-king', hidden: true });
+      expectSameSimSnapshot(snapshotSimHost(restored), saved);
+    } finally { restored.dispose(); }
+  } finally { host.dispose(); }
+}, 30_000);
+
+it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once and files his fact; by day he goes, the next night a fresh King (the next entity id), restored exactly', () => {
+  const { parts, clock, facts } = kingParts(), { host, king } = bootWith(parts);
+  /** walk in through the south gap, sit out the intro, fell him with one blow */
+  const fell = (): void => {
+    standAtClearing(host, 12);
+    for (let tick = 0; tick < 600 && king.boss.state !== 'fight'; tick++) host.step(still);
+    const body = king.fight.king;
+    if (body === null || king.boss.state !== 'fight') throw new Error('no King fight');
+    host.combat.hit({ source: host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: body.combatActor(), amount: body.maxHp * 10, point: body.position.clone(), dir: new Vector3() });
+    host.step(still);
+  };
+  try {
+    expect(host.flags.has('dead:king')).toBe(false);
+    fell();
+    expect(king.boss.state).toBe('victory');
+    expect(['dead:king', 'paid:king'].map(f => host.flags.has(f))).toEqual([true, true]);
+    expect(facts).toEqual(['pine.feat.king/king:1']);
+    // by day the fallen King goes (his body retired); the next night he is back, a fresh body at the stones
+    clock.night = 0; host.step(still);
+    expect([king.boss.state, king.fight.king, host.entities.has('creature:161')]).toEqual(['dormant', null, false]);
+    clock.night = 1; standAtClearing(host, 50); host.step(still);
+    const next = king.fight.king;
+    expect([king.boss.state, next?.entityId, next?.kind, next?.variant, next?.scripted, next?.alive, king.fight.hpFrac]).toEqual(['armed', 'creature:168', 'antler-king', 'warden', true, true, 1]);
+    expect(Math.hypot((next?.position.x ?? 0) - KINGS_CLEARING.x, (next?.position.z ?? 0) - KINGS_CLEARING.z)).toBeLessThan(1);
+    exactAfter(parts, host, 30);
+    // a re-fight: the record counts him twice, the bow is not paid again
+    fell();
+    expect([king.boss.state, king.boss.snapshot().saved]).toEqual(['victory', { defeated: true, rewardTaken: true, kills: 2 }]);
+    expect(facts).toEqual(['pine.feat.king/king:1', 'pine.feat.king/king:1']);
+  } finally { host.dispose(); }
+}, 30_000);

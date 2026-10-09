@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
-import { installBossRow } from '@wildshard/game/shardfile/bossRow';
+import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
 import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 import { KINGS_CLEARING } from '../layout';
 import { AntlerKingCore, kingDormant, kingPresence, type KingCoreEnv } from '../combat/kingFight';
@@ -15,6 +15,11 @@ type BossDefinition = Parameters<typeof installBossRow>[1]['definition'];
 
 /** The King's encounter step (BossBrain's and the fight's one continuation, the boss row's) and its presence / dormant steps. */
 export const KING_STEP = 'pine.king', KING_PRESENCE_STEP = 'pine.king.presence', KING_DORMANT_STEP = 'pine.king.dormant';
+/** His record on the shard's own flags (no save of his own): beaten is the quest's `dead:king` (the page raises it on his
+ *  kill), paid is the Warden's Longbow taken (the first fall's reward; a re-fight pays nothing more here). */
+export const KING_RECORD = { defeated: 'dead:king', paid: 'paid:king' } as const;
+/** The ledger fact his fall witnesses (data/ledger.ts: the 'king' feat, its one entity), as the page's progress files it. */
+export const KING_FACT = { name: 'pine.feat.king', entity: 'king:1' } as const;
 /** combat/ctx.ts SCRIPTED: the state a fight's own animal holds. */
 const SCRIPTED = 'sidestep';
 
@@ -24,11 +29,15 @@ export interface PineKingPorts {
   /** the King's parked prewarm body (his id and recipe from the boot stream), made real when he first comes */
   readonly parked: () => readonly PineParked[];
   readonly adoptParked: (id: string, x: number, z: number, yaw: number) => PineHuntBody;
+  /** a fresh body after his first (a fallen King's next night): the page's declared row spawned live, out of the list */
+  readonly spawnLoose: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
   readonly spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
   readonly retire: (a: PineHuntBody) => void;
   readonly find: (id: string) => PineHuntBody | null;
   /** PineDayNight's night 0..1 (0 without a day-night clock: he never comes on his own) */
   readonly night: () => number;
+  /** the platform's fact effect (his fall's ledger fact); absent in a test that files none */
+  readonly fact?: (name: string, entity: string) => void;
 }
 
 const silentTell = { setTime: (): void => undefined, ring: (): void => undefined, hide: (): void => undefined };
@@ -63,10 +72,13 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
   protected override groundAt(x: number, z: number): number { return this.ports.heightAt(x, z); }
   protected override makeKing(): PineHuntBody {
     const row = this.ports.parked()[0];
-    if (this.madeFirst || row === undefined) throw new Error('Pine headless owns the Antler King\'s first body only (a fallen King\'s next night is not owned yet)');
+    if (row === undefined) throw new Error('Pine headless has no Antler King prewarm');
+    // the page's prewarm spawned him at the clearing's centre facing north (his first body); a fallen King's next night is
+    // the declared row (pine.antler-king: the clearing, yaw 0, 'warden') spawned live through the manager: the stream's
+    // rolls and memory draws, the next entity id. Either way he is pinned out of the manager's thinking.
+    const a = this.madeFirst ? this.ports.spawnLoose(row.kind, KINGS_CLEARING.x, KINGS_CLEARING.z, 0, row.variant)
+      : this.ports.adoptParked(row.id, KINGS_CLEARING.x, KINGS_CLEARING.z, 0);
     this.madeFirst = true;
-    // the page's prewarm spawned him at the clearing's centre facing north; he is pinned out of the manager's thinking
-    const a = this.ports.adoptParked(row.id, KINGS_CLEARING.x, KINGS_CLEARING.z, 0);
     a.scripted = true;
     return a;
   }
@@ -93,7 +105,7 @@ const Runner = v.strictObject({ version: finite, phase: v.picklist(['idle', 'win
   elapsed: finite, speedMul: finite, clock: finite, deadlines: v.array(v.strictObject({ id: v.string(), at: finite })), scores: v.array(v.strictObject({ id: v.string(), score: finite })),
   x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite });
 const LaneSaved = v.strictObject({ tellT: finite, runner: Runner });
-const Fight = v.strictObject({ first: v.boolean(), king: v.nullable(v.string()), present: v.boolean(), sealed: v.boolean(), sealK: finite, darkK: finite, glow: finite,
+const Fight = v.strictObject({ first: v.boolean(), hidden: v.boolean(), king: v.nullable(v.string()), present: v.boolean(), sealed: v.boolean(), sealK: finite, darkK: finite, glow: finite,
   invuln: v.boolean(), lockHp: finite, won: v.boolean(), phase: finite, mode: v.string(), modeT: finite, sweepCd: finite, stompCd: finite, callCd: finite, laneN: finite, open: finite,
   lane: LaneSaved, waves: v.array(v.strictObject({ r: finite, on: v.boolean(), hit: v.boolean(), delay: finite })),
   lanterns: v.array(v.strictObject({ x: finite, z: finite, y: finite, fallT: finite, acc: finite })),
@@ -116,24 +128,34 @@ function kingDefinition(): BossDefinition {
  * level seed's King streams. The fight's state rides the boss row's continuation, bodies by entity id (the roster reinstalls
  * them in the host's order before this restores).
  *
- * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): his record on the shard's flags (it is in memory: the
- * host's run is one play) and the reward; a fallen King's next night (refused); the ribcage weak point and the bark's damage
- * multiplier on the player's hits (the host's player has no weapon yet).
+ * His record is the shard's flags (`KING_RECORD`: beaten is `dead:king`, paid is the Warden's Longbow taken); his first fall
+ * pays the bow at once (the page's orb waits for a pickup; headless has no interact) and every fall files his ledger fact.
+ * A fallen King goes by day and comes back the next night as a fresh body (the declared row spawned live, out of the list);
+ * a parked King stays hidden across a restore.
+ *
+ * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): the ribcage weak point and the bark's damage multiplier
+ * on the player's hits (the host's player has no weapon yet); the re-fight's three amber resin (no item effect).
  */
 export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: BossBrain; fight: AntlerKingCore<PineHuntBody>; locked: () => boolean } {
   const fight = new HeadlessKing(host, ports), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
   host.onStep(KING_PRESENCE_STEP, () => { if (brain.boss !== null) kingPresence(brain.boss, fight, player, ports.night() > 0.5); });
-  const saved = { defeated: false, rewardTaken: false, kills: 0 };
+  // read at install (a restoring install's record is the brain's continuation, which restores over it)
+  const record = bossFlagRecord(host.flags, KING_RECORD), saved = record.saved;
   const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(), script: fight, body: () => fight.king, shielded: () => fight.shielded,
     fight: {
-      snapshot: () => ({ first: fight.first, ...fight.fightState(b => b.entityId) }),
+      // a parked King's `hidden` is the fight's (the body's own flag is no part of the host's entity record)
+      snapshot: () => ({ first: fight.first, hidden: fight.king?.hidden === true, ...fight.fightState(b => b.entityId) }),
       restore: value => {
-        const { first, ...state } = v.parse(Fight, value);
+        const { first, hidden, ...state } = v.parse(Fight, value);
         fight.first = first;
         fight.restoreFight(state, id => ports.find(id));
+        if (fight.king !== null) fight.king.hidden = hidden;
       },
-    }, saved, persist: () => undefined });
+    }, saved, persist: record.persist,
+    // the first fall: the Warden's Longbow, taken at once
+    spawnReward: () => { saved.rewardTaken = true; record.persist(saved); } });
   brain.boss = row.boss;
+  host.events.on('boss.attempt', ({ boss, outcome }) => { if (boss === ANTLER_KING_ENCOUNTER.id && outcome === 'won') ports.fact?.(KING_FACT.name, KING_FACT.entity); }, host.scope);
   host.onStep(KING_DORMANT_STEP, dt => { kingDormant(row.boss, fight, dt, host.clock.now); });
   return { boss: row.boss, fight, locked: row.locked };
 }

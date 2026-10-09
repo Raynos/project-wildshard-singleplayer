@@ -101,7 +101,8 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * memory (three more draws); it joins the end of the list and the host's dynamic roster. A restoring install reinstalls
  * every saved live spawn from the host's own recipe, in the saved order, after this step (the host snapshots in registration
  * order). The four elites' fights run beside it (runtime/elites.ts), on these bodies, and the Antler King's (runtime/king.ts:
- * his parked prewarm body made real out of the list, `adoptParked`; his thralls are live spawns). A restoring install
+ * his parked prewarm body made real out of the list, `adoptParked`; a fallen King's next body, `spawnLoose`: a live
+ * spawn kept out of the list; his thralls are live spawns). A restoring install
  * reinstalls every saved body the boot did not make in the host's own order, listed or not. Not yet owned (fail-closed,
  * progress/shard-platform/handoffs/sf72-pine.md): the rain's wander goals.
  */
@@ -109,6 +110,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: HuntBrain<HuntBody>;
   /** AnimalManager.spawn in play: a live creature (the stream's draws, the next entity id), at the end of the list */
   spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
+  /** the same live spawn kept out of the list (a fight's own body that thinks nothing: a fallen Antler King's next night) */
+  spawnLoose: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
   /** AnimalManager.retire: out of the list, the brain and the host */
   retire: (a: HuntBody) => void;
   /** a parked prewarm body (the Antler King's) as a host body at (x, z), kept out of the list */
@@ -189,8 +192,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     return a;
   };
   /** AnimalManager.spawnAnimal: the shared stream's rolls, the creature floor from a metre over the ground, the brain's memory. */
-  const spawn = (kind: string, x: number, z: number, yaw: number, variant: string | string[] | undefined): PineHuntBody => {
-    const r = rolls(kind, variant), a = materialize({ id: r.id, spec: r.spec, seed: r.seed, scale: r.scale, at: { x, y: 0, z }, yaw }, kind);
+  const spawn = (kind: string, x: number, z: number, yaw: number, variant: string | string[] | undefined, listed = true): PineHuntBody => {
+    const r = rolls(kind, variant), a = materialize({ id: r.id, spec: r.spec, seed: r.seed, scale: r.scale, at: { x, y: 0, z }, yaw }, kind, listed);
     hunt.adopt(a, x, z);
     return a;
   };
@@ -299,6 +302,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     if (row === undefined) throw new Error(`Pine has no parked body ${id}`);
     return materialize({ id, spec: row.spec, seed: row.seed, scale: row.scale, at: { x, y: 0, z }, yaw }, row.kind, false);
   };
-  return { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant), retire, adoptParked,
+  return { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant),
+    spawnLoose: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant, false), retire, adoptParked,
     actor: id => made.get(id) ?? null };
 }

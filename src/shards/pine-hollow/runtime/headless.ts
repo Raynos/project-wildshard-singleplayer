@@ -51,7 +51,7 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * the stream's, the same every boot) before the host restores, and the four named elites' fights under the game's elite rules
  * (runtime/elites.ts: the page's own scripts), with their live spawns (an elite's respawn, the Imperial Bull's rivals) and the
  * roar's stun, and the Antler King on the boss row (runtime/king.ts: the page's own fight, combat/kingFight.ts, his prewarm
- * body, his thralls as live spawns). The page's day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the player's
+ * body, his thralls as live spawns, his record on the shard's flags, a fallen King's next night). The page's day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the player's
  * weapons, the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -65,7 +65,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never a crossbow: the weapons are declared items (data/items.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, install: (host, context) => { installPine(host, { bake, grid, nav, heightAt, spawnY: shard.spawn.y, saved: context.snapshot }); } };
+  return { level, ports: { ground: false, heightAt }, install: (host, context) => {
+    installPine(host, { bake, grid, nav, heightAt, spawnY: shard.spawn.y, saved: context.snapshot, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); } });
+  } };
 };
 
 export interface PineInstall {
@@ -76,6 +78,8 @@ export interface PineInstall {
   readonly saved?: PineRosterPorts['saved'];
   /** PineDayNight's dusk / night, held by a test (absent: the host's day clock, the page's own) */
   readonly dusk?: () => number; readonly night?: () => number;
+  /** the platform's fact effect (the Antler King's fall files his ledger fact) */
+  readonly fact?: (name: string, entity: string) => void;
 }
 
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
@@ -94,8 +98,8 @@ export function installPine(host: SimHost, parts: PineInstall): { roster: Return
     retire: a => { live().retire(a); }, dusk, night });
   // the King's steps next (the page ticks him after the elites, before its creature manager), before any live spawn
   const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
-    spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), retire: a => { live().retire(a); }, find: id => live().actor(id),
-    night });
+    spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
+    retire: a => { live().retire(a); }, find: id => live().actor(id), night, ...(parts.fact === undefined ? {} : { fact: parts.fact }) });
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
   return { roster, elites, king };
