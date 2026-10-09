@@ -62,3 +62,26 @@ it('preserves a resolved texture URL through cloning and attributes bone uploads
   expect(sources.get(pixels)).toBe('/assets/sky.astc.ktx2');
   expect(sources.get(bones)).toBe('/assets/horse.glb#body/skeleton/bones');
 });
+it('a repeated census walk keeps every label and emits nothing new until a source changes (SF57)', () => {
+  const emitted: { source: object; owner: string; asset: string }[] = [];
+  Reflect.set(globalThis, 'window', { __sc_label_gl: () => undefined,
+    __sc_label_source: (source: object, owner: string, asset: string) => { emitted.push({ source, owner, asset }); } });
+  const positions = new Float32Array(9), pixels = new Uint8Array(16), shared = new ArrayBuffer(64);
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3)).setAttribute('uv', new BufferAttribute(new Float32Array(shared, 0, 6), 2));
+  const texture = new DataTexture(pixels, 2, 2); texture.name = 'Image_0';
+  const mesh = new InstancedMesh(geometry, new MeshBasicMaterial({ map: texture }), 2); mesh.name = 'trees';
+  const root = new Group(); root.add(mesh);
+  labelObjectTree(root, 'pine/tree-stand', 'forest.ts');
+  const first = emitted.map((row) => `${row.owner} ${row.asset}`).sort();
+  expect(first).toContain('pine/tree-stand forest.ts/trees/position');
+  expect(first).toContain('pine/tree-stand forest.ts/trees/map/Image_0');
+  expect(first).toContain('pine/tree-stand forest.ts/trees/instanceMatrix');
+  emitted.length = 0;
+  for (let walk = 0; walk < 5; walk++) labelObjectTree(root, 'pine/tree-stand', 'forest.ts');
+  expect(emitted).toEqual([]);
+  // A new attribute is labelled on the next walk, with the same path the first walk would have given it.
+  const normals = new Float32Array(9);
+  geometry.setAttribute('normal', new BufferAttribute(normals, 3));
+  labelObjectTree(root, 'pine/tree-stand', 'forest.ts');
+  expect(emitted.map((row) => [row.source, row.asset])).toEqual([[normals, 'forest.ts/trees/normal']]);
+});

@@ -1,0 +1,309 @@
+{
+ "what": "Chromium sampling heap profiler (16 KiB interval, GC-collected objects included), 5 s windows: from the moment the player leaves template-3 (template-3-to-template-4), and 25 s into template-4-to-template-5 on the open road. census = the soak pins (GL_INIT) on the before build 29ab9aa5d; census-after = the same pins on df7ba9f00 (29ab9aa5d + this fix); plain = no census pins, before build.",
+ "census": [
+  {
+   "window": "0:template-3-to-template-4",
+   "sampledMB": 1375,
+   "top": [
+    {
+     "mb": 231.1,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 121.1,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 102,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 91.2,
+     "stack": "Yg.render@three.module-0SoK2Fk7.js:4219:32604 < ht@three.module-0SoK2Fk7.js:4219:35730 < vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 65.5,
+     "stack": "b@three.module-0SoK2Fk7.js:4195:5842 < b@three.module-0SoK2Fk7.js:4195:5842 < b@three.module-0SoK2Fk7.js:4195:5842 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 64,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    }
+   ]
+  },
+  {
+   "window": "0:template-4-to-template-5",
+   "sampledMB": 1200,
+   "top": [
+    {
+     "mb": 216.5,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 118.2,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 102.8,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 74.5,
+     "stack": "Yg.render@three.module-0SoK2Fk7.js:4219:32604 < ht@three.module-0SoK2Fk7.js:4219:35730 < vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 63.4,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 58.3,
+     "stack": "render@build-DkW1oHmj.js:114:3036 < (anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    }
+   ]
+  },
+  {
+   "window": "1:template-3-to-template-4",
+   "sampledMB": 1366,
+   "top": [
+    {
+     "mb": 225.3,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 121.2,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 106,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 91.9,
+     "stack": "Yg.render@three.module-0SoK2Fk7.js:4219:32604 < ht@three.module-0SoK2Fk7.js:4219:35730 < vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 63.3,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 62.1,
+     "stack": "b@three.module-0SoK2Fk7.js:4195:5842 < b@three.module-0SoK2Fk7.js:4195:5842 < b@three.module-0SoK2Fk7.js:4195:5842 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    }
+   ]
+  },
+  {
+   "window": "1:template-4-to-template-5",
+   "sampledMB": 1193,
+   "top": [
+    {
+     "mb": 220.7,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 119.2,
+     "stack": "i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 102,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 73.4,
+     "stack": "Yg.render@three.module-0SoK2Fk7.js:4219:32604 < ht@three.module-0SoK2Fk7.js:4219:35730 < vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < K@gpuLabels-DQKhihrj.js:0:6127 < entries@:-1:-1"
+    },
+    {
+     "mb": 62.2,
+     "stack": "(anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    },
+    {
+     "mb": 58.4,
+     "stack": "render@build-DkW1oHmj.js:114:3036 < (anon)@gpuLabels-DQKhihrj.js:0:10270 < i@gpuLabels-DQKhihrj.js:0:7351 < i@gpuLabels-DQKhihrj.js:0:7351 < J@gpuLabels-DQKhihrj.js:0:6777 < entries@:-1:-1"
+    }
+   ]
+  }
+ ],
+ "census-after": [
+  {
+   "window": "0:template-3-to-template-4",
+   "sampledMB": 341,
+   "top": [
+    {
+     "mb": 43.1,
+     "stack": "run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < desired@session-DFnI08LY.js:211:107334 < (anon)@session-DFnI08LY.js:866:6013"
+    },
+    {
+     "mb": 31,
+     "stack": "runPhase@session-DFnI08LY.js:2023:16383 < run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < remaskAll@session-DFnI08LY.js:211:113139"
+    },
+    {
+     "mb": 23,
+     "stack": "run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < desired@session-DFnI08LY.js:211:107334 < n@session-DFnI08LY.js:211:107354"
+    },
+    {
+     "mb": 13,
+     "stack": "i@gpuLabels-DspY-r9r.js:0:8610 < i@gpuLabels-DspY-r9r.js:0:8610 < i@gpuLabels-DspY-r9r.js:0:8610 < K@gpuLabels-DspY-r9r.js:0:8098 < V@gpuLabels-DspY-r9r.js:0:6276 < m@gpuLabels-DspY-r9r.js:0:328"
+    },
+    {
+     "mb": 11.6,
+     "stack": "run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:2023:30282 < step@loader-ConVtAU4.js:1:10390 < mapNewSoftBodies@rapier-GnCe-wvm.js:0:203528 < forEachColliderHandle@rapier-GnCe-wvm.js:0:56832 < Ui@rapier-GnCe-wvm.js:0:151524"
+    },
+    {
+     "mb": 9.6,
+     "stack": "(anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < release@session-DFnI08LY.js:211:109321 < sort@:-1:-1 < (anon)@session-DFnI08LY.js:211:109464"
+    }
+   ]
+  },
+  {
+   "window": "0:template-4-to-template-5",
+   "sampledMB": 255,
+   "top": [
+    {
+     "mb": 38.9,
+     "stack": "run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < desired@session-DFnI08LY.js:211:107334 < (anon)@session-DFnI08LY.js:866:6013"
+    },
+    {
+     "mb": 19.2,
+     "stack": "runPhase@session-DFnI08LY.js:2023:16383 < run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < remaskAll@session-DFnI08LY.js:211:113139"
+    },
+    {
+     "mb": 15.2,
+     "stack": "run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:923:14486 < step@session-DFnI08LY.js:923:18962 < step@session-DFnI08LY.js:211:106259 < desired@session-DFnI08LY.js:211:107334 < n@session-DFnI08LY.js:211:107354"
+    },
+    {
+     "mb": 14.6,
+     "stack": "i@gpuLabels-DspY-r9r.js:0:8610 < i@gpuLabels-DspY-r9r.js:0:8610 < i@gpuLabels-DspY-r9r.js:0:8610 < K@gpuLabels-DspY-r9r.js:0:8098 < V@gpuLabels-DspY-r9r.js:0:6276 < m@gpuLabels-DspY-r9r.js:0:328"
+    },
+    {
+     "mb": 10.3,
+     "stack": "run@runtime-BGxTyK86.js:0:54215 < (anon)@session-DFnI08LY.js:2023:30282 < step@loader-ConVtAU4.js:1:10390 < mapNewSoftBodies@rapier-GnCe-wvm.js:0:203528 < forEachColliderHandle@rapier-GnCe-wvm.js:0:56832 < Ui@rapier-GnCe-wvm.js:0:151524"
+    },
+    {
+     "mb": 8.2,
+     "stack": "(anon)@gpuLabels-DspY-r9r.js:0:12151 < i@gpuLabels-DspY-r9r.js:0:8610 < i@gpuLabels-DspY-r9r.js:0:8610 < i@gpuLabels-DspY-r9r.js:0:8610 < K@gpuLabels-DspY-r9r.js:0:8098 < W@gpuLabels-DspY-r9r.js:0:7278"
+    }
+   ]
+  }
+ ],
+ "plain": [
+  {
+   "window": "0:template-3-to-template-4",
+   "sampledMB": 276,
+   "top": [
+    {
+     "mb": 43.6,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:923:18962 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < (anon)@session-BDnrBpAl.js:866:6013"
+    },
+    {
+     "mb": 31,
+     "stack": "runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:923:18962 < step@session-BDnrBpAl.js:211:106259 < remaskAll@session-BDnrBpAl.js:211:113139"
+    },
+    {
+     "mb": 22.2,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:923:18962 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < n@session-BDnrBpAl.js:211:107354"
+    },
+    {
+     "mb": 11.8,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:2023:30282 < step@loader-B3H31pcx.js:1:10390 < mapNewSoftBodies@rapier-uSJ97H_T.js:0:203528 < forEachColliderHandle@rapier-uSJ97H_T.js:0:56832 < Ui@rapier-uSJ97H_T.js:0:151524"
+    },
+    {
+     "mb": 10.1,
+     "stack": "vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < gh@three.module-0SoK2Fk7.js:4117:6994 < t.properties.get@gpuLabels-DQKhihrj.js:0:9210"
+    },
+    {
+     "mb": 9.3,
+     "stack": "b@three.module-0SoK2Fk7.js:4195:5842 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < yt@three.module-0SoK2Fk7.js:4219:38310 < h@three.module-0SoK2Fk7.js:4168:2274"
+    }
+   ]
+  },
+  {
+   "window": "0:template-4-to-template-5",
+   "sampledMB": 195,
+   "top": [
+    {
+     "mb": 38.1,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:923:18962 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < (anon)@session-BDnrBpAl.js:866:6013"
+    },
+    {
+     "mb": 19.1,
+     "stack": "runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:923:18962 < step@session-BDnrBpAl.js:211:106259 < remaskAll@session-BDnrBpAl.js:211:113139"
+    },
+    {
+     "mb": 16.6,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:923:18962 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < n@session-BDnrBpAl.js:211:107354"
+    },
+    {
+     "mb": 10.5,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:2023:30282 < step@loader-B3H31pcx.js:1:10390 < mapNewSoftBodies@rapier-uSJ97H_T.js:0:203528 < forEachColliderHandle@rapier-uSJ97H_T.js:0:56832 < Ui@rapier-uSJ97H_T.js:0:151524"
+    },
+    {
+     "mb": 8.1,
+     "stack": "vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < gh@three.module-0SoK2Fk7.js:4117:6994 < t.properties.get@gpuLabels-DQKhihrj.js:0:9210"
+    },
+    {
+     "mb": 6,
+     "stack": "b@three.module-0SoK2Fk7.js:4195:5842 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < yt@three.module-0SoK2Fk7.js:4219:38310 < h@three.module-0SoK2Fk7.js:4168:2274"
+    }
+   ]
+  },
+  {
+   "window": "1:template-3-to-template-4",
+   "sampledMB": 269,
+   "top": [
+    {
+     "mb": 41.9,
+     "stack": "runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < (anon)@session-BDnrBpAl.js:866:6013"
+    },
+    {
+     "mb": 29,
+     "stack": "runFixed@session-BDnrBpAl.js:2023:17023 < runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < remaskAll@session-BDnrBpAl.js:211:113139"
+    },
+    {
+     "mb": 23.1,
+     "stack": "runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < n@session-BDnrBpAl.js:211:107354"
+    },
+    {
+     "mb": 10.9,
+     "stack": "s@session-BDnrBpAl.js:2023:20652 < runFixed@session-BDnrBpAl.js:2023:17023 < runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:2023:30282 < Ui@rapier-uSJ97H_T.js:0:151524"
+    },
+    {
+     "mb": 9.7,
+     "stack": "run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < release@session-BDnrBpAl.js:211:109321 < sort@:-1:-1 < (anon)@session-BDnrBpAl.js:211:109464"
+    },
+    {
+     "mb": 9.7,
+     "stack": "vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < gh@three.module-0SoK2Fk7.js:4117:6994 < t.properties.get@gpuLabels-DQKhihrj.js:0:9210"
+    }
+   ]
+  },
+  {
+   "window": "1:template-4-to-template-5",
+   "sampledMB": 195,
+   "top": [
+    {
+     "mb": 39.2,
+     "stack": "runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < (anon)@session-BDnrBpAl.js:866:6013"
+    },
+    {
+     "mb": 19.1,
+     "stack": "runFixed@session-BDnrBpAl.js:2023:17023 < runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < remaskAll@session-BDnrBpAl.js:211:113139"
+    },
+    {
+     "mb": 16.1,
+     "stack": "runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:923:14486 < step@session-BDnrBpAl.js:211:106259 < desired@session-BDnrBpAl.js:211:107334 < n@session-BDnrBpAl.js:211:107354"
+    },
+    {
+     "mb": 11.7,
+     "stack": "s@session-BDnrBpAl.js:2023:20652 < runFixed@session-BDnrBpAl.js:2023:17023 < runPhase@session-BDnrBpAl.js:2023:16383 < run@runtime-Dlxsg22C.js:0:54215 < (anon)@session-BDnrBpAl.js:2023:30282 < Ui@rapier-uSJ97H_T.js:0:151524"
+    },
+    {
+     "mb": 8.6,
+     "stack": "vt@three.module-0SoK2Fk7.js:4219:37810 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < gh@three.module-0SoK2Fk7.js:4117:6994 < t.properties.get@gpuLabels-DQKhihrj.js:0:9210"
+    },
+    {
+     "mb": 5.9,
+     "stack": "b@three.module-0SoK2Fk7.js:4195:5842 < e.renderBufferDirect@session-BDnrBpAl.js:924:4502 < Yg.renderBufferDirect@three.module-0SoK2Fk7.js:4219:29373 < Ct@three.module-0SoK2Fk7.js:4219:41295 < yt@three.module-0SoK2Fk7.js:4219:38310 < h@three.module-0SoK2Fk7.js:4168:2274"
+    }
+   ]
+  }
+ ]
+}

@@ -45,6 +45,8 @@ export class MemoryAttribution {
 
   label(resource: object, label: MemoryLabel): void {
     if (label.owner.length === 0 || label.asset.length === 0) throw new Error('Memory labels require owner and asset');
+    const current = this.labels.get(resource);
+    if (current !== undefined && current.owner === label.owner && current.asset === label.asset) return; // unchanged: no fresh label (SF57)
     this.labels.set(resource, { owner: label.owner, asset: label.asset });
   }
   /** Late Three geometry labels join an already uploaded native buffer without retaining its CPU source. */

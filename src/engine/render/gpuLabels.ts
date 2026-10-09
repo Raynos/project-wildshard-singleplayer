@@ -3,7 +3,7 @@ import type { Renderer } from './renderer';
 import { arrayReleased } from './releasedArrays';
 import { isDev } from '../core/devMode';
 import { memoryAttribution, withMemoryLabel } from '../core/memoryAttribution';
-import { observeImageMemory } from './memoryImages';
+import { observeImageMemory, relabelImageMemory } from './memoryImages';
 import { sceneObjectOwner, sceneResourceOwner } from '../app/sceneOwnership';
 
 interface Label { owner: string; asset: string; priority: number }
@@ -16,6 +16,29 @@ const isObject = (value: unknown): value is Object3D => value instanceof Object3
 const isTarget = (value: unknown): value is WebGLRenderTarget => value instanceof WebGLRenderTarget;
 /** the GL handles three keeps in a resource's properties (the keys `/^__webgl(Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/`) */
 const GL_HANDLES = ['__webglTexture', '__webglDepthbuffer', '__webglColorRenderbuffer', '__webglDepthRenderbuffer'] as const;
+const GL_ROLES = GL_HANDLES.map((key) => key.slice(7));
+/**
+ * SF57: the census walks the whole scene on every render and every draw. Its labels are now stable objects (interned per
+ * parent label and role, cached per texture / draw / render target) and a source whose label, resolved label and identity
+ * are unchanged is not observed or emitted again, so the walk allocates nothing once a resource is labelled. Before, its
+ * fresh label objects, strings, entry arrays and WeakRefs were ≈ 80 % of the soak's JS allocation (≈ 275 MB/s against
+ * ≈ 50 MB/s without the census, Chromium) and WebKit's footprint carried the garbage as 40–113 MB transients. The
+ * resulting labels are identical: every skipped write would have rewritten the same value.
+ */
+const derived = new WeakMap<Label, Map<string, Label>>();
+function derive(label: Label, role: string): Label {
+  let roles = derived.get(label);
+  if (roles === undefined) { roles = new Map(); derived.set(label, roles); }
+  let child = roles.get(role);
+  if (child === undefined) { child = { owner: label.owner, asset: `${label.asset}/${role}`, priority: label.priority }; roles.set(role, child); }
+  return child;
+}
+/** the label `remember(resource, label)` would keep, without keeping it */
+function resolved(resource: object, label: Label): Label {
+  const previous = labels.get(resource);
+  return previous && previous.priority >= label.priority ? previous : label;
+}
+const RENDERER_INTERNAL: Label = { owner: 'engine/renderer', asset: 'renderer-internal', priority: 0 };
 function hook(name: string): unknown { return typeof window === 'undefined' ? undefined : Reflect.get(window, name); }
 function census(): boolean { return typeof hook('__sc_label_gl') === 'function'; }
 function enabled(): boolean { return isDev() || census(); }
@@ -46,9 +69,31 @@ export function labelledCreation<T>(owner: string, asset: string, create: () => 
   const fn = hook('__sc_gl_scope');
   return withMemoryLabel({ owner, asset }, () => typeof fn === 'function' ? Reflect.apply(fn, window, [owner, asset, create]) as T : create());
 }
+interface Observed { label: Label; resolved: Label; identity: object | undefined }
+const observed = new WeakMap<object, Observed>();
 function data(source: unknown, label: Label, identity?: object): void {
+  if (source === null || typeof source !== 'object') { observeImageMemory(source, label); return; }
+  const seen = observed.get(source);
+  if (seen?.label === label && seen.identity === identity && seen.resolved === resolved(source, label)) {
+    relabelImageMemory(source, label); // a shared backing store or image keeps the census's last-write-wins label
+    return;
+  }
   observeImageMemory(source, label);
-  if (source !== null && typeof source === 'object') emit('__sc_label_source', source, remember(source, label), identity);
+  const kept = remember(source, label);
+  emit('__sc_label_source', source, kept, identity);
+  if (seen === undefined) observed.set(source, { label, resolved: kept, identity });
+  else { seen.label = label; seen.resolved = kept; seen.identity = identity; }
+}
+interface Named { inherited: Label; url: unknown; name: string; label: Label }
+const named = new WeakMap<Texture, Named>();
+/** the texture's file (or embedded-name) label for this inherited label, cached while its inputs stay the same */
+function textureLabel(texture: Texture, inherited: Label, url: unknown): Label {
+  const cached = named.get(texture);
+  if (cached?.inherited === inherited && cached.url === url && cached.name === texture.name) return cached.label;
+  const file = typeof url === 'string' && url.length > 0 && !url.startsWith('blob:') ? url.split('?')[0] : texture.name ? `${inherited.asset}/${texture.name}` : undefined;
+  const label = file ? { ...inherited, asset: file } : inherited;
+  named.set(texture, { inherited, url, name: texture.name, label });
+  return label;
 }
 function markTexture(texture: Texture, fallback: Label): Label {
   const image: unknown = texture.image;
@@ -58,8 +103,7 @@ function markTexture(texture: Texture, fallback: Label): Label {
   const current: unknown = image !== null && typeof image === 'object' ? Reflect.get(image, 'currentSrc') : undefined;
   const src: unknown = image !== null && typeof image === 'object' ? Reflect.get(image, 'src') : undefined;
   const url = typeof current === 'string' && current.length > 0 ? current : src;
-  const named = typeof url === 'string' && url.length > 0 && !url.startsWith('blob:') ? url.split('?')[0] : texture.name ? `${inherited.asset}/${texture.name}` : undefined;
-  const label = remember(texture, named ? { ...inherited, asset: named } : inherited);
+  const label = remember(texture, textureLabel(texture, inherited, url));
   data(texture.source, label);
   data(image, label);
   if (image !== null && typeof image === 'object') data(Reflect.get(image, 'data'), label);
@@ -67,11 +111,18 @@ function markTexture(texture: Texture, fallback: Label): Label {
   return label;
 }
 function markMaterial(material: Material, label: Label): void {
-  for (const [role, value] of Object.entries(material)) if (isTexture(value)) markTexture(value, { ...label, asset: `${label.asset}/${role}` });
+  for (const role in material) {
+    if (!Object.hasOwn(material, role)) continue;
+    const value: unknown = Reflect.get(material, role);
+    if (isTexture(value)) markTexture(value, derive(label, role));
+  }
   const uniforms: unknown = Reflect.get(material, 'uniforms');
-  if (uniforms !== null && typeof uniforms === 'object') for (const [role, uniform] of Object.entries(uniforms)) {
+  if (uniforms !== null && typeof uniforms === 'object') for (const role in uniforms) {
+    if (!Object.hasOwn(uniforms, role)) continue;
+    const uniform: unknown = Reflect.get(uniforms, role);
     const value: unknown = uniform !== null && typeof uniform === 'object' ? Reflect.get(uniform, 'value') : undefined;
-    for (const item of Array.isArray(value) ? value : [value]) if (isTexture(item)) markTexture(item, { ...label, asset: `${label.asset}/uniform/${role}` });
+    if (Array.isArray(value)) { for (const item of value as readonly unknown[]) if (isTexture(item)) markTexture(item, derive(label, `uniform/${role}`)); }
+    else if (isTexture(value)) markTexture(value, derive(label, `uniform/${role}`));
   }
 }
 function markGeometry(geometry: BufferGeometry, fallback: Label): void {
@@ -79,11 +130,18 @@ function markGeometry(geometry: BufferGeometry, fallback: Label): void {
   const attribute = (value: BufferAttribute | InterleavedBufferAttribute, role: string): void => {
     if (arrayReleased(value)) return; // the Memory saver let its CPU copy go: touching `array` would read it back (SF22d)
     const array = value instanceof InterleavedBufferAttribute ? value.data.array : value.array;
-    data(array, { ...label, asset: `${label.asset}/${role}` }, value instanceof InterleavedBufferAttribute ? value.data : value);
+    data(array, derive(label, role), value instanceof InterleavedBufferAttribute ? value.data : value);
   };
   if (geometry.index) attribute(geometry.index, 'index');
-  for (const [role, value] of Object.entries(geometry.attributes)) attribute(value, role);
-  for (const [role, values] of Object.entries(geometry.morphAttributes)) for (const [index, value] of (values ?? []).entries()) attribute(value, `morph/${role}/${index}`);
+  const attributes = geometry.attributes, morphs = geometry.morphAttributes;
+  for (const role in attributes) if (Object.hasOwn(attributes, role)) { const value = attributes[role]; if (value !== undefined) attribute(value, role); }
+  for (const role in morphs) if (Object.hasOwn(morphs, role)) {
+    const values: unknown = Reflect.get(morphs, role);
+    if (Array.isArray(values)) for (let index = 0; index < values.length; index++) {
+      const value: unknown = values[index];
+      if (value instanceof BufferAttribute || value instanceof InterleavedBufferAttribute) attribute(value, `morph/${role}/${index}`);
+    }
+  }
 }
 function nodeResources(node: Object3D, label: Label): void {
   const geo: unknown = Reflect.get(node, 'geometry'), mats: unknown = Reflect.get(node, 'material');
@@ -93,24 +151,30 @@ function nodeResources(node: Object3D, label: Label): void {
   const bones: unknown = skeleton !== null && typeof skeleton === 'object' ? Reflect.get(skeleton, 'boneTexture') : undefined;
   if (skeleton instanceof Skeleton) {
     const owner = isGeometry(geo) ? labels.get(geo) ?? label : label;
-    const boneLabel = remember(skeleton, { ...owner, asset: `${owner.asset}/skeleton/bones` });
+    const boneLabel = remember(skeleton, derive(owner, 'skeleton/bones'));
     if (isTexture(bones)) markTexture(bones, boneLabel);
   } else if (isTexture(bones)) {
     const owner = isGeometry(geo) ? labels.get(geo) ?? label : label;
-    markTexture(bones, { ...owner, asset: `${owner.asset}/skeleton/bones` });
+    markTexture(bones, derive(owner, 'skeleton/bones'));
   }
-  for (const [role, value] of Object.entries(node)) {
-    if (value instanceof BufferAttribute) { if (!arrayReleased(value)) data(value.array, { ...label, asset: `${label.asset}/${role}` }); }
-    else if (isTexture(value)) markTexture(value, { ...label, asset: `${label.asset}/${role}` });
+  for (const role in node) {
+    if (!Object.hasOwn(node, role)) continue;
+    const value: unknown = Reflect.get(node, role);
+    if (value instanceof BufferAttribute) { if (!arrayReleased(value)) data(value.array, derive(label, role)); }
+    else if (isTexture(value)) markTexture(value, derive(label, role));
   }
 }
 function tree(root: Object3D, owner: string, asset: string, priority: number): void {
-  const visit = (node: Object3D, path: string): void => {
-    const label = remember(node, { owner, asset: path, priority });
+  // a node already labelled at this priority or higher keeps its label, so its path is built only when it is new
+  const visit = (node: Object3D, parent: Label | null, index: number): void => {
+    const previous = labels.get(node);
+    const label = previous !== undefined && previous.priority >= priority ? previous
+      : remember(node, { owner, asset: parent === null ? asset : `${parent.asset}/${node.name || `${node.type}[${index}]`}`, priority });
     nodeResources(node, label);
-    for (const [index, child] of node.children.entries()) visit(child, `${label.asset}/${child.name || `${child.type}[${index}]`}`);
+    const children = node.children;
+    for (let i = 0; i < children.length; i++) { const child = children[i]; if (child !== undefined) visit(child, label, i); }
   };
-  visit(root, asset);
+  visit(root, null, 0);
 }
 /**
  * SF69: the per-render walks (the scene each render, the drawn object each draw) without the census harness are
@@ -165,9 +229,30 @@ function resourceLabel(value: unknown): Label {
       const owner = sceneResourceOwner(value);
       return markTexture(value, { owner: owner?.name ?? 'unattributed', asset: 'generated/texture', priority: owner === null ? 0 : 2 });
     }
-    if (isTarget(value)) return { owner: sceneResourceOwner(value)?.name ?? 'engine/render-target', asset: value.texture.name || `generated/render-target/${value.width}x${value.height}`, priority: 1 };
+    if (isTarget(value)) return targetLabel(value);
   }
-  return { owner: 'engine/renderer', asset: 'renderer-internal', priority: 0 };
+  return RENDERER_INTERNAL;
+}
+interface TargetLabel { owner: string; name: string; width: number; height: number; label: Label }
+const targets = new WeakMap<WebGLRenderTarget, TargetLabel>();
+function targetLabel(target: WebGLRenderTarget): Label {
+  const owner = sceneResourceOwner(target)?.name ?? 'engine/render-target', name = target.texture.name, cached = targets.get(target);
+  if (cached?.owner === owner && cached.name === name && cached.width === target.width && cached.height === target.height) return cached.label;
+  const label = { owner, asset: name || `generated/render-target/${target.width}x${target.height}`, priority: 1 };
+  targets.set(target, { owner, name, width: target.width, height: target.height, label });
+  return label;
+}
+interface DrawLabel { owner: string | null; own: Label | undefined; generated: string; label: Label }
+const drawLabels = new WeakMap<object, DrawLabel>();
+/** a draw's label: its scene owner's, else the object's own, else a generated one; cached while those stay the same */
+function drawLabel(object: Object3D, mat: Material): Label {
+  const owner = sceneObjectOwner(object)?.name ?? null, own = labels.get(object), generated = owner === null ? mat.name || mat.type : object.name || mat.name || mat.type;
+  const cached = drawLabels.get(object);
+  if (cached?.owner === owner && cached.own === own && cached.generated === generated) return cached.label;
+  const label = owner === null ? own ?? { owner: 'unattributed', asset: `generated/${generated}`, priority: 0 }
+    : { owner, asset: own?.asset ?? `generated/${generated}`, priority: 2 };
+  drawLabels.set(object, { owner, own, generated, label });
+  return label;
 }
 /** Bridge Three resource identity to native uploads for the debugger and the independent census harness. */
 export function installGpuLabels(renderer: Renderer, developer: () => boolean = isDev): void {
@@ -189,8 +274,8 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
   renderer.properties.get = (resource) => {
     if (isTarget(resource)) {
       const label = resourceLabel(resource);
-      remember(resource.texture, { ...label, asset: `${label.asset}/color` });
-      if (resource.depthTexture) remember(resource.depthTexture, { ...label, asset: `${label.asset}/depth` });
+      remember(resource.texture, derive(label, 'color'));
+      if (resource.depthTexture) remember(resource.depthTexture, derive(label, 'depth'));
     }
     const properties = get(resource);
     if (properties === null || typeof properties !== 'object') return properties;
@@ -200,9 +285,10 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
       const label = resourceLabel(resource);
       // SF69: outside the census, a handle already tagged with this label is not re-tagged on every property read
       const last = tags.get(value);
-      if (last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority && !census()) return;
-      tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
-      emit('__sc_label_gl', value, { ...label, asset: `${label.asset}/${role}` });
+      const same = last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority;
+      if (same && !census()) return;
+      if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
+      emit('__sc_label_gl', value, derive(label, role));
     };
     const stamp = (value: unknown, role: string): unknown => {
       if (Array.isArray(value)) {
@@ -213,7 +299,11 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
       return value;
     };
     // Assets initialized before joining a scene acquire their authored identity later; update the existing GL tag.
-    for (const key of GL_HANDLES) { const value: unknown = Reflect.get(properties, key); if (value !== undefined) tag(value, key.slice(7)); }
+    for (let index = 0; index < GL_HANDLES.length; index++) {
+      const key = GL_HANDLES[index], role = GL_ROLES[index];
+      const value: unknown = key === undefined ? undefined : Reflect.get(properties, key);
+      if (value !== undefined && role !== undefined) tag(value, role);
+    }
     const prior = proxies.get(properties);
     if (prior) return prior;
     const proxy = new Proxy(properties, { set(target, key, value: unknown) {
@@ -242,9 +332,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     // every draw of a multi-material mesh and re-marked it each time (SF69: ~1.2 MB / frame)
     const own: unknown = Reflect.get(object, 'material');
     if (!census() && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
-    const owner = sceneObjectOwner(object);
-    const label = owner === null ? labels.get(object) ?? { owner: 'unattributed', asset: `generated/${mat.name || mat.type}`, priority: 0 }
-      : { owner: owner.name, asset: labels.get(object)?.asset ?? `generated/${object.name || mat.name || mat.type}`, priority: 2 };
+    const label = drawLabel(object, mat);
     markGeometry(geo, label); markMaterial(mat, label);
     if (Array.isArray(own)) for (const m of own as readonly unknown[]) if (isMaterial(m) && m !== mat) markMaterial(m, label);
     draw(camera, scene, geo, mat, object, group);

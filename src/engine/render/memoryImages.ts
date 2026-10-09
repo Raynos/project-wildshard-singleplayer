@@ -19,3 +19,13 @@ export function observeImageMemory(value: unknown, label: MemoryLabel): void {
     return typeof width === 'number' && typeof height === 'number' ? width * height * 4 : 0;
   }, 'estimate');
 }
+/** The label writes of {@link observeImageMemory} alone, for a source already observed under this label (the GPU-label
+ * census, SF57): a backing store or image shared by several sources keeps its last-write-wins label, with no new
+ * observation entry. */
+export function relabelImageMemory(value: object, label: MemoryLabel): void {
+  if (ArrayBuffer.isView(value)) { memoryAttribution.label(value.buffer, label); return; }
+  const data: unknown = Reflect.get(value, 'data');
+  if (ArrayBuffer.isView(data)) memoryAttribution.label(data.buffer, label);
+  if ((typeof HTMLCanvasElement !== 'undefined' && value instanceof HTMLCanvasElement) || (typeof OffscreenCanvas !== 'undefined' && value instanceof OffscreenCanvas)
+    || (typeof ImageBitmap !== 'undefined' && value instanceof ImageBitmap) || (typeof HTMLImageElement !== 'undefined' && value instanceof HTMLImageElement)) memoryAttribution.label(value, label);
+}

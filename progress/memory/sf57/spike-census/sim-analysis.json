@@ -1,0 +1,169 @@
+[{
+ "mode": "census-before",
+ "game": "47797",
+ "errors": [],
+ "driveSamples": 283,
+ "drivePeakIntervalMB": "586.3",
+ "driveMedianMB": "501.4",
+ "gcCount": {
+  "full": 38,
+  "eden": 1178
+ },
+ "categoryMaxMB": {
+  "javascript": "961.0",
+  "jit": "37.3",
+  "images": "0.0",
+  "layers": "0.0",
+  "page": "480.0",
+  "other": "67.4"
+ },
+ "categoryMinMB": {
+  "javascript": "340.0",
+  "jit": "32.3",
+  "images": "0.0",
+  "layers": "0.0",
+  "page": "11.8",
+  "other": "61.1"
+ },
+ "rows": [
+  {
+   "route": "0:driftwood-isle-to-template-1",
+   "baseMB": "495.2",
+   "exitHighMB": "511.4",
+   "riseMB": "16.3",
+   "jsPreMaxMB": "668.5",
+   "jsExitMaxMB": "772.7",
+   "gcs": "0 full / 25 eden"
+  },
+  {
+   "route": "0:template-1-to-template-2",
+   "baseMB": "499.7",
+   "exitHighMB": "504.0",
+   "riseMB": "4.2",
+   "jsPreMaxMB": "814.4",
+   "jsExitMaxMB": "654.4",
+   "gcs": "0 full / 47 eden"
+  },
+  {
+   "route": "0:template-2-to-template-3",
+   "baseMB": "495.7",
+   "exitHighMB": "567.8",
+   "riseMB": "72.1",
+   "jsPreMaxMB": "796.8",
+   "jsExitMaxMB": "961.0",
+   "gcs": "0 full / 52 eden"
+  },
+  {
+   "route": "0:template-3-to-template-4",
+   "baseMB": "500.6",
+   "exitHighMB": "562.8",
+   "riseMB": "62.2",
+   "jsPreMaxMB": "638.2",
+   "jsExitMaxMB": "725.1",
+   "gcs": "0 full / 60 eden"
+  },
+  {
+   "route": "0:template-4-to-template-5",
+   "baseMB": "521.7",
+   "exitHighMB": "586.3",
+   "riseMB": "64.6",
+   "jsPreMaxMB": "745.8",
+   "jsExitMaxMB": "754.2",
+   "gcs": "2 full / 58 eden"
+  },
+  {
+   "route": "0:template-5-to-driftwood-isle",
+   "baseMB": "500.9",
+   "exitHighMB": "502.6",
+   "riseMB": "1.7",
+   "jsPreMaxMB": "705.3",
+   "jsExitMaxMB": "777.4",
+   "gcs": "0 full / 57 eden"
+  }
+ ]
+}
+,{
+ "mode": "census-after",
+ "game": "96422",
+ "errors": [],
+ "driveSamples": 276,
+ "drivePeakIntervalMB": "588.4",
+ "driveMedianMB": "522.0",
+ "gcCount": {
+  "full": 38,
+  "eden": 552
+ },
+ "categoryMaxMB": {
+  "javascript": "669.0",
+  "jit": "37.1",
+  "images": "0.9",
+  "layers": "0.0",
+  "page": "467.3",
+  "other": "67.2"
+ },
+ "categoryMinMB": {
+  "javascript": "314.5",
+  "jit": "31.8",
+  "images": "0.0",
+  "layers": "0.0",
+  "page": "12.1",
+  "other": "61.2"
+ },
+ "rows": [
+  {
+   "route": "0:driftwood-isle-to-template-1",
+   "baseMB": "525.4",
+   "exitHighMB": "531.4",
+   "riseMB": "6.0",
+   "jsPreMaxMB": "553.0",
+   "jsExitMaxMB": "583.3",
+   "gcs": "4 full / 28 eden"
+  },
+  {
+   "route": "0:template-1-to-template-2",
+   "baseMB": "523.4",
+   "exitHighMB": "584.9",
+   "riseMB": "61.5",
+   "jsPreMaxMB": "583.3",
+   "jsExitMaxMB": "553.7",
+   "gcs": "0 full / 28 eden"
+  },
+  {
+   "route": "0:template-2-to-template-3",
+   "baseMB": "562.3",
+   "exitHighMB": "588.4",
+   "riseMB": "26.1",
+   "jsPreMaxMB": "600.8",
+   "jsExitMaxMB": "650.2",
+   "gcs": "0 full / 32 eden"
+  },
+  {
+   "route": "0:template-3-to-template-4",
+   "baseMB": "521.9",
+   "exitHighMB": "523.0",
+   "riseMB": "1.2",
+   "jsPreMaxMB": "522.0",
+   "jsExitMaxMB": "569.2",
+   "gcs": "0 full / 31 eden"
+  },
+  {
+   "route": "0:template-4-to-template-5",
+   "baseMB": "522.3",
+   "exitHighMB": "530.8",
+   "riseMB": "8.5",
+   "jsPreMaxMB": "567.0",
+   "jsExitMaxMB": "600.6",
+   "gcs": "2 full / 27 eden"
+  },
+  {
+   "route": "0:template-5-to-driftwood-isle",
+   "baseMB": "522.0",
+   "exitHighMB": "523.2",
+   "riseMB": "1.2",
+   "jsPreMaxMB": "592.2",
+   "jsExitMaxMB": "638.9",
+   "gcs": "0 full / 26 eden"
+  }
+ ]
+}
+]

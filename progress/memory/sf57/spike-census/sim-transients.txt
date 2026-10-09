@@ -1,0 +1,4 @@
+census-before top transients MB: 54 (driftwood-isle-to-template-1 +16.2s); 38.7 (template-2-to-template-3 +8.9s); 27.6 (template-2-to-template-3 +7.9s); 23.6 (template-4-to-template-5 +7.0s); 23 (driftwood-isle-to-template-1 +15.2s); 23 (driftwood-isle-to-template-1 +22.2s)
+census-before count >=20 MB: 9  >=40 MB: 1  sum of >=10 MB: 296
+census-after top transients MB: 22 (template-2-to-template-3 +7.3s); 21.6 (template-1-to-template-2 +7.9s); 21 (template-2-to-template-3 +8.3s); 10.8 (template-3-to-template-4 +31.6s); 9.3 (template-2-to-template-3 +31.5s); 9.2 (template-1-to-template-2 +4.9s)
+census-after count >=20 MB: 3  >=40 MB: 0  sum of >=10 MB: 75
