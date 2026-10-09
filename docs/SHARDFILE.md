@@ -585,8 +585,9 @@ compositor, whose trusted registry matches both shard slug and entry. Content ca
 select an import URL. Neighbours retain data without running trusted play hooks;
 entering a cell installs those hooks in its child scope and leaving disposes them.
 The trusted compositor may explicitly request `trustedRuntime` for a first-party
-runtime declaration. Optional `runtime.binds` is a unique array of at most five
-section names: `"quests"`, `"ledger"`, `"items"`, `"spawns"`, `"state"`. Omitted or `[]` means none; unknown
+runtime declaration. Optional `runtime.binds` is a unique array of at most seven
+section names: `"quests"`, `"ledger"`, `"items"`, `"spawns"`, `"state"`, `"terrain"`,
+`"props"`. Omitted or `[]` means none; unknown
 names, duplicates, null and unknown runtime keys are refused. The defining
 `RuntimeBindsSchema` is composed by `RuntimeSchema` at the full schema's `runtime`
 slot; it is not a second permissive format or a source-code hook.
@@ -620,6 +621,26 @@ The normal state schema still checks unique stable IDs and names, typed defaults
 finite numeric bounds and capacity. String values (including serialized JSON) are
 bounded at 4096 characters; JSON is opaque text, never an author callback. Ordinary
 unbound state keeps its existing public/player ownership rules.
+
+`runtime.binds: ["terrain"]` binds the ordinary compiled `terrain` section: its
+render tiles and critical collider remain admitted product assets. The data client
+installs neither the terrain view nor its collision. The trusted runtime calls
+`bindRuntimeTerrain` from `@wildshard/game/shardfile/runtimeWorld`, supplying the
+admitted asset reader, its own terrain view, initial shard-local position and,
+when charged per tile, the page residency allocator. The result exposes ground
+queries over the admitted collider, resident fine-tile keys and `refresh(x, z)`.
+Tile residency and view disposal follow the supplied scope; the runtime retains
+physics ownership and must avoid installing duplicate ground.
+
+`runtime.binds: ["props"]` binds the ordinary compiled `props` section, including
+tiles, library models, panels, textures and the far proxy. The trusted runtime
+owns their installation and piece behaviour; naming the section alone installs
+nothing. `runtimeBoundWorldFiles` in `hybridRows` identifies files referenced only
+by bound world sections. `withoutRuntimeRows` removes those sections and their
+exclusive file, critical, library, tile and far references from the data client's
+installation view, while preserving files still referenced by unbound declarations.
+The original product remains fully admitted and available to the runtime. Binding
+world sections does not waive hash, reference, geometry, entry or budget checks.
 
 Every bound section remains ordinary declared data and passes its full schema,
 reference and budget checks before binding. The admitted source retains those rows.
