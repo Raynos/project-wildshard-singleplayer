@@ -1,0 +1,179 @@
+{
+  "glb": "0946ca25b8bb75aca6386cf177f31dd12c324c7acb30450a0ce2b223afc00d09",
+  "kinds": [
+    {
+      "name": "0-BufferGeometry",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.88,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "shack": "plank"
+    },
+    {
+      "name": "1-BufferGeometry",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.88,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "shack": "shingle"
+    },
+    {
+      "name": "2-BufferGeometry",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.95,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "shack": "stone"
+    },
+    {
+      "name": "3-BufferGeometry",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.88,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "shack": "beam"
+    },
+    {
+      "name": "4-BufferGeometry",
+      "count": 1,
+      "color": 1381146,
+      "roughness": 0.4,
+      "metalness": 0.1,
+      "flat": false,
+      "emissive": 2759180,
+      "emissiveIntensity": 0.6,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "5-CylinderGeometry",
+      "count": 1,
+      "color": 3814456,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "6-CylinderGeometry",
+      "count": 1,
+      "color": 3814456,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "7-BoxGeometry",
+      "count": 2,
+      "color": 3814456,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "8-BufferGeometry",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.88,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "shack": "beam"
+    },
+    {
+      "name": "9-CylinderGeometry",
+      "count": 1,
+      "color": 3814456,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "10-CylinderGeometry",
+      "count": 1,
+      "color": 3814456,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "11-BoxGeometry",
+      "count": 1,
+      "color": 3115660,
+      "roughness": 0.9,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 797226,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": true
+    },
+    {
+      "name": "12-CylinderGeometry",
+      "count": 1,
+      "color": 3814456,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    }
+  ],
+  "colliders": [
+    {
+      "kind": "box",
+      "x": -70,
+      "y": 48.5,
+      "z": -133.75703574175787,
+      "hx": 2.852,
+      "hy": 4.5,
+      "hz": 2.852,
+      "yaw": 0,
+      "surface": "stone"
+    }
+  ]
+}

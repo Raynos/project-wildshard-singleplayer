@@ -65,6 +65,8 @@ export const CROWN: Isle = { id: 'crown', x: 0, z: -190, r: 20, y: HIGH, keel: 3
 export const ISLES: readonly Isle[] = [SUNREST, WINDMILL, GROVE, ROOST, KEEPER, RUIN, STEP, CROWN];
 /** The apothem of an island's 12-gon top: where the rim edge is nearest the centre. */
 export const apothem = (isle: Isle): number => isle.r * Math.cos(Math.PI / 12);
+/** The winch house on the high step (its footprint; `generators/winchHouse.ts` builds it, the meadow keeps clear of it). */
+export const WINCH_HOUSE = { x: STEP.x - 6, z: STEP.z - apothem(STEP) + 4.8, w: 4.6, h: 9 } as const;
 
 /** The 12-gon's rim distance from an island's centre in the direction `a` (radians, from +x toward +z). */
 export function rimAlong(isle: Isle, a: number): number {

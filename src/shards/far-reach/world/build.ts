@@ -3,7 +3,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, apothem, ropeSag, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -15,7 +15,7 @@ import { trees } from './trees';
 import { inCube, SKY_ISLES, skyIslesIn } from './skyIsles';
 import { ISLE_CUT, ISLE_KEEL_CUT, keelIsles, skyIsleModels } from './skyIsleHd';
 import { knollHull, knollMesh } from './knoll';
-import { winchHouse } from './winchHouse';
+import { skyBakedPiece } from './baked';
 import { skyline } from './distant';
 import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
 import { BOOK_STAND, bookStand } from './bookStand';
@@ -266,8 +266,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena, surface: 'stone',
     colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...stones] });
   // the winch house on the high step (loop 5): the updraft view's landmark
-  const house = winchHouse(); root.add(house.group);
-  ctx.piece({ id: 'far.step.winch-house', name: STRINGS.winch, category: 'buildings', file: FILE, object: house.group, colliders: house.colliders, surface: 'stone' });
+  // (SF72: built offline, generators/winchHouse.ts → baked/winch-house.glb; drawn from the bake)
+  const house = skyBakedPiece('winch-house'); house.root.name = 'far.step.winch-house'; house.root.position.set(WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z); root.add(house.root);
+  ctx.piece({ id: 'far.step.winch-house', name: STRINGS.winch, category: 'buildings', file: FILE, object: house.root, colliders: house.colliders, surface: 'stone' });
   // the Roost's nest and spires (loop 4, review H2): the drift rays' island gets its subject
   const nest = roost(); root.add(nest.group);
   ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.group, colliders: nest.colliders, surface: 'wood' });

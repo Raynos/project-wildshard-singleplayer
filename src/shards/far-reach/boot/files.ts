@@ -46,6 +46,11 @@ const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'mill-tower': '/assets/far-reach/models/mill/mill-tower.glb', 'mill-foot': '/assets/far-reach/models/mill/mill-foot.glb',
 };
 export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
+/** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-sky-world.mjs`), drawn by `world/baked.ts`. */
+export const BAKED_PIECES = ['winch-house'] as const;
+export type BakedPiece = (typeof BAKED_PIECES)[number];
+const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house': '/assets/far-reach/baked/winch-house.glb' };
+export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
 export const TEX_URL = { rock: '/assets/far-reach/tex/rock.webp', meadow: '/assets/far-reach/tex/meadow.webp', clouds: '/assets/far-reach/tex/clouds.webp', branches: '/assets/far-reach/tex/branches.webp', cloudsea: '/assets/far-reach/tex/cloudsea.webp', maelstrom: '/assets/far-reach/tex/maelstrom.webp', stormeye: '/assets/far-reach/tex/stormeye.webp',
   millStone: '/assets/far-reach/tex/mill-stone.webp', millCanvas: '/assets/far-reach/tex/mill-canvas.webp', millIvy: '/assets/far-reach/tex/mill-ivy.webp' } as const;
@@ -54,10 +59,10 @@ export const FAN_LEAF_URL = '/assets/far-reach/fan/leaf.webp';
 /** The painted 360° sky (look/sky.ts), one strip per tier. */
 export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
 
-/** Sky Reach downloads its painted sky (look/sky.ts) and its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
+/** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`) and its baked world pieces (`world/baked.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
 // The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name)))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
+  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name))), ...BAKED_PIECES.map(bakedUrl)], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/far-reach/round-29-lut/). */

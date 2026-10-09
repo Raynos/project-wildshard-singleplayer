@@ -1,9 +1,13 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { STEP, apothem } from '../layout';
-import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart } from './shack';
+import { STEP, WINCH_HOUSE } from '../layout';
+import { bakeKinds, foldKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart } from './shackKit';
 
 /**
+ * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/winch-house.glb` +
+ * `data/winchHouse.json`; the client draws the bake (`world/winchHouse.ts`).
+ *
  * The winch house on the high step (loop 5; restyled E392 round 18 toward H3-7 / H3-8: "the mockup's are weathered
  * timber shacks: plank walls, shingle roofs, trim, a lean"). A two-storey timber shack on a battered stone footing: a
  * plank ground storey framed by corner posts, sill and braces; a band of joist ends; an upper storey that leans a little
@@ -12,7 +16,6 @@ import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart
  * them, the teal banner, and the great spoked winch wheel on its bracket on the bridge side (+x). Code-built, the
  * surfaces drawn by the shack kit's procedural shaders (`./shack`); one box collider, the footprint unchanged.
  */
-export const WINCH_HOUSE = { x: STEP.x - 6, z: STEP.z - apothem(STEP) + 4.8, w: 4.6, h: 9 } as const;
 
 /** The shack's frame (local metres, base at y 0): footing, storeys, roof. */
 const F = { foot: 0.9, footBase: 2.55, footTop: 2.42, gx: 2.2, gz: 2.2, band: 4.15, ux: 2.38, uz: 2.32, plate: 7.2, ridge: 9.55, eave: 0.5, gable: 0.4 } as const;
@@ -58,7 +61,7 @@ function geometryOf(part: ShackPart): BufferGeometry {
   return g;
 }
 
-export function winchHouse(): { group: Group; colliders: ColliderDesc[] } {
+export function buildWinchHouse(): { group: Group; colliders: ColliderDesc[] } {
   const group = new Group(); group.name = 'far.step.winch-house';
   const plank = shackPart('plank'), shingle = shackPart('shingle'), stone = shackPart('stone'), timber = shackPart('beam'), glass = shackPart('beam');
   const parts = { plank, beam: timber, glass };
@@ -215,4 +218,21 @@ export function winchHouse(): { group: Group; colliders: ColliderDesc[] } {
   group.position.set(WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z);
   const { w, h } = WINCH_HOUSE;
   return { group, colliders: [boxDesc({ x: WINCH_HOUSE.x, z: WINCH_HOUSE.z, hw: w * 0.62, hd: w * 0.62, rot: 0, yBottom: STEP.y, yTop: STEP.y + h }, 'stone')] };
+}
+
+/** A kind's extra row field: the shack shader that draws it (a stand-in material's `userData.shack`). */
+const shackRow = (material: MeshStandardMaterial): KindExtra => {
+  const kind: unknown = material.userData['shack'];
+  return typeof kind === 'string' ? { shack: kind } : {};
+};
+
+/**
+ * The winch house folded into instanced kinds (every part keeps its transform in the house's own frame: the client stands
+ * the piece at WINCH_HOUSE on the step, so a part draws through the same matrices as before), its `shk` channel kept, and
+ * its collider.
+ */
+export function bakeSkyWinchHouse(): PieceBake {
+  const built = buildWinchHouse();
+  built.group.position.set(0, 0, 0);
+  return bakeKinds('far.winch-house', foldKinds(built.group, { extra: shackRow }), built.colliders, { extra: shackRow, attributes: { _SHK: 'shk' } });
 }
