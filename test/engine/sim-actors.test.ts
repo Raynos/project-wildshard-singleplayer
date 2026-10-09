@@ -63,3 +63,24 @@ it('refuses missing rosters and changed trusted recipes before returning a resto
     expect(snapshotSimHost(host)).toEqual(saved);
   } finally { host.dispose(); }
 });
+
+it('preserves saved adapter order when a deferred roster is reinstalled before its resident controller', () => {
+  const first = createSimHost(level, { rapier }); let restored: SimHost | undefined;
+  const controller = (host: SimHost): void => {
+    let ticks = 0;
+    host.onStep('fixture.controller', () => { ticks++; }, { snapshot: () => ticks, restore: value => {
+      if (typeof value !== 'number' || !Number.isInteger(value)) throw new Error('Invalid controller ticks');
+      ticks = value;
+    } });
+  };
+  try {
+    controller(first); first.spawn(deferredRecipe(1));
+    for (let i = 0; i < 3; i++) first.step();
+    const saved = decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(first)));
+    expect(saved.adapters.map(a => a.id)).toEqual(['fixture.controller', 'runtime.actor.deferred:1']);
+    restored = restoreSimHost(level, { rapier }, saved, fresh => { fresh.spawn(deferredRecipe(1)); controller(fresh); });
+    expectSameSimSnapshot(snapshotSimHost(restored), saved);
+    for (let i = 0; i < 30; i++) { first.step(); restored.step(); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(first));
+  } finally { restored?.dispose(); first.dispose(); }
+});

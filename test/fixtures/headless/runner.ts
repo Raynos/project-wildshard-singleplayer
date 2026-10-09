@@ -60,7 +60,7 @@ export async function run(mode: string, bytes: number[]): Promise<object> {
       const first = await sim.step([{ source: 'input', commands: [{ kind: 'player', moveX: 1, moveZ: 0, yaw: 0 }] }]);
       const next = await sim.step(); const fresh = await HeadlessSimulation.create(source, new Map(), first.snapshot, { deadline: 'advisory' });
       try { const replay = await fresh.step(); check(replay.snapshot === next.snapshot, 'Exact native worker continuation diverged'); } finally { await fresh.dispose(); }
-      const proof = await validateSimulation(source, new Map()); check(proof.ticks === 60 && proof.lanes > 0 && proof.steps > 0 && proof.timing.samples === 60 && Number.isFinite(proof.timing.medianMicros), 'Missing deterministic capsule validation and advisory timing');
+      const proof = await validateSimulation(source, new Map()); check(proof.ticks === 240 && proof.lanes > 0 && proof.steps > 0 && proof.timing.samples === 180 && Number.isFinite(proof.timing.medianMicros), 'Missing deterministic capsule validation and advisory timing');
       const committed = sim.checkpoint; await sim.finish(); let finished = false;
       try { await sim.step(); } catch (error) { finished = error instanceof Error && error.message.includes('validation finished'); }
       check(finished && sim.checkpoint?.snapshot === committed?.snapshot, 'Validation resumed after temporary capsule allocation or changed the committed checkpoint');

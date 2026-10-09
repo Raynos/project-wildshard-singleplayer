@@ -37,13 +37,14 @@ it('preempts a finite-fuel WASM script blocked in a host query, publishes no unf
 });
 it('counts aggregate commands across sources before any tick and protects detached checkpoints', () => { expect(proof('overflow')).toEqual({ accepted: 2, refused: 3, tick: 1 }); });
 it('keeps the first-touch allowance bounded and preemptible', () => { expect(proof('cold')).toEqual({ retained: 0, effects: 0, quarantined: true }); });
-it('validates deterministically with a 1us declared runtime budget, advisory timing and exact native suffix replay', () => { expect(proof('normal')).toMatchObject({ ticks: 60, exact: true, timing: { samples: 60 } }); });
+// SDK observation retains fuel for 60 warm-up + three 60-tick windows; CPU excludes warm-up.
+it('validates deterministically with a 1us declared runtime budget, advisory timing and exact native suffix replay', () => { expect(proof('normal')).toMatchObject({ ticks: 240, exact: true, timing: { samples: 180 } }); });
 it('reports current-tick aggregate fuel and zero on sleepers without changing exact continuation', () => {
   const result = proof('fuel');
-  expect(result).toMatchObject({ sleeping: 0, restoredSleeping: 0, sleepingMicros: 0, exact: true, fuel: { samples: 60, limit: 8_000_000 } });
+  expect(result).toMatchObject({ sleeping: 0, restoredSleeping: 0, sleepingMicros: 0, exact: true, fuel: { samples: 240, limit: 8_000_000 } });
   expect(result['due']).toBeGreaterThan(0);
   expect(result['dueMicros']).toBeGreaterThan(0);
-  expect(result['scripts']).toMatchObject({ samples: 60 });
+  expect(result['scripts']).toMatchObject({ samples: 180 });
   const fuel = result['fuel'];
   if (typeof fuel !== 'object' || fuel === null) throw new Error('Missing fuel report');
   expect(Reflect.get(fuel, 'max')).toBe(result['due']);

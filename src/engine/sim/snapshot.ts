@@ -275,6 +275,15 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       Object.assign(host.slots[key], slots[key]);
     }
     host.slots.ledgerDedupe.splice(0, host.slots.ledgerDedupe.length, ...slots.ledgerDedupe);
+    // Deferred actors may be reinstalled before a controller that originally registered before their spawn.
+    // Preserve the saved continuation order without changing the independently registered step callbacks.
+    const adapters = saved.adapters.map(entry => {
+      const adapter = host.adapters.get(entry.id);
+      if (adapter === undefined) throw new RangeError('Snapshot adapter registration disappeared');
+      return [entry.id, adapter] as const;
+    });
+    host.adapters.clear();
+    for (const [id, adapter] of adapters) host.adapters.set(id, adapter);
     for (const entry of saved.adapters) host.adapters.get(entry.id)?.restore(cloneValue(entry.state));
     host.restoreBodyBands(saved.bands);
     host.restoreDayClock(saved.day);
