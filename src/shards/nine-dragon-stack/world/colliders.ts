@@ -12,19 +12,15 @@ import { GUARD_Z0, PARAPET } from '../models/wellBalustrade';
 import { stairColliders, stairFloor } from './stairstreet';
 import { wellColliders, wellFloor } from './well';
 import { RIM } from './well-plan';
+import { SLAB, span, squareFloor } from './floorRows';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
 export const STREET_END = -120;
 /** the stair-street's top landing: past the last tread, then its end wall */
 export const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise } as const;
 
-/** a box from its extents (min / max corners) */
-function span(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, surface: 'stone' | 'wood' | 'metal' = 'stone'): ColliderDesc {
-  return { kind: 'box', x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: (z0 + z1) / 2, hx: Math.abs(x1 - x0) / 2, hy: Math.abs(y1 - y0) / 2, hz: Math.abs(z1 - z0) / 2, surface };
-}
-
 /** a wall along x (at z) or along z (at x), 1 m thick, from the square's datum up `h` metres, on the far side of the line */
-const WALL_H = 40, SLAB = 1.2;
+const WALL_H = 40;
 
 /** the fragment's own collision in two pieces (their looks on the maps: floors stone, fronts rock); the balustrade over
  *  the Well and the props collide as their models (their looks on the maps: the balustrade rock, the props timber, def.ts) */
@@ -38,9 +34,6 @@ export interface FragmentColliders {
 const DEEP = 6;
 /** how far the shopfronts' pillars and counters stand proud of their front's line (world/facades.ts `shopfronts`) */
 const SHOP = 0.6;
-
-/** SF8c (G224): the square's slab, the floor the portal nodes in Lantern Square stand on (shard.config.ts declares it) */
-export function squareFloor(): ColliderDesc { return span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6); }
 
 export function fragmentColliders(): FragmentColliders {
   const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [];

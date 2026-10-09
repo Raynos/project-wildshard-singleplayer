@@ -4,7 +4,8 @@ import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { DECK_PORTALS, type DeckPortal } from '../../../src/shards/nine-dragon-stack/world/portalPlan';
-import { entryCapsFor, entryDeckColliders } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { entryCapsFor } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { entryDeckColliders } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 // G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone, a deck's open end is closed by a carved

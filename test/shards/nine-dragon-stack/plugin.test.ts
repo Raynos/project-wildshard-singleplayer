@@ -15,7 +15,7 @@ import { fragmentColliders, fragmentGrappleGuard } from '../../../src/shards/nin
 import type { NineDragonWorld } from '../../../src/shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import { entryDeckColliders, entryDeckFloor, portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { entryDeckColliders, entryDeckFloor, portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';
 import { Y0 } from '../../../src/shards/nine-dragon-stack/layout';

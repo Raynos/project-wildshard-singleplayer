@@ -4,13 +4,13 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { ND_AUDIO } from './data/audio';
 import { NINE_ITEMS } from './data/items';
 import { portalLinks, type ShardEdge } from './world/portalPlan';
-import { portalFloorRows } from './world/entries';
+import { portalFloorRows } from './world/floorRows';
 
 // The trusted runtime preserves today's fragment geometry; audio is selected by its declared section.
 // G224 (Jake): Nine Dragon's four road-height decks each carry a portal to Lantern Square, and the square's one portal out
 // sends you back to the deck you came in by. Each entry is a `portalLink` (SF8c, src/game/shardfile/portalLink.ts): the
 // road portal on its deck, the square's arrival, the square's exit bound back to that road, and the walked route between
-// (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (entries.ts
+// (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (floorRows.ts
 // `portalFloorRows`: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });

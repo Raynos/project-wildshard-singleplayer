@@ -1,28 +1,17 @@
-// SF51-g (G93 / G99 / G103 / G131, E435): Nine Dragon's four midpoint entries at road height. The fragment floats at
+// SF51-g (G93 / G99 / G103 / G131, E435): Nine Dragon's four midpoint entries at road height, drawn (their frames,
+// collision and declared floor rows are world/floorRows.ts, renderer-free, SF72). The fragment floats at
 // +125 m and its terrain is an undrawn datum, so nothing stood at y = 0 on its edges: each midpoint gets a Jiehua stone
 // landing deck, ENTRY_WIDTH (8 m) wide and DECK_DEPTH (16 m) deep, its top exactly at y = 0, so the platform's 8 × 15 m
 // asphalt socket lies on it flat, clear and dry. Low stone parapets stand just outside the 8 m opening (the canonical side
 // walls the footprint admits), and a stone end wall with a cinnabar band closes each deck. G224 (Jake): the way on is a
 // floating portal on each deck to Lantern Square (world/portalPlan.ts, portals.ts, portalRide.ts), so the decks are
 // always built (the `nineDragonEntries` row went with the lantern lift it waited for).
-import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
 import { K, type Look } from './kit';
 import { hipRoof } from './square';
-import { DECK_PORTALS, SQUARE_FLOOR, deckFloorId, type ShardEdge } from './portalPlan';
-import { squareFloor } from './colliders';
-
-/** how deep each deck runs in from the edge (the 15 m socket plus a metre to the end wall) */
-export const DECK_DEPTH = 16;
-/** the deck slab's thickness under its y = 0 top */
-const SLAB = 1.2;
-/** the parapets beside the opening: thickness and height (a stone rail, not a jump block) */
-const RAIL_T = 0.6, RAIL_H = 1.1;
-/** the end wall: thickness and height */
-const WALL_T = 0.8, WALL_H = 6;
+import { CAP, DECK_DEPTH, FRAMES, OPENING_HALF, capParts, deckParts, inFrame, type Frame, type FrameBox } from './floorRows';
 
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
 const FLAGS: Look = { wash: 0x3e4148, kind: K.flag, wet: 1, line: 0 };
@@ -33,32 +22,8 @@ const BRONZE_DK: Look = { wash: 0x5a3c1c, line: 1, accent: true, gloss: true };
 const FLAME: Look = { wash: 0xffb050, emit: 2.2, line: 0, accent: true };
 const EMBER: Look = { wash: 0xff6a20, emit: 1.8, line: 0, accent: true };
 
-/** one deck's frame: its edge, its edge-midpoint, the inward unit axis (along) and the across axis */
-interface Frame { edge: ShardEdge; mx: number; mz: number; ix: number; iz: number }
-const FRAMES: readonly Frame[] = [
-  { edge: 'north', mx: 0, mz: CHUNK_HALF, ix: 0, iz: -1 }, { edge: 'south', mx: 0, mz: -CHUNK_HALF, ix: 0, iz: 1 },
-  { edge: 'east', mx: CHUNK_HALF, mz: 0, ix: -1, iz: 0 }, { edge: 'west', mx: -CHUNK_HALF, mz: 0, ix: 1, iz: 0 },
-];
-
-/** an axis-aligned box in a deck's frame: `a0..a1` metres in from the edge, `c0..c1` across, `y0..y1` up */
-function inFrame(f: Frame, a0: number, a1: number, c0: number, c1: number, y0: number, y1: number): { x: number; z: number; sx: number; sz: number; y0: number; y1: number } {
-  const along = (a: number): [number, number] => [f.mx + f.ix * a, f.mz + f.iz * a];
-  const [ax0, az0] = along(a0), [ax1, az1] = along(a1);
-  // the across axis is x for a north / south deck, z for an east / west one
-  const xs = f.ix === 0 ? [c0, c1] : [ax0, ax1], zs = f.ix === 0 ? [az0, az1] : [c0, c1];
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
-  return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sz: z1 - z0, y0, y1 };
-}
-
-/** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
-function parts(f: Frame): { slab: ReturnType<typeof inFrame>; rails: ReturnType<typeof inFrame>[]; walls: ReturnType<typeof inFrame>[] } {
-  const h = ENTRY_WIDTH / 2, c0 = -h - RAIL_T, c1 = h + RAIL_T;
-  return {
-    slab: inFrame(f, 0, DECK_DEPTH, c0, c1, -SLAB, 0),
-    rails: [inFrame(f, 0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H), inFrame(f, 0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)],
-    walls: [inFrame(f, DECK_DEPTH, DECK_DEPTH + WALL_T, c0, c1, -SLAB, WALL_H)],
-  };
-}
+/** whether the decks get their caps this session: standalone (`cube` null) yes; in a grid cell the road socket continues */
+export function entryCapsFor(cube: ShardCube | null): boolean { return cube === null; }
 
 /**
  * G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone there is no road at a deck's open end, so
@@ -66,64 +31,12 @@ function parts(f: Frame): { slab: ReturnType<typeof inFrame>; rails: ReturnType<
  * inset and a top rail across the 8 m opening; a raised pedestal in its middle carries a bronze beacon brazier, and two
  * stone-lantern pillars with green tiled caps and red lanterns stand on the parapets' ends. Standalone only (the
  * world's `caps`, `ctx.cube === null`, plugin.ts): in a grid cell the road socket continues there. Drawn into the
- * `entries` kit like the deck (merged, no new draw); laid out in the deck's frame, so all four decks share it.
+ * `entries` kit like the deck (merged, no new draw); laid out in the deck's frame (floorRows.ts `capParts`), so all four decks share it.
+ * This is one cap into the `entries` kit, with its lanterns hung in the fragment's lantern batch.
  */
-export const CAP = { depth: 0.7, rail: 1.15, pedestal: 0.6, pedestalH: 1.3, pillar: 0.8, pillarH: 3.4 } as const;
-function capParts(f: Frame): { plinth: ReturnType<typeof inFrame>; rail: ReturnType<typeof inFrame>; pedestal: ReturnType<typeof inFrame>; pillars: ReturnType<typeof inFrame>[] } {
-  const h = ENTRY_WIDTH / 2, c = h + RAIL_T / 2, p = CAP.pillar / 2;
-  return {
-    plinth: inFrame(f, 0, CAP.depth, -h, h, 0, 0.3),
-    rail: inFrame(f, 0, CAP.depth, -h, h, 0, CAP.rail),
-    pedestal: inFrame(f, 0, CAP.depth + 0.1, -CAP.pedestal, CAP.pedestal, 0, CAP.pedestalH),
-    pillars: [-1, 1].map((s) => inFrame(f, 0, CAP.pillar + 0.1, s * c - p, s * c + p, 0, CAP.pillarH)),
-  };
-}
-/** whether the decks get their caps this session: standalone (`cube` null) yes; in a grid cell the road socket continues */
-export function entryCapsFor(cube: ShardCube | null): boolean { return cube === null; }
-
-const box = (b: ReturnType<typeof inFrame>): ColliderDesc => ({ kind: 'box', x: b.x, y: (b.y0 + b.y1) / 2, z: b.z, hx: b.sx / 2, hy: (b.y1 - b.y0) / 2, hz: b.sz / 2, surface: 'stone' });
-
-/** the four decks' collision: the slabs (tops at y = 0), the parapets and the end walls; with `caps` (standalone, G200)
- *  the balustrade, its brazier's pedestal and the two lantern pillars across each deck's open end */
-export function entryDeckColliders(caps = false): ColliderDesc[] {
-  return [...FRAMES.flatMap((f) => portalDeckColliders(f.edge)), ...entryCapColliders(caps)];
-}
-/** the decks' standalone balustrades (G200), each deck's in the same order; none in a grid cell (the socket continues) */
-export function entryCapColliders(caps: boolean): ColliderDesc[] {
-  if (!caps) return [];
-  return FRAMES.flatMap((f) => { const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; });
-}
-
-/**
- * SF8c (G224): a deck's collision as the shardfile declares it (`deck.<edge>`, shard.config.ts), the named floor its road
- * portal stands on: the whole deck from the cell's edge to its end wall, so it covers the canonical 8 × 15 m socket at
- * y = 0 (the format's portal-floor proof), its two parapets and its end wall. These are the very boxes the world installs
- * (world/install.ts registers each deck as its own piece answering to this id), never a second copy.
- */
-export function portalDeckColliders(edge: ShardEdge): ColliderDesc[] {
-  const f = FRAMES.find((row) => row.edge === edge); if (f === undefined) throw new Error(`No landing deck on the ${edge} edge`);
-  const p = parts(f);
-  return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box)];
-}
-/** SF8c (G224): the floors the portal nodes stand on as shardfile collider rows: the four decks' and the square's */
-export function portalFloorRows(): { id: string; panel: null; initialActive: true; shapes: ColliderDesc[] }[] {
-  return [...DECK_PORTALS.map((p) => ({ id: deckFloorId(p.edge), panel: null, initialActive: true as const, shapes: portalDeckColliders(p.edge) })),
-    { id: SQUARE_FLOOR, panel: null, initialActive: true, shapes: [squareFloor()] }];
-}
-
-/** the floor on a deck (placement, footsteps), else undefined */
-export function entryDeckFloor(x: number, z: number): number | undefined {
-  for (const f of FRAMES) {
-    const s = parts(f).slab;
-    if (Math.abs(x - s.x) <= s.sx / 2 && Math.abs(z - s.z) <= s.sz / 2) return 0;
-  }
-  return undefined;
-}
-
-/** one balustrade cap (G200) into the `entries` kit, with its lanterns hung in the fragment's lantern batch */
 function buildCap(ctx: Ctx, f: Frame): void {
-  const k = ctx.kit('entries'), c = capParts(f), h = ENTRY_WIDTH / 2, d = CAP.depth;
-  const put = (b: ReturnType<typeof inFrame>, look: Look, opt: { top?: Look | null } = {}): void => { k.box(b.x, b.y0, b.z, b.sx, b.y1 - b.y0, b.sz, look, opt); };
+  const k = ctx.kit('entries'), c = capParts(f), h = OPENING_HALF, d = CAP.depth;
+  const put = (b: FrameBox, look: Look, opt: { top?: Look | null } = {}): void => { k.box(b.x, b.y0, b.z, b.sx, b.y1 - b.y0, b.sz, look, opt); };
   put(c.plinth, STONE);
   // the newel posts and the carved panels between them (a cinnabar inset on the deck face), the top rail over them
   const newels = [-h + 0.25, -2.3, 2.3, h - 0.25];
@@ -158,7 +71,7 @@ function buildCap(ctx: Ctx, f: Frame): void {
   }
 }
 /** a pillar's across span, widened by `w`, as inFrame's c0 / c1 */
-function pillarSpan(f: Frame, p: ReturnType<typeof inFrame>, w: number): [number, number] {
+function pillarSpan(f: Frame, p: FrameBox, w: number): [number, number] {
   const half = (f.ix === 0 ? p.sx : p.sz) / 2 + w, mid = f.ix === 0 ? p.x : p.z;
   return [mid - half, mid + half];
 }
@@ -168,12 +81,12 @@ function pillarSpan(f: Frame, p: ReturnType<typeof inFrame>, w: number): [number
 export function buildEntryDecks(ctx: Ctx, caps = false): void {
   const k = ctx.kit('entries');
   for (const f of FRAMES) {
-    const p = parts(f);
+    const p = deckParts(f);
     k.box(p.slab.x, p.slab.y0, p.slab.z, p.slab.sx, p.slab.y1 - p.slab.y0, p.slab.sz, STONE, { top: FLAGS });
     for (const r of p.rails) k.box(r.x, r.y0, r.z, r.sx, r.y1 - r.y0, r.sz, STONE);
     for (const w of p.walls) k.box(w.x, w.y0, w.z, w.sx, w.y1 - w.y0, w.sz, STONE);
     // the cinnabar band across the end wall's face, a hand over head height
-    const band = inFrame(f, DECK_DEPTH - 0.05, DECK_DEPTH, -ENTRY_WIDTH / 2, ENTRY_WIDTH / 2, 3.2, 4.0);
+    const band = inFrame(f, DECK_DEPTH - 0.05, DECK_DEPTH, -OPENING_HALF, OPENING_HALF, 3.2, 4.0);
     k.box(band.x, band.y0, band.z, band.sx, band.y1 - band.y0, band.sz, BAND);
     if (caps) buildCap(ctx, f);
   }

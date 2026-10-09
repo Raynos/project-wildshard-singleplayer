@@ -9,7 +9,7 @@ import { parsePortalLink, portalLinkEntries, portalLinkRules } from '../../../sr
 import { createPortalTraversal, portalTransitioning } from '../../../src/game/shardfile/portalTraversal';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { fragmentColliders } from '../../../src/shards/nine-dragon-stack/world/colliders';
-import { entryDeckColliders, portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { entryDeckColliders, portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 import { PropsSchema } from '../../../src/game/shardfile/props';
 import * as v from 'valibot';
 import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';

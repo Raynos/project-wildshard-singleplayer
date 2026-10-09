@@ -4,7 +4,7 @@ import type { LevelContext } from '@wildshard/engine/level/context';
 import type { NineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './well-mid';
-import { entryCapColliders, entryDeckFloor, portalFloorRows } from './entries';
+import { entryCapColliders, entryDeckFloor, portalFloorRows } from './floorRows';
 import { SQUARE_FLOOR } from './portalPlan';
 import { NdRuntime, ownNdRuntime } from '../runtime/state';
 
