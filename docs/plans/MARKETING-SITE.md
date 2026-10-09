@@ -136,6 +136,7 @@ plans (SHARD-PLATFORM Part B, then the MMO's). The site only describes them and 
   `project.wildshard@gmail.com`. MS7 builds all three.
 - **Q4 · Public from day one.** Every deploy is public; no protection gate.
 - **More ideas (Jake, 2026-10-09):** yes to motion (1), play in a new tab (2), one sentence → a shard (4), the devlog (5), the shardfile peek (6), claim a cell (7), founding authors (8), coming worlds (9), FAQ (10), press kit (11), install it (12); no to the soundtrack player (3). Rows MS11–MS21.
+- **Jake's first read (2026-10-09):** say MMO above the fold and lead with playing; open with "what is Wildshard" (an infinite MMO, every piece of content a shard built by another player in Claude Code) over the concept art; drop the grid numbers (5 × 5, 500 m, 15 m); phones show three shards in full (Driftwood, Nalati, Sky Reach) and "+4 more"; keep the build terminal in the hero; drop the upload ritual; "safe on your phone" becomes how strangers' shards fit together; every Play opens a new tab; admin gets its own icon (A · amber gauge, `art/admin-icon/round-1-options/`).
 - **Open: the domain(s)** (MS9; Jake 2026-10-09: "I'll figure it out later").
 
 ## 8. Mockup rounds (MS2)

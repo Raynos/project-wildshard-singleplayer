@@ -172,6 +172,10 @@
   .shard h3 { margin: 12px 0 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 27px; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; }
   .shard h3 a { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .14em; color: var(--act); text-decoration: none; border: 1px solid var(--act); padding: 5px 9px; white-space: nowrap; box-shadow: 0 0 12px var(--act-glow) inset; }
   .shard p { margin: 5px 0 0; color: #b3c8d8; font-size: 16px; line-height: 1.4; max-width: 36ch; }
+  /* phones: the three picked shards in full, the rest behind one line (Jake, E465); desktop shows all seven */
+  .more-shards { display: block; width: 100%; margin: 4px 0 0; padding: 14px; background: none; border: 1px dashed var(--cyan-line); color: var(--act); font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  @media (max-width: 1023px) { .shards:not(.open) .shard.more { display: none; } .shards.open + .more-shards { display: none; } }
+  @media (min-width: 1024px) { .more-shards { display: none; } }
   .shard.grey .shot img { filter: saturate(.2); }
 
   /* how a shard is made: C's terminal */
@@ -442,28 +446,22 @@
 </div>
 
 <main class="wrap">
-  <section id="world-sec">
+  <section id="what">
     <div class="side">
-      <div class="q"><p class="ask">{{World · question}}</p></div>
-      <h2>{{World · title}}</h2>
-      <p class="lede">{{World · intro}}</p>
+      <div class="q"><p class="ask">{{What · question}}</p></div>
+      <h2>{{What · title}}</h2>
+      <p class="lede">{{What · intro}}</p>
     </div>
     <div class="body">
-      <div class="map bk">
-        <svg class="ink" id="grid-map" viewBox="0 0 300 300" role="img" aria-label="{{@World · map description}}"></svg>
-        <div class="legend"><span><i></i>{{World · map key: playable}}</span><span><i class="v"></i>{{World · map key: centre}}</span><span><i class="e"></i>{{World · map key: unclaimed}}</span></div>
-        <div class="note">{{World · map caption}}</div>
-      </div>
       <figure class="plate bk">
-        <img src="/media/concept-grid-m.webp" srcset="/media/concept-grid-m.webp 800w, /media/concept-grid.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@World · concept art description}}" loading="lazy" decoding="async">
-        <span class="tag warn">{{World · concept art tag}}</span>
+        <img src="/media/concept-grid-m.webp" srcset="/media/concept-grid-m.webp 800w, /media/concept-grid.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@What · painting 1 description}}" loading="lazy" decoding="async">
+        <span class="tag warn">{{What · concept art tag}}</span>
       </figure>
-      <div class="facts">
-        <div><b>{{World · fact 1 figure}}</b><span>{{World · fact 1 words}}</span></div>
-        <div><b>{{World · fact 2 figure}}</b><span>{{World · fact 2 words}}</span></div>
-        <div><b>{{World · fact 3 figure}}</b><span>{{World · fact 3 words}}</span></div>
-        <div><b>{{World · fact 4 figure}}</b><span>{{World · fact 4 words}}</span></div>
-    </div>
+      <ul class="grow">{{list:What · points}}</ul>
+      <figure class="plate bk">
+        <img src="/media/concept-frontier.webp" alt="{{@What · painting 2 description}}" loading="lazy" decoding="async">
+        <span class="tag warn">{{What · concept art tag}}</span>
+      </figure>
     </div>
   </section>
 
@@ -481,22 +479,10 @@
           <p>{{Driftwood Isle · line}}</p>
         </li>
         <li class="shard">
-          <p class="ask">{{Pine Hollow · prompt}}</p>
-          <div class="shot" data-loop="pine-hollow"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-pine.webp"><img src="/media/shard-pine.webp" style="object-position:50% 4%" alt="{{@Pine Hollow · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
-          <h3>{{Pine Hollow · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
-          <p>{{Pine Hollow · line}}</p>
-        </li>
-        <li class="shard">
           <p class="ask">{{Nalati Grasslands · prompt}}</p>
           <div class="shot" data-loop="nalati-grasslands"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-nalati.webp"><img src="/media/shard-nalati.webp" style="object-position:50% 90%" alt="{{@Nalati Grasslands · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
           <h3>{{Nalati Grasslands · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Nalati Grasslands · line}}</p>
-        </li>
-        <li class="shard">
-          <p class="ask">{{Signal Dunes · prompt}}</p>
-          <div class="shot" data-loop="sunscar-dunes"><img src="/media/shard-dunes.webp" style="transform:scale(1.3);transform-origin:62% 52%" alt="{{@Signal Dunes · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
-          <h3>{{Signal Dunes · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
-          <p>{{Signal Dunes · line}}</p>
         </li>
         <li class="shard">
           <p class="ask">{{Sky Reach · prompt}}</p>
@@ -504,19 +490,32 @@
           <h3>{{Sky Reach · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Sky Reach · line}}</p>
         </li>
-        <li class="shard">
+        <li class="shard more">
+          <p class="ask">{{Pine Hollow · prompt}}</p>
+          <div class="shot" data-loop="pine-hollow"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-pine.webp"><img src="/media/shard-pine.webp" style="object-position:50% 4%" alt="{{@Pine Hollow · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
+          <h3>{{Pine Hollow · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+          <p>{{Pine Hollow · line}}</p>
+        </li>
+        <li class="shard more">
+          <p class="ask">{{Signal Dunes · prompt}}</p>
+          <div class="shot" data-loop="sunscar-dunes"><img src="/media/shard-dunes.webp" style="transform:scale(1.3);transform-origin:62% 52%" alt="{{@Signal Dunes · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+          <h3>{{Signal Dunes · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+          <p>{{Signal Dunes · line}}</p>
+        </li>
+        <li class="shard more">
           <p class="ask">{{Nine Dragon Stack · prompt}}</p>
           <div class="shot" data-loop="nine-dragon-stack"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-ninedragon.webp"><img src="/media/shard-ninedragon.webp" style="object-position:50% 45%" alt="{{@Nine Dragon Stack · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
           <h3>{{Nine Dragon Stack · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Nine Dragon Stack · line}}</p>
         </li>
-        <li class="shard grey">
+        <li class="shard grey more">
           <p class="ask">{{The Template · prompt}}</p>
           <div class="shot"><img src="/media/shard-template.webp" style="transform:scale(1.42);transform-origin:52% 56%" alt="{{@The Template · image description}}" loading="lazy" decoding="async"></div>
           <h3>{{The Template · name}} <a href="#author">{{Shards · build link}}</a></h3>
           <p>{{The Template · line}}</p>
         </li>
       </ul>
+      <button class="more-shards" type="button" aria-expanded="false">{{Shards · more button}}</button>
     </div>
   </section>
 
@@ -560,48 +559,23 @@
     </div>
   </section>
 
-  <section id="ritual">
-    <div class="side">
-      <div class="q"><p class="ask">{{Ritual · question}}</p></div>
-      <h2>{{Ritual · title}}</h2>
-      <p class="lede">{{Ritual · intro}}</p>
-    </div>
-    <div class="body">
-      <div class="ritual bk">
-        <span class="tag warn">{{Ritual · tag}}</span>
-        <svg viewBox="0 0 360 280" role="img" aria-label="{{@Ritual · diagram description}}">
-          <defs>
-            <radialGradient id="glow"><stop offset="0" style="stop-color:var(--act)" stop-opacity=".9"/><stop offset="1" style="stop-color:var(--act)" stop-opacity="0"/></radialGradient>
-            <radialGradient id="glowc"><stop offset="0" stop-color="#a487ff" stop-opacity=".95"/><stop offset="1" stop-color="#a487ff" stop-opacity="0"/></radialGradient>
-          </defs>
-          <g stroke="rgba(164,135,255,.55)" stroke-width="1"><path d="M20 236 L180 276 L340 236 L180 196 Z" fill="none"/><path d="M60 226 L220 266 M100 216 L260 256 M140 206 L300 246 M60 246 L220 206 M100 256 L260 216 M140 266 L300 226"/></g>
-          <g style="stroke:var(--act)" stroke-width="1" stroke-dasharray="2 4" opacity=".7"><line x1="90" y1="214" x2="90" y2="168"/><line x1="270" y1="214" x2="270" y2="168"/><line x1="180" y1="236" x2="180" y2="190"/></g>
-          <g fill="none" stroke="#8fe3ff" stroke-width="1.2" style="filter:drop-shadow(0 0 3px #8fe3ff)"><path d="M90 78 L180 100 L270 78 L180 56 Z"/><path d="M90 78 L90 168 L180 190 L270 168 L270 78"/><path d="M180 100 L180 190"/><path d="M90 168 L180 146 L270 168 M180 56 L180 146" stroke="#4d6275" stroke-dasharray="3 4"/></g>
-          <g><circle cx="90" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="100" r="12" fill="url(#glow)"/><circle cx="270" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="56" r="12" fill="url(#glow)"/><circle cx="90" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="190" r="12" fill="url(#glow)"/><circle cx="270" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="146" r="12" fill="url(#glow)"/>
-            <g style="fill:var(--act)"><circle cx="90" cy="78" r="3.5"/><circle cx="180" cy="100" r="3.5"/><circle cx="270" cy="78" r="3.5"/><circle cx="180" cy="56" r="3.5"/><circle cx="90" cy="168" r="3.5"/><circle cx="180" cy="190" r="3.5"/><circle cx="270" cy="168" r="3.5"/><circle cx="180" cy="146" r="3.5"/></g>
-            <circle cx="180" cy="123" r="16" fill="url(#glowc)"/><circle cx="180" cy="123" r="4.5" fill="#a487ff"/></g>
-        </svg>
-    </div>
-    </div>
-  </section>
-
   <section id="safe">
     <div class="side">
-      <div class="q"><p class="ask">{{Safe · question}}</p></div>
-      <h2>{{Safe · title}}</h2>
-      <p class="lede">{{Safe · intro}}</p>
+      <div class="q"><p class="ask">{{Together · question}}</p></div>
+      <h2>{{Together · title}}</h2>
+      <p class="lede">{{Together · intro}}</p>
     </div>
     <div class="body">
       <div class="manifest bk">
-        <div class="h">{{Safe · package heading}}</div>
-        <div class="y">{{Safe · holds 1}}</div><div class="y">{{Safe · holds 2}}</div><div class="y">{{Safe · holds 3}}</div>
-        <div class="n">{{Safe · never holds}}</div>
+        <div class="h">{{Together · package heading}}</div>
+        <div class="y">{{Together · holds 1}}</div><div class="y">{{Together · holds 2}}</div><div class="y">{{Together · holds 3}}</div>
+        <div class="n">{{Together · never holds}}</div>
       </div>
       <div class="json bk">
-        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Safe · shardfile title}}</span></div>
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Together · shardfile title}}</span></div>
   <pre><!--gen:shardfile--></pre>
       </div>
-      <div class="note">{{Safe · shardfile note}}</div>
+      <div class="note">{{Together · shardfile note}}</div>
     </div>
   </section>
 
@@ -769,7 +743,8 @@
     var s = 5 * cell + 4 * gap;
     svg.appendChild(el("rect", { x: o - 8, y: o - 8, width: s + 16, height: s + 16, "class": "seam" }));
   }
-  draw(document.getElementById("grid-map"), { lit: true });
+  var gridMap = document.getElementById("grid-map");
+  if (gridMap) draw(gridMap, { lit: true });
 
   // MS11: motion. The trailer plays muted once it is near the screen; each shard card fades its loop in over the still:
   // on a phone when the card is in view, on desktop (where the loops are softer than the wide stills) on hover.
@@ -798,6 +773,10 @@
       new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) start(v, m.card); else if (v.src) v.pause(); }); }, { threshold: 0.4 }).observe(shot);
     }
   });
+
+  // phones: "+4 more shards" opens the rest of the cards
+  var moreBtn = document.querySelector(".more-shards");
+  if (moreBtn) moreBtn.addEventListener("click", function () { document.querySelector(".shards").classList.add("open"); moreBtn.setAttribute("aria-expanded", "true"); });
 
   // the claim map: tap an empty cell to wish for it (not the centre, not a shard that's playable today)
   var claimSvg = document.getElementById("claim-map"), claimed = "";

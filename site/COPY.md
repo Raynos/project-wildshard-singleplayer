@@ -21,7 +21,7 @@ Project Wildshard
 
 ## Page · description
 
-One world. Every shard built by a player. Play it in the browser. Build it in Claude Code.
+The infinite MMO in your browser, where every shard of the world is built by a player in Claude Code.
 
 # Hero
 
@@ -63,11 +63,11 @@ Wildshard
 
 ## Hero · tagline
 
-One world. Every shard built by a player.
+The infinite MMO in your browser.
 
 ## Hero · subline
 
-Play it in the browser. Build it in Claude Code.
+Every shard of the world is built by a player. Explore it, fight in it, play it together.
 
 ## Hero · play button
 
@@ -95,79 +95,38 @@ The trailer: real gameplay from the shards, looping without sound
 
 Trailer · real gameplay
 
-# The world
+# What is Wildshard
 
-## World · question
+## What · question
 
-what is a shard?
+what is wildshard?
 
-## World · title
+## What · title
 
-A world made of shards.
+An infinite MMO, built by its players.
 
-## World · intro
+## What · intro
 
-Each shard is 500 × 500 × 500 metres, built by one author and placed on a shared grid. A server-owned highway runs between them; glowing seams stitch them together. The first grid is five by five around a fixed centre.
+Wildshard is an infinite MMO that runs in your browser. Every piece of content is its own shard, built by another player in Claude Code, and the world grows with every one. Play anything, with anyone: a step beyond a Minecraft server.
 
-## World · map description
+## What · points
 
-Map of the 5 by 5 grid: a fixed centre, seven shards lit, the highway between them
+- Explore an open world that never stops growing.
+- Fight, quest and ride together, on desktop or phone.
+- Every shard has its own look, its own rules and its own author.
+- Anyone can add one: describe it to Claude Code, then bring it into the world.
 
-## World · map key: playable
-
-Playable today
-
-## World · map key: centre
-
-Fixed centre
-
-## World · map key: unclaimed
-
-Unclaimed
-
-## World · map caption
-
-Fig. 1 · the first grid · placement illustrative
-
-## World · concept art description
-
-Concept painting: shards of different biomes on a glowing grid
-
-## World · concept art tag
+## What · concept art tag
 
 Concept art
 
-## World · fact 1 figure
+## What · painting 1 description
 
-500 m
+Concept painting: a vast world of player-built shards, stitched together by glowing seams
 
-## World · fact 1 words
+## What · painting 2 description
 
-a cube per shard, one author each
-
-## World · fact 2 figure
-
-5 × 5
-
-## World · fact 2 words
-
-the first grid, around a fixed centre
-
-## World · fact 3 figure
-
-15 m
-
-## World · fact 3 words
-
-the server-owned highway between them
-
-## World · fact 4 figure
-
-Seams
-
-## World · fact 4 words
-
-glowing edges stitch shards together
+Concept painting: players on a jungle shard, with a volcanic shard beyond
 
 # Shards you can play
 
@@ -195,22 +154,6 @@ Driftwood Isle
 
 A bright low-poly island in a toon ocean: pier, sailboat, shrine and wreck.
 
-## Pine Hollow · prompt
-
-a boreal hunt from dawn fog to lantern-lit night, and an Antler King at the end
-
-## Pine Hollow · image description
-
-Pine Hollow in the game: the Antler King by a fire at night
-
-## Pine Hollow · name
-
-Pine Hollow
-
-## Pine Hollow · line
-
-A boreal hunt from dawn fog to lantern-lit night. Face the Antler King.
-
 ## Nalati Grasslands · prompt
 
 a painted steppe I ride on horseback, with the Golden King's kurgan to open
@@ -227,22 +170,6 @@ Nalati Grasslands
 
 The painted steppe on horseback. Tame horses, open the Golden King's kurgan.
 
-## Signal Dunes · prompt
-
-night dunes, a bullwhip, dune rays to drive off and a signal fire to light
-
-## Signal Dunes · image description
-
-Signal Dunes in the game: a caravan wagon on a dune at dusk
-
-## Signal Dunes · name
-
-Signal Dunes
-
-## Signal Dunes · line
-
-Crack the bullwhip, drive off the dune rays and light the signal fire.
-
 ## Sky Reach · prompt
 
 grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride
@@ -258,6 +185,41 @@ Sky Reach
 ## Sky Reach · line
 
 Grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride.
+
+
+<!-- On phones only the three above show in full; the four below open from the "+ 4 more shards" button. -->
+
+## Pine Hollow · prompt
+
+a boreal hunt from dawn fog to lantern-lit night, and an Antler King at the end
+
+## Pine Hollow · image description
+
+Pine Hollow in the game: the Antler King by a fire at night
+
+## Pine Hollow · name
+
+Pine Hollow
+
+## Pine Hollow · line
+
+A boreal hunt from dawn fog to lantern-lit night. Face the Antler King.
+
+## Signal Dunes · prompt
+
+night dunes, a bullwhip, dune rays to drive off and a signal fire to light
+
+## Signal Dunes · image description
+
+Signal Dunes in the game: a caravan wagon on a dune at dusk
+
+## Signal Dunes · name
+
+Signal Dunes
+
+## Signal Dunes · line
+
+Crack the bullwhip, drive off the dune rays and light the signal fire.
 
 ## Nine Dragon Stack · prompt
 
@@ -302,6 +264,10 @@ Build
 ## Shards · loop tag
 
 Loop
+
+## Shards · more button
+
++ 4 more shards
 
 # How a shard is made
 
@@ -355,7 +321,7 @@ Walk it locally
 
 ## How · step 6
 
-Upload it in the game: the beacon ritual
+Upload it to the world
 
 # One sentence to a shard
 
@@ -431,67 +397,45 @@ First-person views before a line of the level is built.
 
 WorldClaw dry run · concept images, not the built shard
 
-# The upload ritual
+# How shards fit together
 
-## Ritual · question
+## Together · question
 
-what happens when I upload it?
+how do ten strangers' shards make one MMO?
 
-## Ritual · title
+## Together · title
 
-Uploading is a set piece.
+Many authors. One world.
 
-## Ritual · intro
+## Together · intro
 
-Plant a beacon at each of the eight corners, a ninth at the centre, and watch your shard rise onto the grid.
+A shard is a sealed package of data and baked assets, built against one versioned API. The engine runs every shard the same way, so worlds by different authors sit side by side on one map, with one player, one inventory and one set of rules, and no shard can break another.
 
-## Ritual · tag
+## Together · package heading
 
-Coming
+every shard is
 
-## Ritual · diagram description
+## Together · holds 1
 
-A cube with a beacon at each corner and one at the centre, rising onto the grid
+data the engine reads, never code it trusts
 
-# Safe by construction
+## Together · holds 2
 
-## Safe · question
+baked assets inside fixed budgets
 
-is a stranger's shard safe on my phone?
+## Together · holds 3
 
-## Safe · title
+behaviour in a sandbox (wasm)
 
-Strangers' worlds, safe on your phone.
+## Together · never holds
 
-## Safe · intro
+code that can reach another shard, or your browser
 
-A shard ships data and baked assets, never code that can touch your browser. Every shard is metered, deterministic and built against a versioned API.
-
-## Safe · package heading
-
-a shard package holds
-
-## Safe · holds 1
-
-data
-
-## Safe · holds 2
-
-baked assets
-
-## Safe · holds 3
-
-sandboxed behaviour (wasm)
-
-## Safe · never holds
-
-code that can touch your browser
-
-## Safe · shardfile title
+## Together · shardfile title
 
 template · shard.json (excerpt)
 
-## Safe · shardfile note
+## Together · shardfile note
 
 The template's real shard.json, read from the live game at build time
 

@@ -38,3 +38,11 @@ describe('site/COPY.md and site/index.html', () => {
     expect(unusedCopy(copy, used).filter((k) => !k.startsWith('Road · ') || k === 'Road · question' || k === 'Road · title' || k === 'Road · devlog title')).toEqual([]);
   });
 });
+
+describe('site/index.html', () => {
+  it('every link to the game opens in a new tab (Jake: "All the play icons should always open a new tab")', () => {
+    const links = readFileSync('site/index.html', 'utf8').match(/<a [^>]*href="https:\/\/wildshard-singleplayer\.vercel\.app[^"]*"[^>]*>/gu) ?? [];
+    expect(links.length).toBeGreaterThan(0);
+    for (const a of links) expect(a).toContain('target="_blank"');
+  });
+});
