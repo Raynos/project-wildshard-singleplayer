@@ -31,6 +31,8 @@ export interface PineCrossbowPorts {
   readonly shots: () => readonly string[];
   readonly enabled: () => boolean;
   readonly bodies: () => readonly AnimalSim[];
+  /** the tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
+  readonly aim?: () => number;
 }
 
 /**
@@ -55,7 +57,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   const eye = new Vector3(), fwd = new Vector3(), side = new Vector3(), dir = new Vector3(), prev = new Vector3(), seg = new Vector3(), n = new Vector3();
   const fire = (target: AnimalSim): void => {
     state.loaded = false; state.quiver = Math.max(0, state.quiver - 1); state.cooldown = p.cooldown; state.sinceFire = 0;
-    aimAt(host, target, eye, fwd);
+    aimAt(host, target, eye, fwd, ports.aim?.());
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
     const spread = (0.15 + 0.6) * Math.PI / 180;
     side.set((random() - 0.5) * 2, (random() - 0.5) * 2, (random() - 0.5) * 2).cross(fwd).normalize();

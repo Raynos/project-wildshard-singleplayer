@@ -11,6 +11,7 @@ import { installPineKing } from './king';
 import { installPineCrossbow } from './weapons/headlessCrossbow';
 import { installPineLever } from './weapons/headlessLever';
 import { installPineLongbow } from './weapons/headlessLongbow';
+import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
 import { installPineLoadout, PINE_WEAPON, WEAPON_COMMAND } from './weapons/headlessLoadout';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
@@ -91,6 +92,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets, 
       shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
       heavy: () => { const held = context.commands().find(command => command.kind === 'player' && command.heavy !== undefined); return held?.kind === 'player' ? held.heavy ?? null : null; },
       pick: () => context.commands().reduce<number | null>((pick, command) => command.kind === 'script' && command.actorId === WEAPON_COMMAND ? command.value : pick, null),
+      // a `pine.aim` script command says where on the target's body the tick's shots go (the tick's last; none: its middle)
+      aim: () => context.commands().reduce((aim, command) => command.kind === 'script' && command.actorId === AIM_COMMAND ? aimShare(command.value) : aim, AIM_MIDDLE),
       // a `pine.interact` script command presses a quest prompt (runtime/quest.ts PINE_ACT)
       interact: () => context.commands().flatMap(command => command.kind === 'script' && command.actorId === PINE_INTERACT ? [command] : []) });
   } };
@@ -112,6 +115,8 @@ export interface PineInstall {
   readonly heavy?: () => { readonly targetId?: string | undefined } | null;
   /** the tick's weapon pick (a PINE_ITEMS slot; null: none; absent: never) */
   readonly pick?: () => number | null;
+  /** the tick's aim share along a shot's target body (`pine.aim`, weapons/headlessRanged.ts; absent: its middle) */
+  readonly aim?: () => number;
   /** the shard's declared quest rows (absent: PINE_QUESTS, the shardfile's own) */
   readonly quests?: PineQuestPorts['quests'];
   /** the tick's quest prompt presses (`pine.interact` script commands; absent: none) */
@@ -152,9 +157,10 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
   const bodyBuffer: AnimalSim[] = [];
   const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
-  const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies });
-  const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies });
-  const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies });
+  const aim = parts.aim ?? ((): number => AIM_MIDDLE);
+  const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim });
+  const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim });
+  const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim });
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),

@@ -32,6 +32,8 @@ export interface PineLongbowPorts {
   readonly heavy: () => { readonly targetId?: string | undefined } | null;
   readonly enabled: () => boolean;
   readonly bodies: () => readonly AnimalSim[];
+  /** the loosing tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
+  readonly aim?: () => number;
 }
 
 /**
@@ -56,7 +58,7 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.longbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
   const loose = (): void => {
     const target = state.aim === null ? undefined : host.entities.get(state.aim);
-    if (target?.alive === true) aimAt(host, target, eye, dir);
+    if (target?.alive === true) aimAt(host, target, eye, dir, ports.aim?.());
     else { const p = player.position; eye.set(p.x, p.y + EYE, p.z); dir.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)); }
     spreadInto(dir, SPREAD_DEG * Math.PI / 180, random, true, across);
     // a free slot, else the oldest arrow's (Projectiles.launch)

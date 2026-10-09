@@ -78,13 +78,24 @@ export function worldHit(host: SimHost, a: Vector3, b: Vector3, radius: number):
   return null;
 }
 
-/** The player's eye (`eye`) and the unit aim line from it to the middle of the target's body capsule (`fwd`): the tape aims
- *  at a body where the page aims along the camera. */
-export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vector3): void {
+/** The `script` command that says where on the body the tick's shots are aimed: its value is the share along the target's
+ *  body capsule, from its rear end (0) to its front end (1; a King's ribcage is at 0.75); no command, its middle. */
+export const AIM_COMMAND = 'pine.aim';
+/** The aim's share along the body when the tick names none: the capsule's middle. */
+export const AIM_MIDDLE = 0.5;
+/** A tick's aim share, clamped to the body (a non-finite value is the middle). */
+export const aimShare = (value: number): number => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : AIM_MIDDLE);
+
+/** The player's eye (`eye`) and the unit aim line from it to the point `along` the target's body capsule (`fwd`; its middle by
+ *  default): the tape aims at a point of a body where the page aims along the camera. */
+export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vector3, along = AIM_MIDDLE): void {
   const p = host.player.position;
   eye.set(p.x, p.y + EYE, p.z);
   target.bodyCapsule(_a, _b);
-  fwd.addVectors(_a, _b).multiplyScalar(0.5).sub(eye).normalize();
+  // the middle in its own arithmetic (the half-sum), so a tape that names no aim flies exactly as before
+  if (along === AIM_MIDDLE) fwd.addVectors(_a, _b).multiplyScalar(0.5);
+  else fwd.copy(_a).lerp(_b, along);
+  fwd.sub(eye).normalize();
 }
 
 /** The page's cone of fire (hitscan.ts, Bow.ts loose): a random axis across `dir` (three draws), turned by a random share of

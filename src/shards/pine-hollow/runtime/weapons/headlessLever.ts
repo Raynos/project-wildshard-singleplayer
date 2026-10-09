@@ -26,6 +26,8 @@ export interface PineLeverPorts {
   readonly shots: () => readonly string[];
   readonly enabled: () => boolean;
   readonly bodies: () => readonly AnimalSim[];
+  /** the tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
+  readonly aim?: () => number;
 }
 
 /**
@@ -47,7 +49,7 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
   const spread = (LEVER_PROFILE.spreadAds + LEVER_PROFILE.spreadHip) * Math.PI / 180;
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.lever', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir, headshot: false };
   const hitscan = (target: AnimalSim): void => {
-    aimAt(host, target, eye, dir);
+    aimAt(host, target, eye, dir, ports.aim?.());
     spreadInto(dir, spread, random, LEVER_PROFILE.spreadRadius === 'sqrt', across);
     const wall = worldHit(host, eye, end.copy(eye).addScaledVector(dir, LEVER_PROFILE.range), 0);
     const hit = bodyHit(ports.bodies(), eye, dir, wall ? wall.distance : LEVER_PROFILE.range), body = hit?.body ?? null;
