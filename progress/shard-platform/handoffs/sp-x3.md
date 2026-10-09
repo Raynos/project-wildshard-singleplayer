@@ -1,4 +1,16 @@
-# sp-x3 handoff — 2026-10-08, Nalati runtime-owner binding
+# sp-x3 handoff — 2026-10-08, plain SF57 soak completed
+
+## Latest result and exact next step
+
+Plain30 on pushed `b13614a6e7bb218f691a5f3b7040510de13cb7e8`: **functional PASS / memory RED**, 1814.495 s, seven complete circuits, 48 route witnesses, all 16 crossroads, errors / GPU losses / disposal errors 0. All 15 scope counters zero, before/after retained census identical. Raw/analysis: `progress/memory/sf57/b13614a6e-plain30/`.
+
+Peak **1229.156 MB** = WC interval-high **761.649** + labelled GL **467.507**, Pine, 229.156 MB above cap. Actual paired WC at that row 631.560 MB (sampled total 1099.067); independent GPU process 260.083 MB. Settled c2→c7 **673.401→686.219 MB**, +12.818 total / endpoint +2.564 MB per circuit; WC +12.813, GL +0.004480, allocator flat 492.754. Fitted slope +4.259 MB/circuit (R² .379). Windows 3→7 still rise ~8.924 MB/circuit: no plateau claim. Unchanged calibration/recovery checks remain RED. No isolated credit versus older cohorts: many fixes and Simulator image fallback changed.
+
+Exact next step: coordinator pushes this receipt and decides any follow-up attribution/run. **Do not launch another diagnostic or soak without a new assignment.** Full catalogue, road-only and shipped layout stay open. Renderer/texture work routes to Opus. Transport close-code retention remains a later improvement. Await coordinator's sf54-gfx Nalati import-switch SHA solely to verify it; SF70 ranged wiring is already in a4ffb1c2d.
+
+No owned browser, Simulator, Inspector, sampler, preview, build or full suite remains. Preview :4404 stopped in parent finally; sim-lane0/1 and owned shutdown device verified. Kernel-only sampler, no VM-map/heap snapshots, light/coalesced observer, raw upload file empty. Host load spikes retained. All raw files archived losslessly; temporary run scratch can be deleted after commit verification. Coordinator alone pushes/regenerates; no plan edits and never message wildshard-v. The prior next-step section below is historical and fulfilled by this run.
+
+## Nalati runtime-owner binding (completed)
 
 Nalati SF48-p active wiring landed in `a4ffb1c2d1156a795e926db2d1e26847babfce31` (private index from current HEAD, hooks/CAS, ancestor/subject/stat verified). Defining persistence `6f0c98036`, Progress/ledger projection `70e2a5094`, generic state `245591848` (sp-x4), and migration/helpers `28fe9f479` precede it. The coordinator alone pushes and regenerates; no plan edits.
 
@@ -6,9 +18,9 @@ Proof: clean full 949 files / 5,418 pass / 14 skip; strict, typed lint, ratchet 
 
 Mandatory map rebake was repeated after `9b8885ad9` landed new geometry: the same source commit includes hash `adc9732dfd0fe0a1de3731f44b93feb510e19854cc3c07ae2dac3dc4a30f1b8a`, 134,476 bytes. Committed geometry/voxel/autosave changes are preserved. Approved cumulative Nalati imports: engine +6, game +11, SDK +5; generated outputs remain the pusher's job.
 
-Evidence: `progress/shard-platform/sf48/runtime-owner/`. No owned browser, Simulator, preview, build or full suite remains running or queued; :4400 was stopped after the final map bake. Scratch `/private/tmp/claude-501/sp-builders/sp-x3/nalati-runtime-binding` retains small blobs/logs/landing scripts for review. Exact next step is coordinator gate/push of the source and this receipt. Do not start another run without a new assignment. The prior SF57 work below remains parked.
+Evidence: `progress/shard-platform/sf48/runtime-owner/`, receipt `4378fa3bcedb16cde66e5fd6ff23ccd05e1ee228`; all in the b136 soak pin. No owned browser, Simulator, preview, build or full suite remains running or queued; :4400 was stopped after the final map bake. Scratch `/private/tmp/claude-501/sp-builders/sp-x3/nalati-runtime-binding` retains small blobs/logs/landing scripts for review.
 
-## Exact next step, after coordinator GO
+## Prior soak instructions (fulfilled on b136)
 
 Wait for the place-lifetime fix (place.ts records/cullers and assets.ts decode-cache key) to land, then obtain the coordinator's selected post-fix pushed pin and Simulator slot. Build one queued preview and run a **plain 30-minute SF57 soak**, Developer layout, the existing Driftwood → Pine → Nalati → template-copy subset route. Use the light c132 observer and coalesced exact-state GL journal, with raw storage tracing and call-site stacks OFF.
 

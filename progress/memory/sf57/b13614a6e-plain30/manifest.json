@@ -1,0 +1,21 @@
+{
+  "sha": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
+  "out": "/private/tmp/claude-501/sp-builders/sp-x3/sf57-b13614a6e-plain30",
+  "bases": [
+    {
+      "layout": "dev",
+      "base": "http://127.0.0.1:4404/",
+      "version": {
+        "build": "b13614a-mv0ahrls",
+        "time": "2026-10-09T01:31:34.407Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "prepared",
+  "dryRun": false,
+  "legs": [
+    "cells"
+  ],
+  "rehearsal": true
+}

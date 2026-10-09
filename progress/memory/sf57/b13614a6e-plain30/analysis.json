@@ -1,0 +1,498 @@
+{
+  "method": "Original fixed-PID footprint + labelled live GL. Original grader windows, upper median, actual census within unchanged 1.5s fence only for settled values. Complete reconciled journal may supply exact GL at blocked peak timestamps; no interpolation. Independent GPU process never added. Component medians are separate; combined median is computed from paired samples. Bytes are decimal; no VM-map or heap probes.",
+  "driveStarted": "2026-10-09T01:34:22.766Z",
+  "partialLastCircuit": false,
+  "pin": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
+  "functionalPass": true,
+  "seconds": 1814.495,
+  "circuits": 7,
+  "routes": 48,
+  "routeFailures": [],
+  "errors": [],
+  "failure": null,
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 1229156110,
+    "loadingPeakBytes": 654227467,
+    "phoneEstimateBytes": 1720818554,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791509652.523,
+        "end": 1791509662.766,
+        "samples": 10,
+        "bytes": 574356927
+      },
+      {
+        "cycle": 1,
+        "start": 1791510405.671,
+        "end": 1791510415.757,
+        "samples": 10,
+        "bytes": 657980569
+      },
+      {
+        "cycle": 2,
+        "start": 1791510577.167,
+        "end": 1791510587.369,
+        "samples": 10,
+        "bytes": 673401437
+      },
+      {
+        "cycle": 3,
+        "start": 1791510752.232,
+        "end": 1791510762.566,
+        "samples": 10,
+        "bytes": 650524493
+      },
+      {
+        "cycle": 4,
+        "start": 1791510928.094,
+        "end": 1791510938.295,
+        "samples": 10,
+        "bytes": 657674925
+      },
+      {
+        "cycle": 5,
+        "start": 1791511107.085,
+        "end": 1791511117.485,
+        "samples": 11,
+        "bytes": 666542061
+      },
+      {
+        "cycle": 6,
+        "start": 1791511285.964,
+        "end": 1791511297.248,
+        "samples": 11,
+        "bytes": 675896109
+      },
+      {
+        "cycle": 7,
+        "start": 1791511466.652,
+        "end": 1791511477.261,
+        "samples": 10,
+        "bytes": 686219045
+      }
+    ],
+    "baselineDeltaBytes": [
+      -99044510,
+      -15420868,
+      0,
+      -22876944,
+      -15726512,
+      -6859376,
+      2494672,
+      12817608
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": true,
+        "peakBytes": 968939386,
+        "troughBytes": 482778022
+      },
+      {
+        "cycle": 1,
+        "complete": true,
+        "peakBytes": 1113342928,
+        "troughBytes": 572095922
+      },
+      {
+        "cycle": 2,
+        "complete": true,
+        "peakBytes": 1196027430,
+        "troughBytes": 557865094
+      },
+      {
+        "cycle": 3,
+        "complete": true,
+        "peakBytes": 1049846118,
+        "troughBytes": 565792670
+      },
+      {
+        "cycle": 4,
+        "complete": true,
+        "peakBytes": 1229156110,
+        "troughBytes": 572855238
+      },
+      {
+        "cycle": 5,
+        "complete": true,
+        "peakBytes": 1197765474,
+        "troughBytes": 581801990
+      },
+      {
+        "cycle": 6,
+        "complete": true,
+        "peakBytes": 1078965750,
+        "troughBytes": 591387718
+      }
+    ],
+    "recovery": false,
+    "calibration": false,
+    "ratios": [
+      {
+        "cycle": 1,
+        "raw": 1.3353119825145432,
+        "adjusted": 0.7264891484858943
+      },
+      {
+        "cycle": 2,
+        "raw": 1.3666072377110157,
+        "adjusted": 0.7577844036823667
+      },
+      {
+        "cycle": 3,
+        "raw": 1.3201805514443665,
+        "adjusted": 0.7113577174157177
+      },
+      {
+        "cycle": 4,
+        "raw": 1.3346917056935972,
+        "adjusted": 0.7258688716649482
+      },
+      {
+        "cycle": 5,
+        "raw": 1.352686755257722,
+        "adjusted": 0.7438639212290731
+      },
+      {
+        "cycle": 6,
+        "raw": 1.3716699486343886,
+        "adjusted": 0.7628471146057397
+      },
+      {
+        "cycle": 7,
+        "raw": 1.39261941247111,
+        "adjusted": 0.783796578442461
+      }
+    ],
+    "missingGlSamples": 0,
+    "sampling": true,
+    "leakZero": true,
+    "admitted": [
+      "pine-hollow",
+      "template-2",
+      "driftwood-isle",
+      "nalati-grasslands"
+    ],
+    "refused": [
+      "sunscar-dunes",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 16,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+  },
+  "glSampling": {
+    "journal": 60,
+    "observed": 1839,
+    "missing": 0,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "settled": [
+    {
+      "cycle": 0,
+      "start": 1791509652.523,
+      "end": 1791509662.766,
+      "samples": 10,
+      "webContentBytes": 397299336,
+      "glBytes": 177057591,
+      "combinedBytes": 574356927,
+      "accountedBytes": 493457398,
+      "gpuProcessBytes": 155748896
+    },
+    {
+      "cycle": 1,
+      "start": 1791510405.671,
+      "end": 1791510415.757,
+      "samples": 10,
+      "webContentBytes": 473486160,
+      "glBytes": 184494409,
+      "combinedBytes": 657980569,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 201640720
+    },
+    {
+      "cycle": 2,
+      "start": 1791510577.167,
+      "end": 1791510587.369,
+      "samples": 10,
+      "webContentBytes": 487069072,
+      "glBytes": 186332365,
+      "combinedBytes": 673401437,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 337513496
+    },
+    {
+      "cycle": 3,
+      "start": 1791510752.232,
+      "end": 1791510762.566,
+      "samples": 10,
+      "webContentBytes": 464180792,
+      "glBytes": 186343701,
+      "combinedBytes": 650524493,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 334728384
+    },
+    {
+      "cycle": 4,
+      "start": 1791510928.094,
+      "end": 1791510938.295,
+      "samples": 10,
+      "webContentBytes": 471340768,
+      "glBytes": 186334157,
+      "combinedBytes": 657674925,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 336088232
+    },
+    {
+      "cycle": 5,
+      "start": 1791511107.085,
+      "end": 1791511117.485,
+      "samples": 11,
+      "webContentBytes": 480204704,
+      "glBytes": 186337357,
+      "combinedBytes": 666542061,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 338119896
+    },
+    {
+      "cycle": 6,
+      "start": 1791511285.964,
+      "end": 1791511297.248,
+      "samples": 11,
+      "webContentBytes": 489560160,
+      "glBytes": 186335949,
+      "combinedBytes": 675896109,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 338676952
+    },
+    {
+      "cycle": 7,
+      "start": 1791511466.652,
+      "end": 1791511477.261,
+      "samples": 10,
+      "webContentBytes": 499882200,
+      "glBytes": 186336845,
+      "combinedBytes": 686219045,
+      "accountedBytes": 492754186,
+      "gpuProcessBytes": 338906328
+    }
+  ],
+  "growth": {
+    "firstCircuit": 2,
+    "lastCircuit": 7,
+    "deltaBytes": {
+      "webContentBytes": 12813128,
+      "glBytes": 4480,
+      "combinedBytes": 12817608,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 1392832
+    },
+    "averageBytesPerCircuit": {
+      "webContentBytes": 2562625.6,
+      "glBytes": 896,
+      "combinedBytes": 2563521.6,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 278566.4
+    },
+    "fits": {
+      "webContentBytes": {
+        "points": 6,
+        "slopeBytesPerCircuit": 4259076.571428572,
+        "rSquared": 0.37927394036080797
+      },
+      "glBytes": {
+        "points": 6,
+        "slopeBytesPerCircuit": 66.97142857142858,
+        "rSquared": 0.0010425824917331683
+      },
+      "combinedBytes": {
+        "points": 6,
+        "slopeBytesPerCircuit": 4259143.542857143,
+        "rSquared": 0.3793981523506821
+      },
+      "accountedBytes": {
+        "points": 6,
+        "slopeBytesPerCircuit": 0,
+        "rSquared": null
+      },
+      "gpuProcessBytes": {
+        "points": 6,
+        "slopeBytesPerCircuit": 595472.2285714286,
+        "rSquared": 0.4677361098560081
+      }
+    }
+  },
+  "deltas": [
+    {
+      "fromCircuit": 2,
+      "toCircuit": 3,
+      "webContentBytes": -22888280,
+      "glBytes": 11336,
+      "combinedBytes": -22876944,
+      "accountedBytes": 0,
+      "gpuProcessBytes": -2785112
+    },
+    {
+      "fromCircuit": 3,
+      "toCircuit": 4,
+      "webContentBytes": 7159976,
+      "glBytes": -9544,
+      "combinedBytes": 7150432,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 1359848
+    },
+    {
+      "fromCircuit": 4,
+      "toCircuit": 5,
+      "webContentBytes": 8863936,
+      "glBytes": 3200,
+      "combinedBytes": 8867136,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 2031664
+    },
+    {
+      "fromCircuit": 5,
+      "toCircuit": 6,
+      "webContentBytes": 9355456,
+      "glBytes": -1408,
+      "combinedBytes": 9354048,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 557056
+    },
+    {
+      "fromCircuit": 6,
+      "toCircuit": 7,
+      "webContentBytes": 10322040,
+      "glBytes": 896,
+      "combinedBytes": 10322936,
+      "accountedBytes": 0,
+      "gpuProcessBytes": 229376
+    }
+  ],
+  "peak": {
+    "at": 1791510963.455,
+    "phase": "drive",
+    "cycle": 4,
+    "webContentBytes": 631560072,
+    "glBytes": 467507102,
+    "combinedBytes": 1099067174,
+    "accountedBytes": 741249691,
+    "gpuProcessBytes": 260082904,
+    "webContentIntervalHighBytes": 761649008,
+    "combinedIntervalHighBytes": 1229156110,
+    "overCapBytes": 229156110,
+    "glSource": "original census",
+    "current": "pine-hollow",
+    "inside": "pine-hollow",
+    "residents": [
+      "pine-hollow"
+    ]
+  },
+  "perLap": [
+    {
+      "cycle": 0,
+      "complete": true,
+      "samples": 748,
+      "peakBytes": 968939386,
+      "troughBytes": 482778022,
+      "webContentPeakBytes": 783766064,
+      "allWebContentPeakBytes": 793959168,
+      "glPeakBytes": 511846698,
+      "accountedPeakBytes": 741920139,
+      "gpuProcessPeakBytes": 356289512,
+      "wasmPeakBytes": 53084160,
+      "overCapBytes": 0
+    },
+    {
+      "cycle": 1,
+      "complete": true,
+      "samples": 171,
+      "peakBytes": 1113342928,
+      "troughBytes": 572095922,
+      "webContentPeakBytes": 791483504,
+      "allWebContentPeakBytes": 800136704,
+      "glPeakBytes": 512382560,
+      "accountedPeakBytes": 741249691,
+      "gpuProcessPeakBytes": 367381552,
+      "wasmPeakBytes": 53346304,
+      "overCapBytes": 113342928
+    },
+    {
+      "cycle": 2,
+      "complete": true,
+      "samples": 174,
+      "peakBytes": 1196027430,
+      "troughBytes": 557865094,
+      "webContentPeakBytes": 761746904,
+      "allWebContentPeakBytes": 799531072,
+      "glPeakBytes": 513699358,
+      "accountedPeakBytes": 741249691,
+      "gpuProcessPeakBytes": 358272024,
+      "wasmPeakBytes": 53084160,
+      "overCapBytes": 196027430
+    },
+    {
+      "cycle": 3,
+      "complete": true,
+      "samples": 174,
+      "peakBytes": 1049846118,
+      "troughBytes": 565792670,
+      "webContentPeakBytes": 767235712,
+      "allWebContentPeakBytes": 796827856,
+      "glPeakBytes": 513700254,
+      "accountedPeakBytes": 741249691,
+      "gpuProcessPeakBytes": 357616832,
+      "wasmPeakBytes": 53542912,
+      "overCapBytes": 49846118
+    },
+    {
+      "cycle": 4,
+      "complete": true,
+      "samples": 179,
+      "peakBytes": 1229156110,
+      "troughBytes": 572855238,
+      "webContentPeakBytes": 761665392,
+      "allWebContentPeakBytes": 800940432,
+      "glPeakBytes": 513701150,
+      "accountedPeakBytes": 741249691,
+      "gpuProcessPeakBytes": 429755608,
+      "wasmPeakBytes": 53280768,
+      "overCapBytes": 229156110
+    },
+    {
+      "cycle": 5,
+      "complete": true,
+      "samples": 178,
+      "peakBytes": 1197765474,
+      "troughBytes": 581801990,
+      "webContentPeakBytes": 770938928,
+      "allWebContentPeakBytes": 780395016,
+      "glPeakBytes": 513699742,
+      "accountedPeakBytes": 741249691,
+      "gpuProcessPeakBytes": 454511832,
+      "wasmPeakBytes": 53542912,
+      "overCapBytes": 197765474
+    },
+    {
+      "cycle": 6,
+      "complete": true,
+      "samples": 180,
+      "peakBytes": 1078965750,
+      "troughBytes": 591387718,
+      "webContentPeakBytes": 768137408,
+      "allWebContentPeakBytes": 777151176,
+      "glPeakBytes": 513700638,
+      "accountedPeakBytes": 741249691,
+      "gpuProcessPeakBytes": 441126104,
+      "wasmPeakBytes": 53280768,
+      "overCapBytes": 78965750
+    }
+  ],
+  "coverage": "Developer Driftwood/Pine/Nalati/template subset; full catalogue, road-only and shipped-layout coverage remain open. Simulator image fallback changes GL versus earlier KTX2 cohorts; no isolated causal credit."
+}

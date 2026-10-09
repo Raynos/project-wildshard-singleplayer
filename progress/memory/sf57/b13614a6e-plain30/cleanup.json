@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-10-09T02:06:27.680203+00:00",
+  "commands": [
+    {
+      "command": [
+        "scripts/sim-lane.sh",
+        "status"
+      ],
+      "exitCode": 0,
+      "stdout": "simulators: 0 / 1 booted\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "scripts/browser-lane.sh",
+        "status"
+      ],
+      "exitCode": 0,
+      "stdout": "lane: 1 / 4 used (1 lane runs, 0 browsers outside the lane)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "ps",
+        "-p",
+        "33109",
+        "-o",
+        "pid=,args="
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:4404",
+        "-sTCP:LISTEN"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "--json"
+      ],
+      "exitCode": 0,
+      "stdout": "[{\"lastBootedAt\": \"2026-10-09T01:32:20Z\", \"dataPath\": \"/Users/raynos/Library/Developer/CoreSimulator/Devices/07BE843A-E4E6-4689-A2EF-1A368C75E562/data\", \"dataPathSize\": 2469646336, \"logPath\": \"/Users/raynos/Library/Logs/CoreSimulator/07BE843A-E4E6-4689-A2EF-1A368C75E562\", \"udid\": \"07BE843A-E4E6-4689-A2EF-1A368C75E562\", \"isAvailable\": true, \"logPathSize\": 81920, \"deviceTypeIdentifier\": \"com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro\", \"state\": \"Shutdown\", \"name\": \"sf57-sp-x3-dev-28931\"}]",
+      "stderr": ""
+    }
+  ],
+  "ownedShutdownDeviceDeleted": true,
+  "deletionVerifiedAt": "2026-10-09T02:08:53.764702+00:00"
+}

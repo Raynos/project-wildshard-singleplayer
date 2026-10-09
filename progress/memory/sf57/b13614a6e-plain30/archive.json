@@ -1,0 +1,68 @@
+{
+  "format": "Lossless Brotli for large raw files; SHA-256 is of decompressed original bytes",
+  "files": [
+    {
+      "name": "dev-cells.json",
+      "archive": "dev-cells.json.br",
+      "bytes": 14017512,
+      "archiveBytes": 262512,
+      "sha256": "6e2efdf1023f557744367dd1781bc55d7ee928109ec3c8f75661ad6ee1943e6a"
+    },
+    {
+      "name": "dev-cells-native.jsonl",
+      "archive": "dev-cells-native.jsonl.br",
+      "bytes": 453022,
+      "archiveBytes": 55364,
+      "sha256": "0bea2c9cba7c00d3d80defe8df27dae527bca0977e430b724bab49a4f01d4c4c"
+    },
+    {
+      "name": "dev-cells-gl.jsonl",
+      "archive": "dev-cells-gl.jsonl.br",
+      "bytes": 133098731,
+      "archiveBytes": 267784,
+      "sha256": "fc3208ec065b0a407ebe404595a8b6ebb8a5601220470fdf016e8b92fd9551db"
+    },
+    {
+      "name": "dev-cells-gl-events.jsonl",
+      "archive": "dev-cells-gl-events.jsonl.br",
+      "bytes": 37054459,
+      "archiveBytes": 1042752,
+      "sha256": "f0002d3037b62ca7d3213c650a43e515c5d9644f73b39001a902c6562d7cdd2d"
+    },
+    {
+      "name": "dev-cells-gl-uploads.jsonl",
+      "archive": "dev-cells-gl-uploads.jsonl",
+      "bytes": 0,
+      "archiveBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "manifest.json",
+      "archive": "manifest.json",
+      "bytes": 452,
+      "archiveBytes": 452,
+      "sha256": "71f2e041ecb8d142f99778e643c4336653c6c0660a5c7401939fb73b9a756ee8"
+    },
+    {
+      "name": "preflight.json",
+      "archive": "preflight.json",
+      "bytes": 245,
+      "archiveBytes": 245,
+      "sha256": "4f92dcb12595ce4877c5b7ffba5a8e2157954912e5dfcf276effeb1d3164c85d"
+    },
+    {
+      "name": "machine-load.log",
+      "archive": "machine-load.log",
+      "bytes": 1905,
+      "archiveBytes": 1905,
+      "sha256": "fb7f5118ad30fcbe97065ad60950d9e04be5ee03e885e3efad7b55d07fd9e204"
+    },
+    {
+      "name": "run.log",
+      "archive": "run.log",
+      "bytes": 9299,
+      "archiveBytes": 9299,
+      "sha256": "dd71c7b473b307bb1ee8ed2da8398929b93bd949d1e6b06b7b2fcc4f9751e03f"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+serve-build: building b13614a6e7bb218f691a5f3b7040510de13cb7e8 b13614a6e → /private/tmp/claude-501/sp-builders/sp-x3/sf57-b13614a6e-plain30/serve/20261008-203049-4404/dist
+serve-build: pid 33109, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4404
+PREPARED /private/tmp/claude-501/sp-builders/sp-x3/sf57-b13614a6e-plain30/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sp-x3/sf57-b13614a6e-plain30/GO only after go
+sim-lane: created sf57-sp-x3-dev-28931 (07BE843A-E4E6-4689-A2EF-1A368C75E562)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[  54.4s] phase -> baseline-0
+{"layout":"dev","cycle":0,"route":"driftwood-isle-to-pine-hollow","seconds":0.005}
+[  74.5s] phase -> drive
+{"layout":"dev","cycle":0,"route":"pine-hollow-to-nalati-grasslands","seconds":39.941}
+{"layout":"dev","cycle":0,"route":"nalati-grasslands-to-template-2","seconds":94.866}
+{"layout":"dev","cycle":0,"route":"template-2-to-driftwood-isle","seconds":134.877}
+{"layout":"dev","cycle":0,"route":"home-to-road-tour","seconds":181.315}
+{"layout":"dev","cycle":0,"route":"road-0","seconds":259.905}
+{"layout":"dev","cycle":0,"route":"road-1","seconds":260.134}
+{"layout":"dev","cycle":0,"route":"road-2","seconds":281.105}
+{"layout":"dev","cycle":0,"route":"road-3","seconds":301.888}
+{"layout":"dev","cycle":0,"route":"road-4","seconds":322.668}
+{"layout":"dev","cycle":0,"route":"road-5","seconds":343.52}
+{"layout":"dev","cycle":0,"route":"road-6","seconds":364.389}
+{"layout":"dev","cycle":0,"route":"road-7","seconds":385.103}
+{"layout":"dev","cycle":0,"route":"road-8","seconds":405.874}
+{"layout":"dev","cycle":0,"route":"road-9","seconds":426.771}
+{"layout":"dev","cycle":0,"route":"road-10","seconds":447.626}
+{"layout":"dev","cycle":0,"route":"road-11","seconds":468.41}
+{"layout":"dev","cycle":0,"route":"road-12","seconds":489.346}
+{"layout":"dev","cycle":0,"route":"road-13","seconds":510.192}
+{"layout":"dev","cycle":0,"route":"road-14","seconds":531.095}
+{"layout":"dev","cycle":0,"route":"road-15","seconds":552.206}
+{"layout":"dev","cycle":0,"route":"road-16","seconds":572.935}
+{"layout":"dev","cycle":0,"route":"road-17","seconds":613.293}
+{"layout":"dev","cycle":0,"route":"road-tour-to-home","seconds":672.711}
+[ 807.0s] phase -> settle-1
+{"layout":"dev","cycle":1,"route":"driftwood-isle-to-pine-hollow","seconds":753.002}
+[ 827.1s] phase -> drive
+{"layout":"dev","cycle":1,"route":"pine-hollow-to-nalati-grasslands","seconds":780.637}
+{"layout":"dev","cycle":1,"route":"nalati-grasslands-to-template-2","seconds":823.072}
+{"layout":"dev","cycle":1,"route":"template-2-to-driftwood-isle","seconds":862.938}
+[ 979.0s] phase -> settle-2
+{"layout":"dev","cycle":2,"route":"driftwood-isle-to-pine-hollow","seconds":924.619}
+[ 999.1s] phase -> drive
+{"layout":"dev","cycle":2,"route":"pine-hollow-to-nalati-grasslands","seconds":954.88}
+{"layout":"dev","cycle":2,"route":"nalati-grasslands-to-template-2","seconds":997.943}
+{"layout":"dev","cycle":2,"route":"template-2-to-driftwood-isle","seconds":1037.574}
+[1153.1s] phase -> settle-3
+{"layout":"dev","cycle":3,"route":"driftwood-isle-to-pine-hollow","seconds":1099.829}
+[1174.3s] phase -> drive
+{"layout":"dev","cycle":3,"route":"pine-hollow-to-nalati-grasslands","seconds":1126.933}
+{"layout":"dev","cycle":3,"route":"nalati-grasslands-to-template-2","seconds":1171.981}
+{"layout":"dev","cycle":3,"route":"template-2-to-driftwood-isle","seconds":1212.629}
+[1329.2s] phase -> settle-4
+{"layout":"dev","cycle":4,"route":"driftwood-isle-to-pine-hollow","seconds":1275.591}
+[1350.4s] phase -> drive
+{"layout":"dev","cycle":4,"route":"pine-hollow-to-nalati-grasslands","seconds":1307.113}
+{"layout":"dev","cycle":4,"route":"nalati-grasslands-to-template-2","seconds":1352.42}
+{"layout":"dev","cycle":4,"route":"template-2-to-driftwood-isle","seconds":1392.291}
+[1508.3s] phase -> settle-5
+{"layout":"dev","cycle":5,"route":"driftwood-isle-to-pine-hollow","seconds":1454.747}
+[1529.4s] phase -> drive
+{"layout":"dev","cycle":5,"route":"pine-hollow-to-nalati-grasslands","seconds":1484.591}
+{"layout":"dev","cycle":5,"route":"nalati-grasslands-to-template-2","seconds":1530.522}
+{"layout":"dev","cycle":5,"route":"template-2-to-driftwood-isle","seconds":1571.16}
+[1687.4s] phase -> settle-6
+{"layout":"dev","cycle":6,"route":"driftwood-isle-to-pine-hollow","seconds":1634.535}
+[1708.6s] phase -> drive
+{"layout":"dev","cycle":6,"route":"pine-hollow-to-nalati-grasslands","seconds":1665.894}
+{"layout":"dev","cycle":6,"route":"nalati-grasslands-to-template-2","seconds":1711.573}
+{"layout":"dev","cycle":6,"route":"template-2-to-driftwood-isle","seconds":1751.317}
+[1867.6s] phase -> settle-7
+[1889.8s] phase -> unloaded
+[1911.0s] phase -> done
+{"phases": {"loading": {"samples": 54, "seconds": 53.3, "gamePid": 47488, "gameHighGB": 0.464, "gameSampledGB": 0.403, "allWebContentGB": 0.49, "gpuProcessGB": 0.161}, "baseline-0": {"samples": 20, "seconds": 19.1, "gamePid": 47488, "gameHighGB": 0.418, "gameSampledGB": 0.411, "allWebContentGB": 0.458, "gpuProcessGB": 0.158}, "drive": {"samples": 1658, "seconds": 1792.1, "gamePid": 47488, "gameHighGB": 0.791, "gameSampledGB": 0.762, "allWebContentGB": 0.831, "gpuProcessGB": 0.465}, "settle-1": {"samples": 20, "seconds": 19.1, "gamePid": 47488, "gameHighGB": 0.481, "gameSampledGB": 0.475, "allWebContentGB": 0.515, "gpuProcessGB": 0.203}, "settle-2": {"samples": 20, "seconds": 19.1, "gamePid": 47488, "gameHighGB": 0.495, "gameSampledGB": 0.488, "allWebContentGB": 0.528, "gpuProcessGB": 0.338}, "settle-3": {"samples": 21, "seconds": 20.1, "gamePid": 47488, "gameHighGB": 0.472, "gameSampledGB": 0.465, "allWebContentGB": 0.505, "gpuProcessGB": 0.336}, "settle-4": {"samples": 21, "seconds": 20.1, "gamePid": 47488, "gameHighGB": 0.479, "gameSampledGB": 0.475, "allWebContentGB": 0.515, "gpuProcessGB": 0.337}, "settle-5": {"samples": 21, "seconds": 20.1, "gamePid": 47488, "gameHighGB": 0.488, "gameSampledGB": 0.481, "allWebContentGB": 0.521, "gpuProcessGB": 0.339}, "settle-6": {"samples": 21, "seconds": 20.1, "gamePid": 47488, "gameHighGB": 0.493, "gameSampledGB": 0.492, "allWebContentGB": 0.532, "gpuProcessGB": 0.34}, "settle-7": {"samples": 22, "seconds": 21.1, "gamePid": 47488, "gameHighGB": 0.504, "gameSampledGB": 0.5, "allWebContentGB": 0.544, "gpuProcessGB": 0.34}, "unloaded": {"samples": 21, "seconds": 20.2, "gamePid": 47488, "gameHighGB": 0.496, "gameSampledGB": 0.496, "allWebContentGB": 0.535, "gpuProcessGB": 0.332}}, "lost": []}
+{"layout":"dev","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":1229156110,"loadingPeakBytes":654227467,"phoneEstimateBytes":1720818554,"baselines":[{"cycle":0,"start":1791509652.523,"end":1791509662.766,"samples":10,"bytes":574356927},{"cycle":1,"start":1791510405.671,"end":1791510415.757,"samples":10,"bytes":657980569},{"cycle":2,"start":1791510577.167,"end":1791510587.369,"samples":10,"bytes":673401437},{"cycle":3,"start":1791510752.232,"end":1791510762.566,"samples":10,"bytes":650524493},{"cycle":4,"start":1791510928.094,"end":1791510938.295,"samples":10,"bytes":657674925},{"cycle":5,"start":1791511107.085,"end":1791511117.485,"samples":11,"bytes":666542061},{"cycle":6,"start":1791511285.964,"end":1791511297.248,"samples":11,"bytes":675896109},{"cycle":7,"start":1791511466.652,"end":1791511477.261,"samples":10,"bytes":686219045}],"baselineDeltaBytes":[-99044510,-15420868,0,-22876944,-15726512,-6859376,2494672,12817608],"loops":[{"cycle":0,"complete":true,"peakBytes":968939386,"troughBytes":482778022},{"cycle":1,"complete":true,"peakBytes":1113342928,"troughBytes":572095922},{"cycle":2,"complete":true,"peakBytes":1196027430,"troughBytes":557865094},{"cycle":3,"complete":true,"peakBytes":1049846118,"troughBytes":565792670},{"cycle":4,"complete":true,"peakBytes":1229156110,"troughBytes":572855238},{"cycle":5,"complete":true,"peakBytes":1197765474,"troughBytes":581801990},{"cycle":6,"complete":true,"peakBytes":1078965750,"troughBytes":591387718}],"recovery":false,"calibration":false,"ratios":[{"cycle":1,"raw":1.3353119825145432,"adjusted":0.7264891484858943},{"cycle":2,"raw":1.3666072377110157,"adjusted":0.7577844036823667},{"cycle":3,"raw":1.3201805514443665,"adjusted":0.7113577174157177},{"cycle":4,"raw":1.3346917056935972,"adjusted":0.7258688716649482},{"cycle":5,"raw":1.352686755257722,"adjusted":0.7438639212290731},{"cycle":6,"raw":1.3716699486343886,"adjusted":0.7628471146057397},{"cycle":7,"raw":1.39261941247111,"adjusted":0.783796578442461}],"missingGlSamples":0,"sampling":true,"leakZero":true,"admitted":["pine-hollow","template-2","driftwood-isle","nalati-grasslands"],"refused":["sunscar-dunes","far-reach"],"attemptedEveryCell":false,"crossroads":16,"rehearsal":true,"limitation":"Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."}
+SF57 DONE /private/tmp/claude-501/sp-builders/sp-x3/sf57-b13614a6e-plain30
