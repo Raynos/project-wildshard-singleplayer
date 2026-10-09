@@ -1,0 +1,187 @@
+{
+  "schema": "gl-observer-proof/1",
+  "sourcePin": "d34018fdc7db704ca86796ae1103bc7487320f62",
+  "beforePin": "ec37f340396c5b2049c960fdd3ba0197ffb2753b",
+  "route": {
+    "shard": "_template",
+    "tier": "desktop",
+    "seed": 1,
+    "poses": [
+      "spawn"
+    ],
+    "framesPerPose": 60,
+    "observerBefore": "full",
+    "observerAfter": "sampled"
+  },
+  "comparison": {
+    "ignoredFields": [],
+    "differences": [],
+    "resources": 596,
+    "totalBytes": 280176252,
+    "unlabelled": 0
+  },
+  "checks": {
+    "cleanExport": "HEAD 734a516e4 plus the seven own paths; pnpm gen and generated-files --write in export only",
+    "rootStrict": "pass",
+    "scriptsStrict": "pass",
+    "ownedLint": "pass",
+    "graph": "pass (pure generatedFiles and complete check-graph, archive has no .git)",
+    "ratchet": "pass",
+    "shardCoupling": "pass",
+    "soakGlTools": {
+      "pass": 7
+    },
+    "vitest": {
+      "files": 1062,
+      "pass": 5877,
+      "skipped": 14,
+      "seconds": 117.23
+    }
+  },
+  "profile": {
+    "before": {
+      "windowMs": 4000,
+      "gpuLabelsSelfMs": 481.07,
+      "gpuLabelsSelfPercent": 11.642650236703474,
+      "hookCalls": {
+        "__sc_label_source": {
+          "calls": 11374,
+          "ms": 1.800001621246338
+        },
+        "__sc_label_gl": {
+          "calls": 68002,
+          "ms": 7.000001430511475
+        },
+        "__sc_gl_scope": {
+          "calls": 0,
+          "ms": 0
+        },
+        "createTexture": {
+          "calls": 0,
+          "ms": 0
+        },
+        "createBuffer": {
+          "calls": 0,
+          "ms": 0
+        },
+        "createRenderbuffer": {
+          "calls": 0,
+          "ms": 0
+        },
+        "texImage2D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "texImage3D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "compressedTexImage2D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "compressedTexImage3D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "bufferData": {
+          "calls": 0,
+          "ms": 0
+        },
+        "generateMipmap": {
+          "calls": 0,
+          "ms": 0
+        },
+        "renderbufferStorage": {
+          "calls": 0,
+          "ms": 0
+        },
+        "renderbufferStorageMultisample": {
+          "calls": 0,
+          "ms": 0
+        }
+      },
+      "errors": [],
+      "note": "Explicit profiler-only per-call clocks; not a cadence proof."
+    },
+    "after": {
+      "windowMs": 4000,
+      "gpuLabelsSelfMs": 132.021,
+      "gpuLabelsSelfPercent": 3.1817617649220775,
+      "hookCalls": {
+        "__sc_label_source": {
+          "calls": 733,
+          "ms": 0.10000038146972656
+        },
+        "__sc_label_gl": {
+          "calls": 0,
+          "ms": 0
+        },
+        "__sc_gl_scope": {
+          "calls": 0,
+          "ms": 0
+        },
+        "createTexture": {
+          "calls": 0,
+          "ms": 0
+        },
+        "createBuffer": {
+          "calls": 0,
+          "ms": 0
+        },
+        "createRenderbuffer": {
+          "calls": 0,
+          "ms": 0
+        },
+        "texImage2D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "texImage3D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "compressedTexImage2D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "compressedTexImage3D": {
+          "calls": 0,
+          "ms": 0
+        },
+        "bufferData": {
+          "calls": 0,
+          "ms": 0
+        },
+        "generateMipmap": {
+          "calls": 0,
+          "ms": 0
+        },
+        "renderbufferStorage": {
+          "calls": 0,
+          "ms": 0
+        },
+        "renderbufferStorageMultisample": {
+          "calls": 0,
+          "ms": 0
+        }
+      },
+      "errors": [],
+      "note": "Explicit profiler-only per-call clocks; not a cadence proof."
+    }
+  },
+  "floor": {
+    "schema": "frame-floor-worker",
+    "pin": "d34018fdc7db704ca86796ae1103bc7487320f62",
+    "glObserver": "on",
+    "developer": "off",
+    "surface": "desktop",
+    "complete": true,
+    "pass": true,
+    "minMedianFps": 59.88,
+    "maxP95Ms": 16.7,
+    "samples": 7,
+    "loadBefore": "8:56  up 49 days,  1:29, 2 users, load averages: 10.17 29.47 39.28",
+    "loadAfter": "8:57  up 49 days,  1:30, 2 users, load averages: 6.64 24.93 36.91"
+  }
+}
