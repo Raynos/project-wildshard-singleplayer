@@ -172,8 +172,11 @@ export function authoredHtmlSites(root, filename) {
       const invoked = property(node.expression, checker);
       const forwarding = invoked === 'call' || invoked === 'apply';
       const target = forwarding && ts.isPropertyAccessExpression(node.expression) ? node.expression.expression : node.expression;
-      const declaration = checker.getResolvedSignature(node)?.declaration;
-      const name = callTarget(target) ?? declaration?.name?.text;
+      // SF74 speed 3: resolve the signature only when the answer needs it (an unnamed target, or write / writeln's
+      // declaring file); resolving every call of every candidate file was ~45 % of this pass.
+      const named = callTarget(target);
+      const declaration = named === null || named === 'write' || named === 'writeln' ? checker.getResolvedSignature(node)?.declaration : undefined;
+      const name = named ?? declaration?.name?.text;
       const args = forwarding ? node.arguments.slice(1) : node.arguments;
       if (name === 'insertAdjacentHTML') sinks.push({ node, value: invoked === 'apply' ? args[0] : args[1] });
       if (name === 'createContextualFragment' || ((name === 'write' || name === 'writeln') && (normalized(declaration?.getSourceFile().fileName ?? '').endsWith('/lib.dom.d.ts') || /\bdocument\.(write|writeln)\b/u.test(target.getText(source))))) {
