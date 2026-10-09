@@ -9,7 +9,8 @@ import { sourceManifest } from '../src/sdk/sourceManifest';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import { shardEntries } from '../src/game/shard/entryMode';
 import { SOURCE } from '../src/shards/blender-template/data/source';
-import { CARD_HASH, CARD_BYTES } from '../src/shards/blender-template/data/card';
+import { CARD_HASH } from '../src/shards/blender-template/data/card';
+import { CARD_BYTES } from '../src/shards/blender-template/boot/card';
 import manifest from '../src/shards/blender-template/manifest';
 import project from '../src/shards/blender-template/shard.config';
 
@@ -30,7 +31,7 @@ it('admits the real presentation payload and gives the catalogue the same identi
     .toEqual([mapped.slug, mapped.name, mapped.accent, mapped.spawn, mapped.biome, mapped.blurb, mapped.card]);
   expect(mapped.card.thumb.startsWith('data:image/jpeg;base64,')).toBe(true);
   expect(manifest.status).toBe('hidden');
-  expect(manifest.load).toBeUndefined();
+  expect(manifest.load).toBeUndefined(); expect(manifest.boot).toBeUndefined();
   expect(shardEntries(manifest)).toEqual({ legacy: false, shardfile: true, public: 'shardfile' });
   expect(() => sourceManifest(source)).toThrow('missing admitted bytes');
 });

@@ -1,7 +1,8 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { assetCost } from '@wildshard/sdk/assets';
 import { SOURCE } from './data/source';
-import { CARD_HASH, CARD_BYTES } from './data/card';
+import { CARD_HASH } from './data/card';
+import { CARD_BYTES } from './boot/card';
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import { ROWS } from './data/rows';
 import { HALL_QUEST } from './quests/hall';
