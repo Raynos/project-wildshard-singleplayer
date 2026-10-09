@@ -1,9 +1,9 @@
-# Plan: MARKETING-SITE — seriousshit.com, the home of Project Wildshard (E465)
+# Plan: MARKETING-SITE — the home of Project Wildshard (E465)
 
-**State:** `draft` 2026-10-09 — a plan only; nothing is built. Research done (this file §1–§2: the vision from
-`sources/WILDSHARD.md`, `docs/design/mmo/`, the Meta repo; the present from SHARD-PLATFORM and the three live sites).
-Waiting on Jake's four picks (§7, Q1–Q4) and his go; the domain is his chore (MS9: seriousshit.com is a HugeDomains
-aftermarket listing, registered since 2014, not a fresh registration).
+**State:** `in progress` 2026-10-09 — Jake's picks are in (§7): key + ritual, the name is **Project Wildshard**, the
+author door is waitlist + Discord + mail, public from day one. Now: **MS2, the mockup series** (Jake: *"make a series
+of mock-ups for me to review with you so that we can actually figure that out and build it together"*). Open: which
+domain(s) to buy (MS9, Jake's; the shortlist is in the row). Nothing built yet.
 
 ## 0. Why
 
@@ -52,9 +52,9 @@ Every section serves one door or the bridge between them.
 
 ### 1.2 The author door, before the API exists
 
-The upload API "has not been made yet" (Jake). The author door today is **a creator waitlist**: a short form (email,
-optional "what would you build?") that a Vercel function in `api/` writes to Blob, read in the admin site. Q3 decides
-whether that ships or a plain mail link does. When the platform's SDK is public (SHARD-PLATFORM Part B: `npm create
+The upload API "has not been made yet" (Jake). The author door today is **all three** (Q3): a creator waitlist (a short form,
+email plus an optional "what would you build?", that a Vercel function in `api/` writes to Blob, read in the admin
+site), a Discord, and the mail link. When the platform's SDK is public (SHARD-PLATFORM Part B: `npm create
 wildshard`), the door becomes *install the skill*; when the API exists, *request a key*.
 
 ## 2. Where things stand (2026-10-09)
@@ -81,7 +81,8 @@ wildshard`), the door becomes *install the skill*; when the API exists, *request
   page about the game, and it must stay light on a phone. A live 3D scene on the page is a later row only if Jake asks.
 - **Vercel project:** `wildshard-site`, **named before the first deploy** (global CLAUDE.md: deploying from an output
   folder names the project after the folder). Deployed by `site/tools/deploy.sh` from a clean export of HEAD, the
-  same way as the drafts site; `seriousshit.com` and `www.seriousshit.com` attached once Jake owns the domain.
+  same way as the drafts site. **Public from the first deploy** (Q4), no deployment protection; the domain(s) Jake
+  buys are attached when he has them (MS9).
 - **Media:** images re-encoded to AVIF / WebP at phone and desktop widths; videos to ~2–4 MB H.264 + a poster frame,
   on Vercel Blob like the drafts pictures, never committed raw.
 - **Look:** decided on boards (MS2), not here. Each shard keeps its own look in its card; the site's own frame takes
@@ -91,16 +92,16 @@ wildshard`), the door becomes *install the skill*; when the API exists, *request
 
 | # | Row | Done when | Owner |
 |---|---|---|---|
-| MS0 | **Jake's picks** Q1–Q4 (§7) | his answers recorded here | Jake |
+| MS0 | ✅ **Jake's picks** Q1–Q4 (§7) | his answers recorded here | Jake |
 | MS1 | **Copy** — every section's words in one review page (`docs/reviews/marketing-site-copy.md`), from §1, in Jake's own phrasing where he has one | Jake reads it and notes land | marketing agent |
-| MS2 | **Look** — three landing-page directions as one labelled A / B / C board, iPhone portrait (`art/marketing-site/round-1-direction/`), each from real captures plus the lattice | Jake picks one | marketing agent (pick board via the plan agent, per the boards rule) |
+| MS2 | **Mockup series, reviewed with Jake** — rounds in `art/marketing-site/round-<n>-<label>/`, iPhone portrait, each a labelled A / B / C board built on real captures plus the lattice: round 1 the overall direction (hero + frame), then the sections one by one (world, shards, how-a-shard-is-made + ritual, safe-by-construction, the road, author door), then the desktop width. Each round's picks recorded here | Jake has picked a direction and every section's layout | marketing agent |
 | MS3 | **Media pass** — pick and re-encode the hero video, one hero per shard, the grid aerial; re-render the two concept paintings at ≥ 2560 px from their prompts; poster frames; all on Blob | every §1 image has a ≤ 300 KB phone version | marketing agent |
 | MS4 | **Scaffold** — `site/` (Vite, no game imports), the `wildshard-site` Vercel project, `site/tools/deploy.sh`, `version.json` with the build SHA, the layout check and lint knowing `site/` | a blank page live at `wildshard-site.vercel.app` | marketing agent |
 | MS5 | **Build the sections** §1 rows 1–10 in the picked look | every section on the live URL; Lighthouse mobile ≥ 90; no horizontal scroll at 390 px | marketing agent |
 | MS6 | **The road strip** — a build step reads the milestone rows (SHARD-PLATFORM M1–M3, MMO-REQUIREMENTS §5) into the progress strip | the strip matches the plans at the deployed SHA | marketing agent |
-| MS7 | **Author door** — per Q3: the waitlist form + `api/` function + Blob + an admin tab, or a mail link | a test signup reaches the admin site | marketing agent |
+| MS7 | **Author door** (Q3: all three) — the waitlist form + `api/` function + Blob + an admin tab; the Discord server and its invite link; the mail link | a test signup reaches the admin site; the Discord invite works | marketing agent (the Discord account: Jake) |
 | MS8 | **Sharing** — Open Graph / Twitter cards per section, favicon, the page title, `robots.txt`, sitemap | the link unfurls with the hero in iMessage | marketing agent |
-| MS9 | **Domain** — Jake buys seriousshit.com (HugeDomains listing); then attach apex + `www` to `wildshard-site`, DNS at the registrar, HTTPS | `https://seriousshit.com` serves the site | Jake (purchase), marketing agent (attach) |
+| MS9 | **Domain** — Jake picks and buys one or more (he may buy several); the primary serves the site, the rest redirect to it. Unregistered on 2026-10-09 (whois): `wildshard.gg`, `wildshard.io`, `wildshard.game`, `wildshard.net`, `wildshard.org`, `wildshard.co`, `projectwildshard.com`, `playwildshard.com`, `getwildshard.com`, `wildshardgame.com` (likely `.dev` / `.app` / `.world` too: no name servers). `wildshard.com` is taken (registered 2025-02, live). Then attach apex + `www` to `wildshard-site`, DNS at the registrar, HTTPS | the primary domain serves the site and every other one redirects to it | Jake (pick + purchase), marketing agent (attach) |
 | MS10 | **Keep it true** — when a SHARD-PLATFORM milestone, a new shard or the SDK ships, the site's road and cards follow (the deploy script is the one step) | a standing row; closes only if the site is retired | marketing agent |
 
 ## 5. Not in this plan
@@ -112,21 +113,16 @@ plans (SHARD-PLATFORM Part B, then the MMO's). The site only describes them and 
 
 - **Over-promising.** The MMO is the far end of a long road; the road strip and the labels are what keep the site
   honest.
-- **The name** on a domain like seriousshit.com: the brand line (Q2) decides how the two sit together.
 - **Weight.** The trailer is 51 MB raw; the page budget is ≤ 3 MB on first load at phone width, video lazy.
 
-## 7. Picks for Jake
+## 7. Jake's picks (2026-10-09)
 
-- **Q1 · Upload: API key or the beacon ritual?** The brief (E465) says creators "request an API key … and upload". The
-  requirements (MMO-REQUIREMENTS U1, FUNDAMENTALS.md:31) say *"No CLI or API upload replaces [the ritual]; the SDK
-  never uploads."* **Recommended:** both, in order: the key is your creator identity (it lets the game sign your upload);
-  the upload itself is the nine-beacon ritual in the game. The site shows key → build → ritual.
-- **Q2 · The name on the site.** seriousshit.com is the address; what is the headline name? **Recommended:**
-  "Project Wildshard" as the game, one spelling everywhere ("Wildshard"), and seriousshit.com as the home it lives at,
-  with no studio name until Jake gives one.
-- **Q3 · The author door today.** **Recommended:** a creator waitlist form (email + "what would you build?") stored on
-  Blob and read in admin, so the site gathers authors before the SDK ships. The alternative is a mail link
-  (`project.wildshard@gmail.com`), no data to hold.
-- **Q4 · Public now or after the domain?** **Recommended:** build and deploy to `wildshard-site.vercel.app` now, behind
-  Vercel deployment protection like the main project, and open it publicly on seriousshit.com when Jake has read MS1 and
-  picked MS2.
+- **Q1 · Upload: key + ritual.** The key is your creator identity (it lets the game sign your upload); the upload
+  itself is the nine-beacon ritual in the game. The site shows key → build in Claude Code → ritual. Keeps E465 and
+  MMO-REQUIREMENTS U1 both true.
+- **Q2 · The name: Project Wildshard** (the code name), spelled that way everywhere, no studio name. Jake: *"the code
+  name is project wildshard"*. The domain in the first draft was a dictation error and is gone.
+- **Q3 · The author door: all three**: the waitlist form, a Discord (to be made) and the mail link
+  `project.wildshard@gmail.com`. MS7 builds all three.
+- **Q4 · Public from day one.** Every deploy is public; no protection gate.
+- **Open: the domain(s)** (MS9).
