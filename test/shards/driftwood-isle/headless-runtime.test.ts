@@ -99,6 +99,28 @@ it('stands the player on the baked floor and the pier: 10k ticks of walking stay
   } finally { host.dispose(); }
 }, 60_000);
 
+it('runs the bodies on the page\'s distance bands: a capsule only within 45 m, a body past 160 m neither decides nor moves', () => {
+  const host = boot();
+  try {
+    expect(host.bodyBands).toEqual({ physics: true });
+    const still = { moveX: 0, moveZ: 0, yaw: 0 }, p = host.player.position, crab = host.entities.get(bake.habitat.practice);
+    if (crab === undefined) throw new Error('missing practice crab');
+    // the player 20 m from the practice crab, off the pier
+    const beside = new Vector3(crab.position.x, 0, crab.position.z + 20); beside.y = bake.floorAt(beside.x, beside.z) + 0.5;
+    host.player.motor.resetAt(beside); host.player.position.copy(beside);
+    host.step(still);
+    const flat = (a: { position: Vector3 }): number => Math.hypot(a.position.x - p.x, a.position.z - p.z);
+    const bodies = [...host.entities.values()], far = bodies.filter(a => a.position.distanceTo(p) > 170), near = bodies.filter(a => a.alive && flat(a) < 45);
+    expect(far.length).toBeGreaterThan(10); expect(near.length).toBeGreaterThan(0);
+    near.forEach(a => { expect(a.motor).not.toBeNull(); });
+    bodies.filter(a => flat(a) > 55).forEach(a => { expect(a.motor).toBeNull(); });
+    const before = far.map(a => [a.position.clone(), a.yaw] as const);
+    for (let tick = 0; tick < 300; tick++) host.step(still);
+    far.forEach((a, i) => { expect([a.position.distanceTo(before[i]?.[0] ?? new Vector3(Infinity)), a.yaw]).toEqual([0, before[i]?.[1]]); });
+    expect(snapshotSimHost(host).bands?.rows.length).toBeGreaterThan(0);
+  } finally { host.dispose(); }
+});
+
 it('brings the practice crab back 45 s after it dies once the player is 30 m off, after its shell fades, as a fresh body', () => {
   const host = boot();
   try {

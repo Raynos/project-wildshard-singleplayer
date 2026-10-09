@@ -31,9 +31,6 @@ export const FAUNA_DRAWS = 148;
 const BODY_COUNT = 34;
 /** manifest.ts `fight` (E297: telegraphed melee, two attack tokens); the headless test holds them equal. */
 export const DRIFTWOOD_FIGHT = { telegraphed: true, attackers: 2 } as const;
-/** The scheduler's 'ai' tick rate (app/scheduler.ts AI): decisions at 20 Hz within 60 m of the player, 10 Hz to 160 m,
- *  paused beyond (the time away discarded); a sidestepping crab thinks every frame ('always'). */
-const NEAR = 60, FAR = 160, NEAR_HZ = 20, FAR_HZ = 10, FRAME = 1 / 60;
 const { delay: PRACTICE_BACK, away: PRACTICE_AWAY } = DRIFTWOOD_PRACTICE.respawn;
 /** AnimalView.fadeOut: a dead practice crab's shell fades 1.5 s before the new one is placed (Enemies.tickPractice). */
 const SHELL_FADE = 1.5;
@@ -76,9 +73,9 @@ const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), 
   thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(BODY_COUNT - 1)), handle: finite, wet: finite });
 /** a coconut collider's owner tag (plain data: the host's snapshot encodes collider owners) */
 const COCONUT_OWNER = { kind: 'coconut' } as const;
-const Saved = v.strictObject({ version: v.literal(3), rng: Stream,
+const Saved = v.strictObject({ version: v.literal(4), rng: Stream,
   coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
-  fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])), clocks: v.array(v.tuple([finite, finite, finite])),
+  fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())), stepped: v.array(v.boolean()) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 
@@ -101,9 +98,12 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  * feet; every body's turn is capped while it attacks (a melee shard). The herds are the manager's hunting brain's
  * (`HuntBrain`, src/engine/ai/hunt.ts), in its order: the fauna's, then the enemies' at their `addHerd` points.
  *
- * Decisions run on the scheduler's 'ai' clock per body (20 Hz within 60 m, 10 Hz to 160 m, paused beyond; every frame
- * while a crab sidesteps), and an interrupt decides at once: a hunter that loses its line to the player, a fauna body hit
- * without dying. The fauna decide through the hunting brain (the island's boar and bear rows, the manifest's fauna tuning,
+ * The host runs on the page's distance bands (`useBodyBands`, engine/sim/bands.ts; set before any spawn, and on a
+ * restoring host before the host restores its clocks): each body decides on its 'ai' brain clock (`brainDt`: 20 Hz within
+ * 60 m, 10 Hz to 160 m, paused beyond; 'always' while a crab sidesteps), moves on its body clock (`bodyDt`: every frame
+ * within 60 m, every other frame with both frames' time to 160 m, paused beyond), and holds the page's creature capsule
+ * only within 45 m (released past 55 m). An interrupt decides at once (`brainDt(id, true)`, a zero step when the body
+ * already decided this frame): a hunter that loses its line to the player, a fauna body hit without dying. The fauna decide through the hunting brain (the island's boar and bear rows, the manifest's fauna tuning,
  * the browser's baked navmesh for paths and wander targets, the manager's smoothed player speed), charge on the body
  * tick and land a charge as PlayerHurt.creature's blow; a hit turns, bolts or enrages them. The enemies run their
  * shipping policies (runtime/enemyBrains.ts) and strike every tick, steering and confined through the hunting brain over
@@ -115,10 +115,9 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  * restored world's bodies are adopted back by handle. Restore reinstalls exactly the saved roster from its recipes before
  * the host restores, with no stream draw kept.
  *
- * Known differences from the browser (the SF72 handoff): every body's physics steps every tick (the host owns the bodies;
- * the browser halves them 60–160 m out and pauses them beyond); a charge's contact is tested at the start of the next
- * tick, against the player where the charging tick saw it (the host steps bodies after its systems), so its knockback
- * starts one tick later; no 'target.attack' / 'target.dodge' wakes (no weapon or dodge is owned yet); no player
+ * Known differences from the browser (the SF72 handoff): a charge's contact is tested at the start of the next tick (for
+ * a body its band stepped), against the player where the charging tick saw it (the host steps bodies after its systems),
+ * so its knockback starts one tick later; no 'target.attack' / 'target.dodge' wakes (no weapon or dodge is owned yet); no player
  * push-out (`clearBody`); the coconuts float on the swell at the host clock (the browser's ocean clock starts with its view).
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
@@ -128,6 +127,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   settle: () => void;
 } {
   const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
+  // the page's distance bands with its default rates: 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`, the
+  // fauna's default), 'always' while a crab sidesteps; and the creature body LOD. Before any spawn.
+  host.useBodyBands();
   const normalY = (x: number, z: number): number => {
     const nx = heightAt(x - NORMAL_EPS, z) - heightAt(x + NORMAL_EPS, z), nz = heightAt(x, z - NORMAL_EPS) - heightAt(x, z + NORMAL_EPS);
     return 2 * NORMAL_EPS / Math.hypot(nx, 2 * NORMAL_EPS, nz);
@@ -232,10 +234,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const practice: { body: IslandBody | null; dead: number; fade: number } = { body: null, dead: 0, fade: -1 };
   /** AnimalManager.stillAttacking: a charger while it charges, a self-thinking species while its strike runs */
   const still = (a: HuntBody): boolean => a.alive && (FAUNA.has(a.kind) ? a.state === 'charge' : a.attackPhase >= 0);
-  /** Each body's decision clock (last time seen, elapsed, credit), in roster order: a new subject starts a frame ago. */
-  const last = new Float64Array(BODY_COUNT).fill(host.clock.now - FRAME), elapsed = new Float64Array(BODY_COUNT), credit = new Float64Array(BODY_COUNT);
-  /** the tick each decision clock last ran (TickScheduler's per-frame fence: a second ask in one frame gets nothing) */
-  const ran = new Float64Array(BODY_COUNT).fill(-1);
+  /** whether each body's band stepped it last tick (the page tests a charge's contact only on a body update) */
+  const stepped = Array.from({ length: BODY_COUNT }, () => false);
   /** AnimalManager.visibility: whether each aggressive body last had a clear line to the player (null: never asked) */
   const sight = Array.from({ length: BODY_COUNT }, (): boolean | null => null);
   /** the manager's smoothed player ground speed, the player where the last step saw it (once one has), and the hunting
@@ -276,25 +276,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const old = hunt.herds[body.herd]; if (old !== undefined) old.members.length = 0;
     body.herd = hunt.addHerd('crab', PRACTICE_AT.x, PRACTICE_AT.z);
     draw(body); arrive(body);
-    const i = bodies.indexOf(body); last[i] = host.clock.now - FRAME; elapsed[i] = 0; credit[i] = 0; ran[i] = -1; sight[i] = null;
+    // its band clocks start fresh under the new id (host.retire forgot the old one's)
+    const i = bodies.indexOf(body); stepped[i] = false; sight[i] = null;
     practice.dead = 0; practice.fade = -1;
-  };
-  /** The body's decision rate (AnimalManager.tickRate on the 'ai' bands): every frame while a crab sidesteps. */
-  const rateOf = (a: HuntBody): number => {
-    const d = Math.hypot(a.position.x - player.x, a.position.y - player.y, a.position.z - player.z);
-    return a.state === 'sidestep' ? Infinity : d < NEAR ? NEAR_HZ : d < FAR ? FAR_HZ : 0;
-  };
-  /** TickScheduler.due (brain side) for body `i`: its decision dt this frame (0: not due); `urgent` is an interrupt's wake. */
-  const due = (i: number, a: HuntBody, urgent: boolean): number => {
-    const tick = host.state.tick;
-    if (ran[i] === tick && !urgent) return 0;
-    const now = host.clock.now, hz = rateOf(a), step = now - (last[i] ?? now);
-    last[i] = now; ran[i] = tick;
-    if (hz === 0) { elapsed[i] = 0; credit[i] = 0; } else { elapsed[i] = (elapsed[i] ?? 0) + step; credit[i] = (credit[i] ?? 0) + step; }
-    if (!urgent && (hz === 0 || (credit[i] ?? 0) + 1e-9 < 1 / hz)) return 0;
-    const dt = elapsed[i] ?? 0;
-    elapsed[i] = 0; credit[i] = urgent || hz === Infinity ? 0 : Math.max(0, (credit[i] ?? 0) - Math.floor(((credit[i] ?? 0) + 1e-9) * hz) / hz);
-    return dt;
   };
   /** AnimalManager.think for body `i`: a fauna body's hunting brain, or an enemy's own policy. */
   const runBrain = (body: IslandBody, a: HuntBody, dt: number): void => {
@@ -305,11 +289,12 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     body.brain.decide(dt);
     const herd = hunt.herds[body.herd]; if (herd !== undefined) hunt.updateHerd(herd);
   };
-  /** TickScheduler.interrupt's wake (AnimalManager.spawnAnimal's onInterrupt): decide now, whatever the clock. */
+  /** TickScheduler.interrupt's wake (AnimalManager.spawnAnimal's onInterrupt): decide now, whatever the clock (a zero
+   *  step when the body already decided this frame). */
   const wake = (i: number): void => {
     const body = bodies[i], a = body?.actor ?? null;
     if (body === undefined || a === null || !a.alive) return;
-    runBrain(body, a, due(i, a, true));
+    runBrain(body, a, host.brainDt(body.id, true));
   };
   // AnimalManager.damaged: a fauna body's hit reaction (a kill clears its timer); a hit that doesn't kill wakes its brain
   host.events.on('damage.dealt', ({ req, killed }) => {
@@ -325,7 +310,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     // player where that frame saw it
     if (tracked.seen) for (let i = 0; i < BODY_COUNT; i++) {
       const body = bodies[i], a = body?.actor ?? null;
-      if (a !== null && body?.brain === null && a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, tracked.prev);
+      if (a !== null && stepped[i] === true && body?.brain === null && a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, tracked.prev);
     }
     hunt.beginTick(dt); tracked.clock += dt;
     // the player's ground speed is the noise they make (AnimalManager.update)
@@ -344,13 +329,18 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         if (sight[i] === true && !clear) wake(i);
         sight[i] = clear;
       }
-      const brainDt = due(i, a, false);
+      const brainDt = host.brainDt(body.id);
       if (brainDt > 0) runBrain(body, a, brainDt);
     }
+    // the bodies on their band's step (0 while paused or on the off frame of 'half'; the next takes both frames' time):
+    // a fauna body's running charge, an enemy's own body tick; the host then steps the body by the same step
     for (let i = 0; i < BODY_COUNT; i++) {
       const body = bodies[i], a = body?.actor ?? null;
-      if (body === undefined || a === null || !a.alive || a.stunned) continue;
-      if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, dt, player); } else body.brain.move(dt);
+      stepped[i] = false;
+      if (body === undefined || a === null) continue;
+      const step = host.bodyDt(body.id); stepped[i] = step > 0;
+      if (step <= 0 || !a.alive || a.stunned) continue;
+      if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, step, player); } else body.brain.move(step);
     }
     // the coconuts strike, land and rest (Enemies.update), then their bodies ready the next world step ('pre')
     volley.step(dt, 1, player);
@@ -363,15 +353,15 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
-    snapshot: () => ({ version: 3, rng: { ...rng.snapshot() },
+    snapshot: () => ({ version: 4, rng: { ...rng.snapshot() },
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
-        memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight] },
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), clocks: [...last].map((t, i) => [t, elapsed[i] ?? 0, credit[i] ?? 0] as [number, number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
+        memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight], stepped: [...stepped] },
+      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
       bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })) }),
     restore: value => {
       const state = v.parse(Saved, value);
-      if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length || state.clocks.length !== BODY_COUNT
+      if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length || state.fauna.stepped.length !== BODY_COUNT
         || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== BODY_COUNT
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
       const holders = state.tokens.map(id => { const a = bodies.find(b => b.id === id)?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
@@ -379,7 +369,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       reattach = volley.restore(state.coconuts, i => bodies[i]?.actor ?? null);
       rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
-      state.clocks.forEach(([t, e, c], i) => { last[i] = t; elapsed[i] = e; credit[i] = c; });
+      state.fauna.stepped.forEach((on, i) => { stepped[i] = on; });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
       state.bodies.forEach((b, i) => { if (b.policy !== null) bodies[i]?.brain?.restore(v.parse(v.string(), JSON.parse(b.policy))); });
       // the hunting brain's world clock from 0 (its path re-plan timers run on it), the speed meter, sight and memories
