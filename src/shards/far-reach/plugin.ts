@@ -1,9 +1,9 @@
-// oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids barrel re-exports; this lazy plugin adapter returns the exact defining constructor.
+import { standaloneEntry } from './runtime/standalone';
 import RuntimePlugin from './runtime/index';
 import type { ShardPlugin } from '@wildshard/game/shard/plugin';
 
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default RuntimePlugin;
+export default standaloneEntry(RuntimePlugin);
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
 export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {

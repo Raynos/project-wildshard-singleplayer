@@ -1,3 +1,4 @@
+import { standaloneEntry } from './runtime/standalone';
 import { declaredDuneRows } from './runtime/brains';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -155,7 +156,7 @@ export class SignalDunesPlugin extends ShardPlugin {
   }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default SignalDunesPlugin;
+export default standaloneEntry(SignalDunesPlugin);
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
 export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {

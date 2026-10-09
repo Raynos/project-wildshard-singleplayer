@@ -912,6 +912,11 @@ The six transitioned primary folders remain the SHARDFILE/grid authoring source.
 copy is frozen, standalone only, with its own slug and local save namespace. The existing LEGACY button resolves to
 that copy; SHARDFILE resolves to the primary. Only the primary card is shown. Copies never enter the grid catalogue.
 
+All six primary entries admit their current data through the hybrid loader before running their trusted runtime.
+Sky Reach, Signal Dunes and Nine Dragon use the same standalone entry-choice contract as Driftwood, Pine and Nalati.
+Their regional resolver still returns the exact native constructor; unported gameplay and presentation remain trusted
+runtime work. A failed data admission never starts the native world.
+
 `lint/legacy-shards.json` is the reviewed inventory: primary/copy, immutable source SHA, and every file hash. Only
 those exact files leave primary SF2, soft-debt, platform-share and measured layer-edge counts. Every hard layer,
 public-index, cycle and lint rule still runs. No suffix-based exemption exists. The sealed inventory can only shrink.

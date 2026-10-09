@@ -1,3 +1,4 @@
+import { standaloneEntry } from './runtime/standalone';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { JIAN_ROW } from './vm/jianRow';
 import { swordSupport } from './vm/swordSupport';
@@ -95,7 +96,7 @@ export class NdPlugin extends ShardPlugin {
 }
 
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
-export default NdPlugin;
+export default standaloneEntry(NdPlugin);
 
 /** Resolve only the declared first-party entry; standalone keeps the same native constructor. */
 export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
