@@ -3,13 +3,13 @@
  * face skin's tiles are built at build time (`../generators/crags.ts`, `scripts/bake-pine-crags.mjs`) over the page's own
  * baked terrain: `../data/crags.json` holds every placement and each tier's tile table, and
  * `public/assets/pine-hollow/baked/crags.<tier>.bin` (zlib) each tier's two skin resolutions. Here a tile becomes the
- * geometry the crags' one batch draws (./crags.ts), exactly as the builder made it. The file is the binary's bytes split
- * into four lanes (every 4-byte word's first bytes, then its second …) before zlib: floats compress ~30 % better so.
+ * geometry the crags' one batch draws (./crags.ts), exactly as the builder made it. The file ships in lanes (./bakeBytes.ts).
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { BEAR_CAVE } from '../layout';
+import { fetchBake } from './bakeBytes';
 import cragJson from '../data/crags.json' with { type: 'json' };
 
 /** the kit's modules (nodes `<id>` and `<id>-lod1`: the cliff bands, buttress and slab in crags-b.glb, the rest in crags.glb) */
@@ -80,14 +80,6 @@ export function skinGeometry(pos: Float32Array, ao: Float32Array, index: Uint16A
   return g;
 }
 
-/** The binary from its shipped lanes (`../generators/crags.ts` `shuffleLanes` reversed). */
-export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
-  if (lanes.length % 4 !== 0) throw new Error('[crags] the skin bake is not whole words');
-  const n = lanes.length / 4, out = new Uint8Array(lanes.length);
-  for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
-  return out;
-}
-
 /** The decoded binary of one tier: each tile's near and far geometry, in the builder's order (nothing is shared). */
 export class CragSkin {
   private readonly buffer: ArrayBuffer;
@@ -118,9 +110,7 @@ export class CragSkin {
 export async function loadCragSkin(tier: Tier): Promise<CragSkin | null> {
   const url = cragBakeUrl(tier);
   try {
-    const response = await fetch(url);
-    if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
-    return new CragSkin(unshuffleLanes(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer())), CRAG_ROWS.skin[tier]);
+    return new CragSkin(await fetchBake(url), CRAG_ROWS.skin[tier]);
   } catch (error: unknown) {
     console.error('[pine-hollow] the baked crag skin did not load:', error);
     return null;

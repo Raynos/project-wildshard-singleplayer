@@ -2,7 +2,7 @@
  * Pine Hollow's running water (PINE-HOLLOW-REMASTER PH-L9): the creek from the beaver dam to the slab's south edge, the
  * waterfall off the Ridge into the pond, the plunge-pool foam where it lands and a spray of mist at the foot.
  *
- *   const streams = new PineStreams(sky).build();   // Pine Hollow only (its layout: src/shards/pine-hollow/layout.ts)
+ *   const streams = await new PineStreams(sky).build();   // Pine Hollow only (its bake: ../generators/streams.ts)
  *   scene.add(streams.group);                        // nothing to update: it all runs on wind.ts's clock
  *
  * Two draws, no extra render pass, no per-frame CPU:
@@ -19,191 +19,69 @@
 import * as THREE from 'three';
 import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
 import { makeMistTexture } from '@wildshard/game/systems/looks/particles';
-import {
-  CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
-} from '../layout';
+import * as v from 'valibot';
+import streamJson from '../data/streams.json' with { type: 'json' };
+import { fetchBake } from './bakeBytes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { normalAt, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
 import { windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
-import { smoothstep } from '@wildshard/engine/core/noise';
 
-/** the creek ribbon's across-stream offsets (m): dense where the water meets the banks */
-const CREEK_ACROSS = [-6, -4.6, -3.8, -3.2, -2.6, -1.5, 0, 1.5, 2.6, 3.2, 3.8, 4.6, 6];
+const num = v.pipe(v.number(), v.finite()), xyz = v.tuple([num, num, num]);
+/** ../data/streams.json: the water mesh's counts and index width, the fall's plunge and face-foot anchors */
+const StreamRows = v.strictObject({ bin: v.string(), bytes: num, vertices: num, indices: num, wide: v.boolean(), plunge: xyz, faceFoot: xyz });
+/** the bake's rows, parsed strictly once */
+export const STREAM_ROWS = v.parse(StreamRows, streamJson);
+/** the bake's binary (`scripts/bake-pine-streams.mjs`); listed in the boot's world reads (../boot/files.ts) */
+export const STREAM_BAKE_URL = '/assets/pine-hollow/baked/streams.bin';
 
-/** an accumulating mesh: positions, uv, aWater and an index */
-class Builder {
-  pos: number[] = []; uv: number[] = []; aw: number[] = []; idx: number[] = [];
-  get count(): number { return this.pos.length / 3; }
-  vert(x: number, y: number, z: number, u: number, v: number, depth: number, flow: number, foam: number, kAbs: number): void {
-    this.pos.push(x, y, z); this.uv.push(u, v); this.aw.push(depth, flow, foam, kAbs);
-  }
-  /** a grid of `rows` × `cols` vertices starting at `base`, rows along the flow, columns to its left (wound to face up) */
-  grid(base: number, rows: number, cols: number): void {
-    for (let r = 0; r + 1 < rows; r++) for (let c = 0; c + 1 < cols; c++) {
-      const a = base + r * cols + c, b = a + 1, d = a + cols, e = d + 1;
-      this.idx.push(a, b, d, b, e, d);
-    }
-  }
-  geometry(): THREE.BufferGeometry {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2));
-    g.setAttribute('aWater', new THREE.Float32BufferAttribute(this.aw, 4));
-    g.setIndex(this.idx);
-    g.computeVertexNormals();
-    g.computeBoundingSphere();
-    return g;
-  }
+/** the water mesh from the bake's blocks, as the builder finished it: its index, smoothed normals and bounds */
+export function streamGeometry(bytes: Uint8Array): THREE.BufferGeometry {
+  if (bytes.length !== STREAM_ROWS.bytes) throw new Error(`[streams] the bake holds ${String(bytes.length)} bytes, its rows ${String(STREAM_ROWS.bytes)}`);
+  const buffer = new ArrayBuffer(bytes.length); new Uint8Array(buffer).set(bytes);
+  const n = STREAM_ROWS.vertices, pad4 = (b: number): number => Math.ceil(b / 4) * 4;
+  let at = 0;
+  const floats = (count: number): Float32Array => { const a = new Float32Array(buffer, at, count); at += pad4(count * 4); return a; };
+  const pos = floats(n * 3), uv = floats(n * 2), aw = floats(n * 4);
+  const index = STREAM_ROWS.wide ? new Uint32Array(buffer, at, STREAM_ROWS.indices) : new Uint16Array(buffer, at, STREAM_ROWS.indices);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWater', new THREE.Float32BufferAttribute(aw, 4));
+  g.setIndex(new THREE.BufferAttribute(index, 1));
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  return g;
 }
-
-/** a polyline sampled by arc length: point and (smoothed) unit tangent */
-class Path {
-  private cum: number[] = [0];
-  readonly length: number;
-  constructor(private pts: readonly XZ[]) {
-    for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1], b = pts[i];
-      this.cum.push((this.cum[i - 1] ?? 0) + (a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0));
-    }
-    this.length = this.cum[this.cum.length - 1] ?? 0;
-  }
-  at(s: number): [number, number] {
-    const t = Math.min(this.length, Math.max(0, s));
-    let i = 0;
-    while (i < this.pts.length - 2 && t > (this.cum[i + 1] ?? 0)) i++;
-    const a = this.pts[i], b = this.pts[i + 1], l = (this.cum[i + 1] ?? 0) - (this.cum[i] ?? 0);
-    if (!a || !b) return [0, 0];
-    const u = l > 0 ? (t - (this.cum[i] ?? 0)) / l : 0;
-    return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
-  }
-  /** the direction over ±`span` m (so the ribbon bends smoothly round the polyline's corners) */
-  tangent(s: number, span: number): [number, number] {
-    const p = this.at(s - span), q = this.at(s + span), dx = q[0] - p[0], dz = q[1] - p[1], l = Math.hypot(dx, dz) || 1;
-    return [dx / l, dz / l];
-  }
-}
-
 
 export class PineStreams {
   readonly group = new THREE.Group();
-  /** the creek, the waterfall sheet and the plunge ring (one draw) */
-  water!: THREE.Mesh;
+  /** the creek, the waterfall sheet and the plunge ring (one draw; null when its bake did not load) */
+  water: THREE.Mesh | null = null;
   /** the mist puffs at the fall's foot and where it meets the pond (one draw) */
   spray!: THREE.InstancedMesh;
   /** where the fall's sheet meets the pond, and the foot of its steep face (the spray's anchors, the sound's) */
-  readonly plunge = new THREE.Vector3();
-  readonly faceFoot = new THREE.Vector3();
+  readonly plunge = new THREE.Vector3(...STREAM_ROWS.plunge);
+  readonly faceFoot = new THREE.Vector3(...STREAM_ROWS.faceFoot);
 
   constructor(private sky: Sky) {}
 
-  build(): this {
-    const b = new Builder();
-    this.buildCreek(b);
-    this.buildFall(b);
-    this.buildRing(b);
-    // the gully's banks and the forest over them fill the low reflections (sin 0.3 ≈ 17°)
-    const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
-    this.water = new THREE.Mesh(b.geometry(), material);
-    this.water.name = 'creek-waterfall';
-    this.water.receiveShadow = true;
-    this.water.renderOrder = 6; // after the pond: the plunge ring lies on it
+  /** the water from its bake (a bake that fails to load is a page fault, `console.error`: the spray stands alone), the spray */
+  async build(): Promise<this> {
+    const bytes = await fetchBake(STREAM_BAKE_URL).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
+    if (bytes) {
+      // the gully's banks and the forest over them fill the low reflections (sin 0.3 ≈ 17°)
+      const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
+      const water = this.water = new THREE.Mesh(streamGeometry(bytes), material);
+      water.name = 'creek-waterfall';
+      water.receiveShadow = true;
+      water.renderOrder = 6; // after the pond: the plunge ring lies on it
+      this.group.add(water);
+    }
     this.spray = this.buildSpray();
-    this.group.add(this.water, this.spray);
+    this.group.add(this.spray);
     return this;
-  }
-
-  /** the creek: from just before the dam's crest (the outlet above it is the pond's own water) to the slab's edge */
-  private buildCreek(b: Builder): void {
-    const path = new Path(CREEK), { dam, end } = creekSpan();
-    const stations: number[] = [];
-    for (let s = dam - CREEK_WATER.lead; s < end - 0.2;) { stations.push(s); s += s > dam - 2.5 && s < dam + 8 ? 0.5 : 1.5; }
-    stations.push(end - 0.2);
-    let travel = 0, prev = stations[0] ?? 0;
-    const base = b.count;
-    for (const s of stations) {
-      travel += (s - prev) / Math.max(0.1, (creekFlowAt(s) + creekFlowAt(prev)) / 2);
-      prev = s;
-      const [cx, cz] = path.at(s), [tx, tz] = path.tangent(s, 7), lx = -tz, lz = tx;
-      const surf = creekSurfaceAt(s), foam = creekFoamAt(s);
-      for (const o of CREEK_ACROSS) {
-        const x = cx + lx * o, z = cz + lz * o, h = heightAt(x, z), d = surf - h;
-        // just above the water the ribbon drapes onto the bank: the wet film
-        const y = d < 0 && d > -0.45 ? h + 0.04 : surf;
-        b.vert(x, y, z, o, travel, d, 1, foam, 2.0); // tea-brown running water (the forest's tannins): 2 / m, the bed shows through
-      }
-    }
-    b.grid(base, stations.length, CREEK_ACROSS.length);
-  }
-
-  /** the waterfall: the ridge-top stream's last metres, down the Ridge's face, the short run below it, into the pond */
-  private buildFall(b: Builder): void {
-    const wl = waterLevel();
-    const entry = this.pondEntry();
-    // start 9 m above the lip on the ridge-top stream (further up its bed is too rough to hold water: it climbs again)
-    const r2 = RIDGE_STREAM[2] ?? [WATERFALL.lip.x, WATERFALL.lip.z + 16], lip = WATERFALL.lip;
-    const start: XZ = [r2[0] + (lip.x - r2[0]) * 0.44, r2[1] + (lip.z - r2[1]) * 0.44];
-    const path = new Path([start, [lip.x, lip.z], [WATERFALL.foot.x, WATERFALL.foot.z], entry]);
-    const COLS = 9, step = 0.7;
-    const lipS = Math.hypot(lip.x - start[0], lip.z - start[1]);
-    let yRun = Infinity, travel = 0, top = 0, rows = 0, faceFootFound = false;
-    const base = b.count;
-    for (let s = 0; s <= path.length + 1e-6; s += step) {
-      const [cx, cz] = path.at(s), [tx, tz] = path.tangent(s, 2), lx = -tz, lz = tx;
-      const hC = heightAt(cx, cz), nC = normalAt(cx, cz);
-      // the surface never climbs downstream (the ridge top is rough): the running minimum of the ground + a skin
-      yRun = Math.min(yRun, hC + 0.22);
-      if (s === 0) top = yRun;
-      const steep = 1 - nC[1];                                        // 0 flat … ~0.4 on the 53° face
-      if (!faceFootFound && s > lipS + 8 && steep < 0.12) { faceFootFound = true; this.faceFoot.set(cx, hC + 0.6, cz); }
-      const drop = Math.max(0, top - yRun);
-      const speed = Math.min(8, Math.max(1.2, Math.sqrt(2 * 9.8 * drop) * (steep > 0.15 ? 1 : 0.55)));
-      travel += step / speed;
-      const halfW = 1.1 + 0.9 * smoothstep(0, lipS, s) + 1.3 * smoothstep(lipS, lipS + 30, s) + 0.5 * smoothstep(path.length - 10, path.length, s);
-      const foam = s < lipS - 2 ? 0.5 : steep > 0.15 ? 0.84 : 0.7;
-      for (let c = 0; c < COLS; c++) {
-        const o = (c / (COLS - 1) * 2 - 1) * halfW, e = o / halfW;
-        const x = cx + lx * o, z = cz + lz * o, n = normalAt(x, z);
-        // off the rock by a skin, standing further off (and bulged at the middle) where the face is steep: a curved curtain
-        const off = 0.14 + 0.55 * steep * (1 - e * e);
-        let y = Math.max(heightAt(x, z) + off * n[1], yRun - 0.05 + (off - 0.14));
-        y = Math.max(y, wl + 0.02);
-        b.vert(x + n[0] * off, y, z + n[2] * off, o, travel, 0.5 * (1 - e ** 4), 1, foam, 4);
-      }
-      rows++;
-    }
-    b.grid(base, rows, COLS);
-    if (!faceFootFound) this.faceFoot.set(WATERFALL.foot.x, heightAt(WATERFALL.foot.x, WATERFALL.foot.z) + 0.6, WATERFALL.foot.z);
-    this.plunge.set(entry[0], wl, entry[1]);
-  }
-
-  /** where the line from the fall's foot toward the pond's centre first meets the water */
-  private pondEntry(): XZ {
-    const wl = waterLevel(), f = WATERFALL.foot;
-    const dx = -100 - f.x, dz = 110 - f.z, l = Math.hypot(dx, dz);
-    for (let t = 0; t < l; t += 0.25) {
-      const x = f.x + (dx / l) * t, z = f.z + (dz / l) * t;
-      if (heightAt(x, z) < wl) return [x, z];
-    }
-    return [f.x, f.z - 6];
-  }
-
-  /** the plunge ring: foam spreading outward on the pond's surface from where the fall lands (an overlay: no reflection) */
-  private buildRing(b: Builder): void {
-    const wl = waterLevel(), R = 6.5, RINGS = 8, SEGS = 28, cx = this.plunge.x, cz = this.plunge.z;
-    const base = b.count;
-    for (let r = 0; r < RINGS; r++) {
-      const rr = (r / (RINGS - 1)) * R, fade = (1 - rr / R) ** 0.8;
-      for (let k = 0; k <= SEGS; k++) {
-        const a = (k / SEGS) * Math.PI * 2;
-        // uv: 20 m round (4 texture periods: seamless), radial travel at 0.6 m/s — the foam rides outward
-        b.vert(cx + Math.cos(a) * rr, wl + 0.02, cz + Math.sin(a) * rr, (k / SEGS) * 20, rr / 0.6, fade, 1, 0.35 + 0.6 * fade, -1);
-      }
-    }
-    b.grid(base, RINGS, SEGS + 1);
   }
 
   /** mist puffs: each rises and swells over its own few-second cycle, drifting downwind */

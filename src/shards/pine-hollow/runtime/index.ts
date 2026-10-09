@@ -74,7 +74,7 @@ export class PineHollow extends ShardPlugin {
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
     ctx.app.registerTrample(trample, ctx.scope);
-    const streams = new PineStreams(sky).build();
+    const streams = await new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
       const grass = new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build();

@@ -48,6 +48,8 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
     '/assets/pine-hollow/baked/cabins.bin',
     // the crags' face skin, this tier's offline bake (G285, world/cragBake.ts)
     tier === 'phone' ? '/assets/pine-hollow/baked/crags.phone.bin' : '/assets/pine-hollow/baked/crags.desktop.bin',
+    // the creek, the waterfall and the plunge ring's offline bake (G285, world/streams.ts)
+    '/assets/pine-hollow/baked/streams.bin',
   ].map(gpu).filter((url) => url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {

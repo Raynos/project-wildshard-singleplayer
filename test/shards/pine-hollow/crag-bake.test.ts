@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
-import { CRAG_ROWS, CragSkin, unshuffleLanes } from '../../../src/shards/pine-hollow/world/cragBake';
+import { CRAG_ROWS, CragSkin } from '../../../src/shards/pine-hollow/world/cragBake';
+import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
 import committed from '../../../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
 import { bakeCragRows, installPineGround } from '../../../scripts/bake-pine-crags.mjs';
 
