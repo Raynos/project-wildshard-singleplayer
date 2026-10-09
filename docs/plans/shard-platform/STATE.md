@@ -46,6 +46,8 @@ Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned b
 - **op-skin:** SDK offline skinned-model bake.
 
 **Unowned:**
+- **NEXT Opus slot:** Pine desktop headroom. The quiet floor at c7de9850e FAILED (spawn median 30 fps, p95 33.4 ms, main-thread work p95 22–29 ms) at load ~43 that quiet can't remove (non-platform ffmpeg); op-floor passed it at load 5–7. GPU 16.8 ms at the vsync edge (N8AO 3.8, shadow PCF +0.6–1.0). Need ≥ 2 ms GPU + CPU headroom with no look change.
+- **M2 memory:** the Simulator can't model phone memory (forced-compressed mixes Basis RGBA; SF57 peak 1,756 MB), so M2's memory verdict = Jake's G269 phone runs (`4f1f6772e`).
 - SF36 weapon rows;
 - SF34 player modes;
 - SF24, SF27, SF26 systems rows;
