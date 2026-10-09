@@ -1719,6 +1719,12 @@ reach, first-row equal-distance ties and strong-before-weak priority. Visibility
 a first hit on the target's exact registered or reconstructed owner also counts as visible. The owner association
 is weakly held by the prompt. A null boot world retains distance-only picking; admitted native hosts supply physics.
 
+`@wildshard/engine/quest/dialogueClock` defines `DialogueClock`, the panel's exact type-out / advance law;
+`DialogueBox` delegates to it while retaining its UI layer and input guards. Its bounded `snapshot()` /
+`prepareRestore(value)` / `restore(value)` preserve fractional typing silently. `NpcDialogue` from
+`@wildshard/game/quest/dialogue` selects authored NPC entries and commits their flags only on completion;
+cancel and restore never raise flags. Its caller owns prompt eligibility, input guards and presentation.
+
 The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
 `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk` (load the quest views lazily with `import('@wildshard/engine/quest/view')`)
 (all `@wildshard/engine`). The template's quest:

@@ -1,4 +1,5 @@
 import type { UiHandle } from '../../ui/layers';
+import { DialogueClock } from '../dialogueClock';
 import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '../../strings';
 /**
@@ -91,9 +92,7 @@ export class DialogueBox {
   private foot = el('div', 'ws-quest-talk-foot', this.root);
   private page = el('span', '', this.foot);
   private next = el('b', '', this.foot);
-  private lines: string[] = [];
-  private i = 0;
-  private shown = 0;
+  private readonly clock = new DialogueClock();
   private layer: UiHandle | null = null;
   private get open_(): boolean { return this.layer?.active ?? false; }
   private finish_: (() => void) | null = null;
@@ -119,7 +118,7 @@ export class DialogueBox {
   open(name: string, lines: string[], onDone: () => void): void {
     if (lines.length === 0) { onDone(); return; }
     this.name.textContent = name;
-    this.lines = lines; this.i = 0; this.shown = 0; this.finish_ = onDone; this.layer?.dispose();
+    this.clock.open(lines); this.finish_ = onDone; this.layer?.dispose();
     this.layer = app.ui.push('modal', { root: this.root, order: -42, yieldsToMenu: true, back: () => { this.close(false); } }, this.scope); this.openT = app.clock.real * 1000;
     this.root.classList.add('show');
     this.render();
@@ -128,16 +127,13 @@ export class DialogueBox {
   /** E / tap: finish the typing, else the next line, else close */
   advance(): void {
     if (!this.open_) return;
-    const cur = this.lines[this.i] ?? '';
-    if (this.shown < cur.length) { this.shown = cur.length; this.render(); return; }
-    this.i++; this.shown = 0;
-    if (this.i >= this.lines.length) { this.close(true); return; }
+    if (this.clock.advance() === 'finished') { this.close(true); return; }
     this.render();
   }
 
   close(finished = false): void {
     if (!this.open_) return;
-    this.layer?.dispose(); this.layer = null;
+    this.layer?.dispose(); this.layer = null; this.clock.close();
     this.root.classList.remove('show');
     const done = this.finish_; this.finish_ = null;
     if (finished) done?.();
@@ -145,18 +141,14 @@ export class DialogueBox {
 
   update(dt: number): void {
     if (!this.open_) return;
-    const cur = this.lines[this.i] ?? '';
-    if (this.shown >= cur.length) return;
-    this.shown = Math.min(cur.length, this.shown + dt * this.cps);
-    this.render();
+    if (this.clock.update(dt, this.cps)) this.render();
   }
 
   private render(): void {
-    const cur = this.lines[this.i] ?? '';
-    this.text.textContent = cur.slice(0, Math.floor(this.shown));
-    this.page.textContent = engineString('s_9404497cf77d', [this.i + 1, this.lines.length]);
+    this.text.textContent = this.clock.text;
+    this.page.textContent = engineString('s_9404497cf77d', [this.clock.index + 1, this.clock.count]);
     const touch = document.getElementById('hud')?.classList.contains('touch') === true;
-    this.next.textContent = engineString('s_4ecdc2db1bc2', [touch ? '' : engineString('s_4f911ee89601'), this.i + 1 < this.lines.length ? engineString('s_c93aad5dddf0') : engineString('s_f13a1ed0cf3c')]);
+    this.next.textContent = engineString('s_4ecdc2db1bc2', [touch ? '' : engineString('s_4f911ee89601'), this.clock.index + 1 < this.clock.count ? engineString('s_c93aad5dddf0') : engineString('s_f13a1ed0cf3c')]);
   }
 }
 

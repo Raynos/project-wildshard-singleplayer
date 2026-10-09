@@ -204,6 +204,7 @@
     "./practice/playground/load": "./practice/playground/load.ts",
     "./quest/contentApi": "./quest/contentApi.ts",
     "./quest/core": "./quest/core.ts",
+    "./quest/dialogueClock": "./quest/dialogueClock.ts",
     "./quest/view": "./quest/view.ts",
     "./quest/view/ui": "./quest/view/ui.ts",
     "./render/families/emissive": "./render/families/emissive.ts",

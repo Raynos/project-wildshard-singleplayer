@@ -88,6 +88,7 @@
     "./shardfile/encounters": "./shardfile/encounters.ts",
     "./shard/declaredEncounters": "./shard/declaredEncounters.ts",
     "./quest/declared": "./quest/declared.ts",
+    "./quest/dialogue": "./quest/dialogue.ts",
     "./shardfile/quests": "./shardfile/quests.ts",
     "./shardfile/hybridRows": "./shardfile/hybridRows.ts",
     "./shardfile/bossRow": "./shardfile/bossRow.ts",
