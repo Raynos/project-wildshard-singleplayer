@@ -15,7 +15,6 @@ import source from '../shard.config';
 import { bindSkyPersistence, type SkyPersistence } from '../runtime/persistence';
 
 export const REWARD = 10;
-export const BOSS_REWARD = 25;
 /** The reward view: from the high step, the raised bridge running out to the storm crown (Driftwood's held beat). */
 export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4), yaw: Math.atan2(-(CROWN.x - STEP.x - 2), -(CROWN.z - STEP.z + 4)), pitch: 0.12 } as const;
 

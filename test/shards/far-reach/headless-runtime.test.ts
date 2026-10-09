@@ -12,7 +12,10 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/far-reach/shard.config';
 import baked from '../../../src/shards/far-reach/runtime/physics.baked.json';
-import { GOATS, ROC } from '../../../src/shards/far-reach/layout';
+import { CROWN, GOATS, ROC } from '../../../src/shards/far-reach/layout';
+import type { HeadlessEffect } from '../../../src/sdk/tickProtocol';
+import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
+import { ROC_STEP } from '../../../src/shards/far-reach/runtime/roc';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
 import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/headless';
@@ -23,11 +26,13 @@ beforeAll(async () => {
   plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
 });
 const noEffects = { commands: () => [], emit: () => { throw new Error('the flock keeper emits no gameplay effects'); } };
-const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...noEffects }); return host; };
-const restore = (saved: string): SimHost => {
+interface Effects { commands: () => never[]; emit: (effect: HeadlessEffect) => void }
+const boot = (effects: Effects = noEffects): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
+const restore = (saved: string, effects: Effects = noEffects): SimHost => {
   const decoded = decodeSimSnapshot(saved), ports = { ...plan.ports, rapier };
-  return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...noEffects }); });
+  return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...effects }); });
 };
+const collect = (into: HeadlessEffect[]): Effects => ({ commands: () => [], emit: effect => { into.push(effect); } });
 /** The player's tape: off Sunrest's north rope bridge onto the windmill isle (its goats, the free ray overhead), then wander. */
 const route = [new Vector3(0, 0, -30), new Vector3(0, 0, -58), new Vector3(4, 0, -66)];
 function step(host: SimHost): void {
@@ -47,7 +52,9 @@ it('spawns the eight flyers at install and the five goats on the first fixed ste
   const host = boot();
   try {
     expect([...host.entities.keys()]).toEqual(order.slice(0, 8));
-    expect(host.entities.get('far.roc')?.position.y).toBe(ROC.y); // the Roc spawns at its storm altitude, then flies to its perch
+    // the Roc spawns at its storm altitude over its circle; the armed encounter's reset sets it on its perch (BossBrain.arm)
+    expect(snapshotSimHost(host).adapters.find(adapter => adapter.id === 'runtime.actor.far.roc')?.state).toContain(`"y":${String(ROC.y)}`);
+    expect(host.entities.get('far.roc')?.position.y).toBeLessThan(ROC.y);
     step(host);
     expect([...host.entities.keys()]).toEqual(order);
     for (const actor of baked.actors) {
@@ -109,6 +116,50 @@ it('shoves the player through the host impulse when a wisp bursts on them', () =
     for (let tick = 0; tick < 600 && !shoved; tick++) { host.step(); shoved = host.playerImpulse.lengthSq() > 0; }
     expect(shoved).toBe(true);
   } finally { host.dispose(); }
+});
+
+/** Stand the player on the crown (the bridge that leads there is not yet owned headless) and fight: chip the Roc down. */
+function crownFight(host: SimHost, tick: number): void {
+  if (tick === 0) host.player.position.set(CROWN.x, CROWN.y, CROWN.z + 6);
+  const roc = host.entities.get('far.roc');
+  if (roc !== undefined && roc.alive && tick > 400 && tick % 240 === 0)
+    host.combat.hit({ source: host.player.health, sourceTags: ['actor.player'], target: roc.combatActor(), amount: 60, point: roc.position.clone(), dir: new Vector3(0, 0, 1), moveId: 'test.chip' }); // a direct test chip: the War Fan is not yet owned
+  host.step();
+}
+it('runs the Storm Roc encounter: intro on the crown, phases at 66 % and 33 %, one fact and purse on its first fall', () => {
+  const effects: HeadlessEffect[] = [], host = boot(collect(effects)), states = new Set<string>(), phases = new Set<number>();
+  let lowest = host.player.health.attributes.health;
+  try {
+    step(host);
+    expect(snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state).toContain('"state":"armed"'); // armed at install, waiting at the crown
+    for (let tick = 0; tick < 6000 && !host.flags.has(FLAGS.roc); tick++) {
+      crownFight(host, tick);
+      const encounter = snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state;
+      if (typeof encounter === 'string') { const parsed: unknown = JSON.parse(encounter); if (typeof parsed === 'object' && parsed !== null && 'boss' in parsed && typeof parsed.boss === 'object' && parsed.boss !== null && 'state' in parsed.boss && 'phase' in parsed.boss) { states.add(String(parsed.boss.state)); phases.add(Number(parsed.boss.phase)); } }
+      lowest = Math.min(lowest, host.player.health.attributes.health);
+    }
+    expect(host.flags.has(FLAGS.roc)).toBe(true);
+    expect([...states]).toEqual(expect.arrayContaining(['intro', 'fight', 'beat', 'victory']));
+    expect([...phases]).toEqual(expect.arrayContaining([0, 1, 2]));
+    expect(lowest).toBeLessThan(host.player.health.attributes.maxHealth); // the Roc's own strikes landed through the fight
+    expect(effects).toEqual([{ kind: 'fact', name: 'far-reach.roc', actorId: 'far.roc' }, { kind: 'coins', amount: 25, actorId: 'far.roc' }]);
+  } finally { host.dispose(); }
+});
+
+it('restores the Roc encounter mid-fight exactly, its victory paying once on the restored host', () => {
+  for (const checkpoint of [900, 2000]) {
+    const paidOriginal: HeadlessEffect[] = [], resumed: HeadlessEffect[] = [], original = boot(collect(paidOriginal));
+    let restored: SimHost | undefined;
+    try {
+      step(original);
+      for (let tick = 0; tick < checkpoint; tick++) crownFight(original, tick);
+      restored = restore(serializeSimSnapshot(snapshotSimHost(original)), collect(resumed));
+      const paid = paidOriginal.length;
+      for (let tick = checkpoint; tick < checkpoint + 3000; tick++) { crownFight(original, tick); crownFight(restored, tick); }
+      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+      expect(resumed).toEqual(paidOriginal.slice(paid));
+    } finally { restored?.dispose(); original.dispose(); }
+  }
 });
 
 it('refuses a saved roster whose recipe no longer matches the baked spec', () => {

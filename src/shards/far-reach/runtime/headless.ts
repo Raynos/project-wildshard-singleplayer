@@ -9,6 +9,8 @@ import { DECK, SPAWN } from '../layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS } from './variants';
 import { GALE_WISP } from '../species/galeWisp';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
+import { installSkyRoc } from './roc';
+import { ROC_ID } from './rocEncounter';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -55,9 +57,9 @@ export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]>
  * collider (`ground: false`), the analytic placement floor at -1000 m, and every island, rope bridge, dock, lip and prop
  * the browser registers, from the browser-baked native colliders (inactive ones, the hover decks, the updraft and the
  * fallen crown bridge, stay out), with the host's layered WORLD floor queries for flight and falls. Owns the 13 declared
- * bodies and their shipping policies (runtime/flock.ts). Not yet owned (fail-closed, see the SF72 handoff): the War Fan
- * as its item, the movers (islet lifts, winch bridge), the quest and its ledger facts, the Storm Roc's encounter (it
- * perches until a fight it cannot yet begin) and the entry proof; `finish` refuses.
+ * bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
+ * fact and purse). Not yet owned (fail-closed, see the SF72 handoff): the War Fan as its item, the movers (islet lifts,
+ * winch bridge), so the crown is not yet reachable by play, the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
@@ -80,7 +82,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   return { level, ports: { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR }, install: (host, context) => {
     if (!context.restoring) colliders(host);
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
-    installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
+    const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
+    const roc = flock.bodies().find(body => body.id === ROC_ID), body = roc?.brain?.roc ?? null;
+    if (roc?.actor === null || roc?.actor === undefined || body === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
+    installSkyRoc(host, { roc: roc.actor, body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+      coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
+    flock.land();
   } };
 };
 const SURFACES: readonly Material[] = ['wood', 'metal', 'stone', 'grass'];

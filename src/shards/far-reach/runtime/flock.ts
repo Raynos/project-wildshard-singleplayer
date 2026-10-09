@@ -47,7 +47,11 @@ const Saved = v.strictObject({ version: v.literal(1), rng: Stream, goats: v.bool
  * the world's kill height dies by the fall pipeline. Nothing respawns (Sky's plugin never replaces a body).
  * Restore reinstalls exactly the saved roster from its recipes before the host restores, with no stream draw.
  */
-export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Readonly<SimSnapshot>): { bodies: () => readonly { id: string; actor: AnimalSim | null; brain: FlockBrain | null }[] } {
+export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Readonly<SimSnapshot>): {
+  bodies: () => readonly { id: string; actor: AnimalSim | null; brain: FlockBrain | null }[];
+  /** On restore, reinstall the landed goats after every other install-time registration (a no-op on a fresh boot). */
+  land: () => void;
+} {
   const rng = new Rng(ports.seed + 31), rows = [...SKY_SPAWNS.actors, ...SKY_SPAWNS.bosses];
   const homes = new Map<string, Home>([
     ...RAY_HOMES.map((home, i) => [`far.ray.${String(i)}`, home] as const), ...ROOST_RAYS.map((home, i) => [`far.roost.${String(i)}`, home] as const),
@@ -119,16 +123,21 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
     },
   });
   // a flyer's floor ray starts a metre over the level spawn's height (manifest spawn y = DECK + 1)
-  if (saved === undefined) { flyers.forEach(body => { arrive(body, DECK + 2); }); return { bodies: () => bodies.map(b => ({ id: b.id, actor: b.actor, brain: b.brain })) }; }
+  const view = (): readonly { id: string; actor: AnimalSim | null; brain: FlockBrain | null }[] => bodies.map(b => ({ id: b.id, actor: b.actor, brain: b.brain }));
+  // a flyer's floor ray starts a metre over the level spawn's height (manifest spawn y = DECK + 1)
+  if (saved === undefined) { flyers.forEach(body => { arrive(body, DECK + 2); }); return { bodies: view, land: () => undefined }; }
   const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === FLOCK_STEP)?.state);
   goatsDue = !keeper.goats;
-  keeper.bodies.forEach((b, i) => {
-    const body = bodies[i]; if (body === undefined || !b.live) return;
+  const reinstall = (group: readonly Body[]): void => keeper.bodies.forEach((b, i) => {
+    const body = bodies[i]; if (body === undefined || !b.live || !group.includes(body)) return;
     const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${body.id}`)?.state;
     if (typeof contract !== 'string') throw new Error(`Missing saved Sky body ${body.id}`);
     const placed = v.parse(Placed, JSON.parse(contract));
     if (placed.id !== body.id) throw new Error(`Incompatible saved Sky body ${body.id}`);
     materialize(body, { id: placed.id, spec: body.recipe.spec, seed: placed.seed, scale: placed.scale, at: placed.at, yaw: placed.yaw });
   });
-  return { bodies: () => bodies.map(b => ({ id: b.id, actor: b.actor, brain: b.brain })) };
+  reinstall(flyers);
+  // the goats landed on a later tick than every install-time registration: reinstall them last (`land`), so the
+  // continuation keeps the order it had when it was saved
+  return { bodies: view, land: () => { reinstall(goats); } };
 }
