@@ -260,7 +260,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `createQuestScriptPorts` | function | @wildshard/game/quest/declared | Resolve conditions through public/owner state and scenes through the bounded next-tick event queue. |
 | `DeclaredQuests` | class | @wildshard/game/quest/declared | Bind validated quest graphs to the existing engine journal/marker state and the host's snapshot boundary. |
 | `DialogueView` | interface | @wildshard/game/quest/declared | A live dialogue tree view; selection resolves declared flags and scenes without executing author closures. |
-| `QuestDataPorts` | interface | @wildshard/game/quest/declared | Platform-owned fact/reward ports; authored quests never write the profile or progress store. |
+| `QuestDataPorts` | interface | @wildshard/game/quest/declared | Platform-owned fact/reward ports; authored quests never write the profile or progress store. A quest's fact is filed under the quest's id, coins under the player's. |
 | `QuestScriptBindings` | interface | @wildshard/game/quest/declared | Loader-resolved stable script field/event ids; actor target handles come from the session. |
 | `QuestScriptPorts` | interface | @wildshard/game/quest/declared | Hooks read atomically published script fields or queue declared events for the next script tick. |
 | `installEnteredQuestPresentation` | function | @wildshard/game/quest/presentation | Keep quest state resident while rebuilding its ordinary presentation and input in each entered cell scope. |

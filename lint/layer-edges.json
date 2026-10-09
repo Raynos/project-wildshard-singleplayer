@@ -17,7 +17,7 @@
     "shards/far-reach → engine": 128,
     "shards/far-reach → game": 38,
     "shards/far-reach → sdk": 16,
-    "shards/nalati-grasslands → engine": 765,
+    "shards/nalati-grasslands → engine": 780,
     "shards/nalati-grasslands → game": 81,
     "shards/nalati-grasslands → sdk": 29,
     "shards/nine-dragon-stack → engine": 188,
@@ -28,6 +28,6 @@
     "shards/pine-hollow → sdk": 15,
     "shards/sunscar-dunes → engine": 123,
     "shards/sunscar-dunes → game": 33,
-    "shards/sunscar-dunes → sdk": 17
+    "shards/sunscar-dunes → sdk": 18
   }
 }

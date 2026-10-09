@@ -15398,7 +15398,7 @@
       {
         "name": "QuestDataPorts",
         "kind": "interface",
-        "doc": "Platform-owned fact/reward ports; authored quests never write the profile or progress store.",
+        "doc": "Platform-owned fact/reward ports; authored quests never write the profile or progress store. A quest's fact is filed under the quest's id, coins under the player's.",
         "from": "@wildshard/game/quest/declared"
       },
       {
