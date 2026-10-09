@@ -18,6 +18,16 @@ const run = (cwd, command, args, options = {}) => {
   return result.stdout;
 };
 
+/** Extract an immutable Git tree without a pipe that tar may close before Node writes its trailing padding. */
+export function extractGuardArchive(root, tree, paths, destination) {
+  const owned = mkdtempSync(join(tmpdir(), 'wildshard-guard-archive-'));
+  try {
+    const archive = join(owned, 'snapshot.tar');
+    run(root, 'git', ['archive', tree, '--output', archive, '--', ...paths]);
+    run(root, 'tar', ['-xf', archive, '-C', destination]);
+  } finally { rmSync(owned, { recursive: true, force: true }); }
+}
+
 export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
   if (process.env.SKIP_ARCH_GUARDS === '1') {
     appendFileSync(resolve(root, 'project/sweepguard-ledger.md'), `\n- ${new Date().toISOString()} SKIP_ARCH_GUARDS=1: architecture pre-commit checks bypassed.\n`);
@@ -38,12 +48,10 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const predecessor = join(scratch, 'predecessor');
     mkdirSync(predecessor);
     const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/runtime-performance.json', 'lint/legacy-shards.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
-    const lists = run(root, 'git', ['archive', 'HEAD', '--', ...predecessorLists], { encoding: 'buffer' });
-    run(root, 'tar', ['-xf', '-', '-C', predecessor], { input: lists });
+    extractGuardArchive(root, 'HEAD', predecessorLists, predecessor);
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // SF2 observes every shard, including inherited context/class types outside changed files.
-    const coupling = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json'], { encoding: 'buffer' });
-    run(root, 'tar', ['-xf', '-', '-C', scratch], { input: coupling });
+    extractGuardArchive(root, tree, ['src', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json'], scratch);
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
@@ -83,8 +91,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline, frozen));
     if (manifest) {
       // Generator checks belong to the staged tree too; export only their small scripts, never public assets.
-      const scripts = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'], { encoding: 'buffer' });
-      run(root, 'tar', ['-xf', '-', '-C', scratch], { input: scripts });
+      extractGuardArchive(root, tree, ['src', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'], scratch);
       // Runtime tables are intentionally untracked. Check committed ownership data and existing outputs,
       // initializing absent ephemeral tables in this index export during the same deterministic pass.
       run(scratch, process.execPath, ['--input-type=module', '-e', "import { genShards } from './scripts/gen-shards.mjs'; genShards(undefined, true, true);"]);
