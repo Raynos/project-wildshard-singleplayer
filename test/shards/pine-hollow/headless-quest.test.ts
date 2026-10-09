@@ -11,7 +11,9 @@ import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
-import { PINE_ACT, PINE_INTERACT, pineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
+import * as v from 'valibot';
 import { LEVER_FLAG, PINE_WEAPON } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { KING_RECORD } from '../../../src/shards/pine-hollow/runtime/king';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
@@ -52,6 +54,37 @@ function press(host: SimHost, tick: Tick, at: { x: number; y: number; z: number 
 }
 const row = (id: string): { x: number; y: number; z: number } => { const r = spots.rows.find(s => s.id === id)?.prompt; if (r === undefined || r === null) throw new Error(id); return r; };
 const stepN = (host: SimHost, n: number): void => { for (let i = 0; i < n; i++) host.step(still); };
+
+it('walks from the actual spawn into resin-1 and restores the take, pack and ledger fact without a second grant', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    const pickup = spots.rows.find(spot => spot.id === 'resin-1');
+    if (pickup === undefined) throw new Error('No real resin placement');
+    expect(host.player.position.x).toBe(source.spawn.x);
+    expect(host.player.position.z).toBe(source.spawn.z);
+    expect(quest.pack.count('amber-resin')).toBe(0);
+    let ticks = 0;
+    for (; ticks < 900 && !host.flags.has('taken:resin-1'); ticks++) {
+      const p = host.player.position, dx = pickup.x - p.x, dz = pickup.z - p.z, distance = Math.hypot(dx, dz);
+      host.step({ moveX: dx / distance, moveZ: dz / distance, yaw: Math.atan2(-dx, -dz) });
+    }
+    expect(ticks).toBeLessThan(900);
+    expect(host.flags.has('resin:1')).toBe(true);
+    expect(quest.pack.snapshot()).toEqual({ counts: { 'amber-resin': 1 }, order: ['amber-resin'] });
+    expect(tick.facts).toEqual(['pine.feat.resin/resin:1']);
+    const saved = snapshotSimHost(host), before = tick.facts.length;
+    resumed = restore(tick, saved);
+    expect(tick.facts).toHaveLength(before);
+    expectSameSimSnapshot(snapshotSimHost(resumed), saved);
+    for (let i = 0; i < 120; i++) { host.step(still); resumed.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(resumed), snapshotSimHost(host));
+    const state = resumed.adapters.get(QUEST_STEP)?.snapshot();
+    const parsed = v.parse(v.object({ pack: PinePackSchema }), state);
+    expect(parsed.pack).toEqual(quest.pack.snapshot());
+    expect(tick.facts).toHaveLength(before);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
 
 it('files actual creature deaths and resumes bounded counters without replaying a grant', () => {
   const tick: Tick = { press: [], night: 0, facts: [] }, { host, roster } = boot(tick);

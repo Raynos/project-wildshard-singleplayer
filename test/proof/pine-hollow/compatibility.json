@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "91a9c4b66d76139ae327d9853986b450b820dca18f33f95492ed922188f3dcfa",
+  "inputs": "126b222bc2b5e24e15bec4bb6e0c1ec1d1eca3195dfc47142de0cb4a8ba49c1d",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,12 +12,39 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "97b55b8c542405e22ae7a0c8e8bc8eccad2128a0772c69c7b929b391a9e57a8b",
+    "hash": "d2e318c30c7ea958fea604c6060f0db31153f906e69ca2c5ff1db00b79af385d",
+    "pack": {
+      "counts": {
+        "amber-resin": 2
+      },
+      "order": [
+        "amber-resin"
+      ]
+    },
+    "resinCount": 2,
     "facts": [
       {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:1",
         "tick": 6692,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.resin",
+        "entity": "resin:1",
+        "tick": 10386,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.resin",
+        "entity": "resin:2",
+        "tick": 10989,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -125,6 +152,14 @@
       },
       {
         "shard": "pine-hollow",
+        "id": "pine-hollow.resin",
+        "title": "Sticky Fingers",
+        "count": 2,
+        "threshold": 30,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
         "id": "pine-hollow.zipline",
         "title": "Gravity's Favourite",
         "count": 1,
@@ -187,6 +222,8 @@
     "duplicateStable": true,
     "receipts": [
       "pending",
+      "granted",
+      "granted",
       "granted",
       "granted",
       "granted",
@@ -503,8 +540,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 26652,
     "suffixTicksExecuted": 1200,
-    "hash": "22262bb1044b310aea148fdf0afa84e75187e689468638ec078f79d2da479c45",
-    "replayHash": "22262bb1044b310aea148fdf0afa84e75187e689468638ec078f79d2da479c45",
+    "hash": "11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb",
+    "replayHash": "11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb",
     "checkpoint": {
       "state": "fight",
       "phase": 1
@@ -524,6 +561,24 @@
         "name": "pine.feat.lanterns",
         "entity": "lanterns:1",
         "tick": 6692,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.resin",
+        "entity": "resin:1",
+        "tick": 10386,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.resin",
+        "entity": "resin:2",
+        "tick": 10989,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -631,6 +686,14 @@
       },
       {
         "shard": "pine-hollow",
+        "id": "pine-hollow.resin",
+        "title": "Sticky Fingers",
+        "count": 2,
+        "threshold": 30,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
         "id": "pine-hollow.zipline",
         "title": "Gravity's Favourite",
         "count": 1,
@@ -696,7 +759,7 @@
     "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
     "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
-    "Collectible, secret/miller, journal and lodge/streak producers remain unhosted: their ledger outcomes are absent; hosted flags and creature deaths use the page feat law.",
+    "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
     "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
     "Rain wander goals are null: creature positions can differ.",
@@ -710,7 +773,7 @@
     "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
     "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
-    "Collectible, secret/miller, journal and lodge/streak producers remain unhosted: their ledger outcomes are absent; hosted flags and creature deaths use the page feat law.",
+    "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
     "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
     "Rain wander goals are null: creature positions can differ.",

@@ -1,35 +1,29 @@
 # Handoff (sf72-pine) — 2026-10-09, SF72 Pine Hollow headless
 
-Coordinator wildshard-new pushes. Plan-State: unchanged.
+Coordinator wildshard-new pushes. Plan-State: unchanged. Private current-HEAD index, owned hunks only, CAS/ancestor/subject verification. No graphical work or generated-output edits.
 
-## Landed
+## Landed prerequisites
 
-Prior plain-loader/night tape: b0c280ca9 + b20b732dd. King blocker: efd3dc5dcd2d2361107b04160e8d1ad294a52b26. Native inverse binds and the chest-attached cage provide head/body/fore volumes and cage radius. The ordinary first-surface ray includes the page's fore capsule; pine.aim value 2 aims at the cage without bypassing collision or damage. The tape pulls an empty trigger to start the existing reload. King falls at 29,295, dawn finishes at 30,015. Double native bake exact, 34 focused tests, clean full suite 1,052 files / 5,809 passed / 14 skipped.
+Plain loader/night tape: b0c280ca9 + b20b732dd. Native King rest hit geometry: efd3dc5dcd; real physics/map rebake: f983de200. Checkpoint/replay/ledger: bd76a6cb1. Shared page feat law: 5f5bcfb9e. Shared page pickup and inventory laws, exact saved bytes, two real-shard pickups and boot smoke: 8d672a17c.
 
-## Validated continuation
+## Current validated resin/pack slice
 
-The canonical witness uses runtime/headless.ts under the plain sim loader. Inputs cover every loaded repo module, runner/loader/lockfile and native physics/terrain/navmesh bytes. Five checkpoints come from one uninterrupted command tape: 8,000 / 16,000 / 24,000 / 26,652 (King phase II) / 29,295 (fallen). One compressed immutable world basis plus five checked delta wires avoids duplicate native worlds. CI walks continue at most 8,000 ticks and equal their uninterrupted canonical digests. The phase-II replay uses identical 1,200 commands, exact canonical state/effects and zero restore emissions.
+The spots bake captures the actual 44 page table rows twice, exactly (five original quest rows, lookout bench, thirty resin, eight tokens). All original prompt/lantern/zip/rifle placements stay byte-identical. Renderer-free resin takes call the page's shared radius/height/native-LOS leaf, set actual authored taken/resin flags, and add the item through Pine's seven-kind pack policy. Tokens and bench are captured but their producers remain open. Pack state is bounded, snapshotted and restored silently; old headless quest snapshots missing it default to empty.
 
-The gameplay ledger records eleven durable identities from twelve submissions, grants four achievements, retries a refused profile write and proves reload/duplicate stability. CI resumes night for 6,015 ticks through King and dawn; the full receipt includes lantern/zipline facts too. Nine coverage proofs pass, slowest 2.45 s (<20 s local budget). arm64/x64 full results equal. compatibility.json stays compatible:false; all exits nonzero, named partial proofs and record produce evidence. Report-card headless/replay/ledger true, compatible false. Clean-export full suite on f983de200 plus this candidate: 1,056 files / 5,834 passed / 14 skipped, 131.58 s. Strict, root-config touched-file lint, paths and ratchet green.
+A real native walk from ordinary spawn takes resin-1, files exactly one ledger identity and restores the native world without a second grant. Eight focused checks pass; six files / seventeen checks pass under coverage. New native walk/restore coverage is 5.33 s (<20 s, one third of its 60 s timeout). Page saved bytes/notifications and actual Pine/Driftwood pickups were proved in 8d672a17c.
 
-Commands:
+The unchanged gameplay tape still falls the King at 29,295 and finishes dawn at 30,015. Two real resin takes at 10,386 / 10,989 add two stable ledger identities and Amber resin ×2. Fourteen submissions become thirteen durable facts; four achievements earned. Quota retry, durable reopen and duplicate refusal pass. Actual arm64/x64 complete JSON outputs agree exactly.
 
-- `node --import ./scripts/sim-node-loader.mjs test/proof/pine-hollow/run.mjs checkpoints` after any loaded input changes; commit basis/manifest/deltas together.
-- `... run.mjs fresh`, slice-dam/ridge/night/king/fallen/dawn, replay or ledger.
-- `... run.mjs record` regenerates the receipt; all refuses whole compatibility.
+Inputs: `126b222bc2b5e24e15bec4bb6e0c1ec1d1eca3195dfc47142de0cb4a8ba49c1d`. Full canonical digest: `d2e318c30c7ea958fea604c6060f0db31153f906e69ca2c5ff1db00b79af385d`. Phase-II 1,200-tick replay: `11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb`. Five checkpoints at 8,000 / 16,000 / 24,000 / 26,652 / 29,295 share one checked immutable native basis (3,174,641 bytes total). Each CI continuation is <=8,000 ticks; restore has zero emissions. compatibility.json comes from the real run and remains compatible:false.
+
+Commands: `node --import ./scripts/sim-node-loader.mjs test/proof/pine-hollow/run.mjs checkpoints`, then `record`; verify `fresh`, `slice-dam/ridge/night/king/fallen/dawn`, `replay`, `ledger`. `all` deliberately exits nonzero for whole-shard refusal. Source-input changes require actual checkpoint re-recording, never a replaced expected hash.
+
+Clean source candidate f34d63baa: full 1,067 files / 5,887 passed / 14 skipped, 139.07 s; only generated AG7 refused, then export regeneration and all 111 arch checks pass. Strict/rootlint/paths/ratchet green; approved edges Pine → engine +1, Pine → game +1. No generated working-tree edits.
 
 ## Honest open list / exact next step
 
-Outcome differences keeping compatible:false: animated King chest/root motion (hits/damage); arrow wind/moving spread/recovery (hit/miss/ammo); dialogue time and prompt nearest/LOS (eligibility/timing); collectible, journal, lodge and miller producers (ledger); unhosted night-roaming thralls/millrace/lodge (combat/quests); absent King victory resin and immediate first-bow ownership instead of pickup; rain wander goals (positions). Browser pine.bosses versus host flags also leaves save/refight interoperability unproved.
+Outcome differences: nearest/LOS prompt eligibility and dialogue time; token/bench, journal, secret/miller and lodge/streak producers; night-roaming thralls/millrace/lodge; missing King victory resin including refights and first-bow pickup timing; null rain wander goals; browser pine.bosses versus host flags save/refight interoperability. Animated King chest/root motion and arrow wind/spread/recovery belong to sp-x2 (coordinator assignment); its combat source is excluded from this lane's candidate.
 
-Coverage-only gaps: alternate routes, other elite encounters, repeat fights and a recorded grid quest tape. The standalone tape retains walls; the separate native grid-entry proof removes them. Missing coverage alone is not evidence of a different hosted outcome.
+Coverage-only gaps: alternate routes, other elites, repeat fights, and a recorded grid quest tape. Missing tapes do not by themselves establish a different hosted outcome. The next slice here is the page's shared nearest/LOS prompt law and dialogue timing, then the remaining producers. Coordinate witness/checkpoint writes with sp-x2 after its source stabilizes.
 
-Next is the coordinator's remaining Pine gameplay row. No test-only state writes, damage, flags or teleports. Bake inputs include the bake script/AnimalView and prior runtime fauna/combat/species/models/world/data paths; changes need a real page physics rebake. Native physics/map rebake f983de200 is included after the separate crag sampler change.
-
-No owned browser, Simulator or preview. Own clean exports are throwaways to delete after landing. Foreign Pine runtimeCost/config hunks excluded.
-
-## Latest validated shared feat-law outcome slice
-
-quest/featLaw.ts is the single page/host bounded policy for 19 counters, overlapping kills, flag totals and native thralls. Host actor.died now feeds it; snapshots retain all counters and restore emits nothing. Gameplay submits only newly reached stable IDs (legacy page migration still replays saved IDs), preventing late-tick replays from overcounting partial achievements. A direct policy/ledger fixture proves two thralls -> two increments; the original shipping Progress oracle proves all 19 counter outcomes. The real tape now includes bear/elk/boar and two summoned-thrall kills. King/dawn ticks stay 29,295 / 30,015. Full/replay digests and inputs are in the updated README and compatibility.json.
-
-Validated on a current-HEAD private candidate: clean full 1,059 files / 5,861 passed / 14 skipped, 115.53 s; strict, touched root-config lint, paths and ratchet green. Native coverage worst 12 s (<20 s), final arm64/x64 full receipt exact. Exact next step: host the remaining collectible/journal/lodge/miller producers on the shared page law. Prompt selection/dialogue is the next separate rule extraction; never emit facts or raise flags from the witness itself. Scratch /private/tmp/claude-501/sp-builders/sp-x5/sf72-pine-feats; no owned preview/browser/Simulator.
+No owned browser, Simulator or preview. Exact own scratch: /private/tmp/claude-501/sp-builders/sp-x5/sf72-pine-resin (source candidate, clean export, actual checkpoints/arm64/x64/coverage/full logs). Prior pickup scratch keeps only evidence/tooling logs; both large exports and preview4402 are retired. Foreign source/index edits stay untouched.

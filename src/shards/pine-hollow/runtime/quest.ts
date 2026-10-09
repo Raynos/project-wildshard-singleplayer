@@ -4,16 +4,18 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { lineFor } from '@wildshard/engine/quest/core';
 import { test } from '@wildshard/engine/world/interact/flags';
 import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
+import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/game/shardfile/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { LANTERN_FLAGS, RANGER } from '../quest/wardensHollow';
-import { pineTable } from '../quest/table';
+import { pineTable, RESIN_COUNT } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, recordPineFeatKill, syncPineFlagFeats } from '../quest/featLaw';
 import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
+import { createPinePack, PinePackSchema } from './pack';
 import baked from './spots.baked.json' with { type: 'json' };
 
 /** The script command actor that carries Pine's [E] prompts (`{ kind: 'script', actorId: PINE_INTERACT, value: PINE_ACT.* }`). */
@@ -46,7 +48,8 @@ export function pineSpots(): PineSpots { return v.parse(Spots, baked); }
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
   dawn: finite, fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
-  counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))) });
+  counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
+  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })) });
 
 /** The day clock the quest fast-forwards (the host's, PineDayNight's law). */
 export interface PineQuestDay { phase: number; readonly night: number }
@@ -65,6 +68,8 @@ export interface PineQuestPorts {
 export interface PineQuest {
   readonly quests: DeclaredQuests;
   readonly stag: StagWalk;
+  /** The page's authored seven-kind pack, shared add/trade law, silently restored with the quest. */
+  readonly pack: ReturnType<typeof createPinePack>;
   /** the zipline carries the player (the page's weapons are off and stowed for the ride) */
   readonly riding: () => boolean;
   /** the lever-action was just taken: the page's pickup selects it (read once, by the loadout's next pick) */
@@ -90,14 +95,25 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
  *  - the Ghost Stag's walk after dark on the stag beat (quest/stagWalk.ts) sets `followed:stag`;
  *  - the King's fall is his own record (`dead:king`, runtime/king.ts); the dawn beat runs the page's clock (questClock.ts:
  *    the day fast-forwards to sunrise, every lantern lights, `seen:dawn` completes the quest);
- *  - the shared page feat law files every flag-driven feat and actual creature death; its counters restore silently.
+ *  - the page's thirty resin drops use the captured trunk placements and shared native walk-in visibility law; each
+ *    taken flag and resin fact precedes the pack add, as in Interactables.take / the page's take listener;
+ *  - the shared page feat law files every flag-driven feat and actual creature death; its counters and pack restore silently.
  * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its prompt); the dialogue box's
  * reading time; the reward's resin; the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
  */
 export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQuest {
   const { spots } = ports, flags = host.flags;
+  if (RESIN_COUNT !== 30) throw new Error('Pine resin continuation requires its thirty authored drops');
   // the table's own rules for the quest's rows (their placements are the bake's; the sites only place the rows)
-  const table = pineTable({ resin: [], tokens: [], dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 }, finder: { x: 0, y: 0, z: 0 }, bench: { x: 0, y: 0, z: 0, yaw: 0 } });
+  const resinSpots = Array.from({ length: RESIN_COUNT }, (_, i) => {
+    const id = `resin-${i + 1}`, matches = spots.rows.filter(row => row.id === id);
+    const spot = matches[0];
+    if (matches.length !== 1 || spot?.kind !== 'pickup') throw new Error(`Pine spots do not have one resin pickup ${id}`);
+    return spot;
+  });
+  const table = pineTable({ resin: resinSpots.map(spot => ({ x: spot.x, y: spot.y, z: spot.z, dy: 0 })), tokens: [],
+    dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 }, finder: { x: 0, y: 0, z: 0 }, bench: { x: 0, y: 0, z: 0, yaw: 0 } });
+  const pack = createPinePack();
   const rules = QUEST_ROWS.map((id): Rule => {
     const d = table.rows.find(row => row.id === id), spot = spots.rows.find(row => row.id === id);
     if (d === undefined || spot?.kind !== d.kind) throw new Error(`Pine spots do not match the table's row ${id}`);
@@ -134,6 +150,20 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (d.kind === 'lever') { if (d.latch !== true || !flags.has(r.lever)) raiseAll(d.sets, flags.toggle(r.lever)); return; }
     if (r.auto !== null) flags.set(r.auto);
     raiseAll(d.sets, true);
+  };
+  const resin = resinSpots.map(spot => {
+    const d = table.rows.find(row => row.id === spot.id);
+    if (d?.kind !== 'pickup' || d.touch !== true || d.item !== 'amber-resin') throw new Error(`Pine table has no resin take law ${spot.id}`);
+    return { d, spot, taken: `taken:${d.id}` };
+  });
+  const touchResin = (): void => {
+    for (let i = 0; i < 30; i++) {
+      const row = resin[i]; if (row === undefined) break;
+      const { d, spot, taken } = row;
+      if (flags.has(taken) || !test(flags, d.showWhen) || !walkInPickup(host.physics, host.player.position, spot)) continue;
+      flags.set(taken); raiseAll(d.sets, true);
+      pack.add('amber-resin');
+    }
   };
 
   // ── the clock: Hale's watch till dark, the dawn (quest/index.ts publishClock, without its presentation) ──
@@ -212,6 +242,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       if (command.actorId === PINE_INTERACT) act(command.value);
     }
     ride(dt);
+    touchResin();
     // the sluice lifts on its own once both logs are off and latches open (Interactables.update's latching door)
     if (sluice.d.kind === 'door' && sluice.d.latch === true && !flags.has(sluice.open) && test(flags, sluice.d.opensWhen)) flags.set(sluice.open);
     // the clock's fast-forward (a smoothstep over its span), then the clock, then the stag, as the page's quest frame
@@ -228,12 +259,13 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: state.zip.on ? { s: state.zip.s, v: state.zip.v } : null,
-      rifle: state.rifle, counts: { ...counts } }),
+      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot() }),
     restore: value => {
       const saved = v.parse(Saved, value);
       stag.load(saved.stag); clock.load(saved.dawn); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
       counts = { ...saved.counts };
+      pack.restore(saved.pack);
     },
   });
-  return { quests, stag, riding: () => state.zip.on, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
+  return { quests, stag, pack, riding: () => state.zip.on, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
 }

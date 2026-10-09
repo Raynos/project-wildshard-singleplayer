@@ -17,10 +17,10 @@ Plain Node, no DOM or renderer shim, real terrain/navmesh/Rapier. Tick commands 
 | Dawn quest fact | 30,014 |
 | Tape complete | 30,015 |
 
-Full canonical digest: `97b55b8c542405e22ae7a0c8e8bc8eccad2128a0772c69c7b929b391a9e57a8b`.
-Phase-II replay after 1,200 identical command ticks: `22262bb1044b310aea148fdf0afa84e75187e689468638ec078f79d2da479c45`, both worlds equal, no restore emissions. arm64 and Rosetta x64 full JSON results are exactly equal.
+Full canonical digest: `d2e318c30c7ea958fea604c6060f0db31153f906e69ca2c5ff1db00b79af385d`.
+Phase-II replay after 1,200 identical command ticks: `11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb`, both worlds equal, no restore emissions. arm64 and Rosetta x64 full JSON results are exactly equal.
 
-Twelve gameplay submissions become eleven durable ledger identities, including the duplicate quest ingress. The real tape now files one bear, one elk, one boar and two summoned thrall deaths, alongside the lanterns, zipline, King and dawn. Four achievements are earned: lanterns, zipline, King, quest. An actual storage refusal stays non-durable; retry succeeds; reopened state matches; repeated identities remain duplicates. The CI ledger continuation runs 6,015 ticks from night and proves the King/dawn facts. The full receipt retains all emitted gameplay facts.
+Fourteen gameplay submissions become thirteen durable ledger identities, including the duplicate quest ingress and two actual resin takes. The real tape now files one bear, one elk, one boar and two summoned thrall deaths, alongside the lanterns, zipline, King and dawn. Four achievements are earned: lanterns, zipline, King, quest. An actual storage refusal stays non-durable; retry succeeds; reopened state matches; repeated identities remain duplicates. The CI ledger continuation runs 6,015 ticks from night and proves the King/dawn facts. The full receipt retains all emitted gameplay facts.
 
 ## Bounded proof and freshness
 
@@ -32,7 +32,7 @@ Regenerate using `node --import ./scripts/sim-node-loader.mjs test/proof/pine-ho
 
 ## Why compatibility stays false
 
-Known outcome differences, rather than missing tapes, keep Pine refused: rest-pose King volumes omit animated chest/root motion (weak-point hits/damage); still-air arrows and standing spread change hit/miss, and absent arrow recovery changes ammunition; named prompts omit dialogue time and nearest/LOS eligibility; collectible, journal, lodge and miller producers still omit ledger outcomes; unhosted night-roaming thralls, millrace and lodge omit combat/quest outcomes; King victory resin (including refights) has no item reward, and the first bow is granted before the page pickup; rain wander goals change creature positions. Browser `pine.bosses` versus host flags additionally leaves save/refight interoperability unproved.
+Known outcome differences, rather than missing tapes, keep Pine refused: rest-pose King volumes omit animated chest/root motion (weak-point hits/damage); still-air arrows and standing spread change hit/miss, and absent arrow recovery changes ammunition; named prompts omit dialogue time and nearest/LOS eligibility; token/bench, journal, lodge and miller producers still omit ledger outcomes (resin takes are now hosted); unhosted night-roaming thralls, millrace and lodge omit combat/quest outcomes; King victory resin (including refights) has no item reward, and the first bow is granted before the page pickup; rain wander goals change creature positions. Browser `pine.bosses` versus host flags additionally leaves save/refight interoperability unproved.
 
 Coverage gaps are separate: alternate routes, other elite encounters and repeat fights lack uninterrupted tapes, and the recorded quest tape is standalone. The separate native grid-entry proof removes walls; it is not a recorded grid quest tape. These gaps alone do not establish a different outcome in an already-hosted rule. The real compatibility receipt lists both categories explicitly.
 
@@ -41,3 +41,25 @@ Coverage gaps are separate: alternate routes, other elite encounters and repeat 
 The page and headless host now call quest/featLaw.ts for all 19 bounded counters, variant overlap, flag-driven totals and the native thrall predicate. Only an actual actor.died event files a kill; restoration is silent. Counters submit newly reached stable IDs only. Legacy page migration still replays its saved identities. Re-emitting an old ID on a later headless tick would incorrectly grow a not-yet-earned achievement; the two-thrall/two-tick fixture proves exactly two increments, while the shipping Progress oracle covers all 19 feats. The King achievement saturates once across refights, as on the page.
 
 Re-recorded input fingerprint: `91a9c4b66d76139ae327d9853986b450b820dca18f33f95492ed922188f3dcfa`. King/dawn ticks are unchanged; arm64/x64 full receipts remain identical. Nine native coverage proofs plus seven runtime-row checks pass, worst native proof 12.00 s under coverage (<20 s budget). The existing 40 native/page checks also pass under coverage. Rebased clean full suite: 1,059 files / 5,861 passed / 14 skipped, 115.53 s. Strict, root-config touched-file lint, paths and ratchet pass. Generated outputs were refreshed inside the export only. The final arm64/x64 full receipts are exactly equal. The remaining producers and other outcome differences above still keep compatible:false.
+
+## Shared resin takes and pack continuation
+
+The page and host call the same native walk-in pickup and inventory transition laws (8d672a17c). The spots bake now
+captures all 44 actual table rows: the original five quest rows, the lookout bench, thirty resin drops and eight tokens.
+Two real page captures match; the original quest, Hale, lantern, zip and rifle points remain byte-identical. The host
+uses the actual captured resin positions and authored take flags/item rows, not an analytic trunk or fabricated pickup.
+Token and bench producers stay open until their prompt selection and sitting rules are hosted.
+
+A native test walks the ordinary player from the actual spawn to resin-1, takes it through radius/height/LOS, files one
+ledger identity and stores Amber resin ×1. Its one real checkpoint restores silently and the native continuations agree
+without a second take. The bounded seven-kind pack uses Pine's actual keep/slot catalogue and the page's all-or-nothing
+trade law. Invalid saved lines are refused before mutation; old quest checkpoints without a pack restore an empty pack.
+No witness command writes inventory, health, flags or position. The page save/profile bytes and two-shard real pickup
+proof were validated in the preceding shared-law commit.
+
+The unchanged full tape takes two drops at ticks 10,386 and 10,989, retains Amber resin ×2, and submits the actual resin
+facts through ledger ingress. Fourteen submissions produce thirteen durable identities and four earned achievements;
+quota retry, reopened durable state and duplicate refusal still pass. Inputs: `126b222bc2b5e24e15bec4bb6e0c1ec1d1eca3195dfc47142de0cb4a8ba49c1d`.
+The five checkpoints and real compatibility receipt are regenerated; arm64 and x64 full JSON outputs are exactly equal.
+The King/dawn timing stays 29,295 / 30,015; the canonical state changes because flags, counts and pack are now retained.
+Six focused files / 17 checks pass under coverage. The new native walk/restore is 5.33 s under coverage (<20 s, one third of its 60 s timeout). Clean source candidate f34d63baa passes 1,067 files / 5,887 checks / 14 skipped in 139.07 s, with its sole generated AG7 refusal regenerated inside the export and the 111-check arch-guard file re-run green in 23.30 s. Strict, root-config touched lint, paths and ratchet pass. Approved measured edges are Pine → engine +1 and Pine → game +1; generated working-tree outputs remain untouched.

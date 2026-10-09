@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Trusted SF72 metadata only (Pine Hollow): where the built page placed the Warden's Hollow quest's prompts, read off the
 // live page so the renderer-free quest (src/shards/pine-hollow/runtime/quest.ts) acts at the browser's own points. Captures
-// the quest's interactables-table rows (quest/table.ts: the dam's two logs, the sluice, the pond glass, the ridge flint) as
+// the quest's interactables-table rows (quest/table.ts: dam, pond glass, ridge flint, resin, tokens and lookout bench) as
 // the kit placed them with their prompt points; Hale's talk point (his head) and radius; the three waystone lanterns'
 // prompts; the zipline's launch prompt, its cable ends and its landing; and the lever-action's pickup in the ranger's cabin.
 // Two independent captures must match exactly.
@@ -19,7 +19,8 @@ if (url === undefined) throw new Error('bake-pine-spots requires a clean-candida
 const revision = arg('revision') ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const version = await (await fetch(new URL('/version.json', url))).json();
 if (typeof version.build !== 'string' || !version.build.startsWith(`${revision.slice(0, 7)}-`)) throw new Error(`Pine spots revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
-const ROWS = ['dam-log-a', 'dam-log-b', 'dam-sluice', 'pond-glass', 'ridge-flint'];
+const ROWS = ['dam-log-a', 'dam-log-b', 'dam-sluice', 'pond-glass', 'ridge-flint', 'lookout-bench',
+  ...Array.from({ length: 30 }, (_, index) => `resin-${index + 1}`), ...Array.from({ length: 8 }, (_, index) => `token-${index + 1}`)];
 const errors = [];
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {
@@ -46,7 +47,7 @@ try {
     if (rifle.length !== 1) throw new Error('Pine has one lever-action pickup');
     return {
       rows: kit, talk: { ...xyz(ranger.prompt.position), radius: ranger.prompt.radius }, lanterns,
-      zip: { prompt: { ...xyz(zip.prompt.position), radius: zip.prompt.radius }, top: xyz(zip.top), bottom: xyz(zip.bottom), landing: xyz(zip.landing) },
+      zip: { prompt: { ...xyz(zip.prompt.position), radius: zip.prompt.radius }, top: xyz(zip.wire.top), bottom: xyz(zip.wire.bottom), landing: xyz(zip.landing) },
       rifle: { ...xyz(rifle[0].position), radius: rifle[0].radius },
     };
   };

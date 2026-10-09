@@ -12,7 +12,8 @@ import { parseNavmesh, type Navmesh } from '../../../src/engine/physics/navmesh'
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
-import { PINE_ACT, PINE_INTERACT, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
 import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/layout';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow';
@@ -478,8 +479,9 @@ async function collectGameplayProof(rapier: Rapier, from?: 'night') {
     if (!tape.walked || !session.host.flags.has(QUEST_DONE) || !session.host.flags.has(KING_RECORD.defeated)) throw new Error('King/dawn tape unfinished');
     const durable = ledger.state(), rows = Object.values(durable.facts), reopened = profile(local);
     if (JSON.stringify(reopened.state()) !== JSON.stringify(durable) || rows.some(row => reopened.record(row).status !== 'duplicate')) throw new Error('Gameplay ledger not durable/deduplicated');
+    const pack = v.parse(v.object({ pack: PinePackSchema }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;
     return { status: 'passed', resumedFrom: from ?? 'spawn', ticksExecuted: session.host.state.tick - start.tick, tick: session.host.state.tick, alive: true, kingDefeated: true, dawn: session.host.flags.has('seen:dawn'),
-      hash: digest(session.host), facts: rows.map(row => ({ name: row.name, entity: row.entity, tick: row.tick, origin: row.origin })),
+      hash: digest(session.host), pack, resinCount: session.host.flags.count('resin:'), facts: rows.map(row => ({ name: row.name, entity: row.entity, tick: row.tick, origin: row.origin })),
       achievements: Object.values(durable.achievements), rules: source.ledger.length, gameplayEmissionProven: true, refusedWriteRetried: refused,
       durableReload: true, duplicateStable: true, receipts: receipts.map(row => row.status), legs: tape.log };
   } finally { session.host.dispose(); }
@@ -495,7 +497,7 @@ export const OUTCOME_DIFFERENCES = [
   'King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.',
   'Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.',
   'Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.',
-  'Collectible, secret/miller, journal and lodge/streak producers remain unhosted: their ledger outcomes are absent; hosted flags and creature deaths use the page feat law.',
+  'Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.',
   'Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.',
   'King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.',
   'Rain wander goals are null: creature positions can differ.',
