@@ -13,6 +13,7 @@ import { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
 import { CharacterMotor } from './physics/CharacterMotor';
 import { addImpulse, decayImpulse } from './player/impulse';
+import { fallStep, groundedVelocity, hardFallHit, hardLanding } from './player/fall';
 import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
 import { tagCollider } from './physics/surface';
@@ -90,6 +91,9 @@ export class SimHost {
   private readonly wanted = new Vector3();
   /** The owned player's transient world velocity (m/s), the client Player's impulse law (player/impulse.ts). */
   readonly playerImpulse = new Vector3();
+  /** The owned player's vertical speed (m/s, negative = falling) and whether the motor last stood it on ground, the client
+   * Player's on-foot fall law (player/fall.ts). At rest (grounded, still) an idle tick leaves the player untouched. */
+  readonly playerFall = { vy: 0, grounded: true };
   private readonly direction = new Vector3();
   private readonly hitOrigin = new Vector3();
   private readonly hitPoint = new Vector3();
@@ -281,15 +285,28 @@ export class SimHost {
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     this.physics.step();
-    const shoved = this.playerImpulse.lengthSq() > 0;
-    if (command !== undefined || shoved) {
+    const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall;
+    if (command !== undefined || shoved || !fall.grounded || fall.vy !== 0) {
       if (command === undefined) this.wanted.set(0, 0, 0);
       else {
         this.player.yaw = command.yaw;
         this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
       }
       if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
-      this.player.motor.move(this.player.position, this.wanted);
+      // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
+      // Walking on the ground (grounded, no vertical speed, a sideways move) the step adds no downward push: the motor's
+      // snap-to-ground holds the feet as the client's one-tick push does, without snagging on a collider seam; the tick
+      // the motor loses the ground takes that tick's gravity, so the fall speed runs exactly the client's from there.
+      const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
+      if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
+      this.wanted.y += fall.vy * FIXED_STEP;
+      const moved = this.player.motor.move(this.player.position, this.wanted);
+      if (moved.grounded) {
+        // touching down from the air: a hard landing files the client's fall hit (PlayerHurt.fall); the headless ground is dry
+        if (!fall.grounded && hardLanding(fall.vy, 0)) this.combat.hit(hardFallHit(this.player.health, this.player.position));
+        fall.vy = groundedVelocity(fall.vy);
+      } else if (standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
+      fall.grounded = moved.grounded;
       if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
     }
     this.stepSystems();

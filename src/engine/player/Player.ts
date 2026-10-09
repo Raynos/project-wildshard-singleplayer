@@ -14,6 +14,7 @@ import { addLockOffset } from './LockOnTarget';
 import { CharacterMotor } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import { addImpulse, decayImpulse } from './impulse';
+import { fallStep, groundedVelocity, hardLanding, landingCushion } from './fall';
 import type { Physics } from '../physics/Physics';
 
 /** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
@@ -28,7 +29,6 @@ const RADIUS = 0.38;
 const BODY_HEIGHT = 1.8;               // the capsule, feet to crown
 const STEP_UP = 0.35;                  // m climbed without a jump (PHYSICS.md: stricter than the old 0.5)
 const MAX_CLIMB_DEG = 40;              // steeper ground is a wall to walk into (the old SLOPE_WALK let 44° through)
-const GRAVITY = 22;
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
 export const HOVER_TOP = 14;          // m/s cruise
@@ -709,7 +709,7 @@ export class Player {
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
       if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.commandJumpUsed = true; this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
       else if (jump && !this.onGround && this.jumpsLeft > 0) { this.commandJumpUsed = true; this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; app.events.emit('player.jump', true); this.onJump?.(); } // double jump
-      this.velocity.y -= GRAVITY * dt;
+      this.velocity.y = fallStep(this.velocity.y, dt);
 
       // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes
       want.x = (this.velocity.x + impulse.x) * dt; want.y = (this.velocity.y + impulse.y) * dt; want.z = (this.velocity.z + impulse.z) * dt;
@@ -739,12 +739,12 @@ export class Player {
       } else if (grounded) {
         if (!this.onGround) {
           // landing in water is soft: the splash takes the impact (never the hard-landing damage path past ankle depth)
-          const cushion = wet ? Math.min(1, groundDepth / 0.5) : 0;
-          const hard = this.velocity.y < -9 && cushion < 0.6;
+          const cushion = landingCushion(wet, groundDepth);
+          const hard = hardLanding(this.velocity.y, cushion);
           this.landImpulse = Math.min(0.35, -this.velocity.y * 0.03) * (1 - 0.7 * cushion);
           this.onLand?.(hard);
         }
-        if (this.velocity.y < 0) this.velocity.y = 0;
+        this.velocity.y = groundedVelocity(this.velocity.y);
         this.onGround = true;
       } else this.onGround = false;
       this.waterSurface = ws;

@@ -3,6 +3,7 @@ import type { Events } from '../events/events';
 import type { Scope } from '../app/scope';
 import type { CombatPipeline, CombatTag, DeathCause } from '../combat/pipeline';
 import type { PlayerHealth } from '../combat/health';
+import { hardFallHit } from '../player/fall';
 
 export interface HurtPlayer {
   position: Vector3; yaw: number;
@@ -53,7 +54,6 @@ export class PlayerHurt {
   }
   fall(hard: boolean): void {
     this.ports.land(hard);
-    if (hard) this.combat.hit({ source: 'env', sourceTags: ['env.fall'], target: this.health,
-      amount: 8, point: this.ports.player.position.clone(), dir: new Vector3() });
+    if (hard) this.combat.hit(hardFallHit(this.health, this.ports.player.position));
   }
 }
