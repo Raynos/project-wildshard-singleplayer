@@ -1,5 +1,6 @@
 import { hoverSpeed } from './hoverSpeed';
 import { walkingSpeed } from './walk';
+import { combatSpeedFactor } from './combatMotion';
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardStepOut } from './board';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../input/commands';
 import type { InputService } from '../input/InputService';
@@ -735,7 +736,7 @@ export class Player {
     else feet.lerpVectors(this.prevFeet, this.position, Math.max(0, Math.min(1, alpha)));
 
     const hSpeed = Math.hypot(this.velocity.x, this.velocity.z);
-    this.speedFactor = (this.onGround || swim) && !hover ? hSpeed / 7.2 : 0;
+    this.speedFactor = combatSpeedFactor(hSpeed, this.onGround, swim, hover, 7.2);
     const targetEye = this.crouching ? EYE - 0.65 : EYE;
     this.eyeOffset += (targetEye - this.eyeOffset) * Math.min(1, dt * 10);
     this.landImpulse *= Math.exp(-dt * 9);

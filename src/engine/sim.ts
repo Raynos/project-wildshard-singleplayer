@@ -73,12 +73,19 @@ export interface SimCommand extends LocalMovementCommand {
 }
 /** Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative. */
 export interface SimWalkingControl { readonly speed: number; readonly crouching: boolean }
+/** Combat's motion input, not corrected displacement. Delegated movement owns these same scalar observations. */
+export interface SimPlayerMotionSample {
+  readonly velocityX: number; readonly velocityZ: number;
+  readonly grounded: boolean; readonly swimming: boolean; readonly hover: boolean;
+}
 /** One owned host's alternative player-motion law, without changing its single physics/system authority.
  * Input runs before physics and returns true only while it owns motion; step then runs after physics instead of the
  * ordinary walk/board/dodge/jump. False retains that ordinary law. Register mutable state through a SimStateAdapter. */
 export interface SimPlayerDriver {
   /** Consulted only when input returns false, outside board motion; absent keeps the level speed and ordinary jump. */
   readonly walking?: SimWalkingControl;
+  /** Queried after step, only when a motion observer is installed. Missing delegated samples are unavailable. */
+  readonly motionSample?: () => SimPlayerMotionSample;
   input: (command: Readonly<SimCommand> | undefined, dt: number, host: SimHost) => boolean;
   step: (dt: number, host: SimHost) => void;
 }
@@ -153,6 +160,7 @@ export class SimHost {
   physics: Physics;
   readonly player: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
   private playerDriver: SimPlayerDriver | undefined;
+  private playerMotionObserver: { receive: (sample: SimPlayerMotionSample | null) => void; sample: { velocityX: number; velocityZ: number; grounded: boolean; swimming: boolean; hover: boolean } } | undefined;
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly afterCallbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly weapons = new Map<string, StrikeSpec>();
@@ -349,6 +357,22 @@ export class SimHost {
       if (!installed) return;
       installed = false; forget();
       if (this.playerDriver === driver) this.playerDriver = undefined;
+    };
+    forget = this.scope.capture('disposers', remove); return remove;
+  }
+  /** Observe owned movement before gameplay callbacks. Native walk samples commanded/shove/dash velocity before the
+   * motor, excluding transient impulse velocity, then publishes post-move ground/hover state. Board samples its own
+   * velocity. An alternative driver supplies its own sample or null is delivered. The native sample is reused: copy
+   * scalars if retaining it. Observers and delegated mutable samples own their continuation; absent preserves all bytes. */
+  observePlayerMotion(observer: (sample: SimPlayerMotionSample | null) => void): () => void {
+    if (this.disposed || this.embedded || !this.ownsPlayer || !this.hasPlayerMotor || this.playerMotionObserver !== undefined) throw new Error('Player motion observer belongs to one owned active host');
+    const binding = { receive: observer, sample: { velocityX: 0, velocityZ: 0, grounded: true, swimming: false, hover: false } };
+    this.playerMotionObserver = binding;
+    let installed = true, forget: () => void = () => undefined;
+    const remove = (): void => {
+      if (!installed) return;
+      installed = false; forget();
+      if (this.playerMotionObserver === binding) this.playerMotionObserver = undefined;
     };
     forget = this.scope.capture('disposers', remove); return remove;
   }
@@ -596,6 +620,8 @@ export class SimHost {
     }
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     const driver = this.playerDriver, delegated = driver?.input(command, FIXED_STEP, this) === true;
+    const observeMotion = this.playerMotionObserver;
+    if (observeMotion !== undefined) { observeMotion.sample.velocityX = 0; observeMotion.sample.velocityZ = 0; }
     const walking = delegated ? undefined : driver?.walking;
     if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
@@ -627,6 +653,9 @@ export class SimHost {
           stepDash(dash, FIXED_STEP, this.player.position.x, this.player.position.z, () => false, this.dashVelocity);
           this.wanted.x = this.dashVelocity.x * FIXED_STEP; this.wanted.z = this.dashVelocity.z * FIXED_STEP;
         }
+        if (observeMotion !== undefined) {
+          observeMotion.sample.velocityX = this.wanted.x / FIXED_STEP; observeMotion.sample.velocityZ = this.wanted.z / FIXED_STEP;
+        }
         if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
         // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
         // Walking on the ground (grounded, no vertical speed, a sideways move) the step adds no downward push: the motor's
@@ -652,6 +681,20 @@ export class SimHost {
         fall.grounded = moved.grounded;
         if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
       }
+    }
+    if (observeMotion !== undefined) {
+      let sample: SimPlayerMotionSample | null;
+      if (delegated) {
+        sample = driver.motionSample?.() ?? null;
+        if (sample !== null && (![sample.velocityX, sample.velocityZ].every(Number.isFinite)
+          || typeof sample.grounded !== 'boolean' || typeof sample.swimming !== 'boolean' || typeof sample.hover !== 'boolean')) throw new RangeError('Invalid delegated player motion sample');
+      } else {
+        const native = observeMotion.sample;
+        native.grounded = this.playerFall.grounded; native.swimming = false; native.hover = this.playerBoard.on;
+        if (native.hover) { native.velocityX = this.boardVelocity.x; native.velocityZ = this.boardVelocity.z; }
+        sample = native;
+      }
+      observeMotion.receive(sample);
     }
     this.stepSystems();
     this.player.health.update(FIXED_STEP); this.events.flush('fixed.post');

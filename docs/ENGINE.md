@@ -1882,6 +1882,15 @@ frozen, disposed and duplicate bindings refuse; the returned remover releases th
 The installer registers its mutable clocks/native handles through a `SimStateAdapter` and reinstalls
 both before restore; `physicsRestored` reconnects its handles after the native world is replaced.
 An absent driver adds no continuation fields and preserves the original snapshot bytes.
+`observePlayerMotion(receive)` supplies one owned host's combat velocity input before gameplay callbacks.
+The native walk samples commanded, shove or dash velocity before the motor, excluding transient impulses;
+ground and hover state are post-move. Board motion uses its velocity. A delegated driver's optional
+`motionSample()` supplies its authoritative velocity/state; absence delivers null, never an invented sample.
+The observer is scope-owned, removable, and unavailable on borrowed/frozen hosts. Its reused scalar sample
+must be copied by a retaining caller; gameplay owners register their own continuation. An absent observer
+preserves native output and snapshot bytes. `player/combatMotion` defines `combatSpeedFactor(horizontalSpeed,
+grounded, swimming, hover, referenceSpeed)`, the page's unchanged arithmetic from velocity magnitude.
+
 Optional resident walking: {speed, crouching} on SimPlayerDriver tunes ordinary on-foot motion only
 when input returns false; the standing native motor, fall, impulse and jump law still run. Crouching
 blocks the grounded/coyote jump through the same jump law as the page; absent controls retain the
