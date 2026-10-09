@@ -19,8 +19,10 @@ function fixture(statuses: Record<string, string>, candidates = `${a}\n${b}\n${c
 
 it('selects the newest intersection of main push-CI and exact-SHA boot successes', () => {
   const { query, calls } = fixture({ [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tgameplay passed' });
-  expect(newestCiGreen(query)).toBe(b);
+  const lines: string[] = [];
+  expect(newestCiGreen(query, (line: string) => { lines.push(line); })).toBe(b);
   expect(calls).toHaveLength(3);
+  expect(lines).toEqual([`newest-ci-green: skipped ${a.slice(0, 9)}: push CI green, boot-smoke pending (queued)`]);
 });
 
 it('refuses missing/failing smoke even when push CI is green, without accepting a neighbour SHA', () => {

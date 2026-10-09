@@ -79,7 +79,12 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   const job = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
   expect(job).not.toContain('gh workflow run deploy');
   expect(workflow).toContain('cron: \'17 * * * *\'');
-  expect(workflow).toContain(`elif [ "\${{ steps.pin.outputs.ci_green }}" != true ]; then\n            pnpm test`);
+  // SF74 W15: a CI-green pin skips typecheck, lint and the Test step; an unproven pin still runs all three.
+  for (const step of ['Typecheck', 'Lint', 'Test']) {
+    expect(workflow).toContain(`- name: ${step}\n        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'`);
+  }
+  expect(workflow).toContain('if [ "$DEPLOY" != true ]; then pnpm run test:checks; else pnpm test; fi');
+  expect(job).toContain(`group: boot-smoke-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
   expect(workflow).toContain('python3 scripts/heavy-lane.py build -- pnpm exec vite build');
   expect(workflow).toContain('node scripts/check-chunks.mjs dist');
   expect(workflow).toContain('node "$RUNNER_TEMP/deploy-version.mjs" verify');

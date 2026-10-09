@@ -128,13 +128,18 @@ export function ciGreen(sha, query = ghApi) {
 }
 
 /** The newest successful push CI on main with a separate, successful real boot on that exact SHA. macOS boot
- * queueing never holds push CI, and an unproven/failing boot can never become a release pin.
- * @param {(args:string[])=>string} [query] @returns {string} */
-export function newestCiGreen(query = ghApi) {
+ * queueing never holds push CI, and an unproven/failing boot can never become a release pin. Each newer CI-green SHA it
+ * passes over is logged with its boot-smoke state (SF74 W15: a stuck release says why); main SHAs whose push CI failed
+ * or is still running are never candidates.
+ * @param {(args:string[])=>string} [query] @param {(line: string) => void} [log] @returns {string} */
+export function newestCiGreen(query = ghApi, log = (line) => console.error(line)) {
   const candidates = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`,
     '--jq', '.workflow_runs[].head_sha']).trim().split('\n');
   for (const sha of new Set(candidates)) {
-    if (/^[0-9a-f]{40}$/.test(sha) && bootGreen(sha, query)) return sha;
+    if (!/^[0-9a-f]{40}$/.test(sha)) continue;
+    const boot = statuses(sha, query).get('boot-smoke');
+    if (boot?.state === 'success') return sha;
+    log(`newest-ci-green: skipped ${sha.slice(0, 9)}: push CI green, boot-smoke ${boot ? `${boot.state} (${boot.description})` : 'not run yet'}`);
   }
   throw new Error('newest-ci-green: no successful push CI with a successful exact-SHA boot-smoke in the last 100 runs');
 }

@@ -15,12 +15,16 @@ permissions:
   contents: read
   actions: read
   statuses: write
-concurrency:
-  group: boot-smoke-${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
-  cancel-in-progress: false
 jobs:
   boot-smoke:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
+    # SF74 W15: pushes coalesce to the newest main. GitHub keeps one pending run per group, so a newer green push replaces
+    # a waiting older one, and only the running proof finishes (2026-10-09: three per-SHA runs queued back to back, the
+    # newest waited 10.5 min for a macOS runner). Job-level, so the skipped runs (release / failed CI) never take the slot.
+    # A dispatch proves its own SHA in its own group.
+    concurrency:
+      group: boot-smoke-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
+      cancel-in-progress: false
     runs-on: macos-15
     timeout-minutes: 12
     steps:

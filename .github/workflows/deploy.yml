@@ -44,7 +44,8 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A CI-green release takes ~4 min; an unproven pin's whole `pnpm test` took 24.5 of the old 30 (2026-10-09).
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,26 +113,22 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
+      # SF74 W0 / W15: a release pin whose exact SHA passed push CI (this job's typecheck, lint, test:checks, build and
+      # chunk check, plus all six vitest shards and coverage) reuses that proof: no typecheck, lint, test or extra vite
+      # build here (24.5 min → ~4 min on 2026-10-09). `vercel build` below still runs `pnpm build` (gen, tsc, shardfiles,
+      # vite build) and the chunk check reads its dist. Unproven historical pins still run everything.
       - name: Typecheck
-        if: steps.live.outputs.skip != 'true'
+        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: pnpm run typecheck
 
       - name: Lint
-        if: steps.live.outputs.skip != 'true'
+        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: pnpm run lint
 
-      # SF74 W0: exact successful push CI already includes all six vitest shards and coverage. Reuse that proof
-      # for a release; unproven historical pins still run the whole suite. Every path keeps the build + chunk check.
       - name: Test
-        if: steps.live.outputs.skip != 'true'
+        if: steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: |
-          if [ "$DEPLOY" != true ]; then
-            pnpm run test:checks
-          elif [ "${{ steps.pin.outputs.ci_green }}" != true ]; then
-            pnpm test
-          else
-            echo 'Exact selected SHA passed push CI; reusing its complete test proof.'
-          fi
+          if [ "$DEPLOY" != true ]; then pnpm run test:checks; else pnpm test; fi
           python3 scripts/heavy-lane.py build -- pnpm exec vite build
           node scripts/check-chunks.mjs dist
 
@@ -153,6 +150,7 @@ jobs:
           printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
           vercel pull --yes --environment production --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
           vercel build --prod --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
+          node scripts/check-chunks.mjs dist # the dist `pnpm build` just made (the Test step's build is skipped on a CI-green pin)
           test -f .vercel/output/config.json
           test -f .vercel/output/static/version.json
           test -f .vercel/output/functions/api/inbox.func/.vc-config.json
