@@ -14,8 +14,9 @@ import { ownPrimitives } from '../world/resources';
 import { scout, scoutNpc } from './scout';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../quests/signal';
-import { bindRuntimeCoins, bindRuntimeLedger, bindRuntimeQuest, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeCoins, bindRuntimeQuest, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
+import { bindSignalFacts } from '../runtime/persistence';
 
 
 /** The old reward record (SHARDS §10): read once to carry a current save over to PAID_FLAG (C26), never written again. */
@@ -44,7 +45,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   const { flags } = world, saves = ctx.app.saves, legacy = saves.define(LEGACY_SIGNAL);
   // SF14 / M3: Signal Dunes' feats are its shardfile's ledger rows (runtime.binds); the platform grants each achievement once.
   // The instance is the first-party placement id (the slug: Select a shard, explore and the grid share it).
-  const slug = ctx.manifest.slug, facts = bindRuntimeLedger(ctx, source, slug);
+  const slug = ctx.manifest.slug, runtime = ctx.game.runtime, facts = bindSignalFacts(ctx, runtime?.play?.progress, slug);
   const groundAt = (x: number, z: number): number => ctx.manifest.ground.terrain?.heightAt(x, z) ?? 0;
   // C26: a current save that recorded the paid reward in the old shard save carries it over as the quest flag.
   if (!flags.has(PAID_FLAG) && legacy.read(slug)) flags.set(PAID_FLAG);
@@ -81,7 +82,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
       colliders: [boxDesc({ x: SCOUT_AT.x, z: SCOUT_AT.z, hw: 0.3, hd: 0.3, rot: 0, yBottom: y - 0.3, yTop: y + 1.7 }, 'flesh')], surface: 'flesh' });
     ctx.system({ id: 'sunscar.scout', phase: 'update', run: (dt, t) => { sefa.update(dt, t, player, flags.has(SCOUT_FLAG)); } });
   }
-  const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
+  const live = runtime?.world && runtime.play ? runtime : null;
   const presentation: QuestPresentationOptions = { places: [...PLACES], introTitle: STRINGS.quest,
     ...(sefa === null ? {} : { npc: { npc: scoutNpc(COMPLETE_FLAG), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: 3.5 } }),
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } };
