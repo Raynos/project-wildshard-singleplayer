@@ -49,7 +49,7 @@ describe('Debug flag ownership and review dates', () => {
     const frozen = legacyInventory(resolve('.'));
     const scanned = scannedFlags().filter(flag => flag.file === undefined || !registeredLegacyFile(frozen, relative(resolve('.'), flag.file))); 
     expect(scanned.filter(value => value.purpose === 'developer').map(value => value.id).sort()).toEqual([
-      'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'groundTiles', 'memorySaver', 'shardDirectors', 'storage', 'time', 'weather',
+      'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'memorySaver', 'shardDirectors', 'storage', 'time', 'weather',
     ]);
   });
   it('rejects unknown owners and malformed dates; an overdue row passes and is listed', () => {

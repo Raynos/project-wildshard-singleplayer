@@ -12,7 +12,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { holdSkirt } from './cube';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
-import { bindSandTiles, groundTiles } from './groundTiles';
+import { bindSandTiles } from './groundTiles';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun ~9° up in front of the spawn view,
@@ -180,12 +180,12 @@ export function signalDunesLook(): LookStrategy {
   // the sand's family material once the terrain painter built it (its adapter is fed in the backdrop's update)
   let sand: FamilySand | null = null;
   /**
-   * M3 tiles-swap (G227, E435): the same sand over the compiled shardfile terrain tiles (`look/groundTiles.ts`): the baked
-   * maps from the same 257-sample grid of the field as the code-built mesh (so the dune shadows and the trail bed are the
-   * same texels), the tiles in place of that mesh, the skirt as before, and the ground's queries and collider from the
-   * tiles' collider.
+   * The sand over the compiled shardfile terrain tiles (`look/groundTiles.ts`; G227 M3 tiles-swap, the only ground since
+   * Jake's G266): the baked dune-shadow and trail maps from a 257-sample grid of the field (the dune shadows and the trail
+   * bed at 1.95 m), the tiles as the ground, the skirt round them, and the ground's queries and collider from the tiles'
+   * collider.
    */
-  const buildTiledSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
+  const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
     const segments = 256, side = segments + 1, cell = (GROUND_HALF * 2) / segments, heights = new Float32Array(side * side);
     for (let iz = 0; iz < side; iz++) for (let ix = 0; ix < side; ix++) heights[iz * side + ix] = field.heightAt(ix * cell - GROUND_HALF, iz * cell - GROUND_HALF);
     const gridAt = (x: number, z: number): number => {
@@ -281,45 +281,6 @@ export function signalDunesLook(): LookStrategy {
         },
         rebuild: () => undefined, attachPost: () => undefined };
     },
-    terrainPainter: { build: (terrain, field, scope) => {
-      // M3 tiles-swap (default off: the groundTiles Developer tool, look/groundTiles.ts): the compiled shardfile tiles instead of this mesh
-      if (groundTiles()) return buildTiledSand(terrain, field, scope);
-      // 256: the baked height grid's own spacing (1.95 m; round 1, R1C-5: 192 blunted the crests)
-      const segments = 256, geometry = new PlaneGeometry(GROUND_HALF * 2, GROUND_HALF * 2, segments, segments); geometry.rotateX(-Math.PI / 2);
-      scope.own(geometry);
-      const pos = geometry.getAttribute('position'), colors = new Float32Array(pos.count * 3), c = new Color();
-      const side = segments + 1, cell = (GROUND_HALF * 2) / segments;
-      for (let i = 0; i < pos.count; i++) pos.setY(i, field.heightAt(pos.getX(i), pos.getZ(i)));
-      // The grid's own heights, bilinear: the shadow march reads these, not the analytic field.
-      const gridAt = (x: number, z: number): number => {
-        const fx = Math.min(segments - 1e-3, Math.max(0, (x + GROUND_HALF) / cell)), fz = Math.min(segments - 1e-3, Math.max(0, (z + GROUND_HALF) / cell));
-        const ix = Math.floor(fx), iz = Math.floor(fz), u = fx - ix, w = fz - iz, at = (a: number, b: number): number => pos.getY(b * side + a);
-        return (at(ix, iz) * (1 - u) + at(ix + 1, iz) * u) * (1 - w) + (at(ix, iz + 1) * (1 - u) + at(ix + 1, iz + 1) * u) * w;
-      };
-      const shadow = bakeDuneShadow((x, z) => skirtAt(gridAt, x, z)); scope.own(shadow);
-      const trail = bakeTrail((x, z) => field.trailDistance(x, z)); scope.own(trail);
-      const grain = sandGrainTexture(); scope.own(grain);
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i), z = pos.getZ(i), h = pos.getY(i);
-        // Hollow vs crest: this vertex against the mean of a 14 m ring around it.
-        sandTint((hx, hz) => field.heightAt(hx, hz), x, z, h, c);
-        colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
-      }
-      geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
-      geometry.computeVertexNormals();
-      // SF50 / SF10a (A10): the PBR family's ground layer over the baked maps; the dusk and the fires move it (backdrop update)
-      const familyGround = familySand({ grain, trail, shadow }, DUSK.value, scope); sand = familyGround;
-      scope.onDispose(() => { if (sand === familyGround) sand = null; });
-      const material = familyGround.material;
-      const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;
-      terrain.group.add(mesh); terrain.mesh = mesh; terrain.material = material;
-      // Round 1 (R1C-5 / R1B-14): the dune sea runs on past the square to the buttes (from above the ground ended in a
-      // ruler-straight edge over nothing). A coarse skirt, its inner edge on the ground's own edge heights, easing out into
-      // gentle swells along the wind; the same sand material, so the fog lays it back with the rest.
-      const skirt = skirtGeometry((x, z) => field.heightAt(x, z)); scope.own(skirt);
-      const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
-      holdSkirt(skirtMesh, (half) => skirtGeometry((x, z) => field.heightAt(x, z), half), scope); // G99: cut back to the cube in a grid cell
-      return Promise.resolve();
-    } },
+    terrainPainter: { build: buildSand },
   };
 }

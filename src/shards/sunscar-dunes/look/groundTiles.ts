@@ -5,9 +5,6 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { bindRuntimeProductTerrain } from '@wildshard/game/shardfile/runtimeProduct';
-import { jsonSlot } from '@wildshard/engine/saves/slots';
-import type { ShardContext } from '@wildshard/game/shard/context';
-import { developerToolsEnabled, runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import source from '../shard.config';
 import { SPAWN } from '../data/layout';
 
@@ -22,15 +19,15 @@ const FOLLOW = 8;
 let live: { bound: Bound; x: number; z: number; busy: boolean } | null = null;
 
 /**
- * M3 tiles-swap (G227, E435; default off behind the groundTiles Developer tool below): Signal Dunes' ground drawn from its
- * compiled shardfile terrain tiles and stood on from their collider, through the platform's runtime-bound terrain
+ * Signal Dunes' ground (G227 M3 tiles-swap; the only ground since Jake's G266, E435): drawn from its compiled shardfile
+ * terrain tiles and stood on from their collider, through the platform's runtime-bound terrain
  * (`bindRuntimeProductTerrain`: the same product reader standalone and in a grid cell, the shardfile's own residency rings,
  * 16 coarse L1 tiles always resident and the fine L0 tiles inside the 150 m disc). Each tile is the engine's terrain tile
  * view in the sand material; its vertex tint is the painter's own (hollows and crests against a 14 m ring), not the
- * bake's map ramp, so the sand reads as it does on the code-built mesh. Its normals are the shared collider lattice's, so a
- * tile edge across a crest lights as one surface (tiles-shade: the tiles' own one-sided edge normals drew a hard line
- * there). The tiles cast no shadow (the baked dune shadow map shades them, as it did the mesh). Height and normal queries
- * and the collider come from the compiled collider (`PainterField.bindGround`).
+ * bake's map ramp. Its normals are the shared collider lattice's, so a tile edge across a crest lights as one surface
+ * (tiles-shade: the tiles' own one-sided edge normals drew a hard line there). The tiles cast no shadow (the baked dune
+ * shadow map shades them). Height and normal queries and the collider come from the compiled collider
+ * (`PainterField.bindGround`).
  */
 export async function bindSandTiles(terrain: Terrain, field: PainterField, material: Material, tint: SandTint, scope: Scope): Promise<void> {
   const bound = await bindRuntimeProductTerrain(scope, source, { x: SPAWN.x, z: SPAWN.z, terrain: (bytes, tileScope, _shadow, lattice) => {
@@ -62,28 +59,4 @@ async function follow(entry: NonNullable<typeof live>, x: number, z: number): Pr
   try { await entry.bound.refresh(x, z); }
   catch (error: unknown) { console.warn('[sunscar-dunes] ground tiles refresh failed', error); }
   finally { entry.busy = false; }
-}
-
-/** The resident fine tiles (a capture's witness), or null when the code-built ground is drawn. */
-export function sandTilesResident(): readonly string[] | null { return live === null ? null : [...live.bound.fine]; }
-
-const ROW = 'groundTiles', CHOICES = ['off', 'on'] as const;
-
-/**
- * M3 tiles-swap (G227, E435): Signal Dunes stands on and draws its compiled shardfile terrain tiles (the 64 L0 + 16 L1
- * tiles and the 257² collider, `generators/tiles.ts`) in place of the code-built ground mesh and heightfield. Read from the
- * row's device slot when the ground is built (the painter runs before the plugin's hooks), behind the same Developer fence as the
- * row (a Developer tool, E451: outside Developer the shipped code-built ground runs); default off until parity is proven.
- */
-export function groundTiles(): boolean {
-  if (!developerToolsEnabled()) return false;
-  const saved = jsonSlot(`debug.plugin.sunscar-dunes.${ROW}`, 'device').read();
-  return (CHOICES.find((choice) => choice === saved) ?? 'off') === 'on';
-}
-
-/** The Developer tool (reload: the ground is built once; no comparison row, E451). Goes once the default flips and the old path is deleted. */
-export function installSignalDebug(ctx: ShardContext): void {
-  runtimeVariantEnabled(ctx, { purpose: 'developer', id: 'groundTiles', group: 'loading', label: 'Signal Dunes ground tiles', choices: CHOICES.map((value) => ({ value, text: value === 'on' ? 'Tiles' : 'Code-built' })),
-    initial: 'off', reload: true, ask: 'E435', reviewBy: '2026-12-30',
-    note: 'E435 M3 tiles-swap (G227): the ground drawn and collided from the shardfile terrain tiles (L0 / L1 rings, the compiled collider) instead of the code-built mesh.' });
 }

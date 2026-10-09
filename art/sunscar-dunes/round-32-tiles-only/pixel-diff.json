@@ -1,0 +1,87 @@
+{
+ "spawn": {
+  "noise(before-before2)": {
+   "meanAbs": 0.0,
+   "over8": 0.0,
+   "over24": 0.0
+  },
+  "before(code-built)-after(tiles-only)": {
+   "meanAbs": 0.907,
+   "over8": 4.78,
+   "over24": 0.23
+  },
+  "tool-on(main)-after": {
+   "meanAbs": 0.01,
+   "over8": 0.0,
+   "over24": 0.0
+  }
+ },
+ "whip": {
+  "noise(before-before2)": {
+   "meanAbs": 0.021,
+   "over8": 0.0,
+   "over24": 0.0
+  },
+  "before(code-built)-after(tiles-only)": {
+   "meanAbs": 0.295,
+   "over8": 0.84,
+   "over24": 0.03
+  },
+  "tool-on(main)-after": {
+   "meanAbs": 0.023,
+   "over8": 0.0,
+   "over24": 0.0
+  }
+ },
+ "ray": {
+  "noise(before-before2)": {
+   "meanAbs": 0.008,
+   "over8": 0.02,
+   "over24": 0.01
+  },
+  "before(code-built)-after(tiles-only)": {
+   "meanAbs": 0.462,
+   "over8": 1.29,
+   "over24": 0.17
+  },
+  "tool-on(main)-after": {
+   "meanAbs": 0.01,
+   "over8": 0.02,
+   "over24": 0.01
+  }
+ },
+ "quest": {
+  "noise(before-before2)": {
+   "meanAbs": 0.009,
+   "over8": 0.01,
+   "over24": 0.01
+  },
+  "before(code-built)-after(tiles-only)": {
+   "meanAbs": 0.475,
+   "over8": 2.47,
+   "over24": 0.33
+  },
+  "tool-on(main)-after": {
+   "meanAbs": 0.017,
+   "over8": 0.01,
+   "over24": 0.0
+  }
+ },
+ "centre": {
+  "noise(before-before2)": {
+   "meanAbs": 0.228,
+   "over8": 0.11,
+   "over24": 0.01
+  },
+  "before(code-built)-after(tiles-only)": {
+   "meanAbs": 1.02,
+   "over8": 4.87,
+   "over24": 0.5
+  },
+  "tool-on(main)-after": {
+   "meanAbs": 0.091,
+   "over8": 0.02,
+   "over24": 0.0
+  }
+ }
+}
