@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-866 members; 158 without a doc line (—).
+875 members; 158 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -263,6 +263,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `QuestDataPorts` | interface | @wildshard/game/quest/declared | Platform-owned fact/reward ports; authored quests never write the profile or progress store. A quest's fact is filed under the quest's id, coins under the player's. |
 | `QuestScriptBindings` | interface | @wildshard/game/quest/declared | Loader-resolved stable script field/event ids; actor target handles come from the session. |
 | `QuestScriptPorts` | interface | @wildshard/game/quest/declared | Hooks read atomically published script fields or queue declared events for the next script tick. |
+| `installInteractionRows` | function | @wildshard/game/quest/interactionRows | The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the row whose `act` |
+| `InteractionResult` | type | @wildshard/game/quest/interactionRows | A row's answer: it ran, or the `else` reason of its first unmet need (`'refused'` when the need names none). |
+| `InteractionRow` | type | @wildshard/game/quest/interactionRows | One declared row. |
+| `InteractionRowPorts` | interface | @wildshard/game/quest/interactionRows | What `installInteractionRows` is lent. |
+| `InteractionRowsData` | type | @wildshard/game/quest/interactionRows | Validated interaction rows (`InteractionRowsSchema`). |
+| `InteractionRowsSchema` | const | @wildshard/game/quest/interactionRows | Declared interaction rows (SF72): the transient `marks` an interaction keeps outside the durable flags (a raised well |
+| `InteractionRules` | class | @wildshard/game/quest/interactionRows | The rules of declared interaction rows over a shard's durable flags, free of meshes and prompts: the browser's |
+| `InteractionSpot` | interface | @wildshard/game/quest/interactionRows | A placed point a row answers at: a prompt reaches `radius` from the player's eye, a crack `radius` plus its reach. |
+| `parseInteractionRows` | function | @wildshard/game/quest/interactionRows | Compile authored interaction rows; an unknown field, a duplicate id or act, or an empty `sets` refuses. |
 | `installEnteredQuestPresentation` | function | @wildshard/game/quest/presentation | Keep quest state resident while rebuilding its ordinary presentation and input in each entered cell scope. |
 | `installQuestPresentation` | function | @wildshard/game/quest/presentation | One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward. |
 | `PresentedQuestDef` | interface | @wildshard/game/quest/presentation | — |

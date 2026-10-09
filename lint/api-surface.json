@@ -15414,6 +15414,60 @@
         "from": "@wildshard/game/quest/declared"
       },
       {
+        "name": "installInteractionRows",
+        "kind": "function",
+        "doc": "The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the row whose `act`",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionResult",
+        "kind": "type",
+        "doc": "A row's answer: it ran, or the `else` reason of its first unmet need (`'refused'` when the need names none).",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionRow",
+        "kind": "type",
+        "doc": "One declared row.",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionRowPorts",
+        "kind": "interface",
+        "doc": "What `installInteractionRows` is lent.",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionRowsData",
+        "kind": "type",
+        "doc": "Validated interaction rows (`InteractionRowsSchema`).",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionRowsSchema",
+        "kind": "const",
+        "doc": "Declared interaction rows (SF72): the transient `marks` an interaction keeps outside the durable flags (a raised well",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionRules",
+        "kind": "class",
+        "doc": "The rules of declared interaction rows over a shard's durable flags, free of meshes and prompts: the browser's",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "InteractionSpot",
+        "kind": "interface",
+        "doc": "A placed point a row answers at: a prompt reaches `radius` from the player's eye, a crack `radius` plus its reach.",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
+        "name": "parseInteractionRows",
+        "kind": "function",
+        "doc": "Compile authored interaction rows; an unknown field, a duplicate id or act, or an empty `sets` refuses.",
+        "from": "@wildshard/game/quest/interactionRows"
+      },
+      {
         "name": "installEnteredQuestPresentation",
         "kind": "function",
         "doc": "Keep quest state resident while rebuilding its ordinary presentation and input in each entered cell scope.",
@@ -19860,6 +19914,24 @@
         "kind": "interface",
         "doc": "Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL.",
         "from": "@wildshard/sdk/headlessRuntime"
+      },
+      {
+        "name": "InteractionRows",
+        "kind": "type",
+        "doc": "Validated interaction rows, run by the platform in the browser and the renderer-free host alike.",
+        "from": "@wildshard/sdk/interactions"
+      },
+      {
+        "name": "InteractionRowsSchema",
+        "kind": "const",
+        "doc": "Declared interaction rows: transient marks, prompt / crack rows at named spots with ordered needs and their sets (SF72).",
+        "from": "@wildshard/sdk/interactions"
+      },
+      {
+        "name": "parseInteractionRows",
+        "kind": "function",
+        "doc": "Compile authored interaction rows; an unknown field, a duplicate id or act, or an empty `sets` refuses.",
+        "from": "@wildshard/sdk/interactions"
       },
       {
         "name": "LedgerFact",

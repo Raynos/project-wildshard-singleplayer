@@ -6,7 +6,7 @@ The source of truth is `src/game/shardfile/schema.ts`, the schema exports in `sr
 
 Paths start at `$` for the compiled shardfile; `$sdk["./module"].Schema` names a public SDK schema, including build-only input. `[]` is an array member, `[n]` a tuple slot, `{key}` / `{value}` a record, and `<n>` a union branch. Optionality and nullability apply at the listed path. Branch-local required fields are conditional on selecting that branch. Function defaults and custom checks are explicitly opaque; the author guide explains their semantics. This is metadata coverage, not an assertion that custom predicate internals have a Valibot shape.
 
-Coverage: 5046/5046 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
+Coverage: 5082/5082 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
 
 ## Fields
 
@@ -2398,6 +2398,42 @@ Coverage: 5046/5046 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $sdk["./commonsCosts"].CommonsCostsSchema{value}.draws | number | required | safe_integer [function; not executed]; min_value 0 |
 | $sdk["./commonsCosts"].CommonsCostsSchema{value}.gpu | number | required | safe_integer [function; not executed]; min_value 0 |
 | $sdk["./commonsCosts"].CommonsCostsSchema{value}.triangles | number | required | safe_integer [function; not executed]; min_value 0 |
+| $sdk["./interactions"].InteractionRowsSchema | strict_object | required | check [function; not executed] "unique mark ids, row ids and acts" |
+| $sdk["./interactions"].InteractionRowsSchema.marks | array | required | max_length 256 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[] | strict_object | required |  |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].id | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial | strict_object | exact_optional; default undefined |  |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial.all | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial.all[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial.any | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial.any[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial.none | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.marks[].initial.none[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.never | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.never[] | strict_object | required |  |
+| $sdk["./interactions"].InteractionRowsSchema.never[].all | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.never[].all[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.never[].any | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.never[].any[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.never[].none | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.never[].none[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows | array | required | max_length 256 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[] | strict_object | required |  |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].act | number | required | safe_integer [function; not executed]; min_value 0 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].at | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].crack | picklist "light", "heavy" | exact_optional; default undefined |  |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].id | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs | array | exact_optional; default undefined | max_length 16 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[] | strict_object | required |  |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].all | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].all[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].any | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].any[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].else | string | exact_optional; default undefined | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].none | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].needs[].none[] | string | required | min_length 1; max_length 96 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].sets | array | required | max_length 64; min_length 1 |
+| $sdk["./interactions"].InteractionRowsSchema.rows[].sets[] | string | required | min_length 1; max_length 96 |
 | $sdk["./ledger"].LedgerFactSchema | strict_object | required |  |
 | $sdk["./ledger"].LedgerFactSchema.entity | string | required | min_length 1; max_length 128 |
 | $sdk["./ledger"].LedgerFactSchema.instance | string | required | min_length 1; max_length 128 |

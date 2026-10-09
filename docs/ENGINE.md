@@ -2416,7 +2416,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-866 exports, grouped by the module to import them from.
+875 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2466,6 +2466,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
 - `@wildshard/game/Progress`: `Progress`, `ProgressLedger`, `ProgressRow`, `ProgressSink`
 - `@wildshard/game/quest/declared`: `createQuestScriptPorts`, `DeclaredQuests`, `DialogueView`, `QuestDataPorts`, `QuestScriptBindings`, `QuestScriptPorts`
+- `@wildshard/game/quest/interactionRows`: `installInteractionRows`, `InteractionResult`, `InteractionRow`, `InteractionRowPorts`, `InteractionRowsData`, `InteractionRowsSchema`, `InteractionRules`, `InteractionSpot`, `parseInteractionRows`
 - `@wildshard/game/quest/presentation`: `installEnteredQuestPresentation`, `installQuestPresentation`, `PresentedQuestDef`, `PresentedQuestStep`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationNpc`, `QuestPresentationOptions`, `QuestTarget`
 - `@wildshard/game/quest/reward`: `QuestRewardBeat`, `QuestRewardHost`, `QuestRewardPlayer`, `QuestRewardSpec`
 - `@wildshard/game/saves`: `bossesSave`, `bountySave`, `compendiumSave`, `elitesSave`, `inventorySave`, `ownedSave`, `progressSave`, `purseSave`, `saveSlug`, `shardSave`
@@ -2583,7 +2584,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-259 exports, grouped by the module to import them from.
+262 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2615,6 +2616,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/groupBrains`: `groupBrain`, `GroupBrainData`
 - `@wildshard/sdk/headless`: `HeadlessSimulation`, `measureSimulation`, `SimulationObservations`, `validateSimulation`
 - `@wildshard/sdk/headlessRuntime`: `createTrustedHeadlessAdapter`, `createTrustedHeadlessResident`, `HeadlessRuntimeInstallation`, `HeadlessRuntimePlan`, `HeadlessRuntimePreparation`, `PrepareHeadlessRuntime`, `trustedHeadlessModule`, `TrustedHeadlessResident`, `TrustedHeadlessRuntime`
+- `@wildshard/sdk/interactions`: `InteractionRows`, `InteractionRowsSchema`, `parseInteractionRows`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/sdk/meshCollision`: `meshCollision`, `MeshCollisionData`
 - `@wildshard/sdk/migrations`: `DeclaredMigrations`, `MigrationsSchema`, `parseMigrations`

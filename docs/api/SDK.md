@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-265 members; 1 without a doc line (—).
+268 members; 1 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -138,6 +138,9 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `trustedHeadlessModule` | function | @wildshard/sdk/headlessRuntime | Restrict trusted code selection to a concrete local ESM entry; data-only clients never invoke this path. |
 | `TrustedHeadlessResident` | interface | @wildshard/sdk/headlessRuntime | One owned, renderer-free trusted world: the explicitly selected entry's plan installed into one native host. The worker's |
 | `TrustedHeadlessRuntime` | interface | @wildshard/sdk/headlessRuntime | Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL. |
+| `InteractionRows` | type | @wildshard/sdk/interactions | Validated interaction rows, run by the platform in the browser and the renderer-free host alike. |
+| `InteractionRowsSchema` | const | @wildshard/sdk/interactions | Declared interaction rows: transient marks, prompt / crack rows at named spots with ordered needs and their sets (SF72). |
+| `parseInteractionRows` | function | @wildshard/sdk/interactions | Compile authored interaction rows; an unknown field, a duplicate id or act, or an empty `sets` refuses. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |
