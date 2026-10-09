@@ -9,8 +9,8 @@ const MOVERS = new Set(['src/shards/driftwood-isle/data/movers.ts']);
 export function driftwoodPhysicsInputs(root) {
   const paths = ['shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/hybrid.ts', 'runtime/brains.ts']
     .map(path => `src/shards/driftwood-isle/${path}`);
-  // the manager that rolls every body's draws, the creature floor, the physics ground and its cuts
-  paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
+  // the manager and the hunting brain that roll every body's draws, the creature floor, the physics ground and its cuts
+  paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

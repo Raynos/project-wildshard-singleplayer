@@ -40,12 +40,13 @@ try {
   const capture = (wantCensus) => {
     const w = window.__wildshard.world, g = w.game, physics = g.app.physics, animals = w.animals;
     const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
-    const brains = animals.brains;
+    // the hunting brain's memories (src/engine/ai/hunt.ts, the manager's private `hunt`)
+    const hunt = animals.hunt;
     // the manager's list at load, in its own order; `at` is where the manager placed it (its legacy brain's first goal,
     // which a self-thinking species never moves), not where it has walked since
     const actors = animals.animals.map(a => {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
-      const b = brains.get(a);
+      const b = hunt.memory(a);
       return { id: a.entityId, kind: a.kind, variant: a.variant, herd: a.herd, spec: copy(a.simSpec), seed: a.seed, scale: a.scale,
         at: b === undefined ? null : { x: b.tx, z: b.tz } };
     });
