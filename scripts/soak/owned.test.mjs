@@ -18,9 +18,9 @@ void test('public soak reuses the floor intent without enabling Developer or the
     devMode: { v: 1, data: false }, 'gridIntent.once': { v: 1, data: { instance: 'driftwood-isle', slug: 'driftwood-isle', at: 123456 } },
   } });
   assert.equal(entry.titleTap, false);
-  assert.equal(entry.level, 'driftwood-isle');
+  assert.equal(entry.level, 'platform.grid');
   assert.equal(new URL(entry.query, 'http://localhost').searchParams.get('chunk'), 'driftwood-isle');
-  assert.equal(entry.home, 'borrowed');
+  assert.equal(entry.home, 'owned');
   assert.deepEqual(soakGridEntry('dev'), { titleTap: true, level: 'platform.grid', home: 'owned', query: '?mute=1&nolock=1&sw=0', fixture: '' });
   assert.throws(() => soakGridEntry('invalid'), /Unknown soak layout/u);
 });
@@ -129,7 +129,7 @@ void test('SF57 prepared-cell rehearsal records open coverage and refuses qualif
   const cells = soakCatalogue(catalogue, 'dev');
   const route = ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', soakRouteScope('prepared'));
   assert.deepEqual(route.plans.map(plan => plan.to), ['pine-hollow', 'nalati-grasslands', 'template-2', 'driftwood-isle']);
-  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['far-reach', 'sunscar-dunes']);
+  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['blender-template-1', 'far-reach', 'sunscar-dunes']);
   assert.equal(new Set(route.coveragePlans.map(plan => plan.crossroads).filter(Boolean)).size, 16);
   assert.throws(() => soakRouteScope('prepared', true), /rehearsal only/u);
   assert.throws(() => soakRouteScope('typo'), /Unknown soak route/u);
@@ -148,10 +148,14 @@ void test('SF57 borrowed previews survive cleanup; owned previews all stop even 
 
 for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every production instance and returns to one exact home baseline`, () => {
   const cells = soakCatalogue(catalogue, layout), route = ownedSoakPlans({ cells, home: 'driftwood-isle' });
-  if (layout === 'dev') assert.deepEqual(route.plans.slice(0, 2).map(p => p.to), ['pine-hollow', 'nalati-grasslands']);
-  else {
-    assert.ok(route.plans.slice(0, -1).every(plan => cells.find(cell => cell.instance === plan.to)?.slug === '_template'));
-    assert.throws(() => ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', 'prepared'), /requires Pine and Nalati/u);
+  assert.deepEqual(route.plans.slice(0, 2).map(p => p.to), ['pine-hollow', 'nalati-grasslands']);
+  if (layout === 'shipped') {
+    assert.deepEqual(route.plans.map(plan => plan.to).sort(), ['driftwood-isle', 'far-reach', 'nalati-grasslands', 'pine-hollow', 'sunscar-dunes', 'template-2']);
+    const missing = cells.filter(cell => cell.slug !== 'pine-hollow' && cell.slug !== 'nalati-grasslands');
+    assert.throws(() => ownedSoakPlans({ cells: missing, home: 'driftwood-isle' }, 'cells', 'prepared'), /requires Pine and Nalati/u);
+    for (const native of ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'far-reach', 'sunscar-dunes']) {
+      assert.deepEqual(route.plans.find(plan => plan.from === native)?.retiredResidents, [native]);
+    }
   }
   assert.deepEqual(route.plans.map(p => p.to).sort(), cells.map(c => c.instance).sort());
   let previous = route.reference, from = 'driftwood-isle';
@@ -227,7 +231,7 @@ void test('SF57 permits only the exact premeasurement WebKit target transition',
   assert.equal(await soakBootPoll(() => Promise.resolve('ready'), true), 'ready');
 });
 
-void test('SF57 public soak travels from and back to the borrowed Driftwood home, retained for the page lifetime', () => {
+void test('SF57 historical borrowed-home plans retain their original strict claim witness', () => {
   const cells = soakCatalogue(catalogue, 'shipped'), home = 'driftwood-isle';
   const route = ownedSoakPlans({ cells, home }, 'cells', 'catalogue', 'borrowed');
   assert.throws(() => ownedSoakPlans({ cells, home }, 'cells', 'catalogue', JSON.parse('"x"')), /Unknown soak home mode/u);
@@ -254,7 +258,7 @@ void test('SF57 public soak travels from and back to the borrowed Driftwood home
   assert.ok(soakWitnessFailures(witness(state(null, [], 5, commits.slice(0, 1)))).includes('Destination interior gameplay is not ready'));
 });
 
-void test('SF57 public road leg leaves the borrowed home once, then laps the boulevard without entering a shard', () => {
+void test('SF57 historical borrowed-home road plans retain their one departure leg', () => {
   const cells = soakCatalogue(catalogue, 'shipped'), home = 'driftwood-isle';
   const route = ownedSoakPlans({ cells, home }, 'road', 'catalogue', 'borrowed');
   const owned = ownedSoakPlans({ cells, home }, 'road');

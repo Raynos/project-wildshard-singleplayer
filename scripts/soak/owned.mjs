@@ -6,8 +6,8 @@ import { gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 export function soakGridEntry(layout) {
   if (layout !== 'dev' && layout !== 'shipped') throw new Error('Unknown soak layout');
   const publicGrid = layout === 'shipped';
-  // The public page borrows Driftwood as its level for the page lifetime; Developer homes are owned regions.
-  return { titleTap: !publicGrid, level: publicGrid ? 'driftwood-isle' : 'platform.grid', home: publicGrid ? 'borrowed' : 'owned',
+  // G258: public and Developer grid runtimes both use the owned page shell.
+  return { titleTap: !publicGrid, level: 'platform.grid', home: 'owned',
     query: publicGrid ? '?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0' : '?mute=1&nolock=1&sw=0',
     fixture: publicGrid ? publicGridIntentCode({ instance: 'driftwood-isle', slug: 'driftwood-isle' }) : '' };
 }
@@ -105,7 +105,7 @@ function ownedHomeSoakPlans(state, leg, routeScope) {
     waypoints.push(destination);
     const unique = waypoints.filter((point, index) => index === 0 || point.x !== waypoints[index - 1].x || point.z !== waypoints[index - 1].z);
     plans.push({ name: `${source.instance}-to-${cell.instance}`, from: source.instance, to: cell.instance,
-      movement: 'road-hover', hoverMaxSpeed: 30, waypoints: unique, requiredResidents: [cell.instance], retiredResidents: ['driftwood-isle', 'pine-hollow', 'nalati-grasslands'].includes(source.slug) ? [source.instance] : [] });
+      movement: 'road-hover', hoverMaxSpeed: 30, waypoints: unique, requiredResidents: [cell.instance], retiredResidents: ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'far-reach', 'sunscar-dunes'].includes(source.slug) ? [source.instance] : [] });
     source = cell; portal = nextPortal;
   }
   const road = ownedHomeSoakPlans(state, 'road', routeScope);

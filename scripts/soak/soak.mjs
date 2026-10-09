@@ -146,7 +146,7 @@ async function worker() {
     if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2 || result.metadata.level !== bootEntry.level) throw new Error('Soak requires the owned shell, live clock and 2x render scale');
     if (result.metadata.developer !== (layout === 'dev')) throw new Error('Wrong Developer setting');
     const homeResidency = result.metadata.homeResidency, entryState = result.metadata.state;
-    // The public page level is the borrowed home: a positive page claim, never a regional resident.
+    // Historical borrowed-home runs require the page claim; G258 public runs use the owned shell instead.
     if (bootEntry.home === 'borrowed' && (homeResidency?.instance !== entryState.home || !Number.isSafeInteger(homeResidency.bytes) || homeResidency.bytes <= 0
       || entryState.live.live.residents.includes(entryState.home) || entryState.live.live.current !== entryState.home)) throw new Error('Public soak home is not the borrowed Driftwood page level');
     const cells = result.metadata.state.cells;
