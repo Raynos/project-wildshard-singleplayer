@@ -1,28 +1,18 @@
 import type { Scope } from './scope';
 import type { SystemSpec, TickRateId } from './systems';
 import * as v from 'valibot';
+import { DEFAULT_TICK_RATES, bandAt, checkTickRate, freshClock, tickClock, tickDistance, type TickClock } from '../sim/bands';
 
 export interface TickPoint { readonly x: number; readonly y: number; readonly z: number }
 export interface TickActor { readonly position: TickPoint }
 export interface TickBand { upTo: number; brainHz: number | 'paused'; body: 'frame' | 'half' | 'paused' }
 export interface TickRate { bands: readonly TickBand[] }
 export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.sight' | 'ally.died';
-interface Clock { elapsed: number; credit: number; frame: number; dt: number; last: number; due: boolean; tickFrame: number }
-interface Subject { brain: Clock; body: Clock; interrupt: number }
-const clock = (): Clock => ({ elapsed: 0, credit: 0, frame: -1, dt: 0, last: 0, due: false, tickFrame: -1 });
+interface Subject { brain: TickClock; body: TickClock; interrupt: number }
 interface Policy { pins: WeakMap<object, number>; interrupts: WeakMap<object, number>; wakes: WeakMap<object, () => void> }
-const AI: TickRate = { bands: [
-  { upTo: 60, brainHz: 20, body: 'frame' },
-  { upTo: 160, brainHz: 10, body: 'half' },
-  { upTo: Infinity, brainHz: 'paused', body: 'paused' },
-] };
-const ALWAYS: TickRate = { bands: [{ upTo: Infinity, brainHz: Infinity, body: 'frame' }] };
 const ORIGIN: TickPoint = { x: 0, y: 0, z: 0 };
-const DEFAULTS: readonly (readonly [string, TickRate])[] = [
-  ['always', ALWAYS], ['ai', AI], ['npc', AI],
-  ['fx', { bands: [{ upTo: 120, brainHz: 30, body: 'frame' }, { upTo: Infinity, brainHz: 'paused', body: 'paused' }] }],
-  ['weather', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] }],
-];
+// The rates, bands and clock arithmetic are sim/bands.ts's, shared with the renderer-free host (SF72).
+const DEFAULTS = DEFAULT_TICK_RATES;
 const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));
 const frameIndex = v.pipe(v.number(), v.integer(), v.minValue(-1));
@@ -66,12 +56,7 @@ export class TickScheduler {
     this.time += dt; this.frameDt = dt; this.frame++; this.player = player;
   }
   rate(id: TickRateId, rate: TickRate): void {
-    let previous = -Infinity;
-    for (const band of rate.bands) {
-      if (!(band.upTo > previous) || (band.brainHz !== 'paused' && !(band.brainHz > 0))) throw new Error(`Invalid tick rate: ${id}`);
-      previous = band.upTo;
-    }
-    if (previous !== Infinity) throw new Error(`Tick rate must cover every distance: ${id}`);
+    checkTickRate(id, rate);
     this.rates.set(id, { bands: rate.bands.map((band) => ({ ...band })) });
   }
   pin(actor: object, scope: Scope): void {
@@ -120,8 +105,8 @@ export class TickScheduler {
   private band(id: TickRateId, actor: TickActor, subject: object = actor): TickBand {
     const rate = this.rates.get(id);
     if (!rate) throw new Error(`Unknown tick rate: ${id}`);
-    const distance = this.pinned(subject) ? 0 : Math.hypot(actor.position.x - this.player.x, actor.position.y - this.player.y, actor.position.z - this.player.z);
-    const band = rate.bands.find((entry) => distance < entry.upTo);
+    const distance = this.pinned(subject) ? 0 : tickDistance(actor.position, this.player);
+    const band = bandAt(rate, distance);
     if (!band) throw new Error(`Uncovered tick distance: ${id}`);
     return band;
   }
@@ -137,8 +122,7 @@ export class TickScheduler {
     if (!row) {
       // A driven/scripted actor can switch cadence. Its inactive clock must not catch up on return.
       rows.clear();
-      row = { brain: clock(), body: clock(), interrupt: 0 };
-      row.brain.last = this.time - this.frameDt; row.body.last = this.time - this.frameDt;
+      row = { brain: freshClock(this.time, this.frameDt), body: freshClock(this.time, this.frameDt), interrupt: 0 };
       rows.set(id, row);
     }
     return row;
@@ -146,23 +130,10 @@ export class TickScheduler {
   private due(id: TickRateId, actor: TickActor, body: boolean, subject: object = actor): number {
     const row = this.subject(id, subject), state = body ? row.body : row.brain, band = this.band(id, actor, subject);
     const interrupt = this.policy.interrupts.get(subject) ?? 0;
-    const urgent = !body && interrupt !== row.interrupt;
-    if (state.frame === this.frame && !urgent) return state.dt;
-    const step = this.time - state.last;
-    state.last = this.time;
-    const paused = body ? band.body === 'paused' : band.brainHz === 'paused';
     // An interrupt wakes decisions only, without catching up the time spent far away.
-    if (paused) { state.elapsed = 0; state.credit = 0; state.tickFrame = -1; }
-    else { state.elapsed += step; state.credit += step; }
-    state.frame = this.frame; state.dt = 0; state.due = false;
-    if (!body) row.interrupt = interrupt;
-    if (urgent || (!paused && (body ? band.body === 'frame' || state.tickFrame < 0 || this.frame - state.tickFrame >= 2 : band.brainHz !== 'paused' && state.credit + 1e-9 >= 1 / band.brainHz))) {
-      state.due = urgent || state.elapsed > 0; state.dt = state.elapsed; state.elapsed = 0;
-      if (state.due) state.tickFrame = this.frame;
-      state.credit = urgent || body || band.brainHz === 'paused' || band.brainHz === Infinity ? 0
-        : Math.max(0, state.credit - Math.floor((state.credit + 1e-9) * band.brainHz) / band.brainHz);
-    }
-    return state.dt;
+    const urgent = !body && interrupt !== row.interrupt;
+    if (!body) row.interrupt = interrupt; // unchanged unless urgent
+    return tickClock(state, band, body, this.time, this.frame, urgent);
   }
   brainDt(id: TickRateId, actor: TickActor): number { return this.due(id, actor, false); }
   takeBrainDt(id: TickRateId, actor: TickActor): number {

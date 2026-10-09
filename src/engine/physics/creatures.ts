@@ -15,6 +15,7 @@ import type { Physics } from './Physics';
 import { CharacterMotor } from './CharacterMotor';
 import { groups, queryGroups } from './groups';
 import { tagCollider } from './surface';
+import { creatureBodyDistance, creatureBodyShape, keepsCreatureBody } from '../sim/bands';
 
 /** What the physics needs of an animal (src/engine/entities/Animal.ts implements it). */
 export interface Creature {
@@ -40,7 +41,7 @@ export interface HitboxOwner<C extends Creature = Creature> { creature: C; part:
 
 export interface CreatureHit<C extends Creature = Creature> { creature: C; head: boolean; distance: number; point: THREE.Vector3 }
 
-const NEAR = 45, FAR = 55;
+// The physics body LOD (NEAR 45 m / FAR 55 m) and the capsule recipe are sim/bands.ts's, shared with SimHost (SF72).
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _d = new THREE.Vector3();
 
 interface Boxes { head: Collider; body: Collider; fore: Collider | null; bodyHalf: number; on: boolean }
@@ -107,19 +108,17 @@ export class CreatureBodies<C extends Creature = Creature> {
       }
       // the creature physics LOD
       if (c.simulationBound === true) continue;
-      const dist = Math.hypot(c.position.x - player.x, c.position.z - player.z);
-      if (c.motor === null && live && dist < NEAR && !c.driven) c.motor = this.motorFor(c);
-      else if (c.motor !== null && (!live || dist > FAR || c.driven)) { c.motor.dispose(); c.motor = null; }
+      const keep = keepsCreatureBody(c.motor !== null, live, c.driven, creatureBodyDistance(c.position, player));
+      if (c.motor === null && keep) c.motor = this.motorFor(c);
+      else if (c.motor !== null && !keep) { c.motor.dispose(); c.motor = null; }
       if (c.motor !== null) bodies++;
     }
     this.bodies = bodies;
   }
 
   private motorFor(c: C): CharacterMotor {
-    const s = c.scale, d = c.dims;
-    const radius = THREE.MathUtils.clamp(Math.min(d.bodyRadius, d.bodyHalfLen) * s, 0.12, 0.9);
-    const height = Math.max(radius * 2 + 0.05, (d.bodyY + d.bodyRadius) * s);
-    const motor = new CharacterMotor(this.physics, { radius, height, step: 0.3 * Math.max(1, s), maxClimbDeg: 45, snap: 0.3, group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: c });
+    const shape = creatureBodyShape(c.dims, c.scale);
+    const motor = new CharacterMotor(this.physics, { ...shape, group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: c });
     // at the animal, not the world origin: an animal standing still never moves its capsule (G222 playtest #7)
     motor.resetAt(c.position);
     return motor;

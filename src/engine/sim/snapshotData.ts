@@ -59,6 +59,8 @@ const strike = v.strictObject({ version, phase: v.picklist(['idle', 'windup', 'a
   clock: nonnegative, deadlines: v.array(v.strictObject({ id, at: finite })), scores: v.array(v.strictObject({ id, score: finite })),
   x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite });
 const rng = v.strictObject({ version, state: uint32, initial: uint32, scrambledFork: v.boolean() });
+const frameIndex = v.pipe(v.number(), v.integer(), v.minValue(-1));
+const bandClock = v.strictObject({ elapsed: nonnegative, credit: nonnegative, frame: frameIndex, dt: nonnegative, last: finite, due: v.boolean(), tickFrame: frameIndex });
 const entries = {
   version, apiVersion: integer, levelId: id, levelFingerprint: uint32,
   state: v.strictObject({ tick: integer, accumulator: v.pipe(finite, v.minValue(-Number.EPSILON)), timers: v.record(v.string(), nonnegative) }),
@@ -79,6 +81,8 @@ const entries = {
   slots: v.strictObject({ scriptMemory: v.record(v.string(), simValue), scriptGlobals: v.record(v.string(), simValue),
     questState: v.record(v.string(), simValue), ledgerDedupe: v.array(v.string()) }),
   adapters: v.array(v.strictObject({ id, state: simValue })),
+  bands: v.optional(v.strictObject({ rates: uint32, time: nonnegative, frame: integer, frameDt: nonnegative,
+    rows: v.array(v.strictObject({ id, rate: id, brain: bandClock, body: bandClock })) })),
 };
 const snapshot: v.GenericSchema<SimSnapshot> = v.strictObject({ ...entries,
   physics: v.pipe(v.array(v.pipe(integer, v.maxValue(255))), v.minLength(1), v.maxLength(maxPhysicsBytes)) });

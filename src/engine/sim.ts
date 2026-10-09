@@ -11,7 +11,9 @@ import { canReach } from './ai/reach';
 import { CombatPipeline } from './combat/pipeline';
 import { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
-import { CharacterMotor } from './physics/CharacterMotor';
+import { CharacterMotor, type MotorOptions } from './physics/CharacterMotor';
+import { BodyBandClocks, creatureBodyDistance, creatureBodyShape, keepsCreatureBody, tickDistance, type BandsState } from './sim/bands';
+import type { TickRate } from './app/scheduler';
 import { addImpulse, decayImpulse } from './player/impulse';
 import { fallStep, groundedVelocity, hardFallHit, hardLanding } from './player/fall';
 import { hitShoveSpeed, shoveHop, startShove, stepShove, type ShoveState } from './player/shove';
@@ -51,6 +53,24 @@ export interface SimStateAdapter {
   snapshot: () => SimValue; restore: (value: SimValue) => void;
   /** Reconnect saved native handles after world replacement and owner tagging, without allocating or stepping gameplay. */
   physicsRestored?: () => void;
+}
+
+/**
+ * SF72: run this host's bodies on the page's distance bands (sim/bands.ts), as the page's AnimalManager runs a native
+ * shard's creatures: each body's update cadence on its tick rate ('ai': every tick within 60 m of the player, every
+ * other tick with the two ticks' time to 160 m, paused beyond) and the physics body LOD (a creature motor in the page's
+ * capsule only within 45 m, released past 55 m). Off by default: a host that never opts in keeps every body stepped and
+ * collided every tick, and its exact snapshot bytes.
+ */
+export interface SimBodyBands {
+  /** Tick rates by id over the page scheduler's defaults ('always', 'ai', 'npc', 'fx', 'weather') and the manager's
+   *  'legacy' (decisions 10 Hz, the body every tick at any distance): the level's tier `ticks`. */
+  rates?: Readonly<Record<string, TickRate>>;
+  /** A body's rate id this tick (the page's AnimalManager.tickRate); default 'always' for a driven or fight-scripted
+   *  ('sidestep') body, else 'ai'. A body that changes rate starts a fresh clock, as on the page. */
+  rate?: (body: AnimalSim) => string;
+  /** The physics body LOD (default true); false keeps every body's host motor. */
+  physics?: boolean;
 }
 
 /** The existing page owns this traveller, its health update and its one physics/movement step. */
@@ -106,6 +126,7 @@ export class SimHost {
   private playerMotor: CharacterMotor | undefined;
   private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
+  private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; physics: boolean } | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
 
   constructor(level: SimLevel, ports: SimHostPorts) {
@@ -170,11 +191,14 @@ export class SimHost {
       random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
     });
     entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
-    const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
-    // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
-    // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
-    body.resetAt(entity.position);
-    entity.motor = body;
+    // under the physics body LOD a body spawns bodiless, as on the page: the next tick's sync gives it one when near
+    if (this.bands?.physics !== true) {
+      const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
+      // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
+      // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
+      body.resetAt(entity.position);
+      entity.motor = body;
+    }
     this.entities.set(spawn.id, entity);
     if (spawn.strike !== undefined) {
       this.strikes.set(spawn.id, new StrikeRunner()); this.weapons.set(spawn.id, { ...spawn.strike, weight: () => 1 });
@@ -200,7 +224,7 @@ export class SimHost {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (!this.dynamicActors.has(id)) return false;
     this.entities.get(id)?.motor?.dispose(); this.dynamicActors.delete(id); this.entities.delete(id); this.strikes.delete(id); this.weapons.delete(id);
-    this.adapters.delete(`runtime.actor.${id}`);
+    this.adapters.delete(`runtime.actor.${id}`); this.bands?.clocks.forget(id);
     for (const [source, target] of this.targetIds) if (source === id || target === id) {
       this.strikes.get(source)?.cancel(); this.entities.get(source)?.cancelAttack(); this.targetIds.delete(source);
     }
@@ -213,6 +237,59 @@ export class SimHost {
   }
   private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
     return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner });
+  }
+  /** Opt into the page's distance bands for every body (SimBodyBands), once, before the first step; the installer runs
+   * it again on a restoring host, before restore. The physics body LOD drops the bodies' host motors at once. */
+  useBodyBands(options: SimBodyBands = {}): void {
+    if (this.disposed || this.embedded || this.bands !== undefined) throw new Error('Body bands belong to an owned host, once');
+    const clocks = new BodyBandClocks(options.rates);
+    this.bands = { clocks, rate: options.rate ?? ((body) => body.driven || body.state === 'sidestep' ? 'always' : 'ai'), physics: options.physics ?? true };
+    if (this.bands.physics) for (const entity of this.entities.values()) { entity.motor?.dispose(); entity.motor = null; }
+  }
+  /** Whether the host runs on body bands, and with the physics body LOD. */
+  get bodyBands(): { physics: boolean } | undefined { return this.bands === undefined ? undefined : { physics: this.bands.physics }; }
+  /** This tick's update step for body `id` (s): the fixed step without bands; with them 0 while paused or on the off
+   * tick of 'half' (the next takes both ticks). Asked first in a tick it fixes the tick's value, as the page's clock. */
+  bodyDt(id: string): number {
+    const entity = this.entities.get(id);
+    if (entity === undefined) throw new RangeError(`Unknown simulation body ${id}`);
+    const bands = this.bands;
+    if (bands === undefined) return FIXED_STEP;
+    if (entity.harnessHold) { bands.clocks.forget(id); return 0; }
+    return bands.clocks.bodyDt(id, bands.rate(entity), tickDistance(entity.position, this.player.position));
+  }
+  /** Take this tick's decision step for body `id` on its band (the page scheduler's takeBrainDt): 0 until its rate's
+   * period has passed, the time since its last decision when due; `urgent` (a hit, a lost sight line) wakes it now.
+   * Without bands every tick decides (the fixed step). */
+  brainDt(id: string, urgent = false): number {
+    const entity = this.entities.get(id);
+    if (entity === undefined) throw new RangeError(`Unknown simulation body ${id}`);
+    const bands = this.bands;
+    if (bands === undefined) return FIXED_STEP;
+    return bands.clocks.takeBrainDt(id, bands.rate(entity), tickDistance(entity.position, this.player.position), urgent);
+  }
+  /** The page's creature capsule for a body under the physics body LOD (physics/creatures.ts's recipe), owned by its id. */
+  creatureMotorOptions(entity: AnimalSim): MotorOptions {
+    return { ...creatureBodyShape(entity.dims, entity.scale), group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: entity.entityId };
+  }
+  /** The band clocks as plain values (SimSnapshot.bands); undefined without bands. */
+  bodyBandState(): BandsState | undefined { return this.bands?.clocks.snapshot(); }
+  /** Exact band restore: saved state is refused unless this host runs on the same bands, and the reverse. */
+  restoreBodyBands(saved: BandsState | undefined): void {
+    if ((saved === undefined) !== (this.bands === undefined)) throw new RangeError('Snapshot body bands do not match');
+    if (saved !== undefined) this.bands?.clocks.restore(saved, new Set(this.entities.keys()));
+  }
+  /** CreatureBodies.sync's physics body LOD, before the tick's decisions as on the page. */
+  private syncBodies(): void {
+    const player = this.player.position;
+    for (const entity of this.entities.values()) {
+      const keep = keepsCreatureBody(entity.motor !== null, entity.alive, entity.driven, creatureBodyDistance(entity.position, player));
+      if (entity.motor === null && keep) {
+        const motor = new CharacterMotor(this.physics, this.creatureMotorOptions(entity));
+        motor.resetAt(entity.position); // at the animal, not the world origin (G222 playtest #7)
+        entity.motor = motor;
+      } else if (entity.motor !== null && !keep) { entity.motor.dispose(); entity.motor = null; }
+    }
   }
   /** Reinstall the admitted terrain height query before a fresh host's same-engine continuation resumes. */
   setHeightQuery(heightAt: (x: number, z: number) => number): void { this.heightAt = heightAt; }
@@ -342,10 +419,13 @@ export class SimHost {
   }
   private stepSystems(): void {
     this.state.tick++;
+    const bands = this.bands;
+    if (bands !== undefined) { bands.clocks.beginTick(FIXED_STEP); if (bands.physics) this.syncBodies(); }
     for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
     for (const run of this.callbacks.values()) run(FIXED_STEP, this);
     for (const [id, runner] of this.strikes) this.updateStrike(id, runner);
-    for (const entity of this.entities.values()) entity.step(FIXED_STEP);
+    if (bands === undefined) for (const entity of this.entities.values()) entity.step(FIXED_STEP);
+    else for (const [id, entity] of this.entities) { const dt = this.bodyDt(id); if (dt > 0) entity.step(dt); }
   }
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
   advance(seconds: number, command?: SimCommand): number {

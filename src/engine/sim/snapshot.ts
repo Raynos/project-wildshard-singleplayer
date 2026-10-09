@@ -14,6 +14,7 @@ import { Physics } from '../physics/Physics';
 import { CharacterMotor } from '../physics/CharacterMotor';
 import type { Rapier } from '../physics/rapier';
 import { tagCollider, tagOf, type Material } from '../physics/surface';
+import type { BandsState } from './bands';
 
 /** Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. */
 export const SIM_SNAPSHOT_VERSION = 1;
@@ -55,6 +56,8 @@ export interface SimSnapshot {
   physics: number[]; colliderTags: { handle: number; material: Material; owner: EventValue }[];
   flags: string[]; quests: ReturnType<QuestState['snapshot']>[];
   slots: SimSlots; adapters: { id: string; state: SimValue }[];
+  /** SF72 body band clocks (SimHost.useBodyBands); absent for a host without bands, so its bytes are unchanged. */
+  bands?: BandsState | undefined;
 }
 
 /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
@@ -154,7 +157,13 @@ export function regionalContinuation(host: SimHost): string {
     strikes: [...host.strikes].filter(([id]) => id !== host.player.id).sort(([a], [b]) => a.localeCompare(b)).map(([id, runner]) => [id, runner.snapshot()]),
     targets: host.attackTargets().filter(([id]) => id !== host.player.id), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
     events: host.events.snapshot((value) => encode(value, host)),
-    adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]) });
+    adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]),
+    ...bandsField(host) });
+}
+/** The body band clocks, omitted for a host without bands (its continuation bytes stay as they were). */
+function bandsField(host: SimHost): { bands?: BandsState } {
+  const bands = host.bodyBandState();
+  return bands === undefined ? {} : { bands };
 }
 
 /** Capture at a fixed-step boundary; pending events are preserved without flushing them. */
@@ -175,7 +184,7 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
-    adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })) };
+    adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host) };
 }
 
 function sameIds(actual: readonly string[], expected: Iterable<string>): boolean {
@@ -221,6 +230,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     }
     host.slots.ledgerDedupe.splice(0, host.slots.ledgerDedupe.length, ...slots.ledgerDedupe);
     for (const entry of saved.adapters) host.adapters.get(entry.id)?.restore(cloneValue(entry.state));
+    host.restoreBodyBands(saved.bands);
     const actors = new Set([host.player.id, ...host.entities.keys()]);
     if (new Set(saved.targets.map(([id]) => id)).size !== saved.targets.length
       || saved.targets.some(([id, target]) => !host.strikes.has(id) || !actors.has(target))) throw new RangeError('Snapshot strike target does not exist');
@@ -229,14 +239,18 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     replacement = new Physics(ports.rapier, new Uint8Array(saved.physics));
     const playerMotor = new CharacterMotor(replacement, host.player.motor.opts, saved.player.motor);
     const motors = new Map<string, CharacterMotor>();
+    // under the physics body LOD the saved bodies hold motors by distance: each saved one reconnects in the page's capsule
+    const lod = host.bodyBands?.physics === true;
     for (const entry of saved.entities) {
       const entity = host.entities.get(entry.id), motor = entity === undefined ? null : entityMotor(entity);
+      if (lod) { if (entity !== undefined && entry.motor !== null) motors.set(entry.id, new CharacterMotor(replacement, host.creatureMotorOptions(entity), entry.motor)); continue; }
       if ((entry.motor === null) !== (motor === null)) throw new RangeError('Snapshot motor registrations do not match');
       if (motor !== null && entry.motor !== null) motors.set(entry.id, new CharacterMotor(replacement, motor.opts, entry.motor));
     }
     host.player.motor.dispose(); for (const entity of host.entities.values()) entity.motor?.dispose(); host.physics.dispose();
     host.physics = replacement; replacement = null; host.player.motor = playerMotor;
-    for (const [id, motor] of motors) { const entity = host.entities.get(id); if (entity !== undefined) entity.motor = motor; }
+    if (lod) for (const [id, entity] of host.entities) entity.motor = motors.get(id) ?? null;
+    else for (const [id, motor] of motors) { const entity = host.entities.get(id); if (entity !== undefined) entity.motor = motor; }
     for (const tag of saved.colliderTags) {
       if (!host.physics.world.colliders.contains(tag.handle)) throw new RangeError('Snapshot collider tag does not exist');
       tagCollider(host.physics.world.getCollider(tag.handle), tag.material, decode(tag.owner, host));
