@@ -16,8 +16,10 @@ it('matches the actual page weather scheduler and wind at mixed frame deltas, in
       if (frame === 500) { page.setMode('rain'); air.weather.setMode('rain'); }
       if (frame === 1500) { page.setMode('live'); air.weather.setMode('live'); restored.weather.setMode('live'); }
       cadence.beginFrame(dt); const due = cadence.systemDt(system, dt);
+      // bootstrap's player.update/Forest runs first; shard.pine.weather follows quest/audio and publishes the new boost.
+      updateWind(dt);
       if (due > 0) page.update(due, phase);
-      windBoost.value = page.wind; updateWind(dt); air.step(dt, phase);
+      windBoost.value = page.wind; air.step(dt, phase);
       if (frame === 1001) {
         const wire = JSON.stringify(air.snapshot()), continuation: unknown = JSON.parse(wire);
         restored.restore(continuation);
@@ -41,7 +43,7 @@ it('refuses corrupt cross-owner continuations and invalid frames before partial 
   const saved = air.snapshot(), parsed: unknown = JSON.parse(saved.cadence);
   if (typeof parsed !== 'object' || parsed === null) throw new Error('Missing cadence');
   const invalid = [null, { ...saved, extra: 1 }, { ...saved, wind: { ...saved.wind, time: -1 } },
-    { ...saved, weather: { ...saved.weather, phaseT: -1 } },
+    { ...saved, weather: { ...saved.weather, phaseT: -1 } }, { ...saved, boost: Number.NaN },
     { ...saved, wind: { ...saved.wind, time: saved.wind.time + 1 } },
     { ...saved, cadence: '{' }, { ...saved, cadence: JSON.stringify({ ...parsed, contract: 'foreign' }) }];
   for (const value of invalid) {
