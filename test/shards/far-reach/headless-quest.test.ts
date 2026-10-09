@@ -100,7 +100,7 @@ it('plays the crown bridge quest on the played host with its movers: four steps,
     expect(raised()).toBe(true); expect(host.flags.has(FLAGS.raised)).toBe(true);
     run(host);
     expect(host.flags.has(FLAGS.complete)).toBe(true);
-    expect(effects).toEqual([{ kind: 'fact', name: 'far-reach.quest', actorId: host.player.id }, { kind: 'coins', amount: 10, actorId: host.player.id }]);
+    expect(effects).toEqual([{ kind: 'fact', name: 'far-reach.quest', actorId: 'far.quest' }, { kind: 'coins', amount: 10, actorId: host.player.id }]);
     for (let i = 0; i < 300; i++) run(host, [interact(SKY_ACT.winch), interact(SKY_ACT.talk)]);
     expect(effects).toHaveLength(2);
     expect(movers.failures()).toBe(0);

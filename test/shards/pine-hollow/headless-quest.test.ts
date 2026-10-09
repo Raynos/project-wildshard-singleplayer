@@ -100,7 +100,7 @@ it('walks the Warden\'s Hollow by its prompts at the page\'s points: Hale, the d
     stepN(host, 12 * 60 + 4);
     expect([host.flags.has('seen:dawn'), host.flags.has(QUEST_DONE), chapter?.isComplete]).toEqual([true, true, true]);
     expect(tick.facts).toEqual(['pine.feat.lanterns/lanterns:1', 'pine.feat.lanterns/lanterns:2', 'pine.feat.zipline/zipline:1', 'pine.feat.lanterns/lanterns:3',
-      'pine.feat.quest/quest:1', `pine.feat.quest/${host.player.id}`]);
+      'pine.feat.quest/quest:1', 'pine.feat.quest/wardens-hollow']);
   } finally { host.dispose(); }
 }, 30_000);
 
