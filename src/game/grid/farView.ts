@@ -41,7 +41,7 @@ export interface FarProxyView {
 }
 
 /** The family material with the region mask and haze patched in; `uniforms.farMask` holds 16 flags. */
-export function farProxyMaterial(look: FarLookRuntime): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void; frame: { haze: Color } } {
+export function farProxyMaterial(look: FarLookRuntime, positionalMask = false): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void; frame: { haze: Color } } {
   const material = look.family === 'pbr' ? new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }) : new MeshLambertMaterial({ vertexColors: true, flatShading: look.family === 'toon' });
   material.fog = false; // its own haze below; a home shard's near fog would hide its neighbours
   const mask = new Float32Array(16), hazeColour = new Color(...look.haze.colour).convertLinearToSRGB(); // the haze mixes after the output colour-space conversion
@@ -52,10 +52,14 @@ export function farProxyMaterial(look: FarLookRuntime): { material: MeshLambertM
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float farMask[16];\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;')
       // the boundary face's foot (uv.y 2) steps inward from the cell edge; its strata ride the face (along it, up it)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvFarCliff = uv.y;\nvFarStrata = vec2(position.x + position.z, position.y);\nif (uv.y > 1.5) transformed.xz -= sign(transformed.xz) * step(vec2(${f(CHUNK_HALF - 0.01)}), abs(transformed.xz)) * ${FAR_SKIRT_INSET.toFixed(1)};`)
-      .replace('#include <project_vertex>', '#include <project_vertex>\nvFarDepth = -mvPosition.z;\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);');
+      .replace('#include <begin_vertex>', positionalMask
+        ? '#include <begin_vertex>\nvFarCliff = 0.0;\nvFarStrata = transformed.xz;'
+        : `#include <begin_vertex>\nvFarCliff = uv.y;\nvFarStrata = vec2(position.x + position.z, position.y);\nif (uv.y > 1.5) transformed.xz -= sign(transformed.xz) * step(vec2(${f(CHUNK_HALF - 0.01)}), abs(transformed.xz)) * ${FAR_SKIRT_INSET.toFixed(1)};`)
+      .replace('#include <project_vertex>', `#include <project_vertex>\nvFarDepth = -mvPosition.z;${positionalMask ? '' : '\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);'}`);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }')
+      .replace('#include <common>', `#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }${positionalMask ? '\nuniform float farMask[16];' : ''}`)
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>${positionalMask
+        ? `\nvec2 farCell = clamp(floor((vFarStrata + ${f(CHUNK_HALF)}) / ${f(CHUNK_HALF / 2)}), vec2(0.0), vec2(3.0));\nif (farMask[int(farCell.x + 4.0 * farCell.y)] > 0.5) discard;` : ''}`)
       // G222: rock beds over the cliff palette, waved along the face, each bed broken into blocks, a lit top and a shadowed
       // underside per bed; mean ≈ 1 so the declared palette keeps its value
       .replace('#include <color_fragment>', `#include <color_fragment>
@@ -67,7 +71,7 @@ if (vFarCliff > 0.5) {
 }`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\nif (vFarCliff > 0.5) totalEmissiveRadiance += diffuseColor.rgb * ${f(FAR_CLIFF_FLOOR)};`)
       .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(farHaze.x, farHaze.y, vFarDepth) * farHaze.z);\ngl_FragColor.a = 1.0;');
-  }, { key: `sf23-far-${look.family}` });
+  }, { key: `sf23-far-${look.family}${positionalMask ? '-position' : ''}` });
   return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; }, frame: { haze: hazeColour } };
 }
 
@@ -79,8 +83,8 @@ export function farProxyGeometry(mesh: FarProxyMesh): BufferGeometry {
 }
 
 /** Install a proxy under a cell root (the rings' upload port). It never casts or receives shadows (§3.2: only near L0). */
-export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime): FarProxyView {
-  const { material, setMask, frame } = farProxyMaterial(look), mesh = new Mesh(geometry, material);
+export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false): FarProxyView {
+  const { material, setMask, frame } = farProxyMaterial(look, positionalMask), mesh = new Mesh(geometry, material);
   mesh.name = 'far-proxy'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
   geometry.computeBoundingSphere(); root.add(mesh);
   let disposed = false;
@@ -94,7 +98,7 @@ export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: 
 }
 
 /** A fetched, parsed proxy waiting for its budgeted upload. */
-export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime }
+export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime; readonly positionalMask?: boolean }
 /**
  * The rings' ports for level `far` (compose with the tile ports through SF18b's `levelPorts`): `load` fetches and parses
  * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look; `upload` only attaches it.
@@ -113,7 +117,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
       };
       void run();
     },
-    upload: (tile, data) => installFarProxy(options.root(tile.instance), data.geometry, data.look),
+    upload: (tile, data) => installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask),
     discard: (_tile, data) => { data.geometry.dispose(); },
   };
 }

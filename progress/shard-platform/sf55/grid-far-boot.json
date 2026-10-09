@@ -1,0 +1,60 @@
+{
+  "sourceBase": "b44a3f020",
+  "case": "scripts/parity/boot-smoke.mjs bootCase(browser, base, grid, out)",
+  "candidatePaths": {
+    "src/game/grid/session.ts": "d79328df3c9778a2c9ba2a68fd4deaf3569450638f41d013c31bb03c67271445",
+    "src/game/grid/shardfileFar.ts": "e55540cb845b19c8f0ebc986ee26bf70a9293345652d119ecb7d21589bf6550f",
+    "src/game/grid/farView.ts": "b5ea437fda83ee8970d613ccecd813f1820d088a6af2f38994d470b105c654c1"
+  },
+  "before": {
+    "elapsedMs": 90151,
+    "ready": true,
+    "ringsReady": false,
+    "rings": {
+      "far": 6,
+      "l1": 3,
+      "l0": 0,
+      "refused": 0,
+      "inFlight": 0,
+      "queued": 0
+    },
+    "blender": {
+      "instance": "blender-template-1",
+      "slug": "blender-template",
+      "cell": [
+        -1,
+        -1
+      ],
+      "shows": "loading"
+    },
+    "home": "driftwood-isle",
+    "inside": "driftwood-isle",
+    "faults": []
+  },
+  "after": {
+    "elapsedMs": 7784,
+    "ready": true,
+    "ringsReady": true,
+    "rings": {
+      "far": 7,
+      "l1": 4,
+      "l0": 0,
+      "refused": 0,
+      "inFlight": 0,
+      "queued": 0
+    },
+    "blender": {
+      "instance": "blender-template-1",
+      "slug": "blender-template",
+      "cell": [
+        -1,
+        -1
+      ],
+      "shows": "far proxy"
+    },
+    "home": "driftwood-isle",
+    "inside": "driftwood-isle",
+    "faults": []
+  },
+  "scope": "Same pinned built products and normal title GRID navigation. Client patch only. No injected world, service stubs or scheduler."
+}

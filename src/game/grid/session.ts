@@ -53,6 +53,7 @@ import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileProduct } from './products';
+import { loadShardfileFar } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
@@ -153,7 +154,23 @@ function neighbourTiles(scope: Scope): { instances: Map<string, ClientRingInstan
 }
 
 /** The far proxy and its row, fetched from the shard's baked folder (`public/assets/baked/<slug>/far.*`). */
-async function loadFar(slug: string): Promise<{ prepared: FarPrepared; bytes: number }> {
+async function loadFar(slug: string, owner: Parameters<typeof gridShardfileProduct>[1]): Promise<{ prepared: FarPrepared; bytes: number }> {
+  // Pure authored projects have no repo bake. Read their admitted proxy instead of requesting a nonexistent far.json.
+  if (findShard(slug)?.shardfile !== undefined) {
+    const product = gridShardfileProduct(slug, owner);
+    if (product !== null) {
+      const retained = await product;
+      try {
+        const { source } = retained.admitted;
+        if (source.meshCollision !== null) {
+          const assets = new ClientAssets(source, retained.admitted.assets, retained.options);
+          const release = assets.lease(source.far?.files ?? []);
+          try { return await loadShardfileFar(source, ref => assets.read(ref)); }
+          finally { release(); }
+        }
+      } finally { retained.release(); }
+    }
+  }
   const response = await fetch(versionedUrl(`/assets/baked/${slug}/far.json`));
   if (!response.ok) throw new Error(`far.json ${slug}: ${String(response.status)}`);
   const row: unknown = await response.json();
@@ -348,7 +365,7 @@ export class GridSession {
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
         let loaded: Awaited<ReturnType<typeof loadFar>>;
-        try { loaded = await loadFar(this.assembly.cell(id).slug); } catch (error) { this.farMissing.add(id); throw error; } // G167: no far view, A's fallback
+        try { loaded = await loadFar(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }); } catch (error) { this.farMissing.add(id); throw error; } // G167: no far view, A's fallback
         this.farMissing.delete(id);
         const { prepared, bytes } = loaded; this.costs.set(id, bytes); frame?.declare(id, prepared.look);
         return prepared;
