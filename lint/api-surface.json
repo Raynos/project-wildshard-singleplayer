@@ -19684,7 +19684,13 @@
       {
         "name": "createTrustedHeadlessAdapter",
         "kind": "function",
-        "doc": "Worker-side composition only: owns one real SimHost, its native continuation and its scoped installers.",
+        "doc": "Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers).",
+        "from": "@wildshard/sdk/headlessRuntime"
+      },
+      {
+        "name": "createTrustedHeadlessResident",
+        "kind": "function",
+        "doc": "Load the explicitly selected trusted entry (`TrustedHeadlessRuntime`, a local file module, never a shardfile URL) and",
         "from": "@wildshard/sdk/headlessRuntime"
       },
       {
@@ -19715,6 +19721,12 @@
         "name": "trustedHeadlessModule",
         "kind": "function",
         "doc": "Restrict trusted code selection to a concrete local ESM entry; data-only clients never invoke this path.",
+        "from": "@wildshard/sdk/headlessRuntime"
+      },
+      {
+        "name": "TrustedHeadlessResident",
+        "kind": "interface",
+        "doc": "One owned, renderer-free trusted world: the explicitly selected entry's plan installed into one native host. The worker's",
         "from": "@wildshard/sdk/headlessRuntime"
       },
       {
