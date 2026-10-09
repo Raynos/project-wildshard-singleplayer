@@ -18,6 +18,12 @@
 #   scripts/vercel-tree-gate.sh [<commit>]     (default HEAD; .githooks/pre-push runs it on the pushed tip)
 #   escape (rare, logged in the push output only): SKIP_VERCEL_GATE=1 scripts/push-main.sh
 set -uo pipefail
+# Run from a private snapshot: bash reads a script as it goes, so a gate edit copied into the shared tree mid-run broke
+# a live push (2026-10-09, "syntax error near unexpected token `done'"). The snapshot is removed when the gate exits.
+if [ -z "${GATE_SNAPSHOT:-}" ]; then
+  snap="$(mktemp -t vercel-tree-gate)" && cp "${BASH_SOURCE[0]}" "$snap" && GATE_SNAPSHOT="$snap" exec bash "$snap" "$@"
+  exit 1
+fi
 cd "$(git rev-parse --show-toplevel)" || exit 1
 ROOT="$PWD"
 
@@ -30,16 +36,16 @@ if git show "$sha:scripts/push-main.sh" | grep -q 'node scripts/regenerate-commi
   generated_workflow=1
   stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-platform-ratchets-v7-ci-checks"
 fi
-if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
+if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; rm -f "$GATE_SNAPSHOT"; exit 0; fi
 
 # Reserve both resources before exporting; queue time is separate from the E454 gate wall time.
 if [ "${WS_HEAVY_GATE:-}" != 1 ] || ! node --input-type=module -e \
   "import {assertHeavyLease} from './scripts/heavy-lane-lease.mjs'; assertHeavyLease('full-test'); assertHeavyLease('build');" >/dev/null 2>&1; then
-  exec python3 "$ROOT/scripts/heavy-lane.py" gate -- bash "$ROOT/scripts/vercel-tree-gate.sh" "$@"
+  exec python3 "$ROOT/scripts/heavy-lane.py" gate -- bash "${BASH_SOURCE[0]}" "$@"
 fi
 
 work="$(cd "$(mktemp -d -t vercel-gate)" && pwd -P)" || exit 1 # canonical: /var is a symlink on macOS (E432)
-trap 'kill $(jobs -p) 2>/dev/null; rm -rf "$work"' EXIT
+trap 'kill $(jobs -p) 2>/dev/null; rm -rf "$work" "$GATE_SNAPSHOT"' EXIT
 fail() { echo "vercel-gate: FAILED at $short — $1" >&2; echo "            (Vercel would have built this tree and gone red; fix it and commit, then push again)" >&2; exit 1; }
 gate_t0=$SECONDS
 steps=()
@@ -143,7 +149,12 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   job typecheck-api pnpm exec tsc --noEmit -p api
   job typecheck-scripts pnpm exec tsc --noEmit -p scripts   # CI runs it in pnpm typecheck; fc043dfe went red there with this gate green
   job oxlint pnpm exec oxlint
-  job ratchet node lint/ratchet.mjs
+  # The stamped regeneration commit was built from `ratchet.mjs --measure` on this same src (rises refused without the
+  # receipt, Debug-row cap and zero-rule checks fatal there too), so the check-mode rerun is skipped for it only.
+  if [ -f "$verified" ]; then
+    steps+=(ratchet); echo 0 > "$work/ratchet.sec"; echo 0 > "$work/ratchet.rc"
+    echo "measured by the regeneration commit at push" > "$work/ratchet.cached"
+  else job ratchet node lint/ratchet.mjs; fi
   # CI runs this in `pnpm test`; a stale scripts/README.md failed the 96239386 deploy run with this gate green
   [ -f scripts/normalize/liveness.mjs ] && [ -f scripts/README.md ] && job liveness node scripts/normalize/liveness.mjs --readme --check
   # CI's `pnpm test:checks` runs these too; e9128c290 went red on audit-assets and the WebGPU inventory with

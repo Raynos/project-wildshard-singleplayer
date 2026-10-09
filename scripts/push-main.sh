@@ -13,8 +13,12 @@ set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 if [ "${1:-}" != "--locked" ]; then
-  lockf -k -t 0 .git/push.lock "$0" --locked
+  # Run the locked loop from a private snapshot: bash reads a script as it goes, so an edit landing in the shared tree
+  # mid-push must not change the running pusher (the gate snapshots itself the same way).
+  snap="$(mktemp -t push-main)" && cp "$0" "$snap" || exit 1
+  lockf -k -t 0 .git/push.lock bash "$snap" --locked
   rc=$?
+  rm -f "$snap"
   if [ "$rc" -eq 75 ]; then # EX_TEMPFAIL: another push holds the lock
     echo "push-main: a push is in flight — leaving your commits LOCAL; it pushes again before it releases, so it carries them."
     echo "           check later: git log origin/main..main (empty = shipped)"

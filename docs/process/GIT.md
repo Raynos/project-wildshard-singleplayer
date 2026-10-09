@@ -27,7 +27,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     them, or commit only your hunks through a private index (`.claude/skills/prepare-to-exit/SKILL.md` step 1).
 - **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
   `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks
-  `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`.
+  `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`. `push-main.sh` and
+  `vercel-tree-gate.sh` run from a private snapshot copy, so editing them mid-push can't break the live push; still
+  copy gate edits in only when `pgrep -f vercel-tree-gate` is empty.
 - **Builders commit source only (E435 SF6b).** Leave `lint/api-surface.json`, `docs/api/*.md`, ENGINE.md's marked
   export appendix, `lint/layer-edges.json`, ratchet debt counts and `scripts/README.md` to the serialized pusher.
   It renders a clean committed export into a private index, retries a moved HEAD, and lands one generated commit

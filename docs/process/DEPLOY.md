@@ -14,6 +14,8 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `pnpm run test:checks` (the node checks of `pnpm test`) and the builds; `vitest` (matrix 1–6) runs
   `vitest run --shard=i/6 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs` (the same numbers
   as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. Releases keep the plain `pnpm test`.
+  **CI is the full backstop of the push gate's cache** (2026-10-09): the gate runs `vitest related` and skips unchanged
+  bake / audit steps (GIT.md), so a transitive break the cache missed shows up here first; fix it like any red run.
 - **CI's vitest is Linux x64 under coverage: other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /
