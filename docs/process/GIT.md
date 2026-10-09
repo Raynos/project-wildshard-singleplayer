@@ -34,6 +34,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   before the gate. Working and staged edits from another builder stay untouched; never hand-merge these outputs.
   Write JSDoc and manual API explanations with the source. The gate checks the complete committed docs before
   Vercel filters them out, and refuses stale bytes or generated edits outside the regeneration commit.
+  The pusher pushes **exactly the tip it regenerated** (`git push origin <sha>:refs/heads/main`); a commit landing
+  meanwhile goes in its next loop, so the gate never sees an unregenerated tip (the "Ratchet rose: … is clean" reds).
+  A regeneration commit it built is stamped in `.git/generated-verified/`, and the gate skips its duplicate check
+  for that SHA only (57-107 s); every other tip is still checked.
 - **Witness input hashes are the pusher's too.** `scripts/witness-manifests.mjs` re-records every stale
   `test/proof/<slug>/checkpoints/manifest.json` with its real recorder on the same clean export, beside the generators
   (~12–18 s, hidden behind them; verified triples cached in `.git/witness-verified/`), and puts the new `inputs` in the

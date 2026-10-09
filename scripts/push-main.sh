@@ -23,17 +23,22 @@ if [ "${1:-}" != "--locked" ]; then
   exit "$rc"
 fi
 
+tipfile="$(git rev-parse --path-format=absolute --git-common-dir)/push-main.tip"
 for _ in 1 2 3 4 5 6; do
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
-  node scripts/regenerate-committed.mjs || exit $?
-  ahead="$(git rev-list --count origin/main..main)"
+  REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs || exit $?
+  # Push exactly the regenerated tip: a builder commit landing after the regeneration waits for the next loop, so the
+  # gate never sees an unregenerated tip (2026-10-09: 'Ratchet rose: … is clean' reds after a lane cleaned debt).
+  tip="$(cat "$tipfile")"
+  ahead="$(git rev-list --count "origin/main..$tip")"
   if [ "$ahead" = 0 ]; then
+    [ "$(git rev-list --count origin/main..main)" = 0 ] || continue
     echo "push-main: origin/main has every local commit ($(git rev-parse --short main))"
     exit 0
   fi
-  echo "push-main: pushing $ahead commit(s) to origin main …"
-  git push origin main || exit $?
+  echo "push-main: pushing $ahead commit(s) to origin main ($(git rev-parse --short "$tip")) …"
+  git push origin "$tip:refs/heads/main" || exit $?
 done
 echo "push-main: still commits left after 6 pushes — run it again" >&2
 exit 1

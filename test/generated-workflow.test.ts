@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real commits and child generators run in an isolated fixture repository.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own throwaway repositories only.
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary fixture paths.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary fixture paths.
@@ -11,7 +11,7 @@ import { cwd, execPath } from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { generatedFiles } from '../scripts/generated-files.mjs';
 import { checkShardfileReference } from '../scripts/docs/gen-shardfile-reference.mjs';
-import { checkCommitted, regenerateCommitted } from '../scripts/regenerate-committed.mjs';
+import { checkCommitted, regenerateCommitted, verifiedStamp } from '../scripts/regenerate-committed.mjs';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { precommitGenerated } from '../scripts/precommit-generated.mjs';
 import { manifestOutcome, refreshWitnesses, withInputs } from '../scripts/witness-manifests.mjs';
@@ -152,6 +152,9 @@ describe('SF6b clean committed regeneration', () => {
       const sha = await pending;
       expect(git(['rev-list', '--count', `${source}..HEAD`])).toBe('1');
       expect(git(['show', '-s', '--format=%B', sha])).toContain(`Generated-Source: ${source}`);
+      // The push gate skips its duplicate check only for a commit this regeneration built and stamped.
+      expect(readFileSync(verifiedStamp(root, sha), 'utf8')).toBe(`${source}\n`);
+      expect(existsSync(verifiedStamp(root, source))).toBe(false);
       expect(git(['show', `${sha}:lint/api-surface.json`])).toContain('paused');
       expect(git(['show', `${sha}:lint/api-surface.json`])).not.toContain('unpublished');
       expect(git(['show', `${sha}:src/engine/clock.ts`])).toContain('paused');

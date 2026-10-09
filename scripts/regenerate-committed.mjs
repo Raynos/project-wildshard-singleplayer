@@ -2,7 +2,7 @@
 // SF6b: called only by the serialized pusher; builders leave generated parts alone.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -13,6 +13,14 @@ import { GENERATED_FILES, generatedIncreases, generatedPart, increaseTrailers, r
 import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
 
 const text = (root, args, input, env = process.env) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, input, env }).trim();
+/**
+ * Stamp a regeneration commit this process built and verified, so the push gate need not repeat the same clean export
+ * and check (process audit 2026-10-09: the gate's duplicate `generated` step cost 57-107 s per push). Only commits
+ * made here are stamped; a builder tip reported "already current" is still checked by the gate.
+ */
+export function verifiedStamp(root, sha) {
+  return resolve(text(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']), 'generated-verified', sha);
+}
 /** Materialize committed input only, with each workspace link pointing inside this export. */
 export function committedExport(root, sha, target) {
   const archive = resolve(target, 'source.tar');
@@ -121,6 +129,7 @@ export async function regenerateCommitted(root, approvalFile) {
         if (fresh ? !existsSync(disk) : staged === old && existsSync(disk) && readFileSync(disk, 'utf8') === original) writeFileSync(disk, content);
         else console.warn(`generated-files: preserved working edits in ${file}; committed output is current`);
       }
+      mkdirSync(resolve(verifiedStamp(root, sha), '..'), { recursive: true }); writeFileSync(verifiedStamp(root, sha), `${base}\n`);
       console.log(`generated-files: committed ${sha} from ${base} (${changed.length} outputs)`);
       return sha;
     } finally {
@@ -158,8 +167,12 @@ export async function checkCommitted(root, sha) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const root = resolve(import.meta.dirname, '..');
-    await (process.argv[2] === '--check'
-      ? checkCommitted(root, process.argv[3] ?? text(root, ['rev-parse', 'HEAD']))
-      : regenerateCommitted(root, process.env.GENERATED_APPROVAL_FILE));
+    if (process.argv[2] === '--check') await checkCommitted(root, process.argv[3] ?? text(root, ['rev-parse', 'HEAD']));
+    else {
+      const sha = await regenerateCommitted(root, process.env.GENERATED_APPROVAL_FILE);
+      // push-main.sh pushes exactly this SHA, never a main that moved after the regeneration (the 'Ratchet rose: … is
+      // clean' and stale-generated reds: a builder commit landing between regeneration and push was gated unregenerated).
+      if (process.env.REGEN_SHA_FILE) writeFileSync(process.env.REGEN_SHA_FILE, `${sha}\n`);
+    }
   } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

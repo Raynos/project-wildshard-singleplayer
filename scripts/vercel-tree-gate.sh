@@ -48,7 +48,13 @@ run() { local name="$1"; shift; local t0=$SECONDS; "$@" > "$work/$name.log" 2>&1
 
 # Verify the full committed docs and policy inputs before Vercel's filter drops docs/ (its own committed export, so it
 # runs beside this one).
-if [ "$generated_workflow" = 1 ]; then
+# A regeneration commit that scripts/regenerate-committed.mjs built and verified in this push carries a stamp; its check
+# would repeat the same clean export and the same comparison (57-107 s), so it is skipped. Any other tip is checked.
+verified="$(git rev-parse --path-format=absolute --git-common-dir)/generated-verified/$sha"
+if [ "$generated_workflow" = 1 ] && [ -f "$verified" ]; then
+  steps+=(generated); echo 0 > "$work/generated.sec"; echo 0 > "$work/generated.rc"
+  echo "verified by the regeneration commit at push" > "$work/generated.cached"
+elif [ "$generated_workflow" = 1 ]; then
   steps+=(generated)
   run generated node "$ROOT/scripts/regenerate-committed.mjs" --check "$sha" &
 fi
