@@ -808,6 +808,7 @@
   var lines = Array.prototype.slice.call(document.querySelectorAll(".hero .line")), world = document.getElementById("world");
   function finish() { t.textContent = full; lines.forEach(function (l) { l.classList.add("on"); }); world.classList.add("open"); }
   if (reduce) { finish(); return; }
+  p.style.minHeight = p.offsetHeight + "px"; // hold the full prompt's height, so typing never shifts the page
   t.textContent = ""; var i = 0;
   requestAnimationFrame(function () { world.classList.add("open"); });
   (function type() {
