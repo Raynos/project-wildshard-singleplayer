@@ -61,7 +61,9 @@ recorded PID and command to diagnose a stuck owner, and never kill another lane'
 and returns at once; when it ends, `.git/proofs/<id>.json` holds the verdict (state, rc, times, log) and herdr types
 one line with it into the pane that started it. Keep working meanwhile; never `sleep`-and-`tail` a log (~11 agent-hours
 of polling in the 12 h audit). The command still takes its own lanes (browser-lane, sim-lane, heavy-lane);
-`scripts/proof-run.sh status [<id>]` lists results.
+`scripts/proof-run.sh status [<id>]` lists results. `.claude/hooks/guard-polling.sh` (SF74 W21) refuses a Bash `while` / `until` loop that
+sleeps, a `for` loop sleeping over 60 s in total and a bare `sleep` over 60 s (allowed: `run_in_background`, a tool timeout
+≤ 60 s, a leading `timeout ≤60`; escape `SKIP_POLL_GUARD=1`).
 
 ## No vite dev servers (Jake, E317: "Vite dev sucks")
 
