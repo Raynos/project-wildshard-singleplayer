@@ -1,5 +1,6 @@
 // E362 AG20: inspect the commit's index tree, never the shared working copy.
 import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -19,19 +20,17 @@ const run = (cwd, command, args, options = {}) => {
 };
 
 /** spawnSync's result shape, without blocking: the guards' slow children run side by side (SF74 W14). */
-function spawnAsync(cwd, command, args) {
-  return new Promise((done, fail) => {
-    const child = spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
-    let stdout = '', stderr = '';
-    child.stdout.on('data', (chunk) => { stdout += String(chunk); });
-    child.stderr.on('data', (chunk) => { stderr += String(chunk); });
-    child.on('error', fail);
-    child.on('close', (status) => { done({ status, stdout, stderr }); });
-  });
+async function spawnAsync(cwd, command, args) {
+  const child = spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+  let stdout = '', stderr = '';
+  child.stdout.on('data', (chunk) => { stdout += String(chunk); });
+  child.stderr.on('data', (chunk) => { stderr += String(chunk); });
+  const [status] = await once(child, 'close'); // rejects on the child's 'error' event
+  return { status, stdout, stderr };
 }
 const runAsync = async (cwd, command, args) => {
   const result = await spawnAsync(cwd, command, args);
-  if (result.status !== 0) throw new Error(`${command} failed (${result.status}): ${result.stderr || result.stdout}`);
+  if (result.status !== 0) throw new Error(`${command} failed (${String(result.status)}): ${result.stderr.length > 0 ? result.stderr : result.stdout}`);
   return result.stdout;
 };
 

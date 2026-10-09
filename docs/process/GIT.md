@@ -40,8 +40,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`. `push-main.sh` and
   `vercel-tree-gate.sh` run from a private snapshot copy, so editing them mid-push can't break the live push; still
   copy gate edits in only when `pgrep -f vercel-tree-gate` is empty.
-- **Builders commit source only (E435 SF6b).** Leave `lint/api-surface.json`, `docs/api/*.md`, ENGINE.md's marked
-  export appendix, `lint/layer-edges.json`, ratchet debt counts and `scripts/README.md` to the serialized pusher.
+- **Builders commit source only (E435 SF6b).** Leave `lint/layer-edges.json`, ratchet debt counts and
+  `scripts/README.md` to the serialized pusher. `lint/api-surface.json`, `docs/api/*.md` and the export index
+  `docs/api/EXPORTS.md` (once ENGINE.md's appendix) are build outputs that `pnpm gen` writes, gitignored (SF74 W13, G281).
   It renders a clean committed export into a private index, retries a moved HEAD, and lands one generated commit
   before the gate. Working and staged edits from another builder stay untouched; never hand-merge these outputs.
   Write JSDoc and manual API explanations with the source. The gate checks the complete committed docs before

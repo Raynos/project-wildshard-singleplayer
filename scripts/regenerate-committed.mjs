@@ -156,9 +156,6 @@ export async function checkCommitted(root, sha) {
         if (before === null || after === null || manifestOutcome(before) !== manifestOutcome(after)) throw new Error(`Regeneration may only refresh the inputs hash of ${file}, never its payload records`);
       }
       if (!isDeepStrictEqual(replaceDebt(measurement(root, parent).ratchet, {}), replaceDebt(measurement(root, sha).ratchet, {}))) throw new Error('Regeneration cannot modify ratchet policy inputs');
-      const beforeDoc = text(root, ['show', `${parent}:docs/ENGINE.md`]), afterDoc = text(root, ['show', `${sha}:docs/ENGINE.md`]);
-      const manual = (doc) => doc.replace(generatedPart('docs/ENGINE.md', doc), '');
-      if (manual(beforeDoc) !== manual(afterDoc)) throw new Error('Regeneration cannot modify manual ENGINE prose');
     }
     checkGenerated(scratch, measurement(root, parent), message);
     console.log(`generated-files: ${sha.slice(0, 9)} committed outputs and exact increase receipts passed`);

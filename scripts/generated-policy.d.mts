@@ -8,7 +8,6 @@ export function replaceDebt(ratchet: Record<string, unknown>, current: Record<st
 export function generatedIncreases(previous: GeneratedMeasurement, current: GeneratedMeasurement): GeneratedIncrease[];
 export function increaseTrailers(increases: readonly GeneratedIncrease[], approver?: string): string;
 export function verifyIncreaseTrailers(increases: readonly GeneratedIncrease[], message: string): void;
-export function appendixRange(text: string): { start: number; end: number };
 export function generatedPart(file: string, text: string): string;
 export function builderGeneratedChanges(paths: readonly string[], before: (file: string) => string, staged: (file: string) => string): string[];
 export function engineAppendix(surface: { indexes: Record<string, { name: string; from: string }[]> }): string;

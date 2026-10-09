@@ -127,12 +127,12 @@ it('accepts a descendant lease and refuses a copied token in an unrelated proces
 
 it('refuses a lane full suite (SF74 W1) unless CI or WS_FULL_SUITE=1 asks for it', async () => {
   const { root, env } = fixture();
-  const lane = { ...env, WS_FULL_SUITE: '', CI: '', GITHUB_ACTIONS: '' };
-  expect(await start(lane, 'full-test', marker(root, 'refused')).done).toBe(2);
-  expect(await start(lane, 'check', marker(root, 'refused')).done).toBe(2);
+  const laneEnv = { ...env, WS_FULL_SUITE: '', CI: '', GITHUB_ACTIONS: '' };
+  expect(await start(laneEnv, 'full-test', marker(root, 'refused')).done).toBe(2);
+  expect(await start(laneEnv, 'check', marker(root, 'refused')).done).toBe(2);
   expect(existsSync(join(root, 'refused'))).toBe(false);
-  expect(await start({ ...lane, CI: 'true' }, 'full-test', marker(root, 'ci')).done).toBe(0);
-  expect(await start(lane, 'build', marker(root, 'build')).done).toBe(0);
+  expect(await start({ ...laneEnv, CI: 'true' }, 'full-test', marker(root, 'ci')).done).toBe(0);
+  expect(await start(laneEnv, 'build', marker(root, 'build')).done).toBe(0);
 });
 
 it('reuses a gate for nested wrappers and refuses resource upgrades', async () => {

@@ -61,7 +61,8 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
   `shard-sandbox`, `no-level-identity`, `no-shard-branch`, the `no-raw-*` rules, the ratchet (`lint/ratchet.json`), the
   layout check and the pre-commit runner. Never disable one; fix the code.
 - ENGINE.md is the public API: document new APIs in source and its manual sections. Builders commit source only;
-  the serialized pusher regenerates tables, graph counts and debt from clean HEAD (SF6b; GIT.md). A new shard starts from `src/shards/_template/` per SHARDS.md.
+  the API tables and export index are build outputs of `pnpm gen` (gitignored, SF74 W13); the pusher regenerates
+  graph counts and debt from clean HEAD (SF6b; GIT.md). A new shard starts from `src/shards/_template/` per SHARDS.md.
 - **The E357 lock** is lifted (GAME-NORMALIZATION archived 2026-10-01; `.github/lock.json` `"locked": false`).
 
 ## Version control → [docs/process/GIT.md](docs/process/GIT.md)

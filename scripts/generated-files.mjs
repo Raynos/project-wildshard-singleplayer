@@ -4,11 +4,10 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { apiSurface, pages, undocumented } from './gen-api.mjs';
-import { SHARDFILE_REFERENCE, shardfileReference } from './docs/gen-shardfile-reference.mjs';
+import { apiSurface, undocumented } from './gen-api.mjs';
 import { compareEdges, graph } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
-import { appendixRange, engineAppendix, generatedIncreases, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
+import { generatedIncreases, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
 
 const sorted = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
   ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, sorted(item)])) : value;
@@ -21,7 +20,11 @@ function run(root, command, args) {
   if (out.status !== 0) throw new Error(`${command} ${args.join(' ')} failed: ${out.stderr.length > 0 ? out.stderr : out.stdout}`);
   return out.stdout;
 }
-/** Compute every generated output, while leaving policy inputs and manual documentation alone. */
+/**
+ * Compute every committed generated output, while leaving policy inputs and manual documentation alone. SF74 W13 (G281):
+ * the API surface, docs/api/ and the export index are build outputs (`pnpm gen`, scripts/gen-api.mjs), not here; only
+ * the shrink-only baselines (layer-edges, ratchet debt) and scripts/README.md stay committed.
+ */
 export function generatedFiles(root) {
   const files = [];
   const scan = (dir) => {
@@ -38,11 +41,7 @@ export function generatedFiles(root) {
   if (undocumented(surface) > ceiling) failures.push(`Undocumented API ${undocumented(surface)} exceeds ${ceiling}`);
   if (failures.length > 0) throw new Error(failures.join('\n'));
   const ratchet = replaceDebt(data(root, 'lint/ratchet.json'), JSON.parse(run(root, process.execPath, ['lint/ratchet.mjs', '--measure'])));
-  const doc = read(root, 'docs/ENGINE.md'), { start, end } = appendixRange(doc);
   const outputs = {
-    'lint/api-surface.json': json(surface), ...pages(surface),
-    [SHARDFILE_REFERENCE]: shardfileReference(root),
-    'docs/ENGINE.md': doc.slice(0, start) + engineAppendix(surface) + doc.slice(end),
     'lint/layer-edges.json': json({ about: 'SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.', edges: sorted(edges) }),
     'lint/ratchet.json': json(sorted(ratchet)),
   };

@@ -63,3 +63,7 @@ src/**/*.generated.*
 
 # Portable author tools are rebuilt for pack.
 /src/sdk/dist/
+
+# SF74 W13 (Jake, G281): API docs and the surface are build outputs of `pnpm gen` (scripts/gen-api.mjs), never committed
+/docs/api/
+/lint/api-surface.json

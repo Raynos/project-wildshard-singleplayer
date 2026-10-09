@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
-import { GENERATED_FILES, builderGeneratedChanges, generatedPart, replaceDebt } from './generated-policy.mjs';
+import { GENERATED_FILES, builderGeneratedChanges, replaceDebt } from './generated-policy.mjs';
 import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
 
 /** Check Git's current (including pathspec/private) index rather than another builder's disk files. */
@@ -26,7 +26,6 @@ export function precommitGenerated(root = resolve(import.meta.dirname, '..')) {
   for (const file of paths) {
     const before = read(head, file), after = read('', file);
     if (file === 'lint/ratchet.json' && !isDeepStrictEqual(replaceDebt(JSON.parse(before), {}), replaceDebt(JSON.parse(after), {}))) throw new Error('Regeneration cannot modify ratchet policy');
-    if (file === 'docs/ENGINE.md' && before.replace(generatedPart(file, before), '') !== after.replace(generatedPart(file, after), '')) throw new Error('Regeneration cannot modify manual ENGINE prose');
   }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
