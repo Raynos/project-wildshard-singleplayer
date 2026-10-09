@@ -20,6 +20,8 @@ import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { placeEnemies, PRACTICE_AT } from './placement';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake } from './baked';
+import { RespawnQueue, RESPAWN } from './ecology';
+import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement, faunaSpecies } from './fauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
@@ -29,8 +31,8 @@ export const ISLAND_STEP = 'driftwood.island';
 export const FAUNA_DRAWS = 148;
 /** The load-time roster (13 fauna + 21 enemies). */
 const BODY_COUNT = 34;
-/** The roster with the finale's captain in the slot after it: every keeper loop is bounded by it. */
-const ROSTER = 35;
+/** The native roster bound, including ecological returns and the captain in his reserved slot. */
+const ROSTER = 256; // bounded native ecology roster, captain fixed in slot 34
 /** The captain's one variant's scale range (species/captain.ts; the headless test holds them equal). */
 export const CAPTAIN_SCALE: readonly [number, number] = [1.35, 1.35];
 /** manifest.ts `fight` (E297: telegraphed melee, two attack tokens); the headless test holds them equal. */
@@ -49,8 +51,8 @@ const HUNT_BODY = { hidden: false, sampleTerrain: (): void => undefined };
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody {
-  id: string; readonly kind: string; readonly variant: string; herd: number; readonly recipe: SimSpawn;
-  readonly range: readonly [number, number]; actor: HuntBody | null; brain: EnemyBrain | null;
+  id: string; kind: string; variant: string; herd: number; readonly recipe: SimSpawn;
+  range: readonly [number, number]; actor: HuntBody | null; brain: EnemyBrain | null;
 }
 export interface IslandPorts {
   readonly bake: DriftwoodBake;
@@ -77,10 +79,11 @@ const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), 
   thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(ROSTER - 1)), handle: finite, wet: finite });
 /** a coconut collider's owner tag (plain data: the host's snapshot encodes collider owners) */
 const COCONUT_OWNER = { kind: 'coconut' } as const;
-const Saved = v.strictObject({ version: v.literal(5), rng: Stream,
+const Respawn = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite, due: finite, night: v.boolean(), id: v.string() });
+const Saved = v.strictObject({ version: v.literal(6), rng: Stream, ecology: v.strictObject({ now: finite, check: finite, pending: v.pipe(v.array(Respawn), v.maxLength(ROSTER)) }),
   coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())), stepped: v.array(v.boolean()) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])),
-  bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })),
+  bodies: v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, live: v.boolean(), policy: v.nullable(v.string()) })),
   captain: v.nullable(v.strictObject({ id: v.string(), policy: v.boolean() })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 
@@ -122,6 +125,10 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  * at his pool, his authored fight on the 'legacy' clock. Restore reinstalls exactly the saved roster (the captain
  * included) from its recipes before the host restores, with no stream draw kept.
  *
+ * Ecology follows quest/Ecology.ts: ordered deaths queue the same variants at their herd homes on the separate spawn
+ * stream; the once-a-second check waits for 60 m clearance and the sailor's night gate. Returns take the manager's next
+ * id and creature draws. The queue, clocks, extended roster and allocator restore exactly (bounded to 256 native slots).
+ *
  * Known differences from the browser (the SF72 handoff): a charge's contact is tested at the start of the next tick (for
  * a body its band stepped), against the player where the charging tick saw it (the host steps bodies after its systems),
  * so its knockback starts one tick later; no 'target.dodge' wake (the tick protocol has no dodge; the swords' swing wakes
@@ -143,6 +150,12 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** On restore, reinstall the bodies spawned in play after every other install-time registration (no-op when fresh). */
   settle: () => void;
 } {
+  // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
+  const NO_RECIPE = new Error('Missing native Driftwood recipe');
+  const FULL_ROSTER = new Error('Driftwood ecology roster exceeds its native bound');
+  const NO_VARIANT = new Error('Driftwood ecology has no variant');
+  const NO_SLOT = new Error('Driftwood ecology has no recipe slot');
+  const NO_SCALE = new Error('Missing Driftwood ecology scale');
   const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
   // the page's distance bands (AnimalManager.tickRate): 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`,
   // the fauna's default), 'always' while a crab sidesteps, the creature manager's 'legacy' for the captain (a self-thinking
@@ -204,12 +217,15 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     under.structure = hit !== null && hit.collider.shape.type !== host.physics.R.ShapeType.HeightField;
     return hit === null || !under.structure ? terrain : hit.point.y;
   };
+  const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? floor(x, z, fromY);
+  const recipes = new Map<string, Map<string, AnimalSimSpec>>();
+  specs.forEach(known => { let group = recipes.get(known.kind); if (group === undefined) { group = new Map(); recipes.set(known.kind, group); } group.set(known.variant, known); });
   const spec = (kind: string, variant: string): AnimalSimSpec => {
-    const known = specs.get(`${kind}.${variant}`); if (known === undefined) throw new Error(`Missing native Driftwood recipe ${kind}.${variant}`); return known;
+    const known = recipes.get(kind)?.get(variant); if (known === undefined) throw NO_RECIPE; return known;
   };
   const materialize = (body: IslandBody, recipe: SimSpawn, structure: boolean): void => {
     const a = Object.assign(host.spawn(recipe), HUNT_BODY);
-    a.levelGround = structure; if (structure) a.groundHeight = floor;
+    a.levelGround = structure; if (structure) a.groundHeight = body.kind === 'sailor' ? holdFloor : floor;
     // a melee shard caps every creature's turn while it attacks (AnimalManager.spawnAnimal)
     a.attackTurnCap = ATTACK_TURN;
     body.actor = a;
@@ -223,10 +239,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     at.y = y; materialize(body, body.recipe, under.structure);
   };
   /** The manager's spawn draws after a named variant: scale, rig seed, body seed, then the memory's timer, fleeUntil, callT. */
-  const draw = (body: IslandBody): void => {
-    body.recipe.scale = rng.range(body.range[0], body.range[1]); rng.next(); body.recipe.seed = rng.next(); rng.next(); rng.next(); rng.next();
+  const draw = (body: IslandBody, consumeMemory = true): void => {
+    body.recipe.scale = rng.range(body.range[0], body.range[1]); rng.next(); body.recipe.seed = rng.next(); if (consumeMemory) { rng.next(); rng.next(); rng.next(); }
   };
-  const variants = (kind: string): NonNullable<ReturnType<typeof ENEMIES.get>> => { const table = ENEMIES.get(kind); if (table === undefined) throw new Error(`Driftwood has no ${kind} variants`); return table; };
+  const variants = (kind: string): NonNullable<ReturnType<typeof ENEMIES.get>> => { const table = kind === 'boar' ? ISLAND_BOAR.variants : kind === 'bear' ? ISLAND_BEAR.variants : ENEMIES.get(kind); if (table === undefined) throw new Error(`Driftwood has no ${kind} variants`); return table; };
   const enemyBody = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number): IslandBody => {
     const row = variants(kind).find(r => r.id === variant); if (row === undefined) throw new Error(`Driftwood ${kind} has no variant ${variant}`);
     return { id, kind, variant, herd, range: row.scale, actor: null, brain: null, recipe: { id, spec: spec(kind, variant), seed: 0, scale: 1, at: { x: at.x, y: 0, z: at.z }, yaw } };
@@ -255,7 +271,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const captainBody = (id: string): IslandBody => ({ id, kind: 'captain', variant: 'captain', herd: -1, range: CAPTAIN_SCALE, actor: null, brain: null,
     recipe: { id, spec: spec('captain', 'captain'), seed: 0, scale: 1, at: { x: bake.captain.pool.x, y: 0, z: bake.captain.pool.z }, yaw: bake.captain.pool.yaw } });
   /** roster slot `i`: a load-time body, or the captain after them */
-  const rosterAt = (i: number): IslandBody | null => (i < BODY_COUNT ? bodies[i] : captain) ?? null;
+  const rosterAt = (i: number): IslandBody | null => (i === BODY_COUNT ? captain : bodies[i < BODY_COUNT ? i : i - 1]) ?? null;
   /** AnimalManager.stillAttacking: a charger while it charges, a self-thinking species while its strike runs */
   const still = (a: HuntBody): boolean => a.alive && (FAUNA.has(a.kind) ? a.state === 'charge' : a.attackPhase >= 0);
   /** whether each body's band stepped it last tick (the page tests a charge's contact only on a body update) */
@@ -315,8 +331,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   };
   /** TickScheduler.interrupt's wake (AnimalManager.spawnAnimal's onInterrupt): decide now, whatever the clock (a zero
    *  step when the body already decided this frame). */
-  const wake = (i: number): void => {
-    const body = bodies[i], a = body?.actor ?? null;
+  const wake = (body: IslandBody | undefined): void => {
+    const a = body?.actor ?? null;
     if (body === undefined || a === null || !a.alive) return;
     runBrain(body, a, host.brainDt(body.id, true));
   };
@@ -325,14 +341,64 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const i = bodies.findIndex(b => b.actor !== null && b.brain === null && b.actor.combatActor() === req.target), a = bodies[i]?.actor ?? null;
     if (a === null) return;
     if (killed) { hunt.died(a); return; }
-    hunt.hurt(a); wake(i);
+    hunt.hurt(a); wake(bodies[i]);
   }, host.scope);
+  // Reusable native recipe slots are cold-allocated; only host.spawn materializes an entity on a due event.
+  const extra = Array.from({ length: ROSTER - BODY_COUNT - 1 }, () => enemyBody('', 'crab', 'small', -1, { x: 0, z: 0 }, 0));
+  const ranges = new Map<string, Map<string, readonly [number, number]>>();
+  for (const kind of ['crab', 'monkey', 'sailor', 'boar', 'bear']) ranges.set(kind, new Map(variants(kind).map(row => [row.id, row.scale])));
+  const land = (x: number, z: number): boolean => heightAt(x, z) > ports.waterLevel + 0.15;
+  const spawnRandom = (): number => host.rng.stream('spawn').next();
+  const queue = new RespawnQueue(RESPAWN, spawnRandom), ecology = { now: 0, check: 0 };
+  const pendingIds = new Map<(typeof queue.pending)[number], string>();
+  host.events.on('actor.died', ({ actor }) => {
+    const body = bodies.find(b => b.actor?.combatActor() === actor), a = body?.actor;
+    if (body === undefined || a === null || a === undefined) return;
+    if (queue.pending.length >= ROSTER) throw new Error('Driftwood ecology queue exceeds its native bound');
+    const h = hunt.herds[body.herd];
+    const entry = queue.add(body.kind, body.variant, body.herd, h?.cx ?? a.position.x, h?.cz ?? a.position.z, ecology.now);
+    if (entry !== null) pendingIds.set(entry, body.id);
+  }, host.scope);
+  const respawns = (dt: number): void => {
+    ecology.now += dt;
+    if (ecology.now - ecology.check < 1) return;
+    ecology.check = ecology.now;
+    const due = queue.take(ecology.now, player.x, player.z, host.dayClock?.night ?? 0);
+    for (let n = 0; n < ROSTER; n++) {
+      const entry = due[n]; if (entry === undefined) break;
+      let x = entry.x, z = entry.z;
+      if (entry.kind !== 'sailor') for (let k = 0; k < 6; k++) {
+        const ang = spawnRandom() * Math.PI * 2, r = 1 + spawnRandom() * 4, tx = entry.x + Math.cos(ang) * r, tz = entry.z + Math.sin(ang) * r;
+        if (land(tx, tz)) { x = tx; z = tz; break; }
+      }
+      if (!land(x, z) && entry.kind !== 'sailor') { entry.due = ecology.now + 60; queue.pending.push(entry); continue; }
+      if (bodies.length + 1 >= ROSTER) throw FULL_ROSTER;
+      const variant = entry.variant;
+      if (variant === undefined) throw NO_VARIANT;
+      const body = extra[bodies.length - BODY_COUNT]; if (body === undefined) throw NO_SLOT;
+      body.id = entityIds.allocate(); body.kind = entry.kind; body.variant = variant; body.herd = entry.herd;
+      body.recipe.id = body.id; body.recipe.spec = spec(entry.kind, variant); body.recipe.at.x = x; body.recipe.at.z = z; body.recipe.yaw = spawnRandom() * Math.PI * 2;
+      // A named variant's scale bounds are fixed admission data, resolved once at installation.
+      const scale = ranges.get(entry.kind)?.get(variant); if (scale === undefined) throw NO_SCALE; body.range = scale;
+      draw(body, !FAUNA.has(body.kind));
+      if (body.kind === 'sailor') { body.recipe.at.y = bake.holdFloorAt(x, z) ?? heightAt(x, z); materialize(body, body.recipe, true); } else arrive(body);
+      if (body.actor !== null && FAUNA.has(body.kind)) hunt.adopt(body.actor, x, z);
+      let old: IslandBody | undefined;
+      for (let k = 0; k < ROSTER; k++) { const item = bodies[k]; if (item?.id === pendingIds.get(entry)) { old = item; break; } }
+      if (old?.actor !== null && old?.actor !== undefined && !old.actor.alive) {
+        const members = hunt.herds[old.herd]?.members, at = members?.indexOf(old.actor) ?? -1;
+        if (at >= 0) members?.splice(at, 1);
+        host.retire(old.id); old.actor = null; old.brain = null;
+      }
+      pendingIds.delete(entry); bodies.push(body);
+    }
+  };
   const keep = (): void => { host.onStep(ISLAND_STEP, dt => {
     // the coconuts' bodies after the host's world step (Bodies' fixed 'post' phase)
     service.post(dt);
     // the last frame's charge contacts, after its bodies moved (the host steps its bodies after every system), against the
     // player where that frame saw it
-    if (tracked.seen) for (let i = 0; i < ROSTER; i++) {
+    if (tracked.seen) for (let i = 0; i < Math.min(ROSTER, bodies.length + 1); i++) {
       const body = rosterAt(i), a = body?.actor ?? null;
       if (a !== null && stepped[i] === true && body?.brain === null && a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, tracked.prev);
     }
@@ -344,13 +410,13 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     tracked.speed += (Math.min(moved / dt, 9) - tracked.speed) * (1 - 0.5 ** (dt * 10));
     hunt.resetRepaths();
     hunt.tokens.sweep(still);
-    for (let i = 0; i < ROSTER; i++) {
+    for (let i = 0; i < Math.min(ROSTER, bodies.length + 1); i++) {
       const body = rosterAt(i), a = body?.actor ?? null;
       if (body === null || a === null) continue;
       // a hunter that loses its line to the player decides at once
       if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
         const clear = reach(a, player);
-        if (sight[i] === true && !clear) wake(i);
+        if (sight[i] === true && !clear) wake(body);
         sight[i] = clear;
       }
       const brainDt = host.brainDt(body.id);
@@ -358,7 +424,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     }
     // the bodies on their band's step (0 while paused or on the off frame of 'half'; the next takes both frames' time):
     // a fauna body's running charge, an enemy's own body tick; the host then steps the body by the same step
-    for (let i = 0; i < ROSTER; i++) {
+    for (let i = 0; i < Math.min(ROSTER, bodies.length + 1); i++) {
       const body = rosterAt(i), a = body?.actor ?? null;
       stepped[i] = false;
       if (body === null || a === null) continue;
@@ -369,6 +435,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     // the coconuts strike, land and rest (Enemies.update), then their bodies ready the next world step ('pre')
     volley.step(dt, 1, player);
     service.pre(dt);
+    respawns(dt);
     const crab = practice.body?.actor ?? null;
     if (crab === null || crab.alive || practice.body === null) return;
     practice.dead += dt;
@@ -377,22 +444,24 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
-    snapshot: () => ({ version: 5, rng: { ...rng.snapshot() },
+    snapshot: () => ({ version: 6, rng: { ...rng.snapshot() }, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) },
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
         memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight], stepped: [...stepped] },
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
-      bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
+      bodies: bodies.map(b => ({ id: b.id, kind: b.kind, variant: b.variant, herd: b.herd, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
       captain: captain === null ? null : { id: captain.id, policy: v.parse(v.boolean(), captain.brain?.snapshot()) } }),
     restore: value => {
       const state = v.parse(Saved, value);
       if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length || state.fauna.stepped.length !== ROSTER
-        || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== ROSTER || state.captain?.id !== captain?.id
+        || state.fauna.memories.length !== bodies.length || state.fauna.sight.length !== ROSTER || state.captain?.id !== captain?.id
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
       const holders = state.tokens.map(id => { const a = (captain?.id === id ? captain : bodies.find(b => b.id === id))?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
       placed.stream.restore(state.coconuts.rng);
       reattach = volley.restore(state.coconuts, i => bodies[i]?.actor ?? null);
+      ecology.now = state.ecology.now; ecology.check = state.ecology.check; queue.pending.length = 0; pendingIds.clear();
+      state.ecology.pending.forEach(({ id, ...entry }) => { queue.pending.push(entry); pendingIds.set(entry, id); });
       rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
       state.fauna.stepped.forEach((on, i) => { stepped[i] = on; });
@@ -420,7 +489,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     return body.actor;
   };
   const alarm = (): void => {
-    for (let i = 0; i < BODY_COUNT; i++) { const a = bodies[i]?.actor ?? null; if (a !== null && a.alive && (a.aggressive || hunt.sensed(a))) wake(i); }
+    for (let i = 0; i < Math.min(ROSTER, bodies.length); i++) { const body = bodies[i], a = body?.actor ?? null; if (a !== null && a.alive && (a.aggressive || hunt.sensed(a))) wake(body); }
   };
   const staggered = (a: AnimalSim, strength: number, running: boolean): void => {
     const body = bodies.find(b => b.actor === a && b.brain === null)?.actor ?? null;
@@ -430,7 +499,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   if (saved === undefined) { keep(); return { ...island, settle: () => undefined }; }
 
   const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === ISLAND_STEP)?.state);
-  if (keeper.bodies.length !== BODY_COUNT || keeper.herds.length < bake.herds.length) throw new Error('Incompatible Driftwood island continuation');
+  if (keeper.bodies.length < BODY_COUNT || keeper.bodies.length >= ROSTER || keeper.herds.length < bake.herds.length) throw new Error('Incompatible Driftwood island continuation');
   // the practice crab's replacements each made a herd of one, in order
   keeper.herds.slice(bake.herds.length).forEach(([cx, cz]) => { hunt.addHerd('crab', cx, cz); });
   const ids = saved.adapters.map(adapter => adapter.id), at = (id: string): number => ids.indexOf(`runtime.actor.${id}`);
@@ -439,7 +508,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (typeof contract !== 'string') throw new Error(`Missing saved Driftwood body ${body.id}`);
     const recipe = v.parse(Placed, JSON.parse(contract));
     if (recipe.id !== body.id) throw new Error(`Incompatible saved Driftwood body ${body.id}`);
-    body.recipe.seed = recipe.seed; body.recipe.scale = recipe.scale; body.recipe.at.x = recipe.at.x; body.recipe.at.y = recipe.at.y; body.recipe.at.z = recipe.at.z;
+    body.recipe.yaw = recipe.yaw; body.recipe.seed = recipe.seed; body.recipe.scale = recipe.scale; body.recipe.at.x = recipe.at.x; body.recipe.at.y = recipe.at.y; body.recipe.at.z = recipe.at.z;
     floor(recipe.at.x, recipe.at.z, recipe.at.y + 1);
     // a restored world answers no scene query before its first step (the captain's pool deck was missed, his corpse then
     // smoothed to the terrain under it): the saved body says whether it stood on a structure
@@ -456,9 +525,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const body = enemyBody(id, row.kind, baked.variant, row.herd < 0 ? -1 : row.herd + herdBase, row, row.yaw);
     bodies.push(body); if (row.practice === true) practice.body = body;
   });
+  keeper.bodies.slice(BODY_COUNT).forEach(b => { bodies.push(enemyBody(b.id, b.kind, b.variant, b.herd, { x: 0, z: 0 }, 0)); });
   // the practice slot's herd is the newest herd of one once it has been replaced
   const slot = practice.body;
-  if (slot !== null && keeper.herds.length > bake.herds.length) slot.herd = keeper.herds.length - 1;
+  if (slot !== null) slot.herd = keeper.bodies[bodies.indexOf(slot)]?.herd ?? slot.herd;
   // ... under the entity id it was given
   const slotId = slot === null ? undefined : keeper.bodies[bodies.indexOf(slot)]?.id;
   if (slot !== null && slotId !== undefined) { slot.id = slotId; slot.recipe.id = slotId; }

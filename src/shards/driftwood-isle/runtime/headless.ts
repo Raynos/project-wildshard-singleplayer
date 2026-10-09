@@ -60,7 +60,7 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
  * world (the island's heightfield as Rapier built it and every fixed WORLD collider; `ground: false`, the baked floor as
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
- * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts), and the
+ * browser's baked navmesh), the monkeys' coconuts, the practice crab's return, ecological night respawns and exact restore (runtime/keeper.ts), and the
  * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
  * runtime/captain.ts), and the two swords on the swept melee family's own clock (a player command's attack is a light tap at
  * its target; runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts), and
@@ -69,7 +69,6 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).
  * the puzzle barrel the player pushes onto the second tide plate (the kit's body and never-jam rule), and the open sluice.
  * The entry proof (runtime/entries.ts): every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
- * Not yet owned (see the SF72 handoff): the night respawns.
  */
 /** The walk the tick's last `player` command asks for (m/s): the host's walk (SimHost.step: the stick clamped to 1, times
  * the level's speed), the velocity the page's Player asks for and the barrel's watch reads. */

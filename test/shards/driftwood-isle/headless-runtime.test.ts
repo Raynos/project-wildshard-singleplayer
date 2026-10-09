@@ -388,3 +388,63 @@ it('imports the trusted headless runtime without DOM or renderer modules', () =>
     "const m = await import('./src/shards/driftwood-isle/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });
+
+
+it('queues a dead boar on the spawn stream, walks out of sight, restores the pending queue and returns the same variant to its herd', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const boar = original.entities.get('creature:0'); if (boar === undefined) throw new Error('missing boar');
+    const variant = boar.variant, seed = boar.seed;
+    standBy(original, boar, 1.4); kill(original, boar.entityId); original.step();
+    const queueState = () => v.parse(v.object({ ecology: v.object({ pending: v.array(v.object({ due: v.number(), herd: v.number(), x: v.number(), z: v.number(), id: v.string() })) }) }), snapshotSimHost(original).adapters.find(a => a.id === ISLAND_STEP)?.state).ecology.pending;
+    const queued = queueState()[0]; if (queued === undefined) throw new Error('boar did not queue');
+    expect(queued.id).toBe('creature:0'); expect(queued.due).toBeGreaterThanOrEqual(300); expect(queued.due).toBeLessThanOrEqual(421);
+    const goal = { x: -7, z: -194 };
+    for (let tick = 0; tick < 3000; tick++) {
+      const p = original.player.position, dx = goal.x - p.x, dz = goal.z - p.z, d = Math.hypot(dx, dz);
+      original.step(d < 1 ? undefined : { moveX: dx / d, moveZ: dz / d, yaw: Math.atan2(-dx, -dz) });
+      if (Math.hypot(p.x - queued.x, p.z - queued.z) >= 65) break;
+    }
+    expect(Math.hypot(original.player.position.x - queued.x, original.player.position.z - queued.z)).toBeGreaterThanOrEqual(60);
+    const dueTick = Math.ceil((queued.due + 2) * 60);
+    // One restore near the due time, so both hosts only replay the short suffix across materialization.
+    while (original.state.tick < dueTick - 120) original.step();
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 180; tick++) { original.step(); restored.step(); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    const back = [...original.entities.values()].find(a => a.kind === 'boar' && a.entityId === 'creature:34');
+    if (back === undefined) throw new Error('boar did not return');
+    expect(back.alive).toBe(true); expect(back.variant).toBe(variant); expect(back.seed).not.toBe(seed);
+    const keeper = v.parse(v.object({ bodies: v.array(v.object({ id: v.string(), herd: v.number() })) }), snapshotSimHost(original).adapters.find(a => a.id === ISLAND_STEP)?.state);
+    expect(keeper.bodies.find(b => b.id === back.entityId)?.herd).toBe(queued.herd);
+    expect(Math.hypot(back.position.x - queued.x, back.position.z - queued.z)).toBeLessThanOrEqual(6);
+    expect(queueState()).toEqual([]);
+  } finally { restored?.dispose(); original.dispose(); }
+}, 90_000);
+
+it('keeps the dead sailor queued through daytime and reinstalls him only at night on the wreck hold floor', () => {
+  const host = boot(); let restored: SimHost | undefined;
+  try {
+    const sailor = host.entities.get('creature:33'), clock = host.dayClock;
+    if (sailor === undefined || clock === undefined) throw new Error('missing sailor or day clock');
+    clock.setTime('midday');
+    const x = sailor.position.x, z = sailor.position.z;
+    kill(host, sailor.entityId);
+    for (let tick = 0; tick < 60 * 185; tick++) host.step();
+    expect([...host.entities.values()].filter(a => a.kind === 'sailor' && a.alive)).toEqual([]);
+    clock.setTime('night');
+    for (let tick = 0; tick < 65; tick++) host.step();
+    const back = [...host.entities.values()].find(a => a.kind === 'sailor' && a.alive);
+    if (back === undefined) throw new Error('sailor did not rise');
+    expect([back.position.x, back.position.z]).toEqual([x, z]);
+    const floor = bake.holdFloorAt(x, z) ?? bake.floorAt(x, z);
+    expect(back.position.y).toBeCloseTo(floor, 3);
+    expect(back.groundHeight?.(x, z, back.position.y + 1)).toBe(floor);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(host)));
+    const restoredSailor = restored.entities.get(back.entityId);
+    expect(restoredSailor?.groundHeight?.(x, z, back.position.y + 1)).toBe(floor);
+    for (let tick = 0; tick < 60; tick++) { host.step(); restored.step(); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
+  } finally { restored?.dispose(); host.dispose(); }
+}, 60_000);
