@@ -17,10 +17,19 @@ The worker's recorded verdict is kept in each `shipped-<leg>.json` (`.br`). `reg
 counts unlabelled GL **bytes**, not handles). The regrade is legitimate because the evidence is the raw samples, not the old
 verdict; nothing in the samples was edited. Outputs: `regrade-cells.json`, `regrade-road.json`.
 
-| Leg | Recorded (grader at a098b4964) | Regraded (grader 2245b3c89) |
-|---|---|---|
-| cells | functional FAIL, gate FAIL: one journal-reconstructed loading sample fell in the 90 ms between a zero-byte `createBuffer` and its label (`ground-cover-hibiscus/aNrm`), so `unlabelled = 1` failed sampling | **functional PASS, memory PASS, gate PASS** |
-| road | functional PASS, gate FAIL: rule (b) | functional PASS, gate FAIL: rule (b), same cause (below) |
+**Second regrade, phase by time (lane sf57-qualify5, the coordinator's pick):** the grader now assigns each sample its phase
+by its timestamp against the run's recorded drive boundaries (`driveStarted` and `driveStarted + seconds`), not by the tag
+the sampler wrote (`soakPhaseByTime` / `soakDriveBounds` in `scripts/soak/route.ts`): a `drive` / `settle` tag stamped after
+the drive's end is `unloaded`; inside the window the worker's tags stand; a missing boundary, or a drive tag before the
+drive started, refuses. The sampler reads the phase file before it measures and stamps, so a tag can only lag, never lead.
+`regrade.mjs` (now passing the boundaries) re-run on the same raw archive: `regrade-phase-cells.json`,
+`regrade-phase-road.json`. The rule moved **exactly one sample in the whole soak**: the road leg's `drive`-tagged sample at
+t = 1811.913 s, 0.158 s after the drive's end (WebContent 484.2 MB, GL 42.9 MB, cycle 3). The cells leg moved none.
+
+| Leg | Recorded (grader at a098b4964) | Regraded (grader 2245b3c89) | Regraded (phase by time) |
+|---|---|---|---|
+| cells | functional FAIL, gate FAIL: one journal-reconstructed loading sample fell in the 90 ms between a zero-byte `createBuffer` and its label (`ground-cover-hibiscus/aNrm`), so `unlabelled = 1` failed sampling | **functional PASS, memory PASS, gate PASS** | **functional PASS, memory PASS, gate PASS** (0 samples moved; every number identical) |
+| road | functional PASS, gate FAIL: rule (b) | functional PASS, gate FAIL: rule (b), same cause (below) | **functional PASS, memory PASS, gate PASS** (1 sample moved) |
 
 ## Cells leg: green on the regrade
 
@@ -47,15 +56,31 @@ verdict; nothing in the samples was edited. Outputs: `regrade-cells.json`, `regr
 - **Rule (b) fails on one sample**: the partial last lap's trough reads 527.1 MB because the sampler tagged the first sample
   after the drive ended (t = 1811.9 s vs the drive's 1811.755 s) as `drive`, after the teardown had already dropped GL to
   42.9 MB. Loops 2–3 otherwise repeat loop 2 within 12 MB. `road-whatif.mjs` (a what-if, not a verdict) moves that one
-  sample to `unloaded`: rule (b) and the gate then pass. A grader / worker fix for this phase race (the worker waits a
-  sampler interval after `phase('unloaded')` before the leak census, or the grader drops samples after `seconds`) needs
-  the coordinator's pick; this receipt does not regrade it.
+  sample to `unloaded`: rule (b) and the gate then pass.
+- **Regraded with the phase-by-time grader: PASS.** That sample is now `unloaded` because it was stamped after the recorded
+  drive end. Loops (peak / trough, MB): 805.4 / 721.2 (warm-up), **751.8 / 725.1** (loop 2), 739.9 / 724.7, partial
+  739.9 / 725.1: every later loop within 12 MB of loop 2. Peaks 805.4 playing / 905.2 loading, calibration 1.020 / 1.018 /
+  1.019, baselines +0.5 / +0.8 / 0 / +0.5 MB, 16/16 crossroads, no shard entered, leaks zero.
 
 ## Verdict
 
-Cells: qualifying PASS on the regrade. Road: functional and calibration PASS, gate red on a harness phase race that the
-evidence attributes to the teardown, not to memory. SF57's shipped leg is green when that race is fixed by a picked rule
-and the road leg regrades (or reruns) green.
+**Shipped layout: both legs PASS** on the phase-by-time grader, from the unedited raw samples. Cells: 852.7 / 842.8 MB,
+rule (b), calibration 1.027–1.050, leaks 0, all six cells admitted. Road: 805.4 / 905.2 MB, rule (b), calibration
+1.018–1.020, leaks 0. The worker's recorded verdicts stay red in `shipped-*.json` (cells: the create-then-label handle;
+road: the phase race); both passes are regrades by grader rules the coordinator picked, not a fresh run.
+
+## SF57's done-when, against this soak
+
+Met for the **shipped** layout: (a) playing ≤ 1.0 GB and loading ≤ 1.8 GB on both legs; (b) loops 2+ within ± 30 MB of
+loop 2 on both legs; (c) (M − E) / A in [1.01, 1.21] at every settled stop on both legs; leak test 0; sampling complete,
+routes complete, zero refusals, no recovery reload, no disposal errors; qualifying mode (`rehearsal: false`, prepared
+SF46/47/48-g catalogue); a road-only leg on the same pin (run by itself after the cells worker exited, not in the same
+invocation). The grader fixtures the row names (WebContent under 1.0 GB but + GL over fails; loading-only over-cap
+fails) are in `test/sf57-soak.test.ts`. So the shipped leg, which is what M2-ready needs, is green.
+
+Still open: the **dev** layout's legs (cells + road), which close SF57 only after SF49-g / SF50-g under M3; "three phone
+runs with no tab kill" (Jake's, on the iPhone); and, not a gate, the cells leg's WebContent-only growth of +3.8 / +3.3 /
++2.8 MB per circuit (within (b), shrinking, no plateau proven; no growth on the road).
 
 Files: `regrade.mjs`, `regrade-*.json`, `road-whatif.mjs`, `archive.json` (sha256 of every raw file, archived losslessly
 as `.br`), `manifest-*.json`, `run-*.log`. Cleanup: both previews stopped in the parents' finally, the sim lane is at 0/1.

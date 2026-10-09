@@ -27,7 +27,31 @@ export function parseSoakContentCut(input: unknown): SoakContentCut {
 }
 /** Ordinary routes are thirty minutes; a picked content-cut route qualifies at minute sixty (G186). */
 export function soakDuration(contentCut?: SoakContentCut | null): number { return contentCut === undefined || contentCut === null ? 1800 : 3600; }
-interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
+/** The drive's recorded boundaries, in the samples' wall-clock seconds: the worker's `driveStarted` and that plus its
+ * final `seconds`. */
+export interface SoakDrive { readonly start: number; readonly end: number }
+/** The recorded boundaries of a run's drive, or null when the run never started one. A started drive with no end refuses. */
+export function soakDriveBounds(result: { readonly driveStarted?: string; readonly seconds?: number }): SoakDrive | null {
+  if (result.driveStarted === undefined) return null;
+  const start = Date.parse(result.driveStarted) / 1000, seconds = result.seconds;
+  if (!Number.isFinite(start) || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) throw new Error('Soak drive has no recorded end');
+  return { start, end: start + seconds };
+}
+const drivePhase = /^(drive|settle)/u;
+/** The phase is decided by the sample's timestamp against the recorded drive boundaries, not by the tag the sampler read
+ * before it measured (it reads the phase file first, so a tag can only lag). A drive or settle tag stamped after the
+ * drive's end is `unloaded`; inside the window the worker's own sub-phase tags stand. Without boundaries, or with a drive
+ * tag before the drive started, this refuses rather than guesses. */
+export function soakPhaseByTime<T extends { readonly phase: string; readonly elapsed: number }>(samples: readonly T[], drive: SoakDrive | null): T[] {
+  if (drive !== null && (!Number.isFinite(drive.start) || !Number.isFinite(drive.end) || drive.end < drive.start)) throw new Error('Soak drive boundaries are invalid');
+  return samples.map((row) => {
+    if (!drivePhase.test(row.phase)) return row;
+    if (drive === null) throw new Error('Soak drive samples need the recorded drive boundaries');
+    if (row.elapsed < drive.start) throw new Error(`Soak sample tagged ${row.phase} before the recorded drive start`);
+    return row.elapsed > drive.end ? { ...row, phase: 'unloaded' } : row;
+  });
+}
+interface Witness { readonly drive: SoakDrive | null; readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
 interface Loop { cycle: number; complete: boolean; peakBytes: number; troughBytes: number }
 interface Grade { contentCut: SoakContentCut | null; requiredSeconds: number; memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
@@ -84,9 +108,10 @@ export function validateSoakCatalogue(actual: readonly Cell[], expected: readonl
 
 const median = (values: readonly number[]): number => { const sorted = [...values].sort((a, b) => a - b); const result = sorted.at(Math.floor(sorted.length / 2)); if (result === undefined) throw new Error('No native readings'); return result; };
 /** Grade native readings at the same road pose, after natural production eviction circuits. No reload is allowed. */
-export function gradeSoak({ samples, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, engineBase = 300_000_000, rehearsal = false, leg = 'cells', contentCut }: Witness): Grade {
+export function gradeSoak({ drive: driveBounds, samples: tagged, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, engineBase = 300_000_000, rehearsal = false, leg = 'cells', contentCut }: Witness): Grade {
   const cut = contentCut === undefined || contentCut === null ? null : parseSoakContentCut(contentCut);
   const requiredSeconds = soakDuration(cut);
+  const samples = soakPhaseByTime(tagged, driveBounds);
   const combined = (row: Sample, peak = false): number => (peak ? Math.max(row.footprint, row.interval ?? row.footprint) : row.footprint) + (row.gl?.totalBytes ?? Number.POSITIVE_INFINITY);
   const active = samples.filter((row) => row.type === 'sample' && /^(baseline|drive|settle|unloaded)/u.test(row.phase));
   const drive = active.filter((row) => row.phase !== 'unloaded');

@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { createBrotliCompress, constants as compression } from 'node:zlib';
 import { pipeline } from 'node:stream/promises';
 import { execFileSync } from 'node:child_process';
-import { gradeSoak } from './route.ts';
+import { gradeSoak, soakDriveBounds, soakPhaseByTime } from './route.ts';
 import { joinSoakSamples, soakLapMemory } from './owned.mjs';
 
 const flag = (name) => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -50,7 +50,8 @@ for (const { layout, leg, name } of runs) {
     csv.push([row.elapsed - Date.parse(original.driveStarted) / 1000, row.phase, row.footprint, row.interval, row.gl?.totalBytes ?? '', row.gl?.accountedBytes ?? '', row.gpu, row.allWebContentBytes ?? ''].join(','));
     return row;
   });
-  const grade = gradeSoak({ samples, windows: original.windows, seconds: original.seconds, circuits: original.circuits,
+  const drive = soakDriveBounds(original);
+  const grade = gradeSoak({ drive, samples, windows: original.windows, seconds: original.seconds, circuits: original.circuits,
     evictions: original.evictions.length, errors: original.errors, leak: original.leak,
     expected: original.expected, entries: original.entries, crossroads: original.crossroads, engineBase: summary.engineBase, rehearsal: true, leg });
   const artifacts = [];
@@ -60,7 +61,7 @@ for (const { layout, leg, name } of runs) {
     artifacts.push({ file: `${file}.br`, rawBytes: bytes.length, rawSha256: createHash('sha256').update(bytes).digest('hex') });
   }
   writeFileSync(join(out, `${name}.csv`), `${csv.join('\n')}\n`);
-  summary.layouts.push({ layout, leg, sha: original.sha, gamePid: original.gamePid ?? null, perLap: soakLapMemory(samples, original.circuits), seconds: original.seconds, circuits: original.circuits,
+  summary.layouts.push({ layout, leg, sha: original.sha, gamePid: original.gamePid ?? null, perLap: soakLapMemory(soakPhaseByTime(samples, drive), original.circuits), seconds: original.seconds, circuits: original.circuits,
     evictions: original.evictions.length, grade, missing, artifacts,
     originalReceipt: `${name}-original.json`, errors: original.errors, nativeSummary: original.nativeSummary,
     attribution: 'No heap snapshots / Rapier memory readings were captured. Refusals, missing GL readings and unaccounted transitional home prevent a WebKit-retention attribution.' });

@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' };
-import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDuration, soakUnlabelledBytes } from '../scripts/soak/route';
+import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDuration, soakUnlabelledBytes, soakPhaseByTime, soakDriveBounds } from '../scripts/soak/route';
 
 const cut = { receipt: 'art/fixture/round-1-cut/README.md', sourceRevision: 'a'.repeat(40), approvedBy: 'Jake' as const };
 const witness = () => ({
+  drive: { start: 0, end: 3640 } as { start: number; end: number } | null,
   samples: [{ type: 'sample', phase: 'loading', elapsed: -1, footprint: 422_000_000, interval: 422_000_000, gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: 0, settled: true } }, ...Array.from({ length: 3641 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 422_000_000, interval: 422_000_000,
     gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: Math.min(2, Math.floor(elapsed / 600)), settled: true } }))],
   windows: [{ start: 0, end: 10 }, { start: 600, end: 610 }, { start: 1200, end: 1210 }],
@@ -161,5 +162,30 @@ describe('SF57 honest drive and native memory gate', () => {
     const absent = gradeSoak({ ...witness(), samples: witness().samples.map(({ gl: _gl, ...sample }) => sample) });
     expect(absent.memoryPass).toBe(false); expect(absent.missingGlSamples).toBe(3642);
     expect(Number.isFinite(absent.peakBytes)).toBe(true);
+  });
+  it('phases each sample by its timestamp against the recorded drive boundaries, not the sampler tag', () => {
+    const drive = { start: 100, end: 1811.755 };
+    const rows = [{ phase: 'baseline-0', elapsed: 99 }, { phase: 'drive', elapsed: 100 }, { phase: 'settle-1', elapsed: 900 }, { phase: 'drive', elapsed: 1811.755 },
+      { phase: 'drive', elapsed: 1811.9 }, { phase: 'settle-3', elapsed: 1812.5 }, { phase: 'unloaded', elapsed: 1813 }, { phase: 'done', elapsed: 1840 }];
+    // The late-tagged samples move to `unloaded`; a sample inside the window (end inclusive) keeps its drive tag.
+    expect(soakPhaseByTime(rows, drive).map((row) => row.phase)).toEqual(['baseline-0', 'drive', 'settle-1', 'drive', 'unloaded', 'unloaded', 'unloaded', 'done']);
+    // Missing or contradictory boundaries refuse rather than guess.
+    expect(() => soakPhaseByTime(rows, null)).toThrow('recorded drive boundaries');
+    expect(() => soakPhaseByTime([{ phase: 'drive', elapsed: 99 }], drive)).toThrow('before the recorded drive start');
+    expect(() => soakPhaseByTime(rows, { start: 10, end: 5 })).toThrow('invalid');
+    expect(soakPhaseByTime([{ phase: 'loading', elapsed: 1 }, { phase: 'baseline-0', elapsed: 2 }], null).map((row) => row.phase)).toEqual(['loading', 'baseline-0']);
+    expect(soakDriveBounds({ driveStarted: '1970-01-01T00:01:40.000Z', seconds: 1711.755 })).toEqual(drive);
+    expect(soakDriveBounds({})).toBeNull();
+    expect(() => soakDriveBounds({ driveStarted: '1970-01-01T00:01:40.000Z' })).toThrow('no recorded end');
+    expect(() => gradeSoak({ ...witness(), drive: null })).toThrow('recorded drive boundaries');
+  });
+  it('grades a post-teardown sample the sampler still tagged drive as unloaded, so it never sets a lap trough', () => {
+    const value = witness(), late = value.samples.at(-1);
+    if (late === undefined) throw new Error('Missing witness reading');
+    // The teardown freed GL before the tag changed: inside the drive this trough fails rule (b); after the drive's end it is unloaded.
+    late.gl.totalBytes = 42_900_000; late.gl.cycle = 2;
+    expect(gradeSoak({ ...value, drive: { start: 0, end: 3640 } }).recovery).toBe(false);
+    const graded = gradeSoak({ ...value, drive: { start: 0, end: 3639.5 } });
+    expect(graded.recovery).toBe(true); expect(graded.gatePass).toBe(true);
   });
 });

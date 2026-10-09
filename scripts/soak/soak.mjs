@@ -23,7 +23,7 @@ import { GL_INIT } from '../parity/glbytes.mjs';
 import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
-import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
+import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDriveBounds, soakPhaseByTime } from './route.ts';
 import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures } from './owned.mjs';
 import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute } from '../frame-floor-grid.mjs';
 
@@ -89,7 +89,7 @@ async function worker() {
     result.purpose = 'FOUR-CIRCUIT ATTRIBUTION: intrusive settled snapshots, never a duration/cap/performance clearance';
     result.diagnosticCircuits = diagnosticCircuits; result.boundaries = [];
   }
-  let proxy, sampler, driver;
+  let proxy, sampler, driver, driveOpen = false;
   const phase = (value) => writeFileSync(phaseFile, value);
   let lastResidents = [];
   const collectGl = async () => {
@@ -178,7 +178,7 @@ async function worker() {
       writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
     };
     if (diagnosticCircuits !== null) await boundary(0);
-    const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0;
+    const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0; driveOpen = true;
     phase('drive');
     let complete = false;
     while (!complete) {
@@ -219,7 +219,8 @@ async function worker() {
         else phase('drive');
       }
     }
-    result.seconds = (Date.now() - driveStart) / 1000;
+    // The drive's recorded end: the grader moves any later sample the sampler still tagged `drive` to `unloaded`.
+    result.seconds = (Date.now() - driveStart) / 1000; driveOpen = false;
     result.lastState = await driver.evaluate('window.__wildshard.shard.grid.state()');
     result.listenerBeforeUnload = await driver.evaluate('window.__parityResources().listenerDetails');
     phase('unloaded');
@@ -234,6 +235,8 @@ async function worker() {
     if (samplerResult.error) throw new Error(samplerResult.error);
   } catch (error) {
     result.failure = String(error.stack ?? error); result.errors.push(result.failure);
+    // A failed drive ends here, so the grader still has a recorded end to phase its samples by.
+    if (driveOpen) { result.seconds = (Date.now() - Date.parse(result.driveStarted)) / 1000; driveOpen = false; }
     if (driver) {
       await driver.evaluate('window.__sf57StopGLJournal?.();true').catch(() => undefined); await collectGl().catch(() => undefined);
       result.diagnostic = await driver.evaluate('JSON.stringify({url:location.href,documentId:window.__sf57DocumentId,stop:window.__frameFloorGridStop,state:window.__wildshard?.shard?.grid?.state(),errors:window.__sf57Errors,body:document.body.innerText.slice(-4000)})').catch(() => null);
@@ -262,10 +265,11 @@ async function worker() {
     observed: samples.filter(row => row.gl !== undefined && row.gl.source === undefined).length,
     missing: samples.filter(row => row.gl === undefined).length,
     policy: 'Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds.' };
-  result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
+  const drive = soakDriveBounds(result);
+  result.grade = gradeSoak({ drive, samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });
-  result.perLap = soakLapMemory(samples, result.circuits ?? 0);
+  result.perLap = soakLapMemory(soakPhaseByTime(samples, drive), result.circuits ?? 0);
   result.functionalPass = result.failure === undefined && result.errors.length === 0 && (diagnosticCircuits === null ? (result.seconds ?? 0) >= duration : result.circuits === diagnosticCircuits)
     && result.routes.length > 0 && result.routes.every(route => route.failures.length === 0) && (diagnosticCircuits !== null || result.grade.sampling) && result.grade.leakZero;
   if (diagnosticCircuits !== null) {
