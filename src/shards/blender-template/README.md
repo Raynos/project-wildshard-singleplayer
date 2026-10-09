@@ -6,4 +6,4 @@ The Blender script owns the 500 m cell, the 19.2 m north bridge, the enterable c
 
 The AssemblyScript door toggles its independent visual and collider. Open it, meet the guardian, collect five coins; the quest fact grants one durable achievement. The guardian can kill the player; retry preserves the completed reward. Native tests cover mid-loop restore in a fresh worker and duplicate ledger admission.
 
-The discovery manifest is temporary data with no layer imports. Its blank card and Developer grid cell at (−1, −1) await SF55a's source-manifest presentation facade. The Opus clay-look pass, final card and both-surface quiet frame floors remain SF55 work.
+The catalogue and build share identity, accent, spawn, look and presentation in `data/source.ts`. The SDK's pure `sourceManifest` facade maps those fields into the normal SHARD SELECT card. Its JPEG is the unchanged, labelled Opus capture of the real textured door; the same content-addressed bytes are charged to the product's image library. The shard remains behind Developer in the grid cell at (−1, −1). Both-surface quiet frame floors remain SF55 work.

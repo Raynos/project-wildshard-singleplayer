@@ -1,0 +1,34 @@
+{
+  "change": "Real SHARD SELECT presentation from authored shardfile data through SDK sourceManifest",
+  "previewBase": "e3a3ca2a1",
+  "previewIncludes": "owned card/presentation edits; committed world GLB",
+  "browser": {
+    "biome": "Blender clay prototype",
+    "dpr": 3,
+    "hash": "d5ae692911bbc2b60b5fdde239b70aad4ce9be0d7665c4a91b438de6077e21e3",
+    "height": 1400,
+    "heroMatches": true,
+    "name": "Blender Template",
+    "ribbon": "DEVELOPER ONLY",
+    "selected": true,
+    "viewport": [
+      402,
+      874
+    ],
+    "width": 600
+  },
+  "publicDeveloperOff": "Blender Template absent",
+  "entry": {
+    "legacy": false,
+    "shardfile": true
+  },
+  "image": {
+    "compressed": 84067,
+    "decoded": 3696268,
+    "gpu": 3360000,
+    "charged": "library"
+  },
+  "map": "Rebaked unchanged committed geometry with shared data/source.ts in the input key",
+  "validation": "SDK/card and title-deck focused tests green; own map current; strict and touched lint green",
+  "pending": "op-bfill owns seam + filled-cell GLB/walk/map; Simulator reserved for SF57, floor remains queued"
+}

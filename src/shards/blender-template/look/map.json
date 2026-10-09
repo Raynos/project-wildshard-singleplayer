@@ -43,6 +43,7 @@
   },
   "inputs": [
     "shard.config.ts",
+    "data/source.ts",
     "assets/world.glb"
   ]
 }
