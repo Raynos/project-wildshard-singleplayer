@@ -113,5 +113,7 @@
   "limitations": [
     "Other game browsers and shared-machine work were active. This is a recorded floor failure under that load, not an isolated GPU-cost attribution.",
     "Historical preview initially failed before acquiring a browser; af7e01750 fixes the missing pure preview module. This result is the subsequent completed exact-pin run."
-  ]
+  ],
+  "verdict": "invalid: concurrent GPU clients",
+  "coordinatorDisposition": "One current-HEAD rerun in a coordinator-owned full GPU quiet window after the memory attribution circuit."
 }
