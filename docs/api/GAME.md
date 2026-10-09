@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-844 members; 157 without a doc line (—).
+856 members; 157 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -78,10 +78,22 @@ The game layer's public modules (src/game/package.json `exports`).
 | `EliteHost` | interface | @wildshard/game/Elite | — |
 | `ElitePersistence` | interface | @wildshard/game/Elite | Optional typed persistence for runtime-bound lairs; the default remains the legacy shard slot. |
 | `EliteRule` | type | @wildshard/game/Elite | Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites |
-| `Elites` | class | @wildshard/game/Elite | — |
-| `EliteScript` | interface | @wildshard/game/Elite | — |
+| `Elites` | class | @wildshard/game/Elite | The named elite system on the page: the renderer-free rules (eliteSystem.ts `EliteCore`) plus the bar, banner, orb and skulls. |
+| `EliteScript` | interface | @wildshard/game/Elite | One elite's brain on the page: the rules' script (eliteSystem.ts `EliteCoreScript`) over an Animal, plus its bar and drop. |
 | `GroundTell` | class | @wildshard/game/Elite | — |
 | `GroundTellWedgeStyle` | interface | @wildshard/game/Elite | Wedge-specific shader parameters are authored by the caller; geometry/draping is shared. |
+| `EliteCore` | class | @wildshard/game/eliteSystem | The named elite system's rules over any host (see the module doc). |
+| `EliteCoreActor` | interface | @wildshard/game/eliteSystem | What the rules read and write of an elite's body: the page's Animal and a renderer-free host's body alike. |
+| `EliteCoreDef` | interface | @wildshard/game/eliteSystem | The fields of an elite's definition the rules read. |
+| `EliteCoreEntry` | interface | @wildshard/game/eliteSystem | One lair's live state. |
+| `EliteCoreHooks` | interface | @wildshard/game/eliteSystem | The view's answers to the rules' moments, all optional (a renderer-free host answers none). Each runs where the page ran it. |
+| `EliteCoreHost` | interface | @wildshard/game/eliteSystem | The world the rules read: the player's ground position and the spawn rules. |
+| `EliteCorePersistence` | interface | @wildshard/game/eliteSystem | — |
+| `EliteCoreRecord` | interface | @wildshard/game/eliteSystem | One lair's persisted record (the page's 'ws.elites.v1' row). |
+| `EliteCoreRule` | type | @wildshard/game/eliteSystem | The named elite system's rules, renderer-free (SF72): the generic half of `Elites` (src/game/Elite.ts) with no bar, banner, |
+| `EliteCoreScript` | interface | @wildshard/game/eliteSystem | One elite's brain as the rules drive it (the page's `EliteScript` is this plus its bar fill and drop model). |
+| `EliteCoreState` | type | @wildshard/game/eliteSystem | — |
+| `memoryElitePersistence` | function | @wildshard/game/eliteSystem | A renderer-free host's persistence: the records live in memory (its continuation carries them). |
 | `EmptyNeighbour` | interface | @wildshard/game/grid/assembly | Outside the finite grid, seams ease into road-level open water and fog instead of another sim. |
 | `GridAssembly` | class | @wildshard/game/grid/assembly | Assemble the one platform catalogue without changing any shard's local simulation or standalone placement. |
 | `GridCell` | interface | @wildshard/game/grid/assembly | Stable instance identity with its independent cell placement and derived rendering translation. |

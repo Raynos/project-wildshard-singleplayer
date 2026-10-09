@@ -14246,13 +14246,13 @@
       {
         "name": "Elites",
         "kind": "class",
-        "doc": "",
+        "doc": "The named elite system on the page: the renderer-free rules (eliteSystem.ts `EliteCore`) plus the bar, banner, orb and skulls.",
         "from": "@wildshard/game/Elite"
       },
       {
         "name": "EliteScript",
         "kind": "interface",
-        "doc": "",
+        "doc": "One elite's brain on the page: the rules' script (eliteSystem.ts `EliteCoreScript`) over an Animal, plus its bar and drop.",
         "from": "@wildshard/game/Elite"
       },
       {
@@ -14266,6 +14266,78 @@
         "kind": "interface",
         "doc": "Wedge-specific shader parameters are authored by the caller; geometry/draping is shared.",
         "from": "@wildshard/game/Elite"
+      },
+      {
+        "name": "EliteCore",
+        "kind": "class",
+        "doc": "The named elite system's rules over any host (see the module doc).",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreActor",
+        "kind": "interface",
+        "doc": "What the rules read and write of an elite's body: the page's Animal and a renderer-free host's body alike.",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreDef",
+        "kind": "interface",
+        "doc": "The fields of an elite's definition the rules read.",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreEntry",
+        "kind": "interface",
+        "doc": "One lair's live state.",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreHooks",
+        "kind": "interface",
+        "doc": "The view's answers to the rules' moments, all optional (a renderer-free host answers none). Each runs where the page ran it.",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreHost",
+        "kind": "interface",
+        "doc": "The world the rules read: the player's ground position and the spawn rules.",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCorePersistence",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreRecord",
+        "kind": "interface",
+        "doc": "One lair's persisted record (the page's 'ws.elites.v1' row).",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreRule",
+        "kind": "type",
+        "doc": "The named elite system's rules, renderer-free (SF72): the generic half of `Elites` (src/game/Elite.ts) with no bar, banner,",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreScript",
+        "kind": "interface",
+        "doc": "One elite's brain as the rules drive it (the page's `EliteScript` is this plus its bar fill and drop model).",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "EliteCoreState",
+        "kind": "type",
+        "doc": "",
+        "from": "@wildshard/game/eliteSystem"
+      },
+      {
+        "name": "memoryElitePersistence",
+        "kind": "function",
+        "doc": "A renderer-free host's persistence: the records live in memory (its continuation carries them).",
+        "from": "@wildshard/game/eliteSystem"
       },
       {
         "name": "EmptyNeighbour",

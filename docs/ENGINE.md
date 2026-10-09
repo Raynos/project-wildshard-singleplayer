@@ -2405,7 +2405,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-844 exports, grouped by the module to import them from.
+856 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2421,6 +2421,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/cosmetics/bodyShadow`: `BodyHost`, `BodyPlayer`, `BodyShadow`, `installBodyShadow`
 - `@wildshard/game/cosmetics/locker`: `CosmeticDef`, `CosmeticProfile`, `CosmeticsLocker`, `CosmeticState`, `SkinLocker`
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `ElitePersistence`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
+- `@wildshard/game/eliteSystem`: `EliteCore`, `EliteCoreActor`, `EliteCoreDef`, `EliteCoreEntry`, `EliteCoreHooks`, `EliteCoreHost`, `EliteCorePersistence`, `EliteCoreRecord`, `EliteCoreRule`, `EliteCoreScript`, `EliteCoreState`, `memoryElitePersistence`
 - `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPlot`, `GridPoint`, `GridSide`
 - `@wildshard/game/grid/catalogue`: `CopyIdentity`, `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `GridPlotPlacement`, `parseGridCatalogue`
 - `@wildshard/game/grid/crossing`: `GridCheckpointResult`, `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
