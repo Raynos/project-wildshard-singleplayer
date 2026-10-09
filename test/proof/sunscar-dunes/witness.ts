@@ -1,12 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete serialized continuations.
-import { createHash } from 'node:crypto';
 import { Vector3 } from 'three';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
@@ -52,7 +51,9 @@ const profile = (local: ProfileStorage): Ledger => new Ledger(new SaveStore({ lo
 /** One authoritative session: the host, the tick's lent commands and its committed effects. */
 interface Session { host: SimHost; tape: readonly HeadlessCommand[]; effects: HeadlessEffect[]; tick: HeadlessEffect[] }
 const requireValue = <T>(value: T | undefined | null, message: string): T => { if (value === undefined || value === null) throw new Error(message); return value; };
-const digest = (host: SimHost): string => createHash('sha256').update(serializeSimSnapshot(snapshotSimHost(host))).digest('hex');
+/** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts: Rapier's snapshot bytes are not canonical, so the
+ *  native world counts as the state it restores to, exactly) */
+const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function signalRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 export function signalPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return Promise.resolve(prepareHeadlessRuntime({ shard: source, assets, rapier })); }
@@ -217,24 +218,24 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const mid = encounter(original.host), hp = original.host.entities.get(MATRIARCH_ID)?.hp ?? null, checkpoint = serializeSimSnapshot(snapshotSimHost(original.host)), checkpointTick = original.host.state.tick;
     if (original.effects.length > 0) throw new Error('Checkpoint after a reward');
     restored = restore(plan, rapier, checkpoint);
-    if (serializeSimSnapshot(snapshotSimHost(restored.host)) !== checkpoint) throw new Error('Restore is not byte-exact');
+    if (digest(restored.host) !== canonicalSimDigest(checkpoint)) throw new Error('Restore is not exact');
     const commands: HeadlessCommand[][] = [], WORKER = 60;
     let victoryTick: number | null = null, atWorker = '';
     for (let i = 0; i < LIMIT; i++) {
       const tick = tape.next(original.host); commands.push(tick);
       step(original, tick); step(restored, tick);
-      if (i + 1 === WORKER) atWorker = serializeSimSnapshot(snapshotSimHost(restored.host));
+      if (i + 1 === WORKER) atWorker = digest(restored.host);
       if (victoryTick === null && original.host.flags.has(MATRIARCH_FLAG)) victoryTick = original.host.state.tick;
       if (victoryTick !== null && original.host.state.tick >= victoryTick + AFTER) break;
     }
     if (victoryTick === null) throw new Error('The suffix did not reach her fall');
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
-    // the shipping worker, started from the same checkpoint, continues to the same bytes
+    // the shipping worker, started from the same checkpoint, continues to the same state
     worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
-    if (commit?.snapshot !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
+    if (commit === undefined || canonicalSimDigest(commit.snapshot) !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
     return { status: 'passed', checkpointCaptured: true, checkpointTick, checkpoint: { state: mid.state, phase: mid.phase, storm: Number(mid.storm.toFixed(3)), hp },
       suffixTicksExecuted: commands.length, victoryTick, hash, replayHash, workerTicks: WORKER, workerExact: true, suffixFacts: facts(restored.effects), suffixCoins: coins(restored.effects) };
   } finally { await worker?.dispose(); restored?.host.dispose(); original.host.dispose(); }

@@ -1,10 +1,10 @@
 {
   "audit": {
-    "sourceRevision": "79687f85b127583782c9766d0d48c027a79f7abd",
-    "candidate": "this commit (Signal creature blows knock back, feel.blow, on that revision)",
+    "sourceRevision": "704a04d55f67a0794794b466c32c9ed87521896c",
+    "candidate": "this commit (Signal creature blows knock back, feel.blow, on that revision); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts — Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
     "exitStatus": 0,
-    "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, byte-exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
+    "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
     "runs": "two independent native processes, identical output"
   },
   "slug": "sunscar-dunes",
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 12636,
-    "hash": "b8a9fefdbd92d3160df0331ce4aa907a4b07d4af2dcd5ac534563d8fa7b34f95",
+    "hash": "d56db8f2d999557e6f6b57a9ecef87f0bbec23b4d4a3a7dd4c988387f095597a",
     "victoryTick": 12516,
     "attempts": 1,
     "questComplete": true,
@@ -41,8 +41,8 @@
     },
     "suffixTicksExecuted": 1926,
     "victoryTick": 12516,
-    "hash": "fbee75753bf985e1f5eef59a6e765ab68537c59c44a46402edab0eda8fb72feb",
-    "replayHash": "fbee75753bf985e1f5eef59a6e765ab68537c59c44a46402edab0eda8fb72feb",
+    "hash": "d56db8f2d999557e6f6b57a9ecef87f0bbec23b4d4a3a7dd4c988387f095597a",
+    "replayHash": "d56db8f2d999557e6f6b57a9ecef87f0bbec23b4d4a3a7dd4c988387f095597a",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [

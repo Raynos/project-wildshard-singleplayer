@@ -1,9 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the native physics module.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete serialized continuations.
-import { createHash } from 'node:crypto';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { canonicalSimDigest } from '../../fake/simState';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
@@ -116,7 +115,9 @@ function portals(snapshot: string): RideSaved {
   if (typeof state !== 'string') throw new Error('Missing portal ride continuation');
   return JSON.parse(state) as RideSaved;
 }
-const digest = (snapshot: string): string => createHash('sha256').update(snapshot).digest('hex');
+/** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts: Rapier's snapshot bytes are not canonical, so the
+ *  native world counts as the state it restores to, exactly) */
+const digest = (snapshot: string): string => canonicalSimDigest(snapshot);
 function jian(snapshot: string): { swings: number; hits: number; move: number | null } {
   const state = decodeSimSnapshot(snapshot).adapters.find(row => row.id === JIAN_STEP)?.state;
   if (typeof state !== 'string') throw new Error('Missing Jian continuation');

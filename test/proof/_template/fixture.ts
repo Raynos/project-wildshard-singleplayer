@@ -1,11 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Milestone witnesses execute in plain Node against admitted in-tree bytes.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete serialized continuation, including physics and script memory.
-import { createHash } from 'node:crypto';
 import { Vector3 } from 'three';
 import source from '../../../src/shards/_template/shard.config';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../../src/game/shardfile/simulation';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/game/ledger';
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot';
@@ -26,7 +25,8 @@ class ProfileStorage implements SaveStorage {
 const identity = { instance: 'template-solo', shard: source.identity.slug, revision: source.identity.revision };
 const origin = { kind: 'engine' as const, source: 'quest.complete' };
 const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
-const digest = (host: SimHost): string => createHash('sha256').update(JSON.stringify(snapshotSimHost(host))).digest('hex');
+/** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts: Rapier's snapshot bytes are not canonical) */
+const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 const requireValue = <T>(value: T | undefined, message: string): T => { if (value === undefined) throw new Error(message); return value; };
 
 export function templateRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('../../../public/assets/physics/rapier.wasm', import.meta.url))); }

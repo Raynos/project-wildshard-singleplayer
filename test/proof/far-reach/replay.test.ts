@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { skyWitness } from './native';
 
-it('resumes at the step, raises the bridge, reaches the gale-wall phase, and its checkpoint continues byte-exactly in process and in the shipping worker', () => {
+it('resumes at the step, raises the bridge, reaches the gale-wall phase, and its checkpoint continues exactly in process and in the shipping worker', () => {
   const result = skyWitness('slice-replay');
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   const report = JSON.parse(result.stdout) as { 'slice-replay': { hash: string; replayHash: string; prefixTicks: number } };

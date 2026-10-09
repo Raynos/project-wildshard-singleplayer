@@ -3,12 +3,11 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed checkpoints are gzipped snapshot wires.
 import { gunzipSync, gzipSync } from 'node:zlib';
 import * as v from 'valibot';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete serialized continuations.
-import { createHash } from 'node:crypto';
 import source from '../../../src/shards/far-reach/shard.config';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
@@ -56,7 +55,9 @@ const profile = (local: ProfileStorage): Ledger => new Ledger(new SaveStore({ lo
 /** One authoritative session: the host, the tick's lent commands and its committed effects. */
 interface Session { host: SimHost; tape: readonly HeadlessCommand[]; effects: HeadlessEffect[]; tick: HeadlessEffect[] }
 const requireValue = <T>(value: T | undefined | null, message: string): T => { if (value === undefined || value === null) throw new Error(message); return value; };
-const digest = (host: SimHost): string => createHash('sha256').update(serializeSimSnapshot(snapshotSimHost(host))).digest('hex');
+/** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts: Rapier's snapshot bytes are not canonical, so the
+ *  native world counts as the state it restores to, exactly) */
+const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function skyRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 export async function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { const plan = await prepareHeadlessRuntime({ shard: source, assets, rapier }); return plan; }
@@ -335,24 +336,24 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const mid = encounter(original.host), hp = original.host.entities.get(ROC_ID)?.hp ?? null, checkpoint = serializeSimSnapshot(snapshotSimHost(original.host)), checkpointTick = original.host.state.tick;
     const before = original.effects.length;
     restored = restore(plan, rapier, checkpoint);
-    if (serializeSimSnapshot(snapshotSimHost(restored.host)) !== checkpoint) throw new Error('Restore is not byte-exact');
+    if (digest(restored.host) !== canonicalSimDigest(checkpoint)) throw new Error('Restore is not exact');
     const commands: HeadlessCommand[][] = [], WORKER = 60;
     let victoryTick: number | null = null, atWorker = '';
     for (let i = 0; i < LIMIT; i++) {
       const tick = tape.next(original.host); commands.push(tick);
       step(original, tick); step(restored, tick);
-      if (i + 1 === WORKER) atWorker = serializeSimSnapshot(snapshotSimHost(restored.host));
+      if (i + 1 === WORKER) atWorker = digest(restored.host);
       if (victoryTick === null && original.host.flags.has(FLAGS.roc)) victoryTick = original.host.state.tick;
       if (victoryTick !== null && original.host.state.tick >= victoryTick + AFTER) break;
     }
     if (victoryTick === null) throw new Error('The suffix did not reach the Roc\'s fall');
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects.slice(before)) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
-    // the shipping worker, started from the same checkpoint, continues to the same bytes
+    // the shipping worker, started from the same checkpoint, continues to the same state
     worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
-    if (commit?.snapshot !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
+    if (commit === undefined || canonicalSimDigest(commit.snapshot) !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
     return { status: 'passed', checkpointCaptured: true, checkpointTick, checkpoint: { state: mid.state, phase: mid.phase, hp },
       suffixTicksExecuted: commands.length, victoryTick, hash, replayHash, workerTicks: WORKER, workerExact: true, suffixFacts: facts(restored.effects), suffixCoins: coins(restored.effects) };
   } finally { await worker?.dispose(); restored?.host.dispose(); original.host.dispose(); }
@@ -414,10 +415,10 @@ function playUntil(session: Session, tape: SkyTape, until: (host: SimHost) => bo
   }
   throw new Error(`The slice did not finish within ${String(limit)} ticks: ${JSON.stringify(tape.log.at(-1))}`);
 }
-/** A session resumed from a committed checkpoint, its restore proven byte-exact, and the tape where it was. */
+/** A session resumed from a committed checkpoint, its restore proven exact (canonical state), and the tape where it was. */
 function resume(plan: HeadlessRuntimePlan, rapier: Rapier, name: CheckpointName): { session: Session; tape: SkyTape; checkpoint: Checkpoint } {
   const checkpoint = readCheckpoint(name), session = restore(plan, rapier, checkpoint.snapshot);
-  if (serializeSimSnapshot(snapshotSimHost(session.host)) !== checkpoint.snapshot) { session.host.dispose(); throw new Error(`The ${name} checkpoint does not restore byte-exactly`); }
+  if (digest(session.host) !== canonicalSimDigest(checkpoint.snapshot)) { session.host.dispose(); throw new Error(`The ${name} checkpoint does not restore exactly`); }
   return { session, tape: new SkyTape(checkpoint.tape), checkpoint };
 }
 
@@ -467,7 +468,7 @@ export async function stepSlice(rapier: Rapier): Promise<object> {
   } finally { session.host.dispose(); }
 }
 
-/** Slice 2, step → the gale wall: the winch, the raised bridge, the Roc's second phase; its checkpoint restored byte-exactly, in process and in the shipping worker. */
+/** Slice 2, step → the gale wall: the winch, the raised bridge, the Roc's second phase; its checkpoint restored exactly (canonical state), in process and in the shipping worker. */
 export async function replaySlice(rapier: Rapier): Promise<object> {
   const plan = await skyPlan(rapier), { session: original, tape, checkpoint: from } = resume(plan, rapier, 'step');
   let restored: Session | undefined, worker: HeadlessSimulation | undefined;
@@ -476,20 +477,20 @@ export async function replaySlice(rapier: Rapier): Promise<object> {
     const mid = encounter(original.host), hp = original.host.entities.get(ROC_ID)?.hp ?? null, checkpoint = serializeSimSnapshot(snapshotSimHost(original.host)), checkpointTick = original.host.state.tick;
     const before = original.effects.length;
     restored = restore(plan, rapier, checkpoint);
-    if (serializeSimSnapshot(snapshotSimHost(restored.host)) !== checkpoint) throw new Error('Restore is not byte-exact');
+    if (digest(restored.host) !== canonicalSimDigest(checkpoint)) throw new Error('Restore is not exact');
     const commands: HeadlessCommand[][] = [], WORKER = 60, SUFFIX = 1500;
     let atWorker = '';
     for (let i = 0; i < SUFFIX; i++) {
       const tick = tape.next(original.host); commands.push(tick);
       step(original, tick); step(restored, tick);
-      if (i + 1 === WORKER) atWorker = serializeSimSnapshot(snapshotSimHost(restored.host));
+      if (i + 1 === WORKER) atWorker = digest(restored.host);
     }
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects.slice(before)) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
     worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
-    if (commit?.snapshot !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
+    if (commit === undefined || canonicalSimDigest(commit.snapshot) !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
     return { status: 'passed', resumedFrom: 'step', resumedTick: from.tick, prefixTicks, prefixFacts, checkpointCaptured: true, checkpointTick, checkpoint: { state: mid.state, phase: mid.phase, hp },
       suffixTicksExecuted: SUFFIX, hash, replayHash, workerTicks: WORKER, workerExact: true };
   } finally { await worker?.dispose(); restored?.host.dispose(); original.host.dispose(); }
