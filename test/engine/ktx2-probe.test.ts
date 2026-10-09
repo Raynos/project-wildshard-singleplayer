@@ -4,7 +4,7 @@
  * loads images (src/engine/boot/gpuFiles.ts texModeWhy).
  */
 import { describe, expect, it } from 'vitest';
-import { probeVeto, withoutFailing, ktx2ProbeLine, ktx2Probe, type TranscoderFlags, type Ktx2FormatResult } from '../../src/engine/render/ktx2Probe';
+import { probeVeto, withoutFailing, ktx2ProbeLine, ktx2Probe, linearAstcSurvives, type TranscoderFlags, type Ktx2FormatResult } from '../../src/engine/render/ktx2Probe';
 
 const IOS: TranscoderFlags = { astcSupported: true, etc2Supported: true, etc1Supported: true, bptcSupported: false, dxtSupported: false, pvrtcSupported: false };
 const WINDOWS: TranscoderFlags = { astcSupported: false, etc2Supported: false, etc1Supported: false, bptcSupported: true, dxtSupported: true, pvrtcSupported: false };
@@ -39,5 +39,15 @@ describe('KTX2 capability probe verdict', () => {
     expect(probe).toMatchObject({ ran: false, veto: null });
     expect(ktx2ProbeLine(probe)).toContain('no verdict');
     expect(ktx2ProbeLine(null)).toContain('not run');
+  });
+  it('img-fallback: a vetoed page keeps linear ASTC only when the linear format read right (the iOS Simulator), never on a KTX2 page', () => {
+    const ok = (format: string, family: Ktx2FormatResult['family']): Ktx2FormatResult => ({ family, format, ok: true });
+    const sim = [ok('RGBA_ASTC_4x4', 'astc'), zero('SRGB8_ALPHA8_ASTC_4x4', 'astc'), zero('RGB8_ETC2', 'etc2')];
+    const veto = probeVeto(IOS, { astc: false, etc2: false }, sim);
+    expect(linearAstcSurvives({ ran: true, note: '', families: { astc: false, etc2: false }, formats: sim, veto })).toBe(true);
+    const bothBroken = [zero('RGBA_ASTC_4x4', 'astc'), zero('SRGB8_ALPHA8_ASTC_4x4', 'astc'), zero('RGB8_ETC2', 'etc2')];
+    expect(linearAstcSurvives({ ran: true, note: '', families: { astc: false, etc2: false }, formats: bothBroken, veto })).toBe(false);
+    expect(linearAstcSurvives({ ran: true, note: '', families: { astc: true }, formats: [ok('RGBA_ASTC_4x4', 'astc')], veto: null })).toBe(false);
+    expect(linearAstcSurvives(null)).toBe(false);
   });
 });

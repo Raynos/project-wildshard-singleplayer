@@ -21,7 +21,7 @@ import { pageScope } from '../app/resources';
 import * as THREE from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { texMode, gpuFile } from '../boot/gpuFiles';
+import { texMode, gpuFile, standIn } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
 import { type Renderer, probeRenderer } from '../render/renderer';
 import { labelAsset } from '../render/gpuLabels';
@@ -30,7 +30,7 @@ import { memorySaverOn } from '../render/memorySaver';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
 import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
-import { applyKtx2Probe } from '../render/ktx2Probe';
+import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -172,6 +172,58 @@ export async function ktx2Texture(served: string, maxSize = Infinity): Promise<T
   t.generateMipmaps = false;
   if (memorySaverOn()) sources.share(t, url, Math.max(0, skip));
   return labelAsset(releaseAfterUpload(t), 'engine/ktx2Texture', url);
+}
+
+/**
+ * The image fallback's one compressed exception (E435 img-fallback): on a page the capability probe turned to images
+ * because sRGB ASTC / ETC2 mips read as zeros (the iOS Simulator), linear ASTC 4×4 still samples right, so a LINEAR UASTC
+ * file (a tangent-space normal map, a lightmap, the cloud field: bake-ktx2's `normal` / `linear` classes) keeps its KTX2
+ * stand-in — the same file and look as the KTX2 path, 1 byte a texel instead of the image's 4 (Pine Hollow's phone
+ * normal maps: ~110 MB of RGBA8). Its own loader with ASTC on (the page's loader has the whole family off); anything
+ * that does not come back as linear ASTC (an sRGB or ETC1S file) is dropped and the caller loads the image. Null on every
+ * other page: the KTX2 path and the plain images path are unchanged.
+ */
+const LINEAR_NAME = /(^|[_\-.])(nor|nor_gl|normal|nrm|lm|clouds)([_\-.]|$)/;
+let linearLoader: KTX2Loader | null = null;
+const linearTranscoded = new Map<string, Promise<THREE.CompressedTexture>>();
+function linearKtx2Loader(): KTX2Loader {
+  if (linearLoader !== null) return linearLoader;
+  const made = createLoader(), renderer = gameRenderer ?? probeRenderer();
+  try { made.detectSupport(renderer); } finally { if (renderer !== gameRenderer) { renderer.dispose(); renderer.forceContextLoss(); } }
+  applyKtx2Probe(made.workerConfig);
+  made.workerConfig.astcSupported = true; // linear ASTC passed the probe; only sRGB ASTC failed
+  linearLoader = made;
+  return made;
+}
+export async function linearKtx2Texture(served: string, maxSize = Infinity): Promise<THREE.CompressedTexture | null> {
+  if (texMode() !== 'img' || !linearAstcSurvives(ktx2ProbeResult())) return null;
+  if (!LINEAR_NAME.test(served.slice(served.lastIndexOf('/') + 1).toLowerCase())) return null;
+  const url = standIn(served, 'ktx2');
+  if (url === undefined) return null;
+  let p = linearTranscoded.get(url);
+  if (p === undefined) {
+    p = linearKtx2Loader().loadAsync(url);
+    linearTranscoded.set(url, p);
+    p.finally(() => { pageScope.timeout(0, () => { linearTranscoded.delete(url); }); }).catch(() => undefined);
+  }
+  let base: THREE.CompressedTexture;
+  try { base = await p; } catch { return null; }
+  if (base.format !== THREE.RGBA_ASTC_4x4_Format || base.colorSpace === THREE.SRGBColorSpace) return null;
+  markGpuOnly('KTX2 linear textures on the image fallback (their mips are dropped from JS once uploaded)');
+  const skip = base.mipmaps.findIndex((m) => Math.max(m.width, m.height) <= maxSize);
+  let t: THREE.CompressedTexture;
+  if (skip > 0) {
+    const mips = base.mipmaps.slice(skip), m0 = mips[0];
+    if (!m0) return null;
+    t = new THREE.CompressedTexture(mips, m0.width, m0.height, base.format, base.type);
+    t.minFilter = base.minFilter; t.magFilter = base.magFilter; t.colorSpace = base.colorSpace;
+  } else {
+    t = base.clone();
+  }
+  t.flipY = false;
+  t.generateMipmaps = false;
+  if (memorySaverOn()) sources.share(t, url, Math.max(0, skip));
+  return labelAsset(releaseAfterUpload(t), 'engine/linearKtx2Texture', url);
 }
 
 /**

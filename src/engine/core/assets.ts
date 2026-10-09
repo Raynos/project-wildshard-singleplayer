@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
-import { initKtx2, ktx2Layers, ktx2Texture, prepareCompressedTexture, releaseAfterUpload } from './ktx2';
+import { initKtx2, ktx2Layers, ktx2Texture, linearKtx2Texture, prepareCompressedTexture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
@@ -67,7 +67,8 @@ function shareSource(t: THREE.Texture, key: string, srgb: boolean, image: ImageB
  */
 export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize = TIER_CONFIG.maxTexture,
   configure?: (texture: THREE.Texture) => void): Promise<THREE.Texture> {
-  const k = await ktx2Texture(tierUrl(url), maxSize); // E157: the KTX2 stand-in, when the build has one and KTX2 is on (src/engine/core/ktx2.ts)
+  // E157: the KTX2 stand-in, when the build has one and KTX2 is on; on the image fallback, a linear file's ASTC stand-in (src/engine/core/ktx2.ts)
+  const k = await ktx2Texture(tierUrl(url), maxSize) ?? (srgb ? null : await linearKtx2Texture(tierUrl(url), maxSize));
   if (k) {
     k.wrapS = k.wrapT = THREE.RepeatWrapping;
     k.repeat.set(repeat, repeat);

@@ -262,6 +262,15 @@ export function ktx2Probe(): Ktx2Probe {
 export function ktx2ProbeResult(): Ktx2Probe | null { return result; }
 
 /**
+ * Pure: whether a page the probe turned to images can still sample LINEAR UASTC files compressed — the probe vetoed KTX2
+ * and the linear ASTC 4×4 format read right at every level. The iOS Simulator zeroes the mips of sRGB ASTC and of ETC2
+ * only, so its normal maps can stay ASTC (1 byte a texel instead of an image's 4): core/ktx2.ts linearKtx2Texture.
+ */
+export function linearAstcSurvives(probe: Ktx2Probe | null): boolean {
+  return probe !== null && probe.ran && probe.veto !== null && probe.formats.some((f) => f.format === 'RGBA_ASTC_4x4' && f.ok);
+}
+
+/**
  * Turn the families that failed the probe off in a KTX2 loader's transcoder config (the transcoder then targets the next),
  * and ETC1 always: three's texStorage2D allocation of it fails on every WebGL2 context, and ETC1 is where ETC1S goes next
  * once ETC2 is off.
