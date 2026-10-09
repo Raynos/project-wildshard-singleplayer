@@ -356,6 +356,12 @@
         "from": "@wildshard/engine/ai/hunt"
       },
       {
+        "name": "HuntSpecies",
+        "kind": "type",
+        "doc": "The species fields the hunting brain reads: a registered SpeciesDef and a renderer-free SpeciesRow both satisfy it.",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
         "name": "HuntTree",
         "kind": "interface",
         "doc": "a tree as the brain sees it (Forest's TreeInstance has these)",

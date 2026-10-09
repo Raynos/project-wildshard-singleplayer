@@ -2007,7 +2007,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2271 exports, grouped by the module to import them from.
+2272 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2020,7 +2020,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/ai/GroupBrain`: `GroupBrain`, `GroupMember`
 - `@wildshard/engine/ai/guardian`: `GuardianBrain`, `GuardianPorts`, `GuardianSpec`
 - `@wildshard/engine/ai/herd`: `HerdBrain`, `HerdContext`, `HerdMode`, `HerdPorts`, `HerdSpec`, `StallionState`
-- `@wildshard/engine/ai/hunt`: `ATTACK_TURN`, `BOAR_TUNING`, `CHARGE_ARC`, `DEER_TUNING`, `fallbackSound`, `HuntBody`, `HuntBrain`, `HuntConfig`, `HuntGround`, `HuntHerd`, `HuntMemory`, `HuntNav`, `HuntPorts`, `HuntTree`, `HuntTuning`, `HURT_ARC`, `spawnRolls`, `SpawnRolls`
+- `@wildshard/engine/ai/hunt`: `ATTACK_TURN`, `BOAR_TUNING`, `CHARGE_ARC`, `DEER_TUNING`, `fallbackSound`, `HuntBody`, `HuntBrain`, `HuntConfig`, `HuntGround`, `HuntHerd`, `HuntMemory`, `HuntNav`, `HuntPorts`, `HuntSpecies`, `HuntTree`, `HuntTuning`, `HURT_ARC`, `spawnRolls`, `SpawnRolls`
 - `@wildshard/engine/ai/inspect`: `brainInspection`, `BrainInspection`, `brainPinned`, `inspectBrain`, `inspectTick`, `pinBrain`
 - `@wildshard/engine/ai/orbitDiver`: `OrbitDiverBrain`, `OrbitDiverHome`, `OrbitDiverPorts`, `OrbitDiverSpec`
 - `@wildshard/engine/ai/pack`: `PackBrain`, `PackContext`, `PackPhase`, `PackPorts`, `PackPrey`, `PackSpec`

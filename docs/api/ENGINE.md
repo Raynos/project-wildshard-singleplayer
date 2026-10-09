@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2288 members; 843 without a doc line (—).
+2289 members; 843 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -67,6 +67,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HuntMemory` | interface | @wildshard/engine/ai/hunt | One animal's hunting-brain memory. |
 | `HuntNav` | type | @wildshard/engine/ai/hunt | — |
 | `HuntPorts` | interface | @wildshard/engine/ai/hunt | — |
+| `HuntSpecies` | type | @wildshard/engine/ai/hunt | The species fields the hunting brain reads: a registered SpeciesDef and a renderer-free SpeciesRow both satisfy it. |
 | `HuntTree` | interface | @wildshard/engine/ai/hunt | a tree as the brain sees it (Forest's TreeInstance has these) |
 | `HuntTuning` | interface | @wildshard/engine/ai/hunt | One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. |
 | `HURT_ARC` | const | @wildshard/engine/ai/hunt | — |
