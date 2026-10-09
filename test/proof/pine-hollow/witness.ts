@@ -500,7 +500,7 @@ export function gameplayProof(rapier: Rapier, from?: 'night'): ReturnType<typeof
 
 /** These omissions can change damage, inventory, quest/ledger outcomes or persistence relative to the browser. */
 export const OUTCOME_DIFFERENCES = [
-  'Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.',
+  'Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.',
   'Hale dialogue completion, input guard and cancellation are hosted; named prompt commands still omit nearest/line-of-sight selection and the other NPCs.',
   'Resin walk-in takes, the eight carved tokens and the seven-kind pack are hosted; bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.',
   'Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.',

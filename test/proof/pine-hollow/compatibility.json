@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "cb6609ec725475bc8397a00e7b6d6d2a200a0448ef7377bd919f318307b9ac37",
+  "inputs": "6c314729f5c4377b04bd50aebdfe1a347877d48da413633d1dfb9661c9e4160e",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,7 +12,7 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "8051b84eb38ef175d87d4b1d650a28e8474137817241369c8b7684be32bb75a8",
+    "hash": "68f0515a00bc0bdc733ebc09425c23fe4b78da802a34ba263770c035864b1260",
     "pack": {
       "counts": {
         "amber-resin": 2
@@ -550,8 +550,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 27851,
     "suffixTicksExecuted": 1200,
-    "hash": "d4296a5b093caebd65552e5070870ca71ecdf21dba361d29b9f02b77d081333a",
-    "replayHash": "d4296a5b093caebd65552e5070870ca71ecdf21dba361d29b9f02b77d081333a",
+    "hash": "ca0d52c4b648e45fae87f7d17d442cae8194d76aabb7d95434c6fb1903acc03f",
+    "replayHash": "ca0d52c4b648e45fae87f7d17d442cae8194d76aabb7d95434c6fb1903acc03f",
     "checkpoint": {
       "state": "fight",
       "phase": 1
@@ -773,7 +773,7 @@
     "duplicateStable": true
   },
   "outcomeDifferences": [
-    "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
+    "Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.",
     "Hale dialogue completion, input guard and cancellation are hosted; named prompt commands still omit nearest/line-of-sight selection and the other NPCs.",
     "Resin walk-in takes, the eight carved tokens and the seven-kind pack are hosted; bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
@@ -786,7 +786,7 @@
     "The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape."
   ],
   "open": [
-    "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
+    "Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.",
     "Hale dialogue completion, input guard and cancellation are hosted; named prompt commands still omit nearest/line-of-sight selection and the other NPCs.",
     "Resin walk-in takes, the eight carved tokens and the seven-kind pack are hosted; bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",

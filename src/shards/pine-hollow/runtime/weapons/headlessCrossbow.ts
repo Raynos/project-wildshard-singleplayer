@@ -7,7 +7,7 @@ import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { sticksIn } from '@wildshard/engine/physics/query';
 import { CROSSBOW_PROFILE } from '../../weapons/crossbow/profiles';
-import { boltFlightStep, PLAIN_FLIGHT } from '../../weapons/crossbow/flight';
+import { boltFlightStep, PLAIN_FLIGHT, type BoltFlight } from '../../weapons/crossbow/flight';
 import { aimAt, bodyHit, worldHit } from './headlessRanged';
 
 /** The crossbow's fixed-step id; its continuation is the bow's state and every bolt in flight. */
@@ -37,6 +37,8 @@ export interface PineCrossbowPorts {
   /** the tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
   readonly aim?: () => number;
   readonly adsBlend?: () => number;
+  /** The one weather/ammunition owner supplies the page's flight multipliers for each actual substep. */
+  readonly flight?: () => BoltFlight;
 }
 
 /**
@@ -110,7 +112,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   const fly = (b: Bolt, dt: number): void => {
     b.age += dt;
     const h = dt / SUBSTEPS;
-    for (let s = 0; s < SUBSTEPS; s++) { prev.copy(b.pos); boltFlightStep(b.pos, b.vel, h, PLAIN_FLIGHT, p); if (testHit(b)) { b.active = false; return; } }
+    for (let s = 0; s < SUBSTEPS; s++) { prev.copy(b.pos); boltFlightStep(b.pos, b.vel, h, ports.flight?.() ?? PLAIN_FLIGHT, p); if (testHit(b)) { b.active = false; return; } }
     if (Math.abs(b.pos.x) > BOUND || Math.abs(b.pos.z) > BOUND || b.pos.y < FLOOR || b.age > MAX_AGE) b.active = false;
   };
   host.onStep(CROSSBOW_STEP, dt => {

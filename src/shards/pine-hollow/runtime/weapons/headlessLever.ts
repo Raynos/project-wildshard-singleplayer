@@ -44,7 +44,8 @@ export interface PineLeverPorts {
  * four draws from the host's gameplay stream as the page's gameplayRandom), a ray through the world to 320 m, the
  * creatures' hitboxes short of the wall, and the damage model's blow ×1.5 through the host's combat pipeline. The step runs
  * the beat, the throw and the one-round-at-a-time reload, and the auto reload 0.35-5 s after a dry pull on an empty gun,
- * only while held. Headless stands still to shoot (the page's moving spread, its sights and kick are the view's).
+ * only while held. The full Pine installer lends authoritative moving spread; isolated callers without that port
+ * keep standing input. Aim blending still requires the sampled sight input; visual kick remains on the page.
  */
 export function installPineLever(host: SimHost, ports: PineLeverPorts): { readonly act: LeverAction; readonly store: { reserve: number } } {
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;

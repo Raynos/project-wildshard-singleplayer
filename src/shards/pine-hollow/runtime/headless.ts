@@ -19,6 +19,10 @@ import { PINE_DAY } from '../look/dayKeys';
 import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
 import { isPineEdgeWall, provePineEntries } from './entries';
+import { installPineAir } from './air';
+import { installPineRangedMotion } from './weapons/motion';
+import { boltFlight } from '../loadout/ammo';
+import type { PineWeatherMode } from '../world/weatherProfile';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
  *  brain's ground, the bodies' ground follow) and the navmesh (the brain's paths). Pine's shardfile admits no assets. */
@@ -134,6 +138,8 @@ export interface PineInstall {
   readonly saved?: PineRosterPorts['saved'];
   /** PineDayNight's dusk / night, held by a test (absent: the host's day clock, the page's own) */
   readonly dusk?: () => number; readonly night?: () => number;
+  /** Explicit native input setting; absent is the page's ordinary live weather. */
+  readonly weatherMode?: PineWeatherMode;
   /** the platform's fact effect (the page feat law files committed flags and creature deaths) */
   readonly fact?: (name: string, entity: string) => void;
   /** the tick's trigger pulls on the held weapon (the bodies they are aimed at; absent: none) */
@@ -155,6 +161,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: ReturnType<typeof installPineCrossbow>;
   lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof installPineLoadout>;
   quest: ReturnType<typeof installHollowQuest>;
+  air: ReturnType<typeof installPineAir>;
 } {
   const { bake, grid, nav, heightAt } = parts;
   // the page's own day clock (look/dayKeys.ts PINE_DAY, as PineDayNight builds it), stepped by the host before every step and
@@ -185,14 +192,21 @@ export function installPine(host: SimHost, parts: PineInstall): {
   const bodyBuffer: AnimalSim[] = [];
   const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
   const aim = parts.aim ?? ((): number => AIM_MIDDLE);
-  const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim });
-  const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim });
-  const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim });
+  const speedFactor = installPineRangedMotion(host);
+  // The air callback is registered after quest, but all weapon flight runs after bodies. They read that same owner.
+  let air: ReturnType<typeof installPineAir> | null = null;
+  const atmosphere = (): ReturnType<typeof installPineAir> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
+  const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
+    flight: () => boltFlight('iron', atmosphere().weather.rain) });
+  const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
+  const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,
+    wind: { vecAt: (x, z, out) => atmosphere().wind.vecAt(x, z, out) } });
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, day: () => day, night });
+  air = installPineAir(host, () => day.phase, parts.weatherMode);
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
-  return { roster, elites, king, crossbow, lever, longbow, loadout, quest };
+  return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air };
 }

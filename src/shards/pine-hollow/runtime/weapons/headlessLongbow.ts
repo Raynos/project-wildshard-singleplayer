@@ -39,7 +39,7 @@ export interface PineLongbowPorts {
   readonly bodies: () => readonly AnimalSim[];
   /** the loosing tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
   readonly aim?: () => number;
-  /** Reserved for the ONE world/weather owner; absent remains the explicit still-air outcome difference. */
+  /** The ONE world/weather owner; an isolated installer without it explicitly keeps still air. */
   readonly wind?: { vecAt: (x: number, z: number, out: Vector3) => Vector3 };
   /** Actual combat-input samples, not inferred from corrected displacement. Missing samples remain standing/hip. */
   readonly aimed?: () => number;
@@ -59,9 +59,10 @@ export interface PineLongbowPorts {
  * from the loose point × 1.35)) through the host's combat pipeline; wood and ground keep the arrow, stone glances it and a
  * glanced arrow lies on the next surface it meets.
  *
- * Known gaps: it flies in STILL AIR (the page's gusts run on the render clock `uWindTime` and the rain's `windBoost`, engine
- * world/wind.ts). The injected sampler's serialized clock belongs to the future world/weather owner; no second weather
- * is constructed here. Pickup checks follow the page's eight-update clock, saved with every stopped shaft.
+ * The full Pine installer lends its single serialized weather/gust owner and authoritative motion sample. Isolated
+ * callers without these ports keep still air/standing input. The native clock is explicit; equivalence to a variable
+ * page frame clock requires the same sampled deltas. Pickup checks follow the page's eight-update clock, saved with
+ * every stopped shaft. Aimed and mounted spread remain explicit input ports.
  */
 export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { readonly draw: BowDraw; readonly state: { arrows: number; aim: string | null }; readonly flying: () => number; readonly stuck: PineStuckArrows } {
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
