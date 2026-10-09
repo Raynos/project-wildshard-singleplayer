@@ -1,0 +1,505 @@
+{
+  "cells": {
+    "sha": "06517374684aa0d7917ea04b27b70fc7d9ca59ae",
+    "seconds": 1805.058,
+    "circuits": 4,
+    "recordedGrade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": true,
+      "gatePass": true,
+      "peakBytes": 800567389,
+      "loadingPeakBytes": 914464469,
+      "phoneEstimateBytes": 1120794344.6,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791557171.84,
+          "end": 1791557184.632,
+          "samples": 13,
+          "bytes": 754704493
+        },
+        {
+          "cycle": 1,
+          "start": 1791558031.321,
+          "end": 1791558041.375,
+          "samples": 10,
+          "bytes": 762063845
+        },
+        {
+          "cycle": 2,
+          "start": 1791558327.08,
+          "end": 1791558337.134,
+          "samples": 10,
+          "bytes": 766389221
+        },
+        {
+          "cycle": 3,
+          "start": 1791558624.889,
+          "end": 1791558635.55,
+          "samples": 10,
+          "bytes": 769322005
+        },
+        {
+          "cycle": 4,
+          "start": 1791558923.107,
+          "end": 1791558933.472,
+          "samples": 10,
+          "bytes": 772353093
+        }
+      ],
+      "baselineDeltaBytes": [
+        -11684728,
+        -4325376,
+        0,
+        2932784,
+        5963872
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": true,
+          "peakBytes": 792064229,
+          "troughBytes": 750946809
+        },
+        {
+          "cycle": 1,
+          "complete": true,
+          "peakBytes": 786849373,
+          "troughBytes": 761630661
+        },
+        {
+          "cycle": 2,
+          "complete": true,
+          "peakBytes": 779985165,
+          "troughBytes": 766136285
+        },
+        {
+          "cycle": 3,
+          "complete": true,
+          "peakBytes": 800567389,
+          "troughBytes": 769232885
+        },
+        {
+          "cycle": 4,
+          "complete": false,
+          "peakBytes": 781426365,
+          "troughBytes": 772214821
+        }
+      ],
+      "recovery": true,
+      "calibration": true,
+      "ratios": [
+        {
+          "cycle": 1,
+          "raw": 1.7568629594280314,
+          "adjusted": 1.0652425771116267
+        },
+        {
+          "cycle": 2,
+          "raw": 1.7668346867706388,
+          "adjusted": 1.075214304454234
+        },
+        {
+          "cycle": 3,
+          "raw": 1.7735959307417435,
+          "adjusted": 1.0819755484253388
+        },
+        {
+          "cycle": 4,
+          "raw": 1.7805838048797258,
+          "adjusted": 1.088963422563321
+        }
+      ],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "template-1",
+        "template-2",
+        "template-3",
+        "driftwood-isle",
+        "template-4",
+        "template-5"
+      ],
+      "refused": [],
+      "attemptedEveryCell": true,
+      "crossroads": 16,
+      "rehearsal": false,
+      "limitation": null
+    },
+    "functionalPass": true,
+    "errors": [],
+    "losses": [],
+    "windows": [
+      {
+        "cycle": 0,
+        "start": 1791557171.84,
+        "end": 1791557184.632,
+        "samples": 13,
+        "webContentMedian": 511741624,
+        "glMedian": 242962869,
+        "combinedMedian": 754704493,
+        "accountedMedian": 433262890,
+        "gpuProcessMedian": 177752608
+      },
+      {
+        "cycle": 1,
+        "start": 1791558031.321,
+        "end": 1791558041.375,
+        "samples": 10,
+        "webContentMedian": 516722456,
+        "glMedian": 245341389,
+        "combinedMedian": 762063845,
+        "accountedMedian": 433763966,
+        "gpuProcessMedian": 196168248
+      },
+      {
+        "cycle": 2,
+        "start": 1791558327.08,
+        "end": 1791558337.134,
+        "samples": 10,
+        "webContentMedian": 521047832,
+        "glMedian": 245341389,
+        "combinedMedian": 766389221,
+        "accountedMedian": 433763966,
+        "gpuProcessMedian": 197659216
+      },
+      {
+        "cycle": 3,
+        "start": 1791558624.889,
+        "end": 1791558635.55,
+        "samples": 10,
+        "webContentMedian": 523980616,
+        "glMedian": 245341389,
+        "combinedMedian": 769322005,
+        "accountedMedian": 433763966,
+        "gpuProcessMedian": 198003280
+      },
+      {
+        "cycle": 4,
+        "start": 1791558923.107,
+        "end": 1791558933.472,
+        "samples": 10,
+        "webContentMedian": 527011704,
+        "glMedian": 245341389,
+        "combinedMedian": 772353093,
+        "accountedMedian": 433763966,
+        "gpuProcessMedian": 198019664
+      }
+    ],
+    "perLap": [
+      {
+        "cycle": 0,
+        "complete": true,
+        "samples": 853,
+        "peakBytes": 792064229,
+        "troughBytes": 750946809,
+        "webContentPeakBytes": 544329496,
+        "allWebContentPeakBytes": 576411912,
+        "glPeakBytes": 249126125,
+        "accountedPeakBytes": 441121008,
+        "gpuProcessPeakBytes": 199658064,
+        "wasmPeakBytes": 52559872,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 1,
+        "complete": true,
+        "samples": 295,
+        "peakBytes": 786849373,
+        "troughBytes": 761630661,
+        "webContentPeakBytes": 541462296,
+        "allWebContentPeakBytes": 572725512,
+        "glPeakBytes": 249126125,
+        "accountedPeakBytes": 441009108,
+        "gpuProcessPeakBytes": 200886864,
+        "wasmPeakBytes": 52559872,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 2,
+        "complete": true,
+        "samples": 298,
+        "peakBytes": 779985165,
+        "troughBytes": 766136285,
+        "webContentPeakBytes": 532582216,
+        "allWebContentPeakBytes": 569055544,
+        "glPeakBytes": 249126125,
+        "accountedPeakBytes": 441009108,
+        "gpuProcessPeakBytes": 200755792,
+        "wasmPeakBytes": 52559872,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 3,
+        "complete": true,
+        "samples": 296,
+        "peakBytes": 800567389,
+        "troughBytes": 769232885,
+        "webContentPeakBytes": 555421536,
+        "allWebContentPeakBytes": 585996624,
+        "glPeakBytes": 249126125,
+        "accountedPeakBytes": 441009108,
+        "gpuProcessPeakBytes": 200084048,
+        "wasmPeakBytes": 52559872,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 4,
+        "complete": false,
+        "samples": 56,
+        "peakBytes": 781426365,
+        "troughBytes": 772214821,
+        "webContentPeakBytes": 536039288,
+        "allWebContentPeakBytes": 568170856,
+        "glPeakBytes": 246719865,
+        "accountedPeakBytes": 435468754,
+        "gpuProcessPeakBytes": 199199312,
+        "wasmPeakBytes": 52559872,
+        "overCapBytes": 0
+      }
+    ],
+    "maxSampleGap": 1.0299999999999727,
+    "nativeLoad": {
+      "min": 5.09,
+      "max": 179.04,
+      "mean": 33.89
+    },
+    "glSampling": {
+      "journal": 32,
+      "observed": 1841,
+      "missing": 0,
+      "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+    }
+  },
+  "road": {
+    "sha": "06517374684aa0d7917ea04b27b70fc7d9ca59ae",
+    "seconds": 1804.432,
+    "circuits": 3,
+    "recordedGrade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": true,
+      "gatePass": true,
+      "peakBytes": 809115781,
+      "loadingPeakBytes": 954962329,
+      "phoneEstimateBytes": 1132762093.3999999,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791559054.509,
+          "end": 1791559064.644,
+          "samples": 10,
+          "bytes": 757178501
+        },
+        {
+          "cycle": 1,
+          "start": 1791559566.42,
+          "end": 1791559576.466,
+          "samples": 10,
+          "bytes": 751999629
+        },
+        {
+          "cycle": 2,
+          "start": 1791560036.512,
+          "end": 1791560046.844,
+          "samples": 10,
+          "bytes": 751803021
+        },
+        {
+          "cycle": 3,
+          "start": 1791560506.796,
+          "end": 1791560516.845,
+          "samples": 10,
+          "bytes": 752147085
+        }
+      ],
+      "baselineDeltaBytes": [
+        5375480,
+        196608,
+        0,
+        344064
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": true,
+          "peakBytes": 809115781,
+          "troughBytes": 750582125
+        },
+        {
+          "cycle": 1,
+          "complete": true,
+          "peakBytes": 764711325,
+          "troughBytes": 750162869
+        },
+        {
+          "cycle": 2,
+          "complete": true,
+          "peakBytes": 765210829,
+          "troughBytes": 750546997
+        },
+        {
+          "cycle": 3,
+          "complete": false,
+          "peakBytes": 762206801,
+          "troughBytes": 750841909
+        }
+      ],
+      "recovery": true,
+      "calibration": true,
+      "ratios": [
+        {
+          "cycle": 1,
+          "raw": 1.7975635066412894,
+          "adjusted": 1.0804500517988975
+        },
+        {
+          "cycle": 2,
+          "raw": 1.7970935391675238,
+          "adjusted": 1.0799800843251322
+        },
+        {
+          "cycle": 3,
+          "raw": 1.7979159822466135,
+          "adjusted": 1.0808025274042217
+        }
+      ],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [],
+      "refused": [],
+      "attemptedEveryCell": true,
+      "crossroads": 16,
+      "rehearsal": false,
+      "limitation": null
+    },
+    "functionalPass": true,
+    "errors": [],
+    "losses": [],
+    "windows": [
+      {
+        "cycle": 0,
+        "start": 1791559054.509,
+        "end": 1791559064.644,
+        "samples": 10,
+        "webContentMedian": 514215632,
+        "glMedian": 242962869,
+        "combinedMedian": 757178501,
+        "accountedMedian": 433262890,
+        "gpuProcessMedian": 181258808
+      },
+      {
+        "cycle": 1,
+        "start": 1791559566.42,
+        "end": 1791559576.466,
+        "samples": 10,
+        "webContentMedian": 509284096,
+        "glMedian": 242715533,
+        "combinedMedian": 751999629,
+        "accountedMedian": 418343845,
+        "gpuProcessMedian": 196217448
+      },
+      {
+        "cycle": 2,
+        "start": 1791560036.512,
+        "end": 1791560046.844,
+        "samples": 10,
+        "webContentMedian": 509087488,
+        "glMedian": 242715533,
+        "combinedMedian": 751803021,
+        "accountedMedian": 418343845,
+        "gpuProcessMedian": 193727080
+      },
+      {
+        "cycle": 3,
+        "start": 1791560506.796,
+        "end": 1791560516.845,
+        "samples": 10,
+        "webContentMedian": 509431552,
+        "glMedian": 242715533,
+        "combinedMedian": 752147085,
+        "accountedMedian": 418343845,
+        "gpuProcessMedian": 195545704
+      }
+    ],
+    "perLap": [
+      {
+        "cycle": 0,
+        "complete": true,
+        "samples": 509,
+        "peakBytes": 777127613,
+        "troughBytes": 750582125,
+        "webContentPeakBytes": 533417704,
+        "allWebContentPeakBytes": 571857136,
+        "glPeakBytes": 247800269,
+        "accountedPeakBytes": 434054622,
+        "gpuProcessPeakBytes": 198871656,
+        "wasmPeakBytes": 52428800,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 1,
+        "complete": true,
+        "samples": 470,
+        "peakBytes": 764711325,
+        "troughBytes": 750162869,
+        "webContentPeakBytes": 516951808,
+        "allWebContentPeakBytes": 553572640,
+        "glPeakBytes": 247800269,
+        "accountedPeakBytes": 433459098,
+        "gpuProcessPeakBytes": 196627048,
+        "wasmPeakBytes": 52297728,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 2,
+        "complete": true,
+        "samples": 467,
+        "peakBytes": 765210829,
+        "troughBytes": 750546997,
+        "webContentPeakBytes": 517787392,
+        "allWebContentPeakBytes": 554408224,
+        "glPeakBytes": 247800269,
+        "accountedPeakBytes": 433742466,
+        "gpuProcessPeakBytes": 198199912,
+        "wasmPeakBytes": 52297728,
+        "overCapBytes": 0
+      },
+      {
+        "cycle": 3,
+        "complete": false,
+        "samples": 349,
+        "peakBytes": 762206801,
+        "troughBytes": 750841909,
+        "webContentPeakBytes": 517934848,
+        "allWebContentPeakBytes": 554555680,
+        "glPeakBytes": 245549181,
+        "accountedPeakBytes": 432634218,
+        "gpuProcessPeakBytes": 196708968,
+        "wasmPeakBytes": 52297728,
+        "overCapBytes": 0
+      }
+    ],
+    "maxSampleGap": 1.1599999999999966,
+    "nativeLoad": {
+      "min": 6.66,
+      "max": 78.8,
+      "mean": 30.01
+    },
+    "glSampling": {
+      "journal": 15,
+      "observed": 1835,
+      "missing": 0,
+      "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+    }
+  },
+  "machineLoad": {
+    "min": 5.09423828125,
+    "max": 206.44970703125,
+    "mean": 35.5267734766604,
+    "samples": 399
+  }
+}

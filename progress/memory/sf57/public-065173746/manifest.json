@@ -1,0 +1,22 @@
+{
+  "sha": "06517374684aa0d7917ea04b27b70fc7d9ca59ae",
+  "out": "/private/tmp/claude-501/sp-builders/sp-x3/sf57-qualifying-065173746-20261009",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4400/",
+      "version": {
+        "build": "0651737-mv12r28y",
+        "time": "2026-10-09T14:42:42.080Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells",
+    "road"
+  ],
+  "rehearsal": false
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "raw": "invocation.json",
+    "archive": "invocation.json",
+    "rawBytes": 475,
+    "rawSha256": "9435b5fa2cb1ec336fe437ae2f734a2c02a51fc7d2fea1c1fd9deff68b9362b6"
+  },
+  {
+    "raw": "machine-load.jsonl",
+    "archive": "machine-load.jsonl.gz",
+    "rawBytes": 32342,
+    "rawSha256": "4666dfd50746ddf257eda174de2586eef6f8e5eca8db2ce4bd741d20631bd452"
+  },
+  {
+    "raw": "manifest.json",
+    "archive": "manifest.json",
+    "rawBytes": 482,
+    "rawSha256": "a64200466d882173c31f3e14354230ea879dade7468217de50971e85cc0b0eec"
+  },
+  {
+    "raw": "parent-pid.json",
+    "archive": "parent-pid.json",
+    "rawBytes": 34,
+    "rawSha256": "61229155b171486d1e5679703b269b1a628797239b04df7cd676389f0c34f1c2"
+  },
+  {
+    "raw": "parent.log",
+    "archive": "parent.log.gz",
+    "rawBytes": 15986,
+    "rawSha256": "a92da055bb2243d3f05e660aefb9f629a015b368b28e65db6dbf6af91ed90125"
+  },
+  {
+    "raw": "shipped-cells-gl-events.jsonl",
+    "archive": "shipped-cells-gl-events.jsonl.gz",
+    "rawBytes": 23470480,
+    "rawSha256": "fba467bc48fd08909bf172f9b32b095fca92520f7c60e5e3f5ad85dfd842c02f"
+  },
+  {
+    "raw": "shipped-cells-gl-uploads.jsonl",
+    "archive": "shipped-cells-gl-uploads.jsonl.gz",
+    "rawBytes": 0,
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "raw": "shipped-cells-gl.jsonl",
+    "archive": "shipped-cells-gl.jsonl.gz",
+    "rawBytes": 340247917,
+    "rawSha256": "b5f312c943a1fb07e76a7f6603810cd5439f24969a9bb54fca89c7bf84e683e3"
+  },
+  {
+    "raw": "shipped-cells-native.jsonl",
+    "archive": "shipped-cells-native.jsonl.gz",
+    "rawBytes": 501750,
+    "rawSha256": "c0cf50fa13d1d369bb2bec20bc5d46cc1956ed79f67db31ca9367e08a4dfef4b"
+  },
+  {
+    "raw": "shipped-cells.json",
+    "archive": "shipped-cells.json",
+    "rawBytes": 7890846,
+    "rawSha256": "8bbd059284b79a0f669805ab59a4bbabc8f8efcefe37b504f14f0463af655b71"
+  },
+  {
+    "raw": "shipped-cells.phase",
+    "archive": "shipped-cells.phase.gz",
+    "rawBytes": 4,
+    "rawSha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+  },
+  {
+    "raw": "shipped-road-gl-events.jsonl",
+    "archive": "shipped-road-gl-events.jsonl.gz",
+    "rawBytes": 20799873,
+    "rawSha256": "5b7666b2839f835e7b212022c1dd6b393386950c4b16b1d2849c69e5ec346001"
+  },
+  {
+    "raw": "shipped-road-gl-uploads.jsonl",
+    "archive": "shipped-road-gl-uploads.jsonl.gz",
+    "rawBytes": 0,
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "raw": "shipped-road-gl.jsonl",
+    "archive": "shipped-road-gl.jsonl.gz",
+    "rawBytes": 292280674,
+    "rawSha256": "5013500e64b110586ed6f1b96aaeda7c79a5b25d3907725530806f6130360b0c"
+  },
+  {
+    "raw": "shipped-road-native.jsonl",
+    "archive": "shipped-road-native.jsonl.gz",
+    "rawBytes": 495241,
+    "rawSha256": "d9b036144863612063fabdeb3c60e15d3496db6336e7b1980ea0d87c2df97bee"
+  },
+  {
+    "raw": "shipped-road.json",
+    "archive": "shipped-road.json",
+    "rawBytes": 6522808,
+    "rawSha256": "49f418830d2c8d73832e41fb92f904532efaf062dde28ffcb9ef02de62244031"
+  },
+  {
+    "raw": "shipped-road.phase",
+    "archive": "shipped-road.phase.gz",
+    "rawBytes": 4,
+    "rawSha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+  },
+  {
+    "raw": "splits.json",
+    "archive": "splits.json",
+    "rawBytes": 13209,
+    "rawSha256": "155a4ff38b510b0e1d2be79e5a5dc6a45b68d15b9a2e7168982d2dd62fcb7569"
+  }
+]

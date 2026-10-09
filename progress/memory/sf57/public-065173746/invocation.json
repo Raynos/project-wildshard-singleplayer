@@ -1,0 +1,16 @@
+{
+  "sha": "06517374684aa0d7917ea04b27b70fc7d9ca59ae",
+  "command": [
+    "node",
+    "scripts/soak/soak.mjs",
+    "--prepare",
+    "--rev=06517374684aa0d7917ea04b27b70fc7d9ca59ae",
+    "--layouts=shipped",
+    "--legs=cells,road",
+    "--route-scope=catalogue",
+    "--qualifying",
+    "--out=/private/tmp/claude-501/sp-builders/sp-x3/sf57-qualifying-065173746-20261009"
+  ],
+  "started": 1791556918.6669388,
+  "cwd": "/Users/raynos/projects/games/wildshard-singleplayer"
+}
