@@ -3,7 +3,7 @@ import { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { groupBrain } from '@wildshard/sdk/groupBrains';
 import { Pack, HorseHerd, type PackController, type PackPrey, type HerdController } from './groupRegistry';
-import { nativePackPorts, nativeHerdPorts, type NativeGroupHost } from './groupPorts';
+import { nativePackPorts, nativeHerdPorts, PAGE_GROUP_WORLD, type NativeGroupHost } from './groupPorts';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../data/brains';
 
 /** Stable native prey/actor identities for raid, flock and elite continuation; no invented guest control protocol. */
@@ -20,7 +20,7 @@ export interface NativeGroupFactories {
 function declaredPack(members: Animal[], x: number, z: number, identity: NativeGroupIdentity, host: NativeGroupHost): PackBrain<Animal> {
     const data = groupBrain({ ...NALATI_PACK_BRAIN, home: [x, z], members: members.map(actor => actor.entityId) });
     if (data.kind !== 'pack') throw new Error('Invalid pack declaration');
-    const policy = new PackBrain(members, x, z, data, { ...nativePackPorts(host),
+    const policy = new PackBrain(members, x, z, data, { ...nativePackPorts(host, PAGE_GROUP_WORLD),
       preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
     policy.initialize(); Pack.register(policy); return policy;
 }
@@ -28,7 +28,7 @@ function declaredHerd(members: Animal[], identity: NativeGroupIdentity, host: Na
     const data = groupBrain({ ...NALATI_HERD_BRAIN, members: members.map(actor => actor.entityId) });
     if (data.kind !== 'herd') throw new Error('Invalid herd declaration');
     const view: Pick<HerdController, 'findWolf'> = { findWolf: undefined };
-    const policy = Object.assign(new HerdBrain(members, data, { ...nativeHerdPorts(host), resolveActor: identity.resolveActor }), view);
+    const policy = Object.assign(new HerdBrain(members, data, { ...nativeHerdPorts(host, PAGE_GROUP_WORLD), resolveActor: identity.resolveActor }), view);
     policy.findThreat = (x, z, radius) => policy.findWolf?.(x, z, radius) ?? null;
     const adopt = policy.adoptStallion.bind(policy);
     policy.adoptStallion = actor => { adopt(actor); HorseHerd.register(policy); };

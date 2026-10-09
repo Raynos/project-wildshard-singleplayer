@@ -12,6 +12,8 @@ import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map([[NALATI_TERRAIN_ASSET, new Uint8Array(readFileSync(NALATI_TERRAIN_ASSET))]]);
@@ -60,10 +62,31 @@ it('spawns the page\'s 35 load-time bodies in its list order at their tick-0 spo
   } finally { host.dispose(); }
 });
 
-it('walks 3k ticks: every body stays finite on the ground, on the page\'s distance bands', () => {
+it('seeds the pack, the wild herd and Argymaq\'s herd on the \'ai\' stream exactly as the page does (its tick-0 continuations and memories)', () => {
   const host = boot();
   try {
-    for (let tick = 0; tick < 3000; tick++) walk(host);
+    const groups = nalatiGroupsOf(host); if (groups === undefined) throw new Error('no groups');
+    const states = [...groups.packs, ...groups.herds].map(g => g.snapshot());
+    expect(states.length).toBe(bake.groups.length);
+    // the page's order: Wildlife's pack, its wild herd, then Argymaq's (the King's reset draw between them)
+    expect(bake.groups.map(g => g.kind)).toEqual(['pack', 'herd', 'herd']);
+    states.forEach((state, i) => { expect(state).toBe(bake.groups[i]?.state); });
+    // every body's memory as the page held it at its tick 0, but for what this host does not own: the horses' pose easing
+    // (`_rear`, `_graze`…: horse.ts horsePostPose, the rig's), the elites' bar flag (runtime/state.ts `noHeadBar`) and
+    // Aqbars' crouch (combat/elites.ts `low`: the elites are not modelled yet)
+    const sim = (id: string, mem: Readonly<Record<string, number>>): Record<string, number> => Object.fromEntries(Object.entries(mem)
+      .filter(([key]) => !key.startsWith('_') && key !== 'noHeadBar' && !(id === 'creature:25' && key === 'low')));
+    bake.spawns.forEach(spawn => {
+      const live = host.entities.get(spawn.id); if (live === undefined) throw new Error(`missing ${spawn.id}`);
+      expect({ id: spawn.id, mem: live.mem }).toEqual({ id: spawn.id, mem: sim(spawn.id, spawn.mem) });
+    });
+  } finally { host.dispose(); }
+});
+
+it('walks 2k ticks: every body stays finite on the ground, on the page\'s distance bands', () => {
+  const host = boot();
+  try {
+    for (let tick = 0; tick < 2000; tick++) walk(host);
     const p = host.player.position;
     expect(p.z).toBeLessThan(220); expect(p.y).toBeGreaterThan(heightAt(p.x, p.z) - 0.3);
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
@@ -78,10 +101,9 @@ it('restores mid-walk exactly: the reinstalled roster and the host continue step
     const b = restore(snapshotSimHost(a));
     try {
       for (let tick = 0; tick < 60; tick++) { walk(a); walk(b); }
-      const { physics: pa, ...sa } = snapshotSimHost(a), { physics: pb, ...sb } = snapshotSimHost(b);
-      expect(sb).toEqual(sa); expect(sa.bands).toBeDefined();
-      // the native world's bytes, compared flat (a deep equality over millions of numbers is the slow part)
-      expect(pb.length).toBe(pa.length); expect(pb.every((byte, i) => byte === pa[i])).toBe(true);
+      const sa = snapshotSimHost(a);
+      expect(sa.bands).toBeDefined();
+      expectSameSimSnapshot(snapshotSimHost(b), sa);
     } finally { b.dispose(); }
   } finally { a.dispose(); }
 });

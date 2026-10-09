@@ -20,7 +20,8 @@ const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(NALATI_GROUND_RES - 1), cols: v.literal(NALATI_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
   solids: v.array(Solid), actors: v.array(Actor), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })),
   trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])),
-  spawns: v.array(v.strictObject({ id: v.string(), at: triple, yaw: finite })) });
+  spawns: v.array(v.strictObject({ id: v.string(), at: triple, yaw: finite, mem: v.record(v.string(), v.nullable(finite)) })),
+  groups: v.array(v.strictObject({ kind: v.picklist(['pack', 'herd']), members: v.array(v.string()), state: v.string() })) });
 
 /** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
 export interface NalatiSolid {
@@ -41,9 +42,15 @@ export interface NalatiBake {
   readonly trees: readonly (readonly [number, number, number])[];
   /** every body's spot and heading at its tick 0 (the frame it first exists, before the manager moves it), in the list's order */
   readonly spawns: readonly NalatiBakedSpawn[];
+  /** each declared group (Wildlife's packs, then its herds, Argymaq's last) as it stood at its tick 0: its members and its
+   *  PackBrain / HerdBrain continuation (`snapshot()`), before it first decides */
+  readonly groups: readonly NalatiBakedGroup[];
 }
-/** A body's tick-0 pose as the page placed it: its id, its spot (on the creature floor) and its heading. */
-export interface NalatiBakedSpawn { readonly id: string; readonly at: readonly [number, number, number]; readonly yaw: number }
+/** A declared group at its tick 0: 'pack' or 'herd', its members' ids in the policy's order, its continuation string. */
+export interface NalatiBakedGroup { readonly kind: 'pack' | 'herd'; readonly members: readonly string[]; readonly state: string }
+/** A body's tick-0 pose as the page placed it: its id, its spot (on the creature floor), its heading and its memory (the
+ *  group policies' setup draws, the owned flags). */
+export interface NalatiBakedSpawn { readonly id: string; readonly at: readonly [number, number, number]; readonly yaw: number; readonly mem: Readonly<Record<string, number>> }
 
 const bytesOf = (text: string): Uint8Array => Uint8Array.from(atob(text), c => c.codePointAt(0) ?? 0);
 const floats = (text: string): Float32Array => new Float32Array(bytesOf(text).buffer);
@@ -64,8 +71,11 @@ export function nalatiBake(): NalatiBake {
   });
   const ids = new Set(bake.actors.map(actor => actor.id));
   if (ids.size !== bake.actors.length || !bake.herds.every(herd => herd.members.every(id => ids.has(id)))
-    || bake.spawns.length !== bake.actors.length || bake.spawns.some((spawn, i) => spawn.id !== bake.actors[i]?.id)) throw new Error('Nalati baked roster is not one id per body');
+    || bake.spawns.length !== bake.actors.length || bake.spawns.some((spawn, i) => spawn.id !== bake.actors[i]?.id)
+    || !bake.groups.every(group => group.members.every(id => ids.has(id)))) throw new Error('Nalati baked roster is not one id per body');
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
-    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees, spawns: bake.spawns };
+    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees,
+    // a never-hit body's hit time is -Infinity, which JSON writes as null (AnimalSim's own snapshot encodes it so)
+    spawns: bake.spawns.map(spawn => ({ ...spawn, mem: Object.fromEntries(Object.entries(spawn.mem).map(([key, value]) => [key, value ?? -Infinity])) })), groups: bake.groups };
   return parsed;
 }

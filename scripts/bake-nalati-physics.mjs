@@ -4,7 +4,7 @@
 // solid world collider (POIs, crags, outcrops, the kurgan, the bridge, the camps, props), the registry pieces' metadata,
 // the lone spruces' trunk circles, and the bodies AnimalManager simulates at load (Wildlife's wolf pack, the wild herd with
 // its stallion, the flock's dog and the camp's two saddled horses) with their model-derived simulation specs, seeds, scales,
-// herd membership and tick-0 spots and headings. Two independent same-page captures must match exactly.
+// herd membership, tick-0 spots, headings and memories, and the declared groups' tick-0 continuations. Two independent same-page captures must match exactly.
 // scripts/browser-lane.sh node scripts/bake-nalati-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -32,13 +32,24 @@ try {
   // (test/shards/nalati-grasslands/boot-roster.test.ts). Read on first sight, so a body spawned later is caught at its own
   // tick 0. The one exception is the shepherd's horse (creatures/sheepRaid.ts): ride.ts builds him before the page exposes
   // its manager, and his ring has turned him a frame's worth by first sight (his spot is still exact)
+  // the harness pin: the page's random streams from the level's own seed (session.ts pageSeed), as a renderer-free host
+  // seeds them, instead of the live page's per-load salt; the groups' setup draws on the 'ai' stream are then the host's
+  await page.addInitScript(() => { window.__wildshardHarness = { seed: 0x4a1a, capture: null }; });
+  // The same first sight reads each body's memory (the group policies' setup draws: a wolf's role, offset and ring) and
+  // each declared group's continuation (PackBrain / HerdBrain `snapshot()`: the herd's first grazing spot, Argymaq's
+  // adoption), before any of them decides: the renderer-free runtime's groups are checked against them on the 'ai' stream
   await page.addInitScript(() => {
-    const seen = new Map(), raf = window.requestAnimationFrame.bind(window);
-    window.__nalatiSpawns = seen;
+    const seen = new Map(), groups = new Map(), raf = window.requestAnimationFrame.bind(window);
+    window.__nalatiSpawns = seen; window.__nalatiGroups = groups;
     window.requestAnimationFrame = onFrame => raf(time => {
       for (const a of window.__wildshard?.world?.animals?.animals ?? []) {
-        if (!seen.has(a.entityId)) seen.set(a.entityId, { id: a.entityId, at: [a.position.x, a.position.y, a.position.z], yaw: a.yaw });
+        if (!seen.has(a.entityId)) seen.set(a.entityId, { id: a.entityId, at: [a.position.x, a.position.y, a.position.z], yaw: a.yaw, mem: { ...a.mem } });
       }
+      const wildlife = window.__wildshard?.world?.game?.app?.debug?.snapshot?.().nalati?.wildlife;
+      for (const [kind, list] of [['pack', wildlife?.packs ?? []], ['herd', wildlife?.herds ?? []]]) list.forEach((group, i) => {
+        const key = `${kind}:${i}`;
+        if (!groups.has(key)) groups.set(key, { kind, members: group.members.map(m => m.entityId), state: group.snapshot() });
+      });
       onFrame(time);
     });
   });
@@ -102,11 +113,12 @@ try {
       solids.push(row);
     });
     const spawns = actors.map(a => { const row = window.__nalatiSpawns.get(a.id); if (row === undefined) throw new Error(`No tick-0 spawn for ${a.id}`); return row; });
-    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids, spawns };
+    const groups = [...window.__nalatiGroups.values()];
+    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids, spawns, groups };
     const nalati = g.app.debug.snapshot().nalati;
     return { kinds, actors: actors.map(a => `${a.id} ${a.kind}.${a.variant} herd ${a.herd}${a.scripted ? ' scripted' : ''}`), herds, trees: trees.length, pieces: pieces.length, solids: solids.length,
       solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ rows: gr.rows, cols: gr.cols, scale: gr.scale, at: gr.at, friction: gr.friction, groups: gr.groups, heights: gr.heights.length })),
-      spawns, clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
+      spawns, groups, clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -118,7 +130,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Nalati bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces, spawns: first.spawns };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces, spawns: first.spawns, groups: first.groups };
     writeFileSync(resolve(root, 'src/shards/nalati-grasslands/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-nalati-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }

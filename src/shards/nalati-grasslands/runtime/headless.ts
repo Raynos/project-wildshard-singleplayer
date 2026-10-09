@@ -9,6 +9,7 @@ import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, nalatiBake, type NalatiBake, typ
 import { nalatiBootRoster, type NalatiBootBody, type NalatiBootClock } from './bootRoster';
 import { TERRAIN } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
+import { installNalatiGroups } from './groups';
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
@@ -85,9 +86,10 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * Nalati Grasslands' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
  * world (the terrain heightfield as Rapier built it and every solid WORLD collider; `ground: false`), the page's terrain grid
  * as the height query, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
- * restored exactly by an identical install before the host restores. Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati3.md): the pack's and the herds' decisions (PackBrain / HerdBrain over the
- * native group ports), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
+ * restored exactly by an identical install before the host restores, and the declared groups (runtime/groups.ts: the pack,
+ * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them). Not yet owned (fail-closed, see
+ * progress/shard-platform/handoffs/sf72-nalati4.md): the groups' decisions (their wild view: the grass field, its trample
+ * map, the wind and the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
  * weapons, the day clock past the boot's day, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -99,6 +101,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   return { level, ports: { ground: false, heightAt }, install: host => {
     // the creature floor casts into this world at install, restoring too (the saved physics then replaces it)
     addNalatiWorld(host, bake);
-    installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y });
+    const bodies = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y }), normal = bakedSamplers(grid).normalAt;
+    // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
+    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1] });
   } };
 };
