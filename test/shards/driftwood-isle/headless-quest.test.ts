@@ -64,12 +64,16 @@ function barrelBody(host: SimHost): BarrelBody {
  * The tide puzzle by play (the stick only), closed loop, so its outcome never hinges on the last bits of a tip or a roll:
  * each move reads where the barrel lies and how, then pushes it straight at plate b along one of its own axes (along its
  * length it is shoved, across it it rolls; standing, it tips the way it is pushed), from behind, centred, slowly near the
- * end, and is judged by where the barrel got to; the next move starts from there, until it rests on the plate.
+ * end, and is judged by where the barrel got to; the next move starts from there, until it rests on the plate. The cove's
+ * crabs are cleared first (one scuttling into the barrel shoves it off the plate), and a barrel wedged where no push
+ * moves it (across the lane between the two blocks) is walked into until the never-jam rule sends it home.
  */
 function pushBarrelOntoPlateB(host: SimHost): void {
+  clearCrabs(host, row('tide-plate-b'), 20);
   const home = row('tide-barrel'), plateB = row('tide-plate-b'), body = barrelBody(host), at = (): { x: number; y: number; z: number } => body.translation();
   put(host, home.x + 0.9, home.y + 0.3, home.z - 2.5);
-  for (let move = 0; move < 12; move++) {
+  let stuck = 0;
+  for (let move = 0; move < 16; move++) {
     const c = at(), dx = plateB.x - c.x, dz = plateB.z - c.z, d = Math.hypot(dx, dz);
     if (d < 0.35 || (d < 0.7 && host.flags.has('plate:tide-plate-b'))) return;
     // the barrel's length in the world (its body's local y), level when it lies on its side
@@ -94,6 +98,16 @@ function pushBarrelOntoPlateB(host: SimHost): void {
       rest = Math.hypot(b.x - last.x, b.z - last.z) < 1e-3 && Math.hypot(p.x - b.x, p.z - b.z) < 1 ? rest + 1 : 0; last = b;
     }
     for (let tick = 0; tick < 45; tick++) steer(host, 0, 0);
+    // wedged (twice no further): the page's never-jam rule, by play — walk hard into it until it goes home, and start again
+    const moved = at(); stuck = Math.hypot(moved.x - c.x, moved.z - c.z) < 0.1 ? stuck + 1 : 0;
+    if (stuck < 2) continue;
+    for (let tick = 0; tick < 400; tick++) {
+      const b = at(), p = host.player.position, dx2 = b.x - p.x, dz2 = b.z - p.z, d2 = Math.hypot(dx2, dz2);
+      if (Math.hypot(b.x - home.x, b.z - home.z) < 0.5) break;
+      steer(host, dx2 / d2, dz2 / d2);
+    }
+    stuck = 0;
+    walk(host, [{ x: plateB.x - 0.4, z: plateB.z - 1.1 }, { x: home.x - 0.9, z: home.z + 2 }]);
   }
 }
 /** plate b's ring at 1.9 m, from its north round the east to its south west: a barrel resting within 0.7 m of the plate never touches it */
@@ -111,6 +125,12 @@ function roundPlateB(host: SimHost): { x: number; z: number }[] {
 function kill(host: SimHost, id: string): void {
   const actor = host.entities.get(id); if (actor === undefined) throw new Error(`missing ${id}`);
   host.combat.hit({ source: host.player.health, sourceTags: ['actor.player'], target: actor.combatActor(), amount: 10_000, point: actor.position.clone(), dir: new Vector3(0, 0, 1), moveId: 'test.kill' });
+}
+/** the cove's reef crabs within `r` m of `at` fall to the player (they scuttle into the puzzle's barrel and shove it off a plate) */
+function clearCrabs(host: SimHost, at: { x: number; z: number }, r: number): void {
+  const near = [...host.entities].flatMap(([id, a]) => a.kind === 'crab' && Math.hypot(a.position.x - at.x, a.position.z - at.z) < r ? [id] : []);
+  for (const id of near) kill(host, id);
+  host.step(still);
 }
 
 it('bakes one spot per interactables row and the page\'s day clock spellings', () => {
