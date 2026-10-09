@@ -1402,6 +1402,8 @@ Renderer-free numeric ranged laws are defined by `./combat/shotSpread` (`shotSpr
 `drawnSpreadDegrees`, `instantSpreadDegrees`) and `./world/windField` (`clockGust`, `fieldGustAt`, `WindFieldSpec`).
 Cones consume exactly four caller-supplied gameplay draws; wind reads only its explicit clock, gust and front policy.
 Callers own scratch vectors, easing, tuning and continuation; neither law reads the page or installs a service.
+`./combat/projectileContact` defines contact-tip correction, glance, rest, burial, detachment and shaft-midpoint reach.
+It writes only caller-owned vectors; collision queries, pickup cadence, attachment identity, capacity and survival RNG stay with the owner.
 **Melee view ports**: `Move`, `Key`, `Trail`, `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`.
 **Arms ports**: `ARM_PAL`, `gloveFist`, `riderArm`, `placeArm`, `forearm` (Nalati's arms, waiting to move);
 `buildHoverboard` (the hoverboard's geometry).

@@ -390,6 +390,7 @@
     "./combat/thrownProfile": "./combat/thrownProfile.ts",
     "./combat/bowDraw": "./combat/bowDraw.ts",
     "./combat/projectileFlight": "./combat/projectileFlight.ts",
+    "./combat/projectileContact": "./combat/projectileContact.ts",
     "./combat/shotSpread": "./combat/shotSpread.ts",
     "./combat/view/Bow": "./combat/view/Bow.ts",
     "./combat/view/bowProfile": "./combat/view/bowProfile.ts",
