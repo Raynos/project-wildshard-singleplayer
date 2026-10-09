@@ -73,6 +73,25 @@ describe('AnimalGroup', () => {
     expect(g.last.skipped).toBe(1);
   });
 
+  it('hides the bone subtrees that draw nothing, keeps their matrices, and shows a chain something is attached to', () => {
+    const g = new AnimalGroup(), a = fake(1), skin = new THREE.Mesh();
+    a.mesh.add(skin);
+    g.add(a.mesh); g.own(a);
+    // the chain is bones only: its top is hidden from the render walks, the rest under it stays as it was
+    expect(a.bones.map((b) => b.visible)).toEqual([false, true, true]);
+    expect(skin.visible).toBe(true);
+    g.updateMatrixWorld();
+    expect(actual(a)).toEqual(reference(a, g.position)); // hidden bones still get their world matrices (the skinning reads them)
+    // a bolt stuck in the tip bone: the hidden chain above it shows again, so the bolt draws
+    const bolt = new THREE.Mesh(); a.bones[2]?.add(bolt);
+    expect(a.bones.map((b) => b.visible)).toEqual([true, true, true]);
+    // a bone that already holds something to draw is never hidden
+    const b = fake(0), prop = new THREE.Mesh(); b.bones[1]?.add(prop);
+    g.add(b.mesh); g.own(b);
+    expect(b.bones[0]?.visible).toBe(true);
+    expect(b.bones[2]?.visible).toBe(false);
+  });
+
   it('updates everything when the group itself moves; other children always update', () => {
     const g = new AnimalGroup(), a = fake(2), other = new THREE.Object3D();
     g.add(a.mesh, other); g.own(a); g.updateMatrixWorld();

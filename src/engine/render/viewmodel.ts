@@ -41,6 +41,14 @@ export class ViewmodelRoot extends Group {
     });
   }
   override updateMatrixWorld(force?: boolean): void {
+    this.syncClearer();
+    super.updateMatrixWorld(force);
+  }
+  /**
+   * The depth clear draws only while a weapon part does. Every scene render runs it (through `updateMatrixWorld`); a render
+   * that skips the matrix walk and changes what is visible calls it itself (n8ao's pre-pass, aoTransparency.ts cut 4).
+   */
+  syncClearer(): void {
     let drawn = false;
     for (const model of this.children) {
       if (model === this.clearer) continue;
@@ -48,6 +56,5 @@ export class ViewmodelRoot extends Group {
       model.traverseVisible((part) => { if (part instanceof Mesh) drawn = true; });
     }
     this.clearer.visible = drawn;
-    super.updateMatrixWorld(force);
   }
 }

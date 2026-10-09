@@ -1,5 +1,5 @@
 // n8ao ships no types: the slice of N8AOPostPass that Game.ts and aoTransparency.ts use (constructor, the `configuration`
-// proxy, `renderTransparency` and its two targets).
+// proxy, `renderTransparency` and its two targets, the compositer's own output target and copy).
 declare module 'n8ao' {
   import type * as THREE from 'three';
   import type * as PP from 'postprocessing';
@@ -44,5 +44,9 @@ declare module 'n8ao' {
     autoDetectTransparency: boolean;
     /** the scene depth it reads (the composer hands it over) */
     depthTexture?: THREE.Texture | null | undefined;
+    /** the compositer's full-resolution target, copied into the output buffer by `copyQuad` (aoTransparency.ts cut 5) */
+    outputTargetInternal?: THREE.WebGLRenderTarget;
+    /** the full-screen texel copy of `outputTargetInternal` into the output buffer (or the screen) */
+    copyQuad?: { render: (renderer: Renderer) => void };
   }
 }
