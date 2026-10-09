@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 // Pine Hollow's night thralls' brain (moved from the engine's ai folder, E405 LAYER-PURITY: the engine knows no thrall).
 /** a position */
 interface BrainPoint { x: number; y: number; z: number }
@@ -20,6 +21,12 @@ export interface NightPorts<T extends NightActor> {
 }
 interface Roamer<T> { a: T; flee: number }
 interface Racer<T> { a: T; woke: boolean }
+const finite = v.pipe(v.number(), v.finite());
+const actorId = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+const Saved = v.strictObject({ version: v.literal(1), spec: v.pipe(v.string(), v.maxLength(8192)),
+  acc: v.pipe(finite, v.minValue(0), v.check(value => value < 1)),
+  roam: v.pipe(v.array(v.strictObject({ id: actorId, flee: v.pipe(finite, v.minValue(0), v.maxValue(3.5)) })), v.maxLength(8)),
+  race: v.pipe(v.array(v.strictObject({ id: actorId, woke: v.boolean() })), v.maxLength(8)) });
 const headingTo = (x: number, z: number, tx: number, tz: number): number => Math.atan2(tx - x, tz - z);
 /** Night population lifecycle; content supplies placement, creatures, rendering and quest ports. */
 export class NightBrain<T extends NightActor> {
@@ -28,7 +35,8 @@ export class NightBrain<T extends NightActor> {
   private acc = 0;
   private readonly h: NightPorts<T>;
   private readonly spec: NightSpec;
-  constructor(h: NightPorts<T>, spec: NightSpec) { this.h = h; this.spec = spec; }
+  private readonly contract: string;
+  constructor(h: NightPorts<T>, spec: NightSpec) { this.h = h; this.spec = spec; this.contract = JSON.stringify(spec); }
 
   /** the roamers on the map now (dev / captures) */
   get count(): number { return this.roam.length + this.race.length; }
@@ -101,5 +109,24 @@ export class NightBrain<T extends NightActor> {
     });
   }
 
-  
+  /** Actors belong to the caller; continuation stores their identities and only this scheduler's lifecycle clocks. */
+  snapshot(idOf: (actor: T) => string): v.InferOutput<typeof Saved> {
+    return { version: 1, spec: this.contract, acc: this.acc,
+      roam: this.roam.map(row => ({ id: idOf(row.a), flee: row.flee })),
+      race: this.race.map(row => ({ id: idOf(row.a), woke: row.woke })) };
+  }
+
+  /** Validate every actor before a silent atomic commit. No spawn, retire, control, sound, RNG or quest effect runs here. */
+  prepareRestore(value: unknown, actor: (id: string) => T | null): () => void {
+    const saved = v.parse(Saved, value);
+    if (saved.spec !== this.contract || saved.roam.length > this.spec.max
+      || (saved.race.length > 0 && saved.race.length !== this.spec.race.length)) throw new RangeError('Incompatible Pine night population');
+    const ids = [...saved.roam.map(row => row.id), ...saved.race.map(row => row.id)];
+    if (new Set(ids).size !== ids.length) throw new RangeError('Duplicate Pine night actor');
+    const resolve = (id: string): T => { const a = actor(id); if (a === null) throw new RangeError(`Missing Pine night actor ${id}`); return a; };
+    const roam = saved.roam.map(row => ({ a: resolve(row.id), flee: row.flee }));
+    const race = saved.race.map(row => ({ a: resolve(row.id), woke: row.woke }));
+    if (new Set([...roam.map(row => row.a), ...race.map(row => row.a)]).size !== ids.length) throw new RangeError('Aliased Pine night actors');
+    return () => { this.roam = roam; this.race = race; this.acc = saved.acc; };
+  }
 }
