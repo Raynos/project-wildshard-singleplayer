@@ -1,0 +1,21 @@
+{
+  "mode": "standalone",
+  "phases": {
+    "titleMs": 2822,
+    "gameplayMs": 3019
+  },
+  "telemetryPosts": 0,
+  "lifecycleReports": 0,
+  "gridNavigationObserved": false,
+  "elapsedMs": 3437,
+  "fatal": [],
+  "ready": true,
+  "entered": true,
+  "revealing": false,
+  "frameGate": true,
+  "frame": 13,
+  "shard": "sunscar-dunes",
+  "grid": null,
+  "faults": [],
+  "reports": []
+}

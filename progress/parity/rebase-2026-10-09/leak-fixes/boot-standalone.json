@@ -1,0 +1,21 @@
+{
+  "mode": "standalone",
+  "phases": {
+    "titleMs": 2205,
+    "gameplayMs": 2283
+  },
+  "telemetryPosts": 0,
+  "lifecycleReports": 0,
+  "gridNavigationObserved": false,
+  "elapsedMs": 2715,
+  "fatal": [],
+  "ready": true,
+  "entered": true,
+  "revealing": false,
+  "frameGate": true,
+  "frame": 11,
+  "shard": "driftwood-isle",
+  "grid": null,
+  "faults": [],
+  "reports": []
+}
