@@ -33,8 +33,8 @@
     "shards/pine-hollow → game": 101,
     "shards/pine-hollow → kit": 1,
     "shards/pine-hollow → sdk": 14,
-    "shards/sunscar-dunes → engine": 101,
+    "shards/sunscar-dunes → engine": 116,
     "shards/sunscar-dunes → game": 26,
-    "shards/sunscar-dunes → sdk": 9
+    "shards/sunscar-dunes → sdk": 12
   }
 }
