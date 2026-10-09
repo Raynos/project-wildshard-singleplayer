@@ -19,7 +19,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { variantDef } from '@wildshard/engine/entities/species/registry';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
+import { pineNightSpec } from './nightSpec';
 import { Puffs } from '../combat/fxKit';
 import { own, release, retire } from '../combat/ctx';
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
@@ -49,9 +49,6 @@ export interface NightHost {
   shot: (name: 'thrall_call' | 'thrall_groan' | 'thrall_move', at: THREE.Vector3) => void;
 }
 
-/** where the millrace thralls stand: in the creek round the wheel */
-const RACE: readonly [number, number][] = [[-189, -134], [-194, -148], [-198, -160]];
-
 export class NightThralls {
   private readonly brain: NightBrain<Animal>;
   private readonly puffs: Puffs;
@@ -66,8 +63,7 @@ export class NightThralls {
         () => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw)), own, release,
       retire: (actor) => { if (spawner === null) retire(h.animals, actor); else spawner.retire(actor); },
       burst: (actor) => { this.puffs.burst(this.point.copy(actor.position).setY(actor.position.y + 1), 1.2, 3.4, 0.8, 0.8); },
-    }, { max: MAX, region: OLD_GROWTH, exclude: KINGS_CLEARING, face: HAMLET_SITES.wheel,
-      mill: HAMLET_SITES.mill, water: POND.level, roamKinds: ['elk', 'boar'], race: RACE.map(([x, z], i) => ({ kind: i === 1 ? 'elk' : 'boar', x, z })) });
+    }, pineNightSpec(MAX));
   }
   get count(): number { return this.brain.count; }
   force(p: THREE.Vector3): void { this.brain.force(p); }
