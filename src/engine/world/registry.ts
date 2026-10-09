@@ -299,7 +299,11 @@ export class WorldRegistry {
     return out;
   }
 
-  addPick(p: RegisteredPick): void { this.picks.push(p); }
+  addPick(p: RegisteredPick): void {
+    this.picks.push(p);
+    // SF57: a tap target leaves with its owner, as its piece does (a re-entered borrowed home picks again)
+    this.untilOwnerOrRetire(() => { const i = this.picks.indexOf(p); if (i !== -1) this.picks.splice(i, 1); });
+  }
 
   /** Register a set; a later one with the same id replaces it in place. */
   addSet(s: RegisteredSet): void {

@@ -125,4 +125,31 @@ describe('registry holds on the owner (SF57)', () => {
     expect(registry.pieces).toHaveLength(0);
     registry.retire(); page.dispose();
   });
+
+  it('a borrowed home\'s entry places into the page registry: its copy, record, culler and tap target go with the entry', () => {
+    const base = placementCensus();
+    const registry = new WorldRegistry(), page = new Scope('test.page');
+    const before = page.census.disposers;
+    for (let i = 0; i < 10; i++) {
+      const entry = page.child('runtime.play');
+      entry.run(() => { place(rock, row(3), { ctx, draw: 'instanced', cull: { far: 60 }, registry }); });
+      expect(registry.pieces).toHaveLength(1); expect(registry.picks).toHaveLength(1);
+      // the re-entry's copy is the model's first again: its own piece id and catalog entry
+      expect(registry.pieces[0]?.id).toBe(rock.id); expect(registry.pieces[0]?.model).toBeDefined();
+      expect(placementCensus()).toEqual({ lives: base.lives + 1, records: base.records + 1, groups: base.groups + 1, cullers: base.cullers + 1 });
+      entry.dispose();
+      expect(registry.pieces).toHaveLength(0); expect(registry.picks).toHaveLength(0);
+      expect(placementCensus()).toEqual({ ...base, lives: base.lives + 1 });
+    }
+    // a registry that retires before the entry ends leaves nothing on the entry
+    const entry = page.child('runtime.play');
+    entry.run(() => { place(rock, row(3), { ctx, draw: 'instanced', cull: { far: 60 }, registry }); });
+    const held = entry.census.disposers;
+    registry.retire();
+    expect(entry.census.disposers).toBeLessThan(held);
+    expect(placementCensus()).toEqual(base);
+    entry.dispose();
+    expect(page.census.disposers).toBe(before);
+    page.dispose();
+  });
 });

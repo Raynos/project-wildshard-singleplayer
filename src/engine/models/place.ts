@@ -23,7 +23,8 @@ import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
-import { currentOwner } from '../app/ownership';
+import { currentOwner, enteredOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { FrameCamera } from '../world/frameCamera';
 import { withTier } from '../explore/tiers';
@@ -212,6 +213,28 @@ function lifeOf(registry: WorldRegistry | null): Life {
 function startCuller(life: Life, c: Culler): void {
   if (life.retired) return;
   life.cullers.push(c); cullers.push(c); cullerLives.push(life);
+}
+function stopCuller(life: Life, c: Culler): void {
+  const at = life.cullers.indexOf(c);
+  if (at !== -1) life.cullers.splice(at, 1);
+  const i = cullers.indexOf(c);
+  if (i !== -1) { cullers.splice(i, 1); cullerLives.splice(i, 1); }
+}
+/**
+ * The owner a `place` call was made under, when it ends before its world does (SF57): a borrowed home's entry places into
+ * the page's registry, and each re-entry places again. What the call recorded and started goes with that owner; null when
+ * the call has no explicit owner of its own (the world's retirement covers it).
+ */
+/** Run `end` when `owner` disposes, unless `registry` retires first (then its life's own retirement covers it). */
+function untilOwner(owner: Scope, registry: WorldRegistry, end: () => void): void {
+  const hold = { forgetRetire: (): void => undefined };
+  const forget = owner.capture('disposers', () => { hold.forgetRetire(); end(); });
+  hold.forgetRetire = registry.onRetire(forget);
+}
+function shorterOwner(registry: WorldRegistry | null): Scope | null {
+  // a build-only call's life is already its owner's (`lifeOf`)
+  const owner = registry === null ? null : enteredOwner();
+  return owner === null || owner === registry?.scope ? null : owner;
 }
 
 function eachLife(fn: (life: Life) => void): void {
@@ -1129,11 +1152,15 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   };
   const registry = o.registry === undefined ? app.registry : o.registry;
   // what this call starts and records lives as long as its registry (a resident shard's) — or its owner, when build-only
-  const life = lifeOf(registry);
+  const life = lifeOf(registry), owner = shorterOwner(registry);
   if (w !== undefined && !weldLives.has(w)) weldLives.set(w, life);
   const view = o.cull?.view, cullWith = drawn.cullWith;
   if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
-  else if (drawn.cull) startCuller(life, drawn.cull);
+  else if (drawn.cull) {
+    const cull = drawn.cull;
+    startCuller(life, cull);
+    if (owner !== null && registry !== null) untilOwner(owner, registry, () => { stopCuller(life, cull); });
+  }
   // drawn by what it shares (a set's kit, a weld): its piece anchors on its copies, and a tap claims one of them
   const shared = o.drawnInto !== undefined || w !== undefined;
   if (registry === null) { if (w === undefined) o.parent?.add(drawn.object); return placed; }
@@ -1142,6 +1169,15 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
     const first = rec === undefined;
     if (!rec) { rec = { groups: [] }; if (!life.retired) life.records.set(def.id, rec); }
     rec.groups.push(placed);
+    if (owner !== null) {
+      const record = rec;
+      // SF57: the copy leaves the record with its owner; an emptied record goes too, so a re-entry's copy is the model's first again
+      untilOwner(owner, registry, () => {
+        const i = record.groups.indexOf(placed);
+        if (i !== -1) record.groups.splice(i, 1);
+        if (record.groups.length === 0 && life.records.get(def.id) === record) life.records.delete(def.id);
+      });
+    }
     const pc = o.piece ?? {};
     if (pc.follows === 'copy') followCopy(def, placements.length, params[0], o, drawn);
     const pieceId = pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), split = pc.split;

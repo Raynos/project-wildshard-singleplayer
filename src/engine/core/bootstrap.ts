@@ -28,7 +28,7 @@ import { addPiece } from '../physics/pieces';
 import type { WorldRegistry } from '../world/registry';
 import { installPhysicsDebug } from '../physics/debug';
 import { installCrashFlag } from './crashFlag';
-import { withOwner } from '../app/ownership';
+import { enteredOwner, withOwner } from '../app/ownership';
 
 export interface World {
   game: Game;
@@ -118,8 +118,18 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   registry.onAdd((piece) => {
     if (piece.object) game.scene.add(piece.object);
     const added = addPiece(physics, piece);
-    if (added.body || piece.active) moving.push(added.sync);
-    if (piece.floor && piece.solidFloor !== true) player.platforms.push(piece.floor);
+    // SF57: a piece built under an owner shorter than the level (a borrowed home's entry) takes its mover and floor with it
+    const owner = enteredOwner(), shorter = owner !== null && owner !== game.levelScope ? owner : null;
+    if (added.body || piece.active) {
+      const sync = added.sync;
+      moving.push(sync);
+      shorter?.onDispose(() => { const i = moving.indexOf(sync); if (i !== -1) moving.splice(i, 1); });
+    }
+    const floor = piece.floor;
+    if (floor && piece.solidFloor !== true) {
+      player.platforms.push(floor);
+      shorter?.onDispose(() => { const i = player.platforms.indexOf(floor); if (i !== -1) player.platforms.splice(i, 1); });
+    }
   });
   // the forest's trunks (Nalati's spruces; none on the island). A forest its shard's tree model draws: the model's (E315)
   if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(game.levelScope, () => registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));

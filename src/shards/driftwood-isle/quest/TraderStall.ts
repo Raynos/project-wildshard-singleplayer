@@ -18,6 +18,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { trader, tradeCounter, traderOf, traderRigOf } from '../models/trader';
 import type { Trader } from '../npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
+import { ownEnteredTree } from './Spine';
 
 /** her island name (the prompt, the shop's title and line) */
 export const TRADER_NAME = 'Maren';
@@ -46,9 +47,18 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   const cx = feet.x + fx * COUNTER_AHEAD, cz = feet.z + fz * COUNTER_AHEAD;
   const ctx = modelContext(w.sky);
   const registry = w.registry ?? undefined;
-  const npc = place(trader, [{ x: feet.x, y: feet.y, z: feet.z, yaw: feet.yaw }], { ctx, draw: 'single', ...(registry ? { registry } : {}), piece: { id: 'trader', name: 'The trader' } });
-  const counter = place(tradeCounter, [{ x: cx, y: adv.floorAt(cx, cz), z: cz, yaw: feet.yaw }], { ctx, draw: 'single', ...(registry ? { registry } : {}),
-    piece: { id: 'trade-counter', name: 'The trader\'s counter', solidFloor: false } });
+  // SF57: she, her counter, their pieces and colliders belong to this entry, not the page (a re-entered borrowed home
+  // installs them again; after the adventure's awaits the ambient owner is the page's)
+  const scope = w.scope;
+  const entered = <P extends { readonly object: THREE.Object3D }>(placed: () => P): P => {
+    if (scope === undefined) return placed();
+    const out = scope.run(placed);
+    ownEnteredTree(out.object, scope);
+    return out;
+  };
+  const npc = entered(() => place(trader, [{ x: feet.x, y: feet.y, z: feet.z, yaw: feet.yaw }], { ctx, draw: 'single', ...(registry ? { registry } : {}), piece: { id: 'trader', name: 'The trader' } }));
+  const counter = entered(() => place(tradeCounter, [{ x: cx, y: adv.floorAt(cx, cz), z: cz, yaw: feet.yaw }], { ctx, draw: 'single', ...(registry ? { registry } : {}),
+    piece: { id: 'trade-counter', name: 'The trader\'s counter', solidFloor: false } }));
   const t = traderOf(npc.object);
   if (t === null) return null;
   const npcRig = traderRigOf(npc.object);
