@@ -93,7 +93,11 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   expect(workflow).toContain('\n  typecheck-lint:\n');
   expect(workflow).toContain('shard: [1, 2, 3, 4, 5, 6, 7, 8]');
   expect(workflow).toContain("find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)\" = 8");
-  expect(job).toContain(`group: boot-smoke-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
+  expect(job).toContain(`group: boot-smoke-\${{ matrix.part }}-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
+  // SF74 W16: the boot and HOVER legs run at once; `verdict` publishes the one exact-SHA status from both.
+  expect(job).toContain('part: [boot, hover]');
+  expect(job).toContain("needs: boot-smoke\n    if: always() && needs.boot-smoke.result != 'skipped'");
+  expect(job).toContain("cancelled) state=error;");
   expect(workflow).toContain('python3 scripts/heavy-lane.py build -- pnpm exec vite build');
   expect(workflow).toContain('node scripts/check-chunks.mjs dist');
   expect(workflow).toContain('node "$RUNNER_TEMP/deploy-version.mjs" verify');

@@ -22,13 +22,17 @@ jobs:
     # a waiting older one, and only the running proof finishes (2026-10-09: three per-SHA runs queued back to back, the
     # newest waited 10.5 min for a macOS runner). Job-level, so the skipped runs (release / failed CI) never take the slot.
     # A dispatch proves its own SHA in its own group.
+    # SF74 W16: two legs on two macOS runners at once (the boot drive ~3.6 min, the HOVER touch drive ~3.1 min, each after
+    # ~2.2 min of setup and build): ~5.8 min instead of ~8.9. Each leg coalesces in its own group; `verdict` publishes.
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [boot, hover]
     concurrency:
-      group: boot-smoke-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
+      group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
     runs-on: macos-15
     timeout-minutes: 12
-    outputs:
-      sha: ${{ steps.tested.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,8 +75,10 @@ jobs:
         run: |
           python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && node scripts/build-shardfiles.mjs && pnpm exec vite build'
       - name: Real title, Driftwood gameplay and Developer grid home
+        if: matrix.part == 'boot'
         run: node scripts/parity/boot-smoke.mjs
       - name: Touch HOVER mounts in the template and on the grid road
+        if: matrix.part == 'hover'
         run: |
           node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
           scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
@@ -83,25 +89,44 @@ jobs:
         run: |
           mkdir -p boot-smoke-results
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq '{created_at, run_started_at}' > boot-smoke-results/workflow-timing.json
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "boot-smoke") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "boot-smoke (${{ matrix.part }})") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: boot-smoke
+          name: boot-smoke-${{ matrix.part }}
           path: boot-smoke-results/
           retention-days: 7
           if-no-files-found: warn
+
+  verdict:
+    # The exact-SHA proof is both legs. A leg replaced by a newer main before it ran (coalescing) leaves this SHA unproven:
+    # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
+    needs: boot-smoke
+    if: always() && needs.boot-smoke.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.tested.outputs.sha }}
+    steps:
+      - name: Bind the tested commit
+        id: tested
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+        run: echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)" >> "$GITHUB_OUTPUT"
       - name: Publish exact-SHA proof outcome
-        if: always() && steps.tested.outputs.sha != ''
         env:
           GH_TOKEN: ${{ github.token }}
           TESTED_SHA: ${{ steps.tested.outputs.sha }}
-          JOB_RESULT: ${{ job.status }}
+          LEGS: ${{ needs.boot-smoke.result }}
         run: |
-          state=failure
-          if [ "$JOB_RESULT" = success ]; then state=success; fi
+          case "$LEGS" in
+            success) state=success; description='Real built-dist title and gameplay proof' ;;
+            cancelled) state=error; description='Superseded by a newer main before both smoke legs ran' ;;
+            *) state=failure; description='Real built-dist title and gameplay proof' ;;
+          esac
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
-            -f context=boot-smoke -f state="$state" -f description='Real built-dist title and gameplay proof' \
+            -f context=boot-smoke -f state="$state" -f description="$description" \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
   release:
@@ -109,8 +134,8 @@ jobs:
     # most once an hour. It dispatches only when no release run (schedule or dispatch) started in the last 60 min and none
     # is queued or running, and only when production does not already serve the proven SHA (a no-op release would burn the
     # hour). Otherwise it does nothing: the :17 cron, the backstop or an agent's hand dispatch picks the pin up.
-    needs: boot-smoke
-    if: github.event_name == 'workflow_run' && needs.boot-smoke.result == 'success'
+    needs: [boot-smoke, verdict]
+    if: github.event_name == 'workflow_run' && needs.boot-smoke.result == 'success' && needs.verdict.result == 'success'
     concurrency:
       group: boot-smoke-release
       cancel-in-progress: false
@@ -132,7 +157,7 @@ jobs:
       - name: Dispatch the release if the hourly slot is free
         env:
           GH_TOKEN: ${{ github.token }}
-          DEPLOY_SHA: ${{ needs.boot-smoke.outputs.sha }}
+          DEPLOY_SHA: ${{ needs.verdict.outputs.sha }}
         run: |
           mode=$(node -p "require('./.github/deploy-pin.json').mode")
           if [ "$mode" != newest-ci-green ]; then echo "Release mode $mode: keeping the configured pin policy."; exit 0; fi
