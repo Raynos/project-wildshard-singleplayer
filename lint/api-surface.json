@@ -12928,6 +12928,12 @@
         "from": "@wildshard/engine/world/interact/kit"
       },
       {
+        "name": "walkInPickup",
+        "kind": "function",
+        "doc": "The page's walk-in pickup law: strict foot radius and height, then chest-to-pickup native world visibility.",
+        "from": "@wildshard/engine/world/interact/pickup"
+      },
+      {
         "name": "AltarDef",
         "kind": "interface",
         "doc": "",
@@ -15124,6 +15130,30 @@
         "kind": "const",
         "doc": "",
         "from": "@wildshard/game/Inventory"
+      },
+      {
+        "name": "addInventory",
+        "kind": "function",
+        "doc": "Stack a kept kind in first-pickup order. Existing stacks do not consume another slot.",
+        "from": "@wildshard/game/inventoryLaw"
+      },
+      {
+        "name": "InventoryPolicy",
+        "kind": "interface",
+        "doc": "Runtime admission of a kind and the current slot limit, supplied by the owning shard.",
+        "from": "@wildshard/game/inventoryLaw"
+      },
+      {
+        "name": "InventoryState",
+        "kind": "interface",
+        "doc": "Renderer-free pack state; the page owns persistence, catalogues and change notifications.",
+        "from": "@wildshard/game/inventoryLaw"
+      },
+      {
+        "name": "takeInventory",
+        "kind": "function",
+        "doc": "Trade all or nothing; nonpositive requests succeed without mutation, as in the saved page pack.",
+        "from": "@wildshard/game/inventoryLaw"
       },
       {
         "name": "installLedgerEmitter",

@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-891 members; 159 without a doc line (—).
+895 members; 159 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -193,6 +193,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `Inventory` | class | @wildshard/game/Inventory | — |
 | `ItemId` | type | @wildshard/game/Inventory | Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle |
 | `PACK_SLOTS` | const | @wildshard/game/Inventory | — |
+| `addInventory` | function | @wildshard/game/inventoryLaw | Stack a kept kind in first-pickup order. Existing stacks do not consume another slot. |
+| `InventoryPolicy` | interface | @wildshard/game/inventoryLaw | Runtime admission of a kind and the current slot limit, supplied by the owning shard. |
+| `InventoryState` | interface | @wildshard/game/inventoryLaw | Renderer-free pack state; the page owns persistence, catalogues and change notifications. |
+| `takeInventory` | function | @wildshard/game/inventoryLaw | Trade all or nothing; nonpositive requests succeed without mutation, as in the saved page pack. |
 | `installLedgerEmitter` | function | @wildshard/game/ledger | Register the fact cursor with the same-engine snapshot host and retry failed durable writes in fixed steps. |
 | `Ledger` | class | @wildshard/game/ledger | Local ledger implementation: profile grants and their fact dedupe record share one atomic SaveStore write. |
 | `LedgerCatalogueItem` | interface | @wildshard/game/ledger | Catalogue grants default to one item, once per stable instance and shard, independent of author facts or revisions. |

@@ -2051,7 +2051,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2315 exports, grouped by the module to import them from.
+2316 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2414,6 +2414,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/interact/flags`: `FlagListener`, `Flags`, `test`
 - `@wildshard/engine/world/interact/Interactables`: `canSee`, `Interactables`, `InteractEvent`, `InteractHost`, `Live`, `pickInteractable`, `plateDown`, `setSight`, `Sight`, `SIGHT_SLACK`
 - `@wildshard/engine/world/interact/kit`: `interactParts`
+- `@wildshard/engine/world/interact/pickup`: `walkInPickup`
 - `@wildshard/engine/world/interact/types`: `AltarDef`, `autoFlag`, `BarrelDef`, `BeaconDef`, `BenchDef`, `ChestDef`, `ChestDims`, `ChestItem`, `ChestLook`, `Cond`, `DoorDef`, `DoorLook`, `flagsRaised`, `flagsRead`, `Interactable`, `InteractDef`, `InteractKind`, `interactProps`, `InteractProps`, `InteractTable`, `KeyDef`, `LeverDef`, `PickupDef`, `pickupLook`, `PickupLook`, `PickupPart`, `Place`, `PlateDef`, `PoiId`, `registerInteractProps`, `registerPickupLook`, `TRANSIENT_PREFIXES`
 - `@wildshard/engine/world/lowpolyKit`: `AddOpts`, `AOOptions`, `bakeAO`, `BakedLight`, `bakeLight`, `broadClump`, `ColorLike`, `fern`, `grassTuft`, `hibiscus`, `hibiscusBush`, `leaf`, `lilyPad`, `lotus`, `LowPolyKit`, `lowPolyMaterial`, `Part`, `PLANT`, `vineStrand`
 - `@wildshard/engine/world/painterly`: `painterlyKnobs`, `PainterlyKnobs`, `PainterlyLook`, `painterlyMaterial`, `PainterlyOpts`, `painterlyUniforms`, `paintGeometry`, `setPainterlyLook`, `syncPainterlySun`, `updatePainterly`
@@ -2441,7 +2442,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-891 exports, grouped by the module to import them from.
+895 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2478,6 +2479,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/icons`: `BAG_ICONS`, `installKitIcons`
 - `@wildshard/game/instanceSaves`: `instanceSave`, `instanceSaveIdentity`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
+- `@wildshard/game/inventoryLaw`: `addInventory`, `InventoryPolicy`, `InventoryState`, `takeInventory`
 - `@wildshard/game/ledger`: `installLedgerEmitter`, `Ledger`, `LedgerCatalogueItem`, `LedgerEmitter`, `ledgerFactId`, `LedgerInstance`, `LedgerReceipt`, `LedgerRewardPolicy`
 - `@wildshard/game/loot/CoinBurst`: `CoinBurst`, `nearScale`
 - `@wildshard/game/loot/coinModel`: `coinModel`, `installCoinModel`

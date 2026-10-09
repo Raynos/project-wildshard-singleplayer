@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2332 members; 841 without a doc line (—).
+2333 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -2159,6 +2159,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Sight` | interface | @wildshard/engine/world/interact/Interactables | How the LOS pick sees one prompt. `slack`: a world hit this many metres short of the prompt point still counts as |
 | `SIGHT_SLACK` | const | @wildshard/engine/world/interact/Interactables | the slack of a prompt nobody described (a pickup orb, an NPC's head, a zipline platform) |
 | `interactParts` | const | @wildshard/engine/world/interact/kit | a lit part (the shared low-poly material) and a glowing one (unlit, the glow batch's), for a pickup look's model |
+| `walkInPickup` | function | @wildshard/engine/world/interact/pickup | The page's walk-in pickup law: strict foot radius and height, then chest-to-pickup native world visibility. |
 | `AltarDef` | interface | @wildshard/engine/world/interact/types | — |
 | `autoFlag` | function | @wildshard/engine/world/interact/types | the automatic flag each kind raises when it fires |
 | `BarrelDef` | interface | @wildshard/engine/world/interact/types | — |
