@@ -1,6 +1,9 @@
 import { uiScope, mountUi } from '../ui/ownership';
 import { engineString } from '../strings';
 import { app } from '../app/runtime';
+import { resourceScope } from '../app/resources';
+import type { Scope } from '../app/scope';
+import { ownSceneTree } from '../app/sceneOwnership';
 import { tap } from '../core/harnessTap';
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
 import * as THREE from 'three';
@@ -58,6 +61,10 @@ export class TrainingTarget implements TargetAnimal {
   private pose: DummyPose | null = null;
   private clips: DummyClips | null = null;
   private materials: THREE.MeshStandardMaterial[] = [];
+  /** The current figure owns its generated studio materials, including the drawn loading stand-in. */
+  private figureScope: Scope | null = null;
+  private readonly owner: Scope;
+  private readonly studio: typeof applyDummyStudio;
   private flash = 0;
   private flashShown = 0;
   /** the tag's width in px, measured once it is laid out (reading it every frame would force a layout per frame) */
@@ -69,7 +76,8 @@ export class TrainingTarget implements TargetAnimal {
   attacker: THREE.Vector3 | null = null;
   onDamage: (amount: number, point: THREE.Vector3) => void = () => undefined;
 
-  constructor(variant: DummyVariant, x: number, y: number, z: number, localX: number, localZ: number, layer: HTMLElement, seed: number) {
+  constructor(variant: DummyVariant, x: number, y: number, z: number, localX: number, localZ: number, layer: HTMLElement, seed: number, owner: Scope = resourceScope(), studio: typeof applyDummyStudio = applyDummyStudio) {
+    this.owner = owner; this.studio = studio;
     this.variant = variant;
     this.position = new THREE.Vector3(x, y, z);
     this.model = { root: new THREE.Group(), joints: {}, rig: 'placeholder' };
@@ -81,11 +89,15 @@ export class TrainingTarget implements TargetAnimal {
   }
 
   install(model: TrainingDummyModel, renderer: Renderer): void {
+    if (this.owner.disposed) throw new Error('Practice figure owner has retired');
     const previous = this.model.root;
     model.root.position.copy(previous.position);
     const parent = previous.parent;
+    this.figureScope?.dispose();
+    this.figureScope = this.owner.child('practice-figure');
+    ownSceneTree(model.root, this.figureScope, app.assets);
     if (parent) { parent.remove(previous); parent.add(model.root); }
-    this.materials = applyDummyStudio(model.root, renderer);
+    this.materials = this.studio(model.root, renderer);
     // the springs rotate bones from their rest pose; measure it before anything moves them
     this.pose = new DummyPose(model.root, model.joints);
     this.motion.leftSign = DummyPose.leftSign(model.root, model.joints);
@@ -304,7 +316,7 @@ export class TrainingArena {
     // E348: each copy of the shared dummy model its lineup places, its armour the placement's variant
     this.targets = LINEUP.map((spot, i) => {
       const x = center.x + spot.x, z = center.z + spot.z;
-      const target = new TrainingTarget(paramsOf(trainingDummy, spot.variant, spot.params).variant, x, Y, z, spot.x, spot.z, overlay, i + 1);
+      const target = new TrainingTarget(paramsOf(trainingDummy, spot.variant, spot.params).variant, x, Y, z, spot.x, spot.z, overlay, i + 1, game.levelScope);
       target.bodies = addTrainingTarget(physics, target, x, Y, z);
       target.bodies.setEnabled(false); // E300: shot at only while the room is open (enter / exit)
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.69, 0.012, 6, 48).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: CYAN, fog: false, toneMapped: false }));
@@ -337,6 +349,7 @@ export class TrainingArena {
     const renderer = this.game.renderer;
     await Promise.all(this.targets.map(async (target) => {
       const model = await dummyFigure(target.variant, 'arena'); // the model's builder (src/engine/models/trainingDummy.ts)
+      if (this.game.levelScope.disposed) return;
       target.install(model, renderer);
       await this.upload(model.root);
     }));
