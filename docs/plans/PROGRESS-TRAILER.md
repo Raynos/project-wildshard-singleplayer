@@ -96,9 +96,13 @@ v1's `build-rev.sh` exports and builds any SHA from its own lockfile (through th
 ### 3.2 HEAD shots (the trailer agent's pipeline, unedited)
 
 The cold open, the grid fly-in and any HEAD play run through `scripts/steam-trailer/capture.mjs` as its owner keeps it.
-One herdr request to the trailer agent (they land it, we use it): load shot and cut files from a path outside their
-folder; drive held movement through the InputService at HEAD (the old `player.keys` helpers stand still now); start at
-`--sub 1` until sub-steps advance simulation time correctly. Titles, mix and edit run unchanged.
+The trailer agent landed what this needs in `64c6d84f0` (2026-10-09, asked over herdr):
+- `capture.mjs --shots-file=<path>[,<path>]` and `cut.mjs --cut-file=<path>`, so this plan's shot and cut files live in
+  `scripts/progress-trailer/`;
+- `lib.mjs` `keyDown` / `keyUp` drive held movement through the InputService at HEAD, plus `held(action, on)`;
+- sub-steps advance real simulation time (`--sub 2` = 1/120 s sub-frames; `speed` < 1 is true slow motion).
+
+Titles, mix and edit run unchanged.
 
 ### 3.3 The authoring lapses
 
