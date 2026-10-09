@@ -448,3 +448,84 @@ it('keeps the dead sailor queued through daytime and reinstalls him only at nigh
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
   } finally { restored?.dispose(); host.dispose(); }
 }, 60_000);
+
+it('charges the held heavy on the real sword clock and restores mid-charge before the same 24-damage blow', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const target = original.entities.get('creature:13'); if (target === undefined) throw new Error('missing crab');
+    standBy(original, target, 1.6);
+    const still = { moveX: 0, moveZ: 0, yaw: 0 }, hold: HeadlessCommand[] = [{ kind: 'player', ...still, heavy: { targetId: target.entityId } }];
+    const blows: number[] = [];
+    original.events.on('damage.dealt', ({ req }) => { if (req.moveId === 'move.heavy') blows.push(req.amount); }, original.scope);
+    for (let tick = 0; tick < 15; tick++) { tape = hold; original.step(still); }
+    expect(blows).toEqual([]);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 60; tick++) { tape = tick < 15 ? hold : []; original.step(still); restored.step(still); }
+    expect(blows).toEqual([24]);
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { tape = []; restored?.dispose(); original.dispose(); }
+});
+
+it('lunges through the real player dash to a target beyond light reach and restores the dash/contact suffix', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const target = original.entities.get('creature:13'); if (target === undefined) throw new Error('missing crab');
+    standBy(original, target, 3.8); const before = original.player.position.clone();
+    const still = { moveX: 0, moveZ: 0, yaw: 0 }, blows: number[] = [];
+    original.events.on('damage.dealt', ({ req }) => { if (req.weaponId === 'weapon.sword') blows.push(req.amount); }, original.scope);
+    tape = [{ kind: 'player', ...still, attack: { targetId: target.entityId } }]; original.step(still); tape = [];
+    for (let tick = 0; tick < 3; tick++) original.step(still);
+    expect(original.player.position.distanceTo(before)).toBeGreaterThan(0.1);
+    expect(snapshotSimHost(original).player.dash?.t).toBeGreaterThan(0);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    for (let tick = 0; tick < 40; tick++) { original.step(still); restored.step(still); }
+    expect(blows).toEqual([12]);
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { tape = []; restored?.dispose(); original.dispose(); }
+});
+
+it('keeps an unlocked target outside the sword cone out of the dash and wakes paused enemies on the real dodge press', () => {
+  const host = boot();
+  try {
+    const target = host.entities.get('creature:13'); if (target === undefined) throw new Error('missing crab');
+    standBy(host, target, 3.8); const before = host.player.position.clone();
+    tape = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: Math.PI, attack: { targetId: target.entityId } }];
+    host.step({ moveX: 0, moveZ: 0, yaw: Math.PI }); tape = [];
+    expect(snapshotSimHost(host).player.dash).toBeUndefined();
+    expect(Math.hypot(host.player.position.x - before.x, host.player.position.z - before.z)).toBeLessThan(0.01);
+    // Move the test player out of the AI band; the actual DODGE input wakes the enemy despite the paused clock.
+    const at = new Vector3(-7, 0, -194); at.y = bake.floorAt(at.x, at.z) + 0.3;
+    host.player.motor.resetAt(at); host.player.position.copy(at); host.step();
+    const frames = () => host.bodyBandState()?.rows.find(row => row.id === target.entityId)?.brain.tickFrame;
+    const prior = frames(); let dodges = 0;
+    host.events.on('player.dodge', () => { dodges++; }, host.scope);
+    expect(host.player.position.distanceTo(target.position)).toBeGreaterThan(160);
+    host.step(); expect(frames()).toBe(prior);
+    host.step({ moveX: 0, moveZ: 0, yaw: 0, dodge: true });
+    expect(frames()).toBeGreaterThan(prior ?? -1);
+    host.step({ moveX: 0, moveZ: 0, yaw: 0, dodge: true });
+    expect(frames()).toBe(-1); // paused again: the cooldown refuses a second wake
+    expect(dodges).toBe(1);
+    expect(snapshotSimHost(host).player.dodge?.cd).toBeGreaterThan(0);
+  } finally { tape = []; host.dispose(); }
+});
+
+it('uses only the last player command for sword inputs and never hits an old target for an unaimed heavy', () => {
+  const host = boot();
+  try {
+    const target = host.entities.get('creature:13'); if (target === undefined) throw new Error('missing crab');
+    standBy(host, target, 1.6);
+    const still = { moveX: 0, moveZ: 0, yaw: 0 }, cuts: number[] = [];
+    host.events.on('damage.dealt', ({ req }) => { if (req.weaponId === 'weapon.sword') cuts.push(req.amount); }, host.scope);
+    tape = [{ kind: 'player', ...still, attack: { targetId: target.entityId }, heavy: { targetId: target.entityId } }, { kind: 'player', ...still }]; host.step(still); tape = [];
+    const state = () => v.parse(v.object({ swings: v.number(), target: v.nullable(v.string()) }), JSON.parse(v.parse(v.string(), snapshotSimHost(host).adapters.find(a => a.id === SWORDS_STEP)?.state)));
+    expect(state()).toEqual({ swings: 0, target: null });
+    tape = [{ kind: 'player', ...still, attack: { targetId: target.entityId } }]; host.step(still); tape = [];
+    for (let tick = 0; tick < 45; tick++) host.step(still);
+    expect(cuts).toEqual([12]);
+    for (let tick = 0; tick < 30; tick++) { tape = [{ kind: 'player', ...still, heavy: {} }]; host.step(still); }
+    tape = []; for (let tick = 0; tick < 45; tick++) host.step(still);
+    expect(state().swings).toBe(2); expect(state().target).toBeNull(); expect(cuts).toEqual([12]);
+  } finally { tape = []; host.dispose(); }
+});

@@ -131,8 +131,7 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  *
  * Known differences from the browser (the SF72 handoff): a charge's contact is tested at the start of the next tick (for
  * a body its band stepped), against the player where the charging tick saw it (the host steps bodies after its systems),
- * so its knockback starts one tick later; no 'target.dodge' wake (the tick protocol has no dodge; the swords' swing wakes
- * through `alarm`, runtime/swords.ts); no player push-out (`clearBody`); the coconuts float on the swell at the host clock (the browser's ocean clock starts with its view).
+ * so its knockback starts one tick later; no player push-out (`clearBody`); the coconuts float on the swell at the host clock (the browser's ocean clock starts with its view).
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
@@ -491,6 +490,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const alarm = (): void => {
     for (let i = 0; i < Math.min(ROSTER, bodies.length); i++) { const body = bodies[i], a = body?.actor ?? null; if (a !== null && a.alive && (a.aggressive || hunt.sensed(a))) wake(body); }
   };
+  // AnimalManager.interruptTargets('target.dodge'), on the real host dodge press (not every held input tick).
+  host.events.on('player.dodge', alarm, host.scope);
   const staggered = (a: AnimalSim, strength: number, running: boolean): void => {
     const body = bodies.find(b => b.actor === a && b.brain === null)?.actor ?? null;
     if (body !== null) hunt.staggered(body, strength, running);

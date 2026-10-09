@@ -13,12 +13,13 @@ Item 3 lands with this handoff after full clean ticket1010: 1,056 files / 5,851 
 and private-index hooks green. Source-only CURRENT-HEAD projection, CAS, exact path list and ancestry checked.
 Signal graph SDK->engine+2, Signal->SDK+8/engine+1 net was approved. Both Signal slices are complete.
 
-Driftwood step 1 lands with this handoff: renderer-free native ecology queue, the sailor night gate, respawned
+Driftwood step 1 a2fd4265f: renderer-free native ecology queue, the sailor night gate, respawned
 herds, manager IDs, separate RNG streams and exact restore. Receipt: sf72/driftwood-respawns/README.md.
 Page/engine unchanged, graph rise zero, no map inputs changed. Exact defining SHA is reported to wildshard-new.
 
-Next: extend runtime/swords.ts + headless.ts to player.dodge wake, held heavy and host.dashTo + sweptLunge, with
-actual native contact and restore tests. Then replace test/proof/driftwood-isle fail-closed probes with real
+Step 2 lands with this handoff: player.dodge wake, held heavy and host.dashTo + sweptLunge, with actual native
+contact and exact charge/dash restore tests. Receipt sf72/driftwood-swords/README.md; graph rise zero.
+Next: replace test/proof/driftwood-isle fail-closed probes with real
 canonical checkpoints / loaded-input freshness, 10k gameplay, captain replay, gameplay ledger and a recorded
 compatibility.json. Default flared ramps only; the flared/straight Debug pick stays untouched.
 

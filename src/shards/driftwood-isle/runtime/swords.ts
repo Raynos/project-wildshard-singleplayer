@@ -5,7 +5,7 @@ import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { CombatTag, DamageRequest } from '@wildshard/engine/combat/pipeline';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { Move } from '@wildshard/engine/combat/view/melee';
-import { SweptMeleeCore, sweptMoveDamage } from '@wildshard/engine/combat/sweptMeleeCore';
+import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '@wildshard/engine/combat/sweptMeleeCore';
 import { bladeBlocked } from '@wildshard/engine/player/MeleeSweep';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { SWORD_IRON, SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
@@ -48,6 +48,8 @@ export interface DriftwoodSwords {
   readonly swings: () => number;
   readonly hits: () => number;
 }
+/** The last player command's light press and held heavy; a named target is the crosshair target, without lock-on. */
+export interface SwordInput { readonly attack: string | null; readonly heavy: boolean; readonly heavyTarget: string | null }
 
 const finite = v.pipe(v.number(), v.finite()), count = v.pipe(finite, v.integer(), v.minValue(0));
 const Clock = v.strictObject({ move: v.nullable(count), swingT: finite, comboIdx: count, lastSwingEnd: finite, cooldown: finite, charging: v.boolean(), chargeT: finite,
@@ -57,8 +59,9 @@ const Saved = v.strictObject({ held: v.picklist([0, 1]), queued: v.boolean(), st
 /**
  * Driftwood's two swords as real items in the renderer-free host (SF72): each sword drives the swept melee family's own
  * clock (`SweptMeleeCore`, the one the browser's `Sword` drives) over the starter move set and the page's profile
- * (`driftwoodSwordProfiles`). A player command's attack is a light tap aimed at its named target (the tick protocol carries
- * no heavy hold, so the charged heavy stays the browser's). Every swing that starts is the page's 'weapon.fired': the
+ * (`driftwoodSwordProfiles`). A player command's attack is a light tap; heavy is held until release. The named target
+ * supplies the crosshair target (no lock-on), with the page's cone/height/range fences and sweptLunge + host.dashTo.
+ * Every swing that starts is the page's 'weapon.fired': the
  * aggressive and sensing bodies wake (AnimalManager.interruptTargets 'target.attack'). While a swing's active window is
  * open the blade meets the target once (the page's struck list), when the target's skin (its head ball or body capsule)
  * is within the profile's reach of the eye and no world surface stands between (`bladeBlocked`): the move's damage
@@ -67,16 +70,26 @@ const Saved = v.strictObject({ held: v.picklist([0, 1]), queued: v.boolean(), st
  * sword, both clocks, the queued tap, the swing's target and struck flag, and the counts are exact continuation.
  *
  * Not modelled (presentation or the page's own player): the blade's camera-space sweep rays (the target named by the
- * command is the one the crosshair is on), the lunge's dash onto the target, the first contact's hit-stop, the clang
- * off walls, and the dodge's 'target.dodge' wake (the tick protocol has no dodge).
+ * command is the one the crosshair is on), the first contact's hit-stop and the clang off walls.
  */
-export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeProfile, MeleeProfile], island: SwordIsland, attack: () => string | null): DriftwoodSwords {
+export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeProfile, MeleeProfile], island: SwordIsland, input: () => SwordInput): DriftwoodSwords {
   const state = { held: 0 as SwordIndex, queued: false, struck: false, target: null as string | null, swings: 0, hits: 0 };
+  /** SweptMelee.findLunge on the command's crosshair target, then the same dash law as startSwing. */
+  const lunge = (profile: MeleeProfile, move: Move): void => {
+    const actor = state.target === null ? undefined : host.entities.get(state.target), p = host.player.position;
+    if (actor === undefined || !actor.alive || Math.abs(actor.position.y - p.y) > 2) return;
+    const dx = actor.position.x - p.x, dz = actor.position.z - p.z, distance = Math.hypot(dx, dz);
+    if (distance < 0.01 || Math.acos(MathUtils.clamp((-dx * Math.sin(host.player.yaw) - dz * Math.cos(host.player.yaw)) / distance, -1, 1)) > profile.lunge.cone) return;
+    // player/AimTargets.targetRadius, without importing its browser lock-on service.
+    const radius = Math.max(0.3, Math.max(actor.dims.bodyRadius, actor.dims.bodyHalfLen * 0.6)) * actor.scale;
+    const dash = sweptLunge(profile.lunge, move === profile.moves?.heavy, dx, dz, radius);
+    if (dash !== null) host.dashTo(actor.position.x, actor.position.z, dash.stopAt, dash.time);
+  };
   const clockFor = (profile: MeleeProfile): SweptMeleeCore<Move> => {
     const moves = profile.moves; if (moves === undefined) throw new Error('A Driftwood sword profile names its move set');
     return new SweptMeleeCore<Move>(moves, profile, { queue: () => { state.queued = true; }, consume: () => { const was = state.queued; state.queued = false; return was; } },
       // a swing starts: its blade has struck nothing yet, and the page's 'weapon.fired' wakes the island
-      { start: () => { state.struck = false; state.swings++; island.alarm(); }, charge: () => { /* the heavy's charge is presentation */ } });
+      { start: (move, dash) => { state.struck = false; state.swings++; if (dash) lunge(profile, move); island.alarm(); }, charge: () => { /* the heavy's charge is presentation */ } });
   };
   const clocks = [clockFor(profiles[0]), clockFor(profiles[1])] as const;
   /** each move's contact id (`Melee.contact`'s `move.<name>`), spelled once */
@@ -125,14 +138,16 @@ export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeP
   };
   host.onStep(SWORDS_STEP, () => {
     const index = state.held, clock = clocks[index], profile = profiles[index];
-    const target = attack();
+    const command = input(), target = command.attack;
+    if (command.heavy) state.target = command.heavyTarget;
     if (target !== null) {
-      const idle = clock.move === null, swings = state.swings;
+      const idle = clock.move === null, swings = state.swings, previous = state.target;
+      state.target = target;
       clock.tryFire();
-      // the tap that starts a swing aims it; a queued tap aims the chained swing it throws
-      if (!idle || state.swings !== swings) state.target = target;
+      // Ignored idle taps (cooldown/charging) do not retarget the pending swing.
+      if (idle && state.swings === swings) state.target = previous;
     }
-    const { move, active } = clock.step(DT, host.state.tick * DT, profile.swingScale, false);
+    const { move, active } = clock.step(DT, host.state.tick * DT, profile.swingScale, command.heavy);
     if (move === null || !active || state.struck || state.target === null) return;
     const actor = host.entities.get(state.target);
     if (actor === undefined || !actor.alive) return;

@@ -62,8 +62,8 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
  * browser's baked navmesh), the monkeys' coconuts, the practice crab's return, ecological night respawns and exact restore (runtime/keeper.ts), and the
  * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
- * runtime/captain.ts), and the two swords on the swept melee family's own clock (a player command's attack is a light tap at
- * its target; runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts), and
+ * runtime/captain.ts), and the two swords on the swept melee family's own clock (light taps, held heavy, lunge/dodge;
+ * runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts), and
  * "The Sealed Ring" with the island's interactables at the page's baked points (`script` commands on `driftwood.interact`:
  * Wendell, the chest, the beacon, the hold key / pump / winch / strongbox, the shards, the plates and the sluice, the altar,
  * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).
@@ -92,10 +92,15 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     installCaptain(host, bake, island);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
+    const input = { attack: null as string | null, heavy: false, heavyTarget: null as string | null };
     const held = installDriftwoodSwords(host, swords, island, () => {
+      input.attack = null; input.heavy = false; input.heavyTarget = null;
       const list = context.commands();
-      for (let i = 0; i < MAX_COMMANDS; i++) { const command = list[i]; if (command === undefined) break; if (command.kind === 'player' && command.attack !== undefined) return command.attack.targetId; }
-      return null;
+      for (let i = 0; i < MAX_COMMANDS; i++) {
+        const command = list[i]; if (command === undefined) break;
+        if (command.kind === 'player') { input.attack = command.attack?.targetId ?? null; input.heavy = command.heavy !== undefined; input.heavyTarget = command.heavy?.targetId ?? null; }
+      }
+      return input;
     });
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
