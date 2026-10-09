@@ -528,13 +528,15 @@
     <h2>Become an author.</h2>
     <p class="lede">Join the waitlist for a creator key. Tell us the shard you'd build, and claim the empty cell you'd build it in.</p>
     <div class="founding bk"><b>Founding authors:</b> the first authors to upload get a permanent Founding Author title and a plaque on their shard.</div>
-    <form class="bk" onsubmit="event.preventDefault();">
+    <form class="bk" id="waitlist" novalidate>
       <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/waitlist</span></div>
-      <label class="field"><span class="lab">Email</span><input type="email" name="email" placeholder="you@example.com" autocomplete="email"></label>
+      <label class="field"><span class="lab">Email</span><input type="email" name="email" placeholder="you@example.com" autocomplete="email" required></label>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
       <label class="field"><span class="lab">What would you build?</span><span class="prompt-field"><textarea name="build" rows="2" placeholder="build me a frozen fjord where you are the last ferryman"></textarea></span></label>
       <div class="field"><span class="lab">Claim a cell (a wish, not a promise)</span>
         <div class="claimmap map"><svg id="claim-map" viewBox="0 0 300 300" role="img" aria-label="Tap an empty cell to claim it"></svg></div></div>
-      <button class="send" type="submit">Join the waitlist <small>enter ↵</small></button>
+      <button class="send" type="submit"><span id="send-label">Join the waitlist</span> <small>enter ↵</small></button>
+      <p class="field lab" id="waitlist-note" style="margin:0;font-family:var(--mono);font-size:10.5px;color:var(--mute)">We only use your email to tell you when creator keys open.</p>
     </form>
     <div class="ends">
       <a class="bk" href="#discord">Join the Discord</a>
@@ -577,7 +579,30 @@
     svg.appendChild(el("rect", { x: o - 8, y: o - 8, width: s + 16, height: s + 16, "class": "seam" }));
   }
   draw(document.getElementById("grid-map"), { lit: true });
-  draw(document.getElementById("claim-map"), { lit: true, claim: "D4" });
+  // the claim map: tap an empty cell to wish for it (not the centre, not a shard that's playable today)
+  var claimSvg = document.getElementById("claim-map"), claimed = "";
+  function redrawClaim() { while (claimSvg.firstChild) claimSvg.removeChild(claimSvg.firstChild); draw(claimSvg, { lit: true, claim: claimed }); }
+  redrawClaim();
+  claimSvg.style.cursor = "pointer";
+  claimSvg.addEventListener("click", function (ev) {
+    var box = claimSvg.getBoundingClientRect(), x = (ev.clientX - box.left) / box.width * 300, y = (ev.clientY - box.top) / box.height * 300;
+    var c = Math.floor((x - 22) / 57), r = Math.floor((y - 22) / 57);
+    if (c < 0 || c > 4 || r < 0 || r > 4) return;
+    var id = COLS[c] + (r + 1);
+    if (id === "C3" || LIT[id]) return;
+    claimed = claimed === id ? "" : id; redrawClaim();
+  });
+
+  // the waitlist posts to the game's API (api/waitlist.ts)
+  var form = document.getElementById("waitlist"), label = document.getElementById("send-label");
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var data = { email: form.email.value, build: form.build.value, cell: claimed, website: form.website.value };
+    label.textContent = "Sending…";
+    fetch("https://wildshard-singleplayer.vercel.app/api/waitlist", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) })
+      .then(function (res) { label.textContent = res.ok ? "You're on the list" : (res.status === 400 ? "Check your email" : "Try again later"); })
+      .catch(function () { label.textContent = "Try again later"; });
+  });
   var ink = document.querySelectorAll(".ink");
   if ("IntersectionObserver" in window) {
     var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("drawn"); io.unobserve(e.target); } }); }, { threshold: .25 });
