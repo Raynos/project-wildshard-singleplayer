@@ -12,6 +12,7 @@ import { CombatPipeline } from './combat/pipeline';
 import { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
 import { CharacterMotor } from './physics/CharacterMotor';
+import { addImpulse, decayImpulse } from './player/impulse';
 import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
 import { tagCollider } from './physics/surface';
@@ -87,6 +88,8 @@ export class SimHost {
   private readonly dynamicActors = new Set<string>();
   private readonly targetIds = new Map<string, string>();
   private readonly wanted = new Vector3();
+  /** The owned player's transient world velocity (m/s), the client Player's impulse law (player/impulse.ts). */
+  readonly playerImpulse = new Vector3();
   private readonly direction = new Vector3();
   private readonly hitOrigin = new Vector3();
   private readonly hitPoint = new Vector3();
@@ -264,6 +267,12 @@ export class SimHost {
     };
     forget = this.scope.capture('disposers', remove); return remove;
   }
+  /** Shove the owned player: add transient world velocity in m/s, carried by the motor with each step's own move and
+   * decayed after it exactly as the client Player's `impulse` (player/impulse.ts). A borrowed player owns its impulse. */
+  impulsePlayer(velocity: Readonly<Vector3>): void {
+    if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its impulse');
+    addImpulse(this.playerImpulse, velocity);
+  }
   /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
   step(command?: SimCommand): void {
     if (this.disposed) throw new Error('Simulation host is disposed');
@@ -272,11 +281,16 @@ export class SimHost {
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     this.physics.step();
-    if (command !== undefined) {
-      this.player.yaw = command.yaw;
-      this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
+    const shoved = this.playerImpulse.lengthSq() > 0;
+    if (command !== undefined || shoved) {
+      if (command === undefined) this.wanted.set(0, 0, 0);
+      else {
+        this.player.yaw = command.yaw;
+        this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
+      }
+      if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
       this.player.motor.move(this.player.position, this.wanted);
-      if (command.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
+      if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
     }
     this.stepSystems();
     this.player.health.update(FIXED_STEP); this.events.flush('fixed.post');

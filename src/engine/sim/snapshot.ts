@@ -46,7 +46,7 @@ export interface SimSnapshot {
   state: { tick: number; accumulator: number; timers: Record<string, number> };
   clock: GameClockState; rng: RngStreamsState;
   entities: { id: string; state: ReturnType<AnimalSim['snapshot']>; motor: MotorState | null }[];
-  player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState };
+  player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined };
   strikes: { id: string; state: ReturnType<StrikeRunner['snapshot']> }[];
   targets: readonly (readonly [string, string])[];
   events: { version: number; queue: { name: keyof EventMap; payload: EventValue }[]; frameCount: number; frameBound: boolean };
@@ -164,7 +164,9 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
   return { version: SIM_SNAPSHOT_VERSION, apiVersion: SIM_API_VERSION, levelId: host.level.id, levelFingerprint: fnv1a32(JSON.stringify(host.level)),
     state: { tick: host.state.tick, accumulator: host.state.accumulator, timers: { ...host.state.timers } }, clock: host.clock.snapshot(), rng: host.rng.snapshot(),
     entities: [...host.entities].map(([id, entity]) => ({ id, state: entity.snapshot(), motor: entityMotor(entity)?.snapshot() ?? null })),
-    player: { id: host.player.id, position: host.player.position.toArray(), yaw: host.player.yaw, health: encode(host.player.health.snapshot(), host), motor: host.player.motor.snapshot() },
+    // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
+    player: { id: host.player.id, position: host.player.position.toArray(), yaw: host.player.yaw, health: encode(host.player.health.snapshot(), host), motor: host.player.motor.snapshot(),
+      ...(host.playerImpulse.lengthSq() > 0 ? { impulse: host.playerImpulse.toArray() } : {}) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
@@ -190,9 +192,11 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     if (saved.player.id !== host.player.id || !sameIds(saved.entities.map((entry) => entry.id), host.entities.keys())
       || !sameIds(saved.strikes.map((entry) => entry.id), host.strikes.keys()) || !sameIds(saved.adapters.map((entry) => entry.id), host.adapters.keys())
       || !sameIds(saved.quests.map((entry) => entry.id), host.quests.map((quest) => quest.def.id))
-      || saved.player.position.length !== 3 || !saved.player.position.every(Number.isFinite) || !Number.isFinite(saved.player.yaw)) throw new RangeError('Snapshot instance registrations do not match');
+      || saved.player.position.length !== 3 || !saved.player.position.every(Number.isFinite) || !Number.isFinite(saved.player.yaw)
+      || (saved.player.impulse !== undefined && (saved.player.impulse.length !== 3 || !saved.player.impulse.every(Number.isFinite) || saved.player.impulse.every(value => value === 0)))) throw new RangeError('Snapshot instance registrations do not match');
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
     host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
+    if (saved.player.impulse === undefined) host.playerImpulse.set(0, 0, 0); else host.playerImpulse.fromArray(saved.player.impulse);
     host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);

@@ -13,6 +13,7 @@ import { lockOn, targetRadius } from './AimTargets';
 import { addLockOffset } from './LockOnTarget';
 import { CharacterMotor } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
+import { addImpulse, decayImpulse } from './impulse';
 import type { Physics } from '../physics/Physics';
 
 /** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
@@ -364,7 +365,7 @@ export class Player {
   impulse(worldVelocityMps: THREE.Vector3): void {
     if (![worldVelocityMps.x, worldVelocityMps.y, worldVelocityMps.z].every(Number.isFinite)) throw new Error('Player impulse must be finite');
     if (this.ride !== null || this.carried || this.effectMoveLocked || this.swimming) return;
-    this.impulseVelocity.add(worldVelocityMps);
+    addImpulse(this.impulseVelocity, worldVelocityMps);
     if (worldVelocityMps.y > 0) { this.onGround = false; if (this.hover) this.hoverAir = true; }
   }
 
@@ -752,8 +753,7 @@ export class Player {
       this.hoverLat = this.hoverFwd = this.hoverAccel = this.hoverBob = 0;
     }
 
-    impulse.multiplyScalar(Math.exp(-3.5 * dt));
-    if (impulse.lengthSq() < 0.05) impulse.set(0, 0, 0);
+    decayImpulse(impulse, dt);
 
     // water entry / exit (the feet crossing the surface): splash on the way in, the impact = how fast we hit it
     const inWater = this.depth > 0.02;
