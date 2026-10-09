@@ -155,9 +155,11 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: node scripts/check-css.mjs
 
+      # A CI-green release pin skips the steps that used to run `pnpm gen` first, and the generated sources are out of
+      # git (SF74 W13), so generate them here (~1 s); 21:25 / 21:45 UTC 2026-10-09 failed on portShares.generated.
       - name: Native web build
         if: steps.live.outputs.skip != 'true'
-        run: pnpm run build:native
+        run: pnpm gen && pnpm run build:native
 
       - name: Build Vercel output in GitHub Actions
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
