@@ -1,6 +1,6 @@
 import { wildEnv } from '../creatures/env';
 import { clockForSun, steppeClock, nightKeys, blendSteppeKey } from '../look/dayKeys';
-import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, lightLevel, type SkyLook } from '../look/skyRig';
+import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, type SkyLook } from '../look/skyRig';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
@@ -35,7 +35,8 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../runtime/audio/synth';
-import { SteppeStorm as Weather, type Exposed, type LightningPlayer } from './Weather';
+import type { SteppeStorm as Weather, Exposed, LightningPlayer } from './Weather';
+import { steppeStorm, stormWind, stepStorm, stormEnv } from './weatherStep';
 import { STORM_PHASES } from './weatherProfile';
 import { WeatherFX } from './WeatherFX';
 import { waterOf } from '../water';
@@ -95,11 +96,6 @@ const SLATE_SHADE = new THREE.Color(0.13, 0.14, 0.22);
 const SLATE_CLOUD = new THREE.Color(0.36, 0.38, 0.46);
 const STORM_KEY = new THREE.Color(0.78, 0.82, 0.95);
 const FLASH = new THREE.Color(0.85, 0.82, 1.0);
-/**
- * The storm's wind heading (Wind.dir convention: the way it blows, yaw-style): out of the NW toward the SE. Steppe
- * storms ride in from the north-west; it also keeps the shelf cloud off the late sun (WSW), as in storm-1.
- */
-const STORM_HEADING = Math.PI / 4;
 const _c = new THREE.Color();
 
 /** the storm over the hour's look: gloom, slate, fog, flat light — and the lightning flash on top */
@@ -197,23 +193,19 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   const yurts = yurtsOf(ctx.colliders ?? []);
   let held = false;   // the Storm Titan's hold (hooks.stormHold), read by the lightning's player() below
   const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
-  const weather = new Weather({
-    seed: def.seed,
-    world: {
-      heightAt,
-      exposed(x: number, z: number, r: number, out: Exposed[]) {
-        for (const t of forest.nearby(x, z, r)) if ((t.x - x) ** 2 + (t.z - z) ** 2 <= r * r) out.push({ x: t.x, z: t.z, top: t.y + t.height, kind: 'tree', ref: t });
-      },
-      player() {
-        const p = player.position;
-        lp.x = p.x; lp.y = p.y; lp.z = p.z;
-        lp.crouched = player.crouching; lp.mounted = wildEnv.playerMounted;
-        lp.sheltered = indoors || held || yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
-        return lp;
-      },
+  const weather = steppeStorm(def.seed, {
+    heightAt,
+    exposed(x: number, z: number, r: number, out: Exposed[]) {
+      for (const t of forest.nearby(x, z, r)) if ((t.x - x) ** 2 + (t.z - z) ** 2 <= r * r) out.push({ x: t.x, z: t.z, top: t.y + t.height, kind: 'tree', ref: t });
+    },
+    player() {
+      const p = player.position;
+      lp.x = p.x; lp.y = p.y; lp.z = p.z;
+      lp.crouched = player.crouching; lp.mounted = wildEnv.playerMounted;
+      lp.sheltered = indoors || held || yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
+      return lp;
     },
   });
-  weather.stormFrom = Math.atan2(Math.cos(STORM_HEADING), Math.sin(STORM_HEADING)); // it comes FROM the opposite of its heading
   const wq = qs.get('weather');
   if (wq) {
     const [ph = '', at = '0'] = wq.split(':');
@@ -249,8 +241,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   }
 
   // ── the wind: the storm asks for its own; back to the calm prevailing westerly after ──
-  const calm = { speed: wind.speed, dir: wind.dir, gust: wind.gustiness };
-  let windAsked: number | null = null;
+  const windAsk = stormWind(wind);
 
   // ── HUD + audio, throttled ──
   let hudKey = '';
@@ -265,18 +256,8 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       // the Golden King is fought indoors (no storm starts meanwhile); the Storm Titan in the storm that called him
       weather.hold = indoors || held;
       clock.update(dt);
-      weather.update(dt);
-      if (held && weather.state === 'storm' && weather.phaseLeft < 30) weather.phaseT = weather.phaseLen - 30;   // it rages on
-      // wind
-      if (weather.windSpeed !== null) {
-        // the gust front swings the wind round to the storm's own heading (it blows out of the NW)
-        const dir = weather.state === 'building' ? calm.dir : weather.state === 'after' ? calm.dir : STORM_HEADING;
-        wind.setTarget(weather.windSpeed, dir, weather.windGustiness, weather.state === 'gust' ? 6 : 10);
-        windAsked = weather.windSpeed;
-      } else if (windAsked !== null) {
-        wind.setTarget(calm.speed, calm.dir, calm.gust, 30);
-        windAsked = null;
-      }
+      // the storm (the Storm Titan's holds it open) and the wind it asks for (world/weatherStep.ts, the host's rule too)
+      stepStorm(weather, windAsk, wind, dt, held);
       // the look
       rig.look(clock, base);
       copyLook(look, base);
@@ -287,8 +268,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
       // the creatures
-      wildEnv.light = Math.min(lightLevel(clock), weather.stormActive ? 0.6 : 1);
-      wildEnv.storm = weather.stormActive;
+      stormEnv(wildEnv, clock, weather);
       // HUD (the event fires on change only)
       const ws = `WIND ${Math.round(wind.speed)} m/s`;
       let chip: WeatherHUD['chip'] = null;

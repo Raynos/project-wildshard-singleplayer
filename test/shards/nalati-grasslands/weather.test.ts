@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { SteppeStorm as Weather, type Exposed, type LightningPlayer, type LightningWorld, type Strike } from '../../../src/shards/nalati-grasslands/world/Weather';
 import { STORM_PHASES } from '../../../src/shards/nalati-grasslands/world/weatherProfile';
 import { steppeClock, clockForSun, DEFAULT_SCHEDULE } from '../../../src/shards/nalati-grasslands/look/dayKeys';
-import { lightLevel } from '../../../src/shards/nalati-grasslands/look/skyRig';
+import { lightLevel } from '../../../src/shards/nalati-grasslands/look/wildLight';
 
 function world(opts: { trees?: Exposed[]; player?: Partial<LightningPlayer>; ground?: (x: number, z: number) => number } = {}): LightningWorld {
   const p: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false, ...opts.player };
@@ -159,5 +159,34 @@ describe('DayClock', () => {
     expect(lightLevel(c)).toBeCloseTo(1, 5);
     void c.set(18); expect(c.sunElevation).toBeCloseTo(0, 5); expect(c.sunAzimuth).toBeCloseTo(270, 5);
     void c.set(0); expect(c.sunElevation).toBeLessThan(-50); expect(lightLevel(c)).toBeCloseTo(0.4, 5);
+  });
+});
+
+describe('Weather — saved and restored (SF72: a renderer-free host carries the storm in its snapshot)', () => {
+  it('continues a storm exactly from its saved state: the phase clock, the numbers, the stream, an armed strike, GET LOW', () => {
+    const trees: Exposed[] = [{ x: 20, z: 10, top: 9, kind: 'tree' }, { x: -60, z: 80, top: 12, kind: 'thing' }];
+    const strikes = (w: Weather): string[] => { const out: string[] = []; w.onStrike((s) => { out.push(`${s.kind} ${s.x.toFixed(3)} ${s.z.toFixed(3)}`); }); return out; };
+    const steps = (w: Weather, n: number): void => { for (let i = 0; i < n; i++) w.update(0.1); };
+    const whole = new Weather({ seed: 3, world: world({ trees }) }), seenWhole = strikes(whole);
+    const first = new Weather({ seed: 3, world: world({ trees }) });
+    for (const w of [whole, first]) w.force('gust', 0.5);
+    steps(whole, 2000); steps(first, 1000);
+    const saved = structuredClone(first.snapshot());
+    const resumed = new Weather({ seed: 99, world: world({ trees }) }), seenResumed = strikes(resumed);
+    resumed.restore(saved);
+    expect(resumed.snapshot()).toEqual(first.snapshot());
+    steps(resumed, 1000);
+    expect(resumed.snapshot()).toEqual(whole.snapshot());
+    expect(seenResumed.length).toBeGreaterThan(0); expect(seenWhole.slice(-seenResumed.length)).toEqual(seenResumed);
+    expect(() => { resumed.restore({ ...saved, state: 'hail' as never }); }).toThrow(RangeError);
+  });
+
+  it('refuses to save an armed strike on a tree it holds a reference to', () => {
+    // a tall tree wherever the storm looks: every strike takes it
+    const w = new Weather({ seed: 5, world: { ...world(), exposed: (x, z, _r, out) => { out.push({ x, z, top: 40, kind: 'tree', ref: {} }); } } });
+    w.force('storm', 0.1);
+    for (let i = 0; i < 2000 && w.pending === null; i++) w.update(0.05);
+    expect(w.pending?.ref).toBeDefined();
+    expect(() => w.snapshot()).toThrow('cannot be saved');
   });
 });

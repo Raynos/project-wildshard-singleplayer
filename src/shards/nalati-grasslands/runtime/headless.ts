@@ -7,14 +7,21 @@ import { castRay } from '@wildshard/engine/physics/query';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, nalatiBake, type NalatiBake, type NalatiBakedActor } from './baked';
 import { nalatiBootRoster, type NalatiBootBody, type NalatiBootClock } from './bootRoster';
-import { TERRAIN } from '../world/terrain';
+import { SEED, TERRAIN } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
-import { installNalatiGroups, type NalatiGrassView } from './groups';
+import { installNalatiGroups, nalatiHeadlessEnv, type NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from '../look/trampleMovers';
 import { clockForSun } from '../look/dayKeys';
+import * as v from 'valibot';
+import { Wind } from '@wildshard/engine/world/steppeWind';
+import type { WildEnv } from '../creatures/env';
+import type { SteppeStorm } from '../world/Weather';
+import { STORM_PHASES } from '../world/weatherProfile';
+import type { SunClock } from '../look/wildLight';
+import { steppeStorm, stepStorm, stormEnv, stormWind, windEnv, type StormWind } from '../world/weatherStep';
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
@@ -71,7 +78,7 @@ export function nalatiGrassView(grid: BakedGrid, seed: number): NalatiGrassView 
 
 /** The host's trample continuation: the player's last spot (null before the first step) and the map's own state. */
 interface NalatiTrampleState { trail: [number, number] | null; map: TrampleState }
-const isPair = (v: unknown): v is [number, number] => Array.isArray(v) && v.length === 2 && v.every(n => typeof n === 'number');
+const isPair = (pair: unknown): pair is [number, number] => Array.isArray(pair) && pair.length === 2 && pair.every(n => typeof n === 'number');
 function trampleState(value: SimValue): NalatiTrampleState {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new RangeError('Invalid Nalati trample state');
   const { trail, map } = value;
@@ -109,6 +116,60 @@ export function installNalatiTrample(host: SimHost, trample: TrampleField): void
       [trail.lastX, trail.lastZ] = saved.trail ?? [Number.NaN, Number.NaN];
     },
   });
+}
+
+/** The host's weather: its own steppe wind, the storm on the page's seed and the wind the storm last asked for. */
+export interface NalatiHostWeather { readonly wind: Wind; readonly storm: SteppeStorm; readonly ask: StormWind }
+const weathers = new WeakMap<SimHost, NalatiHostWeather>();
+/** The weather installed into `host` (its tests read it), or undefined. */
+export function nalatiWeatherOf(host: SimHost): NalatiHostWeather | undefined { return weathers.get(host); }
+
+const num = v.pipe(v.number(), v.finite());
+const WindValue = v.strictObject({ speed: num, dir: num, gustiness: num, time: num, travel: num, wander: v.boolean(), baseSpeed: num, baseDir: num,
+  target: v.strictObject({ speed: num, dir: num, gustiness: num, rate: num }) });
+const StormValue = v.strictObject({ state: v.picklist(STORM_PHASES), phaseT: num, phaseLen: num, mode: v.string(), hold: v.boolean(),
+  n: v.strictObject({ overcast: num, rain: num, wet: num, wind: num, fog: num, front: num, rainbow: num }),
+  rng: v.strictObject({ version: num, state: num, initial: num, scrambledFork: v.boolean() }),
+  flash: num, windSpeed: v.nullable(num), windGustiness: num, getLow: v.boolean(), stormFrom: num,
+  pending: v.nullable(v.strictObject({ x: num, y: num, z: num, kind: v.picklist(['tree', 'player', 'ground', 'thing']), t: num })),
+  nextBolt: num, nextGust: num, windTarget: num, getLowFor: num, getLowTick: num });
+const WeatherValue = v.strictObject({ wind: WindValue, storm: StormValue, asked: v.nullable(num) });
+const unmodelled = (what: string) => (): never => { throw new Error(`Nalati headless lightning reads ${what}, not modelled yet (sf72-nalati7 handoff)`); };
+
+/**
+ * The steppe weather on the host's fixed step (SF72), the page's rules (world/weatherStep.ts) in its frame order: the wind
+ * advances (the painterly grass's `wind.update`, look/grass.ts), the storm steps after the day clock (world/installWeather.ts:
+ * its state machine on the page's seed, the wind it asks for), then the creatures' view takes the light, the storm and the
+ * wind (the page's weather and Wildlife frames). The host's wind is its own (`new Wind(box)`: the page's tree sway untouched).
+ * Its wind, storm and ask ride the snapshot (`nalati.weather`), exactly. Fail-closed: the lightning's world (the exposed trees
+ * and things, whose tops are not baked, and the player crouched, mounted or sheltered by a yurt) refuses when first read,
+ * which is the gust front's first GET LOW check (clear and building never read it); no boss holds the storm here (the Golden
+ * King's dungeon and the Storm Titan are not hosted), so `hold` stays off.
+ */
+export function installNalatiWeather(host: SimHost, ports: { heightAt: (x: number, z: number) => number; clock: SunClock; env: Pick<WildEnv, 'light' | 'storm' | 'wind'> }): NalatiHostWeather {
+  const wind = new Wind({ value: 1 });
+  const storm = steppeStorm(SEED, { heightAt: ports.heightAt, exposed: unmodelled('the exposed trees and things (their tops are not baked)'), player: unmodelled('the player (crouched, mounted, sheltered by a yurt)') });
+  const ask = stormWind(wind), env = ports.env, clock = ports.clock;
+  const view = (): void => { stormEnv(env, clock, storm); windEnv(env, wind); };
+  host.onStep('nalati.weather', dt => {
+    wind.update(dt);
+    stepStorm(storm, ask, wind, dt, false);
+    view();
+  }, {
+    snapshot: () => {
+      const w = wind.snapshot(), s = storm.snapshot();
+      return { wind: { ...w, target: { ...w.target } }, storm: { ...s, n: { ...s.n }, rng: { ...s.rng }, pending: s.pending === null ? null : { ...s.pending } }, asked: ask.asked };
+    },
+    restore: value => {
+      const saved = v.parse(WeatherValue, value);
+      wind.restore(saved.wind); storm.restore(saved.storm); ask.asked = saved.asked;
+      view();
+    },
+  });
+  view();
+  const out = { wind, storm, ask };
+  weathers.set(host, out);
+  return out;
 }
 
 /** One manager body in the host: the roster's recipe, its baked native spec, the live actor. */
@@ -153,12 +214,13 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * Nalati Grasslands' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
  * world (the terrain heightfield as Rapier built it and every solid WORLD collider; `ground: false`), the page's terrain grid
  * as the height query, the page's day clock on the host's tick (from the manifest's sun; the level's `day.start` moves it), the
- * player's trail on the host's trample map, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
+ * steppe weather (its own wind and the storm's state machine on the page's seed, the creatures' light, storm and wind;
+ * the lightning's world refuses at the first gust front), the player's trail on the host's trample map, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
  * restored exactly by an identical install before the host restores, and the declared groups (runtime/groups.ts: the pack,
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati6.md): the groups' decisions (their wild view has the page's grass and a
- * trample map of the host's own on its fixed step and in its snapshot; not yet the wildlife's pushes, the weather's wind or the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
- * weapons, the storm, the dusk / night spawns as the day clock passes them, the quests and their facts, and the entry proof; `finish` refuses.
+ * trample map of the host's own on its fixed step and in its snapshot, the weather's wind and the day's light; not yet the wildlife's pushes), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
+ * weapons, the lightning, the dusk / night spawns as the day clock passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
@@ -176,6 +238,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
     const grass = nalatiGrassView(grid, shard.identity.seed);
     installNalatiTrample(host, grass.trample);
-    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass });
+    // the weather after the grass (the page's frame order), into the wild view the groups read
+    const env = nalatiHeadlessEnv(grass);
+    installNalatiWeather(host, { heightAt, clock, env });
+    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass, env });
   } };
 };

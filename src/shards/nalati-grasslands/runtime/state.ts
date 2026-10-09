@@ -36,6 +36,7 @@ import { NalatiDressing } from '../world/dressing/index';
 import { wireKurgan, type KurganBoss } from '../combat/goldenKing';
 import { wireElites, type NalatiElites } from '../combat/elites';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
+import { windEnv } from '../world/weatherStep';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
@@ -277,7 +278,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     wildPlayer.crouching = player.crouching;
     extra.health01 = play?.health01() ?? 1;
     extra.mounted = ride?.mounted ?? false;   // B9: mounting stands you up; the packs get two tokens; a gallop stampedes the herd
-    wildEnv.wind.x = wind.dirX; wildEnv.wind.z = wind.dirZ; wildEnv.wind.strength = Math.min(1, wind.speed / 10);
+    windEnv(wildEnv, wind);
     wildlife.update(dt, t, wildPlayer, extra, advance === undefined ? undefined : (view, index, speed) => {
       if (declaredCrowds === null) throw new Error('Missing declared native crowd owner');
       declaredCrowds.advance(view, index, speed, wildPlayer.position, dt, t, advance);

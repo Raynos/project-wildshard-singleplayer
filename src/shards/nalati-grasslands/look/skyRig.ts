@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import type { ShardManifest, RGB } from '@wildshard/game/shard/manifest';
 import type { Game } from '@wildshard/engine/core/Game';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { compassDir, type DayCycle, type DayCycleClock, type DayKeys } from '@wildshard/engine/world/dayCycle';
+import { compassDir, type DayCycle, type DayKeys } from '@wildshard/engine/world/dayCycle';
 import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -274,12 +274,6 @@ export function copyLook(out: SkyLook, L: SkyLook): SkyLook {
   out.saturation = L.saturation; out.contrast = L.contrast; out.brightness = L.brightness;
   out.volColor.copy(L.volColor); out.volStrength = L.volStrength; out.godRays = L.godRays;
   return out;
-}
-
-/** a sky-light level 0..1 (day 1 · dusk ~0.7 · night ~0.4) — the stealth `light` factor reads it */
-export function lightLevel(clock: DayCycleClock): number {
-  const el = clock.sunElevation;
-  return 0.4 + 0.3 * smoothstep(-14, -2, el) + 0.3 * smoothstep(-2, 10, el);
 }
 
 /** Apply the shared sky channels from the clock's interpolated numeric key. */

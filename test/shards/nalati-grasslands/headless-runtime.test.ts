@@ -11,7 +11,11 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { Wind } from '../../../src/engine/world/steppeWind';
+import { lightLevel } from '../../../src/shards/nalati-grasslands/look/wildLight';
+import { steppeStorm, stepStorm, stormWind } from '../../../src/shards/nalati-grasslands/world/weatherStep';
+import { SEED } from '../../../src/shards/nalati-grasslands/world/terrain';
 import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifest';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
@@ -129,6 +133,14 @@ it('walks 2k ticks: every body stays finite on the ground, on the page\'s distan
     // the page's day clock on the host's tick: the hour a 60 Hz page frame clock reaches, past the boot's day into golden
     const page = nalatiDayClock(); for (let i = 0; i < 2000; i++) page.update(1 / 60);
     expect(host.dayClock?.hour).toBe(page.hour); expect(host.dayClock?.dayPhase).toBe('golden');
+    // the page's weather on the host's tick (world/installWeather.ts's rules at 60 Hz: the grass's wind.update, then the storm
+    // after the clock): still clear, its wind and phase clock as the page's, the creatures' light the golden hour's, no storm
+    const weather = nalatiWeatherOf(host); if (weather === undefined) throw new Error('no weather');
+    const wind = new Wind({ value: 1 }), storm = steppeStorm(SEED, { heightAt, exposed: () => undefined, player: () => { throw new Error('read'); } }), ask = stormWind(wind);
+    for (let i = 0; i < 2000; i++) { wind.update(1 / 60); stepStorm(storm, ask, wind, 1 / 60, false); }
+    expect(weather.storm.snapshot()).toEqual(storm.snapshot()); expect(weather.wind.snapshot()).toEqual(wind.snapshot());
+    expect(weather.storm.state).toBe('clear'); expect(weather.storm.phaseLen).toBeGreaterThan(12 * 60);
+    expect({ light: groups.env.light, storm: groups.env.storm, wind: groups.env.wind }).toEqual({ light: lightLevel(page), storm: false, wind: { x: wind.dirX, z: wind.dirZ, strength: Math.min(1, wind.speed / 10) } });
     // 25 s on, the tick-500 trail has stood back up, inside the map's 128 m window
     const stood = spots[500]; if (stood === undefined) throw new Error('no trail');
     expect(Math.max(Math.abs(stood.x - p.x), Math.abs(stood.z - p.z))).toBeLessThan(60); expect(trample.amountAt(stood.x, stood.z)).toBe(0);
@@ -149,6 +161,27 @@ it('restores mid-walk exactly: the reinstalled roster and the host continue step
       const trample = sa.adapters.find(entry => entry.id === 'nalati.trample')?.state;
       expect(JSON.stringify(trample)).toMatch(/^\{"trail":\[[^\]]+\],"map":\{"cells":\[\d+,/u);
       expectSameSimSnapshot(snapshotSimHost(b), sa);
+    } finally { b.dispose(); }
+  } finally { a.dispose(); }
+});
+
+it('carries a building storm through a restore exactly, and refuses at the gust front (the lightning\'s world is not modelled)', () => {
+  const a = boot();
+  try {
+    // forced, as the page's dev switch does: the storm's own clock reaches building only after 12–18 min of clear
+    const wa = nalatiWeatherOf(a); if (wa === undefined) throw new Error('no weather');
+    wa.storm.force('building', 0.6);
+    for (let tick = 0; tick < 30; tick++) walk(a);
+    const b = restore(snapshotSimHost(a));
+    try {
+      for (let tick = 0; tick < 30; tick++) { walk(a); walk(b); }
+      const sa = snapshotSimHost(a), env = nalatiGroupsOf(b)?.env;
+      expect(wa.ask.asked).not.toBeNull(); expect(nalatiWeatherOf(b)?.ask.asked).toBe(wa.ask.asked);
+      expect(env?.wind.strength).toBe(nalatiGroupsOf(a)?.env.wind.strength);
+      expectSameSimSnapshot(snapshotSimHost(b), sa);
+      wa.storm.force('gust', 0);
+      // its first GET LOW check (every 0.25 s) reads the player the lightning sees
+      expect(() => { for (let tick = 0; tick < 20; tick++) walk(a); }).toThrow('not modelled yet');
     } finally { b.dispose(); }
   } finally { a.dispose(); }
 });

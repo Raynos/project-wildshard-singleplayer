@@ -1,4 +1,4 @@
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import { Weather as EngineWeather } from '@wildshard/engine/world/weather';
 /**
  * Weather — the steppe storm as a seeded state machine (Nalati B10; docs/design/nalati/stealth-and-storms.md "Steppe
@@ -28,7 +28,7 @@ import { Weather as EngineWeather } from '@wildshard/engine/world/weather';
  * height (+1.5 m for a mounted rider, +1 m on a ridge crest), and the highest one takes the bolt. Anything sheltered
  * (inside / beside a yurt) scores nothing.
  */
-import { LEN, steppeProfile, type SteppeNumbers, type StormPhase } from './weatherProfile';
+import { LEN, STORM_PHASES, steppeProfile, type SteppeNumbers, type StormPhase } from './weatherProfile';
 
 
 /** something tall the lightning may pick (a spruce, a balbal, a yurt's crown) */
@@ -62,6 +62,21 @@ export interface WeatherOpts {
   firstClear?: [number, number];
   clear?: [number, number];
 }
+
+/**
+ * The storm's whole continuation as plain values (SF72: a renderer-free host saves it in its snapshot): the phase clock,
+ * the mode and hold, the continuous numbers, its own random stream, the flash, the wind it asks for, GET LOW, an armed strike
+ * (one that took a tree or a thing has a live reference and cannot be saved) and the lightning's countdowns.
+ */
+export interface StormState {
+  state: StormPhase; phaseT: number; phaseLen: number; mode: string; hold: boolean;
+  n: SteppeNumbers; rng: RngState;
+  flash: number; windSpeed: number | null; windGustiness: number; getLow: boolean; stormFrom: number;
+  pending: { x: number; y: number; z: number; kind: Strike['kind']; t: number } | null;
+  nextBolt: number; nextGust: number; windTarget: number; getLowFor: number; getLowTick: number;
+}
+const STRIKE_KINDS: ReadonlySet<string> = new Set<Strike['kind']>(['tree', 'player', 'ground', 'thing']);
+const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
 const TELEGRAPH = 1.2;
 const STRIKE_DAMAGE = 60;
@@ -124,7 +139,34 @@ export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
   onFlash(fn: Fn<[number, number]>): void { this.flashFns.push(fn); }
   onPlayerHit(fn: Fn<[number]>): void { this.hitFns.push(fn); }
 
-  /** jump into a phase (dev switch). `at` = 0..1 how far into it. */
+  /** The storm's continuation (StormState), exact; refuses an armed strike on a tree or a thing (a live reference). */
+  snapshot(): StormState {
+    const p = this.pending;
+    if (p?.ref !== undefined) throw new Error('A storm with an armed strike on a tree or a thing cannot be saved');
+    const n = this.n;
+    return { state: this.state, phaseT: this.phaseT, phaseLen: this.phaseLen, mode: this.mode, hold: this.hold,
+      n: { overcast: n.overcast, rain: n.rain, wet: n.wet, wind: n.wind, fog: n.fog, front: n.front, rainbow: n.rainbow }, rng: this.rng.snapshot(),
+      flash: this.flash, windSpeed: this.windSpeed, windGustiness: this.windGustiness, getLow: this.getLow, stormFrom: this.stormFrom,
+      pending: p === null ? null : { x: p.x, y: p.y, z: p.z, kind: p.kind, t: p.t },
+      nextBolt: this.nextBolt, nextGust: this.nextGust, windTarget: this.windTarget, getLowFor: this.getLowFor, getLowTick: this.getLowTick };
+  }
+
+  /** Put a saved continuation back exactly, silently (no phase event); refuses a malformed state before changing anything. */
+  restore(saved: StormState): void {
+    const { n, pending: p } = saved;
+    const numbers = [saved.phaseT, saved.phaseLen, n.overcast, n.rain, n.wet, n.wind, n.fog, n.front, n.rainbow, saved.flash, saved.windGustiness, saved.stormFrom,
+      saved.nextBolt, saved.nextGust, saved.windTarget, saved.getLowFor, saved.getLowTick];
+    if (!STORM_PHASES.includes(saved.state) || this.profile.modes[saved.mode] === undefined || typeof saved.hold !== 'boolean' || typeof saved.getLow !== 'boolean'
+      || !numbers.every(finite) || !(saved.windSpeed === null || finite(saved.windSpeed))
+      || !(p === null || ([p.x, p.y, p.z, p.t].every(finite) && STRIKE_KINDS.has(p.kind)))) throw new RangeError('Invalid storm state');
+    this.rng.restore(saved.rng);
+    this.state = saved.state; this.phaseT = saved.phaseT; this.phaseLen = saved.phaseLen; this.mode = saved.mode; this.hold = saved.hold;
+    Object.assign(this.n, n);
+    this.flash = saved.flash; this.windSpeed = saved.windSpeed; this.windGustiness = saved.windGustiness; this.getLow = saved.getLow; this.stormFrom = saved.stormFrom;
+    this.pending = p === null ? null : { x: p.x, y: p.y, z: p.z, kind: p.kind, t: p.t };
+    this.nextBolt = saved.nextBolt; this.nextGust = saved.nextGust; this.windTarget = saved.windTarget; this.getLowFor = saved.getLowFor; this.getLowTick = saved.getLowTick;
+  }
+
 
   override update(dt: number): void {
     if (dt <= 0) return;
