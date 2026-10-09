@@ -352,8 +352,14 @@ export class LiveGridSession {
         const readiness = this.page.crossingSaveReady?.(instance) ?? true;
         return readiness === true ? this.live.checkpoint(instance) : readiness;
       }, target: (feet) => this.live.target(feet) },
-    this.ports.assembly, (instance) => instance === this.ports.home.instance && this.page.ownedHome !== true ? this.loadout : this.runtimeRegions.get(instance)?.loadout ?? {
-      checkpoint: () => this.regionSave(instance).flush(), stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined,
+    this.ports.assembly, (instance) => {
+      if (instance === this.ports.home.instance && this.page.ownedHome !== true) return this.loadout;
+      const runtime = this.runtimeRegions.get(instance), flush = (): boolean => this.regionSave(instance).flush();
+      if (runtime === undefined) return { checkpoint: flush, stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined };
+      // rt3-crossing2: a committed runtime the traveller never entered never ran its hooks and never played: it saves as
+      // the stored resident. Its own checkpoint refuses until its hooks restore, so turning back on the strip after the
+      // commit held the crossing in save-failed for good.
+      return this.startedRuntimes.has(instance) ? runtime.loadout : { ...runtime.loadout, checkpoint: flush };
     }, this.ports.scope, (from, to) => {
       if (this.page.ownedHome !== true || to !== null || from === null) return;
       gridCells.leave(); // entered callbacks must finish before their retained native world retires

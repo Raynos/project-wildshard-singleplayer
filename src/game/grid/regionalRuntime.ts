@@ -119,6 +119,10 @@ export interface RegionalRuntimeFoundation {
   }>;
   /** Real runtime continuation, local purse/ownership and encounter writes; refusal keeps the source frame. */
   readonly checkpoint: () => boolean;
+  /** Bring every material the entered hooks added to the program it will draw with (the region look's patches) before
+   *  the entered frame's shader warm-up compiles them; frames are held while the hooks install, so per-frame passes have
+   *  not run on them yet. */
+  readonly beforeWarm?: () => void;
 }
 
 /** Composition ports owned by the page root, with explicit absence until the engine's regional binding lands. */
@@ -271,6 +275,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
               for (const animal of localPlay.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               // G217 stays up until the actual page composer has warmed this newly entered world and kit.
+              foundation.beforeWarm?.();
               await request.page.world.game.warmEnteredFrame(owner);
               restored = true;
             },

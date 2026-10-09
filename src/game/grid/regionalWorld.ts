@@ -261,6 +261,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           } };
         },
         checkpoint: () => !resident.disposed && ports.checkpoint(host, request),
+        // rt3-crossing2: the look's per-frame sweep never ran on what the entered hooks added (no frame draws while they
+        // install), so the warm-up compiled the page-look programs and the first frame after it the region-look ones
+        beforeWarm: () => { if (!resident.disposed) regionLook?.sweep(); },
       };
       census.set(foundation, () => {
         const native = resident.disposed ? { bodies: 0, colliders: 0 } : { bodies: host.physics.world.bodies.len(), colliders: host.physics.world.colliders.len() };

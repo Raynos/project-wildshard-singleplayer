@@ -144,15 +144,23 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     expect(disposed).toBe(0); expect(first.hp).toBe(55);
     checkpointReady = true; session.retrySave();
     await leave();
+    // rt3-crossing2: committing on the strip (3 m short of the edge, no interior, no hooks) then turning back must not
+    // hold the crossing in save-failed: the never-entered runtime saves as its stored resident.
+    traveller.position.set(target.origin.x - 253, 0.5, target.origin.z);
+    await wait(() => session.live.current() === target.instance);
+    expect(gridCells.cell).toBeNull(); expect(plays).toBe(1); expect(herds).toHaveLength(2); // admitted (its herd built), never entered
+    traveller.position.set(-268, 0.5, 0); // 18 m back out, the frame's local metres
+    await wait(() => session.live.current() === null);
+    expect(session.live.state().residents).toEqual([]); expect(session.state().crossing.phase).toBe('settled');
     await enter(target); expect([worlds, plays]).toEqual([2, 2]);
-    expect(herds[1]?.animals[0]?.hp).not.toBe(55);
+    expect(herds[2]?.animals[0]?.hp).not.toBe(55);
     await leave();
     await enter(home); expect([worlds, plays]).toEqual([3, 3]);
-    const restored = herds[2]?.animals[0];
+    const restored = herds[3]?.animals[0];
     expect(restored?.hp).toBe(55); expect(restored?.position.toArray()).toEqual([12, 0, 34]);
     expect(regions.filter(host => !host.scope.disposed)).toHaveLength(1);
     expect(() => { scope.dispose(); }).not.toThrow();
-    expect(session.live.current()).toBeNull(); expect(disposed).toBe(3);
+    expect(session.live.current()).toBeNull(); expect(disposed).toBe(4);
     expect(regions.every(host => host.scope.disposed)).toBe(true);
     expect(release).toHaveBeenCalledTimes(productReads.mock.results.filter(result => result.type === 'return' && result.value !== null).length); expect(scene.children).toHaveLength(0);
   } finally {
