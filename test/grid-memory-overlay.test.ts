@@ -4,7 +4,7 @@ import { app } from '../src/engine/app/runtime';
 import { MemoryAttribution } from '../src/engine/core/memoryAttribution';
 import { setDev } from '../src/engine/core/devMode';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { BUDGET_REFRESH_MS, installBudgetOverlay } from '../src/game/grid/budgetOverlay';
+import { BUDGET_REFRESH_MS, installBudgetOverlay, memoryFootprint } from '../src/game/grid/budgetOverlay';
 import { memoryRows } from '../src/game/grid/memoryRows';
 
 afterEach(() => { setDev(false); vi.useRealTimers(); });
@@ -59,4 +59,36 @@ it('extends the existing chip only when expanded, preserves budget lines, and re
   expect(page.census.listeners).toBeLessThan(listeners);
   setDev(false); page.dispose(); root.remove();
   expect(page.census.listeners).toBe(0); expect(page.census.timers).toBe(0); expect(page.census.nodes).toBe(0);
+});
+
+it('grades owners against the native footprint when sampled, else the calibrated envelope, with an explicit remainder', () => {
+  const ledger = new MemoryAttribution(), owned = {}, loose = {};
+  ledger.label(owned, { owner: 'region:pine-hollow', asset: 'grass' });
+  ledger.allocation(owned, 'gpu', 'buffer', 300e6); ledger.allocation(loose, 'ram', 'array-buffer', 50e6);
+  const calibrated = memoryFootprint(ledger.snapshot(), 800e6);
+  expect(calibrated).toMatchObject({ source: 'calibrated', bytes: 800e6, gpu: 300e6, ram: 0, remainder: 500e6 });
+  expect(calibrated.share).toBeCloseTo(0.625);
+  ledger.measurement({ webContentBytes: 200e6, labelledGpuBytes: 100e6, sampledAt: 1, source: 'native.json' });
+  const native = memoryFootprint(ledger.snapshot(), 800e6);
+  // owned storage above the reading is clamped: the remainder never goes negative and the parts sum to the footprint
+  expect(native).toMatchObject({ source: 'native', bytes: 300e6, remainder: 0, share: 0 });
+  expect(native.gpu + native.ram + native.remainder).toBe(native.bytes);
+});
+
+it('draws the footprint gauge with the 1.0 GB cap line and the no-owner share', () => {
+  vi.useFakeTimers(); const page = app.engineScope.child('test.memory-gauge'), root = document.createElement('div'); document.body.append(root);
+  const ledger = new MemoryAttribution(), allocator = new ResidencyAllocator(), resource = {};
+  ledger.label(resource, { owner: 'grid-deck', asset: 'deck' }); ledger.allocation(resource, 'gpu', 'buffer', 40e6);
+  setDev(true);
+  const overlay = installBudgetOverlay({ scope: page, hudRoot: root, allocator, name: owner => owner, memory: () => ledger.snapshot(allocator.cost().accounted) });
+  overlay.toggle();
+  const gauge = root.querySelector<HTMLElement>('.ws-grid-budget-gauge');
+  expect(gauge?.dataset.source).toBe('calibrated');
+  expect(root.textContent).toContain('FOOTPRINT · SIMULATOR-CALIBRATED'); expect(root.textContent).toMatch(/CAP 1000(\.0)? MB/);
+  const cap = root.querySelector<HTMLElement>('.ws-grid-budget-gauge-cap');
+  expect(cap?.style.left).toMatch(/%$/);
+  const parts = [...root.querySelectorAll<HTMLElement>('.ws-grid-budget-gauge-bar > [data-bytes]')].map(node => Number(node.dataset.bytes));
+  expect(parts.reduce((a, b) => a + b, 0)).toBe(Number(gauge?.dataset.footprintBytes));
+  expect(root.querySelector<HTMLElement>('[data-unattributed-share]')?.dataset.tone).toBe('red');
+  setDev(false); page.dispose(); root.remove();
 });

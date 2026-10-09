@@ -139,3 +139,27 @@ it('flushes improved native labels without recreating retired renderer propertie
   expect(gets).toBe(before);
   expect(properties.has(texture)).toBe(false);
 });
+
+// SF64: the scene walk's leftover owner names the subtree a resource hangs from instead of one "engine/scene" bucket.
+it('charges unowned scene resources to their first named subtree, in the amortized and the census walk', () => {
+  for (const census of [false, true]) {
+    const sources = new Map<object, string>();
+    Reflect.set(globalThis, 'window', census
+      ? { __sc_label_gl: () => undefined, __sc_label_source: (source: object, owner: string) => { sources.set(source, owner); } }
+      : { __sc_label_source: (source: object, owner: string) => { sources.set(source, owner); } });
+    const renderer = fakeRenderer();
+    installGpuLabels(renderer, () => true);
+    const deck = new Float32Array(9), loose = new Float32Array(9), owned = new Float32Array(9), url = new Float32Array(9);
+    const mesh = (array: Float32Array): Mesh => new Mesh(new BufferGeometry().setAttribute('position', new BufferAttribute(array, 3)), new MeshBasicMaterial());
+    const scene = new Scene(), road = new Group(); road.name = 'grid-deck';
+    const inner = new Group(); inner.add(mesh(deck)); road.add(inner); // unnamed child inherits the named subtree
+    const glb = new Group(); glb.name = 'http://127.0.0.1:4401/assets/pine/tree.glb?v=1'; glb.add(mesh(url));
+    const region = new Group(); region.name = 'region:pine-hollow'; region.add(mesh(owned));
+    scene.add(road, mesh(loose), glb, region);
+    renderer.render(scene, new PerspectiveCamera());
+    expect(sources.get(deck)).toBe('scene:grid-deck');
+    expect(sources.get(owned)).toBe('scene:region:pine-hollow');
+    expect(sources.get(url)).toBe('scene:assets/pine/tree.glb');
+    expect(sources.get(loose)).toBe('engine/scene'); // an unnamed path stays the explicit generic bucket
+  }
+});

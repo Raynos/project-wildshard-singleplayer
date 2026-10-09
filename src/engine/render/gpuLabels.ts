@@ -165,12 +165,22 @@ function nodeResources(node: Object3D, label: Label): void {
     else if (isTexture(value)) markTexture(value, derive(label, role));
   }
 }
+/** The scene walk's generic owner. SF64: a node under it is charged to its nearest owned ancestor, else to its first named
+ *  ancestor below the drawn root (`scene:grid-deck`, `scene:region:pine-hollow`), so "engine/scene" keeps only unnamed paths. */
+const SCENE_OWNER = 'engine/scene';
+function subtreeOwner(name: string): string { return `scene:${name.replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]+\/?/iu, '').split('?')[0] ?? name}`; }
+function walkOwner(owner: string, parent: Label | undefined, name: string): string {
+  if (owner !== SCENE_OWNER) return owner;
+  const inherited = parent === undefined || parent.owner === 'unattributed' || parent.owner === RENDERER_INTERNAL.owner ? SCENE_OWNER : parent.owner;
+  return inherited === SCENE_OWNER && name.length > 0 ? subtreeOwner(name) : inherited;
+}
 function tree(root: Object3D, owner: string, asset: string, priority: number): void {
   // a node already labelled at this priority or higher keeps its label, so its path is built only when it is new
   const visit = (node: Object3D, parent: Label | null, index: number): void => {
     const previous = labels.get(node);
     const label = previous !== undefined && previous.priority >= priority ? previous
-      : remember(node, { owner, asset: parent === null ? asset : `${parent.asset}/${node.name || `${node.type}[${index}]`}`, priority });
+      : remember(node, { owner: parent === null ? owner : walkOwner(owner, parent, node.name),
+        asset: parent === null ? asset : `${parent.asset}/${node.name || `${node.type}[${index}]`}`, priority });
     nodeResources(node, label);
     const children = node.children;
     for (let i = 0; i < children.length; i++) { const child = children[i]; if (child !== undefined) visit(child, label, i); }
@@ -209,9 +219,10 @@ function due(cache: WeakMap<object, Walked>, node: Object3D, geometry: unknown, 
 function amortizedTree(root: Object3D, owner: string, asset: string, priority: number): void {
   const visit = (node: Object3D, parent: Object3D | null, index: number): void => {
     if (due(walked, node, Reflect.get(node, 'geometry'), Reflect.get(node, 'material'))) {
-      const parentAsset = parent === null ? null : labels.get(parent)?.asset;
-      const path = parent === null ? asset : `${parentAsset ?? asset}/${node.name || `${node.type}[${index}]`}`;
-      nodeResources(node, remember(node, { owner, asset: path, priority }));
+      const parentLabel = parent === null ? undefined : labels.get(parent);
+      const path = parent === null ? asset : `${parentLabel?.asset ?? asset}/${node.name || `${node.type}[${index}]`}`;
+      const charged = parent === null ? owner : walkOwner(owner, parentLabel, node.name);
+      nodeResources(node, remember(node, { owner: charged, asset: path, priority }));
     }
     const children = node.children;
     for (let i = 0; i < children.length; i++) { const child = children[i]; if (child !== undefined) visit(child, node, i); }
@@ -278,7 +289,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     for (const weak of sceneRefs) {
       const scene = weak.deref();
       if (scene === undefined) sceneRefs.delete(weak);
-      else tree(scene, 'engine/scene', `generated/${scene.name || scene.type}`, 1);
+      else tree(scene, SCENE_OWNER, `generated/${scene.name || scene.type}`, 1);
     }
     // The full walk can improve a texture label after its GL handle already exists.
     for (const weak of resourceRefs) {
@@ -346,8 +357,8 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
       const scene = args[0];
       if ((developer() || census()) && isObject(scene)) {
         if (sampled && !sceneSeen.has(scene)) { sceneSeen.add(scene); sceneRefs.add(new WeakRef(scene)); }
-        if (census() && !sampledCensus()) tree(scene, 'engine/scene', `generated/${scene.name || scene.type}`, 1);
-        else amortizedTree(scene, 'engine/scene', `generated/${scene.name || scene.type}`, 1);
+        if (census() && !sampledCensus()) tree(scene, SCENE_OWNER, `generated/${scene.name || scene.type}`, 1);
+        else amortizedTree(scene, SCENE_OWNER, `generated/${scene.name || scene.type}`, 1);
       }
       const result: unknown = Reflect.apply(original, this, args);
       return result;

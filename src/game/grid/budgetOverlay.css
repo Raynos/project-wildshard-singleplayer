@@ -28,3 +28,10 @@
 .ws-grid-budget-allocation .ws-grid-budget-k { white-space: pre-wrap; overflow-wrap: anywhere; }
 .ws-grid-budget-allocation .ws-grid-budget-v { white-space: normal; text-align: right; }
 .ws-grid-budget-memory-note { display: block; margin: 2px 0 4px 6px; font-size: 8px; opacity: 0.8; overflow-wrap: anywhere; }
+/* SF64: the footprint gauge, owned GPU / owned RAM / no owner, with the 1.0 GB cap line */
+.ws-grid-budget-gauge { margin: 4px 0; }
+.ws-grid-budget-gauge-bar { position: relative; display: flex; height: 10px; margin: 3px 0 2px 6px; background: #2a1a1e; overflow: visible; }
+.ws-grid-budget-gauge-gpu { flex: none; background: #5aa9ff; }
+.ws-grid-budget-gauge-ram { flex: none; background: #ffc35a; }
+.ws-grid-budget-gauge-remainder { flex: none; background: repeating-linear-gradient(135deg, #8a7d80 0 3px, #3b3033 3px 6px); }
+.ws-grid-budget-gauge-cap { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #ff5a4a; }

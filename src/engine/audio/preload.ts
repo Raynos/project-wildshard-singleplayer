@@ -32,9 +32,20 @@ function decodeContext(): OfflineAudioContext {
 const decoded = new Map<string, WeakRef<AudioBuffer>>();
 const decoding = new Map<string, Promise<AudioBuffer>>();
 const DECODE_ENTRIES = 256;
+/** SF64: the file each fetched recording came from, so its decoded PCM is charged to a file instead of a hash. Weak: the
+ *  bytes are detached by the decode and the entry goes with them. */
+const sources = new WeakMap<ArrayBuffer, string>();
+/** Scope names that say only "the running level", not who asked: a decode under one is charged to its file's folder. */
+const GENERIC_OWNERS: ReadonlySet<string> = new Set(['level', 'engine/audio']);
+function audioLabel(owner: string, url: string | undefined): { owner: string; asset: string | undefined } {
+  if (url === undefined) return { owner, asset: undefined };
+  const path = url.replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]+/iu, '').split(/[?#]/u)[0] ?? url, asset = `audio${path.startsWith('/') ? '' : '/'}${path}`;
+  const folder = path.slice(0, Math.max(0, path.lastIndexOf('/'))).replace(/^\//u, '');
+  return { owner: GENERIC_OWNERS.has(owner) && folder.length > 0 ? `audio:${folder}` : owner, asset };
+}
 /** Decode at 48 kHz, sharing identical live recordings without retaining retired PCM (the bytes are detached on decode). */
 export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
-  const owner = currentOwner()?.name ?? 'engine/audio';
+  const label = audioLabel(currentOwner()?.name ?? 'engine/audio', sources.get(bytes));
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
   const key = Array.from(digest, value => value.toString(16).padStart(2, '0')).join('');
   const live = decoded.get(key)?.deref();
@@ -44,7 +55,7 @@ export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
   const work = decodeContext().decodeAudioData(bytes);
   decoding.set(key, work);
   try {
-    const buffer = observeAudioMemory(await work, { owner, asset: `audio/sha256:${key}` });
+    const buffer = observeAudioMemory(await work, { owner: label.owner, asset: label.asset ?? `audio/sha256:${key}` });
     decoded.delete(key); decoded.set(key, new WeakRef(buffer));
     while (decoded.size > DECODE_ENTRIES) {
       const first = decoded.keys().next().value;
@@ -60,12 +71,13 @@ export async function cachedBytes(url: string): Promise<ArrayBuffer> {
   if (typeof caches !== 'undefined') {
     try {
       const hit = await caches.match(url, { ignoreVary: true });
-      if (hit) return await hit.arrayBuffer();
+      if (hit) { const bytes = await hit.arrayBuffer(); sources.set(bytes, url); return bytes; }
     } catch { /* storage blocked (private mode): fetch below */ }
   }
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${url} ${r.status}`);
-  return r.arrayBuffer();
+  const bytes = await r.arrayBuffer(); sources.set(bytes, url);
+  return bytes;
 }
 
 // ─────────────── the menu's "busy" flag (a style / set decoding from the cache) ───────────────
