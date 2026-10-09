@@ -7,7 +7,7 @@ import { execPath } from 'node:process';
 import { Vector3 } from 'three';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/pine-hollow/shard.config';
@@ -24,16 +24,21 @@ import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { BEAR_CAVE } from '../../../src/shards/pine-hollow/layout';
 
-let rapier: Rapier, plan: HeadlessRuntimePlan;
+let rapier: Rapier, plan: HeadlessRuntimePlan, basis: Uint8Array;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+const effects = { commands: () => [], emit: () => { throw new Error('the roster emits no gameplay effects'); } };
+const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
+  // the fresh world's native bytes, the checked basis a checkpoint's wire references (as the grid's durable autosave does):
+  // the 8.4 MB world packs to ~0.5 MB against it, a fifth of the string round trip's cost under coverage
+  const fresh = boot(); basis = fresh.physics.snapshot(); fresh.dispose();
 });
-const effects = { commands: () => [], emit: () => { throw new Error('the roster emits no gameplay effects'); } };
-const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
-const restore = (saved: string): SimHost => {
-  const decoded = decodeSimSnapshot(saved), ports = { ...plan.ports, rapier };
+/** A checkpoint through its string, once: the wire against the fresh-world basis, decoded with the same checked basis. */
+const roundTrip = (saved: SimSnapshot): SimSnapshot => decodeSimSnapshot(serializeSimSnapshot(saved, basis), basis);
+const restore = (saved: SimSnapshot): SimHost => {
+  const decoded = roundTrip(saved), ports = { ...plan.ports, rapier };
   return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...effects }); });
 };
 const bake = pineBake();
@@ -173,8 +178,9 @@ it.each([['ironhide', 170], ['ghost', 230]] as const)('restores exactly mid-figh
     }
     const mode = elitesState(original).scripts.find(s => s.id === (variant === 'ghost' ? 'ghost-stag' : 'ironhide'))?.mode;
     expect(mode).toBe(variant === 'ghost' ? 'faded' : 'charge');
-    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
-    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    const saved = snapshotSimHost(original);
+    restored = restore(saved);
+    expectSameSimSnapshot(snapshotSimHost(restored), saved);
     for (let tick = 0; tick < 300; tick++) { original.step(still); restored.step(still); }
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { restored?.dispose(); original.dispose(); }
@@ -212,13 +218,14 @@ it.each([0, 1, 1500, 2100])('restores exactly at tick %i (install, mid-walk, mid
   const original = boot(); let restored: SimHost | undefined;
   try {
     for (let tick = 0; tick < at; tick++) { if (tick === 1800) standBy(original, 'boar', 7); if (tick < 1800) walk(original); else original.step({ moveX: 0, moveZ: 0, yaw: 0 }); }
-    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
-    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    const saved = snapshotSimHost(original);
+    restored = restore(saved);
+    expectSameSimSnapshot(snapshotSimHost(restored), saved);
+    expect(saved.adapters.some(adapter => adapter.id === ROSTER_STEP)).toBe(true);
+    // the host runs on the page's distance bands and the body LOD; their clocks ride the snapshot
+    expect(original.bodyBands).toEqual({ physics: true }); expect(saved.bands).toBeDefined();
     for (let tick = 0; tick < 600; tick++) { walk(original); walk(restored); }
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
-    expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ROSTER_STEP)).toBe(true);
-    // the host runs on the page's distance bands and the body LOD; their clocks ride the snapshot
-    expect(original.bodyBands).toEqual({ physics: true }); expect(snapshotSimHost(original).bands).toBeDefined();
   } finally { restored?.dispose(); original.dispose(); }
 }, 120_000);
 
@@ -257,14 +264,14 @@ function bootWith(parts: PineInstall): { host: SimHost } & ReturnType<typeof ins
   const host = createSimHost(plan.level, { ...plan.ports, rapier });
   return { host, ...installPine(host, parts) };
 }
-function restoreWith(parts: PineInstall, saved: string): SimHost {
-  const decoded = decodeSimSnapshot(saved);
+function restoreWith(parts: PineInstall, saved: SimSnapshot): SimHost {
+  const decoded = roundTrip(saved);
   return restoreSimHost(plan.level, { ...plan.ports, rapier }, decoded, fresh => { fresh.setHeightQuery(heightAt); installPine(fresh, { ...parts, saved: decoded }); });
 }
 function exactAfter(parts: PineInstall, original: SimHost, ticks: number): void {
-  const restored = restoreWith(parts, serializeSimSnapshot(snapshotSimHost(original)));
+  const saved = snapshotSimHost(original), restored = restoreWith(parts, saved);
   try {
-    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    expectSameSimSnapshot(snapshotSimHost(restored), saved);
     for (let tick = 0; tick < ticks; tick++) { original.step(still); restored.step(still); }
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { restored.dispose(); }
@@ -290,7 +297,7 @@ it('respawns a felled elite as a live spawn: the manager\'s next entity id (168)
     expect(host.entities.get(boar.entityId)?.alive).toBe(false);
     exactAfter(parts, host, 120);
   } finally { host.dispose(); }
-}, 90_000);
+}, 30_000);
 
 /** Boot with a held dusk, stand by the Imperial Bull and run until his bugle brings his rivals in (live spawns). */
 function bugled(): { parts: PineInstall; host: SimHost; bull: ImperialBull<PineHuntBody> } {
@@ -300,23 +307,18 @@ function bugled(): { parts: PineInstall; host: SimHost; bull: ImperialBull<PineH
   return { parts, host, bull };
 }
 
-it('bugles at dusk: the Imperial Bull calls two rival bulls in as live spawns (the next entity ids), restored exactly on their way in', () => {
+// one boot and one checkpoint: the bugle's live spawns are asserted on their way in, the checkpoint is taken mid-charge
+// (a restore there reinstalls both live spawns and continues their lanes)
+it('bugles at dusk: the Imperial Bull calls two rival bulls in as live spawns (the next entity ids); they charge the player down their lanes, restored exactly mid-charge', () => {
   const { parts, host, bull } = bugled();
   try {
     expect(bull.rivals.map(r => [r.a.entityId, r.a.kind, r.a.variant, r.a.scripted, r.mode])).toEqual([['creature:168', 'elk', 'big-bull', true, 'approach'], ['creature:169', 'elk', 'bull', true, 'approach']]);
-    exactAfter(parts, host, 60);
-  } finally { host.dispose(); }
-}, 90_000);
-
-it('the rival bulls run in and charge the player down their lanes, restored exactly mid-charge', () => {
-  const { parts, host, bull } = bugled();
-  try {
     let charging = false;
     for (let i = 0; i < 1500 && !charging; i++) { host.step(still); charging = bull.rivals.some(r => r.mode === 'charge'); }
     expect(charging).toBe(true);
     exactAfter(parts, host, 60);
   } finally { host.dispose(); }
-}, 90_000);
+}, 30_000);
 
 it('roots the player where Old Blackpaw\'s roar catches them for 1.3 s (the page\'s effect.stun), and restores mid-stun', () => {
   const parts = pineParts(), { host } = bootWith(parts);
@@ -335,4 +337,4 @@ it('roots the player where Old Blackpaw\'s roar catches them for 1.3 s (the page
     for (let i = 0; i < 90; i++) host.step(walkOn);
     expect(host.player.position.distanceTo(held)).toBeGreaterThan(0.2);
   } finally { host.dispose(); }
-}, 90_000);
+}, 30_000);
