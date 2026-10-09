@@ -1,10 +1,11 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import { pineWitness } from './native';
 
-it('fails closed on the real trusted entry without executing an empty data proxy', () => {
-  const result = nativeCompatibility('pine-hollow', 'headless');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
+// Each leg resumes one committed gameplay checkpoint; no leg walks more than 10k ticks.
+it.each(['dam', 'ridge', 'night', 'king', 'fallen', 'dawn'])('walks the %s leg through native gameplay', name => {
+  const result = pineWitness(`slice-${name}`);
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ slug: 'pine-hollow', compatible: false,
-    headless: { status: 'blocked', ticksExecuted: 0, dependency: 'TypeScript parameter property is not supported in strip-only mode' } });
-});
+  expect(report).toMatchObject({ slug: 'pine-hollow', entry: 'runtime/headless.ts',
+    [`slice-${name}`]: { status: 'passed', to: name, alive: true } });
+}, 60_000);

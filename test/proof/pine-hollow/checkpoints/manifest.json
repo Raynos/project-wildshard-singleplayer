@@ -1,0 +1,18 @@
+{
+  "inputs": "760ca49745eba0ed480943c08747e6869501f78160f1fa9b015b13f95422f6fc",
+  "ticks": {
+    "dam": 8000,
+    "ridge": 16000,
+    "night": 24000,
+    "king": 26652,
+    "fallen": 29295
+  },
+  "hashes": {
+    "dam": "bc1f0000effea311b4edf92a2bb9672621ecb8d11f88695878f7d077ba28e3a4",
+    "ridge": "091289e2694f237ded2c01c93ecc29b8708ff1d6c9dbe2b56aea99497b3a9b51",
+    "night": "3e322ccf2dbd07d25f1feb17c400ae36b561b77144ac477366bb05477e1ee833",
+    "king": "9ff88125ff22e98c26c162db36774708fe270eb484f643b0ec3b1473480c7af2",
+    "fallen": "a47bf75f3cbac37288a618149d1624062fb87f6726a61d667d71ddc4f19680e5",
+    "dawn": "7d99ab6c95d801fe2a947746b21da202d9d480e0454d95d169f0cadce45837b0"
+  }
+}

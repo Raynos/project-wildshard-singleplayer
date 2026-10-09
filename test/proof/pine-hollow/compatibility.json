@@ -1,447 +1,557 @@
 {
-  "audit": {
-    "sourceRevision": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
-    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/pine-hollow/run.mjs all",
-    "exitStatus": 1,
-    "scope": "real entry import and partial declared-row ledger contracts; no gameplay proxy"
-  },
   "slug": "pine-hollow",
-  "entry": "runtime/index.ts",
+  "entry": "runtime/headless.ts",
   "compatible": false,
+  "scope": "Warden Hollow gameplay tape, not every Pine system",
+  "inputs": "760ca49745eba0ed480943c08747e6869501f78160f1fa9b015b13f95422f6fc",
   "headless": {
-    "status": "blocked",
-    "stage": "runtime-entry",
-    "dependency": "TypeScript parameter property is not supported in strip-only mode",
-    "ticksExecuted": 0
-  },
-  "replay": {
-    "status": "blocked",
-    "dependency": "TypeScript parameter property is not supported in strip-only mode",
-    "checkpointCaptured": false,
-    "suffixTicksExecuted": 0,
-    "reason": "No real headless runtime; no encounter checkpoint or complete continuation can be captured"
-  },
-  "declarations": {
-    "sourceLoaded": true,
-    "ordinarySpawns": 0,
-    "scripts": 0,
-    "runtimeBinds": [
-      "quests",
-      "ledger",
-      "items",
-      "spawns",
-      "state"
-    ],
-    "runtimeSpawns": {
-      "homes": [],
-      "bosses": [
-        {
-          "id": "pine.antler-king",
-          "kind": "antler-king",
-          "look": "warden",
-          "at": [
-            150,
-            -30
-          ],
-          "yaw": 0
+    "status": "passed",
+    "resumedFrom": "spawn",
+    "ticksExecuted": 30015,
+    "tick": 30015,
+    "alive": true,
+    "kingDefeated": true,
+    "dawn": true,
+    "hash": "1e3db561d0715b8c2a4da7a919a0de27ec487d5aac1c05fc75e408e7044323d6",
+    "facts": [
+      {
+        "name": "pine.feat.lanterns",
+        "entity": "lanterns:1",
+        "tick": 6692,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
         }
-      ]
-    },
-    "quests": [
-      "wardens-hollow"
+      },
+      {
+        "name": "pine.feat.lanterns",
+        "entity": "lanterns:2",
+        "tick": 12716,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.zipline",
+        "entity": "zipline:1",
+        "tick": 14340,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.lanterns",
+        "entity": "lanterns:3",
+        "tick": 18939,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.king",
+        "entity": "king:1",
+        "tick": 29295,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.quest",
+        "entity": "quest:1",
+        "tick": 30014,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      }
     ],
-    "ledgerRules": [
+    "achievements": [
       {
-        "fact": "pine.feat.deer5",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.deer5",
-            "title": "Antler Management",
-            "threshold": 5
-          }
-        ]
+        "shard": "pine-hollow",
+        "id": "pine-hollow.lanterns",
+        "title": "Wick Whisperer",
+        "count": 3,
+        "threshold": 3,
+        "earned": true
       },
       {
-        "fact": "pine.feat.boar5",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.boar5",
-            "title": "Bacon Procurement Officer",
-            "threshold": 5
-          }
-        ]
+        "shard": "pine-hollow",
+        "id": "pine-hollow.zipline",
+        "title": "Gravity's Favourite",
+        "count": 1,
+        "threshold": 1,
+        "earned": true
       },
       {
-        "fact": "pine.feat.elk3",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.elk3",
-            "title": "Elk Yeah",
-            "threshold": 3
-          }
-        ]
+        "shard": "pine-hollow",
+        "id": "pine-hollow.king",
+        "title": "Regicide, Rustic",
+        "count": 1,
+        "threshold": 1,
+        "earned": true
       },
       {
-        "fact": "pine.feat.bear2",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.bear2",
-            "title": "Unbearable",
-            "threshold": 2
-          }
-        ]
+        "shard": "pine-hollow",
+        "id": "pine-hollow.quest",
+        "title": "Morning Person, Finally",
+        "count": 1,
+        "threshold": 1,
+        "earned": true
+      }
+    ],
+    "rules": 19,
+    "gameplayEmissionProven": true,
+    "refusedWriteRetried": true,
+    "durableReload": true,
+    "duplicateStable": true,
+    "receipts": [
+      "pending",
+      "granted",
+      "granted",
+      "granted",
+      "granted",
+      "granted",
+      "duplicate"
+    ],
+    "legs": [
+      {
+        "leg": 0,
+        "kind": "go",
+        "tick": 2687,
+        "x": -10.357444774568513,
+        "y": 3.832903408155266,
+        "z": -34.31003610143671
       },
       {
-        "fact": "pine.feat.ghost",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.ghost",
-            "title": "Ghostbuster",
-            "threshold": 1
-          }
-        ]
+        "leg": 1,
+        "kind": "act",
+        "tick": 2688,
+        "x": -10.357444634137728,
+        "y": 3.8330034081527398,
+        "z": -34.31003615269795
       },
       {
-        "fact": "pine.feat.ironhide",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.ironhide",
-            "title": "Ironhide's Retirement Plan",
-            "threshold": 1
-          }
-        ]
+        "leg": 2,
+        "kind": "act",
+        "tick": 2721,
+        "x": -11.61380109188234,
+        "y": 3.8331976758969266,
+        "z": -35.833112770203726
       },
       {
-        "fact": "pine.feat.blackpaw",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.blackpaw",
-            "title": "Landlord of the Den",
-            "threshold": 1
-          }
-        ]
+        "leg": 3,
+        "kind": "go",
+        "tick": 3078,
+        "x": -0.14649333802138997,
+        "y": 1.103797784346725,
+        "z": -10.535998492013888
       },
       {
-        "fact": "pine.feat.imperial",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.imperial",
-            "title": "Crown Jeweller",
-            "threshold": 1
-          }
-        ]
+        "leg": 4,
+        "kind": "go",
+        "tick": 5276,
+        "x": -140.89625196889142,
+        "y": -2.8951815271331967,
+        "z": 65.65451299442505
       },
       {
-        "fact": "pine.feat.king",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.king",
-            "title": "Regicide, Rustic",
-            "threshold": 1
-          }
-        ]
+        "leg": 5,
+        "kind": "act",
+        "tick": 5277,
+        "x": -140.89625266602957,
+        "y": -2.895092820098604,
+        "z": 65.65453504426735
       },
       {
-        "fact": "pine.feat.lanterns",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.lanterns",
-            "title": "Wick Whisperer",
-            "threshold": 3
-          }
-        ]
+        "leg": 6,
+        "kind": "go",
+        "tick": 5390,
+        "x": -134.73414264492453,
+        "y": -3.0750607310812725,
+        "z": 62.02233309210608
       },
       {
-        "fact": "pine.feat.quest",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.quest",
-            "title": "Morning Person, Finally",
-            "threshold": 1
-          }
-        ]
+        "leg": 7,
+        "kind": "act",
+        "tick": 5391,
+        "x": -134.7341306931246,
+        "y": -3.0752308830753705,
+        "z": 62.02226797064107
       },
       {
-        "fact": "pine.feat.zipline",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.zipline",
-            "title": "Gravity's Favourite",
-            "threshold": 1
-          }
-        ]
+        "leg": 8,
+        "kind": "go",
+        "tick": 5480,
+        "x": -141.9733924991358,
+        "y": -3.986898277992829,
+        "z": 61.07594185081582
       },
       {
-        "fact": "pine.feat.resin",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.resin",
-            "title": "Sticky Fingers",
-            "threshold": 30
-          }
-        ]
+        "leg": 9,
+        "kind": "act",
+        "tick": 5481,
+        "x": -141.97338874035404,
+        "y": -3.9870781915135254,
+        "z": 61.07592316336452
       },
       {
-        "fact": "pine.feat.tokens",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.tokens",
-            "title": "Token Gesture",
-            "threshold": 8
-          }
-        ]
+        "leg": 10,
+        "kind": "go",
+        "tick": 6691,
+        "x": -62.208446071975686,
+        "y": -1.6082725253047343,
+        "z": 102.40626408477767
       },
       {
-        "fact": "pine.feat.secrets",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.secrets",
-            "title": "Professional Wanderer",
-            "threshold": 3
-          }
-        ]
+        "leg": 11,
+        "kind": "act",
+        "tick": 6692,
+        "x": -62.2084748144639,
+        "y": -1.6081847037323556,
+        "z": 102.40627742826003
       },
       {
-        "fact": "pine.feat.streak",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.streak",
-            "title": "Contractually Obligated",
-            "threshold": 5
-          }
-        ]
+        "leg": 12,
+        "kind": "go",
+        "tick": 9828,
+        "x": 149.42405914217534,
+        "y": 0.10570003642535397,
+        "z": 141.89843313035186
       },
       {
-        "fact": "pine.feat.miller",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.miller",
-            "title": "Run of the Mill",
-            "threshold": 1
-          }
-        ]
+        "leg": 13,
+        "kind": "go",
+        "tick": 12324,
+        "x": 34.283690662813115,
+        "y": 57.476980439460945,
+        "z": 212.95862671453602
       },
       {
-        "fact": "pine.feat.thralls",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.thralls",
-            "title": "Moss Remover",
-            "threshold": 10
-          }
-        ]
+        "leg": 14,
+        "kind": "act",
+        "tick": 12357,
+        "x": 35.24148371106287,
+        "y": 57.47472279312513,
+        "z": 214.04428287445086
       },
       {
-        "fact": "pine.feat.journal",
-        "origin": {
-          "kind": "engine",
-          "source": "pine.progress"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "pine-hollow.journal",
-            "title": "Published Naturalist",
-            "threshold": 1
-          }
-        ]
+        "leg": 15,
+        "kind": "go",
+        "tick": 12715,
+        "x": 40.775306147006745,
+        "y": 46.28227055932751,
+        "z": 213.2677875196187
+      },
+      {
+        "leg": 16,
+        "kind": "act",
+        "tick": 12716,
+        "x": 40.77533029075505,
+        "y": 46.28209310381447,
+        "z": 213.2677833141907
+      },
+      {
+        "leg": 17,
+        "kind": "go",
+        "tick": 13355,
+        "x": 34.963192339000784,
+        "y": 57.477175245033344,
+        "z": 211.30091479487334
+      },
+      {
+        "leg": 18,
+        "kind": "act",
+        "tick": 14340,
+        "x": 4.097649562950047,
+        "y": 3.856233756107526,
+        "z": 20.592000475384662
+      },
+      {
+        "leg": 19,
+        "kind": "ride",
+        "tick": 14340,
+        "x": 4.097649562950047,
+        "y": 3.856233756107526,
+        "z": 20.592000475384662
+      },
+      {
+        "leg": 20,
+        "kind": "go",
+        "tick": 18938,
+        "x": 192.84962598926677,
+        "y": 9.008044743230437,
+        "z": 197.5552728986244
+      },
+      {
+        "leg": 21,
+        "kind": "act",
+        "tick": 18939,
+        "x": 192.84962597563145,
+        "y": 9.008144713905802,
+        "z": 197.55527531983344
+      },
+      {
+        "leg": 22,
+        "kind": "go",
+        "tick": 22624,
+        "x": 0.28094440120486297,
+        "y": 0.8627364433764004,
+        "z": -9.478577435258643
+      },
+      {
+        "leg": 23,
+        "kind": "go",
+        "tick": 22982,
+        "x": -9.030943195063344,
+        "y": 3.7438333892166273,
+        "z": -34.65189271933386
+      },
+      {
+        "leg": 24,
+        "kind": "act",
+        "tick": 22983,
+        "x": -9.030881576368017,
+        "y": 3.7434649039311925,
+        "z": -34.65191521197457
+      },
+      {
+        "leg": 25,
+        "kind": "wait",
+        "tick": 23258,
+        "x": -9.025102043275155,
+        "y": 3.738094550990093,
+        "z": -34.65402779998478
+      },
+      {
+        "leg": 26,
+        "kind": "go",
+        "tick": 23579,
+        "x": -0.1387582046281466,
+        "y": 1.0986089683826439,
+        "z": -10.506028161293237
+      },
+      {
+        "leg": 27,
+        "kind": "go",
+        "tick": 23948,
+        "x": 29.454280950378262,
+        "y": -1.729768780631991,
+        "z": -2.1540565163850474
+      },
+      {
+        "leg": 28,
+        "kind": "go",
+        "tick": 24342,
+        "x": 57.57982408280262,
+        "y": -1.7147957077429847,
+        "z": 11.636123971173198
+      },
+      {
+        "leg": 29,
+        "kind": "go",
+        "tick": 24683,
+        "x": 85.48897023523935,
+        "y": -0.25351882069643317,
+        "z": 15.922939336949618
+      },
+      {
+        "leg": 30,
+        "kind": "go",
+        "tick": 25095,
+        "x": 119.48022576446422,
+        "y": 0.9173961972848819,
+        "z": 12.070486654618414
+      },
+      {
+        "leg": 31,
+        "kind": "go",
+        "tick": 25559,
+        "x": 157.4629336001981,
+        "y": 3.1636271096797035,
+        "z": 6.099222662018271
+      },
+      {
+        "leg": 32,
+        "kind": "go",
+        "tick": 25701,
+        "x": 155.10507904576846,
+        "y": 3.42760317755957,
+        "z": -5.482467187477617
+      },
+      {
+        "leg": 33,
+        "kind": "go",
+        "tick": 25853,
+        "x": 151.16497716146299,
+        "y": 3.7764867934702924,
+        "z": -17.497500037683515
+      },
+      {
+        "leg": 34,
+        "kind": "wait",
+        "tick": 25853,
+        "x": 151.16497716146299,
+        "y": 3.7764867934702924,
+        "z": -17.497500037683515
+      },
+      {
+        "leg": 35,
+        "kind": "king",
+        "tick": 29295,
+        "x": 158.04153981231715,
+        "y": 3.776700582545014,
+        "z": -28.137493378087242
+      },
+      {
+        "leg": 36,
+        "kind": "wait",
+        "tick": 30014,
+        "x": 158.04152669961903,
+        "y": 3.7766003948569375,
+        "z": -28.137493575459416
       }
     ]
   },
+  "replay": {
+    "status": "passed",
+    "checkpointCaptured": true,
+    "checkpointTick": 26652,
+    "suffixTicksExecuted": 1200,
+    "hash": "71fa1a3675b51ebf19e21478637c427714a1dcdadfa341044d4a253f3bf20a5f",
+    "replayHash": "71fa1a3675b51ebf19e21478637c427714a1dcdadfa341044d4a253f3bf20a5f",
+    "checkpoint": {
+      "state": "fight",
+      "phase": 1
+    },
+    "facts": [],
+    "restoredReemits": 0
+  },
   "ledger": {
-    "status": "partial",
-    "rules": 19,
-    "facts": 19,
+    "status": "passed",
+    "facts": [
+      {
+        "name": "pine.feat.lanterns",
+        "entity": "lanterns:1",
+        "tick": 6692,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.lanterns",
+        "entity": "lanterns:2",
+        "tick": 12716,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.zipline",
+        "entity": "zipline:1",
+        "tick": 14340,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.lanterns",
+        "entity": "lanterns:3",
+        "tick": 18939,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.king",
+        "entity": "king:1",
+        "tick": 29295,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.quest",
+        "entity": "quest:1",
+        "tick": 30014,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      }
+    ],
     "achievements": [
       {
-        "id": "pine-hollow.deer5",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.boar5",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.elk3",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.bear2",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.ghost",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "pine-hollow.ironhide",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "pine-hollow.blackpaw",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "pine-hollow.imperial",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "pine-hollow.king",
-        "count": 1,
-        "earned": true
-      },
-      {
+        "shard": "pine-hollow",
         "id": "pine-hollow.lanterns",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.quest",
-        "count": 1,
+        "title": "Wick Whisperer",
+        "count": 3,
+        "threshold": 3,
         "earned": true
       },
       {
+        "shard": "pine-hollow",
         "id": "pine-hollow.zipline",
+        "title": "Gravity's Favourite",
         "count": 1,
+        "threshold": 1,
         "earned": true
       },
       {
-        "id": "pine-hollow.resin",
+        "shard": "pine-hollow",
+        "id": "pine-hollow.king",
+        "title": "Regicide, Rustic",
         "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.tokens",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.secrets",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.streak",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.miller",
-        "count": 1,
+        "threshold": 1,
         "earned": true
       },
       {
-        "id": "pine-hollow.thralls",
+        "shard": "pine-hollow",
+        "id": "pine-hollow.quest",
+        "title": "Morning Person, Finally",
         "count": 1,
-        "earned": false
-      },
-      {
-        "id": "pine-hollow.journal",
-        "count": 1,
+        "threshold": 1,
         "earned": true
       }
     ],
-    "durableReload": true,
+    "rules": 19,
+    "gameplayEmissionProven": true,
     "refusedWriteRetried": true,
-    "duplicateStable": true,
-    "gameplayEmissionProven": false
-  }
+    "durableReload": true,
+    "duplicateStable": true
+  },
+  "outcomeDifferences": [
+    "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
+    "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
+    "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
+    "Resin/token/secret/miller/thrall/journal/kill feats are not emitted: ledger outcomes differ.",
+    "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
+    "Refight amber resin has no item effect: its reward is absent.",
+    "Rain wander goals are null: creature positions can differ.",
+    "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved."
+  ],
+  "coverageGaps": [
+    "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",
+    "The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape."
+  ],
+  "open": [
+    "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
+    "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
+    "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
+    "Resin/token/secret/miller/thrall/journal/kill feats are not emitted: ledger outcomes differ.",
+    "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
+    "Refight amber resin has no item effect: its reward is absent.",
+    "Rain wander goals are null: creature positions can differ.",
+    "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.",
+    "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",
+    "The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape."
+  ]
 }

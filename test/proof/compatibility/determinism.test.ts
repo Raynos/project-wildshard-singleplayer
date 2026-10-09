@@ -2,8 +2,9 @@ import { expect, it } from 'vitest';
 import { nativeCompatibility } from './native';
 import { signalWitness } from '../sunscar-dunes/native';
 import { skyWitness } from '../far-reach/native';
+import { pineWitness } from '../pine-hollow/native';
 
-it.each(['pine-hollow', 'driftwood-isle', 'nalati-grasslands'])(
+it.each(['driftwood-isle', 'nalati-grasslands'])(
   '%s reports identical fail-closed results in independent native processes', slug => {
     const first = nativeCompatibility(slug), second = nativeCompatibility(slug);
     expect(first.status).toBe(1); expect(first.stderr).toBe(''); expect(second).toEqual(first);
@@ -11,6 +12,14 @@ it.each(['pine-hollow', 'driftwood-isle', 'nalati-grasslands'])(
     expect(report).toMatchObject({ compatible: false, headless: { ticksExecuted: 0 }, replay: { checkpointCaptured: false } });
   },
 );
+
+// Whole Pine compatibility remains refused, but its real phase-II replay now runs. Keep this CI test below 10k ticks.
+it('pine-hollow reports identical King phase-II replays in independent native processes', () => {
+  const first = pineWitness('replay'), second = pineWitness('replay');
+  expect(first.stderr).toBe(''); expect(first.status).toBe(0); expect(second).toEqual(first);
+  expect(JSON.parse(first.stdout)).toMatchObject({ replay: { status: 'passed', checkpointCaptured: true,
+    checkpoint: { state: 'fight', phase: 1 }, suffixTicksExecuted: 1200 } });
+}, 60_000);
 
 it('sunscar-dunes reports identical passing whole-shard results in independent native processes', () => {
   const first = signalWitness(), second = signalWitness();

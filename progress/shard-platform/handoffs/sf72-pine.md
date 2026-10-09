@@ -1,77 +1,29 @@
-# Handoff (sf72-pine) — 2026-10-09, SF72 Pine Hollow headless (the plain loader, the night on the tape; sf72-pine14)
+# Handoff (sf72-pine) — 2026-10-09, SF72 Pine Hollow headless
 
-Coordinator `wildshard-new` pushes. Pine's canonical witness (`test/proof/pine-hollow/run.mjs`, the vitest proofs) is still
-the old fail-closed compatibility probe (it imports the page's `runtime/index.ts`, whose renderer modules keep their
-parameter properties); the tape that will become it now walks the day and the night up to the Antler King's fight.
+Coordinator wildshard-new pushes. Plan-State: unchanged.
 
 ## Landed
 
-- Bake inputs (`scripts/bake-pine-physics.mjs` → `runtime/physics.baked.json`): `ai/hunt.ts`, `AnimalManager.ts`, Pine's
-  `runtime/index.ts`, `runtime/fauna.ts`, `plugin.ts`, `combat/`, `species/`, `models/`, `world/`, `data/`. Map inputs
-  (`scripts/map-hash.mjs`): `shard.config.ts`, `layout.ts`, `world/`, `generators/`, `models/`. Run both bakes from a clean
-  export of the candidate (`scripts/serve-build.sh --rev <candidate>`, then
-  `scripts/browser-lane.sh node scripts/bake-pine-physics.mjs --url=<preview> --revision=<candidate>`).
-  `quest/`, `runtime/quest.ts`, `runtime/headless.ts` and `runtime/weapons/` are neither.
-- Earlier lanes: herds, roster, elites, live spawns, the roar, the King on `installBossRow` with his record on the flags, the
-  day clock, the three weapons and the swap, the Warden's Hollow headless and the entry proof, the clear entry canyons, one
-  ledger key (`950eecdf9`), one zipline law (`609b3beef`), the day's tape (`357e7b538`).
-- **sf72-pine14:**
-  - step 1 — Pine's headless closure loads under `scripts/sim-node-loader.mjs` alone: the constructor parameter properties
-    of `src/game/eliteSystem.ts` (EliteCore), `combat/eliteScripts.ts`, `runtime/king.ts` and `runtime/questClock.ts` are
-    plain fields (no behaviour change: the day tape's hash is identical, 52796a23…; physics rebaked, only its inputs hash
-    moved; full clean-export suite 1051 files / 5817 tests green; Nalati's elite tests pass).
-  - step 2 — the night on the tape and `pine.aim`:
-    - `pine.aim` (a `script` command, `runtime/weapons/headlessRanged.ts` `AIM_COMMAND`): its value is the share along the
-      target's body capsule the tick's shots aim at (0 rear … 1 front; none: the middle, in the old arithmetic, so every
-      existing tape flies exactly as before). The page aims along the camera; this is the tape's way to aim at a point.
-    - the tape (`witness.ts`, `tape.mjs`, plain loader): the lever-action off its pegs on the first porch visit; the day's
-      legs; any creature hunting the player within 18 m (stalk / charge) is shot at with the crossbow until none does (the den's
-      three bears follow the player from the den lantern; on the porch they pinned the capsule in the cabin's corner);
-      a held-up `go` leg steps round what blocks it; back to Hale, one press (`wait:night`), the clock's run to night;
-      off the porch and down the west road bend to bend after the Ghost Stag (`followed:stag` at tick 25,853); into the
-      stones; the King's fight by weapon play: a band 10–15 m round him circling, a jump over each root ring as it
-      reaches the player, the lever-action at his ribcage (`pine.aim` 0.75) only while it is open, the crossbow once the
-      lever is spent. `tapeProof` stops after 1,800 fight ticks: `at-king`, 27,790 ticks, the player standing, the King 1409 / 1500.
+Prior plain-loader/night tape: b0c280ca9 + b20b732dd. King blocker: efd3dc5dcd2d2361107b04160e8d1ad294a52b26. Native inverse binds and the chest-attached cage provide head/body/fore volumes and cage radius. The ordinary first-surface ray includes the page's fore capsule; pine.aim value 2 aims at the cage without bypassing collision or damage. The tape pulls an empty trigger to start the existing reload. King falls at 29,295, dawn finishes at 30,015. Double native bake exact, 34 focused tests, clean full suite 1,052 files / 5,809 passed / 14 skipped.
 
-## Blocker: the King's ribcage is unreachable headless
+## Validated continuation
 
-`runtime/king.ts` `onRibs` is a ball of radius 0.36 × scale × 1.15 (1.08 m at his 2.6) on his body capsule's axis, 0.75
-along it; his body capsule's radius is 0.56 × 2.6 = 1.46 m, and `bodyHit` returns the capsule's surface point, so no shot
-can ever land within the ball: every headless hit is bark (×0.25, 13 a lever round, 9 a bolt). With 28 lever rounds and 30
-bolts that is ~630 of his 1,500, and the longbow is his own reward, so **the headless King cannot be felled by weapons**. The
-page hits his second body capsule (`dims.fore`, the chest bone, `physics/creatures.ts`) and tests the hit point against the
-rig's ribcage (`models/antlerKing.ts` `ribcageWorld`). Fix: bake the chest bone's rest offset (and the cage's) into the
-King's body row, give `bodyHit` the fore capsule (as `AnimalManager` does with `foreCapsule`), and test `onRibs` against
-the baked cage point; then rerun `tapeProof` (the fight already fires only into the open ribcage).
+The canonical witness uses runtime/headless.ts under the plain sim loader. Inputs cover every loaded repo module, runner/loader/lockfile and native physics/terrain/navmesh bytes. Five checkpoints come from one uninterrupted command tape: 8,000 / 16,000 / 24,000 / 26,652 (King phase II) / 29,295 (fallen). One compressed immutable world basis plus five checked delta wires avoids duplicate native worlds. CI walks continue at most 8,000 ticks and equal their uninterrupted canonical digests. The phase-II replay uses identical 1,200 commands, exact canonical state/effects and zero restore emissions.
 
-## For the Codex lane (non-graphical; no browser needed except a physics rebake)
+The gameplay ledger records six durable identities from seven emissions, grants four achievements, retries a refused profile write and proves reload/duplicate stability. CI resumes night for 6,015 ticks through King and dawn; the full receipt includes lantern/zipline facts too. Nine coverage proofs pass, slowest 2.45 s (<20 s local budget). arm64/x64 full results equal. compatibility.json stays compatible:false; all exits nonzero, named partial proofs and record produce evidence. Report-card headless/replay/ledger true, compatible false. Clean-export full suite on f983de200 plus this candidate: 1,056 files / 5,834 passed / 14 skipped, 131.58 s. Strict, root-config touched-file lint, paths and ratchet green.
 
-- Run the tape: `node --import ./scripts/sim-node-loader.mjs test/proof/pine-hollow/tape.mjs` (~12 s CPU; prints
-  `status`, the King's hp and the canonical hash; today `at-king`, 27,790 ticks, hash a1dbdd28…).
-- The rib fix touches `runtime/king.ts` (`onRibs`), `runtime/weapons/headlessRanged.ts` (`bodyHit`) and the bake's King row:
-  `scripts/bake-pine-physics.mjs` must capture the chest bone's and the cage's offsets from the page's rig (a browser bake:
-  `scripts/serve-build.sh --rev <candidate>` from a scratch dir, then `scripts/browser-lane.sh node scripts/bake-pine-physics.mjs
-  --url=<preview> --revision=<candidate>`), and `test/shards/pine-hollow/physics-bake.test.ts` / `headless-runtime.test.ts`
-  ("takes the King's bark at ×0.25 and his ribcage at ×0.6 shut") must keep passing. Once a lever round into the open
-  ribcage lands ×3 (~162), raise `KING_PROBE` / let `tapeProof` run the leg to `dead:king` and the dawn wait.
-- Then the checkpoints: copy Sky's pattern (`test/proof/far-reach/run.mjs` modes `checkpoints` / `fresh` / `slice-*`,
-  `witness.ts` `writeCheckpoints` / `checkpointsFresh`, `checkpoints.test.ts`); `TapeState` is already resumable
-  (`leg, waypoint, ticks, best, stall`). Each vitest slice ≤ 10k ticks, `--coverage` time < 1/3 of its timeout.
+Commands:
 
-## Next (Pine headless), in order
+- `node --import ./scripts/sim-node-loader.mjs test/proof/pine-hollow/run.mjs checkpoints` after any loaded input changes; commit basis/manifest/deltas together.
+- `... run.mjs fresh`, slice-dam/ridge/night/king/fallen/dawn, replay or ledger.
+- `... run.mjs record` regenerates the receipt; all refuses whole compatibility.
 
-1. The rib hitbox above; then the King felled by the tape, the dawn (`seen:dawn`, the quest's fact), `tapeProof` → `walked`.
-2. The canonical witness: `run.mjs` (headless / replay from a King mid-fight checkpoint / ledger from gameplay through
-   `FactIngress`, as Sky's `witness.ts`), committed checkpoints + inputs-hash freshness (Sky's `c162fbd6a`: the tape is
-   ~28k ticks, so slices from checkpoints at the porch, the den and the stones), `canonicalSimDigest` (already the tape's
-   hash), compatibility.json from a real run, and the vitest proofs replace the fail-closed ones.
-3. Honest open items for the witness's list: the King's rib hitbox (above); arrow wind (headless arrows fly in still air);
-   the page's walk-over recovery of stuck arrows; the moving spread (headless shoots standing); the dialogue box's reading
-   time and the prompts' line of sight / nearest pick (a command names its prompt); the resin / token / secret / miller /
-   thrall / journal / kill feats are not emitted headless (only the lanterns, zipline, quest and the King's); the night
-   thralls, the millrace errand and the lodge are not hosted; the re-fight's amber resin has no item effect; rain wander
-   goals are null headless; the page's King record still lives in `pine.bosses` state; the night is short (the clock's 4
-   minutes from 18 h): the fight must end before the dawn sends him away.
-4. The grid admission (`grid-ready`) installs the same world with the standalone edge walls; the grid's world has none.
+## Honest open list / exact next step
 
-Plan-State: unchanged.
+Outcome differences keeping compatible:false: animated King chest/root motion (hits/damage); arrow wind/moving spread/recovery (hit/miss/ammo); dialogue time and prompt nearest/LOS (eligibility/timing); missing feats (ledger); unhosted night-roaming thralls/millrace/lodge (combat/quests); absent refight resin reward; rain wander goals (positions). Browser pine.bosses versus host flags also leaves save/refight interoperability unproved.
+
+Coverage-only gaps: alternate routes, other elite encounters, repeat fights and a recorded grid quest tape. The standalone tape retains walls; the separate native grid-entry proof removes them. Missing coverage alone is not evidence of a different hosted outcome.
+
+Next is the coordinator's remaining Pine gameplay row. No test-only state writes, damage, flags or teleports. Bake inputs include the bake script/AnimalView and prior runtime fauna/combat/species/models/world/data paths; changes need a real page physics rebake. Native physics/map rebake f983de200 is included after the separate crag sampler change.
+
+No owned browser, Simulator or preview. Own clean exports are throwaways to delete after landing. Foreign Pine runtimeCost/config hunks excluded.

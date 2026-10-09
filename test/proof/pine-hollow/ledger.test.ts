@@ -1,11 +1,15 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import * as v from 'valibot';
+import { pineWitness } from './native';
 
-it('proves only the real declared ledger rows survive refusal, retry, reload and duplicate ingress', () => {
-  const result = nativeCompatibility('pine-hollow', 'ledger');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
+it('records the King and dawn from gameplay, retries a refused profile write, reopens it and rejects duplicates', () => {
+  const result = pineWitness('ledger');
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ compatible: false, declarations: { sourceLoaded: true, ordinarySpawns: 0 },
-    ledger: { status: 'partial', rules: 19, durableReload: true, refusedWriteRetried: true,
-      duplicateStable: true, gameplayEmissionProven: false } });
-});
+  expect(report).toMatchObject({ compatible: false, ledger: { status: 'passed', resumedFrom: 'night',
+    kingDefeated: true, dawn: true, gameplayEmissionProven: true, refusedWriteRetried: true,
+    durableReload: true, duplicateStable: true } });
+  const rows = v.parse(v.object({ ledger: v.object({ facts: v.array(v.object({ name: v.string() })) }) }), report);
+  expect(rows.ledger.facts.map(row => row.name)).toContain('pine.feat.king');
+  expect(rows.ledger.facts.map(row => row.name)).toContain('pine.feat.quest');
+}, 60_000);
