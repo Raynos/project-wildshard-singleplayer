@@ -1,0 +1,13 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:6:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:7:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 /private/tmp/claude-501/sp-builders/sp-x3/nalati-import-verify
+
+
+ Test Files  3 passed (3)
+      Tests  24 passed (24)
+   Start at  21:11:40
+   Duration  7.21s (transform 85%, tests 6%, setup 5%, environment 2%, import 2%)
+

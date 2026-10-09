@@ -1,0 +1,24 @@
+✔ public soak reuses the floor intent without enabling Developer or the public menu gate (1.653875ms)
+✔ SF57 context lifecycle metadata never invents bytes and invalid lifecycle records refuse replay (0.47625ms)
+✔ SF57 first-crossing diagnostics cannot run as a full or qualifying soak (185.582458ms)
+✔ SF57 reconciles same-millisecond census cuts by exact sequence, never by a guessed ordering (0.386541ms)
+✔ SF57 loading mutation replay covers blocked timers, resizes, labels and document retirement without interpolation (4.879042ms)
+✔ SF57 fills a blocked drive timer only from complete mutations and explicit cycles, never allocator or settled guesses (0.457167ms)
+✔ SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs (6.786958ms)
+✔ SF57 borrowed previews survive cleanup; owned previews all stop even after one refusal (0.188708ms)
+✔ SF57 dev enters every production instance and returns to one exact home baseline (0.364208ms)
+✔ SF57 shipped enters every production instance and returns to one exact home baseline (0.269208ms)
+✔ SF57 dry run retains the ordinary deadline and all leases/samplers cover setup and teardown (0.109125ms)
+✔ SF57 joins only contemporaneous GL and preserves raw allocator and separate GPU bytes (0.124792ms)
+✔ SF57 Safari awaits async route results while sampling, and refuses navigation rather than reconnecting (306.754208ms)
+✔ SF57 per-lap peaks sum WC+GL only and mark unfinished laps (1.264125ms)
+✔ SF57 binds playing WC to the admitted game PID, not the prewarm, and fails missing game readings (0.244666ms)
+✔ SF57 permits only the exact premeasurement WebKit target transition (0.20325ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 568.106542

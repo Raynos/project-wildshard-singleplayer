@@ -1,0 +1,28 @@
+serve-build: building 0f82dbeb8106ee950383ae196e74ef3525fc5034 0f82dbeb8 → /private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30/serve/20261008-211133-4402/dist
+serve-build: pid 39470, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4402
+PREPARED /private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30/GO only after go
+sim-lane: created sf57-sp-x3-shipped-62878 (8010DFD8-0A7F-4417-B343-CCC06F978EE9)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[ 240.7s] phase -> unloaded
+[ 246.7s] phase -> done
+{"phases": {"loading": {"samples": 239, "seconds": 239.7, "gamePid": 47272, "gameHighGB": 0.531, "gameSampledGB": 0.506, "allWebContentGB": 0.57, "gpuProcessGB": 0.151}, "unloaded": {"samples": 6, "seconds": 5.0, "gamePid": 47272, "gameHighGB": 0.527, "gameSampledGB": 0.527, "allWebContentGB": 0.566, "gpuProcessGB": 0.125}}, "lost": []}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":0,"loadingPeakBytes":767399565,"phoneEstimateBytes":0,"baselines":[],"baselineDeltaBytes":[],"loops":[],"recovery":false,"calibration":false,"ratios":[],"missingGlSamples":0,"sampling":false,"leakZero":true,"admitted":[],"refused":[],"attemptedEveryCell":true,"crossroads":0,"rehearsal":true,"limitation":null,"failure":"Error: Safari condition timed out: Boolean(document.querySelector('.ws-main-grid'))\n    at until (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:62:9)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:135:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:349:40"}
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+                                                                                                      ^
+
+Error: /Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh exited 1
+    at ChildProcess.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36:103)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at Socket.<anonymous> (node:internal/child_process:481:11)
+    at Socket.emit (node:events:509:28)
+    at Pipe.<anonymous> (node:net:351:12)
+
+Node.js v24.18.1

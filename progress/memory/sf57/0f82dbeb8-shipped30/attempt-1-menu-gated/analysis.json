@@ -1,0 +1,48 @@
+{
+  "method": "Original fixed-PID footprint + labelled live GL. Original grader windows, upper median, actual census within unchanged 1.5s fence only for settled values. Complete reconciled journal may supply exact GL at blocked peak timestamps; no interpolation. Independent GPU process never added. Component medians are separate; combined median is computed from paired samples. Bytes are decimal; no VM-map or heap probes.",
+  "partialLastCircuit": false,
+  "pin": "0f82dbeb8106ee950383ae196e74ef3525fc5034",
+  "functionalPass": false,
+  "routes": 0,
+  "routeFailures": [],
+  "errors": [
+    "Error: Safari condition timed out: Boolean(document.querySelector('.ws-main-grid'))\n    at until (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:62:9)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:135:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:349:40"
+  ],
+  "failure": "Error: Safari condition timed out: Boolean(document.querySelector('.ws-main-grid'))\n    at until (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:62:9)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:135:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:349:40",
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 0,
+    "loadingPeakBytes": 767399565,
+    "phoneEstimateBytes": 0,
+    "baselines": [],
+    "baselineDeltaBytes": [],
+    "loops": [],
+    "recovery": false,
+    "calibration": false,
+    "ratios": [],
+    "missingGlSamples": 0,
+    "sampling": false,
+    "leakZero": true,
+    "admitted": [],
+    "refused": [],
+    "attemptedEveryCell": true,
+    "crossroads": 0,
+    "rehearsal": true,
+    "limitation": null
+  },
+  "glSampling": {
+    "journal": 239,
+    "observed": 6,
+    "missing": 0,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "settled": [],
+  "growth": null,
+  "deltas": [],
+  "peak": null,
+  "perLap": [],
+  "coverage": "Public shipped layout: Driftwood home + template copies, including first-circuit road tour. This one cells leg is not a separate road-only soak; physical-phone no-tab-kill acceptance remains separate."
+}

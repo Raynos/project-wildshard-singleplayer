@@ -24,7 +24,7 @@ import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDia
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry } from './owned.mjs';
 import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -127,20 +127,23 @@ async function worker() {
     sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--sample-interval-high', ...(diagnosticFirstCrossing ? ['--process-identities'] : []), '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
     /** @type {{ error: string | null }} */ const samplerResult = { error: null };
     const samplerClosed = new Promise((resolve) => { sampler.on('error', (error) => { samplerResult.error = String(error); resolve(); }); sampler.on('close', (code) => { if (code !== 0) samplerResult.error = `Native sampler exited ${code}`; resolve(); }); });
-    const gameUrl = `${base}sf57-safari.html?mute=1&nolock=1&sw=0`;
+    const bootEntry = soakGridEntry(layout);
+    const gameUrl = `${base}sf57-safari.html${bootEntry.query}`;
     // Replace the cold inspection tab before measurement; do not leave an extra version tab resident.
     await driver.evaluate(`setTimeout(()=>location.replace(${JSON.stringify(gameUrl)}),100);true`);
     driver.close(); driver = null;
     driver = await connect(`${base}sf57-safari.html`);
-    await until(driver, `Boolean(document.querySelector('.ws-main-grid'))`, 240000, collectGl, true);
-    await driver.evaluate(`setTimeout(()=>document.querySelector('.ws-main-grid').click(),100);true`);
-    // Title-to-grid navigation is intentional and precedes the single measurement-document fence.
-    driver.close(); driver = null; await sleep(3000); driver = await connect(base);
+    if (bootEntry.titleTap) {
+      await until(driver, `Boolean(document.querySelector('.ws-main-grid'))`, 240000, collectGl, true);
+      await driver.evaluate(`setTimeout(()=>document.querySelector('.ws-main-grid').click(),100);true`);
+      // Title-to-grid navigation is intentional and precedes the single measurement-document fence.
+      driver.close(); driver = null; await sleep(3000); driver = await connect(base);
+    }
     await until(driver, `Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live)`, 240000, collectGl, true);
     await driver.evaluate('(window.__wildshard.world.hud.enterNow(),true)');
     await until(driver, 'window.__wsReveal?.endedMs != null', 45000, collectGl, true);
     result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;return {href:location.href,clock:w.game.app.clock.mode,level:w.game.level.id,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state(),settings:JSON.parse(localStorage.getItem('wildshard.save.v2.global')).keys.settings.data,developer:JSON.parse(localStorage.getItem('wildshard.save.v2.device')).keys.devMode.data};})()`);
-    if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2 || result.metadata.level !== 'platform.grid') throw new Error('Soak requires the owned shell, live clock and 2x render scale');
+    if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2 || result.metadata.level !== bootEntry.level) throw new Error('Soak requires the owned shell, live clock and 2x render scale');
     if (result.metadata.developer !== (layout === 'dev')) throw new Error('Wrong Developer setting');
     const cells = result.metadata.state.cells;
     result.catalogue = cells.map(cell => cell.instance);
@@ -304,7 +307,7 @@ function writeHelper(base, layout, traceUploads = false) {
     .replaceAll(/<script data-sf57-fixture>[\s\S]*?<\/script>/gu, '');
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
-    saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
+    saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' }), soakGridEntry(layout).fixture].join(';');
   const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.__sf57TraceUploads=${traceUploads};(${installSoakDiagnostics.toString()})();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;
   const helper = html.replace('<head>', `<head><script data-sf57-fixture>${pins}</script>`);
   // The ordinary main-menu action can return to index.html before any measurement begins.

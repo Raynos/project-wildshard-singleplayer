@@ -1,0 +1,60 @@
+{
+  "files": [
+    {
+      "name": "shipped-cells.json",
+      "archive": "shipped-cells.json.br",
+      "bytes": 324306,
+      "archiveBytes": 10565,
+      "sha256": "1539fdbee26ebd18011195deb13350f8b001eb86b4387278db68d3a428b142f3"
+    },
+    {
+      "name": "shipped-cells-native.jsonl",
+      "archive": "shipped-cells-native.jsonl.br",
+      "bytes": 58856,
+      "archiveBytes": 7419,
+      "sha256": "55898141901e79f781b1155f6457e1299cc2e5a1e64c0fb39c89fd7541d7c046"
+    },
+    {
+      "name": "shipped-cells-gl.jsonl",
+      "archive": "shipped-cells-gl.jsonl.br",
+      "bytes": 26527535,
+      "archiveBytes": 10556,
+      "sha256": "26d4443612af383ce156e4ad708717d8bf78898af5134fd9f50b4d42359d5bcb"
+    },
+    {
+      "name": "shipped-cells-gl-events.jsonl",
+      "archive": "shipped-cells-gl-events.jsonl.br",
+      "bytes": 992370,
+      "archiveBytes": 31935,
+      "sha256": "31291135906d2e6a5abc3594f202dfd067b97e1ff04abe73c0306409fb3e3ff4"
+    },
+    {
+      "name": "shipped-cells-gl-uploads.jsonl",
+      "archive": "shipped-cells-gl-uploads.jsonl",
+      "bytes": 0,
+      "archiveBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "manifest.json",
+      "archive": "manifest.json",
+      "bytes": 459,
+      "archiveBytes": 459,
+      "sha256": "fd074d9e382aaed865e975f918750bb1226d555350e0f4f7cdc68e65e18446ef"
+    },
+    {
+      "name": "preflight.json",
+      "archive": "preflight.json",
+      "bytes": 285,
+      "archiveBytes": 285,
+      "sha256": "7560bb0912f1e8928e51837525e5fbee60869abc284b9fb7f2067fbdedc49e52"
+    },
+    {
+      "name": "run.log",
+      "archive": "run.log",
+      "bytes": 2956,
+      "archiveBytes": 2956,
+      "sha256": "e445ee1b776a8da26e70bf0a4a8978aab3d040798c765d1807a939d268e8e6bb"
+    }
+  ]
+}

@@ -1,3 +1,15 @@
+import { publicGridIntentCode } from '../public-grid.mjs';
+
+/** Reuse the floor's pre-release tap intent; the public menu gate and Developer mode never change.
+ * @param {string} layout */
+export function soakGridEntry(layout) {
+  if (layout !== 'dev' && layout !== 'shipped') throw new Error('Unknown soak layout');
+  const publicGrid = layout === 'shipped';
+  return { titleTap: !publicGrid, level: publicGrid ? 'driftwood-isle' : 'platform.grid',
+    query: publicGrid ? '?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0' : '?mute=1&nolock=1&sw=0',
+    fixture: publicGrid ? publicGridIntentCode({ instance: 'driftwood-isle', slug: 'driftwood-isle' }) : '' };
+}
+
 /** Owned-shell SF57 plans share the floor driver's controls and document/frame fences.
  * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
  * @param {'cells' | 'road'} leg

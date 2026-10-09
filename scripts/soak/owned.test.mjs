@@ -3,10 +3,25 @@ import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
+
+void test('public soak reuses the floor intent without enabling Developer or the public menu gate', () => {
+  const entry = soakGridEntry('shipped');
+  const values = new Map([['wildshard.save.v2.device', JSON.stringify({ keys: { devMode: { v: 1, data: false } } })]]);
+  const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
+  runInNewContext(entry.fixture, { localStorage: storage, sessionStorage: storage, Date: { now: () => 123456 } });
+  assert.deepEqual(JSON.parse(values.get('wildshard.save.v2.device') ?? '{}'), { keys: {
+    devMode: { v: 1, data: false }, 'gridIntent.once': { v: 1, data: { instance: 'driftwood-isle', slug: 'driftwood-isle', at: 123456 } },
+  } });
+  assert.equal(entry.titleTap, false);
+  assert.equal(entry.level, 'driftwood-isle');
+  assert.equal(new URL(entry.query, 'http://localhost').searchParams.get('chunk'), 'driftwood-isle');
+  assert.deepEqual(soakGridEntry('dev'), { titleTap: true, level: 'platform.grid', query: '?mute=1&nolock=1&sw=0', fixture: '' });
+  assert.throws(() => soakGridEntry('invalid'), /Unknown soak layout/u);
+});
 
 void test('SF57 context lifecycle metadata never invents bytes and invalid lifecycle records refuse replay', () => {
   const events = [{ at: 0, op: 'begin' }, { at: 1, op: 'context', context: 'context:1', state: 'observed' },
