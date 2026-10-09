@@ -43,9 +43,9 @@ mkdir -p "$work/dist-admin/.vercel"
 cp "$work/admin/vercel-project.json" "$work/dist-admin/.vercel/project.json"
 
 echo "deploy-admin: uploading"
-auth=()
-if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then auth=(--token "$VERCEL_BUILD_TOKEN"); fi
-url="$(vercel deploy "$work/dist-admin" --prod --yes --scope raynos-projects "${auth[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
+deploy=(vercel deploy "$work/dist-admin" --prod --yes --scope raynos-projects)
+if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then deploy+=(--token "$VERCEL_BUILD_TOKEN"); fi
+url="$("${deploy[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
 echo "deploy-admin: $url"
 
 live="https://wildshard-admin.vercel.app"
