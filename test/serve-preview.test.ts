@@ -18,7 +18,7 @@ function retire(pid: number): void {
   }
 }
 
-it.each(['stop', 'expiry'] as const)('keeps a detached preview alive after launch, and %s retires its whole owned group', async cleanup => {
+it.for(['stop', 'expiry'] as const)('keeps a detached preview alive after launch, and %s retires its whole owned group', async (cleanup, { signal }) => {
   const shell = readFileSync('scripts/serve-build.sh', 'utf8');
   const match = /<<'PREVIEW_NODE'\n([\s\S]+?)\nPREVIEW_NODE/u.exec(shell), launcher = match?.[1];
   if (!launcher) throw new Error('Missing real preview launcher');
@@ -34,8 +34,12 @@ it.each(['stop', 'expiry'] as const)('keeps a detached preview alive after launc
     if (!Number.isSafeInteger(pid) || pid <= 1) throw new Error('Invalid child identity');
     expect(process.kill(pid, 0)).toBe(true);
     expect(Number(execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)], { encoding: 'utf8' }).trim())).toBe(pid);
-    let output = '';
-    for (let i = 0; i < 50; i++) { output = readFileSync(log, 'utf8'); if (output.includes('fixture-ready') && output.includes('fixture-port')) break; await delay(20); }
+    let output = readFileSync(log, 'utf8');
+    // Readiness is bounded by this test's existing deadline, including cancellation under a loaded full suite.
+    while (!output.includes('fixture-ready') || !/fixture-port \d+/u.test(output)) {
+      await delay(20, undefined, { signal });
+      output = readFileSync(log, 'utf8');
+    }
     expect(output).toContain('fixture-ready');
     // The real build wrapper exited and released its lease; the detached preview still serves bytes.
     expect(existsSync(join(laneRoot, 'build.active.json'))).toBe(false);
