@@ -6,7 +6,7 @@
     "exitStatus": 0,
     "scope": "the uninterrupted 1084-tick route, Jian combo/heavy, two portal rides, Well lifting crossing, 92 entry lanes / 8 transfers; exact canonical restore and short in-process replays at ticks 400 and 940; both declared ledger facts granted once from gameplay, durable, no re-emission after a restore; no creatures",
     "runs": "two independent native processes, identical output",
-    "checkpointInputs": "8bebf191cf46e471ae2b0b465fe1176c5bf88cd8d7311c3bd451fe826c0ead6f"
+    "checkpointInputs": "0c916e57022789f68c528f680ef49748f16bc9ac71833846ef2488decd3592ea"
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
