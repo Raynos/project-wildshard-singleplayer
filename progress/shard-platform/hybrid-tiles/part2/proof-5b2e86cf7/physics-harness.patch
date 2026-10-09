@@ -1,0 +1,19 @@
+--- scripts/physics-baseline.mjs
++++ scripts/physics-baseline.mjs (measurement only)
+@@ -135,6 +135,8 @@
+ async function activationWitness(page, shard) {
+   const witness = await page.evaluate(() => ({
+     systems: Object.values(window.__wildshard.world.game.app.systemsByPhase()).flat().map((system) => system.id),
++    developer: document.documentElement.hasAttribute('data-dev'),
++    terrainTiles: (() => { let count = 0; window.__wildshard.world.terrain.group.traverse((object) => { if (object.isMesh && object.name.startsWith('terrain:')) count++; }); return count; })(),
+     deviceSaves: Object.fromEntries(Object.entries(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys ?? {}).map(([key, value]) => [key, value.data])),
+   }));
+   for (const [key, value] of Object.entries(DEVICE_SAVES)) if (witness.deviceSaves[key] !== value) throw new Error(`Device fixture missing: ${key}`);
+@@ -170,6 +172,7 @@
+ async function openGame(shard, q, { cpu, video }) {
+   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
+   const page = await ctx.newPage();
++  await saveFixture(page, { scope: 'device', key: 'devMode', data: true });
+   await seedVariantFixtures(page);
+   const errors = [];
+   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));

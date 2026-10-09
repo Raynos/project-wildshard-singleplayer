@@ -59,6 +59,22 @@ try {
   for (let visit = 1; visit <= 2; visit++) {
     const enter = await drive({ x: 0, z: 200 }, 'inside', 90); result.steps.push({ visit, enter });
     await sleep(2500); await shot(`entered-${visit}`);
+    // Separate visual-only proof: exact local poses after the real entry. The normal return/re-entry run above is unchanged.
+    if (process.env.MATCHED === 'on') {
+      result.matched = [];
+      for (const pose of [{ name: 'entry', x: 0, z: 223, pitch: -0.12 }, { name: 'centre', x: 0, z: 0, pitch: -0.12 }]) {
+        const feet = await page.evaluate(async (pose) => {
+          const player = window.__wildshard.world.player;
+          window.__wildshard.world.game.app.input.clear(); player.velocity.set(0, 0, 0);
+          player.spawn(pose.x, pose.z, 0); player.pitch = pose.pitch;
+          await new Promise((resolve) => { setTimeout(resolve, 3000); });
+          player.yaw = 0; player.pitch = pose.pitch;
+          return { x: player.position.x, y: player.position.y, z: player.position.z };
+        }, pose);
+        result.matched.push({ pose, feet }); await shot(`matched-${pose.name}`);
+      }
+      break;
+    }
     const play = await page.evaluate((visit) => {
       const api = window.__wildshard, dunes = api.shard.sunscar ?? null, app = api.world.game.app;
       if (dunes === null) return { error: 'no sunscar debug handle', keys: Object.keys(api.shard) };

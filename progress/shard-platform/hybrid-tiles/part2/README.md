@@ -41,7 +41,7 @@ by at most 6.4 cm (spawn 21.367 → 21.303 m).
   (−3.2 MB); RAM 67.7–73.1 MB off, 68.1 MB on (within the off runs' spread).
 - Cold load (fresh context, unthrottled, to playable): off 3.42 s / 3.13 s, on 3.10 s.
 
-## Not measured yet (the heavy lane queued the candidate build ~25 min; the 90 min cap ran out)
+## Original follow-up list (before the proof below; the heavy lane queued the candidate build ~25 min)
 
 - The grid off / on pair: `grid-run.mjs` here is sf50-close's run with the row fixture (`ROW=on|off`) and a terrain-tile witness.
 - `physics-baseline.mjs --no-build --mode=walk --device-save=debug.plugin.sunscar-dunes.groundTiles=on` (0 stuck), the four
@@ -49,4 +49,8 @@ by at most 6.4 cm (spawn 21.367 → 21.303 m).
   the unthrottled stand-in). The physics-baseline with the row off is unchanged by construction.
 - Static dressing as props tiles (optional) not started.
 
-Proposal: flip the default once the grid pair and the physics walk are green; then delete the code-built mesh path and the tool.
+## Follow-up measurement: default remains off
+
+The [pinned grid / collision proof](proof-5b2e86cf7/README.md) completes the OFF/ON grid visits, the ON canonical walk (7 legs, 0 stuck), and all four midpoint entries both ways (8 legs, 0 stuck; 7,680 flat/dry footprint rays). Frame-floor commands are recorded rather than run because the Simulator was occupied and machine load stayed above 12.
+
+**Do not flip yet:** a separate matched centre pair (OFF repeated for noise) reveals an ON-only hard tonal boundary across the sand. The original north-entry shots alone concealed it. The default can be reconsidered after the rendering owner fixes that visible difference and repeats the centre pair. No source/default change is part of this receipt; the loading benchmark and optional props conversion remain open.

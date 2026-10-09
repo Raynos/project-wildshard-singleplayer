@@ -1,0 +1,42 @@
+{
+  "pin": "5b2e86cf7a2ab065017b8b842e743793231906fc",
+  "startedAt": "2026-10-09T01:53:46.440416+00:00",
+  "harnessBlobs": {
+    "progress/shard-platform/hybrid-tiles/part2/grid-run.mjs": "8c82c02496184b6395de573cf471e39ab8af288f",
+    "scripts/physics-baseline.mjs": "23f69b16a930ec51ef7a03fd1fde01089b1a9cc0",
+    "scripts/physics-walk.mjs": "37f85ab3dc227ecde9d11bb2c2c4d7cdb8820405",
+    "progress/shard-platform/sf50/entries.mjs": "d650ba949c802d1b492ed67219a006a1e012a38c",
+    "progress/shard-platform/sf50/entries-route.json": "42594ab7311e865750efd43921a00b039a234b52"
+  },
+  "frameFloor": {
+    "status": "not-run",
+    "reason": "Simulator occupied by sp-x3 SF57 and load averages above 12",
+    "load": [
+      37.25,
+      26.94,
+      29.9
+    ],
+    "simulator": "sf57-sp-x3-dev-28931",
+    "uuid": "07BE843A-E4E6-4689-A2EF-1A368C75E562",
+    "commands": [
+      "node scripts/frame-floor.mjs --rev=5b2e86cf7a2ab065017b8b842e743793231906fc --shards=sunscar-dunes --surface=both --developer=on --device-save=debug.plugin.sunscar-dunes.groundTiles=off",
+      "node scripts/frame-floor.mjs --rev=5b2e86cf7a2ab065017b8b842e743793231906fc --shards=sunscar-dunes --surface=both --developer=on --device-save=debug.plugin.sunscar-dunes.groundTiles=on"
+    ],
+    "finalCheck": {
+      "simulatorsBooted": 0,
+      "load": [
+        35.41,
+        39.96,
+        36.24
+      ],
+      "reason": "Still not run: load exceeds 12 even after the Simulator released."
+    }
+  },
+  "version": {
+    "build": "5b2e86c-mv0bd57j",
+    "time": "2026-10-09T01:56:01.878Z"
+  },
+  "physicsHarness": "Pinned export scripts/physics-baseline.mjs plus physics-harness.patch; actual game build unchanged. Non-fixture generated session telemetry stripped from archived walk report.",
+  "entryHarness": "Existing sf50/entries.mjs, with boolean devMode:true and groundTiles:on; engine.world.bounds is lifted as its grid-equivalent entry proof specifies. Existing physics-walk freezes creatures for static collision routes.",
+  "matchedMode": "MATCHED=on adds visual-only fixed local entry and centre poses after real north entry; extra placements are not traversal evidence."
+}

@@ -1,0 +1,114 @@
+{
+  "base": "http://127.0.0.1:4402",
+  "device": "iPhone 16 Pro",
+  "steps": [
+    {
+      "visit": 1,
+      "enter": {
+        "done": true,
+        "feet": {
+          "x": 0.0012211527379122344,
+          "z": 255.4085018493647
+        },
+        "current": "sunscar-dunes",
+        "ready": true,
+        "seconds": 3.0323000001907348
+      }
+    }
+  ],
+  "cells": [
+    {
+      "slug": "pine-hollow",
+      "instance": "pine-hollow",
+      "cell": [
+        0,
+        1
+      ]
+    },
+    {
+      "slug": "_template",
+      "instance": "template-2",
+      "cell": [
+        1,
+        1
+      ]
+    },
+    {
+      "slug": "sunscar-dunes",
+      "instance": "sunscar-dunes",
+      "cell": [
+        -1,
+        0
+      ]
+    },
+    {
+      "slug": "driftwood-isle",
+      "instance": "driftwood-isle",
+      "cell": [
+        0,
+        0
+      ]
+    },
+    {
+      "slug": "nalati-grasslands",
+      "instance": "nalati-grasslands",
+      "cell": [
+        1,
+        0
+      ]
+    },
+    {
+      "slug": "far-reach",
+      "instance": "far-reach",
+      "cell": [
+        0,
+        -1
+      ]
+    }
+  ],
+  "seeded": {
+    "dunes": "sunscar-dunes",
+    "at": [
+      -1,
+      0
+    ]
+  },
+  "matched": [
+    {
+      "pose": {
+        "name": "entry",
+        "x": 0,
+        "z": 223,
+        "pitch": -0.12
+      },
+      "feet": {
+        "x": 0,
+        "y": 0.4500034859025019,
+        "z": 223
+      }
+    },
+    {
+      "pose": {
+        "name": "centre",
+        "x": 0,
+        "z": 0,
+        "pitch": -0.12
+      },
+      "feet": {
+        "x": 0,
+        "y": 18.521783063949645,
+        "z": 0
+      }
+    }
+  ],
+  "census": {
+    "animals": null
+  },
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "missing": [
+    "404 //api/telemetry"
+  ]
+}

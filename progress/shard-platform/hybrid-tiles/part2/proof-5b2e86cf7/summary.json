@@ -1,0 +1,113 @@
+{
+  "pin": "5b2e86cf7a2ab065017b8b842e743793231906fc",
+  "build": "5b2e86c-mv0bd57j",
+  "defaultFlipEligible": false,
+  "reason": "Matched centre ON capture has a hard shading boundary absent in both OFF captures.",
+  "walk": {
+    "legs": 7,
+    "stuck": 0,
+    "errors": [],
+    "terrainTiles": 48
+  },
+  "midpointEntries": {
+    "legs": 8,
+    "stuck": 0,
+    "rays": 7680,
+    "raised": 0,
+    "missing": 0,
+    "wet": 0,
+    "errors": []
+  },
+  "visual": {
+    "units": "8-bit RGB; percentages of pixels by max-channel difference",
+    "pairOrder": [
+      "off",
+      "on",
+      "absolute difference x4"
+    ],
+    "terrainBand": [
+      45,
+      340,
+      340,
+      420
+    ],
+    "poses": {
+      "entry": {
+        "full": {
+          "noise": {
+            "meanAbs": 0.9465,
+            "over8Percent": 1.5497,
+            "over24Percent": 0.0316
+          },
+          "swap": {
+            "meanAbs": 0.8292,
+            "over8Percent": 0.9999,
+            "over24Percent": 0.0475
+          }
+        },
+        "terrainBand": {
+          "noise": {
+            "meanAbs": 0.5366,
+            "over8Percent": 0.0254,
+            "over24Percent": 0.0
+          },
+          "swap": {
+            "meanAbs": 0.6558,
+            "over8Percent": 0.5636,
+            "over24Percent": 0.0975
+          }
+        }
+      },
+      "centre": {
+        "full": {
+          "noise": {
+            "meanAbs": 0.9338,
+            "over8Percent": 1.3346,
+            "over24Percent": 0.0185
+          },
+          "swap": {
+            "meanAbs": 3.6709,
+            "over8Percent": 19.0916,
+            "over24Percent": 5.5
+          }
+        },
+        "terrainBand": {
+          "noise": {
+            "meanAbs": 1.172,
+            "over8Percent": 1.3178,
+            "over24Percent": 0.0466
+          },
+          "swap": {
+            "meanAbs": 1.6908,
+            "over8Percent": 4.3856,
+            "over24Percent": 0.4364
+          }
+        }
+      }
+    }
+  },
+  "frameFloor": {
+    "status": "not-run",
+    "reason": "Simulator occupied by sp-x3 SF57 and load averages above 12",
+    "load": [
+      37.25,
+      26.94,
+      29.9
+    ],
+    "simulator": "sf57-sp-x3-dev-28931",
+    "uuid": "07BE843A-E4E6-4689-A2EF-1A368C75E562",
+    "commands": [
+      "node scripts/frame-floor.mjs --rev=5b2e86cf7a2ab065017b8b842e743793231906fc --shards=sunscar-dunes --surface=both --developer=on --device-save=debug.plugin.sunscar-dunes.groundTiles=off",
+      "node scripts/frame-floor.mjs --rev=5b2e86cf7a2ab065017b8b842e743793231906fc --shards=sunscar-dunes --surface=both --developer=on --device-save=debug.plugin.sunscar-dunes.groundTiles=on"
+    ],
+    "finalCheck": {
+      "simulatorsBooted": 0,
+      "load": [
+        35.41,
+        39.96,
+        36.24
+      ],
+      "reason": "Still not run: load exceeds 12 even after the Simulator released."
+    }
+  }
+}
