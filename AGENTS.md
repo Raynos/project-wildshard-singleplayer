@@ -94,6 +94,8 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - The main agent builds by default. **At most 3 live subagents, no forks**, one job each, capped at **400k context,
   90 min, ~200 turns**; reports ≤ 40 lines. Never recycle a finished one. Long waits belong to the main agent.
 - Every brief says: don't run `set-label.sh`, mute browsers, capture as the phone, follow GIT.md.
+- **Hard ceiling for the build fleet: at most 5 Opus and at most 5 Codex agents live at once** (Jake, 2026-10-09: *"max
+  five opus, max five codecs. That's the new fucking rule"*); never more, whatever the usage headroom.
 - **Codex vs Opus by remaining usage** (Jake, 2026-10-08): graphical work is Opus-only, Codex does non-graphical engineering;
   pace both with `openusage` so Codex reaches 0 % as Claude reaches its 10 % reserve (lean on Codex).
 
