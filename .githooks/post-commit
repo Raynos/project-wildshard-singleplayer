@@ -22,6 +22,18 @@ if ! git -C "$repo" diff --quiet HEAD -- "$ledger" 2>/dev/null; then
     || echo "  !! sweep-guard ledger is dirty and the auto-commit FAILED - commit $ledger yourself" >&2
 fi
 
+# SF74 W14: the automatic pusher. Record which herdr pane made this commit (a red push pings that lane), then start
+# scripts/auto-push.sh detached in its own session so the commit returns at once; it batches, queues behind a push in
+# flight and is single-instance. Off: `touch .git/auto-push.off`. A feature worktree / other branch is skipped inside.
+common="$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+if [ -n "$common" ] && [ -n "${HERDR_PANE_ID:-}" ]; then
+  printf '{"sha":"%s","pane":"%s","at":%s}\n' "$(git -C "$repo" rev-parse HEAD)" "$HERDR_PANE_ID" "$(date +%s)" >> "$common/commit-lanes.jsonl" 2>/dev/null || true
+fi
+if [ -f "$repo/scripts/auto-push.sh" ]; then
+  (cd "$repo" && python3 -c 'import os, sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' bash scripts/auto-push.sh \
+    < /dev/null > /dev/null 2>&1 &) || true
+fi
+
 # E357: the ratchet on the commit just made (its own tree, not the shared working tree): a rise here blocks every push,
 # so say so loudly now. Advisory (a post-commit hook cannot refuse); ~3 s.
 if [ -f "$repo/lint/ratchet.mjs" ]; then

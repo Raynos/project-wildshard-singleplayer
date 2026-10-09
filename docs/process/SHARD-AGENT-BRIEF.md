@@ -39,7 +39,7 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
   `herdr agent prompt wildshard-9 "[from <your name>] ENGINE REQUEST: <what, why, the file and the repro>"` (no `--wait`).
   The lead builds it and replies with the SHA. You never wait idle on it.
 - **Git:** shared main checkout with other agents. Pathspec commits only (`git commit -m … -- <paths>`), `git add` only
-  for new files, push only with `scripts/push-main.sh`, small commits, push after each. Never stash, checkout, restore
+  for new files, small commits; the commit pushes itself (`scripts/auto-push.sh`; never `git push`). Never stash, checkout, restore
   or reset files you didn't write.
 - **Browsers:** every Playwright run through `scripts/browser-lane.sh`; serve builds with `scripts/serve-build.sh`
   (from a scratchpad export of HEAD), never a vite dev server; close what you open. Muted.

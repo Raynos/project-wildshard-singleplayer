@@ -8,6 +8,8 @@
 # Pushed? `git log origin/main..main` is empty. Live? Check the next hourly deploy and
 # https://wildshard-singleplayer.vercel.app/version.json (or dispatch the workflow now).
 #
+# Normally nobody runs it by hand: .githooks/post-commit starts scripts/auto-push.sh, which runs it (SF74 W14).
+#
 #   scripts/push-main.sh
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
@@ -16,7 +18,8 @@ if [ "${1:-}" != "--locked" ]; then
   # Run the locked loop from a private snapshot: bash reads a script as it goes, so an edit landing in the shared tree
   # mid-push must not change the running pusher (the gate snapshots itself the same way).
   snap="$(mktemp -t push-main)" && cp "$0" "$snap" || exit 1
-  lockf -k -t 0 .git/push.lock bash "$snap" --locked
+  # PUSH_WAIT=1 (scripts/auto-push.sh): queue behind the push in flight (up to 30 min) instead of leaving commits local.
+  if [ "${PUSH_WAIT:-}" = 1 ]; then lockf -k -t 1800 .git/push.lock bash "$snap" --locked; else lockf -k -t 0 .git/push.lock bash "$snap" --locked; fi
   rc=$?
   rm -f "$snap"
   if [ "$rc" -eq 75 ]; then # EX_TEMPFAIL: another push holds the lock

@@ -70,8 +70,8 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
   author; kill only your own processes, by PID.
 - **Commit with a pathspec** (`git commit -m "…" -- <paths>`; `git add` only new files). A file with someone else's
   uncommitted hunk: wait, or commit your hunks through a private index.
-- **Push only with `scripts/push-main.sh`**, after every commit. The pre-push gate builds what Vercel builds; a red gate
-  is yours to fix before the push.
+- **Pushes are automatic** (SF74): post-commit starts `scripts/auto-push.sh`, which runs `scripts/push-main.sh` for
+  you; never `git push`. The pre-push gate builds what Vercel builds; a red gate pings your lane and is yours to fix.
 - **Strict means strict**: no `any`, no `!`, no `@ts-ignore`, no `as unknown as`, no blanket `oxlint-disable`. Fix the
   type, never the gate.
 - Never open a shared file for writing before you've read it. No tree-wide destructive git. `progress/` images ≤ 500 KB

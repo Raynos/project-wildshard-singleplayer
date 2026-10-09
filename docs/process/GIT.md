@@ -5,7 +5,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 
 ## The rules
 
-- **Commit early and often** with small commits, and `scripts/push-main.sh` after every commit. Before you push, HEAD
+- **Commit early and often** with small commits; the commit pushes itself (below). Before you push, HEAD
   must pass the CI gates on a clean export of the tree (`tsc --noEmit`, `oxlint`, `node scripts/check-css.mjs`,
   `vite build`), not just the files you touched. The pre-push gate does this for you (below).
 - **The gpu-gate parity jobs run nightly and at milestones, not on every push** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`); the node checks still run per push.
@@ -26,6 +26,15 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     `-- <paths>`. Rare escape: `SKIP_SWEEPGUARD=1`; every use lands in `project/sweepguard-ledger.md`.
   - A pathspec commit takes the **whole file**. If the file also carries another agent's uncommitted hunk, wait for
     them, or commit only your hunks through a private index (`.claude/skills/prepare-to-exit/SKILL.md` step 1).
+- **Pushes are automatic** (SF74 W14, 2026-10-09: commit → origin was p90 54 min because nobody ran the pusher).
+  `.githooks/post-commit` records the commit's herdr pane in `.git/commit-lanes.jsonl` and starts `scripts/auto-push.sh`
+  detached: single-instance, it waits 10 s to batch a burst, waits out `.git/quiet` (the coordinator's measurement
+  windows), then runs `scripts/push-main.sh` queued behind any push in flight (`PUSH_WAIT=1`), with
+  `.git/generated-approval.json` as `GENERATED_APPROVAL_FILE` when the coordinator keeps one. A red push is not retried
+  on the same tip: it pings each lane whose commit is in the red range once (the coordinator when none is known, or for
+  a missing approval receipt) and waits for the next commit. Log `.git/auto-push.log`, each run's output in
+  `.git/auto-push/`; off switch `touch .git/auto-push.off`. Commits that never ran post-commit (a private-index
+  `update-ref` landing) go up with the next commit, or run `scripts/push-main.sh` yourself.
 - **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
   `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks
   `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`. `push-main.sh` and
