@@ -16,8 +16,8 @@ import the game modules until their -p port. Nothing installs on import.
 
 `@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
-custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly; the
-kit's `lookApi` lazy loaders now point at them until the Nalati and Pine runtimes switch.
+custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
+Nalati and Pine runtime world hooks lazily import these defining modules. The kit `lookApi` loaders are removed.
 
 `@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
 as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
@@ -1720,7 +1720,6 @@ The kit holds content that 2+ shards use (the rule of two). Content one shard us
 | `effects` | `STARTER_EFFECTS`, `STARTER_CHOICES`, `StarterChoice`, `starterId`, `installStarterEffects` |
 | `npc` | `NpcRig`, `NpcRow`, `NpcModel`, `NpcFace`, `rigLegs`, `legRigOf`, `legBones`, `legPose`, `footPlan`, `LEG_BONE_NAMES`, `WALK`, `LegBuilt`, `NpcRigProfile`, `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`, `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`, `faceHead`, `loadFaceHead`, `FaceHead` |
 | `tools` | `Hoverboard`, `HOVERBOARD_TOOL` (all four shards; its `board` movement mode stays engine) |
-| `weather`, `looks` | `rainCurtain`, `RainProgram`, `RainCurtainSpec`, `fogGLSL`, `loadParticles`, `Particles`, `loadGrassField` |
 | `audio` | `sharedWeaponVoices`, `createForestAudio`, `installForestAmbience`, `installSilentScore`; creature voices `vocal`, `windup`, `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup` (boar, crab, monkey, the drowned sailor; moved from the engine, E405) |
 | `bag` | `KIT_ITEMS` |
 

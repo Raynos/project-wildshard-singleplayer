@@ -1,0 +1,44 @@
+{
+  "sourceProof": {
+    "base": "eb1c07e5a1b201727816ef895d6afe7b82695dc2",
+    "tree": "8325b0d2fd1c80487edf6a7134fa6f5d7fac73d3",
+    "commit": "8d4e5f2e38bbab9e3ff29eac6fca8e41585a1d78"
+  },
+  "full": {
+    "filesPassed": 961,
+    "testsPassed": 5456,
+    "skipped": 14,
+    "seconds": 101.47,
+    "laneSeconds": 119.25,
+    "command": "python3 scripts/heavy-lane.py full-test -- bash -c \"node scripts/generated-files.mjs --write && pnpm exec vitest run\"",
+    "generatedOutputsCommitted": false
+  },
+  "checks": {
+    "strict": true,
+    "rootOxlint": true,
+    "ratchet": true,
+    "rowFunctionFields": 83,
+    "focusedTests": 14
+  },
+  "approvedGraphDelta": {
+    "nalati->game": 13,
+    "pine->game": 2,
+    "nalati->kit": -10,
+    "pine->kit": -1,
+    "kit->game": -6
+  },
+  "map": {
+    "src/shards/nalati-grasslands/look/map.baked.json": {
+      "beforeSha256": "01bd74aa4026214fd006feae0726a9db819aa2e98c6e45de734fa5a40aff404a",
+      "afterSha256": "8c5a94a266e4cb036013f0735afb8f6f35f22d340ee071642fe91192db574260",
+      "identical": false,
+      "bytes": 270
+    },
+    "public/assets/nalati-grasslands/map/top.webp": {
+      "beforeSha256": "12122f75667fcaa1df9d9aeb613014593d43ce6ca6c73b6cf11dd7e95fc8a39f",
+      "afterSha256": "e109c8e6292d741cb93d3d51ff389bbdea72fd6924104a9dd66440c8315d9496",
+      "identical": false,
+      "bytes": 134446
+    }
+  }
+}

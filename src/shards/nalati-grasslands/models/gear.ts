@@ -7,7 +7,7 @@
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
 import * as THREE from 'three';
-import { QUIVER_MAX } from '@wildshard/kit/weapons/bow/index';
+import { BOW } from '@wildshard/game/weapons/starterBowProfile';
 import { arrowMaterial, bowSpecimen, buildArrowGeometry, type BowStyle } from '../weapons/recurve';
 import { buildRifleParts } from '../runtime/weapons/Rifle';
 import { buildSabre } from '../runtime/weapons/Sabre';
@@ -52,7 +52,7 @@ export const bow: ModelDef<BowParams> = defineModel<BowParams>({
 /**
  * The arrow (E348): a birch shaft with a red cresting band, an iron leaf head and three barred feathers, 0.8 m — the bow's
  * `buildArrowGeometry` on its own copy of the arrows' painterly material (`arrowMaterial`). Every arrow loosed, flying or
- * stuck in the world, is one instanced draw (Projectiles.ts); the quiver holds QUIVER_MAX.
+ * stuck in the world, is one instanced draw (Projectiles.ts); the quiver holds BOW.quiver.
  */
 export const arrow: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/arrow', name: 'Arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
@@ -144,7 +144,7 @@ export const ar15: ModelDef<object> = defineModel<object>({
 /** the steppe's kit (src/shards/nalati-grasslands/weapons/nalatiKit.ts + src/main.ts): bow (+ its arrows) · sabre · spear (+ javelins), the bosses' rewards, the AR-15 */
 export const GEAR: readonly RosterEntry[] = [
   live(bow, { copies: 1 }),
-  live(arrow, { copies: QUIVER_MAX, drawnAs: 'instanced' }),
+  live(arrow, { copies: BOW.quiver, drawnAs: 'instanced' }),
   live(sabre, { copies: 1 }),
   live(spear, { copies: 1 }),
   live(javelin, { copies: 3, drawnAs: 'instanced' }),

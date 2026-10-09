@@ -15,7 +15,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { HorseHerd } from '../runtime/groupRegistry';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
-import { Bow } from '@wildshard/kit/weapons/bow/family';
+import { Bow } from '@wildshard/game/weapons/Bow';
 import { Sabre, type MountState } from '../runtime/weapons/Sabre';
 import { Spear } from '../runtime/weapons/Spear';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';

@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import type { NalatiPersistence } from '../runtime/persistence';
 import { Mount } from './Mount';
-import { Bow } from '@wildshard/kit/weapons/bow/family';
+import { Bow } from '@wildshard/game/weapons/Bow';
 import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';

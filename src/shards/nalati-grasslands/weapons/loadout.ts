@@ -1,6 +1,6 @@
 import { GoldenBow, type GoldenBowPower } from '../runtime/weapons/GoldenBow';
-import { Bow } from '@wildshard/kit/weapons/bow/family';
-import { BOW as BOW_PROFILE } from '@wildshard/kit/weapons/bow/profiles';
+import { Bow } from '@wildshard/game/weapons/Bow';
+import { BOW as BOW_PROFILE } from '@wildshard/game/weapons/starterBowProfile';
 import { POSE, buildRecurve, arrowKind, ARROW_LEN } from './recurve';
 import { Naizagai, type NaizagaiPower } from '../runtime/weapons/Naizagai';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';

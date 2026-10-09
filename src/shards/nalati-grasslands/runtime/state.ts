@@ -43,7 +43,6 @@ import { nalatiWetAt } from '../wet';
 import { wireNightEnemies } from '../combat/night';
 import { installStealth, type Stealth } from '../stealth';
 import { wireSound, type NalatiSound } from './audio/sound';
-import { loadGrassField } from '@wildshard/kit/lookApi';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/grass';
 import { wireRide, type Ride } from '../ride/ride';
@@ -123,7 +122,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
   const [{ practiceRoom }, { modelContext }] = await Promise.all([import('@wildshard/engine/core/practiceRoom'), import('@wildshard/engine/models/model')]);
-  const { trample, grassHeightAt, grassBaseHeightAt } = await loadGrassField();
+  const { trample, grassHeightAt } = await import('@wildshard/game/systems/looks/trample');
+  const { grassBaseHeightAt } = await import('@wildshard/game/systems/looks/grassField');
   const crowdVariant = directorVariant(plugin);
   let declaredCrowds: NativeFlocks | null = null;
   const updates: ((dt: number, t: number) => void)[] = [];

@@ -4,7 +4,7 @@ import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
-import type { Bow } from '@wildshard/kit/weapons/bow/family';
+import type { Bow } from '@wildshard/game/weapons/Bow';
 import type { Sabre } from '../runtime/weapons/Sabre';
 import { horseBones } from '../species/horse';
 import { skyMarkedAtlas } from '../species/coats';

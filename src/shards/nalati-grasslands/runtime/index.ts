@@ -12,7 +12,6 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
 import { Rifle } from './weapons/Rifle';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 import { Vector3 } from 'three';
@@ -50,13 +49,14 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await import('@wildshard/engine/world/Grass');
-    (await loadGrassField()).configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);
+    await import('@wildshard/game/systems/looks/trample');
+    (await import('@wildshard/game/systems/looks/grassField')).configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);
     // the grass step also builds the shared mote / mist / needle field the steppe has always carried (main.ts built it for
     // every forest shard before the plugin split; R2: dropping it lost a Points, two InstancedMeshes and three textures)
     const { grass, particles } = await step('grass', async () => {
       const field = new Grass(sky, forest).build();
       await macrotask();
-      const { Particles } = await loadParticles();
+      const { Particles } = await import('@wildshard/game/systems/looks/particles');
       const motes = new Particles(sky, forest).build();
       game.scene.add(field.group, motes.group);
       return { grass: field, particles: motes };

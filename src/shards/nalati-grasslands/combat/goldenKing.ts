@@ -20,7 +20,7 @@ import * as THREE from 'three';
 
 
 
-import type { Bow } from '@wildshard/kit/weapons/bow/family';
+import type { Bow } from '@wildshard/game/weapons/Bow';
 
 import type { KurganEntrance } from '../world/KurganField';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';

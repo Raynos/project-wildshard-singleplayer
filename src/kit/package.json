@@ -7,7 +7,6 @@
     "./effects/install": "./effects/install.ts",
     "./effects/starter": "./effects/starter.ts",
     "./icons": "./icons.ts",
-    "./lookApi": "./lookApi.ts",
     "./models/creatures": "./models/creatures.ts",
     "./models/pickups": "./models/pickups.ts",
     "./npc/faceHeads": "./npc/faceHeads.ts",

@@ -16,12 +16,11 @@ Coordinator wildshard-new owns pushes and generated outputs. No owned browser, S
   fingerprints plus the known M5 desktop ambient scheduling difference; no comparison guard changed. Baselines,
   hashes/settings/raw captures: `sf46/profile-parity/`. Other shard baselines and shared metadata preserved.
 
-Next: coordinator serialized push carries these commits. Signal baselines are deliberately unchanged; its complete
+SF54 defining look / Nalati bow import cleanup is green: kit lookApi removed, lazy game look imports / defining bow recipes, unchanged quiver24, BowProfile row inventory moved to game. Map rebaked. Clean full961 files /5456 pass /14 skip, strict/root lint/ratchet/hooks green. Approved Nalati→game +13 /Pine→game +2; source closure debt falls. Proof: `sf54/import-cleanup/README.md`. Coordinator serialized push carries this source commit. Signal baselines are deliberately unchanged; its complete
 port parity / floors / native cap / prepared-layout soak remain independent plan gates, not inferred from the horse
 presence proof. Resume the plan's next assigned row after that. No new task or plan edit was invented here.
 
-Current horse scratch `/private/tmp/claude-501/sp-builders/sp-x1/horse-fix/` is disposable after receipt landing;
-all useful results are archived. The stopped preview was :4400 (`x1-signal-horse`); no process remains. Earlier SF64
+Horse scratch `/private/tmp/claude-501/sp-builders/sp-x1/horse-fix/` was deleted after archival verification. The stopped preview was :4400 (`x1-signal-horse`); no process remains. Earlier SF64
 paused-frame attribution remains unproven; `6d8b93cc8` records its preserved scratch/manual-cleanup paths.
 
 Plan-State: unchanged.

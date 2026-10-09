@@ -22,7 +22,6 @@ import * as THREE from 'three';
 import { CABIN_SITES } from '../layout';
 import { installStarterEffects } from '@wildshard/kit/effects/install';
 import { STARTER_EFFECTS } from '@wildshard/kit/effects/starter';
-import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow } from './weapons/crossbow/Crossbow';
@@ -73,8 +72,8 @@ export class PineHollow extends ShardPlugin {
     const { game, sky, forest, player, registry } = world;
     rt.menu = { skins: () => rt.play ? pineFinishes(rt.play.skins) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => isPineItem(id) ? mottLine(id) : null } };
     const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
-    const { Particles: ParticleField } = await loadParticles();
-    const { trample, TRAMPLE_GLSL } = await loadGrassField();
+    const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
+    const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
     ctx.app.registerTrample(trample, ctx.scope);
     const streams = new PineStreams(sky).build();
     game.scene.add(streams.group);
