@@ -61,15 +61,17 @@ export function spawnOverhead() {
   return hit === null ? null : { feet, overheadY: from + hit.timeOfImpact };
 }
 
-/** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out @param {string} [shard] */
-export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle') {
+/** `developer`: a standalone case with Developer on, for a shard that is still Developer-only (Signal Dunes: SF57's composer
+ * coverage broke its boot on main, 9fb0cca1d, and no public case could see it).
+ * @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out @param {string} [shard] @param {boolean} [developer] */
+export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle', developer = false) {
   // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
   const started = Date.now(), deadline = started + 90000;
   const receipt = mode === 'standalone' && shard !== 'driftwood-isle' ? shard : mode;
   /** @type {Record<string, number>} */ const phases = {};
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   // Both ordinary documents read the same device choice. Standalone proves the public default too.
-  await saveFixture(context, { scope: 'device', key: 'devMode', data: mode === 'grid' });
+  await saveFixture(context, { scope: 'device', key: 'devMode', data: mode === 'grid' || developer });
   // Static dist has no serverless API. Acknowledge telemetry and recorded nonfatal lifecycle diagnostics only.
   let telemetryPosts = 0;
   await context.route(new URL('/api/telemetry', base).href, async route => {
@@ -174,8 +176,8 @@ async function main() {
   const pool = browserPool(root, 1, option('angle') ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader'));
   try {
     const browser = await pool.browser(0);
-    for (const [mode, shard] of /** @type {const} */ ([['standalone', 'driftwood-isle'], ['standalone', 'pine-hollow'], ['grid', 'driftwood-isle']])) {
-      const result = await bootCase(browser, base, mode, out, shard);
+    for (const [mode, shard, developer] of /** @type {const} */ ([['standalone', 'driftwood-isle', false], ['standalone', 'pine-hollow', false], ['standalone', 'sunscar-dunes', true], ['grid', 'driftwood-isle', false]])) {
+      const result = await bootCase(browser, base, mode, out, shard, developer);
       console.log(`${mode}: gameplay PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
     }
   } finally { try { await pool.close(); } finally { preview?.close(); } }

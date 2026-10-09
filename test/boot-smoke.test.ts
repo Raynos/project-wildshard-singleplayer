@@ -61,8 +61,10 @@ it('waits for the real entered HUD, frame gate and current grid reveal before cl
   expect(observe(true, false, false, true)).toMatchObject({ ready: true, frame: 24 });
 });
 
-it('boots public Pine through real SHARD SELECT as well as Driftwood and the Developer grid', () => {
-  expect(source).toContain("['standalone', 'pine-hollow']");
+it('boots public Pine through real SHARD SELECT as well as Driftwood, Developer Signal Dunes and the Developer grid', () => {
+  expect(source).toContain("['standalone', 'pine-hollow', false]");
+  expect(source).toContain("['standalone', 'sunscar-dunes', true]"); // the Developer-only shard SF57's composer coverage broke
+  expect(source).toContain("data: mode === 'grid' || developer");
   expect(source).toContain("url.searchParams.set('chunk', shard)");
   expect(source).toContain("page.locator('.ws-main-select').click()");
   expect(source).toContain("page.locator('.ws-menu-play').click()");
