@@ -1,5 +1,13 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/game/systems/audio/weaponVoices` owns the existing sample-first weapon
+recipes and `WeaponSynth` mixer port; trusted runtimes consume them through
+`@wildshard/sdk/runtime/audio/weaponVoices`. The three recipe modules retain their
+original oscillator parameters, cue taps and audio random-draw ordering.
+`@wildshard/game/systems/audio/silentScore.installSilentScore` scopes a score-only
+gain mute and restores the previous value at disposal; its SDK defining facade is
+`@wildshard/sdk/runtime/audio/silentScore`. Both systems install only when called.
+
 `@wildshard/game/systems/viewmodel/{rigArms,armClips,armRig}` define the first-person arm player
 (`RigArms`, `swordArmsOf`, `vmScale`), the arm rigs' clip alias tables and the two-bone arm IK the
 arm bakes and `measure` share; they moved unchanged from the kit (SF54). Trusted runtimes reach them through

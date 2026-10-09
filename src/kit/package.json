@@ -4,7 +4,6 @@
   "type": "module",
   "exports": {
     "./audio/forest": "./audio/forest.ts",
-    "./audio/weaponVoices": "./audio/weaponVoices.ts",
     "./effects/install": "./effects/install.ts",
     "./effects/starter": "./effects/starter.ts",
     "./icons": "./icons.ts",

@@ -67,7 +67,9 @@
     "./bake/worldRows": "./bake/worldRows.ts",
     "./bake/staticMaterials": "./bake/staticMaterials.ts",
     "./bag": "./bag.ts",
-    "./runtime/effects": "./runtime/effects.ts"
+    "./runtime/effects": "./runtime/effects.ts",
+    "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
+    "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -357,6 +359,14 @@
       "./runtime/effects": {
         "types": "./dist/types/sdk/runtime/effects.d.ts",
         "default": "./dist/runtime/effects.js"
+      },
+      "./runtime/audio/weaponVoices": {
+        "types": "./dist/types/sdk/runtime/audio/weaponVoices.d.ts",
+        "default": "./dist/runtime/audio/weaponVoices.js"
+      },
+      "./runtime/audio/silentScore": {
+        "types": "./dist/types/sdk/runtime/audio/silentScore.d.ts",
+        "default": "./dist/runtime/audio/silentScore.js"
       }
     }
   }

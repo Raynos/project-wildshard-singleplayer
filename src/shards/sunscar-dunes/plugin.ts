@@ -4,7 +4,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { bindRuntimeCoins, bindRuntimeItemContexts, bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
-import { installSilentScore } from '@wildshard/kit/audio/forest';
+import { installSilentScore } from '@wildshard/game/systems/audio/silentScore';
 import source from './shard.config';
 import { Vector3 } from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';

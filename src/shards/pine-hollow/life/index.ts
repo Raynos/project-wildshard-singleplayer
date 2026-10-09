@@ -1,4 +1,4 @@
-import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
+import { sharedWeaponVoices } from '@wildshard/game/systems/audio/weaponVoices';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { app } from '@wildshard/engine/app/runtime';

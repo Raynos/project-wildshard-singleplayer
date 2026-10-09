@@ -1,5 +1,13 @@
 # Build and preview an author project
 
+`@wildshard/sdk/runtime/audio/weaponVoices` exposes `sharedWeaponVoices` and
+`declaredWeaponVoices` from the game-owned audio recipes. They preserve the existing
+sample-first selection, authored melee-cue precedence, audio RNG order, timestamps
+and mixer parameters. These are trusted runtime systems, not commons build imports.
+`@wildshard/sdk/runtime/audio/silentScore.installSilentScore(music, scope)` mutes
+only the score output and restores its previous gain on disposal; other sound buses
+and the user's volume setting are untouched. Neither module installs on import.
+
 The trusted `@wildshard/sdk/runtime/viewmodel/rigArms`, `armClips` and `armRig` modules expose the
 platform first-person arm player, clip alias tables and arm IK measures by binding the defining game
 systems; they own no second parse cache or mixer and carry no commons content.

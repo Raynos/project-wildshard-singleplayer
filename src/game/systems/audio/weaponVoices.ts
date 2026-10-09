@@ -1,8 +1,8 @@
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
-import { crossbowFire, dryFire, boltImpact, reload } from '../weapons/crossbow/sounds';
-import { rifleFire, rifleReload } from '../weapons/firearm/sounds';
-import { swordSwing, swordHeavy, swordHit } from '../weapons/melee/sounds';
+import { crossbowFire, dryFire, boltImpact, reload } from './crossbowSounds';
+import { rifleFire, rifleReload } from './firearmSounds';
+import { swordSwing, swordHeavy, swordHit } from './meleeSounds';
 
 /** Only the oscillator blocks and sample/cue ports that an equipment recipe reads. */
 export interface WeaponSynth {
@@ -12,7 +12,7 @@ export interface WeaponSynth {
   tone: (opts: Parameters<Audio['tone']>[0]) => void;
 }
 
-/** The kit's default equipment voices; samples and synth blocks come from the level's mixer. */
+/** The platform's default equipment voices; samples and synth blocks come from the level's mixer. */
 export function sharedWeaponVoices(audio: Audio): {
   crossbowFire: () => void; dryFire: () => void; reload: () => void; rifleFire: () => void; rifleReload: () => void;
   swordSwing: () => void; swordHeavy: () => void; weaponSwap: () => void;

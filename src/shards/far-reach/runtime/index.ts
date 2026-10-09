@@ -2,7 +2,7 @@ import { declaredSkyRows } from './brains';
 import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { installSilentScore } from '@wildshard/kit/audio/forest';
+import { installSilentScore } from '@wildshard/sdk/runtime/audio/silentScore';
 import source from '../shard.config';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { QuestState } from '@wildshard/engine/quest/core';

@@ -3,13 +3,13 @@ import { Audio } from '../../../src/engine/audio/Audio';
 import { bindAudioRandom } from '../../../src/engine/audio/util';
 import { Rng } from '../../../src/engine/core/rng';
 import { tap } from '../../../src/engine/core/harnessTap';
-import { sharedWeaponVoices, type WeaponSynth } from '../../../src/kit/audio/weaponVoices';
-import { reload } from '../../../src/kit/weapons/crossbow/sounds';
-import { rifleFire } from '../../../src/kit/weapons/firearm/sounds';
-import { swordHit } from '../../../src/kit/weapons/melee/sounds';
+import { sharedWeaponVoices, type WeaponSynth } from '@wildshard/sdk/runtime/audio/weaponVoices';
+import { reload } from '../../../src/game/systems/audio/crossbowSounds';
+import { rifleFire } from '../../../src/game/systems/audio/firearmSounds';
+import { swordHit } from '../../../src/game/systems/audio/meleeSounds';
 
 afterEach(() => { tap.sound = null; const rng = new Rng(0); bindAudioRandom(() => rng.next()); });
-describe('kit equipment synth recipes', () => {
+describe('platform equipment synth recipes', () => {
   it('keeps literal taps before the gesture and creates no audio graph', () => {
     const ids: string[] = [], audio = new Audio(), v = sharedWeaponVoices(audio);
     tap.sound = (id) => { ids.push(id); };

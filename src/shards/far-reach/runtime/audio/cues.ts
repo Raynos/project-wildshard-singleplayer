@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { CombatCues, CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
-import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
+import { sharedWeaponVoices } from '@wildshard/sdk/runtime/audio/weaponVoices';
 import source from '../../shard.config';
 
 /** Bind the existing kit recipes to declared cue ids, preserving optional pan/gain arguments. */

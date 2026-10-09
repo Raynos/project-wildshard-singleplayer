@@ -141,6 +141,8 @@
     "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts",
     "./shardfile/nativeGround": "./shardfile/nativeGround.ts",
     "./shardfile/splatTerrain": "./shardfile/splatTerrain.ts",
-    "./shardfile/validationReceipt": "./shardfile/validationReceipt.ts"
+    "./shardfile/validationReceipt": "./shardfile/validationReceipt.ts",
+    "./systems/audio/weaponVoices": "./systems/audio/weaponVoices.ts",
+    "./systems/audio/silentScore": "./systems/audio/silentScore.ts"
   }
 }
