@@ -1,8 +1,9 @@
 # Plan: TRAILERS — an alpha in-engine trailer and a cinematic vision trailer (E466)
 
-**State:** `in progress` 2026-10-09 — building Part A, the alpha trailer (TR1–TR6). The capture rig runs on today's
-build as it is (`capture.mjs` boots through the allowed harness params). Part B waits until the alpha trailer is done
-(Jake: no cinematic experiments before it); its research is in.
+**State:** `in progress` 2026-10-09 — **Part A done: the 63 s alpha trailer is on wildshard.io** (`55d4cc841`; the six
+shards in engine at HEAD, a real Claude Code session beside the Sky Reach time-lapse, the grid fly-in, alpha said three
+ways). Open: TR9, a shard-to-shard crossing shot (the grid's loading never settles under the capture clock). Part B,
+the cinematic, starts now that Part A is done (CT1, the bake-off); its research is in.
 
 ## 0. Why
 
@@ -55,14 +56,15 @@ Two trailers, two jobs, the same honesty rules as the site (MARKETING-SITE §1.1
 | # | Row | Done when | Owner |
 |---|---|---|---|
 | TR0 | ✅ **Jake's picks** (2026-10-09): 60 s, card + corner bug + end card, the Claude Code beat in (§5) | his answers recorded in §5 | Jake |
-| TR1 | **Shot list** — 2–4 candidate moments per shard, scouted as stills from a HEAD build (`--dry`); the best per shard kept, written into `scripts/steam-trailer/shots/<shard>.mjs` (new files for Signal Dunes, Sky Reach and the grid crossing) | a scouting board exists and each shard has its shots as code | trailer agent |
-| TR2 | **Revive the capture rig on today's engine** — boot through the engine's own hooks instead of URL switches (skip intro, no pointer lock, mute, desktop tier, the capture clock X8 added), shots re-pointed at today's world API; one shot per shard captured end to end | `capture.mjs --dry` writes stills for every shard from a clean export of HEAD | trailer agent |
-| TR3 | **Score** — one ~60 s MiniMax Music 3 cue with a quiet open, a build and a peak (4 seeds, `music_scan.py` picks the hits); trailer SFX reused from E168's best takes, new families generated with MOSS v2 **and** SA3, the better take used | the cue and SFX are on disk with their credits | trailer agent |
-| TR4 | **Titles** — the alpha card, the corner bug, the per-shard lower thirds and the end card in the site's look (Lattice violet, the Cell logo) | titles render as PNG sequences | trailer agent |
-| TR5 | **The Claude Code beat** — a real screen recording of a Claude Code session building a shard (sped up, captioned "real session, sped up"), into the time-lapse | the clip is cut from a real session | trailer agent |
-| TR6 | **Capture, cut, mix, conform** — `cut.mjs` on the cue's hits, the full capture, the mix at −14 LUFS, the 1080p60 master | the master plays whole with no dropped or stale frames | trailer agent |
-| TR7 | **Ship it on the site** — the loop encodes and the poster through `site/tools/publish-media.ts`, `site/media.json` `trailer` replaced, COPY.md's trailer tag "Alpha · captured in engine"; a ≤ 4 MB phone copy sent to Jake | wildshard.io plays the new trailer | trailer agent |
-| TR8 | **Re-shoot recipe** — README updated so the trailer is re-made after big changes with one command per step | the README's commands run as written | trailer agent |
+| TR1 | ✅ **Shot list** (2026-10-09) — the old Driftwood / Nalati / Pine / Nine Dragon shots re-scouted at HEAD (the rope bridge and the reef dropped: one spawns underwater, one frames a road pad); new `shots/dunes.mjs`, `shots/sky-reach.mjs`, `shots/grid.mjs` (`6491be516`, sheet `progress/trailers/scout-dunes-sky-grid.jpg`) | a scouting board exists and each shard has its shots as code | trailer agent |
+| TR2 | ✅ **The capture rig on today's engine** (2026-10-09) — it ran as it was: `capture.mjs` boots through the allowed harness params (`lint/url-params.json`), not removed switches; only the Storm Titan shots' `window.__titan` hook is gone (not used) | `capture.mjs --dry` writes stills for every shard from a clean export of HEAD | trailer agent |
+| TR3 | ✅ **Score** (2026-10-09) — MiniMax take 304 of `alpha-jobs.json` (a drone, the hit at 14.9 s, a breath at 37–46 s, the drop at 65.5 s; the 44–56 s vocal-like line is wordless: Whisper finds no words); SFX regenerated with MOSS v2 and SA3 Medium, CLAP-picked | the cue and SFX are on disk with their credits | trailer agent |
+| TR4 | ✅ **Titles** (2026-10-09) — the alpha card, the ALPHA · IN ENGINE corner bug, the shard lower thirds, two captions and the end card (the Cell logo, Play free in your browser, wildshard.io) in `titles.html` | titles render as PNG sequences | trailer agent |
+| TR5 | ✅ **The Claude Code beat** (2026-10-09) — `build-beat.mjs`: an asciinema recording of a real session adding a lookout tower to Sky Reach in a scratch worktree (6.5 min, 55× faster, cut at /exit) beside two of Sky Reach's 25-commit time-lapses | the clip is cut from a real session | trailer agent |
+| TR6 | ✅ **Capture, cut, mix, conform** (2026-10-09) — `cuts/alpha.mjs` on take 304's grid, 24 clips at 4K / 120 Hz, the mix at −14 LUFS, a 63.2 s 1080p60 master | the master plays whole with no dropped or stale frames | trailer agent |
+| TR7 | ✅ **Ship it on the site** (2026-10-09, `55d4cc841`) — 1280 / 720 px silent loops on Blob, the alpha card as poster, COPY.md's trailer tag "Alpha · captured in engine"; a 7.7 MB phone copy with sound sent to Jake | wildshard.io plays the new trailer | trailer agent |
+| TR8 | ✅ **Re-make recipe** (2026-10-09) — `scripts/steam-trailer/README.md` § The alpha trailer | the README's commands run as written | trailer agent |
+| TR9 | **A crossing shot** — walking or riding over a seam from one shard into the next. Blocked: under the capture's fixed clock the grid's loading panel ("LOADING DRIFTWOOD ISLE") never clears and the neighbours never report ready (`shots/grid.mjs` notes); needs the grid's loading to settle under the capture clock, or a capture hook that waits for a cell. Then a re-cut swaps it in for the fly-in or beside it | a seam crossing in the trailer | trailer agent (the grid's owner for the loading) |
 
 ## 3. Part B — the cinematic vision trailer
 
