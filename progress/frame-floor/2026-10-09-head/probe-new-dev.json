@@ -1,0 +1,87 @@
+{
+ "base": "http://127.0.0.1:4400",
+ "pose": "pine-cabin",
+ "spawn": {
+  "name": "spawn",
+  "x": -0.0000019745377459468028,
+  "y": 0.020100008056033403,
+  "z": -234.9999966809008,
+  "yaw": 3.141592653589793,
+  "pitch": 0
+ },
+ "afterPose": {
+  "frames": 60,
+  "ms": 1002,
+  "inside": null,
+  "loading": false
+ },
+ "state": {
+  "programs": 116,
+  "passes": [
+   "RenderPass:true",
+   "Pass:true",
+   "EffectPass:true",
+   "EffectPass:true"
+  ],
+  "size": [
+   2880,
+   1800
+  ]
+ },
+ "base0": {
+  "p50iv": 16.7,
+  "p95iv": 16.8,
+  "over20": 0,
+  "work50": 10.6,
+  "work95": 12,
+  "upd50": 1.3,
+  "upd95": 1.6,
+  "ren50": 9.3,
+  "ren95": 10.6,
+  "calls": [
+   273,
+   297
+  ],
+  "passP": {
+   "RenderPass": [
+    6.2,
+    7
+   ],
+   "Pass": [
+    2.7,
+    3.2
+   ],
+   "EffectPass": [
+    0.2,
+    0.3
+   ]
+  },
+  "gaps": "",
+  "xWork": []
+ },
+ "gpu": {
+  "frame": [
+   16.8,
+   18.57,
+   239
+  ]
+ },
+ "gpupass": {
+  "RenderPass": [
+   6.38,
+   6.79,
+   239
+  ],
+  "Pass": [
+   3.78,
+   4.65,
+   239
+  ],
+  "EffectPass": [
+   3.66,
+   9.7,
+   478
+  ]
+ },
+ "errs": []
+}

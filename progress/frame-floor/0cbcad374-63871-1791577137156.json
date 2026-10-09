@@ -1,0 +1,3068 @@
+{
+  "schema": 2,
+  "sha": "0cbcad37495a18e7fff737bb10ba225d18da1583",
+  "runId": "63871-1791577137156",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-09T20:22:31.910Z",
+  "elapsedSeconds": 214.763,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "_template",
+    "driftwood-isle",
+    "pine-hollow",
+    "nalati-grasslands",
+    "sunscar-dunes",
+    "far-reach",
+    "nine-dragon-stack",
+    "blender-template"
+  ],
+  "surface": "desktop",
+  "developer": "on",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "glObserver": "off",
+  "travelGlCensus": false,
+  "harnessRevision": "161f20fa82dee15f6ead080a7c17231cfca47b67",
+  "complete": true,
+  "pass": false,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "_template",
+          "complete": true,
+          "pass": true,
+          "seconds": 13.055,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "",
+                "stage": "boot",
+                "at": 1791577174443,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577174927,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 14.599999904632568,
+                  "sky": 2.3999996185302734,
+                  "terrain": 0.40000009536743164,
+                  "cards": 0.8000001907348633,
+                  "forest": 4.799999713897705,
+                  "physics": 1.4000000953674316,
+                  "edge": 3.200000286102295,
+                  "grass": 0.09999990463256836,
+                  "cabins": 0.09999990463256836,
+                  "props": 37.39999961853027,
+                  "animals": 0.9000000953674316,
+                  "weapon": 0,
+                  "menu": 6.699999809265137,
+                  "shaders": 218.69999980926514,
+                  "firstFrame": 220.80000019073486,
+                  "audio": 0.09999990463256836
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "game.shardfile.client-script-views.restore",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "game.shardfile.residency",
+              "game.shardfile.sim",
+              "game.shardfile.client-scripts",
+              "game.shardfile.targets",
+              "player.update",
+              "game.shardfile.presentation",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "shardfile.item-fov",
+              "game.loot",
+              "engine.compendium.installCompendium",
+              "game.quest.template.quest",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins",
+              "engine.declared.counters",
+              "game.shardfile.client-script-views.apply"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.00032933259967649064,
+              "y": -0.3295996019805898,
+              "z": 0.0003288139282631164,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "no declared parity cameras; reversed spawn fallback",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.00032933259967649064,
+                "y": -0.3295996019805898,
+                "z": 0.0003288139282631164,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.1,
+              "calls": 125,
+              "triangles": 97306
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.00032933259967649064,
+                "y": -0.3295996019805898,
+                "z": 0.0003288139282631164,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.7,
+              "maxMs": 16.7,
+              "callbackP95Ms": 17,
+              "callbackP99Ms": 17.1,
+              "callbackMaxMs": 17.1,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 2,
+              "calls": 126,
+              "triangles": 99901,
+              "position": {
+                "x": 0.0011347495383233763,
+                "y": -0.329550262860721,
+                "z": 0.0011329566125368729
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "_template",
+                    "samples": 120,
+                    "p95Ms": 0.40000009536743164,
+                    "maxMs": 0.6000003814697266,
+                    "calls": 2280
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.00032933259967649064,
+                "y": -0.3295996019805898,
+                "z": 0.0003288139282631164,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 16.9,
+              "callbackP99Ms": 17.1,
+              "callbackMaxMs": 20,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 2,
+              "calls": 125,
+              "triangles": 97306,
+              "position": {
+                "x": 0.0011347495383233763,
+                "y": -0.329550262860721,
+                "z": 0.0011329566125368729
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "_template",
+                    "samples": 120,
+                    "p95Ms": 0.40000009536743164,
+                    "maxMs": 3.4000000953674316,
+                    "calls": 2280
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "driftwood-isle",
+          "complete": true,
+          "pass": true,
+          "seconds": 22.956,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "bd36560e-a117-48f5-9506-37d656c27dda",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "driftwood-isle",
+                "stage": "play",
+                "at": 1791577192542,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577187530,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.849999904632568,
+                  "sky": 38.049999713897705,
+                  "terrain": 15.650000095367432,
+                  "cards": 0.9000000953674316,
+                  "forest": 3.6999998092651367,
+                  "physics": 2.200000047683716,
+                  "edge": 5.400000095367432,
+                  "grass": 0.04999995231628418,
+                  "cabins": 0.04999995231628418,
+                  "props": 317.44999980926514,
+                  "animals": 9.25,
+                  "weapon": 10.900000095367432,
+                  "menu": 6.199999809265137,
+                  "shaders": 427.59999990463257,
+                  "firstFrame": 1343.0000002384186,
+                  "audio": 81.94999980926514
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "info",
+                "text": "[island] blender: terrain 89496 tris, props 963473 tris in 66 meshes, 16675/16675 placements (desktop)"
+              },
+              {
+                "level": "info",
+                "text": "[shadow] 9 casters in 287 pieces (466760 tris)"
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "shard.driftwood.movers",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "shard.driftwood.bridge.capture",
+              "player.update",
+              "main.2",
+              "shard.driftwood.cover",
+              "shard.driftwood.blenderIsland",
+              "shard.driftwood.ocean",
+              "shard.driftwood.palms",
+              "shard.driftwood.gulls",
+              "shard.driftwood.bridge.pose",
+              "shard.driftwood.seabed",
+              "shard.driftwood.cove",
+              "shard.driftwood.shrine",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "shard.driftwood.dusk",
+              "shard.driftwood.adventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "shard.driftwood.adventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "shard.driftwood.adventure.3",
+              "shard.driftwood.adventure.4",
+              "game.loot",
+              "body-shadow",
+              "keepsakes",
+              "hud.combat",
+              "last place",
+              "shard.driftwood.firstMinutes",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "shard.driftwood.shrineHum",
+              "shard.driftwood.ambience",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "shard.driftwood.blenderIsland.instances",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": -0.000003925439265750619,
+              "y": 1.2126999940839596,
+              "z": -194.00000209948703,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 8.8,
+              "calls": 849,
+              "triangles": 4243116
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 8.4,
+              "calls": 627,
+              "triangles": 3107202
+            },
+            {
+              "pose": {
+                "name": "wreck",
+                "x": 105,
+                "z": 0,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 7.3,
+              "calls": 407,
+              "triangles": 1968380
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": -0.000003925439265750619,
+                "y": 1.2126999940839596,
+                "z": -194.00000209948703,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18,
+              "callbackP99Ms": 18.5,
+              "callbackMaxMs": 20,
+              "gameP95Ms": 17.8,
+              "workP95Ms": 8.6,
+              "calls": 679,
+              "triangles": 3506869,
+              "position": {
+                "x": -0.00001240318743020441,
+                "y": 1.2154564028453023,
+                "z": -194.0000369303603
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 0.8000001907348633,
+                    "maxMs": 1,
+                    "calls": 4680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "wreck",
+                "x": 105,
+                "z": 0,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.9,
+              "callbackP99Ms": 18.7,
+              "callbackMaxMs": 18.8,
+              "gameP95Ms": 17.8,
+              "workP95Ms": 7.7,
+              "calls": 405,
+              "triangles": 1965904,
+              "position": {
+                "x": 105.00308228970152,
+                "y": 2.8155362319041206,
+                "z": -0.008952617750765057
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 0.7000002861022949,
+                    "maxMs": 0.8000001907348633,
+                    "calls": 4680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.4,
+              "callbackP99Ms": 18.7,
+              "callbackMaxMs": 18.7,
+              "gameP95Ms": 18.2,
+              "workP95Ms": 8.6,
+              "calls": 678,
+              "triangles": 3505569,
+              "position": {
+                "x": -0.000012481510193042278,
+                "y": 1.2141831397128406,
+                "z": -194.00001912878014
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 0.6999998092651367,
+                    "maxMs": 0.9000000953674316,
+                    "calls": 4680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "pine-hollow",
+          "complete": true,
+          "pass": false,
+          "seconds": 43.448,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "07fbc991-484b-4759-ad3c-7a2065568195",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "pine-hollow",
+                "stage": "play",
+                "at": 1791577235654,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 lj12 +23s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 yqd5 +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:34 yqd5 +24s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:36 yqd5 +26s after boot · 163 frames in 6s, longest gap 2133ms · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577210513,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.849999904632568,
+                  "sky": 38.049999713897705,
+                  "terrain": 15.650000095367432,
+                  "cards": 0.9000000953674316,
+                  "forest": 3.6999998092651367,
+                  "physics": 2.200000047683716,
+                  "edge": 5.400000095367432,
+                  "grass": 0.04999995231628418,
+                  "cabins": 0.04999995231628418,
+                  "props": 317.44999980926514,
+                  "animals": 9.25,
+                  "weapon": 10.900000095367432,
+                  "menu": 6.199999809265137,
+                  "shaders": 427.59999990463257,
+                  "firstFrame": 1343.0000002384186,
+                  "audio": 81.94999980926514
+                },
+                "desktop:18:pine-hollow": {
+                  "renderer": 11.800000190734863,
+                  "sky": 177.69999980926514,
+                  "terrain": 149.2000002861023,
+                  "cards": 101.19999980926514,
+                  "forest": 10.599999904632568,
+                  "physics": 3.299999713897705,
+                  "edge": 34.5,
+                  "grass": 20.699999809265137,
+                  "cabins": 341.69999980926514,
+                  "props": 31.700000286102295,
+                  "animals": 17985.199999809265,
+                  "weapon": 0.09999990463256836,
+                  "menu": 5.200000286102295,
+                  "shaders": 1418.5999999046326,
+                  "firstFrame": 2344.9000000953674,
+                  "audio": 154.19999980926514
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "bd36560e-a117-48f5-9506-37d656c27dda"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "info",
+                "text": "[shadow] 2 casters in 28 pieces (47920 tris)"
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "player.update",
+              "pine.landmarks",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "engine.effects.status",
+              "engine.player.for",
+              "world.impacts",
+              "elites",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "engine.compendium.installCompendium",
+              "quest.kit",
+              "quest.pool",
+              "quest.shelf",
+              "quest",
+              "hud.combat",
+              "audio",
+              "shard.pine.weather.state",
+              "shard.pine.weather",
+              "world.life",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": -0.0000031184484836910276,
+              "y": 0.01219999956083484,
+              "z": -234.9999998069595,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "gate",
+                "x": 0,
+                "z": -200,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 14.8,
+              "calls": 257,
+              "triangles": 8165045
+            },
+            {
+              "pose": {
+                "name": "cabin",
+                "x": -14,
+                "z": -62,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 33.3,
+              "workP95Ms": 17.4,
+              "calls": 273,
+              "triangles": 7787250
+            },
+            {
+              "pose": {
+                "name": "pond",
+                "x": -56,
+                "z": 95,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 15.9,
+              "calls": 180,
+              "triangles": 5186598
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": -0.0000031184484836910276,
+                "y": 0.01219999956083484,
+                "z": -234.9999998069595,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.3,
+              "callbackP99Ms": 18.6,
+              "callbackMaxMs": 19,
+              "gameP95Ms": 17.9,
+              "workP95Ms": 16,
+              "calls": 271,
+              "triangles": 8219295,
+              "position": {
+                "x": 4.994825551773996e-7,
+                "y": 0.02009975542750908,
+                "z": -234.99999260912597
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pine-hollow",
+                    "samples": 120,
+                    "p95Ms": 0.5999999046325684,
+                    "maxMs": 0.7000007629394531,
+                    "calls": 2060
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "cabin",
+                "x": -14,
+                "z": -62,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 33.3,
+              "p99Ms": 33.4,
+              "maxMs": 33.4,
+              "callbackP95Ms": 20.2,
+              "callbackP99Ms": 21.6,
+              "callbackMaxMs": 22.6,
+              "gameP95Ms": 20,
+              "workP95Ms": 19.1,
+              "calls": 275,
+              "triangles": 7822022,
+              "position": {
+                "x": -13.999794683133587,
+                "y": 2.1104853707354874,
+                "z": -61.99864955086014
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pine-hollow",
+                    "samples": 120,
+                    "p95Ms": 0.5000004768371582,
+                    "maxMs": 0.7000002861022949,
+                    "calls": 2062
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": false,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": "frame cost / scheduling"
+            },
+            {
+              "pose": {
+                "name": "pond",
+                "x": -56,
+                "z": 95,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.1,
+              "callbackP99Ms": 18.7,
+              "callbackMaxMs": 18.8,
+              "gameP95Ms": 18.3,
+              "workP95Ms": 14.9,
+              "calls": 180,
+              "triangles": 5185616,
+              "position": {
+                "x": -55.99783111443685,
+                "y": -0.6633877909475736,
+                "z": 95.00261691933702
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pine-hollow",
+                    "samples": 120,
+                    "p95Ms": 0.5,
+                    "maxMs": 0.5999999046325684,
+                    "calls": 2060
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "nalati-grasslands",
+          "complete": true,
+          "pass": true,
+          "seconds": 22.375,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "73626c3f-d387-426d-a23c-3acf788e8fdb",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "nalati-grasslands",
+                "stage": "play",
+                "at": 1791577258965,
+                "fps": 49,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 lj12 +23s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 yqd5 +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:34 yqd5 +24s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:36 yqd5 +26s after boot · 163 frames in 6s, longest gap 2133ms · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:53 yqd5 +43s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:54 5rl6 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:58 5rl6 +4s world ready · first-paint 56ms, first-contentful-paint 56ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577254202,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.849999904632568,
+                  "sky": 38.049999713897705,
+                  "terrain": 15.650000095367432,
+                  "cards": 0.9000000953674316,
+                  "forest": 3.6999998092651367,
+                  "physics": 2.200000047683716,
+                  "edge": 5.400000095367432,
+                  "grass": 0.04999995231628418,
+                  "cabins": 0.04999995231628418,
+                  "props": 317.44999980926514,
+                  "animals": 9.25,
+                  "weapon": 10.900000095367432,
+                  "menu": 6.199999809265137,
+                  "shaders": 427.59999990463257,
+                  "firstFrame": 1343.0000002384186,
+                  "audio": 81.94999980926514
+                },
+                "desktop:18:pine-hollow": {
+                  "renderer": 11.800000190734863,
+                  "sky": 177.69999980926514,
+                  "terrain": 149.2000002861023,
+                  "cards": 101.19999980926514,
+                  "forest": 10.599999904632568,
+                  "physics": 3.299999713897705,
+                  "edge": 34.5,
+                  "grass": 20.699999809265137,
+                  "cabins": 341.69999980926514,
+                  "props": 31.700000286102295,
+                  "animals": 17985.199999809265,
+                  "weapon": 0.09999990463256836,
+                  "menu": 5.200000286102295,
+                  "shaders": 1418.5999999046326,
+                  "firstFrame": 2344.9000000953674,
+                  "audio": 154.19999980926514
+                },
+                "desktop:18:nalati-grasslands": {
+                  "renderer": 14.599999904632568,
+                  "sky": 151.40000009536743,
+                  "terrain": 186.7000002861023,
+                  "cards": 13.400000095367432,
+                  "forest": 37.59999990463257,
+                  "physics": 3.3000001907348633,
+                  "edge": 18.199999809265137,
+                  "grass": 79.30000019073486,
+                  "cabins": 0,
+                  "props": 981.4000000953674,
+                  "animals": 64.5,
+                  "weapon": 0.09999990463256836,
+                  "menu": 6.5,
+                  "shaders": 874.6000003814697,
+                  "firstFrame": 780.2000002861023,
+                  "audio": 259.59999990463257
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "bd36560e-a117-48f5-9506-37d656c27dda",
+                "07fbc991-484b-4759-ad3c-7a2065568195"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "info",
+                "text": "[shadow] 14 casters in 272 pieces (313768 tris)"
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "shard.nalati.stealth.crouch",
+              "shard.nalati.ride.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "player.update",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "shard.nalati.quest",
+              "hud.combat",
+              "main.world",
+              "shard.nalati.painterly",
+              "shard.nalati.water",
+              "shard.nalati.pois",
+              "shard.nalati.dressing",
+              "shard.nalati.weather.fx",
+              "shard.nalati.titan",
+              "shard.nalati.look",
+              "shard.nalati.elites",
+              "shard.nalati.boss",
+              "shard.nalati.wildlife",
+              "shard.nalati.stealth",
+              "shard.nalati.night",
+              "shard.nalati.ride",
+              "shard.nalati.skins",
+              "shard.nalati.sound",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "shard.nalati-grasslands.bind",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "shard.nalati.reins",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 2.5286598591411913e-7,
+              "y": 0.012399999563058373,
+              "z": 232.00000048283368,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "camp",
+                "x": 60,
+                "z": 214,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 5.4,
+              "calls": 253,
+              "triangles": 4914245
+            },
+            {
+              "pose": {
+                "name": "bridge",
+                "x": 0,
+                "z": 200,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 6.3,
+              "calls": 485,
+              "triangles": 5831583
+            },
+            {
+              "pose": {
+                "name": "plains",
+                "x": 65,
+                "z": 0,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 6.1,
+              "calls": 347,
+              "triangles": 6289942
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 2.5286598591411913e-7,
+                "y": 0.012399999563058373,
+                "z": 232.00000048283368,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18,
+              "callbackP99Ms": 18.6,
+              "callbackMaxMs": 18.7,
+              "gameP95Ms": 17.8,
+              "workP95Ms": 6.1,
+              "calls": 513,
+              "triangles": 6210369,
+              "position": {
+                "x": 1.7757445208016476e-7,
+                "y": 0.020099610243050847,
+                "z": 231.99999937489915
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nalati-grasslands",
+                    "samples": 120,
+                    "p95Ms": 0.8000006675720215,
+                    "maxMs": 1,
+                    "calls": 3240
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "camp",
+                "x": 60,
+                "z": 214,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.7,
+              "callbackP99Ms": 18.3,
+              "callbackMaxMs": 18.8,
+              "gameP95Ms": 17.5,
+              "workP95Ms": 5.1,
+              "calls": 263,
+              "triangles": 4929180,
+              "position": {
+                "x": 59.99973405505659,
+                "y": -3.7005796794638135,
+                "z": 213.99806870247085
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nalati-grasslands",
+                    "samples": 120,
+                    "p95Ms": 0.7999997138977051,
+                    "maxMs": 0.9000000953674316,
+                    "calls": 3240
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "bridge",
+                "x": 0,
+                "z": 200,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.3,
+              "callbackP99Ms": 19.1,
+              "callbackMaxMs": 20.2,
+              "gameP95Ms": 18.1,
+              "workP95Ms": 5.8,
+              "calls": 492,
+              "triangles": 5835487,
+              "position": {
+                "x": 0.0007362694524957192,
+                "y": -0.17504263297087164,
+                "z": 199.99888071647797
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nalati-grasslands",
+                    "samples": 120,
+                    "p95Ms": 0.8000001907348633,
+                    "maxMs": 4.200000286102295,
+                    "calls": 3240
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "sunscar-dunes",
+          "complete": true,
+          "pass": true,
+          "seconds": 21.424,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "ea0841e9-7606-4372-9f9c-ab3822a3ebe5",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "",
+                "stage": "boot",
+                "at": 1791577276367,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 lj12 +23s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 yqd5 +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:34 yqd5 +24s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:36 yqd5 +26s after boot · 163 frames in 6s, longest gap 2133ms · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:53 yqd5 +43s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:54 5rl6 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:58 5rl6 +4s world ready · first-paint 56ms, first-contentful-paint 56ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 5rl6 +22s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 hr96 +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:18 hr96 +2s world ready · first-paint 28ms, first-contentful-paint 44ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577276541,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.274999856948853,
+                  "sky": 43.32499980926514,
+                  "terrain": 490.52499985694885,
+                  "cards": 0.8500001430511475,
+                  "forest": 4.349999904632568,
+                  "physics": 3.9499999284744263,
+                  "edge": 5.049999952316284,
+                  "grass": 0.02499997615814209,
+                  "cabins": 0.02499997615814209,
+                  "props": 188.57499980926514,
+                  "animals": 5.125,
+                  "weapon": 5.550000190734863,
+                  "menu": 4.75,
+                  "shaders": 409.75,
+                  "firstFrame": 958.450000166893,
+                  "audio": 41.07499980926514
+                },
+                "desktop:18:pine-hollow": {
+                  "renderer": 11.800000190734863,
+                  "sky": 177.69999980926514,
+                  "terrain": 149.2000002861023,
+                  "cards": 101.19999980926514,
+                  "forest": 10.599999904632568,
+                  "physics": 3.299999713897705,
+                  "edge": 34.5,
+                  "grass": 20.699999809265137,
+                  "cabins": 341.69999980926514,
+                  "props": 31.700000286102295,
+                  "animals": 17985.199999809265,
+                  "weapon": 0.09999990463256836,
+                  "menu": 5.200000286102295,
+                  "shaders": 1418.5999999046326,
+                  "firstFrame": 2344.9000000953674,
+                  "audio": 154.19999980926514
+                },
+                "desktop:18:nalati-grasslands": {
+                  "renderer": 14.599999904632568,
+                  "sky": 151.40000009536743,
+                  "terrain": 186.7000002861023,
+                  "cards": 13.400000095367432,
+                  "forest": 37.59999990463257,
+                  "physics": 3.3000001907348633,
+                  "edge": 18.199999809265137,
+                  "grass": 79.30000019073486,
+                  "cabins": 0,
+                  "props": 981.4000000953674,
+                  "animals": 64.5,
+                  "weapon": 0.09999990463256836,
+                  "menu": 6.5,
+                  "shaders": 874.6000003814697,
+                  "firstFrame": 780.2000002861023,
+                  "audio": 259.59999990463257
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "bd36560e-a117-48f5-9506-37d656c27dda",
+                "07fbc991-484b-4759-ad3c-7a2065568195",
+                "73626c3f-d387-426d-a23c-3acf788e8fdb"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "player.update",
+              "sunscar.fire",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "game.loot",
+              "sunscar.scout",
+              "game.quest.sunscar.signal",
+              "sunscar.reward",
+              "sunscar.matriarch",
+              "sunscar.creatures",
+              "sunscar.ray",
+              "sunscar.dusk",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.0004934266421514621,
+              "y": 21.30267369446344,
+              "z": 69.99911938400419,
+              "yaw": 0,
+              "pitch": -0.1
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0,
+                "y": 21.363867328746412,
+                "z": 70,
+                "yaw": 0,
+                "pitch": 0.03490658503988659
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.3,
+              "calls": 156,
+              "triangles": 222912
+            },
+            {
+              "pose": {
+                "name": "whip",
+                "x": 0,
+                "y": 20.318243261176367,
+                "z": 66,
+                "yaw": 0.3490658503988659,
+                "pitch": -0.06981317007977318
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.1,
+              "calls": 145,
+              "triangles": 255009
+            },
+            {
+              "pose": {
+                "name": "ray",
+                "x": 0,
+                "y": 21.363867328746412,
+                "z": 70,
+                "yaw": 0.05235987755982988,
+                "pitch": 0.15707963267948966
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.1,
+              "calls": 148,
+              "triangles": 220303
+            },
+            {
+              "pose": {
+                "name": "quest",
+                "x": 4,
+                "y": 18.95843583893206,
+                "z": -63,
+                "yaw": -0.2617993877991494,
+                "pitch": 0.3839724354387525
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.1,
+              "calls": 108,
+              "triangles": 198083
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.0004934266421514621,
+                "y": 21.30267369446344,
+                "z": 69.99911938400419,
+                "yaw": 0,
+                "pitch": -0.1
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.3,
+              "callbackMaxMs": 17.5,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 2.3,
+              "calls": 156,
+              "triangles": 222912,
+              "position": {
+                "x": 0.0016467963305331068,
+                "y": 21.302325814588105,
+                "z": 69.997061713314
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "sunscar-dunes",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 0.40000057220458984,
+                    "calls": 1920
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0,
+                "y": 21.363867328746412,
+                "z": 70,
+                "yaw": 0,
+                "pitch": 0.03490658503988659
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17,
+              "callbackP99Ms": 17.2,
+              "callbackMaxMs": 17.4,
+              "gameP95Ms": 16.9,
+              "workP95Ms": 2.2,
+              "calls": 156,
+              "triangles": 222912,
+              "position": {
+                "x": 0.0011345709745000931,
+                "y": 21.30252673549737,
+                "z": 69.99797533318178
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "sunscar-dunes",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 0.40000009536743164,
+                    "calls": 1920
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "whip",
+                "x": 0,
+                "y": 20.318243261176367,
+                "z": 66,
+                "yaw": 0.3490658503988659,
+                "pitch": -0.06981317007977318
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.5,
+              "callbackMaxMs": 17.7,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 2.3,
+              "calls": 145,
+              "triangles": 255009,
+              "position": {
+                "x": 0.0012004565755887597,
+                "y": 20.34161361983276,
+                "z": 65.99383354237216
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "sunscar-dunes",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 0.40000009536743164,
+                    "calls": 1920
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "far-reach",
+          "complete": true,
+          "pass": true,
+          "seconds": 20.113,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "84525271-64ca-452b-a7d4-9a6a12de8a55",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "far-reach",
+                "stage": "play",
+                "at": 1791577302838,
+                "fps": 60,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 lj12 +23s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 yqd5 +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:34 yqd5 +24s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:36 yqd5 +26s after boot · 163 frames in 6s, longest gap 2133ms · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:53 yqd5 +43s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:54 5rl6 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:58 5rl6 +4s world ready · first-paint 56ms, first-contentful-paint 56ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 5rl6 +22s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 hr96 +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:18 hr96 +2s world ready · first-paint 28ms, first-contentful-paint 44ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:37 hr96 +21s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:37 9vj5 +0s boot · nav navigate · ?chunk=far-reach&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:40 9vj5 +3s world ready · first-paint 28ms, first-contentful-paint 28ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577297920,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.287499785423279,
+                  "sky": 76.36249995231628,
+                  "terrain": 245.36250007152557,
+                  "cards": 0.8750001192092896,
+                  "forest": 4.824999809265137,
+                  "physics": 2.675000011920929,
+                  "edge": 2.725000023841858,
+                  "grass": 0.012499988079071045,
+                  "cabins": 0.062499940395355225,
+                  "props": 291.9874999523163,
+                  "animals": 3.0625,
+                  "weapon": 2.7750000953674316,
+                  "menu": 4.574999809265137,
+                  "shaders": 617.625,
+                  "firstFrame": 1054.8250002264977,
+                  "audio": 20.587499856948853
+                },
+                "desktop:18:pine-hollow": {
+                  "renderer": 11.800000190734863,
+                  "sky": 177.69999980926514,
+                  "terrain": 149.2000002861023,
+                  "cards": 101.19999980926514,
+                  "forest": 10.599999904632568,
+                  "physics": 3.299999713897705,
+                  "edge": 34.5,
+                  "grass": 20.699999809265137,
+                  "cabins": 341.69999980926514,
+                  "props": 31.700000286102295,
+                  "animals": 17985.199999809265,
+                  "weapon": 0.09999990463256836,
+                  "menu": 5.200000286102295,
+                  "shaders": 1418.5999999046326,
+                  "firstFrame": 2344.9000000953674,
+                  "audio": 154.19999980926514
+                },
+                "desktop:18:nalati-grasslands": {
+                  "renderer": 14.599999904632568,
+                  "sky": 151.40000009536743,
+                  "terrain": 186.7000002861023,
+                  "cards": 13.400000095367432,
+                  "forest": 37.59999990463257,
+                  "physics": 3.3000001907348633,
+                  "edge": 18.199999809265137,
+                  "grass": 79.30000019073486,
+                  "cabins": 0,
+                  "props": 981.4000000953674,
+                  "animals": 64.5,
+                  "weapon": 0.09999990463256836,
+                  "menu": 6.5,
+                  "shaders": 874.6000003814697,
+                  "firstFrame": 780.2000002861023,
+                  "audio": 259.59999990463257
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "bd36560e-a117-48f5-9506-37d656c27dda",
+                "07fbc991-484b-4759-ad3c-7a2065568195",
+                "73626c3f-d387-426d-a23c-3acf788e8fdb",
+                "ea0841e9-7606-4372-9f9c-ab3822a3ebe5"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "far.movers",
+              "physics.movers",
+              "far.updraft",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "far.goats",
+              "player.update",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "game.loot",
+              "far.reward",
+              "far.keeper",
+              "game.quest.far.quest",
+              "far.vanes",
+              "far.dressing",
+              "far.gust",
+              "far.roost",
+              "far.boss",
+              "far.galeWall",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins",
+              "far.rayWake"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.0000016961709643770195,
+              "y": 30.019941222064517,
+              "z": -5.500001450224673,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0,
+                "y": 30,
+                "z": -5.5,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 3.8,
+              "calls": 237,
+              "triangles": 3025075
+            },
+            {
+              "pose": {
+                "name": "hover",
+                "x": 12,
+                "y": 30,
+                "z": -2.5,
+                "yaw": -1.3962634015954636,
+                "pitch": -0.10471975511965977
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 3.3,
+              "calls": 164,
+              "triangles": 2791387
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.0000016961709643770195,
+                "y": 30.019941222064517,
+                "z": -5.500001450224673,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17,
+              "callbackP99Ms": 17.2,
+              "callbackMaxMs": 17.2,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 3.7,
+              "calls": 237,
+              "triangles": 3025465,
+              "position": {
+                "x": 2.4574625026585473e-7,
+                "y": 30.01999849249478,
+                "z": -5.5000143484295005
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "far-reach",
+                    "samples": 120,
+                    "p95Ms": 0.5999999046325684,
+                    "maxMs": 0.6000003814697266,
+                    "calls": 2520
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0,
+                "y": 30,
+                "z": -5.5,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.1,
+              "callbackMaxMs": 17.1,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 3.8,
+              "calls": 233,
+              "triangles": 3022255,
+              "position": {
+                "x": -0.5315401165014482,
+                "y": 30.019967141044617,
+                "z": -5.504497259973206
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "far-reach",
+                    "samples": 120,
+                    "p95Ms": 0.5999999046325684,
+                    "maxMs": 0.7000002861022949,
+                    "calls": 2520
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "hover",
+                "x": 12,
+                "y": 30,
+                "z": -2.5,
+                "yaw": -1.3962634015954636,
+                "pitch": -0.10471975511965977
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17,
+              "callbackP99Ms": 17.1,
+              "callbackMaxMs": 17.1,
+              "gameP95Ms": 16.7,
+              "workP95Ms": 3.2,
+              "calls": 160,
+              "triangles": 2787600,
+              "position": {
+                "x": 11.999990813063139,
+                "y": 30.02007183587557,
+                "z": -2.4999953893594937
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "far-reach",
+                    "samples": 120,
+                    "p95Ms": 0.5999999046325684,
+                    "maxMs": 0.7000002861022949,
+                    "calls": 2520
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "nine-dragon-stack",
+          "complete": true,
+          "pass": true,
+          "seconds": 21.222,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "3a34e162-41ad-4a81-9ad5-b76c598db970",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "nine-dragon-stack",
+                "stage": "play",
+                "at": 1791577322958,
+                "fps": 60,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 lj12 +23s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 yqd5 +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:34 yqd5 +24s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:36 yqd5 +26s after boot · 163 frames in 6s, longest gap 2133ms · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:53 yqd5 +43s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:54 5rl6 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:58 5rl6 +4s world ready · first-paint 56ms, first-contentful-paint 56ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 5rl6 +22s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 hr96 +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:18 hr96 +2s world ready · first-paint 28ms, first-contentful-paint 44ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:37 hr96 +21s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:37 9vj5 +0s boot · nav navigate · ?chunk=far-reach&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:40 9vj5 +3s world ready · first-paint 28ms, first-contentful-paint 28ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:57 9vj5 +20s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:58 ikk8 +0s boot · nav navigate · ?chunk=nine-dragon-stack&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:22:00 ikk8 +3s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577318028,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.287499785423279,
+                  "sky": 76.36249995231628,
+                  "terrain": 245.36250007152557,
+                  "cards": 0.8750001192092896,
+                  "forest": 4.824999809265137,
+                  "physics": 2.675000011920929,
+                  "edge": 2.725000023841858,
+                  "grass": 0.012499988079071045,
+                  "cabins": 0.062499940395355225,
+                  "props": 291.9874999523163,
+                  "animals": 3.0625,
+                  "weapon": 2.7750000953674316,
+                  "menu": 4.574999809265137,
+                  "shaders": 617.625,
+                  "firstFrame": 1054.8250002264977,
+                  "audio": 20.587499856948853
+                },
+                "desktop:18:pine-hollow": {
+                  "renderer": 11.800000190734863,
+                  "sky": 177.69999980926514,
+                  "terrain": 149.2000002861023,
+                  "cards": 101.19999980926514,
+                  "forest": 10.599999904632568,
+                  "physics": 3.299999713897705,
+                  "edge": 34.5,
+                  "grass": 20.699999809265137,
+                  "cabins": 341.69999980926514,
+                  "props": 31.700000286102295,
+                  "animals": 17985.199999809265,
+                  "weapon": 0.09999990463256836,
+                  "menu": 5.200000286102295,
+                  "shaders": 1418.5999999046326,
+                  "firstFrame": 2344.9000000953674,
+                  "audio": 154.19999980926514
+                },
+                "desktop:18:nalati-grasslands": {
+                  "renderer": 14.599999904632568,
+                  "sky": 151.40000009536743,
+                  "terrain": 186.7000002861023,
+                  "cards": 13.400000095367432,
+                  "forest": 37.59999990463257,
+                  "physics": 3.3000001907348633,
+                  "edge": 18.199999809265137,
+                  "grass": 79.30000019073486,
+                  "cabins": 0,
+                  "props": 981.4000000953674,
+                  "animals": 64.5,
+                  "weapon": 0.09999990463256836,
+                  "menu": 6.5,
+                  "shaders": 874.6000003814697,
+                  "firstFrame": 780.2000002861023,
+                  "audio": 259.59999990463257
+                },
+                "desktop:18:nine-dragon-stack": {
+                  "renderer": 12.199999809265137,
+                  "sky": 50,
+                  "terrain": 0.20000028610229492,
+                  "cards": 1.5,
+                  "forest": 2.1999998092651367,
+                  "physics": 3.3000001907348633,
+                  "edge": 9.200000286102295,
+                  "grass": 0,
+                  "cabins": 0.09999990463256836,
+                  "props": 1750.2999997138977,
+                  "animals": 0.8000001907348633,
+                  "weapon": 26.09999990463257,
+                  "menu": 4.099999904632568,
+                  "shaders": 509.8999996185303,
+                  "firstFrame": 235.19999980926514,
+                  "audio": 125.7000002861023
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "bd36560e-a117-48f5-9506-37d656c27dda",
+                "07fbc991-484b-4759-ad3c-7a2065568195",
+                "73626c3f-d387-426d-a23c-3acf788e8fdb",
+                "ea0841e9-7606-4372-9f9c-ab3822a3ebe5"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "shard.nd.feizhua.input",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "fei-zhua.rope",
+              "player.update",
+              "shard.nd.world",
+              "shard.nd.audio",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "engine.effects",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "fei-zhua",
+              "hud.perf",
+              "engine.world.bounds",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.950005026319985,
+              "y": 125.0121999936091,
+              "z": 7.499992631288778,
+              "yaw": -0.20943951023931956,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-rail",
+                "x": 0.95,
+                "z": 7.5,
+                "y": 125,
+                "yaw": -0.20943951023931953,
+                "pitch": -0.06981317007977318
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 3.3,
+              "calls": 173,
+              "triangles": 1632349
+            },
+            {
+              "pose": {
+                "name": "well-edge",
+                "x": -19.5,
+                "z": 13.3,
+                "y": 125,
+                "yaw": 0,
+                "pitch": -0.17453292519943295
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 3.4,
+              "calls": 162,
+              "triangles": 1378284
+            },
+            {
+              "pose": {
+                "name": "stair-street",
+                "x": 18,
+                "z": 6,
+                "y": 125,
+                "yaw": -1.5707963267948966,
+                "pitch": 0.17453292519943295
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 3.1,
+              "calls": 148,
+              "triangles": 952259
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.950005026319985,
+                "y": 125.0121999936091,
+                "z": 7.499992631288778,
+                "yaw": -0.20943951023931956,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.2,
+              "callbackP99Ms": 17.4,
+              "callbackMaxMs": 18.2,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 3.4,
+              "calls": 173,
+              "triangles": 1640609,
+              "position": {
+                "x": 0.9500048738798959,
+                "y": 125.02005812271454,
+                "z": 7.499996285925888
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nine-dragon-stack",
+                    "samples": 120,
+                    "p95Ms": 0.40000009536743164,
+                    "maxMs": 0.40000009536743164,
+                    "calls": 1320
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-rail",
+                "x": 0.95,
+                "z": 7.5,
+                "y": 125,
+                "yaw": -0.20943951023931953,
+                "pitch": -0.06981317007977318
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.3,
+              "callbackMaxMs": 17.3,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 3.3,
+              "calls": 172,
+              "triangles": 1632073,
+              "position": {
+                "x": 0.9500040770203151,
+                "y": 125.01997932385711,
+                "z": 7.500007286725914
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nine-dragon-stack",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 0.4999995231628418,
+                    "calls": 1320
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "well-edge",
+                "x": -19.5,
+                "z": 13.3,
+                "y": 125,
+                "yaw": 0,
+                "pitch": -0.17453292519943295
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.6,
+              "callbackMaxMs": 17.7,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 3.1,
+              "calls": 161,
+              "triangles": 1378080,
+              "position": {
+                "x": -19.499989668253228,
+                "y": 125.0198482652886,
+                "z": 13.300006616907625
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nine-dragon-stack",
+                    "samples": 120,
+                    "p95Ms": 0.3000006675720215,
+                    "maxMs": 0.40000057220458984,
+                    "calls": 1320
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        },
+        {
+          "shard": "blender-template",
+          "complete": true,
+          "pass": true,
+          "seconds": 12.684,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "ec64dec4-c03e-4b9e-b784-3e2d140c9e00",
+              "telemetry.heartbeat": {
+                "session": "7cc54bc7-7d8f-45a4-9d3d-9c8ce99303a4",
+                "build": "0cbcad3-mv1es7s7",
+                "level": "",
+                "stage": "boot",
+                "at": 1791577339186,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "15:19:34 a8fb +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:35 a8fb +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 a8fb +12s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:47 lj12 +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:19:51 lj12 +4s world ready · first-paint 32ms, first-contentful-paint 32ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 lj12 +23s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:10 yqd5 +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:34 yqd5 +24s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:36 yqd5 +26s after boot · 163 frames in 6s, longest gap 2133ms · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:53 yqd5 +43s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:54 5rl6 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:20:58 5rl6 +4s world ready · first-paint 56ms, first-contentful-paint 56ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 5rl6 +22s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:16 hr96 +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:18 hr96 +2s world ready · first-paint 28ms, first-contentful-paint 44ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:37 hr96 +21s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:37 9vj5 +0s boot · nav navigate · ?chunk=far-reach&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:40 9vj5 +3s world ready · first-paint 28ms, first-contentful-paint 28ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:57 9vj5 +20s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:21:58 ikk8 +0s boot · nav navigate · ?chunk=nine-dragon-stack&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:22:00 ikk8 +3s world ready · first-paint 36ms, first-contentful-paint 36ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:22:19 ikk8 +21s hide · ok · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:22:19 e6gz +0s boot · nav navigate · ?chunk=blender-template&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "15:22:20 e6gz +1s world ready · first-paint 28ms, first-contentful-paint 28ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791577339502,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 11.793749988079071,
+                  "sky": 39.43124997615814,
+                  "terrain": 122.83125013113022,
+                  "cards": 0.8375001549720764,
+                  "forest": 4.912499904632568,
+                  "physics": 2.0875000059604645,
+                  "edge": 3.412499964237213,
+                  "grass": 0.0562499463558197,
+                  "cabins": 0.08124992251396179,
+                  "props": 172.5937498807907,
+                  "animals": 1.9312498569488525,
+                  "weapon": 1.3875000476837158,
+                  "menu": 2.987499952316284,
+                  "shaders": 404.41249990463257,
+                  "firstFrame": 611.6625001132488,
+                  "audio": 10.393750071525574
+                },
+                "desktop:18:pine-hollow": {
+                  "renderer": 11.800000190734863,
+                  "sky": 177.69999980926514,
+                  "terrain": 149.2000002861023,
+                  "cards": 101.19999980926514,
+                  "forest": 10.599999904632568,
+                  "physics": 3.299999713897705,
+                  "edge": 34.5,
+                  "grass": 20.699999809265137,
+                  "cabins": 341.69999980926514,
+                  "props": 31.700000286102295,
+                  "animals": 17985.199999809265,
+                  "weapon": 0.09999990463256836,
+                  "menu": 5.200000286102295,
+                  "shaders": 1418.5999999046326,
+                  "firstFrame": 2344.9000000953674,
+                  "audio": 154.19999980926514
+                },
+                "desktop:18:nalati-grasslands": {
+                  "renderer": 14.599999904632568,
+                  "sky": 151.40000009536743,
+                  "terrain": 186.7000002861023,
+                  "cards": 13.400000095367432,
+                  "forest": 37.59999990463257,
+                  "physics": 3.3000001907348633,
+                  "edge": 18.199999809265137,
+                  "grass": 79.30000019073486,
+                  "cabins": 0,
+                  "props": 981.4000000953674,
+                  "animals": 64.5,
+                  "weapon": 0.09999990463256836,
+                  "menu": 6.5,
+                  "shaders": 874.6000003814697,
+                  "firstFrame": 780.2000002861023,
+                  "audio": 259.59999990463257
+                },
+                "desktop:18:nine-dragon-stack": {
+                  "renderer": 12.199999809265137,
+                  "sky": 50,
+                  "terrain": 0.20000028610229492,
+                  "cards": 1.5,
+                  "forest": 2.1999998092651367,
+                  "physics": 3.3000001907348633,
+                  "edge": 9.200000286102295,
+                  "grass": 0,
+                  "cabins": 0.09999990463256836,
+                  "props": 1750.2999997138977,
+                  "animals": 0.8000001907348633,
+                  "weapon": 26.09999990463257,
+                  "menu": 4.099999904632568,
+                  "shaders": 509.8999996185303,
+                  "firstFrame": 235.19999980926514,
+                  "audio": 125.7000002861023
+                }
+              },
+              "telemetry.reported": [
+                "fa0e23dc-a70e-44c2-890a-0a29473c3c4c",
+                "bd36560e-a117-48f5-9506-37d656c27dda",
+                "07fbc991-484b-4759-ad3c-7a2065568195",
+                "73626c3f-d387-426d-a23c-3acf788e8fdb",
+                "ea0841e9-7606-4372-9f9c-ab3822a3ebe5",
+                "3a34e162-41ad-4a81-9ad5-b76c598db970"
+              ]
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "game.shardfile.residency",
+              "game.shardfile.sim",
+              "game.shardfile.targets",
+              "player.update",
+              "game.shardfile.presentation",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "shardfile.item-fov",
+              "game.loot",
+              "game.quest.blender.hall",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": -0.0000032390449806702817,
+              "y": 0.019712143237120477,
+              "z": 9.000001944240203,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "no declared parity cameras; reversed spawn fallback",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": -0.0000032390449806702817,
+                "y": 0.019712143237120477,
+                "z": 9.000001944240203,
+                "yaw": 6.283185307179586,
+                "pitch": 0
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 1.5,
+              "calls": 109,
+              "triangles": 4662
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": -0.0000032390449806702817,
+                "y": 0.019712143237120477,
+                "z": 9.000001944240203,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.8,
+              "callbackP99Ms": 18.4,
+              "callbackMaxMs": 18.7,
+              "gameP95Ms": 17.8,
+              "workP95Ms": 1.6,
+              "calls": 101,
+              "triangles": 4909,
+              "position": {
+                "x": -0.000013513798783141791,
+                "y": 0.020099984319676883,
+                "z": 9.000003368789757
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "blender-template",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 0.40000009536743164,
+                    "calls": 1680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": -0.0000032390449806702817,
+                "y": 0.019712143237120477,
+                "z": 9.000001944240203,
+                "yaw": 6.283185307179586,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.2,
+              "callbackP99Ms": 18.7,
+              "callbackMaxMs": 18.9,
+              "gameP95Ms": 18.1,
+              "workP95Ms": 1.6,
+              "calls": 109,
+              "triangles": 4662,
+              "position": {
+                "x": -0.000013513798783141791,
+                "y": 0.020099984319676883,
+                "z": 9.000003368789757
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "blender-template",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 1.6999998092651367,
+                    "calls": 1680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}
