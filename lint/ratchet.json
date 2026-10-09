@@ -96,7 +96,6 @@
     "src/shards/nine-dragon-stack/world/facade/batch.ts": 3,
     "src/shards/pine-hollow/life/index.ts": 5,
     "src/shards/pine-hollow/quest/nightThralls.ts": 1,
-    "src/shards/pine-hollow/runtime/antlerKing.ts": 2,
     "src/shards/pine-hollow/runtime/audio/ambience.ts": 4
   },
   "wildshard/public-index": {
