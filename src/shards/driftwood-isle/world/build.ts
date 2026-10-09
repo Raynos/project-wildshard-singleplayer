@@ -118,7 +118,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // faceted shore boulders along the beach
   const rockSpecs = Boulders.scatterShore(manifest.seed);
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-  const rocks = new Boulders(sky).place(rockSpecs, registry);
+  const rocks = await new Boulders(sky).placeSliced(rockSpecs, registry, slice.due); // SF67: a copy at a time within the task budget
   statics.push(...rocks.colliders);
   await slice(++completed, total, 'Shore boulders');
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
@@ -146,7 +146,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   }
   await slice();
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-  const bushes = new Bushes(sky).place(Bushes.scatterIsland(manifest.seed, undefined, AVOID), registry);
+  const bushes = await new Bushes(sky).placeSliced(Bushes.scatterIsland(manifest.seed, undefined, AVOID), registry, slice.due);
   await slice(++completed, total, 'Bushes');
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = new Gulls(sky).build({
@@ -184,7 +184,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await slice(++completed, total, 'Cove');
-  const palms = new Palms(sky).place(palmSpecs, registry);
+  const palms = await new Palms(sky).placeSliced(palmSpecs, registry, slice.due);
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
   const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build();

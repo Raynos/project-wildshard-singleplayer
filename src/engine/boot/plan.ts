@@ -96,14 +96,22 @@ export const macrotask = (): Promise<void> => new Promise((resolve) => {
  * A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between
  * builders of uneven size — the ones a shard skips cost nothing, the heavy runs still break under ~100 ms.
  */
-export function slicer(budgetMs = 30, progress?: StepProgress): (done?: number, total?: number, detail?: string) => Promise<void> {
+export function slicer(budgetMs = 30, progress?: StepProgress): Slice {
   let t0 = performance.now();
-  return async (done, total, detail) => {
+  const next = async (): Promise<void> => { await macrotask(); t0 = performance.now(); };
+  const slice = async (done?: number, total?: number, detail?: string): Promise<void> => {
     if (done !== undefined && total !== undefined) progress?.set(done, total, detail);
     if (performance.now() - t0 < budgetMs) return;
-    await macrotask();
-    t0 = performance.now();
+    await next();
   };
+  return Object.assign(slice, { due: (): Promise<void> | null => (performance.now() - t0 < budgetMs ? null : next()) });
+}
+
+/** A `slicer()` yield point, plus `due()` on the same clock for code that pauses inside a step (`placeSliced`'s `due`):
+ *  null while the task is under budget, else the next task's start. */
+export interface Slice {
+  (done?: number, total?: number, detail?: string): Promise<void>;
+  due: () => Promise<void> | null;
 }
 
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }

@@ -13,7 +13,7 @@ import type * as THREE from 'three';
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
+import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
@@ -83,8 +83,16 @@ export class Boulders {
   /** a dev page's: the same rocks, not registered */
   build(specs: BoulderSpec[]): this { return this.draw(specs, null); }
 
+  /** `place`, its merged copies built a slice at a time (SF67: `due` is the load's task budget); the same rocks */
+  async placeSliced(specs: BoulderSpec[], registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
+    return this.take(specs, await placeSliced(shoreBoulder, Boulders.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } }, due));
+  }
+
   private draw(specs: BoulderSpec[], registry: WorldRegistry | null): this {
-    const placed: Placed = place(shoreBoulder, Boulders.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } });
+    return this.take(specs, place(shoreBoulder, Boulders.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } }));
+  }
+
+  private take(specs: BoulderSpec[], placed: Placed): this {
     this.mesh = placed.object;
     this.placed = placed;
     this.hulls = [...placed.colliders];

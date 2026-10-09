@@ -13,7 +13,7 @@ import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
+import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
 import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -71,9 +71,18 @@ export class Bushes {
   /** a dev page's: the same bushes, not registered */
   build(specs: BushSpec[]): this { return this.draw(specs, null); }
 
+  /** `place`, its merged copies built a slice at a time (SF67: `due` is the load's task budget); the same bushes */
+  async placeSliced(specs: BushSpec[], registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
+    this.specs.push(...specs);
+    return this.take(await placeSliced(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' } }, due));
+  }
+
   private draw(specs: BushSpec[], registry: WorldRegistry | null): this {
     this.specs.push(...specs);
-    const placed = place(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' } });
+    return this.take(place(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' } }));
+  }
+
+  private take(placed: Placed): this {
     // (an empty scatter — a stale terrain, a def with no land — places nothing: an empty mesh stands in, as it always did)
     this.mesh = isMesh(placed.object) ? placed.object : new THREE.Mesh();
     this.placed = placed;

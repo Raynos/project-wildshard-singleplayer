@@ -50,7 +50,7 @@ import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER, type Tier } from '@wildshard/engine/core/tier';
 import { modelContext, type ModelContext, type Placement } from '@wildshard/engine/models/model';
-import { place as placeModel } from '@wildshard/engine/models/place';
+import { place as placeModel, placeSliced } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
@@ -407,6 +407,9 @@ export class BlenderIsland {
       this.stats.terrainTris += (o.geometry.getIndex()?.count ?? o.geometry.getAttribute('position').count) / 3;
     }
     const protos = islandProtos(found, meta);
+    // SF67: the build ends its task at each ~30 ms between its sections (the order and every result are unchanged)
+    const slice = slicer();
+    await slice();
 
     // ── the placements by tile: casters (palms, rocks, logs) CT×CT, each with a far copy (the LOD palms); ground cover
     //    VT×VT, drawn only near the camera ──
@@ -415,7 +418,7 @@ export class BlenderIsland {
     const used = islandUsed(f, meta, phone);
     const lodOf = new Map<number, number>(Object.entries(meta.lod).map(([k, lo]) => [Number(k), lo]));
     await MeshoptSimplifier.ready;
-    for (const [pi, lo] of lodOf) { const near = protos[pi]; if (near) protos[lo] = simplified(near); } // E117: far = near, simplified
+    for (const [pi, lo] of lodOf) { const near = protos[pi]; if (near) protos[lo] = simplified(near); await slice(); } // E117: far = near, simplified
     const { casters, covers, bigs, smallRocks } = islandSets(f, meta, used);
     const rect = (k: number, n: number) => {
       const w = (area.x1 - area.x0) / n, d = (area.z1 - area.z0) / n, tx = k % n, tz = Math.floor(k / n);
@@ -424,8 +427,11 @@ export class BlenderIsland {
     // G144: one InstancedMesh per prototype × set, the tiles kept as the unit of reach and view (./islandInstances.ts)
     const ins = this.instances = new IslandInstances(this.group, protos, meta.protos.map((p) => p.name), f, lodOf);
     ins.add({ tag: 'casters', tiles: casters, rects: casters.map((_, k) => rect(k, CT)), material: propsMat, cast: true, reach: 0, lod: LOD_D, cover: false });
+    await slice();
     ins.add({ tag: 'cover', tiles: covers, rects: covers.map((_, k) => rect(k, VT)), material: coverMat, cast: false, reach: COVER_FAR + 1, lod: LOD_D, cover: true });
+    await slice();
     ins.add({ tag: 'cover-big', tiles: bigs, rects: bigs.map((_, k) => rect(k, VT)), material: bigMat, cast: false, reach: BIG_FAR + 1, lod: LOD_D, cover: true });
+    await slice();
     for (const set of [casters, covers, bigs]) for (const items of set) for (const i of items) this.stats.propTris += (protos[f[i * 10] ?? 0]?.index.length ?? 0) / 3;
     // E156: the cove's ground wears the cover it carries (coverTint.ts) — what was placed here, splatted into the grid over
     // GroundCover's estimate for this area, then sampled by the cove's terrain
@@ -442,10 +448,11 @@ export class BlenderIsland {
         out[o] = byte(smp.r * j); out[o + 1] = byte(smp.g * j); out[o + 2] = byte(smp.b * j); out[o + 3] = ok ? 255 : 0;
       });
       for (const tile of terrainTiles) tintTerrain(tile);
+      await slice();
     }
     if (smallRocks.length > 0) {
       // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)
-      const rocks = placeModel(smallRock, this.smallRocks(smallRocks, f, protos), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } });
+      const rocks = await placeSliced(smallRock, this.smallRocks(smallRocks, f, protos), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } }, slice.due);
       rocks.object.traverse((o) => { if (isMesh(o)) this.stats.propTris += o.geometry.getAttribute('position').count / 3; });
     }
     this.stats.placements = used;
@@ -457,6 +464,7 @@ export class BlenderIsland {
 
     // ── hide what the area replaces ──
     clipTerrain(ctx.terrain);
+    await slice();
     if (ctx.palms) {
       // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area
       const cellOf = (x: number, z: number) => `${Math.floor(x / 8)},${Math.floor(z / 8)}`;
@@ -470,14 +478,16 @@ export class BlenderIsland {
         }
         return best === null || !inArea(best.x, best.z, 1);
       });
+      await slice();
     }
-    for (const r of ctx.replace) if (r) dropTriangles(r.geometry, (x, z) => !inArea(x, z));
+    for (const r of ctx.replace) if (r) { dropTriangles(r.geometry, (x, z) => !inArea(x, z)); await slice(); }
     if (ctx.cover) {
-      const clipped = new Set<THREE.Material>();
+      const clipped = new Set<THREE.Material>(), coverMeshes: THREE.Mesh[] = [];
       ctx.cover.traverse((o) => {
         if (isInstanced(o)) { for (const mm of Array.isArray(o.material) ? o.material : [o.material]) if (!clipped.has(mm)) { clipped.add(mm); clipInstanced(mm); } }
-        else if (isMesh(o)) dropTriangles(o.geometry, (x, z) => !inArea(x, z));
+        else if (isMesh(o)) coverMeshes.push(o);
       });
+      for (const m of coverMeshes) { dropTriangles(m.geometry, (x, z) => !inArea(x, z)); await slice(); }
     }
 
     // ── gameplay ──
