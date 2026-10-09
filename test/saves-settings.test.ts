@@ -14,10 +14,10 @@ it('lists every save instance once: canonical copies in card order, then the gri
   const shipped = saveCards(list, false), dev = saveCards(list, true);
   expect(shipped.filter((c) => c.listed).map((c) => c.name)).toEqual(['Driftwood Isle', 'Pine Hollow']);
   expect(dev.filter((c) => c.listed).map((c) => c.instance.id)).toEqual(['driftwood-isle', 'pine-hollow', 'template-solo']);
-  // G258 replaces copies 1/4/5 with canonical shard instances; remaining copies keep their stable ids.
+  // G258 replaces copies 1/4/5 with canonical shard instances and G270 drops copy 3; template-2 keeps its stable id.
   expect(shipped.map((c) => [c.instance.id, c.name, c.listed])).toEqual([
     ['driftwood-isle', 'Driftwood Isle', true], ['pine-hollow', 'Pine Hollow', true], ['template-solo', 'Template shard', false],
-    ['template-2', 'Template shard · COPY 2', false], ['template-3', 'Template shard · COPY 3', false],
+    ['template-2', 'Template shard · COPY 2', false],
   ]);
   expect(dev.map((c) => c.instance.id)).toEqual(shipped.map((c) => c.instance.id));
   // Grid copies appear for current/progress saves, rather than as empty listed cards, in either mode.
