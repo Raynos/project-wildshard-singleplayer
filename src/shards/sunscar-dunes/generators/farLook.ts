@@ -1,6 +1,7 @@
 /**
- * Sunscar Dunes' far proxy look (SHARD-PLATFORM SF23), read only by the far baker (scripts/bake/far-proxies.mjs): warm
- * dusk sand, the dune crests lighter and the lee slopes a shade deeper, under a warm low haze.
+ * Build-time only: Signal Dunes' far proxy look (SHARD-PLATFORM SF23), read only by the far baker
+ * (scripts/bake/far-proxies.mjs; SF72: a generator, as the template's): warm dusk sand, the dune crests lighter and the lee
+ * slopes a shade deeper, under a warm low haze. The grid reads its band and grade from the bake's far.json.
  */
 const smooth = (a: number, b: number, t: number): number => { const k = Math.min(1, Math.max(0, (t - a) / (b - a))); return k * k * (3 - 2 * k); };
 export const farLook = {

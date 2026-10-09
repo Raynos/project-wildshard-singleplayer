@@ -18,7 +18,7 @@ import { farGrid as farReachGrid, farLook as farReach, farParts as farReachParts
 import { farLook as nalati } from '../../src/shards/nalati-grasslands/look/far';
 import { farGrid as nineDragonGrid, farLook as nineDragon } from '../../src/shards/nine-dragon-stack/look/far';
 import { farLook as pineHollow } from '../../src/shards/pine-hollow/look/far';
-import { farLook as sunscar } from '../../src/shards/sunscar-dunes/look/far';
+import { farLook as sunscar } from '../../src/shards/sunscar-dunes/generators/farLook';
 
 /** The grid's shards (§3.3: shipped + dev mode + the DEVSERVER cell). */
 export const FAR_LOOKS: Readonly<Record<string, FarLookSource>> = { '_template': template, 'driftwood-isle': driftwood, 'pine-hollow': pineHollow, 'nalati-grasslands': nalati, 'sunscar-dunes': sunscar, 'far-reach': farReach, 'nine-dragon-stack': nineDragon };

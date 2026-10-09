@@ -5,7 +5,7 @@ import { encodeTerrainTile } from '../../../src/engine/world/terrainTileData';
 import { entrywayRules, validateEntrywayTerrain } from '../../../src/game/shardfile/entryways';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
-import { farLook } from '../../../src/shards/sunscar-dunes/look/far';
+import { farLook } from '../../../src/shards/sunscar-dunes/generators/farLook';
 
 // SF50-g (G93 / G99 / G103 / G131): Signal Dunes' declared boundary rows are its bake's, and the engine's entry roads make every
 // 8 m opening and 8 × 15 m socket footprint exactly road height.

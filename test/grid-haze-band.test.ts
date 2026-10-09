@@ -3,7 +3,7 @@ import { OneFactor, ZeroFactor } from 'three';
 import { BAND_OUTSET, bandGeometry, bandMaterial } from '../src/game/grid/hazeBand';
 import { FrameGradeEffect } from '../src/game/grid/frame';
 import { HIGHWAY_LOOK } from '../src/game/grid/frameModel';
-import { farLook as sunscar } from '../src/shards/sunscar-dunes/look/far';
+import { farLook as sunscar } from '../src/shards/sunscar-dunes/generators/farLook';
 import { farLook as nineDragon, skylineAt } from '../src/shards/nine-dragon-stack/look/far';
 // oxlint-disable-next-line import/no-nodejs-modules -- reads the committed far.json.
 import { readFileSync } from 'node:fs';

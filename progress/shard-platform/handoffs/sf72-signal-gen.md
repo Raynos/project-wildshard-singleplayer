@@ -1,6 +1,6 @@
 # Handoff: sf72-signal-gen (SF72, Signal Dunes' code-built world → offline bake), 2026-10-09
 
-Status: unfinished. Landed so far (lanes sf72-signal-gen2 … gen6):
+Status: unfinished. Landed so far (lanes sf72-signal-gen2 … gen7):
 
 - `9fb0cca1d`: SF57 fix in `src/game/grid/pageResidency.ts` (`composerCover()`); `ac389a949`: the boot smoke boots
   Developer Signal standalone.
@@ -14,8 +14,18 @@ Status: unfinished. Landed so far (lanes sf72-signal-gen2 … gen6):
   fails to load is a page fault: `world/meshes.ts` logs `console.error` (the boot smoke fails on it);
   `test/shards/sunscar-dunes/model-load-fault.test.ts` proves it per model and `model-cache-coverage.test.ts` fails on
   one. Pixel-identical, colliders identical, physics + map rebaked. Share 791 / 3408 (18.8 %).
-- Still open from the coordinator's condition: `world/baked.ts` `loadPiece()` warns (`console.warn`) when a baked GLB
-  fails; the promoted SDK module (sf72-sky-gen) should `console.error` there too (asked through the coordinator).
+- `1a298c6e8` (sf72-sky-gen): the kind baker and the baked-piece loader are SDK modules (`@wildshard/sdk/bake/kinds`,
+  the shared client loader, which `console.error`s a failed GLB). Build on those, not Signal-local copies.
+- `ac189becd` (gen7, rigs pick (b)): the code skitterer is a bake. `generators/species.ts` (skittererGeometry,
+  bakeSignalSkitterer) → `scripts/bake-signal-rigs.mjs` → `public/assets/sunscar-dunes/rigs/skitterer.glb` (38.7 KB,
+  3.4 KB gzip; `_JOINTS` / `_WEIGHTS` custom attributes, no normals). `world/meshes.ts` `duneRig(name)` loads `DUNE_RIGS`
+  (`boot/files.ts`) in `preloadDuneMeshes`, keeps them without normals (+59,904 retained commons) and recomputes flat
+  normals per copy; `undrawnRig()` is the zero-area stand-in a failed rig gets (its load is a `console.error`).
+  `test/shards/sunscar-dunes/rig-bake.test.ts` is the byte-exact stale gate and proves the client geometry equals the
+  code's attribute for attribute. Pixels identical (run-1 vs run-1 0.000 % > 24), calls / tris / gpuBytes identical,
+  colliders identical, walk 0 stuck, frame floor desktop PASS 59.88. Share 18.1 → 18.5 %.
+- gen7, far: `look/far.ts` → `generators/farLook.ts` (only the far baker and two tests read it, as the template's).
+  Physics + map rebaked (generators/ is an input of both). Share 18.5 → 18.8 %.
 
 ## The invariant recipe (one slice, about 45 min)
 
@@ -44,26 +54,26 @@ Status: unfinished. Landed so far (lanes sf72-signal-gen2 … gen6):
 
 ## Next, in order
 
-1. **The species rigs → a baked GLB: a byte-cost decision first.** gen6 drafted `generators/species.ts` (not landed):
-   it moves `skin.ts`, `manta.ts`, the skitterer / code ray / strider geometry builders and `bindRigid` offline,
-   reads `dune-strider.glb` / `dune-matriarch.glb` in Node (GLTFLoader + MeshoptDecoder, then the client's own flatten,
-   factored out of `world/meshes.ts` as `flatModel(scene)` so the bake and the client cannot drift), and writes one
-   GLB with three non-indexed meshes (`skitterer`, `strider`, `matriarch`: POSITION, COLOR_0, JOINTS_0 u16, WEIGHTS_0;
-   the ray's tint as `_TINT` on the Matriarch's mesh; no normals, because `manifest.creatures.lowPoly` facets and
-   recomputes them, and the Model Explorer draws flat-shaded) plus `data/species.json` (the strider's measured bones and
-   `h`). The client then drops `dune-strider` and `dune-matriarch` from `DUNE_MESHES`.
-   **Measured:** lossless meshopt GLB = **944 KB** (gzip 843 KB) against the **349 KB** of the two source GLBs it
-   replaces: **+595 KB on Signal's 2.4 MB boot pack (+25 %)**. Indexing does not help (the Matriarch's painted facets
-   leave 25,845 unique corners of 27,000). Lossless bytes are intrinsic because `fit()` makes arbitrary float32
-   positions. Options for the coordinator: (a) `quantize()` + meshopt (likely ~250 KB, sub-noise pixel change to prove
-   with parity, not bit-identical); (b) bake only the code-built skitterer (7 KB) and keep the two generated bodies'
-   skinning in the client; (c) accept +595 KB. Recommendation: (b) now, (a) after a parity proof.
-   Gotchas found: the Model Explorer's `dune-ray` draws the **code** ray (`rayGeometry()`), which the world never shows
-   (the world ray is the tinted manta); a bake either keeps it or shows the world's ray there (a visible Explorer
-   change). An empty `hardParts` throws in `mergeAnimalGeometry`, so a rig that failed to load needs a degenerate
-   stand-in geometry, not `[]`. The world-bake test and `scripts/bake-signal-world.mjs` are synchronous; the species
-   generator is async (meshopt), so await it there (or give it its own script and test while sf72-sky-gen edits them).
-2. The look tables (`minimap`, `far`, `dusk`, `families`) → `data/` rows.
+1. **The rigs (a) trial (coordinator: land it only with pixel parity within noise at every pose, INCLUDING a close
+   creature pose where quantization would show, and the boot pack not growing).** gen7 measured it: the two generated
+   bodies flattened as the client does (AO into the colour), fitted, then gltf-transform `quantize({ quantizePosition:
+   14, quantizeColor: 8, quantizeWeight: 8 })` + `meshopt({ level: 'high' })` with `meshoptimizer`'s encoder (both
+   already dependencies) = **242,688 bytes** for strider (4,800 vertices) + Matriarch (27,000) against the **348,820** of
+   `dune-strider.glb` + `dune-matriarch.glb` they replace in `DUNE_MESHES` (−106 KB on the boot pack). Design:
+   - `generators/species.ts`: parse the two source GLBs in Node (GLTFLoader + MeshoptDecoder), flatten with the client's
+     own code (factor `flatModel(scene)` out of `world/meshes.ts` `load()` so they cannot drift), run `striderMesh`
+     (move it from `species/strider.ts`; bones and `h` from the exact floats → `data/species.json`) and the untinted
+     `mantaBody` (fit + the five-bone weights), write one rig file each with real `JOINTS_0` / `WEIGHTS_0` through a
+     gltf-transform `Document` (not `staticGlb`), then quantize + meshopt. Bake the code ray (`rayGeometry`) lossless
+     too: the Model Explorer's `dune-ray` draws it.
+   - Client: `loadRig` must read quantized attributes through `getX…` (normalized) and apply the node's matrix
+     (KHR_mesh_quantization puts the dequantize transform on the node). The ray's tint (`manta.ts`) stays client-side
+     on a copy of the Matriarch rig (it needs the normals). Fallbacks become `undrawnRig()` (the faulted policy), so
+     `skin.ts`, `striderGeometry`, `striderMesh`, `rayGeometry` and most of `manta.ts` leave the client.
+   - Proof: the parity poses plus a close creature capture (a Model Explorer specimen close-up of strider, Matriarch
+     and ray, before vs after, against each build's own run-to-run noise). The async bake needs its own script / test
+     (the world-bake ones are synchronous).
+2. The look tables: `far` is done. `minimap`'s `ground` / `overlay` still run in the client (the Minimap's no-image
+   fallback and `bake-maps.mjs` in the browser), and `dusk` / `families` are runtime curves; moving their numbers to
+   `data/` rows saves little unless an SDK look-family row evaluates them.
 3. `models/gear.ts` follows the species (its creatures read the rigs).
-4. Lane sf72-sky-gen is promoting `generators/kinds.ts` and `world/baked.ts` into the SDK (WIP in the shared tree also
-   touches `world/places.ts` and the generators); build on its SHA, and sequence through the coordinator.
