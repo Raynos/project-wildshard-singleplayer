@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-875 members; 158 without a doc line (—).
+891 members; 159 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -263,7 +263,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `QuestDataPorts` | interface | @wildshard/game/quest/declared | Platform-owned fact/reward ports; authored quests never write the profile or progress store. A quest's fact is filed under the quest's id, coins under the player's. |
 | `QuestScriptBindings` | interface | @wildshard/game/quest/declared | Loader-resolved stable script field/event ids; actor target handles come from the session. |
 | `QuestScriptPorts` | interface | @wildshard/game/quest/declared | Hooks read atomically published script fields or queue declared events for the next script tick. |
-| `installInteractionRows` | function | @wildshard/game/quest/interactionRows | The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the row whose `act` |
+| `installInteractionRows` | function | @wildshard/game/quest/interactionRows | The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the prompt row whose |
 | `InteractionResult` | type | @wildshard/game/quest/interactionRows | A row's answer: it ran, or the `else` reason of its first unmet need (`'refused'` when the need names none). |
 | `InteractionRow` | type | @wildshard/game/quest/interactionRows | One declared row. |
 | `InteractionRowPorts` | interface | @wildshard/game/quest/interactionRows | What `installInteractionRows` is lent. |
@@ -746,6 +746,22 @@ The game layer's public modules (src/game/package.json `exports`).
 | `STARTER_EFFECTS` | const | @wildshard/game/systems/effects/starter | Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects. |
 | `declaredKitItemFamilies` | function | @wildshard/game/systems/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |
 | `ITEM_VIEW_LIFT` | const | @wildshard/game/systems/items/declared | The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item: |
+| `LASH_BODY` | const | @wildshard/game/systems/items/lash | — |
+| `LASH_CHEST` | const | @wildshard/game/systems/items/lash | A combat target's chest above its port position (its feet), and the lane's body allowance (metres). |
+| `lashContact` | function | @wildshard/game/systems/items/lash | One lash's contact rule on one creature: the first hit on its head ball or body capsule inside the reach, else its |
+| `lashLane` | function | @wildshard/game/systems/items/lash | The lash's lane: how far along `dir` a target's chest (`LASH_CHEST` over its feet) sits when it is inside the narrow |
+| `LashMoves` | interface | @wildshard/game/systems/items/lash | The move ids a lash's hits carry: the light crack, and the heavy double crack's first and second lash. |
+| `LashPorts` | interface | @wildshard/game/systems/items/lash | The lash's ports: its aim at the landing, the first body it meets, the lane's candidates, the world, the pipeline. |
+| `LashRuntime` | class | @wildshard/game/systems/items/lash | A lash weapon's crack, renderer-free (SF72), shared by a browser weapon (which draws it) and a renderer-free host |
+| `lashSpec` | function | @wildshard/game/systems/items/lash | A declared weapon row's lash: its light / heavy reach, width, damage and cooldowns and its charge, with the lash's timing. |
+| `LashSpec` | interface | @wildshard/game/systems/items/lash | A lash's numbers: reach, width, damage and cooldowns from its declared weapon row, its timing, tags and moves. |
+| `LashState` | interface | @wildshard/game/systems/items/lash | A lash's exact continuation. |
+| `lashTarget` | function | @wildshard/game/systems/items/lash | A combat port as a lash target: its actor, its yank (when the body has one) and its body's stagger. |
+| `LashTarget` | interface | @wildshard/game/systems/items/lash | What a lash lands on: the combat actor, and the body's yank and stagger when it has them. |
+| `LashTiming` | interface | @wildshard/game/systems/items/lash | The lash's own timing (seconds) and reactions: the unroll, the heavy's second lash, how long it shows, the stagger, the yank (m/s on ≤ `pullMaxHp`). |
+| `lashVolumeHit` | function | @wildshard/game/systems/items/lash | The lash's first contact with a creature's volumes along `dir` (unit) within `reach`, in metres from `from`, or null: |
+| `LashVolumes` | interface | @wildshard/game/systems/items/lash | A creature's hit volumes in world space: the head ball and the body capsule (the shapes `CreatureBodies` poses). |
+| `LashWorldTarget` | interface | @wildshard/game/systems/items/lash | Something a lash can crack in the world (a lever, a brazier): `crack` says whether it reacted. |
 | `fogGLSL` | const | @wildshard/game/systems/looks/fogProgram | — |
 | `configureGrassField` | function | @wildshard/game/systems/looks/grassField | — |
 | `flowerPatchAt` | function | @wildshard/game/systems/looks/grassField | 0..1 flower-drift strength |

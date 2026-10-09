@@ -15416,7 +15416,7 @@
       {
         "name": "installInteractionRows",
         "kind": "function",
-        "doc": "The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the row whose `act`",
+        "doc": "The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the prompt row whose",
         "from": "@wildshard/game/quest/interactionRows"
       },
       {
@@ -18310,6 +18310,102 @@
         "kind": "const",
         "doc": "The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:",
         "from": "@wildshard/game/systems/items/declared"
+      },
+      {
+        "name": "LASH_BODY",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LASH_CHEST",
+        "kind": "const",
+        "doc": "A combat target's chest above its port position (its feet), and the lane's body allowance (metres).",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "lashContact",
+        "kind": "function",
+        "doc": "One lash's contact rule on one creature: the first hit on its head ball or body capsule inside the reach, else its",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "lashLane",
+        "kind": "function",
+        "doc": "The lash's lane: how far along `dir` a target's chest (`LASH_CHEST` over its feet) sits when it is inside the narrow",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashMoves",
+        "kind": "interface",
+        "doc": "The move ids a lash's hits carry: the light crack, and the heavy double crack's first and second lash.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashPorts",
+        "kind": "interface",
+        "doc": "The lash's ports: its aim at the landing, the first body it meets, the lane's candidates, the world, the pipeline.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashRuntime",
+        "kind": "class",
+        "doc": "A lash weapon's crack, renderer-free (SF72), shared by a browser weapon (which draws it) and a renderer-free host",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "lashSpec",
+        "kind": "function",
+        "doc": "A declared weapon row's lash: its light / heavy reach, width, damage and cooldowns and its charge, with the lash's timing.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashSpec",
+        "kind": "interface",
+        "doc": "A lash's numbers: reach, width, damage and cooldowns from its declared weapon row, its timing, tags and moves.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashState",
+        "kind": "interface",
+        "doc": "A lash's exact continuation.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "lashTarget",
+        "kind": "function",
+        "doc": "A combat port as a lash target: its actor, its yank (when the body has one) and its body's stagger.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashTarget",
+        "kind": "interface",
+        "doc": "What a lash lands on: the combat actor, and the body's yank and stagger when it has them.",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashTiming",
+        "kind": "interface",
+        "doc": "The lash's own timing (seconds) and reactions: the unroll, the heavy's second lash, how long it shows, the stagger, the yank (m/s on ≤ `pullMaxHp`).",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "lashVolumeHit",
+        "kind": "function",
+        "doc": "The lash's first contact with a creature's volumes along `dir` (unit) within `reach`, in metres from `from`, or null:",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashVolumes",
+        "kind": "interface",
+        "doc": "A creature's hit volumes in world space: the head ball and the body capsule (the shapes `CreatureBodies` poses).",
+        "from": "@wildshard/game/systems/items/lash"
+      },
+      {
+        "name": "LashWorldTarget",
+        "kind": "interface",
+        "doc": "Something a lash can crack in the world (a lever, a brazier): `crack` says whether it reacted.",
+        "from": "@wildshard/game/systems/items/lash"
       },
       {
         "name": "fogGLSL",

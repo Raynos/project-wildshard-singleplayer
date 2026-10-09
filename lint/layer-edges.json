@@ -2,7 +2,7 @@
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
     "commons → sdk": 3,
-    "game → engine": 884,
+    "game → engine": 886,
     "root → engine": 19,
     "root → game": 25,
     "root → sdk": 2,
@@ -26,8 +26,8 @@
     "shards/pine-hollow → engine": 603,
     "shards/pine-hollow → game": 108,
     "shards/pine-hollow → sdk": 15,
-    "shards/sunscar-dunes → engine": 122,
-    "shards/sunscar-dunes → game": 35,
+    "shards/sunscar-dunes → engine": 121,
+    "shards/sunscar-dunes → game": 37,
     "shards/sunscar-dunes → sdk": 19
   }
 }

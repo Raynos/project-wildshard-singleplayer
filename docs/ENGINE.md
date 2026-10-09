@@ -2418,7 +2418,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-875 exports, grouped by the module to import them from.
+891 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2556,6 +2556,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/systems/effects/install`: `installStarterEffects`
 - `@wildshard/game/systems/effects/starter`: `STARTER_EFFECTS`
 - `@wildshard/game/systems/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
+- `@wildshard/game/systems/items/lash`: `LASH_BODY`, `LASH_CHEST`, `lashContact`, `lashLane`, `LashMoves`, `LashPorts`, `LashRuntime`, `lashSpec`, `LashSpec`, `LashState`, `lashTarget`, `LashTarget`, `LashTiming`, `lashVolumeHit`, `LashVolumes`, `LashWorldTarget`
 - `@wildshard/game/systems/looks/fogProgram`: `fogGLSL`
 - `@wildshard/game/systems/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassField`, `GrassFieldLayout`, `GrassFieldPorts`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`
 - `@wildshard/game/systems/looks/particles`: `makeMistTexture`, `Particles`
