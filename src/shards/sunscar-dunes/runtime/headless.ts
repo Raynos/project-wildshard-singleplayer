@@ -10,6 +10,9 @@ import { SCOUT_FLAG } from '../data/flags';
 import { installSignalHomes } from './homes';
 import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
 import { installSignalQuest, type SignalSpots } from './quest';
+import { installSignalMatriarch } from './matriarch';
+import { SIGNAL_SPAWNS } from '../data/spawns';
+import { MATRIARCH_ID } from '../combat/matriarchFight';
 import { BRAZIERS } from '../layout';
 import baked from './physics.baked.json' with { type: 'json' };
 
@@ -48,8 +51,9 @@ export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
  * Signal Dunes' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the admitted terrain
  * collider and heights, the browser-baked native colliders, and the 13 declared homes with their shipping policies,
  * creature stream, attack tokens and respawn clocks, the whip as its declared item row (a player command's attack is
- * its light crack), and the signal quest with its interactions (`script` commands on `sunscar.interact`, runtime/quest.ts).
- * Not yet owned (fail-closed, see the SF72 handoff): the Matriarch encounter and the entry proof; `finish` refuses.
+ * its light crack), the signal quest with its interactions (`script` commands on `sunscar.interact`, runtime/quest.ts),
+ * and the Dune Matriarch's encounter (runtime/matriarch.ts), armed by the signal fire, her body the keeper's after the
+ * homes. Not yet owned (fail-closed, see the SF72 handoff): the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   if (shard.terrain === null) throw new Error('Signal Dunes declares its admitted terrain collider');
@@ -70,14 +74,20 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   };
   const whip = shard.items.rows.find(row => row.id === WHIP_ID), spots = signalSpots();
   if (whip?.kind !== 'weapon') throw new Error('Signal Dunes declares its whip row');
-  const reach = { light: whip.light.range, heavy: whip.heavy.range };
+  const reach = { light: whip.light.range, heavy: whip.heavy.range }, matriarchRow = SIGNAL_SPAWNS.bosses.find(row => row.id === MATRIARCH_ID);
+  if (matriarchRow === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     if (!context.restoring) colliders(host);
-    installSignalHomes(host, { specs, attackers: SIGNAL_ATTACKERS, held: () => !host.flags.has(SCOUT_FLAG) }, context.snapshot);
-    installSignalWhip(host, whip, () => context.commands().flatMap((command): WhipCommand[] => command.kind === 'player' && command.attack !== undefined ? [{ targetId: command.attack.targetId }] : []));
+    const keeper = installSignalHomes(host, { specs, attackers: SIGNAL_ATTACKERS, held: () => !host.flags.has(SCOUT_FLAG), boss: matriarchRow }, context.snapshot);
+    if (keeper.boss === null) throw new Error('Signal Dunes declares the Matriarch\'s body');
+    const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
+    const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
+    const matriarch = installSignalMatriarch(host, { body: keeper.boss, fact, coins });
+    // the browser disables the player's weapons through her intro (BossPorts.lockInput)
+    installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): WhipCommand[] => command.kind === 'player' && command.attack !== undefined ? [{ targetId: command.attack.targetId }] : []));
     installSignalQuest(host, { quests: shard.quests, spots, braziers: BRAZIERS.length, reach,
-      commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
-      fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); }, coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
+      commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []), fact, coins, lit: matriarch.summon });
+    keeper.settle();
   } };
 };
 const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];

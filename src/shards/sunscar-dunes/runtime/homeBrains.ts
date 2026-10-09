@@ -7,6 +7,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { SWOOP } from './species/duneRay';
 import { CHARGE, HORNS } from './species/strider';
 import { SkittererBrain, slot } from './species/skitterer';
+import { MatriarchBrain } from './species/matriarch';
 
 /** The melee shards' strike arc: a self-thinking species hurts only inside 70° of its facing (AnimalManager HURT_ARC). */
 const HURT_ARC = (70 * Math.PI) / 180;
@@ -22,8 +23,8 @@ export interface HomeBrainPorts {
 }
 
 /**
- * The shipping policy for one fresh home body (plugin.ts / runtime/brains.ts: the ray's patrol-diver, the strider's
- * challenge-grazer with its seeded phase slot, the skitterer's own brain), observing through ports allocated here once.
+ * The shipping policy for one fresh body (plugin.ts / runtime/brains.ts: the ray's patrol-diver, the strider's
+ * challenge-grazer with its seeded phase slot, the skitterer's own brain, the Matriarch's unique policy), observing through ports allocated here once.
  * Contacts reach the player through the host's combat pipeline only inside the strike arc and with a clear line.
  */
 export function homeBrain(kind: string, actor: AnimalSim, shared: HomeBrainPorts): HomeBrain {
@@ -39,7 +40,8 @@ export function homeBrain(kind: string, actor: AnimalSim, shared: HomeBrainPorts
     steer: (a: AnimalSim, yaw: number, speed: number, turn: number): void => { a.setMotion(yaw, speed, turn); },
     flight: { steer: (a: AnimalSim, yaw: number, speed: number, altitude: number, turn: number): void => { a.fly(yaw, speed, altitude, turn); } } };
   const brain = kind === 'duneRay' ? new PatrolDiverBrain(actor, shared.ray, shared.ray.home, SWOOP)
-    : kind === 'duneStrider' ? new ChallengeGrazerBrain(actor, shared.strider, CHARGE, HORNS) : new SkittererBrain(actor);
+    : kind === 'duneStrider' ? new ChallengeGrazerBrain(actor, shared.strider, CHARGE, HORNS)
+      : kind === 'duneMatriarch' ? new MatriarchBrain<AnimalSim>(actor) : new SkittererBrain(actor);
   const observe = (dt: number): void => { ports.dt = dt; ports.t = host.clock.now; };
   return {
     decide: dt => { observe(dt); brain.think(ports); },
