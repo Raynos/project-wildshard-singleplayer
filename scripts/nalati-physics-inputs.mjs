@@ -5,7 +5,7 @@ import { join, relative } from 'node:path';
 /** Exact native actor/collision/model inputs of Nalati Grasslands; a changed recipe refuses the trusted headless bake (SF72). */
 export function nalatiPhysicsInputs(root) {
   const paths = ['layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'edge.ts', 'wet.ts', 'outcrops.ts', 'cragRock.ts', 'terrainSurface.ts', 'water.ts', 'kokpar.ts',
-    'runtime/index.ts', 'runtime/state.ts', 'runtime/groupDeclared.ts', 'runtime/groupDispatch.ts', 'runtime/groupPorts.ts', 'runtime/groupRegistry.ts', 'runtime/flockDeclared.ts',
+    'runtime/index.ts', 'runtime/state.ts', 'runtime/groupDeclared.ts', 'runtime/groupDispatch.ts', 'runtime/groupPorts.ts', 'runtime/groupRegistry.ts', 'runtime/flockDeclared.ts', 'runtime/aqbarsKeeper.ts', 'runtime/argymaqKeeper.ts',
     'look/grassFieldLayout.ts']
     .map(path => `src/shards/nalati-grasslands/${path}`);
   // the manager, the hunting brain and the group policies that roll and drive the bodies, the shared floor recipe

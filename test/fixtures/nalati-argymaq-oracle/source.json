@@ -1,0 +1,6 @@
+{
+  "revision": "b6c328c5dbdf4793165a0a2e13d2df432232b0ed",
+  "path": "src/shards/nalati-grasslands/combat/elites.ts",
+  "scope": "tick through phase-two lead-away; adoption is separately covered by the port fixture",
+  "sha256": "2c3cff7c5f9f37152f6dfeb18ffc59651d8fe0f3c4cb0cccbbd19d57e94f9466"
+}

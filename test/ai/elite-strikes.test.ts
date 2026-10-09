@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import type { Animal } from '../../src/engine/entities/AnimalView';
+import { AqbarsKeeper } from '../../src/shards/nalati-grasslands/runtime/aqbarsKeeper';
 import { wildEnv } from '../../src/shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
@@ -22,11 +23,17 @@ function elite(name: string, fields: Record<string, unknown>) {
   const f = creature('crab', 'small'), hits: number[] = [];
   const env = { reach: () => true, player: { position: f.ctx.player }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
     knock: vi.fn(noOp), feed: vi.fn(noOp), sound: vi.fn(noOp), bar: { chevron: noOp }, game: f.game };
+  const keeper = new AqbarsKeeper({ player: env.player, lair: { x: 0, z: 0 }, ledges: [], heightAt: () => 0,
+    phase2: () => false, awareRadius: 60, isHead: () => false,
+    ring: { setTime: noOp, ring: noOp, hide: noOp }, hurt: env.hurt, knock: env.knock, feed: env.feed, sound: env.sound, signature: noOp });
+  if (name === 'Aqbars') keeper.restore({ ...keeper.snapshot(), st: fields['st'], stT: 0, cd: 0,
+    hitDone: fields['hitDone'] ?? 0, from: fields['from'] instanceof THREE.Vector3 ? fields['from'].toArray() : [0, 0, 0],
+    to: fields['to'] instanceof THREE.Vector3 ? fields['to'].toArray() : [0, 0, 0] });
   const proto = legacyMethods(file, name, { app, THREE, _v: new THREE.Vector3(), _w: new THREE.Vector3(), heightAt: () => 0, wildEnv });
   const actor = legacyActor(proto, { animal: f.animal, env, engagement: noOp, p2: false, stT: 0, cd: 0,
     toPlayer: (a: Animal) => ({ d: a.position.distanceTo(f.ctx.player), yaw: Math.atan2(f.ctx.player.x - a.position.x, f.ctx.player.z - a.position.z) }),
-    ...fields });
-  return { ...f, actor, env, hits };
+    ...fields, ...(name === 'Aqbars' ? { keeper } : {}) });
+  return { ...f, actor, env, hits, keeper };
 }
 
 describe('private Nalati elite strikes executed from their production class methods', () => {
@@ -36,7 +43,7 @@ describe('private Nalati elite strikes executed from their production class meth
       invokeLegacy(f.actor, 'act', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
       if (i < 27) expect(f.hits).toEqual([]);
     }
-    expect(f.hits).toEqual([14, 14]); expect(Reflect.get(f.actor, 'cd')).toBe(1.4); expect(f.animal.attackPhase).toBe(-1);
+    expect(f.hits).toEqual([14, 14]); expect(f.keeper.snapshot().cd).toBe(1.4); expect(f.animal.attackPhase).toBe(-1);
   });
   it.each([0, 2])('S14 Aqbars landing offsets%s preserve damage35 or the open miss window', (offset) => {
     const f = elite('Aqbars', { st: 'tell', ring: tell(), from: new THREE.Vector3(), to: new THREE.Vector3(0, 0, 1), goal: null,
@@ -46,7 +53,7 @@ describe('private Nalati elite strikes executed from their production class meth
       if (i < 95) expect(f.hits).toEqual([]);
     }
     expect(f.hits).toEqual(offset === 0 ? [35] : []);
-    expect(Reflect.get(f.actor, 'st')).toBe(offset === 0 ? 'stalk' : 'open');
+    expect(f.keeper.state).toBe(offset === 0 ? 'stalk' : 'open');
   });
   it('S15 Kokbori hits22 at .7 of a .9s bite then takes1.8 seconds to recover', () => {
     const f = elite('Kokbori', { st: 'hunt', bit: false, chase: (_a: Animal, _c: unknown, _d: number, yaw: number) => yaw }); f.animal.startAttack(0.9);
