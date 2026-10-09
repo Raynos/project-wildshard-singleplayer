@@ -1,7 +1,7 @@
 import { Euler, Quaternion, Vector3 } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/game/shardfile/movers';
-import { SPANS, FALLEN_BRIDGE } from '../layout';
+import { SPANS, FALLEN_BRIDGE } from '../data/layout';
 import { FALLEN_ANGLE, deckCollider, saggedColliders, railColliders, spanYaw } from '../world/build';
 import { isletMoverRows } from '../world/risingIslet';
 

@@ -27,7 +27,8 @@ Storm Roc.
 
 | File | What |
 |---|---|
-| `layout.ts` | every coordinate: the islands, the three spans, the winch, the rays' homes; `HOVER_GAP` keeps a hover deck clear of every rim |
+| `data/layout.ts` | every coordinate: the islands, the three spans, the winch, the rays' homes; `HOVER_GAP` keeps a hover deck clear of every rim |
+| `layout.ts` | the maths over those coordinates (a data module exports no functions): `ropeSag`, `knollHeight`, `apothem`, `rimAlong`, `spireAt` |
 | `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges (a rope span lays the generated deck segments, instanced, and four generated anchor posts; hover decks keep glass planks), the windmill, the winch |
 | `world/meshes.ts` | the generated models (C6): loads the five GLBs once in `world` (`preloadSkyMeshes`), flattens each to vertex-coloured facets (the baked AO kept at 60 %), `fit` (size, floor / middle, `pitch`, footing centre), `bindRigid` (a creature's facets ride one bone each), `splitAbove` (the vane's rotor). A model that fails to load leaves the code model |
 | `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable, the vanes (`vaneColliders`: plinth, shrine box and post, measured off the generated shrine) |

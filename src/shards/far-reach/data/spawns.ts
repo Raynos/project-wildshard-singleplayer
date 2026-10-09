@@ -1,4 +1,4 @@
-import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, type Home } from '../layout';
+import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, type Home } from './layout';
 
 const flying = (id: string, kind: string, look: string, home: Home) => ({ id, kind, look, at: [home.x + home.r, home.z] as const, yaw: 0 });
 /** Finite bodies only: runtime keeps flight homes, wake views, deferred WORLD floors and spawn order. */

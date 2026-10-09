@@ -5,7 +5,7 @@ import { rocBody } from '../species/stormRoc';
 import { goatBody } from '../species/skyGoat';
 import { rayBody } from '../species/driftRay';
 import { flat, vane } from '../world/shapes';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../data/strings';
 
 const FILE = 'src/shards/far-reach/models/creatures.ts';
 const CLIPS = ['idle', 'fly', 'attack', 'hit', 'die'] as const;

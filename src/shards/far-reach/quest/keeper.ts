@@ -3,8 +3,8 @@ import { fit, hdMaterial, skyHd, skyMesh, splitTriangles } from '../world/meshes
 import type { NpcDef } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { FLAGS } from './flags';
-import { STRINGS } from '../strings';
-import { SPAWN } from '../layout';
+import { STRINGS } from '../data/strings';
+import { SPAWN } from '../data/layout';
 import { KEEPER_AT } from '../data/quests';
 
 /** Where the bridge-keeper stands: at Sunrest's north rim, left of the rope bridge's posts, facing the spawn (mockup B). */

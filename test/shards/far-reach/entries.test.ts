@@ -11,9 +11,9 @@ import { validateEntrywayClearance } from '../../../src/game/shardfile/entryClea
 import { parseMovers } from '../../../src/game/shardfile/movers';
 import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
 import { ISLET_ISLE, isletBoxes, lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
-import { CROWN, ISLES, KEEPER, STEP, apothem, rimAlong, type Isle } from '../../../src/shards/far-reach/layout';
+import { CROWN, ISLES, KEEPER, NEST, SPIRES, STEP, type Isle } from '../../../src/shards/far-reach/data/layout';
+import { apothem, rimAlong, spireAt } from '../../../src/shards/far-reach/layout';
 import { MOVERS } from '../../../src/shards/far-reach/data/movers';
-import { NEST, SPIRES, spireAt } from '../../../src/shards/far-reach/world/roost';
 import source from '../../../src/shards/far-reach/shard.config';
 
 // SHARD-PLATFORM SF49-g (Jake's G99 / G183, the Rising Islet): at each edge midpoint a stone lip at road height, a grass

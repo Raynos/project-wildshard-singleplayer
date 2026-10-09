@@ -3,7 +3,7 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { IcosahedronGeometry, OctahedronGeometry, TorusGeometry } from 'three';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../data/strings';
 import { hull } from './rig';
 
 /** The burst: the wisp darts at the chest and bursts in a small sphere that shoves you back (G24 `WISP.shove`). */

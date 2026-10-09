@@ -1,4 +1,4 @@
-import { STRINGS } from '../strings';
+import { STRINGS } from './strings';
 
 /** Trusted fan contacts retain their native cone/impulse controller; these are the shipping numeric profiles. */
 export const FAN_SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldown: 0.45, heavyCooldown: 0.85 };

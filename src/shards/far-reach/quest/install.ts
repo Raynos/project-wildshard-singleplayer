@@ -6,8 +6,8 @@ import { bindRuntimeCoins, bindRuntimeQuest } from '@wildshard/game/shardfile/hy
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { Scene, Vector3 } from 'three';
-import { CROWN, DECK, GROVE, HIGH, KEEPER, ROOST, RUIN, STEP, SUNREST, VANES, WINDMILL } from '../layout';
-import { STRINGS } from '../strings';
+import { CROWN, DECK, GROVE, HIGH, KEEPER, ROOST, RUIN, STEP, SUNREST, VANES, WINDMILL } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import { ownPrimitives } from '../world/resources';
 import { FLAGS, vaneFlag } from './flags';
 import { KEEPER_NPC, keeper } from './keeper';

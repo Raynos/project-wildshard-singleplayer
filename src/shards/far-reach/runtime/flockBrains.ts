@@ -12,7 +12,7 @@ import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
 import { DIVE, RAM } from './strikes';
 import { BURST } from '../species/galeWisp';
 import { StormRocBrain } from './stormRocBrain';
-import type { Home } from '../layout';
+import type { Home } from '../data/layout';
 
 /** Sky's fight is telegraphed (manifest `fight.telegraphed`): a self-thinking species hurts only inside 70° of its facing. */
 const HURT_ARC = (70 * Math.PI) / 180;

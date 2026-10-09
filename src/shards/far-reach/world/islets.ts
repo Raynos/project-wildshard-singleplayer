@@ -1,5 +1,6 @@
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/config';
-import { GROVE, ROOST, RUIN, SUNREST, apothem, rimAlong, type Isle, type Span } from '../layout';
+import { GROVE, ROOST, RUIN, SUNREST, type Isle, type Span } from '../data/layout';
+import { apothem, rimAlong } from '../layout';
 
 /**
  * SHARD-PLATFORM SF49-g (G183, Jake 2026-10-07: "4, the Rising Islet"): Sky Reach's four legal entryways. At each edge

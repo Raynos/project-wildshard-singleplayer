@@ -10,7 +10,8 @@ import { DIVE, RAM } from './strikes';
 import { GALE_WISP, BURST } from '../species/galeWisp';
 import { STORM_ROC } from '../species/stormRoc';
 import { homeOf, pushPlayer } from '../species/rig';
-import { WINDMILL, RAY_HOMES, DECK, KEEPER, apothem } from '../layout';
+import { WINDMILL, RAY_HOMES, DECK, KEEPER } from '../data/layout';
+import { apothem } from '../layout';
 
 type Actor = Parameters<NonNullable<typeof SKY_GOAT.think>>[0];
 type Context = Parameters<NonNullable<typeof SKY_GOAT.think>>[1];

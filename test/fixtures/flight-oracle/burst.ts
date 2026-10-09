@@ -4,7 +4,7 @@ import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { Vector3 } from 'three';
-import { KEEPER } from '../../../src/shards/far-reach/layout';
+import { KEEPER } from '../../../src/shards/far-reach/data/layout';
 import { homeOf, pushPlayer, yawTo } from '../../../src/shards/far-reach/species/rig';
 
 /** The burst: the wisp darts at the chest and bursts in a small sphere that shoves you back (G24 `WISP.shove`). */

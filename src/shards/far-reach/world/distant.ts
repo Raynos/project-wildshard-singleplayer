@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Quaternion, ShaderMaterial, Vector3 } from 'three';
-import type { Isle } from '../layout';
+import type { Isle } from '../data/layout';
 import { SKY_ISLES, type SkyIsle } from './skyIsles';
 
 /**

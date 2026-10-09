@@ -2,8 +2,8 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { BossDefinition, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { CROWN, DAIS, FALLEN_BRIDGE } from '../layout';
-import { STRINGS } from '../strings';
+import { CROWN, DAIS, FALLEN_BRIDGE } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import type { RocPhase, StormRocBrain } from './stormRocBrain';
 
 export const ROC_ID = 'far.roc';

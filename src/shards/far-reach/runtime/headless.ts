@@ -11,7 +11,7 @@ import { installDeclaredPropColliders } from '@wildshard/engine/physics/declared
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
 import { socketLiftEntries } from '@wildshard/game/shardfile/socketLift';
 import { proveSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
-import { DECK, SPAWN } from '../layout';
+import { DECK, SPAWN } from '../data/layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS } from './variants';
 import { GALE_WISP } from '../species/galeWisp';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';

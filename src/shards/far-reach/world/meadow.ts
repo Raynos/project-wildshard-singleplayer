@@ -1,10 +1,10 @@
 import { BufferAttribute, Color, DoubleSide, type Texture, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
-import { DAIS, FALLEN_BRIDGE, ISLES, KNOLL_GLSL, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, WINCH_HOUSE, apothem, type Isle } from '../layout';
+import { DAIS, FALLEN_BRIDGE, ISLES, KNOLL_GLSL, MILL, NOTES, SPANS, UPDRAFT, VANES, NEST, SPIRES, WINCH, WINCH_HOUSE, type Isle } from '../data/layout';
+import { apothem, spireAt } from '../layout';
 import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';
 import { KEEPER_AT } from '../data/quests';
 import { crownStones } from '../runtime/crownLayout';
-import { NEST, SPIRES, spireAt } from './roost';
 import { FOG, SKY } from '../look/sun';
 import { SWARD_ATLAS, swardAtlas } from './swardAtlas';
 

@@ -1,5 +1,5 @@
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
-import { STRINGS } from '../strings';
+import { STRINGS } from './strings';
 
 /** Completion witnesses own the profile grants; Sky has no legacy visible title table to replace. */
 export const SKY_LEDGER = parseLedgerRules([

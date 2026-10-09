@@ -1,6 +1,7 @@
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { SKY_SPAWNS } from '../data/spawns';
-import { GOATS, apothem } from '../layout';
+import { GOATS } from '../data/layout';
+import { apothem } from '../layout';
 import { setHome } from './rig';
 
 /** Rebuild the authored goat roster on its flat isle tops before strict retained restore, without a gameplay tick. */

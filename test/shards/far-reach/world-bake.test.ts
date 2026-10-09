@@ -7,10 +7,12 @@ import { InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { colliderRows } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyWinchHouse, buildWinchHouse } from '../../../src/shards/far-reach/generators/winchHouse';
+import { bakeSkyRoost, roost } from '../../../src/shards/far-reach/generators/roost';
 import { skyBakedPiece } from '../../../src/shards/far-reach/world/baked';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/boot/files';
-import { STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/layout';
+import { STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
+import roostRows from '../../../src/shards/far-reach/data/roost.json' with { type: 'json' };
 
 const folder = new URL('../../../public/assets/far-reach/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
@@ -25,9 +27,11 @@ async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promi
 
 describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
   it('every committed piece is byte-exact against its generator (the stale gate: rerun scripts/bake-sky-world.mjs)', () => {
-    const { glb, ...rows } = bakeSkyWinchHouse();
-    expect({ glb: sha(glb), ...rows }).toEqual(winchHouse);
-    expect(sha(new Uint8Array(readFileSync(new URL('winch-house.glb', folder))))).toBe(winchHouse.glb);
+    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows]] as const;
+    for (const [piece, { glb, ...rows }, committed] of pieces) {
+      expect({ glb: sha(glb), ...rows }).toEqual(committed);
+      expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
+    }
     // the folder holds exactly this bake: no orphan GLB from an older bake ships
     expect(readdirSync(folder).filter((name) => name.endsWith('.glb')).sort()).toEqual(BAKED_PIECES.map((piece) => `${piece}.glb`).sort());
   });
@@ -67,6 +71,36 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
         return true;
       });
       expect(hit).toBeDefined();
+    }
+  });
+
+  it('the Roost draws every built mesh and stick / feather instance as an instance of a kind, the tints restored', async () => {
+    const drawn = skyBakedPiece('roost', await nodesOf('roost', roostRows.kinds)), built = roost();
+    drawn.root.updateMatrixWorld(true); built.group.updateMatrixWorld(true);
+    expect(drawn.colliders).toEqual(colliderRows(built.colliders));
+    // the built pieces: each plain mesh once, each instance of an instanced mesh with its colour
+    const want: { geometry: Mesh['geometry']; matrix: Matrix4; color?: number[] }[] = [];
+    built.group.traverse((o) => {
+      if (instanced(o)) for (let i = 0; i < o.count; i++) { const m = new Matrix4(); o.getMatrixAt(i, m); want.push({ geometry: o.geometry, matrix: m.premultiply(o.matrixWorld), ...(o.instanceColor === null ? {} : { color: [o.instanceColor.getX(i), o.instanceColor.getY(i), o.instanceColor.getZ(i)] }) }); }
+      else if (isMesh(o)) want.push({ geometry: o.geometry, matrix: o.matrixWorld });
+    });
+    const kinds = drawn.root.children.filter(instanced);
+    expect(kinds.length).toBe(roostRows.kinds.length);
+    expect(kinds.reduce((n, m) => n + m.count, 0)).toBe(want.length);
+    const all = kinds.flatMap((o) => Array.from({ length: o.count }, (_, i) => { const t = new Matrix4(); o.getMatrixAt(i, t); return { o, i, t: t.premultiply(drawn.root.matrixWorld) }; }));
+    const a = new Vector3(), b = new Vector3();
+    for (const w of want) {
+      const p = w.geometry.getAttribute('position');
+      const hit = all.find(({ o, t }) => {
+        const q = o.geometry.getAttribute('position'); if (q.count !== p.count) return false;
+        for (let v = 0; v < p.count; v += Math.max(1, Math.floor(p.count / 16))) if (b.fromBufferAttribute(q, v).applyMatrix4(t).distanceTo(a.fromBufferAttribute(p, v).applyMatrix4(w.matrix)) >= 1e-4) return false;
+        return true;
+      });
+      expect(hit).toBeDefined();
+      if (hit !== undefined && w.color !== undefined) {
+        const c = hit.o.instanceColor;
+        expect(c === null ? null : [c.getX(hit.i), c.getY(hit.i), c.getZ(hit.i)]).toEqual(w.color);
+      }
     }
   });
 });

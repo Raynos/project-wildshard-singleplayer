@@ -17,7 +17,8 @@ import { MOVER_FIELD_RANGES, moverScriptEntities, parseMovers, type MoverData } 
 import { MoverRuntime, moverQueries, createMoverHost } from '../src/game/shardfile/moverRuntime';
 import { MOVERS as DRIFT } from '../src/shards/driftwood-isle/data/movers';
 import { MOVERS as SKY } from '../src/shards/far-reach/data/movers';
-import { SPANS, ropeSag } from '../src/shards/far-reach/layout';
+import { SPANS } from '../src/shards/far-reach/data/layout';
+import { ropeSag } from '../src/shards/far-reach/layout';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 function scripts(data: MoverData, slug: string): ScriptHost {

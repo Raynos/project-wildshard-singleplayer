@@ -10,9 +10,9 @@ import { bossesSave, inventorySave, ownedSave, progressSave, purseSave } from '.
 import source from '../../../src/shards/far-reach/shard.config';
 import { bindSkyPersistence, LEGACY_REWARDED } from '../../../src/shards/far-reach/runtime/persistence';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
-import { DECK, GOATS, RAY_HOMES, ROC, ROOST_RAYS, VANES, WISP_HOMES, WINCH } from '../../../src/shards/far-reach/layout';
+import { DECK, GOATS, RAY_HOMES, ROC, ROOST_RAYS, VANES, WISP_HOMES, WINCH } from '../../../src/shards/far-reach/data/layout';
 import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
-import { STRINGS } from '../../../src/shards/far-reach/strings';
+import { STRINGS } from '../../../src/shards/far-reach/data/strings';
 
 it('declares only finite bodies, the native fan context and the exact quest markers/chips', () => {
   expect(parseShardfile(source)).toEqual(source);

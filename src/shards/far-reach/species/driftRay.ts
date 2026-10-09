@@ -3,8 +3,8 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
-import { DECK } from '../layout';
-import { STRINGS } from '../strings';
+import { DECK } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import { DRIFT_RAY_VARIANTS } from '../runtime/variants';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 

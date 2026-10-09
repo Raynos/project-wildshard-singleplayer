@@ -1,5 +1,5 @@
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3, type BufferGeometry as Geo } from 'three';
-import type { Home } from '../layout';
+import type { Home } from '../data/layout';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
 /**

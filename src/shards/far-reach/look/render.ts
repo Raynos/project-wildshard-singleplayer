@@ -11,7 +11,7 @@ import { bakeSeaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } fro
 import { cumulus } from './puffs';
 import { sunGlow } from './sunGlow';
 import { PANO_SUN } from './panoramaData';
-import { ISLES, SPANS } from '../layout';
+import { ISLES, SPANS } from '../data/layout';
 import { SKY_ISLES } from '../world/skyIsles';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';

@@ -7,7 +7,7 @@
     "start": "/** The ram:",
     "end": "const brains =",
     "bodySha256": "7ef4107677e7a83cce3c460313be0439f8d84f5ae2245b2b1c6bf2bb826a7f66",
-    "fixtureSha256": "838af1e7d0b89087e88872296031679c17d36b81c4667c15297ecff5e61cee00"
+    "fixtureSha256": "f46e925df2347ec138026cfc95259633b68a8234be6f82dc4b533d3190386346"
   },
   {
     "name": "strider",

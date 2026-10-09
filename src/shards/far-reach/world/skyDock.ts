@@ -2,7 +2,7 @@ import { ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { ColliderDesc, Piece } from '@wildshard/engine/world/registry';
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { BoxGeometry, Color, Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../data/strings';
 import { ISLET, RISING_ISLETS, type EntryEdge, type RisingIslet } from './islets';
 import { PALETTE, flat } from './shapes';
 

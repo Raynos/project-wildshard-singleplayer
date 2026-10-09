@@ -3,13 +3,13 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, apothem, ropeSag, type Isle, type Span } from '../layout';
-import { STRINGS } from '../strings';
+import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Isle, type Span } from '../data/layout';
+import { apothem, ropeSag } from '../layout';
+import { STRINGS } from '../data/strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
 import { crownArena } from './crown';
 import { CROWN_RING, crownStones } from '../runtime/crownLayout';
-import { roost } from './roost';
 import { firSheet, firs } from './fir';
 import { trees } from './trees';
 import { inCube, SKY_ISLES, skyIslesIn } from './skyIsles';
@@ -270,8 +270,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const house = skyBakedPiece('winch-house'); house.root.name = 'far.step.winch-house'; house.root.position.set(WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z); root.add(house.root);
   ctx.piece({ id: 'far.step.winch-house', name: STRINGS.winch, category: 'buildings', file: FILE, object: house.root, colliders: house.colliders, surface: 'stone' });
   // the Roost's nest and spires (loop 4, review H2): the drift rays' island gets its subject
-  const nest = roost(); root.add(nest.group);
-  ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.group, colliders: nest.colliders, surface: 'wood' });
+  // (SF72: built offline, generators/roost.ts → baked/roost.glb; drawn from the bake, the sticks' and feathers' tints restored)
+  const nest = skyBakedPiece('roost'); nest.root.name = 'far.roost.nest'; root.add(nest.root);
+  ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.root, colliders: nest.colliders, surface: 'wood' });
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   const stormTex = bakeSeaTexture(SUN_DIR); ctx.scope.own(stormTex);
   const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);

@@ -7,8 +7,8 @@ import { hull } from './rig';
 import { StormRocBrain } from '../runtime/stormRocBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { ROC } from '../layout';
-import { STRINGS } from '../strings';
+import { ROC } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import { STORM_ROC_VARIANTS } from '../runtime/variants';
 
 

@@ -1,4 +1,4 @@
-import { UPDRAFT } from '../layout';
+import { UPDRAFT } from '../data/layout';
 
 /** The updraft's upward push while you ride its column (m/s², G24). */
 export const UPDRAFT_LIFT = 12;

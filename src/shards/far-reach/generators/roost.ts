@@ -1,19 +1,19 @@
 import { BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3 } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { ROOST } from '../layout';
+import { NEST, ROOST, SPIRES } from '../data/layout';
+import { spireAt } from '../layout';
+import { bakeKinds, foldKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
 
 /**
+ * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/roost.glb` + `data/roost.json`;
+ * the client draws the bake (`world/baked.ts`).
+ *
  * The Roost (loop 4; review H2: "a jagged island with a nest of driftwood and feathers"): the drift rays' island gets its
  * subject. A great nest of bleached driftwood sticks laid round a straw bowl with three pale eggs and loose feathers, and
  * three wind-cut sandstone spires on the far rim that make the island read as jagged from Sunrest and the hover bridge.
- * Placed clear of the walk lanes (the hover landing on the west rim, the rope bridge north to the ruin).
+ * Placed clear of the walk lanes (the hover landing on the west rim, the rope bridge north to the ruin; `NEST` and
+ * `SPIRES` in data/layout.ts).
  */
-export const NEST = { x: ROOST.x + 2.5, z: ROOST.z + 2, r: 2.7, sticks: 64, feathers: 12 } as const;
-/** The spires: angle round the Roost's centre (radians, 0 = +x), distance from it, height, base radius. */
-export const SPIRES: readonly { readonly a: number; readonly d: number; readonly h: number; readonly r: number }[] = [
-  { a: 0.05, d: 10.2, h: 9.5, r: 1.5 }, { a: 0.9, d: 9.6, h: 6.5, r: 1.2 }, { a: -0.75, d: 10, h: 7.8, r: 1.3 },
-];
-export const spireAt = (s: (typeof SPIRES)[number]): { x: number; z: number } => ({ x: ROOST.x + Math.cos(s.a) * s.d, z: ROOST.z + Math.sin(s.a) * s.d });
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -99,4 +99,25 @@ export function roost(): Roost {
     colliders.push(boxDesc({ x: NEST.x + Math.cos(a) * (NEST.r - 0.2), z: NEST.z + Math.sin(a) * (NEST.r - 0.2), hw: 0.95, hd: 0.3, rot: -(a + Math.PI / 2), yBottom: y, yTop: y + 0.9 }, 'wood'));
   }
   return { group, colliders };
+}
+
+/** The Roost's bake: its kinds and colliders, and the tinted kinds' per-instance colours (the GLB carries none). */
+export interface RoostBake extends PieceBake { tints: Record<string, number[]> }
+
+/**
+ * The nest and spires folded into instanced kinds (world space: the Roost bakes where it stands). The sticks and feathers
+ * are instanced already and keep their instances; their per-instance colours go in the rows (`tints`, the exact floats
+ * `setColorAt` left), which the client puts back. Every other mesh folds by shape and look.
+ */
+export function bakeSkyRoost(): RoostBake {
+  const built = roost(), plain = new Group(), kinds: (readonly [string, InstancedMesh])[] = [], tints: Record<string, number[]> = {};
+  const names = ['sticks', 'feathers'];
+  // a copy: a plain mesh moves to its own group as it is read
+  for (const child of built.group.children.slice()) {
+    if (!(child instanceof InstancedMesh)) { plain.add(child); continue; }
+    const name = names[kinds.length] ?? `instanced-${String(kinds.length)}`;
+    if (child.instanceColor !== null) tints[name] = Array.from(child.instanceColor.array);
+    child.instanceColor = null; kinds.push([name, child]);
+  }
+  return { ...bakeKinds('far.roost', [...kinds, ...foldKinds(plain)], built.colliders), tints };
 }

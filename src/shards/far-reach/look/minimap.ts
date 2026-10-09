@@ -6,8 +6,8 @@
  * imports this).
  */
 import type { MapOverlay, MapPoi, MinimapPalette } from '@wildshard/engine/ui/Minimap';
-import { CROWN, DAIS, FALLEN_BRIDGE, GROVE, ISLES, KEEPER, MILL, ROOST, RUIN, SPANS, STEP, SUNREST, UPDRAFT, WINDMILL, apothem } from '../layout';
-import { STRINGS } from '../strings';
+import { CROWN, DAIS, FALLEN_BRIDGE, GROVE, ISLES, KEEPER, MILL, ROOST, RUIN, SPANS, STEP, SUNREST, UPDRAFT, WINDMILL, APOTHEM } from '../data/layout';
+import { STRINGS } from '../data/strings';
 
 type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number, out: RGB): RGB => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; return out; };
@@ -19,7 +19,7 @@ const SEA: RGB = [214, 170, 172], SEA_DEEP: RGB = [176, 138, 162], MEADOW: RGB =
 function ground(x: number, z: number, _h: number, _slope: number, _forest: number, out: RGB): void {
   mix(SEA_DEEP, SEA, 0.5 + 0.5 * Math.sin(x * 0.045 + Math.sin(z * 0.03) * 2), out);
   for (const isle of ISLES) {
-    const d = Math.hypot(x - isle.x, z - isle.z), a = apothem(isle) * 0.97;
+    const d = Math.hypot(x - isle.x, z - isle.z), a = isle.r * APOTHEM * 0.97; // the island top's apothem (layout.ts `apothem`), read as data: the manifest's closure stays in budget
     if (d > a + 1.5) continue;
     const top: RGB = [0, 0, 0]; mix(MEADOW, MEADOW_GOLD, 0.5 + 0.5 * Math.sin(x * 0.21 + z * 0.17), top);
     mix(top, SOIL, smooth(a - 1.6, a, d), top);

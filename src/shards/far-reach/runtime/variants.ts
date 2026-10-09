@@ -1,5 +1,5 @@
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../data/strings';
 
 // The one variant of the ray, the goat and the Storm Roc, renderer-free (SF72): their species rows (species/, which build
 // views) and the headless runtime's creature stream (the variant's scale range is each spawn's first draw) read the same rows.

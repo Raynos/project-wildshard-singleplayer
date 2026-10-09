@@ -1,5 +1,6 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
-import { knollHeight, type Knoll } from '../layout';
+import type { Knoll } from '../data/layout';
+import { knollHeight } from '../layout';
 import { paintIsleMaterial } from './isle';
 
 /**

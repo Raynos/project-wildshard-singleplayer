@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/game/shardfile/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../layout';
+import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../data/layout';
 import { KEEPER_AT } from '../data/quests';
 import { FLAGS, vaneFlag } from '../quest/flags';
 

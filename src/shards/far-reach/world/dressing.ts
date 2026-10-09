@@ -2,7 +2,8 @@ import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { paintIsleMaterial } from './isle';
 import { meadowHoles, meadowPaths } from './meadow';
-import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, apothem, knollHeight, type Isle, type Span } from '../layout';
+import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';
+import { apothem, knollHeight } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its

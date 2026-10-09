@@ -1,6 +1,6 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { DECK, ROOST, SPAWN, VANES, WINCH } from '../layout';
-import { STRINGS } from '../strings';
+import { DECK, ROOST, SPAWN, VANES, WINCH } from './layout';
+import { STRINGS } from './strings';
 import { FLAGS, vaneFlag } from '../quest/flags';
 
 /** Authored keeper placement shared by the declared marker and the native view. */

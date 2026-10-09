@@ -19,7 +19,7 @@ import { DriftRayBrain } from '../fixtures/flight-oracle/orbit';
 import { GaleWispBrain } from '../fixtures/flight-oracle/burst';
 import { DuneRayBrain } from '../fixtures/flight-oracle/patrol';
 import type { Animal } from '../../src/engine/entities/AnimalView';
-import { DECK, RAY_HOMES } from '../../src/shards/far-reach/layout';
+import { DECK, RAY_HOMES } from '../../src/shards/far-reach/data/layout';
 import { STORM_ROC } from '../../src/shards/far-reach/species/stormRoc';
 import { SAND_SKITTERER } from '../../src/shards/sunscar-dunes/species/skitterer';
 import { DUNE_MATRIARCH } from '../../src/shards/sunscar-dunes/species/matriarch';

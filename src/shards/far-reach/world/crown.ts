@@ -1,6 +1,6 @@
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { CROWN, DAIS } from '../layout';
+import { CROWN, DAIS } from '../data/layout';
 import { paintIsleMaterial } from './isle';
 import { fit, hdMaterial, skyHd } from './meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';

@@ -1,7 +1,7 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { STRINGS } from './strings';
+import { STRINGS } from './data/strings';
 import { BUDGETS, SKY_REACH_RUNTIME_COST } from './budgets';
-import { CROWN, DECK, HIGH, KEEPER, ROOST, SPAWN, STEP, WINDMILL } from './layout';
+import { CROWN, DECK, HIGH, KEEPER, ROOST, SPAWN, STEP, WINDMILL } from './data/layout';
 import { SKY_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources, lateReads } from './boot/files';

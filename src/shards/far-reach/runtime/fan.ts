@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
-import { VANES } from '../layout';
+import { VANES } from '../data/layout';
 import { FanStrikes, FAN_ID, type FanTarget } from '../weapons/fanStrikes';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
 

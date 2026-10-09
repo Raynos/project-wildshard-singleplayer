@@ -6,7 +6,8 @@ import { castRay } from '@wildshard/engine/physics/query';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { SKY_SPAWNS } from '../data/spawns';
-import { DECK, GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, apothem, type Home } from '../layout';
+import { DECK, GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, type Home } from '../data/layout';
+import { apothem } from '../layout';
 import { flockBrain, type FlockBrain } from './flockBrains';
 
 /** The death plane under the islands: manifest `world.killY` (DECK - 24). The headless test holds the two equal (the

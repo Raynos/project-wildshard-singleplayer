@@ -1,4 +1,4 @@
-import type { Isle } from '../layout';
+import type { Isle } from '../data/layout';
 
 /**
  * The sky around the archipelago (E392, toward the mockups: Jake's pick `round-1-proposals/B-sky-reach.jpg` and

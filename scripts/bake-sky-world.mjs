@@ -13,7 +13,7 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/far-reach');
 const out = resolve(root, 'public/assets/far-reach/baked');
 // [piece (the GLB's name), its rows file under data/, the generator module, its bake function]
-const PIECES = [['winch-house', 'winchHouse', 'generators/winchHouse.ts', 'bakeSkyWinchHouse']];
+const PIECES = [['winch-house', 'winchHouse', 'generators/winchHouse.ts', 'bakeSkyWinchHouse'], ['roost', 'roost', 'generators/roost.ts', 'bakeSkyRoost']];
 mkdirSync(out, { recursive: true });
 const keep = new Set();
 for (const [piece, rows, file, name] of PIECES) {

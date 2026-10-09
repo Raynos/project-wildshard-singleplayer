@@ -12,7 +12,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/far-reach/shard.config';
 import baked from '../../../src/shards/far-reach/runtime/physics.baked.json';
-import { CROWN, GOATS, ROC, VANES } from '../../../src/shards/far-reach/layout';
+import { CROWN, GOATS, ROC, VANES } from '../../../src/shards/far-reach/data/layout';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, FAN_STEP } from '../../../src/shards/far-reach/runtime/fan';
 import { FAN_ID } from '../../../src/shards/far-reach/weapons/fanStrikes';

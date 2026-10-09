@@ -6,7 +6,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/far-reach/shard.config';
-import { DECK, NOTES, ROOST, SPAWN, VANES, WINCH } from '../../../src/shards/far-reach/layout';
+import { DECK, NOTES, ROOST, SPAWN, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
 import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { FAN_GUST } from '../../../src/shards/far-reach/data/items';

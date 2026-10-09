@@ -2,7 +2,7 @@ import { defineModel } from '@wildshard/engine/models/model';
 import { fanModel } from '../weapons/fanModel';
 import { bridgeKit, windmill } from '../world/shapes';
 import { keeper } from '../quest/keeper';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../data/strings';
 
 export const fanEntry = defineModel({ id: 'far-reach/war-fan', name: STRINGS.fan, category: 'gear',
   pipeline: 'code', file: 'src/shards/far-reach/models/gear.ts', defaults: {}, build: () => fanModel() });

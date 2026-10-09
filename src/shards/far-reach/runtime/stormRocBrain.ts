@@ -6,7 +6,7 @@ import type { SimValue } from '@wildshard/engine/sim';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { CROWN, DAIS, ROC } from '../layout';
+import { CROWN, DAIS, ROC } from '../data/layout';
 import { crownStones } from '../runtime/crownLayout';
 import { STORM } from '../data/storm';
 import { pushPlayer } from '../species/rig';

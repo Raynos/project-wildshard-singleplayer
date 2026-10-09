@@ -9,7 +9,7 @@ import { overrideTerrain } from '../../../src/engine/world/Heightfield';
 import { StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
 import { STORM_ROC, STORM_ROC_LOOK } from '../../../src/shards/far-reach/species/stormRoc';
 import { bindPlayerPush } from '../../../src/shards/far-reach/species/rig';
-import { CROWN, DAIS } from '../../../src/shards/far-reach/layout';
+import { CROWN, DAIS } from '../../../src/shards/far-reach/data/layout';
 import { StormRocBrain as ShippingRoc } from '../../fixtures/far-reach/rocBrainOracle';
 import source from '../../fixtures/far-reach/rocBrainOracle.json';
 import { creature } from '../../fake/creature';

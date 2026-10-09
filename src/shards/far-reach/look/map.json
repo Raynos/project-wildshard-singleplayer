@@ -1,5 +1,6 @@
 {
-  "why": "Sky Reach's islands float over a painted cloud sea, cloud puffs and a storm that would cover them from straight above: the bake leaves the puffs, the storm and the sun glow out and clips nothing below, so every island, the low keels and the sky isles all show (G252); the void is transparent, islands and bridges only, so the map's own dark frame shows through and the warm cloud sea never reads as junk or lava (G252b, Jake)",
+  "why": "Sky Reach's islands float over a painted cloud sea, cloud puffs and a storm that would cover them from straight above: the bake leaves the puffs, the storm and the sun glow out and clips nothing below, so every island, the low keels and the sky isles all show (G252); the void is transparent, islands and bridges only, so the map's own dark frame shows through and the warm cloud sea never reads as junk or lava (G252b, Jake); its coordinates live in data/layout.ts (SF72), so the map inputs name that file beside the default root layout.ts (now the maths over them)",
+  "inputs": ["shard.config.ts", "layout.ts", "data/layout.ts", "world", "generators", "models"],
   "hide": [
     "far.storm",
     "far.sun-glow",
