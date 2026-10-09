@@ -6,6 +6,7 @@ import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { tagOf } from '@wildshard/engine/physics/surface';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { walkingSpeed } from '@wildshard/engine/player/walk';
 import type { NalatiGroups } from './groups';
 import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld } from './rideBody';
 import type { ReinsFrame } from './rideReins';
@@ -46,6 +47,7 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
   if (installed.has(host)) throw new Error('Nalati mounted player already installed');
   const body = new MountedBody(HORSE_SPEED), rider: MountedRider = { position: host.player.position, velocity: new Vector3(),
     onGround: true, sprinting: false, crouching: false, speedFactor: 1 };
+  const walking = { speed: host.level.player.speed, crouching: false }, previousFoot = new Vector3();
   let horse: AnimalSim | null = null, savedMotor: v.InferOutput<typeof MotorState> | null = null;
   const poses = new Map<string, AnimalPoseLaw>();
   const horses = [...host.entities.values()].filter(actor => actor.kind === 'horse' || actor.kind === 'argymaq');
@@ -81,7 +83,8 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     if (!ports.inBounds(x, z, 3)) { x = a.position.x - Math.cos(a.yaw) * side; z = a.position.z + Math.sin(a.yaw) * side; }
     rider.position.set(x, Math.max(ports.heightAt(x, z), body.onDeck ? body.feet.y : -Infinity), z);
     rider.velocity.set(0, 0, 0); rider.onGround = true; rider.speedFactor = 1;
-    host.player.motor.setEnabled(true); horse = null; body.breaking = false;
+    host.player.motor.setEnabled(true); host.playerFall.grounded = true; host.playerFall.vy = 0;
+    horse = null; body.breaking = false;
     const h = herd(a); if (h?.ridden === a) h.setRidden(null); else a.mem['ridden'] = 0;
     a.setMotion(a.yaw, 0, 2); a.mem['rear'] = 0; a.mem['buck'] = 0; a.mem['turnLead'] = 0;
     ports.groups.env.playerMounted = false; body.gait = 'stand';
@@ -115,10 +118,25 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     host.player.motor.setEnabled(false); ports.groups.env.playerMounted = true;
     return true;
   };
-  host.usePlayerDriver({ input: (command, dt) => {
-    const a = horse; if (a === null) return false;
-    if (!a.alive) { dismount(true); return false; }
+  host.usePlayerDriver({ walking, input: (command, dt) => {
+    if (horse?.alive === false) dismount(true);
+    previousFoot.copy(host.player.position);
+    const a = horse;
+    if (a === null) {
+      const versioned = command?.commandVersion === 1;
+      const board = command?.hover === true ? !host.playerBoard.on : host.playerBoard.on;
+      const depth = Math.max(0, ports.waterLevel() - rider.position.y);
+      const forward = command === undefined ? 0 : -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ;
+      rider.crouching = versioned && !board && command.crouch === true;
+      rider.sprinting = versioned && !board && depth < 0.6 && !rider.crouching && command.sprint === true && forward > 0;
+      const wade = !board && host.playerFall.grounded ? Math.min(1, depth / 1.1) : 0;
+      walking.speed = versioned ? walkingSpeed(rider.crouching, rider.sprinting, wade, 1, 1) : host.level.player.speed;
+      walking.crouching = rider.crouching; ports.groups.env.playerCrouched = rider.crouching;
+      return false;
+    }
     if (command !== undefined && (command.commandVersion !== 1 || command.steer === undefined)) throw new Error('Mounted reins require versioned raw local controls');
+    if (command !== undefined) host.player.yaw = command.yaw;
+    host.playerImpulse.set(0, 0, 0); rider.crouching = false; ports.groups.env.playerCrouched = false;
     frame.forward = command?.steer?.keyY ?? 0; frame.turn = command?.steer?.keyX ?? 0;
     frame.touchX = command?.steer?.stickX ?? 0; frame.touchY = command?.steer?.stickY ?? 0;
     frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId);
@@ -131,18 +149,22 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     if (horse !== null) body.placeRider(dt, 1, a, rider, world);
   } });
   const missingPose = new Error('Missing mounted pose actor');
-  host.onStep('nalati.mounted', () => {
+  host.onStep('nalati.mounted', dt => {
+    if (horse === null) {
+      rider.velocity.set((rider.position.x - previousFoot.x) / dt, host.playerFall.vy, (rider.position.z - previousFoot.z) / dt);
+      rider.onGround = host.playerFall.grounded;
+    }
     for (let i = 0; i < Math.min(64, poseRows.length); i++) {
       const row = poseRows[i]; if (row === undefined) throw missingPose;
       const { id, pose } = row;
       const a = host.entities.get(id); if (a === undefined) throw missingPose;
-      const dt = host.bodyDt(id); if (dt <= 0) continue;
+      const bodyDt = host.bodyDt(id); if (bodyDt <= 0) continue;
       const input = pose.input;
       a.samplePose(input); input.speed = a.speed; input.strafe = a.strafe; input.scale = a.scale; input.seed = a.seed;
       input.state = a.state; input.alive = a.alive; input.position = a.position; input.lookTarget = a.lookTarget;
       input.yaw = a.yaw; input.lookWeight = a.lookWeight; input.levelGround = a.levelGround;
       input.flying = a.flying; input.advanceAttack = false; input.desiredSpeed = a.desiredSpeed;
-      pose.advance(dt, host.clock.now, false);
+      pose.advance(bodyDt, host.clock.now, false);
     }
   }, {
     snapshot: (): SimValue => {
@@ -171,6 +193,7 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
         poses.get(row[0])?.restore(row[1]);
       }
       ports.groups.env.playerMounted = a !== null;
+      ports.groups.env.playerCrouched = rider.crouching;
     }, physicsRestored: () => {
       if (horse === null || savedMotor === null) return;
       const native = host.physics.world, state = savedMotor;

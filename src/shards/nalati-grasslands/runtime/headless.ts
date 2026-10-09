@@ -177,8 +177,7 @@ export function nalatiLightningGround(bake: Pick<NalatiBake, 'trees' | 'tops' | 
  *
  * The lightning's world is the page's: the baked spruces in the forest's 16 m cells with their tops (`exposeTrees`, the page's
  * `exposed`; a host's tree carries no live reference, so an armed strike on one is a plain saved value), the ground, and the
- * player as the page's `player()` builds it — the host's position; crouched and mounted as the wild view says (the host has no
- * crouch and no horse, so both stay false); sheltered beside a baked yurt (`yurtShelters`), never indoors (the host cannot
+ * player as the page's `player()` builds it — the host's position; crouched and mounted as the wild view says (command-v1 crouch and the owned mounted driver supply those flags); sheltered beside a baked yurt (`yurtShelters`), never indoors (the host cannot
  * enter the Golden King's dungeon) and never held (the Storm Titan, who needs a rider, is not hosted), so `hold` stays off.
  * A strike within 4 m hurts the player through the host's combat pipeline as the page's `hurt` does (60, the weather's
  * damage ask, `env.lightning`). A landed strike scares the creatures within 60 m (`ports.scare`, Wildlife's `scare` as the page
@@ -282,7 +281,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati12.md): the remaining dusk/night/storm elite brains, the
- * Golden King and the Storm Titan, taming/companions and crouch, the weapons, the dusk / night spawns as the day clock
+ * Golden King and the Storm Titan, taming/companions and deep-water player motion, the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -321,7 +320,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
       spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, mounted: () => nalatiMountedOf(host)?.mounted === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
+    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
     // The same two camp identities and authored road order as ride/ride.ts; taming adds other mountables later.
     const mountable = bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId);
     installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, wetAt: nalatiWetAt,

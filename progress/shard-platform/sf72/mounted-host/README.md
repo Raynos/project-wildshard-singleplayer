@@ -10,4 +10,6 @@ Proof: three real Nalati native tests (two camp identities, raw-input movement, 
 
 Nalati→engine +6 defining imports, downward pre-approved; no raw reach rise. No page, collider recipe or map input changed; no physics rebake required. No input-hash-only witness manifests changed (ec89b2e60 push owns those refreshes).
 
-Still unqualified: page/native command timing browser corroboration, crouch/on-foot page motion, taming/companions/panic event bindings, Golden King/Storm Titan, sabre/held-heavy, quests and canonical full witness. This is native mounted motion, not a claim of complete riding gameplay or SF72 acceptance.
+The subsequent crouch consumer uses command-v1 on the actual standing motor: the shared page speed law, forward-only sprint, grounded wading, grounded crouch jump refusal and real wildlife/weather flags. Four native tests pass, including exact crouch restore/suffix and uncrouch jump. Dismount restores standing fall state; mounted input clears the standing impulse and consumes look yaw. Nalati→engine +1 downward import, no page/native recipe input changed. Deep-water swimming and effect movement scales remain unqualified.
+
+Still unqualified: page/native command timing browser corroboration, tap-only rhythm spur, taming/companions/panic event bindings, Golden King/Storm Titan, sabre/held-heavy, quests and canonical full witness. This is native mounted motion, not a claim of complete riding gameplay or SF72 acceptance.

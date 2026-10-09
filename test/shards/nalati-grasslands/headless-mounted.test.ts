@@ -97,3 +97,26 @@ it('refuses malformed history atomically and a native capsule belonging to anoth
   } finally { host.dispose(); }
   expect(failed).toBeDefined(); expect(Object.values(failed?.scope.census ?? {}).every(n => n === 0)).toBe(true);
 });
+
+it('crouches through the actual standing controller, refuses the grounded jump, and retains that state on restore', () => {
+  const original = boot(), fast = boot(); let restored: SimHost | undefined;
+  try {
+    const walk: SimCommand = { moveX: 0, moveZ: -1, yaw: 0, commandVersion: 1, sprint: true, crouch: true };
+    const start = original.player.position.clone();
+    for (let tick = 0; tick < 30; tick++) { original.step(walk); fast.step({ ...walk, crouch: false }); }
+    expect(mounted(original).rider.crouching).toBe(true); expect(mounted(original).rider.sprinting).toBe(false);
+    expect(nalatiGroupsOf(original)?.env.playerCrouched).toBe(true);
+    expect(original.player.position.distanceTo(start)).toBeGreaterThan(0.9);
+    expect(fast.player.position.distanceTo(start)).toBeGreaterThan(original.player.position.distanceTo(start) * 2);
+    original.step({ ...walk, jump: true });
+    expect(original.playerFall.grounded).toBe(true); expect(original.playerFall.vy).toBe(0);
+    const saved = snapshotSimHost(original);
+    restored = restoreSimHost(plan.level, { ...plan.ports, rapier }, saved, fresh => { install(fresh, true); });
+    expect(mounted(restored).rider.crouching).toBe(true); expect(nalatiGroupsOf(restored)?.env.playerCrouched).toBe(true);
+    for (let tick = 0; tick < 30; tick++) { original.step(walk); restored.step(walk); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    expect(mounted(restored).rider).toEqual(mounted(original).rider);
+    original.step({ ...walk, crouch: false, jump: true });
+    expect(original.playerFall.grounded).toBe(false); expect(original.playerFall.vy).toBeGreaterThan(0);
+  } finally { restored?.dispose(); fast.dispose(); original.dispose(); }
+});

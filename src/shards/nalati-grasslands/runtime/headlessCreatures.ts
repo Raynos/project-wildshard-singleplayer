@@ -143,7 +143,7 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  */
 export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
   trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']>;
-  wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: NalatiEliteBindings; mounted?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
+  wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: NalatiEliteBindings; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
   const { groups } = ports, player = host.player.position, env = groups.env;
   const rng = new Rng(NALATI_CREATURE_STREAM);
   // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it (its tags per kind, made once)
@@ -411,7 +411,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     // Wildlife's frame: the player into the wild view, the grass movers, a stampede scaring the packs
     const yaw = host.player.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), fl = Math.hypot(fx, fz);
     if (fl > 1e-4) { env.playerFwdX = fx / fl; env.playerFwdZ = fz / fl; }
-    env.playerCrouched = false; env.playerMounted = ports.mounted?.() === true;
+    env.playerCrouched = ports.crouching?.() === true; env.playerMounted = ports.mounted?.() === true;
     const vital = host.player.health.attributes; env.playerHealth01 = vital.health / vital.maxHealth;
     // Wildlife's smoothed player speed (its own: 14 m/s cap, a 6 /s ease), the living wolves, the grass movers, the flocks
     if (!wild.init) { wild.x = player.x; wild.z = player.z; wild.init = true; }
