@@ -15,7 +15,8 @@ import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { cabinMats, type Mats, type MatKey } from './homestead';
-import { finishParts, logGeo, boxUV } from '../models/logCabin';
+import { finishParts } from '../models/logCabin';
+import { logGeo, boxUV } from './logKit';
 
 type V3 = THREE.Vector3;
 export const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);

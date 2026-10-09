@@ -7,7 +7,7 @@
  * `launch`) handed to the ride. One merged mesh per material; the detail set drops past the cabins' detail distance.
  */
 import * as THREE from 'three';
-import { boxUV } from './logCabin';
+import { boxUV } from '../world/logKit';
 import { ZIPLINE } from '../layout';
 import { defineModel } from '@wildshard/engine/models/model';
 import { Timber, V, timberFacts, timberMats } from '../world/timber';

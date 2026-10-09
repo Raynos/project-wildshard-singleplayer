@@ -7,7 +7,8 @@
 import * as THREE from 'three';
 import type { CabinPropKind } from './homestead';
 import type { ColliderSpec, ModelContext, ModelPart } from '@wildshard/engine/models/model';
-import { PROP_BOXES, cabinsOf } from '../models/logCabin';
+import { cabinsOf } from '../models/logCabin';
+import { PROP_BOXES } from './logKit';
 
 const KEY = 'pine-hollow/cabins';
 

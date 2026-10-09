@@ -29,7 +29,7 @@ import { Cabins } from '../world/homestead';
 import { Undergrowth } from '../world/undergrowth';
 import { Props } from '../world/props';
 import { PineStreams } from '../world/streams';
-import { installPineLandmarks, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
+import { installPineLandmarks, type PineLandmarks } from '../world/landmarks';
 import { placeCabins } from '../world/cabins';
 import { placeDrawnModels } from '../world/drawnModels';
 import { placePineHollowSets } from '../world/places';
@@ -87,7 +87,7 @@ export class PineHollow extends ShardPlugin {
     this.particles = carpet.particles;
     rt.overhead.push(carpet.grass.group, carpet.under.group, carpet.particles.group);
     await step('cabins', async () => {
-      const cabins = new Cabins(sky, pineHamletBuildings());
+      const cabins = new Cabins(sky);
       const built = await cabins.build();
       game.scene.add(built.group);
       rt.interactables.push(...built.interactables);

@@ -58,7 +58,8 @@ import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
 import type { PineClockEvent } from '../runtime/questClock';
 import { installPineClock } from '../runtime/questDirector';
-import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
+import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, type PineLandmarks } from '../world/landmarks';
+import { hamletRoofs } from '../world/cabinBake';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../runtime/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
@@ -539,7 +540,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // the zones a place's name does not already say (the Ridge, the old-growth, the Hollow), the real pines, the hamlet's roofs
   const placeNames = new Set(PINE_HOLLOW_POIS.map((p) => p.name.toUpperCase()));
   h.fullMap.setZones(PINE_HOLLOW_ZONES.filter((zn) => !placeNames.has(zn.label)));
-  h.fullMap.setFeatures({ trees: h.trees, roofs: pineHamletBuildings().map((b) => ({ x: b.x, z: b.z, rot: b.rot, w: b.spec.L + 1, d: b.spec.W + 1 })) });
+  h.fullMap.setFeatures({ trees: h.trees, roofs: hamletRoofs() });
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
   const syncFeats = (): void => {

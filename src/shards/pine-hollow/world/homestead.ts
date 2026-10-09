@@ -14,13 +14,10 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { CABIN_SITES } from '../layout';
 import { pineSetCap } from '../debug/options';
-import {
-  CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
-  type BuildingOwner, type CabinSpec, type Door, type Fire, type Floor, type LightAnchor, type PropKind, type PropPart, type Room, type Swing,
-} from '../models/logCabin';
+import { mergeParts, type PropPart } from '../models/logCabin';
+import { PROP_KINDS, type Door, type Fire, type Floor, type LightAnchor, type PropKind, type Room, type Swing } from './logKit';
+import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
  * Pine Hollow's homestead: the three log cabins and the mill hamlet's five buildings, as a living place (E347: its log kit
@@ -28,7 +25,7 @@ import {
  * building where it stands, `place` merges and welds them and drops their detail with distance,
  * src/shards/pine-hollow/world/cabins.ts).
  *
- *   const cabins = new Cabins(sky, pineHamletBuildings());
+ *   const cabins = new Cabins(sky);
  *   const { group, interactables } = await cabins.build();     // every building built where it stands, one per task
  *   scene.add(group);
  *   await placeCabins({ cabins, sky, registry });              // their models placed: drawn, registered
@@ -356,13 +353,6 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
 
 // ───────────────────────────── the homestead ─────────────────────────────
 
-/**
- * PH-B3: a building beyond the three cabins (Pine Hollow's mill hamlet), built with the same kit. All of them form one
- * cluster: `place` welds their parts into one set under `Cabins.cluster` (src/shards/pine-hollow/world/cabins.ts), their
- * lights are anchors only (the phone's pooled pair visits the nearest; no light of their own on any tier). `rot` is the
- * kit's frame: the door faces local +X, so a layout yaw `y` (facing (−sin y, −cos y)) is `rot = y + π/2`.
- */
-export interface ExtraBuilding { id: string; x: number; z: number; rot: number; spec: CabinSpec }
 
 /** a prop kind the buildings set about (E315 M2: each is a model — src/shards/pine-hollow/models/) */
 export type CabinPropKind = PropKind;
@@ -376,7 +366,6 @@ export const CABIN_PROP_KINDS: readonly CabinPropKind[] = PROP_KINDS;
 export interface CabinBuilding {
   readonly id: string;
   readonly index: number;
-  readonly spec: CabinSpec;
   readonly x: number; readonly y: number; readonly z: number; readonly rot: number;
   /** its own root: what draws with it alone (its door, lantern, fire pit, smoke, wheel), and a cabin's merged parts */
   readonly root: THREE.Object3D;
@@ -392,7 +381,7 @@ export interface CabinBuilding {
 }
 
 /** a place the phone's pooled lights may visit: a building (its anchors, rooms and door) or a lamp site */
-interface LightSite { root: THREE.Object3D; anchors: LightAnchor[]; lit?: () => boolean; rooms?: Room[]; door?: [number, number] }
+interface LightSite { root: THREE.Object3D; anchors: LightAnchor[]; lit?: () => boolean; rooms?: readonly Room[]; door?: [number, number] }
 
 export class Cabins implements BuildingOwner {
   group = new THREE.Group();
@@ -431,16 +420,16 @@ export class Cabins implements BuildingOwner {
   /** every building, as its model sees it (E315 M2) */
   readonly buildings: CabinBuilding[] = [];
   /** what the buildings were built from: kept for the Model Explorer's specimens */
-  private loaded: { mats: Mats; props: Record<PropKind, PropPart[]>; firePit: THREE.Object3D; lantern: THREE.Object3D } | null = null;
+  private loaded: { mats: Mats; props: Record<PropKind, PropPart[]>; firePit: THREE.Object3D; lantern: THREE.Object3D; geometries: CabinGeometries } | null = null;
 
-  constructor(private sky: Sky, private extra: readonly ExtraBuilding[] = []) {}
+  constructor(private sky: Sky) {}
 
-  /** what the buildings were built from (their materials, the props' scans, the fire pit and the lantern); null before `build` */
-  get kit(): { readonly mats: Mats; readonly props: Readonly<Record<PropKind, readonly PropPart[]>>; readonly firePit: THREE.Object3D; readonly lantern: THREE.Object3D } | null { return this.loaded; }
+  /** what the buildings were built from (their materials, the props' scans, the fire pit and the lantern, the bake); null before `build` */
+  get kit(): { readonly mats: Mats; readonly props: Readonly<Record<PropKind, readonly PropPart[]>>; readonly firePit: THREE.Object3D; readonly lantern: THREE.Object3D; readonly geometries: CabinGeometries } | null { return this.loaded; }
 
   /** what the building just built by `b` is, for its model */
-  private record(b: CabinBuilder, id: string, index: number, spec: CabinSpec, x: number, y: number, z: number, rot: number, props: Record<PropKind, THREE.Matrix4[]>, hamlet: boolean): void {
-    this.buildings.push({ id, index, spec, x, y, z, rot, root: b.root, hamlet, colliders: b.colliderDescs(), floors: b.floors, props, firePit: b.firePitObj, lantern: b.lanternObj, weld: b.weldBuild() });
+  private record(b: LogBuilding, id: string, index: number, x: number, y: number, z: number, rot: number, hamlet: boolean): void {
+    this.buildings.push({ id, index, x, y, z, rot, root: b.root, hamlet, colliders: b.colliderDescs(), floors: b.floors, props: b.props, firePit: b.firePitObj, lantern: b.lanternObj, weld: b.weldBuild() });
     this.sites.push({ root: b.root, anchors: b.anchors, rooms: b.rooms, door: b.doorAt });
   }
 
@@ -450,67 +439,57 @@ export class Cabins implements BuildingOwner {
   get models(): { firePit: THREE.Object3D; lantern: THREE.Object3D } | null { return this.loaded ? { firePit: this.loaded.firePit, lantern: this.loaded.lantern } : null; }
 
   /**
-   * Build every building where it stands, one per task (the kit, src/shards/pine-hollow/models/logCabin.ts): the cabins,
-   * then the hamlet (its root posed at its centre). Nothing is drawn merged yet: `placeCabins` places their models.
+   * Assemble every building where it stands from the offline bake (../generators/logCabin.ts → ./cabinBake.ts), one per
+   * task: the cabins, then the hamlet (its root posed at its centre). Nothing is drawn merged yet: `placeCabins` places
+   * their models. A bake that did not load leaves no buildings (a page fault).
    */
   async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
-    // the seven PBR sets and the six models in one round of fetches (they were two, back to back)
-    const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet]] = await Promise.all([cabinMats(this.sky), Promise.all([
+    // the seven PBR sets, the six models and the bake in one round of fetches
+    const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
-    ])]);
+    ]), loadCabinBake()]);
     // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
     const props = { crate: mergeParts(prepModel(crate.scene, this.sky)), barrel: mergeParts(prepModel(barrel.scene, this.sky)), bucket: mergeParts(prepModel(bucket.scene, this.sky)), hatchet: mergeParts(prepModel(hatchet.scene, this.sky)) };
-    this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene };
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
     if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.sharedLights.push(LightPool.for(this.sky.sceneRoot).acquire(0xffa050, 0, 10, 2));
-    for (const [i, site] of CABIN_SITES.entries()) {
-      if (i > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
-      const spec = CABIN_SPECS[i];
-      if (spec === undefined) throw new Error(`Cabins: no spec for site ${i}`);
-      const y = heightAt(site.x, site.z);
-      // the props it sets about (world matrices): their models are drawn by `place`, shown with this cabin's detail
-      const propInstances: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
-      const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances, 'cabin');
-      b.build(firePitGltf.scene, lanternGltf.scene);
+    if (geometries === null) return { group: this.group, colliders: this.colliders, interactables: this.interactables };
+    this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene, geometries };
+    const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };
+    for (const row of CABIN_ROWS.buildings.filter((r) => !r.hamlet)) {
+      if (this.buildings.length > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
+      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, 'cabin');
       this.group.add(b.root);
       if (b.casters !== null) {
         // desktop: the props' depth goes into this cabin's double-sided near proxy (they cast no shadow of their own)
         const toRoot = b.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();
-        for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of propInstances[k]) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
+        for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of b.props[k]) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
       }
-      this.record(b, `cabin-${i + 1}`, i, spec, site.x, y, site.z, site.rot, propInstances, false);
+      this.record(b, row.id, row.index, ...row.at, row.rot, false);
     }
     this.cabinCount = this.buildings.length;
-    if (this.extra.length > 0) await this.buildHamlet(mats, firePitGltf.scene, lanternGltf.scene);
+    const hamlet = CABIN_ROWS.hamlet;
+    if (hamlet !== null) await this.buildHamlet(hamlet, geometries, mats, models);
     return { group: this.group, colliders: this.colliders, interactables: this.interactables };
   }
 
-  /** the extra buildings (PH-B3), one per task; their root, at their centre, takes their welded set (`place`) */
-  private async buildHamlet(mats: Mats, firePit: THREE.Object3D, lantern: THREE.Object3D): Promise<void> {
-    let sx = 0, sz = 0;
-    for (const e of this.extra) { sx += e.x; sz += e.z; }
-    const cx = sx / this.extra.length, cz = sz / this.extra.length;
+  /** the hamlet's buildings (PH-B3), one per task; their root, at their centre, takes their welded set (`place`) */
+  private async buildHamlet(hamlet: { readonly at: readonly [number, number, number]; readonly pad: number }, geometries: CabinGeometries, mats: Mats, models: { firePit: THREE.Object3D; lantern: THREE.Object3D }): Promise<void> {
     const root = new THREE.Group();
     root.name = 'cabin-cluster';
-    root.position.set(cx, heightAt(cx, cz), cz);
+    root.position.set(...hamlet.at);
     root.updateMatrixWorld(true);
-    let pad = 0;
-    for (const [j, e] of this.extra.entries()) {
+    for (const row of CABIN_ROWS.buildings.filter((r) => r.hamlet)) {
       await macrotask(); // one building per task, as the cabins
-      const ey = heightAt(e.x, e.z);
-      const propInstances: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
-      const b = new CabinBuilder(this, e.spec, this.cabinCount + j, e.x, ey, e.z, e.rot, mats, this.sky, propInstances, 'member');
-      b.root.name = e.id;
-      b.build(firePit, lantern);
-      this.record(b, e.id, this.cabinCount + j, e.spec, e.x, ey, e.z, e.rot, propInstances, true);
+      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, 'member');
+      b.root.name = row.id;
+      this.record(b, row.id, row.index, ...row.at, row.rot, true);
       this.group.add(b.root);
-      pad = Math.max(pad, Math.hypot(e.x - cx, e.z - cz) + Math.max(e.spec.W, e.spec.L));
     }
     this.group.add(root);
     this.cluster = root;
-    this.clusterPad = pad;
+    this.clusterPad = hamlet.pad;
   }
 
   /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) — not the cluster's buildings */

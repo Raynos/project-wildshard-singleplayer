@@ -1,6 +1,6 @@
 /**
  * Trader's stall (E315 M2; PINE-HOLLOW-REMASTER PH-B3 / C6): a log booth with a serving hatch, a counter and an awning; its door shut for good. One of the mill hamlet's five buildings (the set
- * `pine-hollow/mill-hamlet`; src/shards/pine-hollow/world/landmarks.ts `pineHamletBuildings`).
+ * `pine-hollow/mill-hamlet`; src/shards/pine-hollow/generators/logCabin.ts `hamletBuildings`).
  * Built in code on the log kit (./logCabin.ts: notched log walls on a stone plinth, a shingled roof, its windows, door,
  * porch and furniture), where it stands; `place` welds it with the hamlet's other four into one set, dropped with distance
  * (`ModelDef.weld`, src/shards/pine-hollow/world/cabins.ts, E347). The Explorer's specimen is the building built alone.

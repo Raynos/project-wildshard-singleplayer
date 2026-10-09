@@ -35,7 +35,7 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { makeGlowTexture, type ExtraBuilding, type Cabins } from './homestead';
+import { makeGlowTexture, type Cabins } from './homestead';
 import {
   LOOKOUT, ZIPLINE, CREEK_BRIDGE, E_ROAD, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
 } from '../layout';
@@ -58,52 +58,6 @@ import { PineCrags, placeCrags } from './crags';
 type V3 = THREE.Vector3;
 const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
 
-// ───────────────────────────── the mill hamlet's buildings (built by Cabins as one cluster) ─────────────────────────────
-
-/** the kit's frame turns a layout yaw (the door faces (−sin y, −cos y)) into its own (the door faces local +X) */
-const kitRot = (yaw: number): number => yaw + Math.PI / 2;
-const FLOOR_Y = 0.22; // Cabin.ts FLOOR: the floor's top above the pad
-
-/** the hamlet's five buildings for `new Cabins(sky, pineHamletBuildings())` (PH-B3 / C6: the lodge, trader, miller, mill, shed) */
-export function pineHamletBuildings(): ExtraBuilding[] {
-  const s = HAMLET_SITES;
-  return [
-    { // the hunting lodge: a long log hall, a deep porch, the contract board stands by its steps (a prop, below)
-      id: 'hunting-lodge', x: s.lodge.x, z: s.lodge.z, rot: kitRot(s.lodge.rot),
-      spec: {
-        W: 7, L: 12, rows: 13, pitch: 0.66, doorZ: 0.8, chimney: 'zneg', porchDepth: 2.6, lantern: true, bench: 'table', interior: 'hall',
-        windows: [{ wall: 'front', at: -3.2 }, { wall: 'front', at: 3.6 }, { wall: 'back', at: -3.5 }, { wall: 'back', at: 0 }, { wall: 'back', at: 3.5 }, { wall: 'zpos', at: 1.2 }],
-      },
-    },
-    { // the trader's stall: a log booth with a serving hatch, a counter and an awning; its door is shut for good
-      id: 'trader-stall', x: s.trader.x, z: s.trader.z, rot: kitRot(s.trader.rot),
-      spec: {
-        W: 3.4, L: 5.2, rows: 9, pitch: 0.55, doorZ: 1.75, door: 'fixed', chimney: 'zneg', noChimney: true, porchDepth: 0, interior: 'store',
-        windows: [{ wall: 'front', at: -0.55, w: 2.4, y: FLOOR_Y + 0.85, h: 1.05, open: true }],
-      },
-    },
-    { // the miller's house: a cabin with a lean-to woodshed
-      id: 'millers-house', x: s.miller.x, z: s.miller.z, rot: kitRot(s.miller.rot),
-      spec: {
-        W: 5, L: 7, rows: 11, pitch: 0.75, doorZ: -0.8, chimney: 'zneg', porchDepth: 1.8, leanTo: true, lantern: true, bench: 'logs',
-        windows: [{ wall: 'front', at: 1.6 }, { wall: 'back', at: -1.2 }, { wall: 'back', at: 1.6 }],
-      },
-    },
-    { // the watermill: its stones inside, the wheel wing on stilts out over the creek, the wheel past its end
-      id: 'watermill', x: s.mill.x, z: s.mill.z, rot: kitRot(s.mill.rot),
-      spec: {
-        // a swinging door, barred until the miller's errand is done (E322 F-M7: src/shards/pine-hollow/quest/index.ts gates its prompt)
-        W: 6, L: 8, rows: 12, pitch: 0.72, doorZ: -1.4, chimney: 'zneg', noChimney: true, porchDepth: 1.6, interior: 'mill', plinthDrop: 1.8,
-        windows: [{ wall: 'front', at: 1.8 }, { wall: 'zpos', at: 0.6 }, { wall: 'zneg', at: -0.8 }],
-        wing: { W: 3.6, L: 11, rows: 8, pitch: 0.5, r: 3.0, axleY: -3.3 },
-      },
-    },
-    { // the shed: a small log store, a lean-to of firewood on its end
-      id: 'hamlet-shed', x: s.shed.x, z: s.shed.z, rot: kitRot(s.shed.rot),
-      spec: { W: 3.2, L: 4.2, rows: 9, pitch: 0.6, doorZ: 0, door: 'fixed', chimney: 'zneg', noChimney: true, porchDepth: 0, leanTo: true, interior: 'none', windows: [] },
-    },
-  ];
-}
 
 // ───────────────────────────── the fire lookout, the zipline and the footbridge (models: ../chunks/pine-hollow/models/) ─────
 
@@ -406,7 +360,7 @@ export class PineLandmarks implements PineLandmarksHandle {
 
 /**
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
- * buildings are not here: `new Cabins(sky, pineHamletBuildings())` builds them with the cabins.
+ * buildings are not here: `new Cabins(sky)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
 export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
   const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the models register themselves (E315 M2)

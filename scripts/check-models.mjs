@@ -120,6 +120,7 @@ export const DONE = {
     'src/shards/nine-dragon-stack/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
+    'src/shards/pine-hollow/world/logKit.ts': { why: "G285: the log kit's shared log shape (`logGeo`: a log's side and its two end caps merged) that the cabin bake and the landmarks' timber build with; it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/world/treeFactory.ts': { why: "the forest field's authored tree geometry, moved from TreeFactory (world, not a placed thing)", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/weapons/longbowView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/world/trophyWall.ts': { why: "the trophy wall's mounts: each a creature's head built from its rig (creatures, M5)", counts: { mergeGeometries: 2 } },
@@ -335,6 +336,9 @@ export function checkModels(files) {
       if (inShared && /(?:^#?|\/)shards\//.test(spec)) violations.push(`${file}: src/engine/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
+    // a shard's generators are build-time only (SHARDS.md: run by the bake, never imported by the runtime, never shipped):
+    // what they build reaches the page as baked data, drawn and registered through the model contract there
+    if (/^src\/shards\/[^/]+\/generators\//.test(file)) continue;
     if (ON_CONTRACT.includes(policy) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }
