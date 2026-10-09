@@ -1,0 +1,30 @@
+{
+  "audit": {
+    "sourceRevision": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
+    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
+    "exitStatus": 1,
+    "scope": "real entry import and partial declared-row ledger contracts; no gameplay proxy"
+  },
+  "slug": "nine-dragon-stack",
+  "entry": "runtime/index.ts",
+  "compatible": false,
+  "headless": {
+    "status": "blocked",
+    "stage": "runtime-entry",
+    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/combat/view/SweptMelee.ts",
+    "ticksExecuted": 0
+  },
+  "replay": {
+    "status": "blocked",
+    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/combat/view/SweptMelee.ts",
+    "checkpointCaptured": false,
+    "suffixTicksExecuted": 0,
+    "reason": "No real headless runtime; no encounter checkpoint or complete continuation can be captured"
+  },
+  "ledger": {
+    "status": "blocked",
+    "stage": "source-import-or-ledger-contract",
+    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/render/tiers.ts",
+    "gameplayEmissionProven": false
+  }
+}

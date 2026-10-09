@@ -1,0 +1,447 @@
+{
+  "audit": {
+    "sourceRevision": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
+    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/pine-hollow/run.mjs all",
+    "exitStatus": 1,
+    "scope": "real entry import and partial declared-row ledger contracts; no gameplay proxy"
+  },
+  "slug": "pine-hollow",
+  "entry": "runtime/index.ts",
+  "compatible": false,
+  "headless": {
+    "status": "blocked",
+    "stage": "runtime-entry",
+    "dependency": "TypeScript parameter property is not supported in strip-only mode",
+    "ticksExecuted": 0
+  },
+  "replay": {
+    "status": "blocked",
+    "dependency": "TypeScript parameter property is not supported in strip-only mode",
+    "checkpointCaptured": false,
+    "suffixTicksExecuted": 0,
+    "reason": "No real headless runtime; no encounter checkpoint or complete continuation can be captured"
+  },
+  "declarations": {
+    "sourceLoaded": true,
+    "ordinarySpawns": 0,
+    "scripts": 0,
+    "runtimeBinds": [
+      "quests",
+      "ledger",
+      "items",
+      "spawns",
+      "state"
+    ],
+    "runtimeSpawns": {
+      "homes": [],
+      "bosses": [
+        {
+          "id": "pine.antler-king",
+          "kind": "antler-king",
+          "look": "warden",
+          "at": [
+            150,
+            -30
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    "quests": [
+      "wardens-hollow"
+    ],
+    "ledgerRules": [
+      {
+        "fact": "pine.feat.deer5",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.deer5",
+            "title": "Antler Management",
+            "threshold": 5
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.boar5",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.boar5",
+            "title": "Bacon Procurement Officer",
+            "threshold": 5
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.elk3",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.elk3",
+            "title": "Elk Yeah",
+            "threshold": 3
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.bear2",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.bear2",
+            "title": "Unbearable",
+            "threshold": 2
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.ghost",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.ghost",
+            "title": "Ghostbuster",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.ironhide",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.ironhide",
+            "title": "Ironhide's Retirement Plan",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.blackpaw",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.blackpaw",
+            "title": "Landlord of the Den",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.imperial",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.imperial",
+            "title": "Crown Jeweller",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.king",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.king",
+            "title": "Regicide, Rustic",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.lanterns",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.lanterns",
+            "title": "Wick Whisperer",
+            "threshold": 3
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.quest",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.quest",
+            "title": "Morning Person, Finally",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.zipline",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.zipline",
+            "title": "Gravity's Favourite",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.resin",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.resin",
+            "title": "Sticky Fingers",
+            "threshold": 30
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.tokens",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.tokens",
+            "title": "Token Gesture",
+            "threshold": 8
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.secrets",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.secrets",
+            "title": "Professional Wanderer",
+            "threshold": 3
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.streak",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.streak",
+            "title": "Contractually Obligated",
+            "threshold": 5
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.miller",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.miller",
+            "title": "Run of the Mill",
+            "threshold": 1
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.thralls",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.thralls",
+            "title": "Moss Remover",
+            "threshold": 10
+          }
+        ]
+      },
+      {
+        "fact": "pine.feat.journal",
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        },
+        "rewards": [
+          {
+            "kind": "achievement",
+            "id": "pine-hollow.journal",
+            "title": "Published Naturalist",
+            "threshold": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ledger": {
+    "status": "partial",
+    "rules": 19,
+    "facts": 19,
+    "achievements": [
+      {
+        "id": "pine-hollow.deer5",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.boar5",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.elk3",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.bear2",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.ghost",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.ironhide",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.blackpaw",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.imperial",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.king",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.lanterns",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.quest",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.zipline",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.resin",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.tokens",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.secrets",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.streak",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.miller",
+        "count": 1,
+        "earned": true
+      },
+      {
+        "id": "pine-hollow.thralls",
+        "count": 1,
+        "earned": false
+      },
+      {
+        "id": "pine-hollow.journal",
+        "count": 1,
+        "earned": true
+      }
+    ],
+    "durableReload": true,
+    "refusedWriteRetried": true,
+    "duplicateStable": true,
+    "gameplayEmissionProven": false
+  }
+}

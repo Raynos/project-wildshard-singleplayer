@@ -1,0 +1,10 @@
+import { expect, it } from 'vitest';
+import { nativeCompatibility } from '../compatibility/native';
+
+it('refuses ledger compatibility when the actual shard source cannot load in strict Node', () => {
+  const result = nativeCompatibility('far-reach', 'ledger');
+  expect(result.status).toBe(1); expect(result.stderr).toBe('');
+  const report: unknown = JSON.parse(result.stdout);
+  expect(report).toMatchObject({ compatible: false, ledger: { status: 'blocked',
+    dependency: 'Renderer dependency in Node simulation: repo:/src/engine/app/runtime.ts', gameplayEmissionProven: false } });
+});
