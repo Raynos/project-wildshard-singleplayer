@@ -1,0 +1,164 @@
+{
+  "ask": "G285 slice 2",
+  "method": "iPhone 16 Pro / DPR2 / Metal; plain scene render, time 10, movers and viewmodel hidden",
+  "verdict": "identical: every pose pixel hash, draws, triangles; GPU bytes; collider hash (base reproduced twice)",
+  "base": {
+    "build": "c70eec7-mv1latsu",
+    "repeat": "c70eec7-mv1latsu",
+    "tiers": {
+      "phone": {
+        "pieces": 23,
+        "colliderCount": 489,
+        "colliders": "e307987d8296396c3a40e72f81400e4d01967373d4ba9677702348340cc28cfc",
+        "gpuBytes": 277918715
+      },
+      "desktop": {
+        "pieces": 23,
+        "colliderCount": 489,
+        "colliders": "e307987d8296396c3a40e72f81400e4d01967373d4ba9677702348340cc28cfc",
+        "gpuBytes": 531946007
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "A",
+        "width": 804,
+        "height": 1362,
+        "calls": 121,
+        "triangles": 1246123,
+        "lit": 1095048,
+        "pixels": "fa9a0691c8045195ff3f9501403fcef296f3712969876daed820541a5a2301bd"
+      },
+      {
+        "tier": "phone",
+        "pose": "B",
+        "width": 804,
+        "height": 1362,
+        "calls": 112,
+        "triangles": 1105881,
+        "lit": 1095048,
+        "pixels": "8c353ca1a2ebbd8d46bfd4383082e395c1c5eee83d10473b77999e7c81e0ca43"
+      },
+      {
+        "tier": "phone",
+        "pose": "C",
+        "width": 804,
+        "height": 1362,
+        "calls": 105,
+        "triangles": 1011321,
+        "lit": 1095048,
+        "pixels": "b1816afe4f7a40194a4187c1eea41fb7e838ca37726fb80293ffff8f7d9c3ccf"
+      },
+      {
+        "tier": "desktop",
+        "pose": "A",
+        "width": 603,
+        "height": 1021,
+        "calls": 122,
+        "triangles": 1238807,
+        "lit": 615663,
+        "pixels": "4ab248d988b206c6987e0e4da86a9fb2453dbf7c5e8c2a1a7745199cca1ee2e7"
+      },
+      {
+        "tier": "desktop",
+        "pose": "B",
+        "width": 603,
+        "height": 1021,
+        "calls": 113,
+        "triangles": 1098565,
+        "lit": 615663,
+        "pixels": "36834bde4a8bb21d2d8558ca6b7d2db7f6c6654cf3eeead876841d2ff7b79e12"
+      },
+      {
+        "tier": "desktop",
+        "pose": "C",
+        "width": 603,
+        "height": 1021,
+        "calls": 106,
+        "triangles": 1004005,
+        "lit": 615663,
+        "pixels": "3119ae888c63128ac7d30591346363f1b4f838b6f36f6c59c0bef96ebd786f65"
+      }
+    ]
+  },
+  "candidate": {
+    "build": "73d1b94-mv1lhidc",
+    "tiers": {
+      "phone": {
+        "pieces": 23,
+        "colliderCount": 489,
+        "colliders": "e307987d8296396c3a40e72f81400e4d01967373d4ba9677702348340cc28cfc",
+        "gpuBytes": 277918715
+      },
+      "desktop": {
+        "pieces": 23,
+        "colliderCount": 489,
+        "colliders": "e307987d8296396c3a40e72f81400e4d01967373d4ba9677702348340cc28cfc",
+        "gpuBytes": 531946007
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "A",
+        "width": 804,
+        "height": 1362,
+        "calls": 121,
+        "triangles": 1246123,
+        "lit": 1095048,
+        "pixels": "fa9a0691c8045195ff3f9501403fcef296f3712969876daed820541a5a2301bd"
+      },
+      {
+        "tier": "phone",
+        "pose": "B",
+        "width": 804,
+        "height": 1362,
+        "calls": 112,
+        "triangles": 1105881,
+        "lit": 1095048,
+        "pixels": "8c353ca1a2ebbd8d46bfd4383082e395c1c5eee83d10473b77999e7c81e0ca43"
+      },
+      {
+        "tier": "phone",
+        "pose": "C",
+        "width": 804,
+        "height": 1362,
+        "calls": 105,
+        "triangles": 1011321,
+        "lit": 1095048,
+        "pixels": "b1816afe4f7a40194a4187c1eea41fb7e838ca37726fb80293ffff8f7d9c3ccf"
+      },
+      {
+        "tier": "desktop",
+        "pose": "A",
+        "width": 603,
+        "height": 1021,
+        "calls": 122,
+        "triangles": 1238807,
+        "lit": 615663,
+        "pixels": "4ab248d988b206c6987e0e4da86a9fb2453dbf7c5e8c2a1a7745199cca1ee2e7"
+      },
+      {
+        "tier": "desktop",
+        "pose": "B",
+        "width": 603,
+        "height": 1021,
+        "calls": 113,
+        "triangles": 1098565,
+        "lit": 615663,
+        "pixels": "36834bde4a8bb21d2d8558ca6b7d2db7f6c6654cf3eeead876841d2ff7b79e12"
+      },
+      {
+        "tier": "desktop",
+        "pose": "C",
+        "width": 603,
+        "height": 1021,
+        "calls": 106,
+        "triangles": 1004005,
+        "lit": 615663,
+        "pixels": "3119ae888c63128ac7d30591346363f1b4f838b6f36f6c59c0bef96ebd786f65"
+      }
+    ]
+  }
+}

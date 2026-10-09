@@ -4,20 +4,21 @@
 // deep timber verandas on the west, shallower ones under the square's lip on the east, balconies under the ledge on
 // the south, their hero signs and the brass hooks the Fei Zhua bites.
 import { Vector3 } from 'three';
-import { dressWall } from './facade/grammar';
-import { K, type Kit } from './kit';
+import { dressWall } from './facadeGrammar';
+import { K, type Kit } from '../world/kit';
 import { WELL, Y0 } from '../layout';
-import { dragonHook, stool } from './props';
-import { relief } from './gate';
-import { placeLion } from './props3d';
-import type { KitX } from './hero/kitx';
+import { dragonHook, stool } from '../world/props';
+import { relief } from '../world/gate';
+import { placeLion } from '../world/props3d';
+import type { KitX } from '../world/hero/kitx';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
 import { NEONS } from './towers';
-import { WORDS } from './words';
+import { WORDS } from '../world/words';
 import { SURF } from '../look/paint';
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';
-import { type BandKits, RIM, SPLIT, type WellPlan, snapFloor } from './well-plan';
+import { type BandKits, SPLIT, type WellPlan, snapFloor } from './well-plan';
+import { RIM } from '../world/wellBounds';
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 

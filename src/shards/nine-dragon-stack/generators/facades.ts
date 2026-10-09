@@ -3,11 +3,11 @@ import type { Rng } from '@wildshard/engine/core/rng';
 // windows, then dressed with balconies, window cages, air-con boxes, pipes and laundry. Used for the towers around the
 // square and for the four walls of the Yamen Well, top to bottom.
 import { Color, Matrix4, Vector3 } from 'three';
-import type { Ctx } from './ctx';
-import { E, K, type Look } from './kit';
-import { hipRoof } from './square';
+import type { Ctx } from '../world/ctx';
+import { E, K, type Look } from '../world/kit';
+import { hipRoof } from '../world/squareParts';
 import { Y0 } from '../layout';
-import { SIGN_WORDS } from './words';
+import { SIGN_WORDS } from '../world/words';
 import { NEON, WALL, chars } from '../util';
 
 const AWNINGS = [0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0xe8dfc9, 0x8a3a6a, 0xc23b22] as const;

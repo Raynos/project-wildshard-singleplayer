@@ -12,7 +12,7 @@ import { buildEntryDecks } from '../../../src/shards/nine-dragon-stack/world/ent
 import { Builder } from '../../../src/shards/nine-dragon-stack/world/facade/geo';
 import { merge } from '../../../src/shards/nine-dragon-stack/world/hero/kitx';
 import { LAYOUT_STAMP, LayoutBake, restoreLayout } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
-import { crossingColliders } from '../../../src/shards/nine-dragon-stack/world/well-mid';
+import { crossingColliders } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { peekQueued } from '../../../src/shards/nine-dragon-stack/world/props3d';
 import { banyanOut } from '../../../src/shards/nine-dragon-stack/world/banyan';
 

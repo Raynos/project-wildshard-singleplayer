@@ -1,11 +1,11 @@
 /**
  * Nine Dragon's layout drawn from its offline bake (G285, SF72 "bake the code-built worlds"). The layout step — the
- * square, the towers, the Well (./square.ts, ./towers.ts, ./well.ts) — is a pure function of committed code, so
+ * square, the towers, the Well (../generators/square.ts, towers.ts, well.ts) — is a pure function of committed code, so
  * `../generators/layout.ts` runs it at build time (`scripts/bake-nine-layout.mjs`) and stores the build context it fills:
  * every kit's built geometry, the facade dressing (pieces, windows, sign slots, the shell), the instance lists, the
  * models drawn into kits, the map's floor plan, the emitters, the crossings' colliders, the lion and set queues, the
  * banyan's plan, and the 1,156 sign calls in the order the builders made them. `restoreLayout` fills a page's `Ctx` from
- * it and replays the signs into the page's own SignBuilder, so build.ts carries on exactly as after the live builders.
+ * it and replays the signs into the page's own SignBuilder, so build.ts carries on exactly as after the builders ran.
  */
 import { Box3, Color, Matrix4, Vector3, Vector4 } from 'three';
 import * as v from 'valibot';
@@ -17,9 +17,8 @@ import { PIECES, type PieceId } from './facade/pieces';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { SignPlace, SignSink, SignStyle } from '../look/signs';
 import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from './bakedGeometry';
-import { restoreCrossingColliders } from './well-mid';
 import { restoreQueued } from './props3d';
-import { wellSheets } from './well-lower';
+import { restoreCrossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyan';
 import rows from '../data/layout.json' with { type: 'json' };
 
@@ -115,16 +114,13 @@ export class LayoutBake {
   }
 }
 
-/** Fetch and inflate the bake; null when it is missing or does not fit (build.ts then runs the builders live). */
-export async function loadLayoutBake(): Promise<LayoutBake | null> {
-  try {
-    const response = await fetch(LAYOUT_BAKE_URL);
-    if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${LAYOUT_BAKE_URL}`);
-    return new LayoutBake(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()));
-  } catch (error: unknown) {
-    console.error('[nine-dragon] the layout bake did not load; building the layout live:', error);
-    return null;
-  }
+/** Fetch and inflate the bake. It is mandatory: the layout's builders are build-time code (../generators/), so a missing
+ *  or mismatched bake fails the world build (the stale gate, test/shards/nine-dragon-stack/layout-bake.test.ts, keeps the
+ *  committed bake current). */
+export async function loadLayoutBake(): Promise<LayoutBake> {
+  const response = await fetch(LAYOUT_BAKE_URL);
+  if (!response.ok || response.body === null) throw new Error(`[nine-dragon] the layout bake did not load: ${String(response.status)} ${LAYOUT_BAKE_URL}`);
+  return new LayoutBake(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()));
 }
 
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);

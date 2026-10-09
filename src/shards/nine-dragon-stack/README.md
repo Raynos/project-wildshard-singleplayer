@@ -25,7 +25,8 @@ meets Kowloon Walled City (E169). Fourth card on the title deck.
 
 | Folder / file | What | Why custom |
 |---|---|---|
-| `world/` | the built city: facades, towers, the square, stalls, the stair-street, the Well's rim, banyan and canopy, the crowd, its colliders, culling and LODs | a structure-first world no other shard has |
+| `world/` | the built city at run time: the baked layout's restore, the model parts the layout shares (stalls, gate, square / stair / Well parts, movers), the stair and Well plans, banyan and canopy, the crowd, its colliders, culling and LODs | a structure-first world no other shard has |
+| `generators/` | the layout, build-time only (G285): the square, the towers and facades, the facade grammar, the stair-street, the Well; `layout.ts` runs them into `public/assets/nine-dragon/baked/layout.bin` (`scripts/bake-nine-layout.mjs`), which `world/layoutBake.ts` restores — the page has no live builders | public: never shipped |
 | `grapple/` | `FeiZhua extends Tool` (rung 3): the grapple's line, hook, FX and course | Nine Dragon's own verb; not a mechanism (R1-02) |
 | `vm/`, `weapons/` | the jian on the kit `Sword` with its own row, arms, cloth and trail | its own blade and viewmodel |
 | `look/` | the Jiehua Neon look: neon signs and glyphs, lanterns, emitters and streaks, the facade material, the light rig, its colour chain (ink silhouette, bleed, window glow, drizzle, the learned LUT, grain) | the jiehua style is Nine Dragon's |

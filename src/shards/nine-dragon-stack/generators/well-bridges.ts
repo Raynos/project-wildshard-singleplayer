@@ -15,14 +15,15 @@
 // Walkable crossings return their collision (deck boxes following the hump or sag, rail walls on both edges).
 // Geometry detail steps down with `lod` (0 near the rim and dome B2's anchor, 2 far up the run north).
 import { Box3, Vector3 } from 'three';
-import type { Ctx, InKit } from './ctx';
-import { buildGate } from './gate';
-import type { KitX } from './hero/kitx';
-import { E, K, Kit, type Look } from './kit';
+import type { Ctx, InKit } from '../world/ctx';
+import { buildGate } from '../world/gate';
+import type { KitX } from '../world/hero/kitx';
+import { E, K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
-import { dragonHook } from './props';
-import { hipRoof } from './square';
-import { WORDS } from './words';
+import { dragonHook } from '../world/props';
+import { hipRoof } from '../world/squareParts';
+import { STEEL_DK, STONE, lampPostStone, lotusPost } from '../world/wellParts';
+import { WORDS } from '../world/words';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -57,7 +58,6 @@ const UP = new Vector3(0, 1, 0);
 const X = new Vector3(1, 0, 0), Z = new Vector3(0, 0, 1), NZ = new Vector3(0, 0, -1);
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
-const STONE: Look = { wash: 0x66676b, kind: K.stone, line: 1, wet: 0.35, surf: SURF.concrete };
 const STONE_FACE: Look = { wash: 0x5f6064, kind: K.stone, line: 1, wet: 0.3, surf: SURF.concrete };
 const STONE_TOP: Look = { wash: 0x54565c, kind: K.flag, line: 0, wet: 0.8 };
 const STONE_PANEL: Look = { wash: 0x626367, kind: K.panel, line: 1, wet: 0.3 };
@@ -72,7 +72,6 @@ const LACQUER: Look = { wash: 0x8e2a1e, kind: K.panel, line: 1, accent: true, su
 const LACQUER_POST: Look = { wash: 0x9c3627, line: 1, accent: true, surf: SURF.lacquer };
 const GILT: Look = { wash: 0xc9a24a, line: 1, accent: true, gloss: true };
 const STEEL: Look = { wash: 0x3a3d44, line: 0.9 };
-const STEEL_DK: Look = { wash: 0x26282d, line: 0.7 };
 const GRATE: Look = { wash: 0x3e4148, kind: K.bars, row: 0, col: 0.09, line: 0.6, wet: 0.5 };
 const BARS: Look = { wash: 0x2a2c31, kind: K.bars, row: 1, col: 0.13, line: 1 };
 const DARK: Look = { wash: 0x2a2320, line: 0.8 };
@@ -121,34 +120,12 @@ function railLanterns(ctx: Ctx, x0: number, x1: number, z: number, yAt: (x: numb
   }
 }
 
-/**
- * The stone lamp post (models/bridgePosts.ts `lampPostModel`): a stone post with a lotus cap and an iron crook reaching
- * `out` (+1: +z, −1: −z) — its paper lantern is a paper lantern of its own (the fragment's lantern set)
- */
-export function lampPostStone(k: Kit, x: number, y: number, z: number, out: number): void {
-  k.box(x, y, z, 0.3, 2.1, 0.3, STONE);
-  k.cyl(x, y + 2.1, z, 0.2, 0.14, 0.12, 8, STONE);
-  k.beam(new Vector3(x, y + 2.05, z), new Vector3(x, y + 2.05, z + out * 0.55), 0.06, 0.06, STEEL_DK);
-}
-
 /** a lamp post (the lamp post model, drawn into the crossing's kit and recorded there) and its paper lantern on the crook */
 function lampPost(ctx: Ctx, k: Kit, x: number, y: number, z: number, out: number): void {
   const v0 = k.vertexCount;
   lampPostStone(k, x, y, z, out);
   ctx.inKit.push({ model: 'nine-dragon-stack/lamp-post', kit: k, at: out < 0 ? { x, y, z, yaw: Math.PI } : { x, y, z }, box: k.boundsFrom(v0, new Box3()) });
   ctx.lantern(x, y + 1.75, z + out * 0.55, 0.8);
-}
-
-/**
- * The balustrade's lotus-capped post (models/bridgePosts.ts `lotusPostModel`): a 26 cm stone post, 1.02 m, under a
- * lotus cap and bud — `capped` false on the far crossings (lod 2), where the cap is under a pixel
- */
-export function lotusPost(k: Kit, x: number, y: number, z: number, capped: boolean): void {
-  k.box(x, y, z, 0.26, 1.02, 0.26, STONE);
-  if (capped) {
-    k.cyl(x, y + 1.02, z, 0.17, 0.14, 0.1, 8, STONE);
-    k.cyl(x, y + 1.12, z, 0.14, 0.02, 0.3, 8, STONE, { caps: false });
-  }
 }
 
 /** a carved balustrade along a deck edge (at z) from x0 to x1: lotus-bud posts (the lotus post model, recorded in `inKit`
@@ -646,48 +623,3 @@ export function station(ctx: Ctx, k: Kit, x0: number, x1: number, z: number, y: 
   for (const dz of [-D / 2 - 0.3, D / 2 + 0.3]) ctx.lantern(edge + face * 0.2, y - 0.5, z + dz, 0.8);
 }
 
-/**
- * The gondola's cabin (its origin on the cable; the mover slides it along x): a red lacquer body with a band of lit
- * windows and gilt trim, a hip roof, the hanger and the grip riding the cable on two wheels, a lamp at each end.
- */
-export function gondolaCabin(): Kit {
-  const k = new Kit();
-  const RED: Look = { wash: 0xb32a1b, line: 1.1, accent: true, gloss: true, surf: SURF.lacquer };
-  const RED_P: Look = { wash: 0xa82619, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer };
-  const RED_DK: Look = { wash: 0x6e1a10, line: 1, accent: true };
-  const GOLD: Look = { wash: 0xd9b25a, line: 1, accent: true, gloss: true };
-  const GLASS: Look = { wash: 0xffdca6, emit: 1.2, kind: K.facade, row: 1.0, col: 0.6, seed: 5, line: 1, accent: true };
-  const W = 2.9, D = 2.1, y0 = -4.35;
-  k.box(0, y0, 0, W - 0.1, 0.14, D - 0.1, RED_DK);
-  k.box(0, y0 + 0.14, 0, W, 0.92, D, RED_P);
-  k.box(0, y0 + 1.06, 0, W - 0.06, 1.0, D - 0.06, GLASS);
-  // mullions round the window band, a sill and a head trim in gilt
-  for (let i = 0; i <= 4; i++) for (const s of [-1, 1]) k.box(-W / 2 + (W * i) / 4, y0 + 1.06, s * (D / 2 - 0.02), 0.09, 1.0, 0.06, RED);
-  for (let i = 0; i <= 3; i++) for (const s of [-1, 1]) k.box(s * (W / 2 - 0.02), y0 + 1.06, -D / 2 + (D * i) / 3, 0.06, 1.0, 0.09, RED);
-  k.box(0, y0 + 1.02, 0, W + 0.06, 0.06, D + 0.06, GOLD);
-  k.box(0, y0 + 2.06, 0, W, 0.3, D, RED);
-  k.box(0, y0 + 2.08, 0, W + 0.06, 0.05, D + 0.06, GOLD);
-  // the hip roof (four slopes to a short ridge), a ridge cap
-  const e = y0 + 2.36, r = e + 0.5;
-  const A = new Vector3(-W / 2 - 0.14, e, D / 2 + 0.14), B = new Vector3(W / 2 + 0.14, e, D / 2 + 0.14), C = new Vector3(W / 2 + 0.14, e, -D / 2 - 0.14), Dd = new Vector3(-W / 2 - 0.14, e, -D / 2 - 0.14);
-  const R0 = new Vector3(-0.5, r, 0), R1 = new Vector3(0.5, r, 0);
-  const roof: Look = { wash: 0x7e1f14, kind: K.tiles, line: 1, accent: true };
-  k.quad4(A, B, R1, R0, W, 1.2, roof, 0, 0, E.v0);
-  k.quad4(C, Dd, R0, R1, W, 1.2, roof, 0, 0, E.v0);
-  k.tri(Dd, A, R0, roof);
-  k.tri(B, C, R1, roof);
-  k.quad4(Dd, C, B, A, W, D, RED_DK);
-  k.box(0, r - 0.05, 0, 1.2, 0.12, 0.16, GOLD);
-  // the hanger (a yoke over the roof), the grip on the cable, its two wheels
-  k.box(0, r, 0, 0.14, -0.5 - r, 0.14, { wash: 0x2a2c31, line: 1 });
-  k.beam(new Vector3(-0.9, e + 0.02, 0), new Vector3(0, r + 0.5, 0), 0.08, 0.08, { wash: 0x2a2c31, line: 1 });
-  k.beam(new Vector3(0.9, e + 0.02, 0), new Vector3(0, r + 0.5, 0), 0.08, 0.08, { wash: 0x2a2c31, line: 1 });
-  k.box(0, -0.5, 0, 1.4, 0.34, 0.34, { wash: 0x3a3d44, line: 1 });
-  for (const x of [-0.45, 0.45]) k.cyl(x, -0.15, 0, 0.2, 0.2, 0.12, 10, { wash: 0x55595f, line: 1 });
-  // lamps at both ends and a destination plate on each side
-  for (const s of [-1, 1]) {
-    k.box(s * (W / 2 + 0.04), y0 + 0.55, 0, 0.08, 0.18, 0.34, { wash: 0xffe6b0, emit: 2.2, line: 0.5, accent: true });
-    k.box(0, y0 + 0.4, s * (D / 2 + 0.03), 1.1, 0.26, 0.04, GOLD);
-  }
-  return k;
-}

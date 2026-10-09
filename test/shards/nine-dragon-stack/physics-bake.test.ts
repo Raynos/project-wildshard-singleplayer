@@ -5,7 +5,7 @@ import { ninePhysicsInputs } from '../../../scripts/nine-physics-inputs.mjs';
 import baked from '../../../src/shards/nine-dragon-stack/runtime/physics.baked.json';
 import { NINE_HOOKS, NINE_PIECES } from '../../../src/shards/nine-dragon-stack/runtime/headless';
 import { RIM_Z } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
-import { RIM } from '../../../src/shards/nine-dragon-stack/world/well-plan';
+import { RIM } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 
 it('refuses stale source or model bytes before the trusted Nine physics bake is used', () => {

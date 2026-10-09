@@ -8,26 +8,13 @@
 // band opens its railing where one lands) and the built bands' profiles, so a crossing or a net built in one region
 // ties into the gallery fronts another region built.
 import { Vector3 } from 'three';
-import type { Ctx } from './ctx';
-import type { Kit } from './kit';
+import type { Ctx } from '../world/ctx';
+import type { Kit } from '../world/kit';
 import { WELL, Y0 } from '../layout';
+import { CABLE, EXT, RIM } from '../world/wellBounds';
 import { FLOOR_H, type GalleryProfile, galleryWall } from './well-galleries';
 import type { BridgeKind } from './well-bridges';
 
-/** the canyon's run north under the Cable Deck (its ceiling is the deck's sky screen at +155 m) */
-export const EXT = { x0: WELL.x0, x1: -12, z0: -104, z1: WELL.z0 } as const;
-/** (F4, round 2) the run north goes on past the Cable Deck's edge, open to the sky: its far walls at the far LOD
- *  (well-mid.ts farRun), so from the rim the canyon recedes ~200 m into the silk to the far gate */
-export const FAR = { x0: EXT.x0, x1: EXT.x1, z0: -190, z1: EXT.z0 } as const;
-/** the south rim: the ledge at the square's datum the mockup B / D cameras stand on, its balustrade at z0 */
-export const RIM = { z0: 11.2, z1: WELL.z1 } as const;
-/** the box the shaft's silk mist fills (look/style.ts uShaft) and the rectangles its fog sheets span */
-export const SHAFT = { x0: WELL.x0, z0: FAR.z0, x1: WELL.x1, z1: WELL.z1 } as const;
-export const WELL_RECTS = [
-  { x0: WELL.x0, z0: WELL.z0, x1: WELL.x1, z1: WELL.z1 },
-  { x0: EXT.x0, z0: EXT.z0, x1: EXT.x1, z1: EXT.z1 },
-  { x0: FAR.x0, z0: FAR.z0, x1: FAR.x1, z1: FAR.z1 },
-] as const;
 /** the near galleries (well-rim.ts) run down to SPLIT + one floor; the lower levels (well-lower.ts) from SPLIT down */
 export const SPLIT = Y0 - 30;
 /** the lowest gallery floor (the fragment's cut); the walls run on below it as painted shells into the mist */
@@ -36,8 +23,6 @@ export const LOW = Y0 - 66;
 export const DEEP = Y0 - 112;
 /** the top gallery floor of the walls under the Cable Deck (its screen is at +29.85) */
 export const DECK_TOP = Y0 + 24;
-/** the gondola's cable runs along x at this z, y (build.ts slides the cabin between x0 + 5 and x1 − 5) */
-export const CABLE = { z: -12, y: Y0 - 16, x0: WELL.x0, x1: WELL.x1 } as const;
 
 /** the floor at or below y */
 export const snapFloor = (y: number): number => Y0 - Math.ceil((Y0 - y) / FLOOR_H - 1e-6) * FLOOR_H;

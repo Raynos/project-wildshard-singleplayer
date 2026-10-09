@@ -3,7 +3,7 @@ import { Group, type PerspectiveCamera } from 'three';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { NineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
-import { crossingColliders } from './well-mid';
+import { crossingColliders } from './wellBounds';
 import { entryCapColliders, entryDeckFloor, portalFloorRows } from './floorRows';
 import { SQUARE_FLOOR } from './portalPlan';
 import { NdRuntime, ownNdRuntime } from '../runtime/state';
@@ -44,7 +44,7 @@ export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system
     // names its own surface; the gate bridges' paifang posts are the paifang model's, E346): filled while the world
     // builds, so read after it
     ctx.piece({
-      id: 'nds-crossings', name: 'The Well\'s crossings', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/well-mid.ts',
+      id: 'nds-crossings', name: 'The Well\'s crossings', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/wellBounds.ts',
       surface: 'stone', colliders: [...crossingColliders()],
     });
     // (the fragment's models register themselves as they are placed: world/build.ts, src/engine/models/place.ts)

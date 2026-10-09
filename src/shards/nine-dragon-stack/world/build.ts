@@ -33,7 +33,7 @@ import { buildStreaks, stairStreaks } from '../look/streaks';
 import { buildFacade, nameDraws } from './facade/batch';
 import { facadeUniforms } from '../look/facadeMaterial';
 import { STAIR, WELL, Y0 } from '../layout';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } from './stairstreet';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } from './stairPlan';
 import { loadPaint } from '../look/paint';
 import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
 import { installLight } from '../look/light/install';
@@ -44,9 +44,7 @@ import { banyanOut } from './banyan';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../look/signs';
-import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
-import { buildTowers } from './towers';
 import { WORDS } from './words';
 import { chars } from '../util';
 import type { NdTier } from '../tier';
@@ -64,11 +62,9 @@ import { buildPortals } from './portals';
 import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
-import { buildWell } from './well';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { buildEntryDecks } from './entries';
-import { wellSheets } from './well-lower';
-import { CABLE, SHAFT, WELL_RECTS } from './well-plan';
+import { CABLE, SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
 import { type InstanceLevel, InstanceCuller } from './cull';
 import { lodReady } from './lod';
@@ -94,7 +90,7 @@ async function loadFonts(): Promise<void> {
   await Promise.race([all.then(() => undefined), new Promise<void>((resolve) => { resourceScope().timeout(9000, resolve); })]);
 }
 
-/** the silk fog sheets across the Well at each stratum gap (their heights come from well.ts), over both of its rects —
+/** the silk fog sheets across the Well at each stratum gap (their heights come from the layout bake), over its rects —
  *  the main shaft and the canyon's run north (dome C's WELL_RECTS) */
 function sheetsGeometry(): BufferGeometry {
   const pos: number[] = [], uv: number[] = [], band: number[] = [], alpha: number[] = [], idx: number[] = [];
@@ -200,20 +196,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const culler = new InstanceCuller();
   const handed: HandedBatch[] = [];
   const batches: InstancedCuller = { take: (b) => { handed.push(b); } };
-  // G285: the layout's offline bake (../generators/layout.ts, world/layoutBake.ts); the builders run live only without it
+  // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
+  // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
-  if (layout !== null) {
-    progress(0.2, 'layout: baked');
-    restoreLayout(layout, ctx);
-  } else {
-    buildSquare(ctx);
-    progress(0.2, 'layout: towers');
-    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-    buildTowers(ctx);
-    progress(0.25, 'layout: well');
-    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-    buildWell(ctx);
-  }
+  progress(0.2, 'layout: baked');
+  restoreLayout(layout, ctx);
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
   const entryCaps = opts.caps === true;

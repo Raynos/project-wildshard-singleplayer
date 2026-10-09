@@ -3,9 +3,9 @@
 // square a Chongqing stair-street climbs east between sign-covered towers: three flights of worn wet granite steps and
 // two landings, the paifang on the second landing with the last flight rising on through it.
 //
-// This file (C1) owns the PLAN (the flights, landings, the paifang's place: shared with C2), the physics
-// (`stairColliders()` — rise 0.35 ≤ 0.35, tread 0.667 ≥ 0.36, PHYSICS.md — and `stairFloor(x)`, which world/colliders.ts
-// takes) and everything below SQ_BACK (x < 34.6): the first flight's steps; under the square's two corner towers (which
+// The PLAN (the flights, landings, the paifang's place: shared with C2) and the physics (`stairColliders()`,
+// `stairFloor(x)`) are the runtime's, ../world/stairPlan.ts. This file (C1, layout-only: baked, ../world/layoutBake.ts)
+// owns everything below SQ_BACK (x < 34.6): the first flight's steps; under the square's two corner towers (which
 // stand only SQ_DEPTH deep, towers.ts) the tea room and the hotpot shop at the foot, the timber skin of the tea house's
 // upper floors and a lit shop row on the towers' end faces; behind the corner towers (SQ_CORNER…SQ_BACK) raised terraces
 // on ashlar walls with low pavilions (the tea house's veranda north, shops south) and their towers set back 3.4 m; the
@@ -16,75 +16,21 @@
 // upward (terraces, towers, the paifang, the bridges, the monorail, the upper signs and crowd, the far end) is C2's:
 // stairstreet-upper.ts, buildStairUpper(ctx).
 import { type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { Ctx } from './ctx';
-import { dressWall } from './facade/grammar';
-import type { PieceId } from './facade/pieces';
-import { mahjongSeats } from './hero/figures';
-import { KitX } from './hero/kitx';
-import { buildGuardProcedural } from './hero/weapon-parts';
-import { K, Kit, type Look } from './kit';
+import type { Ctx } from '../world/ctx';
+import { dressWall } from './facadeGrammar';
+import type { PieceId } from '../world/facade/pieces';
+import { mahjongSeats } from './figures';
+import { KitX } from '../world/hero/kitx';
+import { buildGuardProcedural } from '../world/hero/weapon-parts';
+import { K, Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
 import { PLAZA, STAIR, Y0 } from '../layout';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { FACE_N, FACE_S, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, SQ_CORNER, STAIR_GATE, stairFloor } from '../world/stairPlan';
 
-// ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
-
-export const RISE = STAIR.rise / 60;
-const LANDING = 4;
-export const RUN = (STAIR.x1 - STAIR.x0 - 2 * LANDING) / 60;
-export interface Flight { x0: number; x1: number; y0: number; steps: number }
-export const FLIGHTS: readonly Flight[] = [0, 1, 2].map((i) => {
-  const x0 = STAIR.x0 + i * (20 * RUN + LANDING);
-  return { x0, x1: x0 + 20 * RUN, y0: Y0 + i * 20 * RISE, steps: 20 };
-});
-export const LANDINGS: readonly { x0: number; x1: number; y: number }[] = [0, 1].map((i) => {
-  const f = FLIGHTS[i];
-  const x0 = f === undefined ? 0 : f.x1;
-  return { x0, x1: x0 + LANDING, y: Y0 + (i + 1) * 20 * RISE };
-});
-/** the top landing (its far end is the fragment's wall, colliders.ts STAIR_TOP) and the scenery street beyond it */
-export const TOP_Y = Y0 + STAIR.rise;
-/** the paifang on the second landing, spanning the stair (its front faces down the stair, west) */
-const L2 = LANDINGS[1] ?? { x0: 0, x1: 0, y: 0 };
-/** (E281: wide and a little lower, as mockup C and C2·5 draw it — a 6.2 m centre bay, the outer posts on the terraces;
- *  it was 3.5 m between 10 m posts, a slot) */
-export const STAIR_GATE = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.3, posts: [-5.6, -3.1, 3.1, 5.6] } as const;
-/** the street between the tower faces past the square's towers (the stair is the middle 8 m; terraces either side) */
-export const FACE_N = STAIR.z0 - 3, FACE_S = STAIR.z1 + 3;
-/** the square's east towers flank the stair's first 12 m (their end faces on the stair's edges, base at Y0 + 5): C1 / C2's
- *  boundary */
-export const SQ_BACK = PLAZA.x1 + 12.6;
-/** …but the two corner towers at the stair stand only SQ_DEPTH deep (towers.ts wallRun openDepth): behind them, from
- *  SQ_CORNER to SQ_BACK, the stair's low pavilions on raised terraces with their towers set back (mockup C's foot) */
-export const SQ_DEPTH = 6;
-export const SQ_CORNER = PLAZA.x1 + 0.6 + SQ_DEPTH;
+/** the corner towers' base (their end faces on the stair's edges stand on it) */
 const SQ_BASE = Y0 + 5;
-/** the scenery street past the top landing ends here */
-export const FAR_X = 102;
-
-/** the floor under x along the stair-street (the tread tops; Y0 before the foot, the top landing after) */
-export function stairFloor(x: number): number {
-  if (x < STAIR.x0) return Y0;
-  if (x >= STAIR.x1) return TOP_Y;
-  for (const f of FLIGHTS) {
-    if (x >= f.x0 && x < f.x1) return f.y0 + (Math.min(f.steps - 1, Math.floor((x - f.x0) / RUN)) + 1) * RISE;
-  }
-  for (const l of LANDINGS) if (x >= l.x0 && x < l.x1) return l.y;
-  return TOP_Y;
-}
-
-/** the stair's physics: three `treads` flights and the two landing slabs (the paifang's four post bases with their drum
- *  stones collide as the paifang model's own, placed with its copy on landing 2: models/paifang.ts, E346) */
-export function stairColliders(): ColliderDesc[] {
-  const zc = (STAIR.z0 + STAIR.z1) / 2, w = STAIR.z1 - STAIR.z0;
-  const out: ColliderDesc[] = FLIGHTS.map((f) => ({
-    kind: 'treads', from: { x: f.x0, y: f.y0, z: zc }, to: { x: f.x1, y: f.y0 + f.steps * RISE, z: zc }, width: w, count: f.steps, surface: 'stone',
-  }));
-  for (const l of LANDINGS) out.push({ kind: 'box', x: (l.x0 + l.x1) / 2, y: l.y - 0.6, z: zc, hx: (l.x1 - l.x0) / 2, hy: 0.6, hz: w / 2, surface: 'stone' });
-  return out;
-}
 
 // ── looks (C2 has its own copies) ──
 const PLINTH: Look = { wash: 0x6a6866, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };

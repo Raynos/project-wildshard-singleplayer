@@ -14,19 +14,21 @@
 // `buildStairUpper(ctx)` after `buildStairStreet(ctx)`. Nothing here hangs over the stair lower than 2.1 m above it; the
 // only things standing in the walkable stair are the landings' stone planters, which collide as their model (models/landingPlanter.ts).
 // The terraces' kit is split per 32 m cell with a draw distance (ctx.cell / ctx.far), the paifang too.
-import { Box3, type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { Ctx } from './ctx';
-import { buildGate } from './gate';
-import { dressWall, spanStreet } from './facade/grammar';
-import type { PieceId } from './facade/pieces';
-import { KitX, merge } from './hero/kitx';
-import { K, Kit, type Look } from './kit';
-import { dragonHook } from './props';
-import { hipRoof } from './square';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, stairFloor, towerStack, wallShop } from './stairstreet';
+import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
+import type { Ctx } from '../world/ctx';
+import { buildGate } from '../world/gate';
+import { dressWall, spanStreet } from './facadeGrammar';
+import type { PieceId } from '../world/facade/pieces';
+import { KitX, merge } from '../world/hero/kitx';
+import { K, Kit, type Look } from '../world/kit';
+import { dragonHook } from '../world/props';
+import { hipRoof } from '../world/squareParts';
+import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
 import { SURF } from '../look/paint';
 import type { SignPlace, SignSink } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
+import { ASHLAR, COPING, FLOWER_COLS, ICO0, PLANTER, landingPlanter, leafBush, leafLook, leafQuad, tint } from '../world/landingPlanter';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
 
@@ -40,21 +42,16 @@ const STEP_RISER: Look = { wash: 0x44454a, kind: K.stone, line: 1.8, wet: 0.6 };
 const NOSING: Look = { wash: 0xdfe1e3, kind: K.stone, line: 0, wet: 0.6, emit: 0.3 };
 const MOSS: Look = { wash: 0x3a4a34, kind: K.leaf, line: 0, wet: 0.6 };
 const PLINTH: Look = { wash: 0x6a6866, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
-const ASHLAR: Look = { wash: 0x7a7872, kind: K.stone, line: 1, wet: 0.5, surf: SURF.stone };
-const COPING: Look = { wash: 0x8a877f, kind: K.stone, line: 1.8, wet: 0.5 };
 const TERRACE: Look = { wash: 0x55565a, kind: K.flag, wet: 0.8, line: 0 };
 const LACQUER: Look = { wash: 0x7e2419, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
 const TIMBER: Look = { wash: 0x3d2a1e, line: 1, accent: true, surf: SURF.wood };
 const IRON: Look = { wash: 0x2a2c31, line: 0.8 };
 const STEEL: Look = { wash: 0x5c626c, line: 1.2 };
 const POT_COLS = [0x9a5a3a, 0x8a4a30, 0x2f5f7a, 0x3c6a58, 0x6d6a66, 0xa8683e] as const;
-const LEAF_COLS = [0x3f6a3e, 0x4f7a44, 0x355a3a, 0x5a8a4a, 0x2f5236] as const;
-const FLOWER_COLS = [0xf2eee4, 0xe98aa8, 0xd9443a, 0xf0c86a] as const;
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 const UP = new Vector3(0, 1, 0);
 const XP = new Vector3(1, 0, 0), XN = new Vector3(-1, 0, 0), ZP = new Vector3(0, 0, 1), ZN = new Vector3(0, 0, -1);
-/** the plants' dark cores and the flowers (a low icosphere) */
-const ICO0 = Array.from(new IcosahedronGeometry(1, 0).getAttribute('position').array);
+
 
 // ── the visual step profile: two half-steps per collider tread ──
 
@@ -119,35 +116,11 @@ function mat4(x: number, y: number, z: number, yaw: number, s = 1): Matrix4 {
   return new Matrix4().compose(new Vector3(x, y, z), new Quaternion().setFromAxisAngle(UP, yaw), new Vector3(s, s, s));
 }
 
-const tint = (c: number, t: number): number => new Color(c).multiplyScalar(t).getHex();
 
 // ── plants: real leaves (two-sided diamond quads, each ink-outlined like a gongbi leaf) round a dark core ──
 
-/** one leaf from `base` along `dir` (unit), its blade spread along `side` (unit, ⟂ dir); both faces */
-function leafQuad(k: Kit, base: Vector3, dir: Vector3, side: Vector3, L: number, W: number, look: Look): void {
-  const mid = base.clone().addScaledVector(dir, L * 0.42);
-  const a = base, c = base.clone().addScaledVector(dir, L);
-  const b = mid.clone().addScaledVector(side, W / 2), d = mid.clone().addScaledVector(side, -W / 2);
-  k.quad4(a, b, c, d, W, L, look);
-  k.quad4(a, d, c, b, W, L, look);
-}
 
-const leafLook = (rng: Rng, lift: number): Look => ({ wash: tint(rng.pick(LEAF_COLS), rng.range(0.8, 1.1) * (0.82 + 0.35 * lift)), line: 0.55, wet: 0.35 });
 
-/** a bush of `n` leaves round (cx, cy, cz), radius `r`: leaves fan out and up from a dark core */
-function leafBush(k: Kit, rng: Rng, cx: number, cy: number, cz: number, r: number, n: number, phi: readonly [number, number] = [0.15, 1.25], narrow = 0.42): void {
-  k.blob(ICO0, null, cx, cy, cz, r * 0.5, r * 0.42, r * 0.5, { wash: 0x243a26, line: 0 }, true);
-  for (let i = 0; i < n; i++) {
-    const th = rng.range(0, Math.PI * 2), ph = rng.range(phi[0], phi[1]);
-    const dir = new Vector3(Math.cos(ph) * Math.cos(th), Math.sin(ph), Math.cos(ph) * Math.sin(th));
-    const base = new Vector3(cx, cy, cz).addScaledVector(new Vector3(dir.x, 0, dir.z), r * rng.range(0.1, 0.35)).add(new Vector3(0, rng.range(-0.3, 0.2) * r, 0));
-    const side = new Vector3().crossVectors(dir, UP);
-    if (side.lengthSq() < 1e-4) side.set(1, 0, 0);
-    side.normalize().applyAxisAngle(dir, rng.range(-0.7, 0.7));
-    const L = r * rng.range(0.6, 0.95);
-    leafQuad(k, base, dir, side, L, L * narrow, leafLook(rng, Math.sin(ph)));
-  }
-}
 
 /** a potted plant standing at (x, y, z), ~`s` m tall: 'bush' round, 'tall' upright blades, 'tree' a little trunk */
 function pottedPlant(k: Kit, rng: Rng, x: number, y: number, z: number, s: number, form: 'bush' | 'tall' | 'tree' = 'bush', flowers = false): void {
@@ -629,17 +602,6 @@ function terraces(ctx: Ctx, rng: Rng): void {
   }
 }
 
-/** a planter's size (w along the landing, d out from its wall) */
-export const PLANTER = { w: 1.1, d: 0.5 } as const;
-
-/** a stone planter in flower at (x, y, z): an ashlar trough, its coping, three leafy bushes, a spray of one flower's colour */
-export function landingPlanter(k: Kit, rng: Rng, p: { readonly x: number; readonly y: number; readonly z: number; readonly w: number; readonly d: number }): void {
-  k.box(p.x, p.y, p.z, p.w, 0.5, p.d, { ...ASHLAR, wash: 0x6f6d68 }, { top: { wash: 0x2e2a24, line: 0 } });
-  k.box(p.x, p.y + 0.5, p.z, p.w + 0.08, 0.07, p.d + 0.08, COPING);
-  for (let j = 0; j < 3; j++) leafBush(k, rng, p.x + (j - 1) * p.w * 0.3, p.y + 0.62, p.z, rng.range(0.26, 0.36), 26);
-  const fc = rng.pick(FLOWER_COLS);
-  for (let j = 0; j < 9; j++) k.blob(ICO0, null, p.x + rng.range(-p.w / 2, p.w / 2) * 0.85, p.y + rng.range(0.75, 0.95), p.z + rng.range(-0.12, 0.12), 0.035, 0.028, 0.035, { wash: fc, line: 0, accent: true, emit: 0.05 });
-}
 
 /**
  * A tea table (a round top on a pedestal, a cloth, a pot and cups) where a mahjong table stood: its ~1 900 vertices of

@@ -9,9 +9,8 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { GUARD_Z0, PARAPET } from '../models/wellBalustrade';
-import { stairColliders, stairFloor } from './stairstreet';
-import { wellColliders, wellFloor } from './well';
-import { RIM } from './well-plan';
+import { stairColliders, stairFloor } from './stairPlan';
+import { RIM, wellColliders, wellFloor } from './wellBounds';
 import { SLAB, span, squareFloor } from './floorRows';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
@@ -32,7 +31,7 @@ export interface FragmentColliders {
 
 /** a building front's depth behind its line (it is a solid block to the map; the player never reaches its back) */
 const DEEP = 6;
-/** how far the shopfronts' pillars and counters stand proud of their front's line (world/facades.ts `shopfronts`) */
+/** how far the shopfronts' pillars and counters stand proud of their front's line (generators/facades.ts `shopfronts`) */
 const SHOP = 0.6;
 
 export function fragmentColliders(): FragmentColliders {
@@ -51,7 +50,7 @@ export function fragmentColliders(): FragmentColliders {
   // the Well's south rim at the square's level (dome C's well.ts: its ledge, balustrade + parapet, the wall ends)
   out.push(...wellColliders());
   // ── the building fronts round the square (the shopfronts sit on these lines; each collides from SHOP proud of its line,
-  // where the shopfronts' pillars and counters stand, world/facades.ts, so nobody, and no camera, walks into them) ──
+  // where the shopfronts' pillars and counters stand, generators/facades.ts, so nobody, and no camera, walks into them) ──
   out = fronts;
   const top = Y0 + WALL_H;
   out.push(span(PLAZA.x1 + 0.6 - SHOP, Y0, PLAZA.z0 - 0.6, PLAZA.x1 + DEEP, top, STAIR.z0));            // east, north of the stair

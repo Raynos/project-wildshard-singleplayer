@@ -1,6 +1,6 @@
 /**
  * The stone crossings' posts (dome B2, E169; E346): what stands along the arched stone bridges and the gate bridges over
- * the Yamen Well (../world/well-bridges.ts). Both are drawn into their crossing's kit (one merged mesh per region, the
+ * the Yamen Well (../world/wellParts.ts). Both are drawn into their crossing's kit (one merged mesh per region, the
  * neon spill baked in), so a post costs no draw of its own; the world records each where it stands and build.ts
  * registers them there (`place` with `drawnInto`). Neither collides: the deck's rail walls hold the walker in
  * (well-bridges.ts `deckColliders`). Built here alone, their foot on the origin, for the Model Explorer:
@@ -12,7 +12,7 @@
  */
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { Kit } from '../world/kit';
-import { lampPostStone, lotusPost } from '../world/well-bridges';
+import { lampPostStone, lotusPost } from '../world/wellParts';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/bridgePosts.ts';

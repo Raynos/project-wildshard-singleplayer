@@ -9,12 +9,11 @@
 import { BufferAttribute, type BufferGeometry, type Color, Float16BufferAttribute, type Matrix4, type Vector3 } from 'three';
 import { Ctx } from '../world/ctx';
 import { Kit } from '../world/kit';
-import { buildSquare } from '../world/square';
-import { buildTowers } from '../world/towers';
-import { buildWell } from '../world/well';
-import { crossingColliders } from '../world/well-mid';
+import { buildSquare } from './square';
+import { buildTowers } from './towers';
+import { buildWell } from './well';
 import { peekQueued, restoreQueued } from '../world/props3d';
-import { wellSheets } from '../world/well-lower';
+import { crossingColliders, wellSheets } from '../world/wellBounds';
 import { banyanOut } from '../world/banyan';
 import { type SignPlace, type SignSink, signBoard, signSize } from '../look/signs';
 import { NeonSigns } from '../look/neonsigns';

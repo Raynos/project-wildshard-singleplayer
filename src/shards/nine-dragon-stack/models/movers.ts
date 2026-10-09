@@ -6,8 +6,7 @@
  */
 import { Mesh, Vector3 } from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { droneKit, trainKit } from '../world/towers';
-import { gondolaCabin as gondolaKit } from '../world/well-bridges';
+import { droneKit, gondolaCabin as gondolaKit, trainKit } from '../world/moverKits';
 import { SignBuilder } from '../look/signs';
 import { ndLook, need } from '../world/modelLook';
 

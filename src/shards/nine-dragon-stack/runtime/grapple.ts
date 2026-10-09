@@ -14,7 +14,7 @@ export const GRAPPLE_AIM = 'nine-dragon-stack.fei-zhua.aim';
 /** The client Player's eye over the feet (Player.ts EYE) and the phone's portrait view: Nine's portrait FOV (manifest.ts
  *  `camera.portraitFov`, Hor+ on the iPhone 16 Pro's 402 × 874 CSS px). */
 const EYE = 1.68, ASPECT = 402 / 874, PORTRAIT_FOV = 78;
-/** The Well's south rim line (world/well-plan.ts `RIM.z0`; that module is renderer-bound, a test holds the two equal). */
+/** The Well's south rim line (world/wellBounds.ts `RIM.z0`; that module is renderer-bound, a test holds the two equal). */
 export const RIM_Z = 11.2;
 
 /** One tick's grapple input, filled by the caller: the LOCK press, the JUMP press, and the aim's pitch when the commands set it. */

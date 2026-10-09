@@ -16,11 +16,8 @@ import { SURF } from '../look/paint';
 import { FLOOR_H } from './well-galleries';
 import { dressLower } from './well-lower-life';
 import { deepTemple, ghostLevels } from './well-lower-deep';
-import { type BandKits, CROSSINGS, LOW, SPLIT, WELL_RECTS, type WallPlan, type WellPlan, wallPlan } from './well-plan';
-
-/** the fog sheets' heights (build.ts draws them across the shaft; each one twice, the second 5 m lower). None: the
- *  sheets read as an opaque pale floor down the shaft; the render lane's layered shaft mist does the depth fade */
-export const wellSheets: { y: number; band: number; a: number }[] = [];
+import { type BandKits, CROSSINGS, LOW, SPLIT, type WallPlan, type WellPlan, wallPlan } from './well-plan';
+import { WELL_RECTS } from '../world/wellBounds';
 
 /** band B's floors and the ghosts under it */
 const B_TOP = LOW - FLOOR_H, B_FLOORS = 12, GHOST_TOP = B_TOP - B_FLOORS * FLOOR_H, GHOST_FLOORS = 12;

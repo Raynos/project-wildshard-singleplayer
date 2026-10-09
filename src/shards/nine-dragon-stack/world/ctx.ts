@@ -3,7 +3,7 @@
 import { type Box3, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
 import type { Emitter } from '../look/emitters';
-import { Dressing } from './facade/grammar';
+import { Dressing } from './facade/dressing';
 import { KitX } from './hero/kitx';
 import type { SignSink } from '../look/signs';
 import { Rng } from '@wildshard/engine/core/rng';

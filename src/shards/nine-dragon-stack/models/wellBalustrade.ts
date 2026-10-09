@@ -1,6 +1,6 @@
 /**
  * The Well's balustrade (E281; E346): the heavy stone balustrade along Lantern Square's and its street's edge over the
- * Yamen Well — a plinth, chunky posts under square cap slabs, the panel wall, a top rail (../world/square.ts
+ * Yamen Well — a plinth, chunky posts under square cap slabs, the panel wall, a top rail (../world/squareParts.ts
  * `balustrade`, its two runs `WELL_RUNS`). It is placed once, drawn into the square cluster's kit (one merged mesh, the
  * neon spill baked in), so it costs no draw of its own; the world records the copy where it stands and build.ts
  * registers it there (`place` with `drawnInto`). Its carved panel faces, its lotus-bud finials and its guardian lions
@@ -17,8 +17,8 @@ import { defineModel } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { PLAZA, WELL, Y0 } from '../layout';
 import { Kit } from '../world/kit';
-import { WELL_BALUSTRADE_AT, WELL_RUNS, balustrade } from '../world/square';
-import { RIM } from '../world/well-plan';
+import { WELL_BALUSTRADE_AT, WELL_RUNS, balustrade } from '../world/squareParts';
+import { RIM } from '../world/wellBounds';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/wellBalustrade.ts';

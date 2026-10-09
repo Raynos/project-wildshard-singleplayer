@@ -16,12 +16,13 @@
 // ~25–45-tri kit figures, the lanterns 20-tri kit ones (their light is a baked emitter, not the 348-tri paper mesh
 // every view draws), plants / air-con / cages / tanks are kit boxes, not the always-drawn instanced pieces.
 import { Color, IcosahedronGeometry, Matrix4, Vector3, Vector4 } from 'three';
-import type { Ctx } from './ctx';
-import { E, K, type Kit, type Look } from './kit';
+import type { Ctx } from '../world/ctx';
+import { E, K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
 import { NEONS } from './towers';
-import { WORDS } from './words';
-import { hungLine } from './props';
+import { WORDS } from '../world/words';
+import { hungLine } from '../world/props';
+import { laundryLine, laundryPole } from '../world/wellParts';
 import { Y0 } from '../layout';
 import { Rng } from '@wildshard/engine/core/rng';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
@@ -36,7 +37,6 @@ const WARM = [0xffc98a, 0xffbf78, 0xffd6a2, 0xf6b070, 0xffcd96] as const;
 const POD_WALL = [0x8a8378, 0x7c7f86, 0x9a9690, 0x6f5a46, 0x7e8a86, 0x8e8272, 0x6d7a8c] as const;
 const BLOCK_WALL = [0x8d96a3, 0x838c9b, 0x979b9e, 0x7f8794, 0x978d80, 0x8a9390, 0x9e9a92, 0x8f8478] as const;
 const ROOF = [0x5c6168, 0x6f747c, 0x7c6a58, 0x5a5f66, 0x6a6e76, 0x2f8a6a, 0x7c6a58, 0x6b5a4c, 0x55504a] as const;
-const CLOTHES = [0xeceae2, 0x6f9ccf, 0xc23b22, 0xd9a441, 0xe8dfc9, 0x2e5fa3, 0x7fbf9a] as const;
 const STEEL: Look = { wash: 0x2a2c31, line: 0.9 };
 const RED_RAIL: Look = { wash: 0x8e2c1f, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer };
 const RED_POST: Look = { wash: 0x9c3627, line: 1, accent: true, surf: SURF.lacquer };
@@ -133,35 +133,10 @@ function kitPole(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, uu: number, y: n
   hungLine(ctx, k, v0, a, b, 'pole');
 }
 
-/** a pole from a (on the wall) to b, things pegged on across `n` (the wall's normal) */
-export function laundryPole(k: Kit, rng: Rng, a: Vector3, b: Vector3, n: Vector3): void {
-  k.beam(a, b, 0.035, 0.035, { wash: 0x8a7a55, line: 0.6 });
-  for (let t = 0.2; t < 0.9; t += rng.range(0.25, 0.4)) {
-    const p = a.clone().lerp(b, t);
-    const h = rng.range(0.45, 0.9);
-    k.quad(p.clone().add(new Vector3(0, -h, 0)), n, UP, rng.range(0.3, 0.5), h, { wash: rng.pick(CLOTHES), kind: K.cloth, row: rng.chance(0.3) ? 1 : 0, col: 0.1, line: 0.6, accent: true });
-  }
-}
-
 /** a laundry line strung along a front from a to b (a wire and 3–5 pieces): a laundry line model's copy */
 function kitLine(ctx: Ctx, k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
   const v0 = k.vertexCount;
   if (laundryLine(k, rng, a, b)) hungLine(ctx, k, v0, a, b, 'lower');
-}
-
-/** the lower Well's laundry line from a to b; false (nothing drawn) when shorter than 0.8 m */
-export function laundryLine(k: Kit, rng: Rng, a: Vector3, b: Vector3): boolean {
-  const L = a.distanceTo(b);
-  if (L < 0.8) return false;
-  const sag = (t: number): Vector3 => a.clone().lerp(b, t).add(new Vector3(0, -L * 0.24 * t * (1 - t), 0));
-  for (let i = 0; i < 3; i++) k.beam(sag(i / 3), sag((i + 1) / 3), 0.015, 0.015, { wash: 0x2a2c31, line: 0.4 });
-  const d = new Vector3().subVectors(b, a).setY(0).normalize();
-  for (let t = rng.range(0.05, 0.15); t < 0.88;) {
-    const w = rng.range(0.4, 0.9), h = rng.range(0.5, 1.0);
-    k.quad(sag(t).add(new Vector3(0, -h, 0)), d, UP, w, h, { wash: rng.pick(CLOTHES), kind: K.cloth, row: rng.chance(0.3) ? 1 : 0, col: 0.12, line: 0.7, accent: true });
-    t += (w + rng.range(0.1, 0.35)) / L;
-  }
-  return true;
 }
 
 /** a water tank on its stand (~40 tris) */

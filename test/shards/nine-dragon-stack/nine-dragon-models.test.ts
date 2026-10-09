@@ -26,9 +26,9 @@ import { landingPlanterModel } from '../../../src/shards/nine-dragon-stack/model
 import { GUARD_Z0, PARAPET, WELL_BALUSTRADE_COLLIDERS, wellBalustrade } from '../../../src/shards/nine-dragon-stack/models/wellBalustrade';
 import { lampPostModel, lotusPostModel } from '../../../src/shards/nine-dragon-stack/models/bridgePosts';
 import { GATE, PLAZA, WELL, Y0 } from '../../../src/shards/nine-dragon-stack/layout';
-import { STAIR_GATE } from '../../../src/shards/nine-dragon-stack/world/stairstreet';
-import { WELL_BALUSTRADE_AT } from '../../../src/shards/nine-dragon-stack/world/square';
-import { RIM } from '../../../src/shards/nine-dragon-stack/world/well-plan';
+import { STAIR_GATE } from '../../../src/shards/nine-dragon-stack/world/stairPlan';
+import { WELL_BALUSTRADE_AT } from '../../../src/shards/nine-dragon-stack/world/squareParts';
+import { RIM } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { placeCollider, poseOf } from '../../../src/engine/models/colliders';
 import type { ColliderDesc } from '../../../src/engine/world/registry';
 

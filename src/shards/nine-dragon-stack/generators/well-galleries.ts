@@ -7,12 +7,12 @@
 // rim, the kit's procedural facade deeper down), and its life — lanterns, people at the rail, laundry, plants, air-con
 // units, neon blade signs hung out into the canyon so they read along it.
 import { Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { Ctx } from './ctx';
-import { E, K, type Kit, type Look } from './kit';
+import type { Ctx } from '../world/ctx';
+import { E, K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
-import { laundry, stool } from './props';
+import { laundry, stool } from '../world/props';
 import { NEONS } from './towers';
-import { WORDS } from './words';
+import { WORDS } from '../world/words';
 import { Y0 } from '../layout';
 import { Rng } from '@wildshard/engine/core/rng';
 

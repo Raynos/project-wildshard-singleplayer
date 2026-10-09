@@ -16,7 +16,7 @@
 import { Vector3 } from 'three';
 import { Kit } from '../world/kit';
 import { type HookSink, dragonHook, person, scooter, stool } from '../world/props';
-import { mahjongTable } from '../world/square';
+import { mahjongTable } from '../world/squareParts';
 import { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelContext, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
 import { ndLook, need } from '../world/modelLook';

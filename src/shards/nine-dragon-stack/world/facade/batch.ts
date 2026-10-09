@@ -9,7 +9,7 @@ import { type InstancedCuller, type Placed, place } from '@wildshard/engine/mode
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
 import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, type Object3D, PlaneGeometry, type ShaderMaterial } from 'three';
 import type { Builder } from './geo';
-import type { Dressing } from './grammar';
+import type { Dressing } from './dressing';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import { BAKED, DRAWN_AS, PIECES, SMALL, type PieceId } from './pieces';
 import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';

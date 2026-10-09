@@ -1,7 +1,7 @@
 /**
  * The laundry line (E306 / E315 second pass): washing hung out over the Well — a sagging wire strung between a gallery's
  * posts with shirts and sheets pegged on (../world/props.ts `laundry`), the lower Well's shorter lines along a front
- * (../world/well-lower-life.ts `laundryLine`), and a bamboo pole out from a bare wall (`laundryPole`). Each copy is drawn
+ * (../world/wellParts.ts `laundryLine`), and a bamboo pole out from a bare wall (`laundryPole`). Each copy is drawn
  * into its band's kit (one merged mesh a band, the neon spill baked in), its washing drawn from the band's random stream,
  * and recorded where it hangs (`hungLine`: at its first end, turned so its own +x runs to the other); build.ts registers
  * them there (`place` with `drawnInto`). A copy's params are its span and rise. Built here alone for the Model Explorer,
@@ -10,7 +10,7 @@
 import { Vector3 } from 'three';
 import { Kit } from '../world/kit';
 import { type LaundryKind, laundry } from '../world/props';
-import { laundryLine as lowerLine, laundryPole } from '../world/well-lower-life';
+import { laundryLine as lowerLine, laundryPole } from '../world/wellParts';
 import { ndLook, need } from '../world/modelLook';
 import { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelVariant } from '@wildshard/engine/models/model';

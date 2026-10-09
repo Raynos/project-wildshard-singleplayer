@@ -2,17 +2,19 @@
 // the skybridges, the hanging monorail (a train passes), the Cable Deck whose underside is an LED sky screen playing a
 // painted 青绿 landscape, the Crown's antenna forest against the one strip of real sky, cargo drones.
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
-import type { Ctx } from './ctx';
+import type { Ctx } from '../world/ctx';
 import { shopfronts } from './facades';
-import { type DressOptions, Dressing, dressTower, dressWall, spanStreet } from './facade/grammar';
-import type { PieceId } from './facade/pieces';
-import { K, Kit, type Look } from './kit';
+import { type DressOptions, dressTower, dressWall, spanStreet } from './facadeGrammar';
+import { Dressing } from '../world/facade/dressing';
+import type { PieceId } from '../world/facade/pieces';
+import { K, type Kit, type Look } from '../world/kit';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
-import { dragonHook, person } from './props';
+import { dragonHook, person } from '../world/props';
 import { lanternString } from '../look/lanterns';
-import { hipRoof } from './square';
-import { WORDS } from './words';
-import { SQ_DEPTH, buildStairStreet } from './stairstreet';
+import { hipRoof } from '../world/squareParts';
+import { WORDS } from '../world/words';
+import { buildStairStreet } from './stairstreet';
+import { SQ_DEPTH } from '../world/stairPlan';
 import { buildStairUpper } from './stairstreet-upper';
 import { NEON, chars } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -153,21 +155,6 @@ function monorail(ctx: Ctx): void {
   }
 }
 
-/** the train (its own mesh; main.ts slides it along x) */
-export function trainKit(): Kit {
-  const k = new Kit();
-  const cars = 4, carL = 13;
-  for (let i = 0; i < cars; i++) {
-    const x = i * (carL + 0.6);
-    k.box(x, -4.1, 0, carL, 2.9, 2.7, { wash: 0x6a717c, line: 1.2 }, { top: { wash: 0x565c66, line: 1 } });
-    k.box(x, -3.1, 0, carL - 0.8, 0.9, 2.74, { wash: 0xffd9a0, emit: 0.3, kind: K.facade, row: 0.9, col: 1.4, seed: 7 + i, line: 1, accent: true });
-    k.box(x, -4.05, 0, carL + 0.02, 0.28, 2.76, { wash: 0xc23b22, line: 1, accent: true });
-    k.box(x, -1.2, 0, 2.2, 0.6, 1.4, { wash: 0x5c626c, line: 1 });
-  }
-  k.box(-carL / 2 - 0.05, -3.4, 0, 0.1, 0.35, 1.8, { wash: 0xfff6e0, emit: 4, line: 0.6, accent: true });
-  return k;
-}
-
 /** the Cable Deck (stratum 7) over the north of the square: its underside is the painted sky screen */
 function cableDeck(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('deck', true);
@@ -235,19 +222,6 @@ function crown(ctx: Ctx, rng: Rng): void {
     }
     for (let j = rng.int(2, 6); j > 0; j--) put('antenna', new Vector3(x + rng.range(-rw, rw), top, z + rng.range(-rd, rd)), new Vector3(1, 0, 0), 1.6, rng.range(4, 11), 1.6, 0xffffff);
   }
-}
-
-/** a cargo drone (its own mesh; main.ts flies it): body, rotor arms, a slung crate, blinking beacons */
-export function droneKit(): Kit {
-  const k = new Kit();
-  k.box(0, 0, 0, 1.6, 0.5, 1.6, { wash: 0x2a2c31, line: 1 });
-  for (const [dx, dz] of [[1.3, 1.3], [-1.3, 1.3], [1.3, -1.3], [-1.3, -1.3]] as const) {
-    k.beam(new Vector3(0, 0.3, 0), new Vector3(dx, 0.4, dz), 0.12, 0.12, { wash: 0x2a2c31, line: 0.8 });
-    k.cyl(dx, 0.42, dz, 0.75, 0.75, 0.04, 12, { wash: 0x55595f, line: 1 });
-  }
-  k.beam(new Vector3(0, 0, 0), new Vector3(0, -1.6, 0), 0.03, 0.03, { wash: 0x2a2c31, line: 0.5 });
-  k.box(0, -2.6, 0, 1.3, 1.0, 1.0, { wash: 0xd9a441, line: 1, accent: true });
-  return k;
 }
 
 /** the lantern street south out of the square's south-west corner (E281 round 2, A1·7): x, and its far end */

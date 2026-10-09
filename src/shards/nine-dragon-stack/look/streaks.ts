@@ -285,7 +285,7 @@ const STAIR_GAIN = 1.3;
  *  runs are thin and broken: mockup C's three or four narrow stripes up the flight, every tread edge readable */
 const STAIR_WIDTH = 0.12, STAIR_DASH = 0.8;
 
-/** the stair-street's flights and landings, as world/stairstreet.ts exports them */
+/** the stair-street's flights and landings, as world/stairPlan.ts exports them */
 export interface StairPlan {
   flights: readonly { x0: number; x1: number; y0: number }[];
   landings: readonly { x0: number; x1: number; y: number }[];

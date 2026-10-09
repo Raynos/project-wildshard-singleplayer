@@ -7,20 +7,20 @@
 // receding into the silk mist like the rungs of a ladder, so each crossing's detail steps down with its distance from
 // the rim and from dome B2's anchor (the timber bridge 6 m under the rim at z −21).
 import { Vector3 } from 'three';
-import { spanStreet } from './facade/grammar';
-import { E, K, type Kit, type Look } from './kit';
+import { spanStreet } from './facadeGrammar';
+import { E, K, type Kit, type Look } from '../world/kit';
 import { WELL, Y0 } from '../layout';
-import { dragonHook } from './props';
+import { dragonHook } from '../world/props';
 import { NEONS } from './towers';
-import { WORDS } from './words';
+import { WORDS } from '../world/words';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
-import type { Ctx } from './ctx';
-import { type BandKits, CABLE, CROSSINGS, type Crossing, DECK_TOP, EXT, FAR, LOW, type WellPlan, snapFloor } from './well-plan';
+import type { Ctx } from '../world/ctx';
+import { type BandKits, CROSSINGS, type Crossing, DECK_TOP, LOW, type WellPlan, snapFloor } from './well-plan';
+import { CABLE, CROSSING_COLLIDERS, EXT, FAR } from '../world/wellBounds';
 import { ghostLevels } from './well-lower-deep';
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
@@ -92,12 +92,6 @@ const X_LOW = Y0 - 42;
 /** where the run north's walls stop, as painted shells, deep in the silk (dome D2: the views north and down) */
 const SHELL_BOTTOM = -40;
 
-const COLLIDERS: ColliderDesc[] = [];
-/** the crossings' collision (deck slabs following each deck, rail walls, the far run's walls; the gate bridges' paifang posts are the paifang model's, E346); filled by `buildWell` */
-export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
-/** the crossings' collision as the layout bake recorded it (world/layoutBake.ts), in place of `buildWell`'s */
-export function restoreCrossingColliders(list: readonly ColliderDesc[]): void { COLLIDERS.length = 0; COLLIDERS.push(...list); }
-
 /**
  * (F4, round 2: mockup B's "crossings like ladder rungs receding into the mist to the far gate") the run north goes on
  * past the Cable Deck's edge (z −104) to FAR.z0, open to the sky, at the far LOD: a painted back wall to the canyon's
@@ -127,7 +121,7 @@ function farRun(ctx: Ctx, kit: (y: number) => Kit): void {
   // a walk off a far rung's end stays in the canyon (the bounds' soft respawn catches the fall) instead of passing
   // through the paint into the street's underside or past the level's edge
   const y0 = Y0 - 104, h = top - y0, cy = y0 + h / 2, surface = 'stone' as const;
-  COLLIDERS.push(
+  CROSSING_COLLIDERS.push(
     { kind: 'box', x: FAR.x0 - 0.5, y: cy, z: (FAR.z0 + FAR.z1) / 2, hx: 0.5, hy: h / 2, hz: (FAR.z1 - FAR.z0) / 2 + 1, surface },
     { kind: 'box', x: FAR.x1 + 0.5, y: cy, z: (FAR.z0 + FAR.z1) / 2, hx: 0.5, hy: h / 2, hz: (FAR.z1 - FAR.z0) / 2 + 1, surface },
     { kind: 'box', x: (FAR.x0 + FAR.x1) / 2, y: cy, z: FAR.z0 - 0.5, hx: (FAR.x1 - FAR.x0) / 2 + 1, hy: h / 2, hz: 0.5, surface },
@@ -139,7 +133,6 @@ function regionKits(ctx: Ctx): { main: Kit; ext: Kit; at: (z: number) => Kit; al
   const main = ctx.kit('well-c-main'), ext = ctx.kit('well-c-ext');
   return { main, ext, at: (z) => (z > WELL.z0 ? main : ext), alpha: ctx.alpha('well-c-a') };
 }
-
 
 /** a string of paper lanterns on a sagging wire from a to b, one every `spacing` m */
 function lanternLine(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number, scale = 0.62, cordSegs = 0): void {
@@ -156,7 +149,7 @@ function lanternLine(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number, 
 export function buildMid(plan: WellPlan): void {
   const ctx = plan.ctx;
   const rng = new Rng(157);
-  COLLIDERS.length = 0;
+  CROSSING_COLLIDERS.length = 0;
   // ── the run north's walls and the stub, top to bottom, stair flights down their fronts ──
   // (the lane's budget, art/nine-dragon-stack/budget.md: ≤ 16 draws, ≤ 0.35 M tris — so few, big kits: the run north's
   // walls in two, the crossings by region, one alpha kit, one for both gates. The run north's galleries stop at
@@ -187,7 +180,7 @@ export function buildMid(plan: WellPlan): void {
     const anchor = c.z === ANCHOR.z && c.y === ANCHOR.y;
     // (far walkers are a ~220-triangle LOD: the far crossings carry twice the plan's people, so each rung has its crowd)
     const crowd = anchor || lod >= 1 ? c.crowd * 2 : c.crowd;
-    COLLIDERS.push(...bridge(ctx, k, KC.alpha, kx, {
+    CROSSING_COLLIDERS.push(...bridge(ctx, k, KC.alpha, kx, {
       kind: c.kind, z: c.z, y: c.y, x0: fw, x1: fe, w: c.w, seed: 9000 + Math.round((c.z + 200) * 7 + c.y * 13), crowd, lod,
       ax0: Math.max(fw, aw), ax1: Math.min(fe, ae), top0: Math.max(fw, tw), top1: Math.min(fe, te),
       ...(anchor ? { clear: ANCHOR.x } : {}),

@@ -6,7 +6,7 @@
  * stands (models/inKit.ts's way, `drawnInto`). Its variants are three: the square's cinnabar and gold gate with bare
  * lacquer posts (E281, 14 m to the ridge beasts), the stair's lower one, and the gate bridges' in the hero lab's mineral
  * blue-greens with its paper couplets (the run north's far gate bridge, ~100 m from the rim, draws that one in outline:
- * ../world/well-bridges.ts `farGate`). Built here in its own space (the centre bay on the origin, the gate across x) for
+ * ../generators/well-bridges.ts `farGate`). Built here in its own space (the centre bay on the origin, the gate across x) for
  * the Model Explorer, without its plaque's calligraphy, couplets' text and lanterns — those are signs and paper lanterns.
  * Every copy's posts collide as the model's own (E346): the square's and the gate bridges' lacquered posts, the stair's
  * post bases with their drum stones.
@@ -50,8 +50,8 @@ export const paifang = defineModel<PaifangParams>({
 });
 
 /**
- * A gate's posts in its own space (E346: they were the stair's and the crossings' boxes, world/stairstreet.ts and
- * world/well-bridges.ts): the square's and the gate bridges' lacquered posts, 0.9 m square and 7 m up; the stair's post
+ * A gate's posts in its own space (E346: they were the stair's and the crossings' boxes, generators/stairstreet.ts and
+ * generators/well-bridges.ts): the square's and the gate bridges' lacquered posts, 0.9 m square and 7 m up; the stair's post
  * bases with their drum stones, 1.4 × 2.8 m (× its scale) and 9 m up, stone. The placement turns them with the gate (the
  * stair's spans the stair: its copy is turned −90°).
  */

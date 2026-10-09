@@ -6,8 +6,8 @@
 //                 doors, a two-tier green-glazed roof, dark trees round it and a ring of lanterns — the glow the
 //                 mockup's view down ends on, dissolving in the silk.
 import { IcosahedronGeometry, Vector3 } from 'three';
-import type { Ctx } from './ctx';
-import { E, K, type Kit, type Look } from './kit';
+import type { Ctx } from '../world/ctx';
+import { E, K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
 import { Rng } from '@wildshard/engine/core/rng';
 import { FLOOR_H } from './well-galleries';
