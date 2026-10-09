@@ -190,14 +190,17 @@ function play(session: Session, tape: SignalTape, until: (host: SimHost) => bool
 
 export async function headlessProof(rapier: Rapier): Promise<object> {
   const plan = await signalPlan(rapier), session = boot(plan, rapier), tape = new SignalTape();
+  let blows = 0, shoved = 0;
+  // observation only: how many creature blows landed on the player, and how many ticks a knockback was running
+  session.host.events.on('damage.dealt', ({ req }) => { if (req.target === session.host.player.health && req.sourceTags.includes('feel.blow')) blows++; }, session.host.scope);
   try {
-    const { victoryTick } = play(session, tape), host = session.host, done = encounter(host);
+    const { victoryTick } = play(session, tape, host => { if (host.playerShove.t > 0) shoved++; return false; }), host = session.host, done = encounter(host);
     const quest = host.quests.find(q => q.def.id === 'sunscar.signal');
     if (victoryTick === null || done.state !== 'victory' || !tape.walked || quest?.isComplete !== true) throw new Error('No gameplay victory');
     const entries = requireValue(plan.proveEntries, 'Missing entry proof')(host);
     if (entries.lanes < 1 || entries.steps < 1) throw new Error('Empty entry proof');
     return { status: 'passed', ticksExecuted: host.state.tick, hash: digest(host), victoryTick, attempts: done.attempts, questComplete: true,
-      facts: facts(session.effects), coins: coins(session.effects), entries };
+      facts: facts(session.effects), coins: coins(session.effects), blows, shovedTicks: shoved, entries };
   } finally { session.host.dispose(); }
 }
 

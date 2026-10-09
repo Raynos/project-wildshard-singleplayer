@@ -1,7 +1,7 @@
 {
   "audit": {
-    "sourceRevision": "2434193f659d6bab02e2622a317c1288c53e7249",
-    "candidate": "this commit (the SF72 witness flip on that revision)",
+    "sourceRevision": "79687f85b127583782c9766d0d48c027a79f7abd",
+    "candidate": "this commit (Signal creature blows knock back, feel.blow, on that revision)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
     "exitStatus": 0,
     "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, byte-exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
@@ -12,9 +12,9 @@
   "compatible": true,
   "headless": {
     "status": "passed",
-    "ticksExecuted": 12318,
-    "hash": "60e955aada4e74446b7892bac80b76e726d3c617537b5b1bc45a1ad544696b80",
-    "victoryTick": 12198,
+    "ticksExecuted": 12636,
+    "hash": "b8a9fefdbd92d3160df0331ce4aa907a4b07d4af2dcd5ac534563d8fa7b34f95",
+    "victoryTick": 12516,
     "attempts": 1,
     "questComplete": true,
     "facts": [
@@ -22,6 +22,8 @@
       "sunscar.matriarch"
     ],
     "coins": 25,
+    "blows": 15,
+    "shovedTicks": 165,
     "entries": {
       "lanes": 92,
       "steps": 46095
@@ -30,17 +32,17 @@
   "replay": {
     "status": "passed",
     "checkpointCaptured": true,
-    "checkpointTick": 10620,
+    "checkpointTick": 10710,
     "checkpoint": {
       "state": "fight",
       "phase": 1,
-      "storm": 0.7,
+      "storm": 0.62,
       "hp": 396
     },
-    "suffixTicksExecuted": 1698,
-    "victoryTick": 12198,
-    "hash": "9142e402b82f63c8a618a704ccae4392f16383211c7a0d66e9785a85da2600e3",
-    "replayHash": "9142e402b82f63c8a618a704ccae4392f16383211c7a0d66e9785a85da2600e3",
+    "suffixTicksExecuted": 1926,
+    "victoryTick": 12516,
+    "hash": "fbee75753bf985e1f5eef59a6e765ab68537c59c44a46402edab0eda8fb72feb",
+    "replayHash": "fbee75753bf985e1f5eef59a6e765ab68537c59c44a46402edab0eda8fb72feb",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [
@@ -56,13 +58,13 @@
       {
         "name": "sunscar.signal",
         "origin": "engine.quest.complete",
-        "tick": 12198,
+        "tick": 12516,
         "entity": "actor.player"
       },
       {
         "name": "sunscar.matriarch",
         "origin": "engine.encounter.victory",
-        "tick": 12198,
+        "tick": 12516,
         "entity": "sunscar.matriarch"
       }
     ],

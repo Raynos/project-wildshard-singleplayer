@@ -70,8 +70,9 @@ baked pieces, the 13 declared homes (1 dune ray, 10 sand skitterers, 2 dune stri
 stream and respawn clocks, the whip as its declared item row (contact on the head ball / body capsule, then the lane:
 the browser whip's rule, `weapons/lash.ts`), the signal quest and interactions on `host.flags`, the Matriarch's
 encounter on `BossBrain` with her body in the creature keeper, and the entry proof (92 lanes on the native terrain).
-Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,198,
-past the 10,000-tick floor); her storm-phase checkpoint restores byte-exactly, the 1,698-tick suffix to her fall
+Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,516,
+past the 10,000-tick floor), taking 15 creature blows that knock the player back as the browser's do (`feel.blow`,
+the host's shared shove law); her storm-phase checkpoint restores byte-exactly, the 1,926-tick suffix to her fall
 hashes identically, and the source-checkout worker started from the same checkpoint commits the same 60th-tick bytes; both
 facts reach the durable `Ledger` once under their declared provenance and a restore re-emits nothing. Known, documented
 gaps (not modelled headless): prompt line of sight, a crack command not spending the whip's cooldown, the browser
