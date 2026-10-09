@@ -2007,7 +2007,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2255 exports, grouped by the module to import them from.
+2256 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2160,6 +2160,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalPoseSample`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
 - `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/eliteBrain`: `eliteAct`, `eliteDamageMul`, `eliteThink`, `setEliteAct`, `setEliteBrain`, `setEliteDamage`
+- `@wildshard/engine/entities/killHeight`: `killBelowWorld`
 - `@wildshard/engine/entities/lowpoly`: `crestSpikes`, `facetGeometry`, `lowPolyMaterials`, `LowPolyMaterials`, `oneMaterial`, `patchEyeGlow`
 - `@wildshard/engine/entities/species/loft`: `boneIndex`, `isLowPoly`, `loft`, `lowPolySides`, `mix`, `Paint`, `paintNoise`, `paletteColors`, `registerToonPaint`, `RGB`, `S`, `setLowPoly`, `setShag`, `setShapeFn`, `skinPlain`, `srgb`, `Station`, `TEX_M`, `toonPaint`, `ToonPaint`, `tube`
 - `@wildshard/engine/entities/species/look`: `CreatureHull`, `EyeSpot`, `SpeciesLook`, `SpeciesService`, `speciesWithLook`

@@ -5327,6 +5327,12 @@
         "from": "@wildshard/engine/entities/eliteBrain"
       },
       {
+        "name": "killBelowWorld",
+        "kind": "function",
+        "doc": "A declared world death plane runs on the body clock; the four original worlds declare none. The one law for a creature",
+        "from": "@wildshard/engine/entities/killHeight"
+      },
+      {
         "name": "crestSpikes",
         "kind": "function",
         "doc": "The boar's dorsal crest as a serrated row of faceted spikes. `pts` are the crest points of species/boar.ts",
