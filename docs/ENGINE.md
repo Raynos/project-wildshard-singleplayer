@@ -2125,7 +2125,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2357 exports, grouped by the module to import them from.
+2358 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2323,7 +2323,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/models/interact`: `glow`, `lit`, `pickup`
 - `@wildshard/engine/models/live`: `listModel`, `ListOptions`, `listRoster`, `live`, `RosterEntry`
 - `@wildshard/engine/models/model`: `ColliderSpec`, `definedModels`, `defineModel`, `ModelBuild`, `ModelBuildVisit`, `modelContext`, `ModelContext`, `ModelDef`, `ModelInfo`, `ModelLod`, `ModelPart`, `ModelPlacementVisit`, `ModelPlacementVisitor`, `ModelVariant`, `paramsOf`, `Placement`, `seedOf`, `withModelPlacementVisitor`
-- `@wildshard/engine/models/place`: `CLAIM_MARGIN`, `claimCopy`, `copiesAt`, `copiesNear`, `cullPlaced`, `Draw`, `DrawnInto`, `finishWeld`, `HandedBatch`, `InstancedCuller`, `PieceOptions`, `place`, `Placed`, `placedCopies`, `placedGroups`, `placementCensus`, `PlacementCensus`, `PlaceOptions`, `rayCopy`, `weld`, `Weld`, `WeldOptions`
+- `@wildshard/engine/models/place`: `CLAIM_MARGIN`, `claimCopy`, `copiesAt`, `copiesNear`, `cullPlaced`, `Draw`, `DrawnInto`, `finishWeld`, `HandedBatch`, `InstancedCuller`, `PieceOptions`, `place`, `Placed`, `placedCopies`, `placedGroups`, `placementCensus`, `PlacementCensus`, `PlaceOptions`, `placeSliced`, `rayCopy`, `weld`, `Weld`, `WeldOptions`
 - `@wildshard/engine/models/roster`: `listShardModels`, `ShardModelsOptions`
 - `@wildshard/engine/models/sets`: `placeSet`, `SetOptions`
 - `@wildshard/engine/models/slots`: `SlotGeometry`, `SlotRange`, `SlotRecorder`
@@ -2700,7 +2700,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-271 exports, grouped by the module to import them from.
+272 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2766,6 +2766,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/sdk/socketLift`: `parseSocketLift`, `SocketLift`, `SocketLiftSchema`
+- `@wildshard/sdk/sourceManifest`: `sourceManifest`
 - `@wildshard/sdk/species`: `species`, `SpeciesData`, `SpeciesSchema`, `strike`, `StrikeData`, `StrikeSchema`
 - `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`

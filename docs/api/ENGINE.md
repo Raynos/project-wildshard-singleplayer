@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2377 members; 842 without a doc line (—).
+2378 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1223,6 +1223,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `placementCensus` | function | @wildshard/engine/models/place | — |
 | `PlacementCensus` | interface | @wildshard/engine/models/place | What placement holds now (SF57's lifetime check): live worlds, model records, registered groups and per-frame cullers. |
 | `PlaceOptions` | interface | @wildshard/engine/models/place | how `place` draws a model's copies: the model context, the draw, merging into cells and culling |
+| `placeSliced` | function | @wildshard/engine/models/place | `place`, in slices (SF67, E461: a builder's one `place` call was a 0.1–0.6 s task at load): at every pause point (after each |
 | `rayCopy` | function | @wildshard/engine/models/place | the nearest of `p`'s copy boxes `ray` enters within `far` (a box it starts inside doesn't count), or null |
 | `weld` | function | @wildshard/engine/models/place | A merge across several models' copies (see `WeldOptions`, ./weld.ts); `finishWeld` once every building is in. |
 | `Weld` | class | @wildshard/engine/models/place | A weld in progress: `weld(…)`, then `place(…, { weld })` per model, then `finishWeld`. |

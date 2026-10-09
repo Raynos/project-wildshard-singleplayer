@@ -7308,6 +7308,12 @@
         "from": "@wildshard/engine/models/place"
       },
       {
+        "name": "placeSliced",
+        "kind": "function",
+        "doc": "`place`, in slices (SF67, E461: a builder's one `place` call was a 0.1–0.6 s task at load): at every pause point (after each",
+        "from": "@wildshard/engine/models/place"
+      },
+      {
         "name": "rayCopy",
         "kind": "function",
         "doc": "the nearest of `p`'s copy boxes `ray` enters within `far` (a box it starts inside doesn't count), or null",
@@ -21306,6 +21312,12 @@
         "kind": "const",
         "doc": "Bounded data-only link from a road socket through an admitted lift to playable ground.",
         "from": "@wildshard/sdk/socketLift"
+      },
+      {
+        "name": "sourceManifest",
+        "kind": "function",
+        "doc": "Map a parsed author's identity and presentation into discovery data without fetching or installing services.",
+        "from": "@wildshard/sdk/sourceManifest"
       },
       {
         "name": "species",

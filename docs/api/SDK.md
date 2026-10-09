@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-277 members; 1 without a doc line (—).
+278 members; 1 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -264,6 +264,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseSocketLift` | function | @wildshard/sdk/socketLift | Validate the lift declaration before building its world and immutable assets. |
 | `SocketLift` | type | @wildshard/sdk/socketLift | The platform resolves mover/gate ids, commands and collision; authors supply no callbacks. |
 | `SocketLiftSchema` | const | @wildshard/sdk/socketLift | Bounded data-only link from a road socket through an admitted lift to playable ground. |
+| `sourceManifest` | function | @wildshard/sdk/sourceManifest | Map a parsed author's identity and presentation into discovery data without fetching or installing services. |
 | `species` | function | @wildshard/sdk/species | Refuse malformed species data before registration, setup draws, actor construction or view creation. |
 | `SpeciesData` | type | @wildshard/sdk/species | Gameplay-only species fields. Native brain, view, parent selection and recipe stay outside the authored row. |
 | `SpeciesSchema` | const | @wildshard/sdk/species | Strict species data, with bounded ordered variants and no native callback fields. |

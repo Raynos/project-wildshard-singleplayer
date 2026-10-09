@@ -73,7 +73,6 @@
     "src/engine/ui/Map.ts": 3,
     "src/engine/ui/Minimap.ts": 3,
     "src/engine/ui/ToastStack.ts": 2,
-    "src/engine/world/shadowChunks.ts": 3,
     "src/game/session/finish.ts": 2,
     "src/game/session/play.ts": 8,
     "src/game/titleDeck.ts": 4,
