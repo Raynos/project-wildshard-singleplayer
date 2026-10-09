@@ -1,7 +1,7 @@
 {
   "audit": {
     "sourceRevision": "704a04d55f67a0794794b466c32c9ed87521896c",
-    "candidate": "this commit (Signal creature blows knock back, feel.blow, on that revision); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts — Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly)",
+    "candidate": "this commit (Signal creature blows knock back, feel.blow, on that revision); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts — Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly); the quest fact re-recorded under the quest id (DeclaredQuests files it as the page's bindRuntimeQuest does)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
     "exitStatus": 0,
     "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
@@ -59,7 +59,7 @@
         "name": "sunscar.signal",
         "origin": "engine.quest.complete",
         "tick": 12516,
-        "entity": "actor.player"
+        "entity": "sunscar.signal"
       },
       {
         "name": "sunscar.matriarch",

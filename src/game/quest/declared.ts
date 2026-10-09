@@ -29,7 +29,7 @@ export function createQuestScriptPorts(lane: Pick<ScriptLane, 'world' | 'enqueue
     scene: (id, actorId) => { const binding = scenes.get(id); if (binding === undefined) throw new Error('Unknown quest scene hook'); lane.enqueue({ type: binding.type, target: target(actorId), value: binding.value }); },
   };
 }
-/** Platform-owned fact/reward ports; authored quests never write the profile or progress store. */
+/** Platform-owned fact/reward ports; authored quests never write the profile or progress store. A quest's fact is filed under the quest's id, coins under the player's. */
 export interface QuestDataPorts {
   script?: QuestScriptPorts;
   fact?: (name: string, entity: string) => void;
@@ -56,7 +56,8 @@ export class DeclaredQuests {
       const state = new QuestState(q, host.flags, host.events, host.scope);
       host.scope.onDispose(state.observe({ complete: () => {
         if (q.onComplete?.scene !== undefined) ports.script?.scene(q.onComplete.scene, host.player.id);
-        if (q.onComplete?.fact !== undefined) ports.fact?.(q.onComplete.fact, host.player.id);
+        // a quest's fact names the quest, as the page's bindRuntimeQuest files it: one ledger key headless and in the browser
+        if (q.onComplete?.fact !== undefined) ports.fact?.(q.onComplete.fact, q.id);
         if ((q.onComplete?.coins ?? 0) > 0) ports.coins?.(q.onComplete?.coins ?? 0, host.player.id);
       } }));
       return state;

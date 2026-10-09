@@ -1,7 +1,7 @@
 {
   "audit": {
     "sourceRevision": "704a04d55f67a0794794b466c32c9ed87521896c",
-    "candidate": "this commit (Sky's whole-tape witness and its checkpointed CI slices, on that revision); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts — Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly)",
+    "candidate": "this commit (Sky's whole-tape witness and its checkpointed CI slices, on that revision); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts — Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly); the quest fact re-recorded under the quest id (DeclaredQuests files it as the page's bindRuntimeQuest does)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/far-reach/run.mjs all",
     "exitStatus": 0,
     "scope": "whole-shard witness on the renderer-free trusted entry: one tape of tick commands only (walk, board, HOVER presses, prompts, GUSTs, fan swings and aim) from the spawn to the Storm Roc's fall, an exact gale-wall-phase restore in process and in the shipping worker, gameplay facts into the durable Ledger; CI runs it in four checkpointed slices (run.mjs slice-*)",
@@ -332,7 +332,7 @@
         "name": "far-reach.quest",
         "origin": "engine.quest.complete",
         "tick": 7928,
-        "entity": "actor.player"
+        "entity": "far.quest"
       },
       {
         "name": "far-reach.roc",
