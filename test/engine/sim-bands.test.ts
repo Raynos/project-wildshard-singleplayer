@@ -210,6 +210,21 @@ describe('SimHost on body bands', () => {
     host.dispose();
   });
 
+  it('runs the body step hooks around each stepping body in the host\'s order, never for a paused one, from one installer', () => {
+    const host = createSimHost(level, { rapier }); install(host); walk(host);
+    const log: string[] = [];
+    host.useBodyStep({ before: (id, body, dt) => { log.push(`b:${id}:${String(Math.round(dt * 60))}:${String(body.position.z > 0)}`); }, after: (id, body) => { log.push(`a:${id}:${String(body.position.z > 0)}`); } });
+    expect(() => { host.useBodyStep({}); }).toThrow(/one installer/u);
+    host.step(); host.step(); host.step();
+    // walker:20 and walker:50 step every tick; walker:100 / 150 ('half') on ticks 1 and 3, the third with both ticks' time;
+    // walker:300 (paused) never
+    const pair = (id: string, dt: number, moved: boolean): string[] => [`b:${id}:${String(dt)}:${String(moved)}`, `a:${id}:true`];
+    expect(log).toEqual([...pair('walker:20', 1, false), ...pair('walker:50', 1, false), ...pair('walker:100', 1, false), ...pair('walker:150', 1, false),
+      ...pair('walker:20', 1, true), ...pair('walker:50', 1, true),
+      ...pair('walker:20', 1, true), ...pair('walker:50', 1, true), ...pair('walker:100', 2, true), ...pair('walker:150', 2, true)]);
+    host.dispose();
+  });
+
   it.each([3, 8, 31])('snapshots at tick %i and restores the exact banded continuation', (checkpoint) => {
     const original = createSimHost(level, { rapier }); install(original); walk(original);
     const command = (t: number) => ({ moveX: 1, moveZ: Math.sin(t / 20), yaw: 0 });

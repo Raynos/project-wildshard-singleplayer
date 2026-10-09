@@ -95,6 +95,13 @@ export interface SimBodyBands {
   physics?: boolean;
 }
 
+/** Hooks around each body's own step (SimHost.useBodyStep), in the host's body order: the page creature manager's per-body
+ *  loop runs a body's `act` right before it moves and its contact checks right after, before the next body acts. */
+export interface SimBodyStep {
+  before?: (id: string, body: AnimalSim, dt: number) => void;
+  after?: (id: string, body: AnimalSim, dt: number) => void;
+}
+
 /** The day clock a host steps: the page's DayCycle (world/dayCycle.ts), read through its usual query surface. */
 type SimDayClock = DayCycleClock & Pick<DayCycle, 'snapshot' | 'restore'> & { readonly spec: Pick<DayCycleSpec, 'units' | 'schedule' | 'dayFraction'> };
 
@@ -183,6 +190,7 @@ export class SimHost {
   private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
   private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; physics: boolean } | undefined;
+  private bodyStep: SimBodyStep | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
   private day: SimDayClock | undefined;
 
@@ -305,6 +313,12 @@ export class SimHost {
     const clocks = new BodyBandClocks(options.rates);
     this.bands = { clocks, rate: options.rate ?? ((body) => body.driven || body.state === 'sidestep' ? 'always' : 'ai'), physics: options.physics ?? true };
     if (this.bands.physics) for (const entity of this.entities.values()) { entity.motor?.dispose(); entity.motor = null; }
+  }
+  /** Wrap every body's step (SimBodyStep), once, by the installer that owns the bodies' brains (restoring too: hooks hold
+   *  no state of the host's). A body that does not step this tick (paused, the off tick of 'half') runs neither hook. */
+  useBodyStep(hooks: SimBodyStep): void {
+    if (this.disposed || this.bodyStep !== undefined) throw new Error('Body step hooks belong to one installer, once');
+    this.bodyStep = hooks;
   }
   /** Whether the host runs on body bands, and with the physics body LOD. */
   get bodyBands(): { physics: boolean } | undefined { return this.bands === undefined ? undefined : { physics: this.bands.physics }; }
@@ -598,8 +612,14 @@ export class SimHost {
     for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
     for (const run of this.callbacks.values()) run(FIXED_STEP, this);
     for (const [id, runner] of this.strikes) this.updateStrike(id, runner);
-    if (bands === undefined) for (const entity of this.entities.values()) entity.step(FIXED_STEP);
-    else for (const [id, entity] of this.entities) { const dt = this.bodyDt(id); if (dt > 0) entity.step(dt); }
+    const hooks = this.bodyStep;
+    for (const [id, entity] of this.entities) {
+      const dt = bands === undefined ? FIXED_STEP : this.bodyDt(id);
+      if (dt <= 0) continue;
+      hooks?.before?.(id, entity, dt);
+      entity.step(dt);
+      hooks?.after?.(id, entity, dt);
+    }
   }
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
   advance(seconds: number, command?: SimCommand): number {
