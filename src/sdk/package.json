@@ -75,7 +75,8 @@
     "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts",
     "./interactions": "./interactions.ts",
     "./compileScript": "./compileScript.ts",
-    "./sourceManifest": "./sourceManifest.ts"
+    "./sourceManifest": "./sourceManifest.ts",
+    "./modelGeometry": "./modelGeometry.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -387,6 +388,10 @@
       "./sourceManifest": {
         "types": "./dist/types/sdk/sourceManifest.d.ts",
         "default": "./dist/sourceManifest.js"
+      },
+      "./modelGeometry": {
+        "types": "./dist/types/sdk/modelGeometry.d.ts",
+        "default": "./dist/modelGeometry.js"
       }
     }
   }
