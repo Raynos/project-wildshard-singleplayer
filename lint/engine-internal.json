@@ -1,5 +1,5 @@
 {
-  "about": "E362 AG6: #engine exports for the game layer and the composition root only (the session, boot, title and installers). wildshard/engine-internal refuses them in src/kit and src/shards; docs/api/ENGINE.md marks them 'game only'. A shard that needs one asks the lead for a ShardContext verb instead.",
+  "about": "E362 AG6: #engine exports for the game layer and the composition root only (the session, boot, title and installers). wildshard/engine-internal refuses them in src/shards; docs/api/ENGINE.md marks them 'game only'. A shard that needs one asks the lead for a ShardContext verb instead.",
   "names": {
     "_applyChunkConstants": "the registry's level constants, applied by the game when the running shard changes",
     "configureLevel": "the game selects the running level",

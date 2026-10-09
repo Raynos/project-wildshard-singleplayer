@@ -8,7 +8,7 @@ import { InputService } from '../src/engine/input/InputService';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { GridWallet, stowGridEquipment, installGridLoadout } from '../src/game/grid/wallet';
 import { installDeclaredItems } from '../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../src/kit/items/declared';
+import { declaredKitItemFamilies } from '../src/game/systems/items/declared';
 import { Ledger } from '../src/game/ledger';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { MemoryStorage } from './setup';

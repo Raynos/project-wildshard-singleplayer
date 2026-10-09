@@ -128,23 +128,10 @@ export function shardLines(root = ROOT) {
     }
     return { publicCode, trusted };
   };
-  const kitUsers = new Map();
-  for (const [slug, files] of Object.entries(shardFiles)) {
-    const seen = new Set(), queue = files.filter((path) => !ignored(path));
-    while (queue.length > 0) {
-      const path = queue.pop();
-      if (seen.has(path)) continue;
-      seen.add(path);
-      if (path.startsWith('src/kit/')) {
-        if (!kitUsers.has(path)) kitUsers.set(path, new Set());
-        kitUsers.get(path).add(slug);
-      }
-      for (const edge of graph(path)) if (!edge.sdk && edge.to !== null) queue.push(edge.to);
-    }
-  }
+  // SF54 dissolved the kit, so no shard-unique kit lines remain to count as custom (the former kit-only column).
   const out = {};
   for (const [slug, files] of Object.entries(shardFiles)) {
-    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, uniqueKitLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 } };
+    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 } };
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       // Keep the historical physical TS-only comparison explicitly separate from the current authored measure.
@@ -155,8 +142,6 @@ export function shardLines(root = ROOT) {
       if (category.trusted) row.trustedRuntimeLines += lines;
       if (top === 'runtime' || category.trusted) row.runtimeLines += lines;
     }
-    for (const [path, users] of kitUsers) if (users.size === 1 && users.has(slug) && sourceFile.test(path) && !path.endsWith('.d.ts')) row.uniqueKitLines += count(path);
-    row.customLines += row.uniqueKitLines;
     row.publicShare = hasSdk && row.publicLines + row.customLines > 0 ? row.publicLines / (row.publicLines + row.customLines) : 0;
     out[slug] = row;
   }
@@ -187,7 +172,7 @@ export function checkShares(recorded, lines) {
     const row = lines[slug];
     if (!row) continue;
     if (row.runtimeLines > ceiling) failures.push(`${slug}: ${row.runtimeLines} runtime/ or trusted-SDK lines, ceiling ${ceiling}`);
-    if (row.publicShare < 0.8) failures.push(`${slug}: public SDK share ${(row.publicShare * 100).toFixed(1)} %, floor 80 % (unique-kit lines are custom)`);
+    if (row.publicShare < 0.8) failures.push(`${slug}: public SDK share ${(row.publicShare * 100).toFixed(1)} %, floor 80 %`);
   }
   return failures;
 }
@@ -195,10 +180,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8')), lines = shardLines();
   if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(lines).map(([slug, row]) => [slug, { ...row, baseline: recorded.baseline[slug], milestones: milestoneFlags(slug, row) }])), null, 2));
   else {
-    console.log('shard                  public   custom   kit-only  public SDK    runtime+trusted ceiling    legacy TS');
+    console.log('shard                  public   custom  public SDK    runtime+trusted ceiling    legacy TS');
     for (const [slug, row] of Object.entries(lines)) {
       const base = recorded.baseline[slug], ceiling = recorded.enforced[slug] ?? Math.floor(base * 0.2);
-      console.log(`${slug.padEnd(22)} ${String(row.publicLines).padStart(6)} ${String(row.customLines).padStart(8)} ${String(row.uniqueKitLines).padStart(10)} ${(row.publicShare * 100).toFixed(1).padStart(9)} %  ${String(row.runtimeLines).padStart(8)} / ${String(ceiling).padEnd(7)} ${(row.legacy.runtime / base * 100).toFixed(1)} %${slug in recorded.enforced ? ' enforced' : ' reported'}`);
+      console.log(`${slug.padEnd(22)} ${String(row.publicLines).padStart(6)} ${String(row.customLines).padStart(8)} ${(row.publicShare * 100).toFixed(1).padStart(9)} %  ${String(row.runtimeLines).padStart(8)} / ${String(ceiling).padEnd(7)} ${(row.legacy.runtime / base * 100).toFixed(1)} %${slug in recorded.enforced ? ' enforced' : ' reported'}`);
       console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
     }
   }

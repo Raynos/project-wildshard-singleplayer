@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// E362 AG21: the public API surface, generated. The TypeScript compiler reads the engine / game / kit indexes and the
+// E362 AG21: the public API surface, generated. The TypeScript compiler reads the engine / game / sdk / commons indexes and the
 // ShardContext / LevelContext interfaces; every export and member is listed with its kind and the first line of its
 // JSDoc in lint/api-surface.json (under lint/: a Vercel tree keeps it, it drops docs/) and rendered to
-// docs/api/{ENGINE,GAME,KIT,SHARD-CONTEXT}.md.
+// docs/api/{ENGINE,GAME,SDK,COMMONS,SHARD-CONTEXT}.md.
 //   node scripts/gen-api.mjs           write both
 //   node scripts/gen-api.mjs --check   fail when the surface or the pages are stale, or when more exports lack a doc line
 //                                      than lint/api-undocumented.json allows (a ceiling that may only fall)
@@ -13,7 +13,7 @@ import ts from '@typescript/typescript6';
 
 const ROOT = resolve(import.meta.dirname, '..');
 // E434: no index files; a package's public surface is every module its package.json `exports` lists
-const PACKAGES = ['engine', 'game', 'kit', 'sdk', 'commons'];
+const PACKAGES = ['engine', 'game', 'sdk', 'commons'];
 const modulesOf = (root, layer) => Object.entries(JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')).exports ?? {})
   .filter(([, target]) => typeof target === 'string').map(([subpath, target]) => ({ specifier: `@wildshard/${layer}/${subpath.slice(2)}`, file: `src/${layer}/${target.slice(2)}` }));
 const CONTEXTS = { LevelContext: 'src/engine/level/context.ts', ShardContext: 'src/game/shard/context.ts' };
@@ -82,7 +82,6 @@ export function pages(surface) {
   return {
     'docs/api/ENGINE.md': renderPage('@wildshard/engine', 'The engine\'s public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.', surface.indexes.engine, true),
     'docs/api/GAME.md': renderPage('@wildshard/game', 'The game layer\'s public modules (src/game/package.json `exports`).', surface.indexes.game, true),
-    'docs/api/KIT.md': renderPage('@wildshard/kit', 'The kit\'s public modules (src/kit/package.json `exports`): reusable content.', surface.indexes.kit, true),
     'docs/api/SDK.md': renderPage('@wildshard/sdk', 'The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.', surface.indexes.sdk, true),
     'docs/api/COMMONS.md': renderPage('@wildshard/commons', 'Build-time packs and catalogue (src/commons/package.json `exports`); no commons code executes in the game.', surface.indexes.commons, true),
     'docs/api/SHARD-CONTEXT.md': renderPage('ShardContext', 'What a shard\'s plugin receives (src/game/shard/context.ts, over the engine\'s LevelContext).', surface.contexts.ShardContext, true),

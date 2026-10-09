@@ -138,7 +138,7 @@ and quest state restore at the same simulation checkpoint.
 
 Audio authors use `@wildshard/sdk/audio` for a cue-to-catalogue voice map, bounded wind
 recipes and a silent/default score. `installDeclaredAudio` admits every voice before
-installing anything; the kit's `declaredWeaponVoices` retains the existing weapon sounds
+installing anything; the game's `declaredWeaponVoices` retains the existing weapon sounds
 and impact surface routing. Level scopes remove cue routes, stop bed sources and restore
 the score output gain. The template's data keeps its two forest wind bands and silent score.
 
@@ -171,7 +171,7 @@ document that transition API; new shards follow the SDK flow above.
   `src/shards/<slug>/`, `test/shards/<slug>/`, `art/<slug>/`, `public/assets/<slug>/` and the asset folders in your
   manifest's `assetGlobs`, `scripts/blender/<slug>/`, and `docs/tasks/asks/`. The lead adds your slug to
   `.github/lock.json` first. `scripts/check-lock.mjs` (the `commit-msg` hook) refuses any other path.
-- **Zero engine edits.** You never change `src/engine`, `src/game`, `src/kit`, `lint`, `scripts` or `.github`. When
+- **Zero engine edits.** You never change `src/engine`, `src/game`, `src/sdk`, `src/commons`, `lint`, `scripts` or `.github`. When
   you need something outside your folder, **stop and file an API gap** in your ask file: what you needed, where, and
   why the public API can't do it. The lead fixes the API. Don't work around it with a deep import or a global.
 - **Generated files outside your lane.** Three committed files under `lint/` change when a shard is added, and only
@@ -590,9 +590,9 @@ See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the compl
 
 | Guard | Runs | Run it yourself |
 |---|---|---|
-| `wildshard/layer`, `wildshard/public-index` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/kit` export (each name from the module that defines it, `docs/api/`), and `./` inside your folder. No other shard; no re-exports (`wildshard/no-reexport`) |
+| `wildshard/layer`, `wildshard/public-index` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/sdk` export (each name from the module that defines it, `docs/api/`), and `./` inside your folder. No other shard; no re-exports (`wildshard/no-reexport`) |
 | `wildshard/shard-sandbox` | pre-commit, `pnpm test` | same. No `window` / `globalThis`, no window or document input listeners, only your own settings and asset folders |
-| `wildshard/engine-words`, `wildshard/shard-names` | pre-commit, lint (hard) | what is particular to your shard (its creatures' labels and tuning, its places, its tree set, its pickups' and icons' ids, its strings) lives in your folder; reusable content goes to `@wildshard/kit`. The engine names no content and the game and kit name no shard (E405 LAYER-PURITY): when you need the engine to know something, hand it in as data (a species row field, `registerPickupLook`, `ctx.strings`, the manifest's `blender.area` / `forest.speciesTraits`) — ask the lead for a new hook rather than writing your slug into shared code |
+| `wildshard/engine-words`, `wildshard/shard-names` | pre-commit, lint (hard) | what is particular to your shard (its creatures' labels and tuning, its places, its tree set, its pickups' and icons' ids, its strings) lives in your folder; reusable content goes to `@wildshard/game` (SF54 dissolved the kit). The engine names no content and the game names no shard (E405 LAYER-PURITY): when you need the engine to know something, hand it in as data (a species row field, `registerPickupLook`, `ctx.strings`, the manifest's `blender.area` / `forest.speciesTraits`) — ask the lead for a new hook rather than writing your slug into shared code |
 | `wildshard/shard-services` | pre-commit, `pnpm test` (ratchet) | take the engine's services from `ctx` (`ctx.app`, `ctx.hud`, `ctx.game` …); importing `app`, `saves`, `hudSlots`, `practiceRoom` or `lockOn` from an engine module fails a new file |
 | `wildshard/engine-internal` | lint (hard) | the game's own engine exports (`lint/engine-internal.json`: session, boot, title, installers) are not yours to import; what you need from the engine arrives through `ctx` |
 | `wildshard/no-level-identity`, `no-shard-branch` | pre-commit, lint | they guard the engine and game against branching on your slug; in your folder, keep identity checks out of shared helpers |

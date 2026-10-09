@@ -1,7 +1,7 @@
 /**
  * The hoverboard (E348, the E315 M5 leftover): one shared model on every shard — the board the player rides in hover mode
  * (Player.hover, the H key / the HOVER tab): a rounded dark deck (0.9 × 0.28 m) with a cyan edge strip, a nose lamp and an
- * inlay, and two glowing repulsor discs underneath. The viewmodel (src/kit/tools/hoverboard.ts) keeps drawing the one you
+ * inlay, and two glowing repulsor discs underneath. The viewmodel (src/game/systems/tools/hoverboard.ts) keeps drawing the one you
  * ride — its own depth clear, render queue and pulsing glow; the card is a SEPARATE build by the same builder
  * (`buildHoverboard`) on its own materials, in the normal queue, so nothing the Explorer does reaches the board under you.
  * Listed on every shard (src/engine/models/roster.ts), one copy: the player's.

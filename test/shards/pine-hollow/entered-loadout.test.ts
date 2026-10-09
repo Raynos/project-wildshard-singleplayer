@@ -9,7 +9,7 @@ import type { Weapon } from '../../../src/engine/combat/Weapon';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import type { HUD } from '../../../src/engine/ui/HUD';
 import type { SkyRig } from '../../../src/engine/world/skyRig';
-import type { Bow } from '../../../src/kit/weapons/bow/family';
+import type { Bow } from '../../../src/game/weapons/Bow';
 import type { Inventory } from '../../../src/game/Inventory';
 import type { Owned } from '../../../src/game/loot/Owned';
 import { shardContext } from '../../../src/game/shard/context';

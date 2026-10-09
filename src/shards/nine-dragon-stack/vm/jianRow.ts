@@ -1,4 +1,4 @@
-import { SWORD_WOOD } from '@wildshard/kit/weapons/melee/profiles';
+import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 

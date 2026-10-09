@@ -5,7 +5,7 @@ import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { Weapon, type WeaponState } from '../../src/engine/combat/Weapon';
 import { InputService, type ActionCommand } from '../../src/engine/input/InputService';
 import { EquipmentActionInput } from '../../src/engine/input/equipmentInput';
-import { WOODEN_SWORD, IRON_SWORD } from '../../src/kit/weapons/equipment';
+import { WOODEN_SWORD, IRON_SWORD } from '../../src/game/weapons/starterEquipment';
 
 class FixtureWeapon extends Weapon {
   readonly model = new Group(); enabled = true; adsHeld = false; holster = 0; aimInfo = null;

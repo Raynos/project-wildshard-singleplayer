@@ -39,7 +39,7 @@ const { installScore } = await import('../src/engine/audio/score/score');
 const { WILDSHARD_SCORE } = await import('../src/game/audio/theme');
 installScore(WILDSHARD_SCORE);
 const { installKitSpecies } = await import('../src/game/systems/species/install');
-const { installKitIcons } = await import('../src/kit/icons');
+const { installKitIcons } = await import('../src/game/icons');
 const { installKitPickups } = await import('../src/game/models/pickups');
 const { installKitProps } = await import('../src/game/models/interact');
 installKitSpecies();

@@ -182,6 +182,8 @@
         // E434: no barrels — every import names the defining module; packages export modules, not an index
         "wildshard/no-reexport": "error",
         "wildshard/no-level-identity": "error",
+        // G143 / SF54: runtime/ reaches neither the kit nor build-time commons; paid down to 0 when the kit emptied (2026-10-08)
+        "wildshard/runtime-commons": "error",
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
         "wildshard/layer": "error",
         // E405 LP2: engine code names no shard, creature, item or game word (wire contracts: lint/ratchet.json allow)

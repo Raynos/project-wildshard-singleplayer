@@ -113,10 +113,10 @@ async function startSelected(): Promise<void> {
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
   const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
-    retried(() => import('./game/systems/species/install')), retried(() => import('./kit/icons')),
+    retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
     retried(() => import('./game/models/pickups')), retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
-    retried(() => import('./kit/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
-    retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
+    retried(() => import('./game/systems/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
+    retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/systems/items/declared')),
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));

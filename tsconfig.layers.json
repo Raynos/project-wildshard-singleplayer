@@ -1,5 +1,5 @@
 {
-  // E362 AG4: the four layers as TypeScript projects (engine → game → kit → shards), each seeing only what it
+  // E362 AG4: the layers as TypeScript projects (engine → game → sdk → commons → shards; SF54 dissolved the kit), each seeing only what it
   // references: an import that reaches up a layer, in any syntax (type-only, `import()` types, json), fails with
   // TS6307. `tsc -b tsconfig.layers.json` (pnpm typecheck, the push gate). The root tsconfig.json stays the whole
   // program for the composition root and the tests.
@@ -7,7 +7,6 @@
   "references": [
     { "path": "./tsconfig.engine.json" },
     { "path": "./tsconfig.game.json" },
-    { "path": "./tsconfig.kit.json" },
     { "path": "./tsconfig.sdk.json" },
     { "path": "./tsconfig.commons.json" },
     { "path": "./tsconfig.shards.json" }

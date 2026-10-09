@@ -83,21 +83,6 @@ describe('SF6 platform measures', () => {
     fixture((root, put) => { put('src/shards/alpha/data/a.ts', 'export const a = 1;\n'); expect(alpha(root).publicShare).toBe(0); }, false);
     fixture((root, put) => { put('src/shards/alpha/data/a.ts', "import '@wildshard/sdk/not-exported';\n"); expect(alpha(root).customLines).toBe(1); });
   });
-  it('cannot increase the public share by moving gameplay into a kit module used by only this shard', () => {
-    fixture((root, put) => {
-      put('src/shards/alpha/data/a.ts', 'export const a = 1;\n');
-      put('src/shards/alpha/runtime/play.ts', 'export const a = 1;\nexport const b = 2;\n');
-      const before = alpha(root);
-      put('src/kit/play.ts', 'export const a = 1;\nexport const b = 2;\n');
-      put('src/shards/alpha/runtime/play.ts', "import '@wildshard/kit/play';\n");
-      const after = alpha(root);
-      expect(after.uniqueKitLines).toBe(2);
-      expect(after.customLines).toBe(3);
-      expect(after.publicShare).toBeLessThanOrEqual(before.publicShare);
-      put('src/shards/beta/runtime/play.ts', "import '@wildshard/kit/play';\n");
-      expect(alpha(root).uniqueKitLines).toBe(0);
-    });
-  });
   it('generated and baked output cannot pad either measure', () => {
     fixture((root, put) => {
       put('src/shards/alpha/data/a.ts', 'export const a = 1;\n');

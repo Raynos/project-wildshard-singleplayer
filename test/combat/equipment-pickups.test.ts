@@ -6,7 +6,7 @@ import type { EquipmentRow } from '../../src/engine/combat/Equipment';
 import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { Weapon } from '../../src/engine/combat/Weapon';
 import type { EquipmentPickup } from '../../src/engine/combat/EquipmentPickup';
-import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
+import { SWORD_WOOD, SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';
 
 class FixtureWeapon extends Weapon {
   readonly model = new Group(); enabled = true; adsHeld = false; holster = 0; aimInfo = null;

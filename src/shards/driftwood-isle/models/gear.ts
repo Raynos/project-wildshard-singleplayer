@@ -1,7 +1,7 @@
 /**
  * Driftwood Isle's gear (E306 / E315 M5, `gear`): what the island's player holds — the castaway's arms with the wooden
  * sword it hands out and with the iron sword found in the wreck's hold (E334: both swords on the same skinned arms,
- * public/assets/models/driftwood-fp/fp-arms.glb, played by src/kit/viewmodel/rigArms.ts through ../fpArms.ts); no rifle slot on a
+ * public/assets/models/driftwood-fp/fp-arms.glb, played by src/game/systems/viewmodel/rigArms.ts through ../fpArms.ts); no rifle slot on a
  * sword shard (E333). The viewmodels keep drawing the held ones; each card is its own skeleton clone of the rig's one parse
  * (the same geometry), on its own materials, standing in the idle's first pose.
  */

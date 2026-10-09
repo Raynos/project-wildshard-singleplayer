@@ -1,9 +1,9 @@
-# E432: the layers are workspace packages (@wildshard/engine, @wildshard/game, @wildshard/kit), linked into node_modules.
+# E432: the layers are workspace packages (@wildshard/engine, @wildshard/game, @wildshard/sdk, @wildshard/commons; SF54
+# dissolved @wildshard/kit), linked into node_modules.
 # Their package.json "exports" are the public entries; a deep path does not resolve.
 packages:
   - src/engine
   - src/game
-  - src/kit
   - src/sdk
   - src/commons
 # `pnpm add <dep>` at the root keeps working without -w

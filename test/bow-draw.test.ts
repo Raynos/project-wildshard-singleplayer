@@ -2,7 +2,7 @@
 // release at full = the loose, release early = a let-down (no arrow), no quick-fire, the long hold tires, a blocked draw
 // is let down and needs a fresh press.
 import { describe, expect, it } from 'vitest';
-import { BowDraw, DRAW_TIME, HOLD_STEADY, HOLD_TIRE, LETDOWN_TIME, RENOCK_TIME, RN_EARLY, type DrawEvent } from '../src/kit/weapons/bow/draw';
+import { BowDraw, DRAW_TIME, HOLD_STEADY, HOLD_TIRE, LETDOWN_TIME, RENOCK_TIME, RN_EARLY, type DrawEvent } from '../src/engine/combat/bowDraw';
 
 const DT = 1 / 60;
 /** run `s` seconds of frames with the input fixed; every event, in order */

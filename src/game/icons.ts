@@ -1,10 +1,10 @@
-import type { BagIcons } from '@wildshard/game/bag/tabs';
+import type { BagIcons } from './bag/tabs';
 import { iconParts, registerIcons } from '@wildshard/engine/ui/icons';
 
 /**
- * The kit's icons (moved from the engine, E405 LAYER-PURITY): the creatures, the pack items, the weapons and the Bag's
- * GEAR / FINDS stickers, drawn in the engine's 64×64 frame (`iconParts`). installKitIcons registers them; a level that
- * needs one names its id.
+ * The game's content icons (moved from the engine, E405 LAYER-PURITY, then from the kit, SF54): the creatures, the pack
+ * items, the weapons and the Bag's GEAR / FINDS stickers, drawn in the engine's 64×64 frame (`iconParts`). installKitIcons
+ * registers them (the name keeps the shipped kit.* content vocabulary); a level that needs one names its id.
  */
 
 const { svg, stroke: S, legs, circle } = iconParts;

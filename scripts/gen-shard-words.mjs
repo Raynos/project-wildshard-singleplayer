@@ -37,7 +37,7 @@ export function shardWordData(root, shard) {
     for (const stmt of parsed.program.body) {
       if (stmt.type === 'ImportDeclaration') {
         const source = stmt.source.value;
-        const base = source.startsWith('.') ? resolve(dirname(file), source) : source.startsWith('@wildshard/kit/') ? resolve(root, 'src/kit', source.slice(15)) : null;
+        const base = source.startsWith('.') ? resolve(dirname(file), source) : null;
         const target = base ? find(base) : null;
         for (const spec of stmt.specifiers) if (target) bindings.set(spec.local.name, { target, name: spec.imported ? keyOf(spec.imported) : 'default' });
       }

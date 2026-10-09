@@ -1,6 +1,6 @@
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { swordEvents } from '@wildshard/kit/weapons/melee/SweptMelee';
+import { swordEvents } from '@wildshard/sdk/runtime/weapons/Sword';
 import { SHRINE } from '../../manifest';
 import { LOWERED_SEA } from '../../world/sea';
 import { driftwoodWorld } from '../../world/build';

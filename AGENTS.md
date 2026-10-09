@@ -43,19 +43,20 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 
 ## Engine layers → [docs/ENGINE.md](docs/ENGINE.md), [docs/SHARDS.md](docs/SHARDS.md)
 
-- Four layers: `src/engine/` (`@wildshard/engine`) → `src/game/` (`@wildshard/game`) → `src/kit/` (`@wildshard/kit`) →
-  `src/shards/<slug>/`. Imports point down only; a shard never imports another shard.
-- **No barrels (E434).** The three layers are pnpm workspace packages (E432) with no index file: each `package.json`'s
+- Layers: `src/engine/` (`@wildshard/engine`) → `src/game/` (`@wildshard/game`) → `src/sdk/` (`@wildshard/sdk`) →
+  (`src/commons/`, `@wildshard/commons`: build-time packs) → `src/shards/<slug>/`. Imports point down only; a shard never
+  imports another shard. SF54 dissolved `@wildshard/kit`: shared content lives in the game, runtime facades in the SDK.
+- **No barrels (E434).** The layers are pnpm workspace packages (E432) with no index file: each `package.json`'s
   `exports` lists its public modules, and an import names the module that defines the binding
   (`@wildshard/engine/physics/query`). `wildshard/no-reexport` refuses `export … from` of our own modules. A clean export
   of the tree links `node_modules` with `scripts/link-node-modules.mjs`, never a whole-folder symlink.
 - **No module installs a service by being imported** (E434): an installer is a function the session or the setup calls
   (`installWorldRegistry()`). A declaration merge that other layers read lives in a `*.merge.d.ts` file the layer
-  projects include (`src/game/equipmentTypes.merge.d.ts`, `src/kit/icons.merge.d.ts`).
+  projects include (`src/game/equipmentTypes.merge.d.ts`, `src/game/icons.merge.d.ts`).
 - **What each layer knows** (E405): the engine knows rendering, physics, input, audio, boot and levels in general, never
   the game, Wildshard, shards or any content (content arrives as data). The game knows it is Wildshard and that shards
-  run arbitrary content, never a particular shard. The kit is reusable content, never a particular shard. Everything
-  particular to one shard lives in its folder.
+  run arbitrary content, never a particular shard, and holds the content two or more shards share. Shards build against
+  the SDK (`runtime/` files through its trusted runtime facades). Everything particular to one shard lives in its folder.
 - **The guards** (`lint/wildshard-plugin.js`, ENGINE.md §24): `layer`, `public-index`, `engine-words`, `shard-names`,
   `shard-sandbox`, `no-level-identity`, `no-shard-branch`, the `no-raw-*` rules, the ratchet (`lint/ratchet.json`), the
   layout check and the pre-commit runner. Never disable one; fix the code.

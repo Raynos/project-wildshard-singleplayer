@@ -1,10 +1,12 @@
-// The kit's icon ids, merged into the engine's IconMap (E434: a merge-only declaration file; the shard project includes
-// src/kit/**/*.merge.d.ts). src/kit/icons.ts draws and registers them. (The import makes this file a module, so the block merges into the
-// engine's IconMap instead of replacing it.)
+// The game's content icon ids, merged into the engine's IconMap (E434: a merge-only declaration file; every layer project
+// above the engine includes src/game/**/*.merge.d.ts). src/game/icons.ts draws and registers them (SF54: moved from the
+// kit); the starter sword's key joined them from src/game/weapons/icons.merge.d.ts. (The import makes this file a module, so
+// the block merges into the engine's IconMap instead of replacing it.)
 import type { IconId } from '@wildshard/engine/ui/icons';
 
 declare module '@wildshard/engine/ui/icons' {
   interface IconMap {
+    sword: true;
     deer: true;
     elk: true;
     boar: true;

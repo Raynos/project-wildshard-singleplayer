@@ -250,11 +250,6 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/kit/deep.ts",
-    "file": "test/fixtures/lint/cases.json",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
     "path": "src/engine/internal.ts",
     "file": "test/fixtures/lint/cases.json",
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."

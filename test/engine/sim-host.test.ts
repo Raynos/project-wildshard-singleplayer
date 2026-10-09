@@ -7,7 +7,7 @@ import { createSimHost, SIM_API_VERSION } from '../../src/engine/sim';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
-import { SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
+import { SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()); });

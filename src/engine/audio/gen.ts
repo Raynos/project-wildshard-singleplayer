@@ -261,7 +261,7 @@ export function impact(m: Material, sr: number, seed: number): Float32Array {
 }
 
 /** The primitives the generators here build on, for content voices outside the engine (E405: the creature voices
- *  are the kit's, src/kit/audio/creatureVoices.ts) */
+ *  are content, a shard's own runtime audio) */
 export const synthKit = { Rand, Biquad, len, saturate, noise, thump, grains, strike, click, bubbles, voice, ahr, lerp, lerpV, finish } as const;
 
 /** the player takes a hit: a short grunt ("uh" / "ah" / "oof" by variant) over a body impact, an exhale tail */

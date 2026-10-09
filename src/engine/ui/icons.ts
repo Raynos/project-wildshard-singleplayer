@@ -1,11 +1,11 @@
 /**
  * icons — inline SVG glyphs for the in-game menu (src/engine/ui/Menu.ts): the engine's UI glyphs here, and a registry the
- * content icons join (the kit's creatures, items and weapons: src/kit/icons.ts). Everything is `currentColor` so the CSS sets the tint;
+ * content icons join (the game's creatures, items and weapons: src/game/icons.ts). Everything is `currentColor` so the CSS sets the tint;
  * every glyph is drawn in a 64×64 box from primitives (no artwork files to load).
  *
  *   icon('lock')  → '<svg …>…</svg>'
  */
-/** The icon ids: the engine's UI glyphs; a content library merges its own in (the kit's, src/kit/icons.ts: creatures, items,
+/** The icon ids: the engine's UI glyphs; a content library merges its own in (the game's, src/game/icons.ts: creatures, items,
  *  weapons; E405: the engine names no content) with `declare module '@wildshard/engine' { interface IconMap { … } }`. */
 export interface IconMap { lock: true; check: true; poi: true; you: true; map: true; pack: true; star: true; book: true; heart: true; pin: true; laurel: true }
 export type IconId = keyof IconMap;
@@ -50,7 +50,7 @@ const SVG = new Map<string, string>(Object.entries({
   lock: LOCK, check: CHECK, poi: POI, you: YOU, map: MAP, pack: PACK, star: STAR, book: BOOK, heart: HEART, pin: PIN, laurel: LAUREL,
 }).map(([id, body]) => [id, wrap(body)]));
 
-/** a content library's icons, full SVGs by id (the kit's installKitIcons) */
+/** a content library's icons, full SVGs by id (the game's installKitIcons) */
 export function registerIcons(table: Partial<Readonly<Record<IconId, string>>>): void {
   for (const [id, svg] of Object.entries(table)) SVG.set(id, svg);
 }

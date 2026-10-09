@@ -12,9 +12,9 @@ import type { Actor } from '../../src/engine/combat/pipeline';
 import { shards } from '../../src/game/shard/list';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import { installDeclaredItems } from '../../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../../src/kit/items/declared';
-import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
-import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
+import { declaredKitItemFamilies } from '../../src/game/systems/items/declared';
+import { Sword } from '../../src/game/weapons/Sword';
+import { SWORD_WOOD, SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import { WarFan } from '../../src/shards/far-reach/weapons/WarFan';
 import { buildNalatiLoadout } from '../../src/shards/nalati-grasslands/weapons/loadout';
@@ -26,7 +26,7 @@ import { Bullwhip } from '../../src/shards/sunscar-dunes/weapons/Bullwhip';
 import { ITEMS } from '../../src/shards/_template/data/items';
 import { fakeWorld } from '../fake/world';
 import { legacyDouble } from '../fake/FakeGame';
-import { buildSword as buildOriginalSword } from '../../src/kit/items/declaredSword';
+import { buildSword as buildOriginalSword } from '../../src/game/systems/items/declaredSword';
 import { descendants, executeLegacy, legacySource } from '../fake/legacySource';
 
 /** Execute the actual caller's constructor expression, including its options/spreads. Unrelated world/audio stages

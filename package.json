@@ -51,7 +51,6 @@
     "@wildshard/commons": "workspace:*",
     "@wildshard/engine": "workspace:*",
     "@wildshard/game": "workspace:*",
-    "@wildshard/kit": "workspace:*",
     "@wildshard/sdk": "workspace:*",
     "fflate": "0.8.3",
     "n8ao": "^2.0.1",

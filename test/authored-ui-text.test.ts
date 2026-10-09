@@ -10,7 +10,7 @@ import { GameMenu } from '../src/engine/ui/Menu';
 import type { FullMap } from '../src/engine/ui/Map';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { Weapon, type WeaponState } from '../src/engine/combat/Weapon';
-import { WOODEN_SWORD, IRON_SWORD } from '../src/kit/weapons/equipment';
+import { WOODEN_SWORD, IRON_SWORD } from '../src/game/weapons/starterEquipment';
 import { Journal } from '../src/game/compendium/Journal';
 import { CompendiumState } from '../src/game/compendium/state';
 import type { ShardCompendium } from '../src/game/compendium/types';

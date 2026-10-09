@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { SWAP_GLYPHS } from '../../src/kit/weapons/ui';
+import { SWAP_GLYPHS } from '../../src/game/weapons/starterGlyphs';
 import { Weapon } from '../../src/engine/combat/Weapon';
-import { WOODEN_SWORD, IRON_SWORD } from '../../src/kit/weapons/equipment';
+import { WOODEN_SWORD, IRON_SWORD } from '../../src/game/weapons/starterEquipment';
 import { JIAN_ROW as JIAN } from '../../src/shards/nine-dragon-stack/vm/jianRow';
 import { SABRE, SPEAR, BOW, AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW, LONGBOW, LEVER } from '../../src/shards/pine-hollow/weapons/equipment';
-import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
-import { Bow } from '../../src/kit/weapons/bow/family';
+import { Sword } from '../../src/game/weapons/Sword';
+import { Bow } from '../../src/game/weapons/Bow';
 import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
 import { Sabre } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';

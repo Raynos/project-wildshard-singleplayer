@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SWORD } from '../../src/kit/weapons/equipment';
-import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { SWORD } from '../../src/game/weapons/starterEquipment';
+import { Sword } from '../../src/game/weapons/Sword';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms } from '../../src/engine/combat/view/melee';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';

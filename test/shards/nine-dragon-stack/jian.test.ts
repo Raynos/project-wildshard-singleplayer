@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SWORD_WOOD } from '../../../src/kit/weapons/melee/profiles';
+import { SWORD_WOOD } from '../../../src/game/weapons/starterMeleeProfile';
 import type { ShardSword } from '../../../src/game/shard/manifest';
 import { JIAN_ROW, jianViewmodel } from '../../../src/shards/nine-dragon-stack/vm/jianRow';
 

@@ -4,7 +4,7 @@ import type { SwordRig } from '@wildshard/engine/combat/view/melee';
 import { lin } from '@wildshard/engine/math/color';
 import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { REST } from '@wildshard/kit/weapons/melee/moves';
+import { REST } from '@wildshard/game/weapons/starterMoves';
 
 /** The original wooden support rig for the animated jian. Geometry and material are copied unchanged from the
  * pre-SF54 default; the jian arms hide these meshes while retaining the original blade metadata. */

@@ -17,7 +17,7 @@ import { creatureFactory } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { personFigure, type PersonId } from '../campPeople';
 import { loadPeopleRig } from '../campPeopleModels';
-import type { NpcFigureFrame as PersonFrame } from '@wildshard/kit/npc/figureRig';
+import type { NpcFigureFrame as PersonFrame } from '@wildshard/game/systems/npc/figureRig';
 import { shepherdRider } from '../creatures/sheepRaid';
 
 export interface CampPersonParams { readonly person: PersonId }

@@ -50,7 +50,7 @@
   },
   {
     "id": "glob-array",
-    "file": "src/kit/glob-array.ts",
+    "file": "src/sdk/glob-array.ts",
     "rule": "public-index",
     "code": "const x = import.meta.glob(['../engine/world/*.ts', '../game/*.ts']);",
     "count": 2
@@ -497,8 +497,8 @@
     "count": 1
   },
   {
-    "id": "lp4-kit-name",
-    "file": "src/kit/lp4-name.ts",
+    "id": "lp4-content-name",
+    "file": "src/game/lp4-name.ts",
     "rule": "shard-names",
     "code": "export const where = 'Signal Dunes';",
     "count": 1
@@ -512,7 +512,7 @@
   },
   {
     "id": "lp3-common-words-ok",
-    "file": "src/kit/lp3-common.ts",
+    "file": "src/game/lp3-common.ts",
     "rule": "shard-names",
     "code": "export const tree = 'pine'; export const log = 'driftwood';",
     "count": 0

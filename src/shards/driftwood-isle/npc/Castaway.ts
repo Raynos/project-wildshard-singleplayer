@@ -24,7 +24,7 @@
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
-import { loadFaceHead, type FaceHead } from '@wildshard/kit/npc/faceHeads';
+import { loadFaceHead, type FaceHead } from '@wildshard/game/systems/npc/faceHeads';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';

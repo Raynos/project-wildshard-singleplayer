@@ -5,8 +5,7 @@ import { withOwner } from '../../src/engine/app/ownership';
 import { BowDraw } from '../../src/engine/combat/bowDraw';
 import { Bow } from '../../src/engine/combat/view/Bow';
 import { fnv1a32 } from '../../src/engine/core/rng';
-import { BowDraw as LegacyDraw } from '../../src/kit/weapons/bow/draw';
-import { Bow as LegacyBow } from '../../src/kit/weapons/bow/family';
+import { Bow as GameBow } from '../../src/game/weapons/Bow';
 import { Bow as StarterBow } from '../../src/sdk/runtime/weapons/starterBow';
 import { Bow as TrustedBow } from '../../src/sdk/runtime/weapons/Bow';
 import { BOW } from '../../src/shards/nalati-grasslands/weapons/equipment';
@@ -37,7 +36,7 @@ function bowTrace(platform: boolean | 'starter', portrait: boolean) {
   const bow = withOwner(scope, () => platform === true
     ? new Bow(world, undefined, { row: BOW, profile: NALATI_BOW, inputContext: 'weapon.bow', initialStyle: 'recurve' })
     : platform === 'starter' ? new StarterBow(world, undefined, { row: BOW, profile: NALATI_BOW })
-    : new LegacyBow(world, undefined, { row: BOW, profile: NALATI_BOW }));
+    : new GameBow(world, undefined, { row: BOW, profile: NALATI_BOW }));
   const edges: string[] = [], launches: number[][] = [];
   bow.install({ scope }); bow.wind = null;
   bow.onDrawStart = () => { edges.push('draw'); }; bow.onFullDraw = () => { edges.push('full'); };
@@ -61,7 +60,7 @@ function bowTrace(platform: boolean | 'starter', portrait: boolean) {
 
 describe('trusted SDK bow graduation', () => {
   it('publishes the one engine constructor', () => {
-    expect(TrustedBow).toBe(Bow); expect(LegacyBow.prototype).toBeInstanceOf(Bow); expect(LegacyDraw.prototype).toBeInstanceOf(BowDraw);
+    expect(TrustedBow).toBe(Bow); expect(GameBow.prototype).toBeInstanceOf(Bow);
   });
   it('matches every draw value and event across ten thousand independent legacy/platform ticks', () => {
     // Independent kit trace captured in 008420564 before delegation; snapshot encoding alone is quantized for cross-platform math.

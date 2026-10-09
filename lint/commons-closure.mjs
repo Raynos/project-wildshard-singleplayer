@@ -22,7 +22,7 @@ function imports(file) {
 }
 function target(root, from, specifier) {
   let base;
-  const pkg = /^@wildshard\/(engine|game|kit|sdk|commons)(?:\/(.+))?$/u.exec(specifier);
+  const pkg = /^@wildshard\/(engine|game|sdk|commons)(?:\/(.+))?$/u.exec(specifier);
   if (pkg !== null) {
     const manifest = resolve(root, 'src', pkg[1], 'package.json');
     const at = stamp(manifest);

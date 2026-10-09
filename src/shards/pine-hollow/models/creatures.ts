@@ -2,7 +2,7 @@
  * Pine Hollow's own creatures on the species rigs (E306 / E315 M5): the elk. The copies are the AnimalManager's, spawned
  * from the shard's `fauna` herd plans (src/shards/pine-hollow/manifest.ts) and, as the Antler King's thralls, by his fight
  * (src/shards/pine-hollow/combat/antlerKing.ts) and the old-growth at night (src/shards/pine-hollow/quest/nightThralls.ts). The deer, the boar
- * and the bear are shared (src/kit/models/creatures.ts); the Antler King is ./antlerKing.ts, the birds ./birds.ts, the hare
+ * and the bear are shared (src/game/models/creatures.ts); the Antler King is ./antlerKing.ts, the birds ./birds.ts, the hare
  * ./wildlife.ts.
  */
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';

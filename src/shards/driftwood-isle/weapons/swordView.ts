@@ -4,7 +4,7 @@ import type { SwordRig } from '@wildshard/engine/combat/view/melee';
 import { lin } from '@wildshard/engine/math/color';
 import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { REST } from '@wildshard/kit/weapons/melee/moves';
+import { REST } from '@wildshard/game/weapons/starterMoves';
 
 /**
  * The castaway's low-poly wooden and iron swords (SF54: moved unchanged out of the kit's SweptMelee.ts, whose Sword family

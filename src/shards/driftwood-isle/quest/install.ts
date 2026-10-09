@@ -1,7 +1,7 @@
 import { onCreatureDeath } from '@wildshard/game/loot/deaths';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
+import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
 import { placeDriftwoodPlaces } from '../world/places';
 import { installAdventure, type Adventure } from './adventure';

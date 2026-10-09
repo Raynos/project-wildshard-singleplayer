@@ -1,12 +1,12 @@
-import { SWORD } from '../../src/kit/weapons/equipment';
+import { SWORD } from '../../src/game/weapons/starterEquipment';
 // @vitest-environment happy-dom
 // S1.2: these contracts move from Sword's viewmodel-owning class to the renderer-free Melee family.
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { Sword } from '../../src/game/weapons/Sword';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms, Move } from '../../src/engine/combat/view/melee';
-import { COMBO } from '../../src/kit/weapons/melee/moves';
+import { COMBO } from '../../src/game/weapons/starterMoves';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
 import type { TargetAnimal, Targets } from '../../src/engine/combat/types';
 import { setActivePhysics } from '../../src/engine/physics/active';

@@ -1,4 +1,4 @@
-import { faceHead, loadFaceHead, type FaceHead } from '@wildshard/kit/npc/faceHeads';
+import { faceHead, loadFaceHead, type FaceHead } from '@wildshard/game/systems/npc/faceHeads';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';

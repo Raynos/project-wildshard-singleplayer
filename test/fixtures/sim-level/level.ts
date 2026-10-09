@@ -1,5 +1,5 @@
 import { BOAR } from '@wildshard/game/systems/species/boar';
-import { IRON_SWORD } from '@wildshard/kit/weapons/equipment';
+import { IRON_SWORD } from '@wildshard/game/weapons/starterEquipment';
 import type { SimCommand, SimLevel } from '@wildshard/engine/sim';
 
 /** A real shared species and iron sword on plain flat ground, with no shard runtime or renderer. */

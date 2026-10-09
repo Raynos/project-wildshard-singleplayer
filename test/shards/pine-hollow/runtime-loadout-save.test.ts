@@ -11,7 +11,7 @@ import type { HUD } from '../../../src/engine/ui/HUD';
 import type { SkyRig } from '../../../src/engine/world/skyRig';
 import type { Inventory } from '../../../src/game/Inventory';
 import type { Owned } from '../../../src/game/loot/Owned';
-import type { Bow } from '../../../src/kit/weapons/bow/family';
+import type { Bow } from '../../../src/game/weapons/Bow';
 import type { LeverRifle } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import type { Crossbow } from '../../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { bindRuntimeState } from '../../../src/game/shardfile/hybridRows';

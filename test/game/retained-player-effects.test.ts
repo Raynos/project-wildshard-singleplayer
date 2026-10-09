@@ -10,7 +10,7 @@ import { hudSlots } from '../../src/engine/ui/hudSlots';
 import { shardContext } from '../../src/game/shard/context';
 import { installEnteredRuntimeService, installRetainedPlayerEffects, RetainedRuntimeHooks } from '../../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../../src/game/shardfile/loader';
-import { installStarterEffects } from '../../src/kit/effects/install';
+import { installStarterEffects } from '../../src/game/systems/effects/install';
 import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import { emptyShardfile } from '../../src/sdk/author';
 

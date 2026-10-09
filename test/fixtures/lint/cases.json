@@ -3,7 +3,7 @@
     "id": "layer-down",
     "file": "src/shards/sample/down.ts",
     "rule": "layer",
-    "code": "import { value } from '@wildshard/engine'; import { thing } from '@wildshard/game'; import { item } from '@wildshard/kit';",
+    "code": "import { value } from '@wildshard/engine'; import { thing } from '@wildshard/game'; import { item } from '@wildshard/sdk';",
     "count": 0
   },
   {
@@ -17,12 +17,12 @@
     "id": "layer-relative-up",
     "file": "src/engine/relative.ts",
     "rule": "layer",
-    "code": "import { value } from '../kit/item';",
+    "code": "import { value } from '../game/item';",
     "count": 1
   },
   {
     "id": "layer-deep",
-    "file": "src/kit/deep.ts",
+    "file": "src/game/deep.ts",
     "rule": "public-index",
     "code": "import { value } from '@wildshard/engine/core/fixedStep';",
     "count": 1
@@ -45,14 +45,14 @@
     "id": "layer-dynamic",
     "file": "src/engine/dynamic.ts",
     "rule": "layer",
-    "code": "void import('@wildshard/kit/item');",
+    "code": "void import('@wildshard/game/item');",
     "count": 1
   },
   {
     "id": "layer-unlayered",
     "file": "src/main.ts",
     "rule": "public-index",
-    "code": "import { value } from '@wildshard/kit/item';",
+    "code": "import { value } from '@wildshard/game/item';",
     "count": 1
   },
   {
@@ -533,7 +533,7 @@
   },
   {
     "id": "X4 mixer direct",
-    "file": "src/kit/fixture/mixer.ts",
+    "file": "src/game/fixture/mixer.ts",
     "rule": "no-raw-animation-mixer",
     "code": "import { AnimationMixer } from 'three'; new AnimationMixer(root);",
     "count": 1
@@ -561,7 +561,7 @@
   },
   {
     "id": "X4 anim public machine",
-    "file": "src/kit/fixture/animMachine.ts",
+    "file": "src/game/fixture/animMachine.ts",
     "rule": "no-raw-animation-mixer",
     "code": "import { AnimMachine } from '@wildshard/engine'; new AnimMachine(def, rig);",
     "count": 0
@@ -638,7 +638,7 @@
   },
   {
     "id": "no-reexport-binding",
-    "file": "src/kit/barrel.ts",
+    "file": "src/game/barrel.ts",
     "rule": "no-reexport",
     "code": "import { value } from './value';\nexport { value };",
     "count": 1

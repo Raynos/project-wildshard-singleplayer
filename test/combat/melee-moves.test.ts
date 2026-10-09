@@ -1,11 +1,11 @@
-import { SWORD } from '../../src/kit/weapons/equipment';
+import { SWORD } from '../../src/game/weapons/starterEquipment';
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { onFault } from '../../src/engine/core/faults';
-import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { Sword } from '../../src/game/weapons/Sword';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms, Move } from '../../src/engine/combat/view/melee';
-import { COMBO, HEAVY, REST, CHARGE, SPRINT } from '../../src/kit/weapons/melee/moves';
+import { COMBO, HEAVY, REST, CHARGE, SPRINT } from '../../src/game/weapons/starterMoves';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
 import { setActivePhysics } from '../../src/engine/physics/active';

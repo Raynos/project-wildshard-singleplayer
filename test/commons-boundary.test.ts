@@ -19,7 +19,7 @@ cpSync('lint', join(root, 'lint'), { recursive: true });
 linkNodeModules(cwd(), root);
 const put = (file: string, source: string) => { mkdirSync(dirname(join(root, file)), { recursive: true }); writeFileSync(join(root, file), source); };
 put('package.json', '{"type":"module"}');
-for (const layer of ['sdk', 'engine', 'game', 'kit', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ exports: { './catalogue': './catalogue.ts', './facade': './facade.ts', './runtime/facade': './runtime/facade.ts' } }));
+for (const layer of ['sdk', 'engine', 'game', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ exports: { './catalogue': './catalogue.ts', './facade': './facade.ts', './runtime/facade': './runtime/facade.ts' } }));
 put('src/commons/catalogue.ts', 'export const catalogue = 0;');
 put('src/sdk/facade.ts', 'export const author = 0;');
 put('src/sdk/runtime/facade.ts', 'import "@wildshard/commons/catalogue";');
@@ -37,7 +37,7 @@ const cases = [
   { file: 'src/commons/allowed.ts', source: 'import "@wildshard/sdk/facade";', layer: 0, public: 0 },
   { file: 'src/commons/engine.ts', source: 'import "@wildshard/engine/catalogue";', layer: 1, public: 0 },
   { file: 'src/commons/game.ts', source: 'import "@wildshard/game/catalogue";', layer: 1, public: 0 },
-  { file: 'src/commons/kit.ts', source: 'import "@wildshard/kit/catalogue";', layer: 1, public: 0 },
+  { file: 'src/commons/kit.ts', source: 'import "@wildshard/kit/catalogue";', layer: 1, public: 0 }, // SF54: the dissolved package
   { file: 'src/commons/runtime.ts', source: 'import "@wildshard/sdk/runtime/facade";', layer: 1, public: 0 },
   { file: 'src/sdk/upward.ts', source: 'import "@wildshard/commons/catalogue";', layer: 1, public: 0 },
   { file: 'src/shards/proof/generators/private.ts', source: 'import "@wildshard/commons/private";', layer: 0, public: 1 },

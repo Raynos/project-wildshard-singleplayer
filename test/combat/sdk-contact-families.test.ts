@@ -9,9 +9,7 @@ import { Thrown } from '../../src/engine/combat/Thrown';
 import type { ThrownProfile } from '../../src/engine/combat/thrownProfile';
 import type { TargetAnimal } from '../../src/engine/combat/types';
 import { Events } from '../../src/engine/events/events';
-import { Melee as LegacyMelee, meleeActor as legacyMeleeActor, isMeleeProfile as legacyIsMeleeProfile } from '../../src/kit/weapons/melee/Melee';
-import { SWORD_WOOD } from '../../src/kit/weapons/melee/profiles';
-import { Thrown as LegacyThrown } from '../../src/kit/weapons/thrown/Thrown';
+import { SWORD_WOOD } from '../../src/game/weapons/starterMeleeProfile';
 import { Melee as TrustedMelee, meleeActor as trustedMeleeActor } from '../../src/sdk/runtime/weapons/Melee';
 import { Thrown as TrustedThrown } from '../../src/sdk/runtime/weapons/Thrown';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
@@ -69,8 +67,6 @@ function contactTrace(prototype: object, adapter: typeof meleeActor) {
 describe('trusted SDK contact families graduate without a second implementation', () => {
   it('publishes the exact platform constructors and target adapter', () => {
     expect(TrustedMelee).toBe(Melee); expect(TrustedThrown).toBe(Thrown); expect(trustedMeleeActor).toBe(meleeActor);
-    expect(LegacyThrown).toBe(Thrown); expect(legacyMeleeActor).toBe(meleeActor); expect(legacyIsMeleeProfile).toBe(isMeleeProfile);
-    expect(LegacyMelee.prototype).toBeInstanceOf(Melee);
   });
   it('constructs without global combat and sends contact through the injected pipeline', () => {
     const scope = new Scope('contact-fixture'), combat = new CombatPipeline(new Events(), scope), localHit = vi.spyOn(combat, 'hit').mockReturnValue(null);

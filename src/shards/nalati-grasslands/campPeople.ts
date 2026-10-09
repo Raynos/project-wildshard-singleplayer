@@ -36,8 +36,8 @@ import { PaintKit, v3, poiMaterial } from './world/paint';
 import { pole, lathe } from '@wildshard/engine/world/geometryKit';
 import { CAMP_PEOPLE } from './quest';
 import { loadPeopleRig } from './campPeopleModels';
-import type { NpcFigureFrame as PersonFrame, NpcFigureRig as PeopleRig } from '@wildshard/kit/npc/figureRig';
-import { stepNpcFigure, npcFigurePose } from '@wildshard/kit/npc/figureMotion';
+import type { NpcFigureFrame as PersonFrame, NpcFigureRig as PeopleRig } from '@wildshard/game/systems/npc/figureRig';
+import { stepNpcFigure, npcFigurePose } from '@wildshard/game/systems/npc/figureMotion';
 import { campPersonProfile, type CampPersonProfile } from './campPeopleProfiles';
 
 export type PersonId = keyof typeof CAMP_PEOPLE;

@@ -1,4 +1,4 @@
-import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
+import { Sword } from '@wildshard/game/weapons/Sword';
 import { JIAN_ROW } from './vm/jianRow';
 import { swordSupport } from './vm/swordSupport';
 import { FEI_ZHUA_ROW } from './grapple/row';

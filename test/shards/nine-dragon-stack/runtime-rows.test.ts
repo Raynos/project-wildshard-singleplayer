@@ -5,7 +5,7 @@ import { appIdentity } from '../../../src/engine/app/identity';
 import type { Weapon } from '../../../src/engine/combat/Weapon';
 import type { GameServices, ShardContext } from '../../../src/game/shard/context';
 import { installDeclaredItems, type DeclaredItemPorts } from '../../../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../../../src/kit/items/declared';
+import { declaredKitItemFamilies } from '../../../src/game/systems/items/declared';
 import type { ItemFamilyPorts } from '../../../src/engine/combat/itemFamilies';
 import { withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';

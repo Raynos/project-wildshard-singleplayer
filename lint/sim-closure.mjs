@@ -22,7 +22,7 @@ function parsed(file) {
   return result.program;
 }
 function target(root, file, source) {
-  const pkg = /^@wildshard\/(engine|game|kit|sdk|commons)\/(.+)$/u.exec(source);
+  const pkg = /^@wildshard\/(engine|game|sdk|commons)\/(.+)$/u.exec(source);
   const base = pkg ? resolve(root, 'src', pkg[1], pkg[2]) : source.startsWith('.') ? resolve(dirname(file), source) : null;
   if (base === null) return null;
   return [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`].find((p) => existsSync(p) && statSync(p).isFile()) ?? null;

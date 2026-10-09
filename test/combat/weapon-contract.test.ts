@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { Sword } from '../../src/game/weapons/Sword';
 import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
-import { Bow } from '../../src/kit/weapons/bow/family';
+import { Bow } from '../../src/game/weapons/Bow';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
 import { Spear } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { Sabre } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';

@@ -25,7 +25,7 @@ const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
  *  subpath is public (in the package's `exports`) is the `public-index` check's job; a deep one maps to its file so it
  *  is reported (it does not resolve at build time either). */
-const LAYER_PACKAGE = /^@wildshard\/(engine|game|kit|sdk|commons)(?:\/([^?]+))?/u;
+const LAYER_PACKAGE = /^@wildshard\/(engine|game|sdk|commons)(?:\/([^?]+))?/u;
 const packageTarget = (source) => {
   const m = LAYER_PACKAGE.exec(source);
   if (!m) return null;
@@ -284,9 +284,9 @@ const modulePath = (filename, source) => {
   return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
 };
 const layerOf = (path) => {
-  const match = /^src\/(engine|game|kit|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|game|kit|sdk|commons|shards)\/([^/]+)?/u.exec(path);
+  const match = /^src\/(engine|game|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|game|sdk|commons|shards)\/([^/]+)?/u.exec(path);
   if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 6, slug: null } : null;
-  return { name: match[1], rank: ['engine', 'game', 'kit', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
+  return { name: match[1], rank: ['engine', 'game', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
 const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);
@@ -335,7 +335,7 @@ function contractField(node) {
 const layerWalk = (kind) => (context) => {
   const own = layerOf(pathOf(context));
   // E405 AG23: every src file sits in a layer; a new top-level src/<dir>/ would escape all of them.
-  if (!own) return kind === 'layer' && pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / game / kit / shards layers: ${pathOf(context)}`); } } : {};
+  if (!own) return kind === 'layer' && pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / game / sdk / commons / shards layers: ${pathOf(context)}`); } } : {};
   if (kind === 'words') {
     if (own.name !== 'engine') return {};
     const words = (node, text) => {
@@ -361,6 +361,8 @@ const layerWalk = (kind) => (context) => {
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
+    // SF54: @wildshard/kit is dissolved; a workspace specifier names one of the layer packages or nothing
+    if (kind === 'layer' && source.startsWith('@wildshard/') && packageTarget(source) === null) report(context, node, `No such layer package: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk'].includes(target.name)) report(context, node, `Commons author tools import only the SDK: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
@@ -378,12 +380,12 @@ const layerWalk = (kind) => (context) => {
       return;
     }
     const publicAuthor = /^src\/shards\/[^/]+\/(?:shard\.config\.ts$|(?:data|behaviour|quests)\/)/u.test(pathOf(context));
-    if (kind === 'layer' && publicAuthor && ['engine', 'game', 'kit'].includes(target.name)) report(context, node, `Author imports use @wildshard/sdk: ${source}`);
+    if (kind === 'layer' && publicAuthor && ['engine', 'game'].includes(target.name)) report(context, node, `Author imports use @wildshard/sdk: ${source}`);
     // public: an entry the layer's package.json `exports` lists (E432), or a relative path to its index
     const publicPath = !dynamic && (exported(source) || new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-    } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'kit', 'sdk', 'commons'].includes(target.name) && !publicPath) {
+    } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'sdk', 'commons'].includes(target.name) && !publicPath) {
       report(context, node, `Cross-layer imports use the public index: ${source}`);
     }
   };
@@ -398,14 +400,14 @@ const layerWalk = (kind) => (context) => {
     },
   };
 };
-// G143 transition debt is distinct from the hard layer-direction rule; SF54 must retire every site.
-const runtimeCommons = rule('Runtime cannot import kit or commons code (G143 / SF54 transition ratchet)', (context) => {
+// G143: runtime/ never reaches build-time commons (SF54 retired every kit site and dissolved the kit; a hard rule since).
+const runtimeCommons = rule('Runtime cannot import build-time commons code (G143 / SF54)', (context) => {
   if (!/^src\/shards\/[^/]+\/runtime\//u.test(pathOf(context))) return {};
   return importsVisitor((node) => {
     const source = importPrefix(node.source);
     if (typeof source !== 'string') return;
     const target = modulePath(context.filename, source);
-    if (/^@wildshard\/(?:kit|commons)(?:\/|$)/u.test(source) || target.startsWith('src/kit/') || target.startsWith('src/commons/')) report(context, node, `Runtime imports cannot use kit or commons code: ${source}`);
+    if (/^@wildshard\/commons(?:\/|$)/u.test(source) || target.startsWith('src/commons/')) report(context, node, `Runtime imports cannot use commons code: ${source}`);
   });
 });
 // SF62: only the reviewed exact predecessor sites remain during the first-party conversions.
@@ -799,22 +801,22 @@ const shardSandbox = rule('Shard services, globals, settings and assets stay ins
 });
 
 
-// E405 LP3 / LP4: the game knows shards exist, the kit is reusable content; neither names a particular shard. The names
+// E405 LP3 / LP4: the game knows shards exist and holds the shared content (SF54: the kit's, too); it names no particular shard. The names
 // come from the shards themselves (lint/shard-words.generated.json): slugs, display names, their camelCase forms, the
 // distinctive slug stems, and the ids a shard declares in its own namespace. Comments are not counted.
 const camelOf = (s) => s.toLowerCase().replaceAll(/[-\s]+([a-z])/gu, (_m, c) => c.toUpperCase());
 const SHARD_DISPLAY = shardWords.words.filter((w) => /\s/u.test(w));
-const COMMON_STEMS = new Set(['driftwood', 'far', 'nine', 'pine']);   // ordinary words: kit content may say them
+const COMMON_STEMS = new Set(['driftwood', 'far', 'nine', 'pine']);   // ordinary words: shared content may say them
 const SHARD_STEMS = [...new Set(shardWords.slugs.map((s) => s.split('-')[0] ?? ''))].filter((s) => s.length >= 6 && !COMMON_STEMS.has(s));
 const SHARD_IDS = shardWords.words.filter((w) => w.includes('.') && !w.startsWith('weapon.'));
 const SHARD_NAME_TERMS = [...shardWords.slugs, ...shardWords.slugs.map((s) => s.replaceAll('-', ' ')), ...SHARD_DISPLAY, ...shardWords.slugs.map(camelOf), ...SHARD_DISPLAY.map(camelOf), ...SHARD_STEMS, ...SHARD_IDS];
 const SHARD_NAMES = new RegExp(`(?<![A-Za-z0-9])(?:${SHARD_NAME_TERMS.map(escapeRegex).join('|')})(?![A-Za-z0-9])`, 'iu');
-// E362 AG6: the @wildshard/engine exports for the game and the composition root only (lint/engine-internal.json): the kit and the
+// E362 AG6: the @wildshard/engine exports for the game and the composition root only (lint/engine-internal.json): the
 // shards reach the engine's session, boot and installers through ShardContext, never by importing them.
 const engineInternalFile = new URL('engine-internal.json', import.meta.url);
 const engineInternal = new Set(existsSync(engineInternalFile) ? Object.keys(JSON.parse(readFileSync(engineInternalFile, 'utf8')).names) : []);
-const engineInternalRule = rule('Game-only engine exports stay out of the kit and the shards (E362 AG6)', (context) => {
-  if (!/^src\/(?:kit|shards)\//u.test(pathOf(context))) return {};
+const engineInternalRule = rule('Game-only engine exports stay out of the shards (E362 AG6)', (context) => {
+  if (!pathOf(context).startsWith('src/shards/')) return {};
   return { ImportDeclaration(node) {
     if (!(stringOf(node.source) ?? '').startsWith('@wildshard/engine/')) return; // any engine module (E434: no index)
     for (const s of node.specifiers ?? []) {
@@ -836,12 +838,12 @@ const shardServices = rule('Shards get engine services through ShardContext (E36
     }
   } };
 });
-const shardNames = rule('The game and the kit name no particular shard (E405 LAYER-PURITY)', (context) => {
+const shardNames = rule('The game names no particular shard (E405 LAYER-PURITY)', (context) => {
   const own = layerOf(pathOf(context));
-  if (own?.name !== 'game' && own?.name !== 'kit') return {};
+  if (own?.name !== 'game') return {};
   const check = (node, text) => {
     const m = SHARD_NAMES.exec(text);
-    if (m) report(context, node, `${own.name === 'game' ? 'Game' : 'Kit'} code names a shard: ${m[0]} (it belongs in that shard's folder)`);
+    if (m) report(context, node, `Game code names a shard: ${m[0]} (it belongs in that shard's folder)`);
   };
   return {
     // an identifier's camelCase words (`nalatiFlags` → `nalati Flags`, `pineHollowMix` → `pine Hollow Mix`)

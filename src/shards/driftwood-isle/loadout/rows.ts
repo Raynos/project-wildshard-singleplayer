@@ -2,7 +2,7 @@ import source from '../shard.config';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
-import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit/weapons/melee/profiles';
+import { SWORD_WOOD, SWORD_IRON } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { driftwoodWorld } from '../world/build';
 import { IronSwordPickup, ironSwordSite } from '../weapons/IronSword';

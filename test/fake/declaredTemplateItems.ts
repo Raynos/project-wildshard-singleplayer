@@ -6,7 +6,7 @@ import type { Weapon } from '../../src/engine/combat/Weapon';
 import type { AimCommand } from '../../src/engine/input/commands';
 import type { ItemRuntime, ItemTarget } from '../../src/engine/combat/items';
 import { installDeclaredItems, parseItems, type DeclaredItems } from '../../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../../src/kit/items/declared';
+import { declaredKitItemFamilies } from '../../src/game/systems/items/declared';
 import { ITEMS } from '../../src/shards/_template/data/items';
 
 interface TemplateItemFixture {

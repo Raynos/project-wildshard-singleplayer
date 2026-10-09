@@ -251,16 +251,16 @@ describe('AG7 layer graph', () => {
   });
   it('counts cross-layer edges once per file and target, and fails a new pair, a rise and a two-way pair', () => {
     const files: Record<string, string> = {
-      'src/kit/a.ts': "import { x } from '@wildshard/engine'; import type { Y } from '@wildshard/engine'; import './b';",
-      'src/kit/b.ts': '',
+      'src/game/a.ts': "import { x } from '@wildshard/engine'; import type { Y } from '@wildshard/engine'; import './b';",
+      'src/game/b.ts': '',
       'src/engine/index.ts': "export const x = 1; export type Y = 1;",
     };
     const g = graph(Object.keys(files), (p) => files[p] ?? '', (p) => p in files);
-    expect(g).toEqual({ edges: { 'kit → engine': 1 }, violations: [] });
-    expect(compareEdges({ 'kit → engine': 1 }, { 'kit → engine': 2 }).failures).toEqual(['kit → engine rose 1 → 2']);
-    expect(compareEdges({}, { 'game → kit': 1 }).failures[0]).toMatch(/new layer pair/u);
-    expect(compareEdges({ 'kit → engine': 1, 'engine → kit': 1 }, { 'kit → engine': 1, 'engine → kit': 1 }).failures[0]).toMatch(/cycle/u);
-    expect(compareEdges({ 'kit → engine': 3 }, { 'kit → engine': 2 }).fell).toEqual(['kit → engine fell 3 → 2']);
+    expect(g).toEqual({ edges: { 'game → engine': 1 }, violations: [] });
+    expect(compareEdges({ 'game → engine': 1 }, { 'game → engine': 2 }).failures).toEqual(['game → engine rose 1 → 2']);
+    expect(compareEdges({}, { 'game → sdk': 1 }).failures[0]).toMatch(/new layer pair/u);
+    expect(compareEdges({ 'game → engine': 1, 'engine → game': 1 }, { 'game → engine': 1, 'engine → game': 1 }).failures[0]).toMatch(/cycle/u);
+    expect(compareEdges({ 'game → engine': 3 }, { 'game → engine': 2 }).fell).toEqual(['game → engine fell 3 → 2']);
   });
   it('holds the real tree against lint/layer-edges.json', () => {
     const r = spawnSync(execPath, ['scripts/check-graph.mjs'], { encoding: 'utf8' });

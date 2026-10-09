@@ -15,7 +15,7 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { creature } from './fake/creature';
 import { fakeWorld } from './fake/world';
 import { legacyDouble } from './fake/FakeGame';
-import { SWORD } from '../src/kit/weapons/equipment';
+import { SWORD } from '../src/game/weapons/starterEquipment';
 
 const flight: SpeciesFlight = { altitude: 20, above: 'world', climbRate: 7, diveRate: 28 };
 const previousScope = app.levelScope;

@@ -25,10 +25,10 @@ it('refuses author imports past the SDK and upward platform imports', () => {
     const cases = [
       ['src/shards/example/shard.config.ts', "import { CHUNK_SIZE } from '@wildshard/engine/core/config'; export const n = CHUNK_SIZE;"],
       ['src/shards/example/data/row.ts', "import type { ShardManifest } from '@wildshard/game/shard/manifest'; export type Row = ShardManifest;"],
-      ['src/kit/up.ts', "import { SHARDFILE_VERSION } from '@wildshard/sdk/version'; export const v = SHARDFILE_VERSION;"],
+      ['src/game/up.ts', "import { SHARDFILE_VERSION } from '@wildshard/sdk/version'; export const v = SHARDFILE_VERSION;"],
       ['src/shards/example/data/trusted.ts', "import '@wildshard/sdk/runtime/play';"],
       ['src/shards/example/generators/trusted.ts', "import '@wildshard/sdk/runtime/play';"],
-      ['src/shards/example/runtime/kit.ts', "import '@wildshard/kit/items/declared';"],
+      ['src/shards/example/runtime/kit.ts', "import '@wildshard/kit/items/declared';"], // SF54: the dissolved package
       ['src/shards/example/runtime/commons.ts', "import '@wildshard/commons/creatures';"],
       ['src/shards/example/behaviour/commons.ts', "import '@wildshard/commons/creatures';"],
       ['src/shards/example/data/good.ts', "import { SHARDFILE_VERSION } from '@wildshard/sdk/version'; export const v = SHARDFILE_VERSION;"],
@@ -43,8 +43,8 @@ it('refuses author imports past the SDK and upward platform imports', () => {
     const result = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: root, encoding: 'utf8' });
     const report = JSON.parse(result.stdout) as { diagnostics: { filename: string; code: string }[] };
     const hits = report.diagnostics.filter((d) => d.code === 'wildshard(layer)').map((d) => d.filename);
-    expect(hits.sort((a, b) => a.localeCompare(b))).toEqual([0, 1, 2, 3, 4, 6, 7].map((index) => cases[index]?.[0]).sort((a, b) => String(a).localeCompare(String(b))));
+    expect(hits.sort((a, b) => a.localeCompare(b))).toEqual([0, 1, 2, 3, 4, 5, 6, 7].map((index) => cases[index]?.[0]).sort((a, b) => String(a).localeCompare(String(b))));
     const transition = report.diagnostics.filter((d) => d.code === 'wildshard(runtime-commons)').map((d) => d.filename);
-    expect(transition.sort((a, b) => a.localeCompare(b))).toEqual([cases[5]?.[0], cases[6]?.[0]].sort((a, b) => String(a).localeCompare(String(b))));
+    expect(transition.sort((a, b) => a.localeCompare(b))).toEqual([cases[6]?.[0]].sort((a, b) => String(a).localeCompare(String(b))));
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

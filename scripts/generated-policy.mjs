@@ -1,6 +1,6 @@
 // SF6b: generated measurements are separate from human-reviewed policy and exact increase receipts.
 export const GENERATED_FILES = [
-  'lint/api-surface.json', 'docs/api/ENGINE.md', 'docs/api/GAME.md', 'docs/api/KIT.md',
+  'lint/api-surface.json', 'docs/api/ENGINE.md', 'docs/api/GAME.md',
   'docs/api/SDK.md', 'docs/api/COMMONS.md', 'docs/api/SHARD-CONTEXT.md', 'docs/api/SHARDFILE.md', 'docs/ENGINE.md',
   'lint/layer-edges.json', 'lint/ratchet.json', 'scripts/README.md',
 ];

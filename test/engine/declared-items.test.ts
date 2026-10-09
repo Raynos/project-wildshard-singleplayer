@@ -13,7 +13,7 @@ import { scriptItemHook } from '../../src/engine/combat/items';
 import { InputService } from '../../src/engine/input/InputService';
 import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { installDeclaredItems, parseItems, itemRules, declaredItemScriptEntities } from '../../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../../src/kit/items/declared';
+import { declaredKitItemFamilies } from '../../src/game/systems/items/declared';
 import type { EquipmentIcon } from '../../src/engine/combat/Equipment';
 import itemSource from '../fixtures/shardfile/items/template.json';
 import { ITEMS } from '../../src/shards/_template/data/items';
