@@ -3579,6 +3579,54 @@
         "from": "@wildshard/engine/combat/pipeline"
       },
       {
+        "name": "projectileBury",
+        "kind": "function",
+        "doc": "Insert a tip by the caller's material-specific depth, preserving the input point.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "projectileContactTip",
+        "kind": "function",
+        "doc": "Move a swept sphere's centre to the tip's surface contact along its flight.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "projectileDrop",
+        "kind": "function",
+        "doc": "Detach into the supplied floor height. The caller decides when its attachment is dead or hidden.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "projectileGlance",
+        "kind": "function",
+        "doc": "Retain tangential motion and the authored fraction of normal bounce, in the shipping operation order.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "ProjectileGlance",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "ProjectileReach",
+        "kind": "interface",
+        "doc": "Caller-owned contact vectors. No collision query, clock, allocation or random draw is performed here.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "projectileRest",
+        "kind": "function",
+        "doc": "Lie across the contacted surface. `along` is scratch/output; the supplied axes are not written.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
+        "name": "projectileWithinReach",
+        "kind": "function",
+        "doc": "Test the shaft midpoint. Eligibility, capacity, reverse-order removal and survival draws remain caller-owned.",
+        "from": "@wildshard/engine/combat/projectileContact"
+      },
+      {
         "name": "ProjectileFlight",
         "kind": "interface",
         "doc": "The flight numbers of a drawn projectile (an arrow, a thrown bolt): gravity (m/s²), speed-squared drag and the sideways",

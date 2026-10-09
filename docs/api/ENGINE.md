@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2342 members; 841 without a doc line (—).
+2350 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -603,6 +603,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `FallCause` | interface | @wildshard/engine/combat/pipeline | — |
 | `HealthAttributes` | interface | @wildshard/engine/combat/pipeline | — |
 | `StringKey` | type | @wildshard/engine/combat/pipeline | — |
+| `projectileBury` | function | @wildshard/engine/combat/projectileContact | Insert a tip by the caller's material-specific depth, preserving the input point. |
+| `projectileContactTip` | function | @wildshard/engine/combat/projectileContact | Move a swept sphere's centre to the tip's surface contact along its flight. |
+| `projectileDrop` | function | @wildshard/engine/combat/projectileContact | Detach into the supplied floor height. The caller decides when its attachment is dead or hidden. |
+| `projectileGlance` | function | @wildshard/engine/combat/projectileContact | Retain tangential motion and the authored fraction of normal bounce, in the shipping operation order. |
+| `ProjectileGlance` | interface | @wildshard/engine/combat/projectileContact | — |
+| `ProjectileReach` | interface | @wildshard/engine/combat/projectileContact | Caller-owned contact vectors. No collision query, clock, allocation or random draw is performed here. |
+| `projectileRest` | function | @wildshard/engine/combat/projectileContact | Lie across the contacted surface. `along` is scratch/output; the supplied axes are not written. |
+| `projectileWithinReach` | function | @wildshard/engine/combat/projectileContact | Test the shaft midpoint. Eligibility, capacity, reverse-order removal and survival draws remain caller-owned. |
 | `ProjectileFlight` | interface | @wildshard/engine/combat/projectileFlight | The flight numbers of a drawn projectile (an arrow, a thrown bolt): gravity (m/s²), speed-squared drag and the sideways |
 | `projectileFlightStep` | function | @wildshard/engine/combat/projectileFlight | Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. Renderer-free: |
 | `drawnSpreadDegrees` | function | @wildshard/engine/combat/shotSpread | Drawn-weapon cone width in degrees, with authored hip/motion widths and an explicit aiming multiplier. |

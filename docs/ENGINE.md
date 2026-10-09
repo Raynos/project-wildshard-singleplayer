@@ -2058,7 +2058,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2325 exports, grouped by the module to import them from.
+2333 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2163,6 +2163,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/Melee`: `Melee`, `meleeActor`
 - `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
+- `@wildshard/engine/combat/projectileContact`: `projectileBury`, `projectileContactTip`, `projectileDrop`, `projectileGlance`, `ProjectileGlance`, `ProjectileReach`, `projectileRest`, `projectileWithinReach`
 - `@wildshard/engine/combat/projectileFlight`: `ProjectileFlight`, `projectileFlightStep`
 - `@wildshard/engine/combat/shotSpread`: `drawnSpreadDegrees`, `instantSpreadDegrees`, `ShotCone`, `shotSpread`
 - `@wildshard/engine/combat/sweptMeleeCore`: `AttackQueue`, `SweptEvents`, `sweptLunge`, `SweptLungeTiming`, `SweptMeleeCore`, `SweptMeleeState`, `sweptMoveDamage`, `SweptMoves`, `SweptStep`, `SweptTiming`, `SwingTiming`
