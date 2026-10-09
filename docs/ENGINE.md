@@ -2055,7 +2055,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2318 exports, grouped by the module to import them from.
+2325 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2161,6 +2161,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
 - `@wildshard/engine/combat/projectileFlight`: `ProjectileFlight`, `projectileFlightStep`
+- `@wildshard/engine/combat/shotSpread`: `drawnSpreadDegrees`, `instantSpreadDegrees`, `ShotCone`, `shotSpread`
 - `@wildshard/engine/combat/sweptMeleeCore`: `AttackQueue`, `SweptEvents`, `sweptLunge`, `SweptLungeTiming`, `SweptMeleeCore`, `SweptMeleeState`, `sweptMoveDamage`, `SweptMoves`, `SweptStep`, `SweptTiming`, `SwingTiming`
 - `@wildshard/engine/combat/targets`: `authoredTargets`, `RayTargets`
 - `@wildshard/engine/combat/Thrown`: `Thrown`
@@ -2443,6 +2444,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/waves`: `insideWaterExtent`, `seaDamp`, `WATER_UNBOUNDED`, `waterExtent`, `waveClock`, `waveDisplace`, `waveHeight`, `WAVES`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
 - `@wildshard/engine/world/weather`: `Weather`, `WeatherFrame`, `WeatherNumbers`, `WeatherProfile`
 - `@wildshard/engine/world/wind`: `FRONT_LEN`, `FRONT_SPEED`, `FRONT2_LEN`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `WIND_DIR`, `WIND_FIELD_GLSL`, `windBoost`, `windGustAt`, `windUniforms`
+- `@wildshard/engine/world/windField`: `clockGust`, `fieldGustAt`, `WindFieldSpec`
 
 ### `@wildshard/game` (`src/game/package.json`)
 

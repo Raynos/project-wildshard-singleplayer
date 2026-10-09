@@ -3591,6 +3591,30 @@
         "from": "@wildshard/engine/combat/projectileFlight"
       },
       {
+        "name": "drawnSpreadDegrees",
+        "kind": "function",
+        "doc": "Drawn-weapon cone width in degrees, with authored hip/motion widths and an explicit aiming multiplier.",
+        "from": "@wildshard/engine/combat/shotSpread"
+      },
+      {
+        "name": "instantSpreadDegrees",
+        "kind": "function",
+        "doc": "Instant-shot cone width in degrees. The caller supplies its already eased aiming blend.",
+        "from": "@wildshard/engine/combat/shotSpread"
+      },
+      {
+        "name": "ShotCone",
+        "kind": "interface",
+        "doc": "A cone's radial distribution and the authored multiplier on each random transverse component.",
+        "from": "@wildshard/engine/combat/shotSpread"
+      },
+      {
+        "name": "shotSpread",
+        "kind": "function",
+        "doc": "Apply the shipping cone arithmetic in place. Exactly four ordered draws, including a zero-width cone.",
+        "from": "@wildshard/engine/combat/shotSpread"
+      },
+      {
         "name": "AttackQueue",
         "kind": "interface",
         "doc": "The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag).",
@@ -14030,6 +14054,24 @@
         "kind": "const",
         "doc": "",
         "from": "@wildshard/engine/world/wind"
+      },
+      {
+        "name": "clockGust",
+        "kind": "function",
+        "doc": "Slow clock gust with the weather's additive boost. Arithmetic matches the live uniform update.",
+        "from": "@wildshard/engine/world/windField"
+      },
+      {
+        "name": "fieldGustAt",
+        "kind": "function",
+        "doc": "CPU gust-front sampler for projectile/sound laws and the live shader's mirror, using explicit time and gust.",
+        "from": "@wildshard/engine/world/windField"
+      },
+      {
+        "name": "WindFieldSpec",
+        "kind": "interface",
+        "doc": "Numeric gust-front policy, passed by the world owner; no clock or shader state is read.",
+        "from": "@wildshard/engine/world/windField"
       }
     ],
     "game": [

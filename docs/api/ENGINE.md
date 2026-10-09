@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2335 members; 841 without a doc line (—).
+2342 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -605,6 +605,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `StringKey` | type | @wildshard/engine/combat/pipeline | — |
 | `ProjectileFlight` | interface | @wildshard/engine/combat/projectileFlight | The flight numbers of a drawn projectile (an arrow, a thrown bolt): gravity (m/s²), speed-squared drag and the sideways |
 | `projectileFlightStep` | function | @wildshard/engine/combat/projectileFlight | Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. Renderer-free: |
+| `drawnSpreadDegrees` | function | @wildshard/engine/combat/shotSpread | Drawn-weapon cone width in degrees, with authored hip/motion widths and an explicit aiming multiplier. |
+| `instantSpreadDegrees` | function | @wildshard/engine/combat/shotSpread | Instant-shot cone width in degrees. The caller supplies its already eased aiming blend. |
+| `ShotCone` | interface | @wildshard/engine/combat/shotSpread | A cone's radial distribution and the authored multiplier on each random transverse component. |
+| `shotSpread` | function | @wildshard/engine/combat/shotSpread | Apply the shipping cone arithmetic in place. Exactly four ordered draws, including a zero-width cone. |
 | `AttackQueue` | interface | @wildshard/engine/combat/sweptMeleeCore | The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag). |
 | `SweptEvents` | interface | @wildshard/engine/combat/sweptMeleeCore | Reactions owned by the caller: a swing started (with whether it may lunge), the heavy's charge began (0) or released (1). |
 | `sweptLunge` | function | @wildshard/engine/combat/sweptMeleeCore | A swing's lunge onto a target `radius` m round, (dx, dz) from the feet (SF72): null past the move's range (the heavy |
@@ -2343,3 +2347,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `windBoost` | const | @wildshard/engine/world/wind | 0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/shards/pine-hollow/world/weather.ts); 0 = the wind exactly as before |
 | `windGustAt` | function | @wildshard/engine/world/wind | CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust` |
 | `windUniforms` | const | @wildshard/engine/world/wind | — |
+| `clockGust` | function | @wildshard/engine/world/windField | Slow clock gust with the weather's additive boost. Arithmetic matches the live uniform update. |
+| `fieldGustAt` | function | @wildshard/engine/world/windField | CPU gust-front sampler for projectile/sound laws and the live shader's mirror, using explicit time and gust. |
+| `WindFieldSpec` | interface | @wildshard/engine/world/windField | Numeric gust-front policy, passed by the world owner; no clock or shader state is read. |
