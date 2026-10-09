@@ -43,3 +43,4 @@
   - G260 Blender board;
   - confirm G120/G123/SF48 boards are moot.
 
+**Grid regression lead (for grid-fix, 21:25 UTC):** op-grid (d3704c31e/195597049) reported `GRID_GATES_PASSED` is still false, so the public build shows no INFINITE WILDSHARD card (G269 gate). G270 also dropped template-3 and moved Signal into public cells, and the SF73 legacy routing (10a4fbc7d) changed SHARD SELECT. G258's Auto texture resolver (986dc7495, b883abf1d) decides admission per resident. No lane of mine has a fix in flight.
