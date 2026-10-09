@@ -1,46 +1,40 @@
-# Handoff (sf72-driftwood, part 9) — 2026-10-09, SF72 Driftwood Isle headless
+# Handoff (sf72-driftwood, part 10) — 2026-10-09, SF72 Driftwood Isle headless
 
-Coordinator `wildshard-new` pushes. Supersedes part 8's "Exact next steps". Driftwood's canonical witness
+Coordinator `wildshard-new` pushes. Supersedes part 9's "Not done". Driftwood's canonical witness
 (`test/proof/driftwood-isle/`) is UNCHANGED and still fails closed (its entry is still `runtime/hybrid.ts`).
 
-## Landed (part 9, one commit: see the report's SHA)
+## Landed (part 10)
 
-- **The engine seam:** `PLAYER_BODY` (physics/CharacterMotor.ts) is the player's one body law, spread by the page's
-  Player and SimHost's player motor: group PLAYER, `blockedBy: ['WORLD','CREATURE','ITEM']`, weight 80. (The host's old
-  `'PLAYER'` entry was a no-op: PLAYER's own filter never meets PLAYER.) The host's creature motors are unchanged. Oracle:
-  `test/engine/sim-player-items.test.ts` (the two motors' law is equal; both push a BARREL_BODY > 1 m on the same input).
-  Sky's checkpoints regenerated in the same commit; every walk tape and baseline test stayed green.
-- **One barrel law:** `@wildshard/engine/world/interact/barrel` (renderer-free: BARREL_BODY, BARREL_R / HALF, BarrelEnv,
-  BarrelWatch + state / restore, barrelAtPlate). Interactables.ts imports it (no behaviour change; physics-barrel.test.ts
-  and physics-bodies.test.ts repointed, green). Approved graph rise (+1 engine node, 3 edges).
-- **The headless barrel (runtime/quest.ts):** the kit's body at the baked `tide-barrel` home, upright on its yaw, in its
-  own `Bodies` service over the host world (post → BarrelWatch → pre each tick = the page's pre / step / post order); the
-  watch reads the walk the tick's last `player` command asks for (headless.ts `walkOf`: stick clamped to 1 × level speed);
-  restore adopts the native body by handle (`physicsRestored`) with the watch's clocks. The open sluice disables its baked
-  collider (found by its kit box; the page parks it once the gate starts to lift, a tick later than here).
-- **By play:** headless-quest.test.ts rolls the barrel north east of the cave rocks at a slow walk, then pushes it west
-  into the rock face beside plate b (the face stops it on the plate; retried from the side it lies on), stands on plate a,
-  the sluice latches open, walks in through the gate and takes the cave shard (`driftwood.shards@shards:3`). The hand-set
-  `shard:cave` is gone. Test ~3 s.
+- **ba9d61dd9, restores judged on restored world state (shared rule):** Rapier's snapshot bytes are not canonical
+  (`takeSnapshot(restoreSnapshot(x)) != x` by 4–13 bytes, two 13-byte records swapped near offset 194 k of Driftwood's
+  3.3 MB; repeated round trips keep permuting, no step between, every body / collider / contact equal). HEAD's quest
+  test passed by luck. `test/fake/simState.ts` (`physicsState`, `physicsDifference`, `canonicalSimDigest`);
+  `expectSameSimSnapshot` restores both worlds and compares state when the bytes differ (strict: a 1-ULP pose fails,
+  `test/engine/sim-snapshot-state.test.ts`). Signal / Sky / Nine / the template's witnesses hash canonical state and
+  check restores and the worker continuation on it; compat hashes re-recorded from two identical native runs each.
+- **348c0a1d7, the barrel push is closed loop:** each move reads the barrel's pose (its length axis from the body's
+  rotation) and pushes it at plate b along one of its own axes, slowly near the end, judged by where it got to; the walks
+  to plate a and the cave go round a 1.9 m ring about plate b. Stick-noise sweep (1e-9…1e-3 per tick): push 36/36,
+  whole quest test 26/28 (HEAD: ~50 %). arm64 + x64 Node (Rosetta, ci-green's `run-arch.sh`) green.
 
-## Not done this part (in order)
+## Not done (in order)
 
-1. **Browser check of the barrel** (coordinator asked): a Driftwood browser push of the barrel onto plate b on a build of
-   this commit. Not run (time cap); the browser change is a pure module move plus an identical options spread.
-2. **The swords' new inputs** (a0aa16128): Driftwood's dodge wake on `host.events.on('player.dodge')`, the heavy swing
-   from the HELD `heavy` command (`SweptMeleeCore.step(dt, t, scale, held)`), the lunge via `host.dashTo` + `sweptLunge`.
-3. **Night respawns (Ecology.ts)**: the RespawnQueue on the 'spawn' stream, the sailor's night gate on `host.dayClock.night`.
-4. **Entry proof**: the outer lanes (±3.65 m) of the 8 m entries step off the jetty's side at 16.5 m into the lowered sea
-   (page too). Check the grid's entry contract; if the declared entry is wider than the deck, propose narrowing the
-   declared lanes (shard.config / shardfile data, map rebake) or rails to the coordinator with numbers BEFORE changing data.
-5. A freshness check for `runtime/spots.baked.json` (inputs hash, like the physics bake's).
-6. The witness on `runtime/headless.ts` (10k, a captain mid-fight replay checkpoint, ledger from gameplay; committed
-   checkpoints + freshness if the tape is long); point `run.mjs` at the trusted entry; flip `compatibility.json` only from
-   a real run.
+1. **The two remaining noise failures** (seeds 19 / 21 × 7919 at 1e-6, a scratch copy of the test with noise on `steer`):
+   the barrel ends against the 1.9 m block's east corner (143.5, 7.4), where the spot behind it is inside the block, or
+   rolls north west past the 1.7 m block (141.6, 13.3). Fix: when the spot behind is blocked, push it out along the
+   free axis first (or aim the first move at a staging point east of plate b, (146.5, 6.5), then north / west).
+2. **Browser barrel push check** (owed since part 9): a muted iPhone 16 Pro run pushing the barrel onto plate b.
+3. The swords on the new inputs (a0aa16128): dodge wake on `player.dodge`, heavy from the held `heavy`, lunge via
+   `host.dashTo` + `sweptLunge`.
+4. Night respawns (the sailor's night gate on `host.dayClock.night`).
+5. The entry proof: send the coordinator the lane widths and a proposal before any world-data change.
+6. A freshness check for `runtime/spots.baked.json`.
+7. The witness on `runtime/headless.ts` (committed checkpoints + freshness if long).
 
-## Still different from the browser
+## Map notes (tide puzzle, physics rays)
 
-Part 8's list, plus: the barrel watch's "asked velocity" is the stick's walk (the page's Player.velocity also carries a
-dash / knockback); the sluice collider leaves one tick early; no zipline; the shown strongbox keeps no collider.
+Plate b (144.9, 9.9, slab ±0.55); the 1.7 m block x 140.25–143.6, z ≥ 9.4 (its east face stops a westward push on the
+plate); the 1.9 m block x 139.5–143.1, z 4.5–8.25; rock east of x ≈ 147.25–148.75 for z 3–10; the barrel's home
+(147.5, 3.5). Driftwood's world has one dynamic body (the barrel), so it alone decides whether snapshot bytes permute.
 
 Plan-State: unchanged.
