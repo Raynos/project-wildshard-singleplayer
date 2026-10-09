@@ -13,3 +13,8 @@ it('restores the same authoritative continuation without a permanent in-memory p
   const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs', '--durable'], { encoding: 'utf8', timeout: 20_000 });
   expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true, durableOnly: true, retainedChars: 0 });
 });
+
+it('uses native bytes for durable saves without changing quota refusal, restoration or continuation ownership', () => {
+  const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs', '--durable', '--bytes'], { encoding: 'utf8', timeout: 20_000 });
+  expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true, durableOnly: true, retainedChars: 0, nativeBytes: true });
+});

@@ -1,0 +1,325 @@
+diff --git a/src/engine/sim/snapshot.ts b/src/engine/sim/snapshot.ts
+index 117fec9b6..aff6e5ec8 100644
+--- a/src/engine/sim/snapshot.ts
++++ b/src/engine/sim/snapshot.ts
+@@ -71,13 +71,17 @@ export interface SimSnapshot {
+   boardColliders?: number[] | undefined;
+ }
+ 
++/** A fresh native capture for encoding, without a boxed JavaScript array for each Rapier byte. The packed wire and
++ *  decoded/restore API remain {@link SimSnapshot}; staged serialization freezes these bytes before its first pause. */
++export type SimSnapshotBytes = Omit<SimSnapshot, 'physics'> & { physics: Uint8Array };
++
+ /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
+-export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Array): string {
++export function serializeSimSnapshot(saved: SimSnapshot | SimSnapshotBytes, physicsBasis?: Uint8Array): string {
+   return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
+ }
+ /** The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and
+  *  {@link finishSimSteps} runs it whole. The snapshot is read only before the first pause. */
+-export function serializeSimSnapshotSteps(saved: SimSnapshot, physicsBasis?: Uint8Array): Generator<undefined, string> {
++export function serializeSimSnapshotSteps(saved: SimSnapshot | SimSnapshotBytes, physicsBasis?: Uint8Array): Generator<undefined, string> {
+   return serializeSnapshotDataSteps(saved, SIM_API_VERSION, physicsBasis);
+ }
+ /** Run a staged snapshot job to completion now. */
+@@ -183,7 +187,10 @@ function dayField(host: SimHost): { day?: DayClockState } {
+ }
+ 
+ /** Capture at a fixed-step boundary; pending events are preserved without flushing them. */
+-export function snapshotSimHost(host: SimHost): SimSnapshot {
++export function snapshotSimHost(host: SimHost): SimSnapshot { return captureSimHost(host, byteArray); }
++/** Capture the same fixed-boundary state with owned native bytes, ready for the packed writer without number[]. */
++export function snapshotSimHostBytes(host: SimHost): SimSnapshotBytes { return captureSimHost(host, bytes => bytes); }
++function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, physics: (bytes: Uint8Array) => Bytes): Omit<SimSnapshot, 'physics'> & { physics: Bytes } {
+   if (host.embedded) throw new Error('Borrowed simulation snapshots belong to the client world owner');
+   if (host.scope.disposed) throw new Error('Cannot snapshot a disposed host');
+   const colliderTags: SimSnapshot['colliderTags'] = [];
+@@ -200,7 +207,7 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
+       ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}),
+       ...jumpFields(host) },
+     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
+-    events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
++    events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
+     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
+     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
+     ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host) };
+diff --git a/src/engine/sim/snapshotData.ts b/src/engine/sim/snapshotData.ts
+index fb855befd..393e97c2a 100644
+--- a/src/engine/sim/snapshotData.ts
++++ b/src/engine/sim/snapshotData.ts
+@@ -2,7 +2,7 @@ import * as v from 'valibot';
+ import { deflateSync, inflateSync } from 'fflate';
+ import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
+ import type { SimValue } from '../sim';
+-import type { SimSnapshot } from './snapshot';
++import type { SimSnapshot, SimSnapshotBytes } from './snapshot';
+ import { DAY_CLOCK_PHASES } from './dayClock';
+ 
+ const finite = v.pipe(v.number(), v.finite());
+@@ -261,10 +261,12 @@ export function finishSteps<T>(steps: Generator<undefined, T>): T {
+ /** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
+  *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
+  *  touch nothing the live simulation can change. */
+-export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
+-  if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
++export function* serializeSnapshotDataSteps(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
++  if ((!Array.isArray(input.physics) && !(input.physics instanceof Uint8Array)) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
+   // The byte array is checked in one flat pass; every other field keeps the strict JSON-tree and schema validation.
+-  const raw = physicsArray(input.physics), metadata = { ...input, physics: [0] };
++  // Freeze the caller's typed input as bytes, just as physicsArray freezes legacy arrays. No boxed number[] is
++  // created; cancellation and interleaved jobs own only their transient byte buffers, with no retained workspace.
++  const raw = input.physics instanceof Uint8Array ? input.physics.slice() : physicsArray(input.physics), metadata = { ...input, physics: [0] };
+   jsonTree(metadata, new Set(), 0, true);
+   const saved = identities(v.parse(snapshot, metadata), apiVersion);
+   yield;
+@@ -273,7 +275,7 @@ export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: numb
+   return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } });
+ }
+ /** Internal packed wire writer; the defining public entry supplies its current engine version. */
+-export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): string {
++export function serializeSnapshotData(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, physicsBasis?: Uint8Array): string {
+   return finishSteps(serializeSnapshotDataSteps(input, apiVersion, physicsBasis));
+ }
+ /** Internal strict wire parser; unknown static fields are refused at every nesting level. */
+diff --git a/src/game/grid/durability.ts b/src/game/grid/durability.ts
+index fd3994fd5..23ff8c6de 100644
+--- a/src/game/grid/durability.ts
++++ b/src/game/grid/durability.ts
+@@ -2,7 +2,7 @@ import * as v from 'valibot';
+ import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
+ import type { SimHost } from '@wildshard/engine/sim';
+ import { fnv1a32 } from '@wildshard/engine/core/rng';
+-import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
++import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
+ import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
+ import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
+ import type { QuestDataPorts } from '../quest/declared';
+@@ -117,10 +117,10 @@ export class GridRegionDurability {
+   }
+ 
+   /** Persist the complete region only after its money and facts are durable; failed writes retain a retryable copy. */
+-  checkpoint(snapshot: SimSnapshot): boolean { return finishSimSteps(this.checkpointSteps(snapshot)); }
++  checkpoint(snapshot: SimSnapshot | SimSnapshotBytes): boolean { return finishSimSteps(this.checkpointSteps(snapshot)); }
+   /** The same checkpoint in stages for a periodic autosave: each `yield` may wait a frame; the snapshot, basis and
+    *  prop states are read before the first pause, and the save is written only in the last stage. */
+-  *checkpointSteps(snapshot: SimSnapshot): Generator<undefined, boolean> {
++  *checkpointSteps(snapshot: SimSnapshot | SimSnapshotBytes): Generator<undefined, boolean> {
+     if (snapshot.levelId !== this.identity.shard) throw new Error('Regional checkpoint belongs to another shard');
+     if (!this.flush()) return false;
+     const logical = clientStateFromRegion(this.source, snapshot, this.identity.revision, this.source.state.version,
+diff --git a/src/game/grid/live.ts b/src/game/grid/live.ts
+index 8954cfd4c..aa70d7070 100644
+--- a/src/game/grid/live.ts
++++ b/src/game/grid/live.ts
+@@ -1,5 +1,5 @@
+ import type { SimExternalPlayer, SimHost } from '@wildshard/engine/sim';
+-import { snapshotSimHost, finishSimSteps, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
++import { snapshotSimHost, snapshotSimHostBytes, finishSimSteps, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
+ import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/frame';
+ import type { Physics } from '@wildshard/engine/physics/Physics';
+ import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink, type ReadinessTicket } from '@wildshard/engine/sim/readiness';
+@@ -54,6 +54,9 @@ export interface LiveGridPorts {
+   save: (instance: string, snapshot: SimSnapshot) => boolean;
+   /** The same save in stages (each `yield` may wait a frame) for {@link LiveGridHost.checkpointSteps}; absent saves in one stage. */
+   saveSteps?: (instance: string, snapshot: SimSnapshot) => Generator<undefined, boolean>;
++  /** Optional durable writer accepting native capture bytes without a boxed physics array. Used only with durable
++   *  continuations; absent preserves the legacy capture/cache/save ports exactly. The generator owns no live host. */
++  saveBytesSteps?: (instance: string, snapshot: SimSnapshotBytes) => Generator<undefined, boolean>;
+   read?: (instance: string) => SimSnapshot | undefined;
+   bindFrame: (frame: LiveGridFrame) => void;
+   gameplayReady: (instance: string) => boolean;
+@@ -375,24 +378,30 @@ export class LiveGridHost {
+     if (resident.region.checkpoint !== undefined) return resident.region.checkpoint();
+     let snapshot = this.saved.read(instance);
+     const active = instance === this.active;
++    const stale = (): boolean => this.disposed || generation !== this.checkpointGenerations.get(instance) || this.residents.get(instance) !== resident || (instance === this.active) !== active;
++    let nativeSteps: Generator<undefined, boolean> | undefined;
+     if (active) {
+       const host = resident.region.host; host.player.position.copy(this.ports.player.position); host.player.yaw = this.ports.player.yaw;
+       host.attachPlayerMotor(this.ports.player.motor);
+-      try { snapshot = snapshotSimHost(host); } finally { host.releasePlayerMotor(); }
++      try {
++        if (this.ports.continuations === 'durable' && this.ports.saveBytesSteps !== undefined) nativeSteps = this.ports.saveBytesSteps(instance, snapshotSimHostBytes(host));
++        else snapshot = snapshotSimHost(host);
++      } finally { host.releasePlayerMotor(); }
+     }
++    if (nativeSteps !== undefined) return yield* this.writeCheckpointSteps(nativeSteps, stale);
+     if (snapshot === undefined) return true; // Never-entered bodyless content is reconstructed from immutable admission.
+     const packed = this.ports.continuations === 'durable' ? undefined : this.saved.pack(instance, snapshot); if (packed === null) return false;
+-    const stale = (): boolean => this.disposed || generation !== this.checkpointGenerations.get(instance) || this.residents.get(instance) !== resident || (instance === this.active) !== active;
+     const steps = this.ports.saveSteps?.(instance, snapshot);
+-    let saved: boolean;
+-    if (steps === undefined) saved = this.ports.save(instance, snapshot);
+-    else for (;;) {
++    const saved = steps === undefined ? this.ports.save(instance, snapshot) : yield* this.writeCheckpointSteps(steps, stale);
++    if (!saved) return false;
++    if (packed !== undefined) this.saved.store(instance, packed); return true;
++  }
++  private *writeCheckpointSteps(steps: Generator<undefined, boolean>, stale: () => boolean): Generator<undefined, boolean> {
++    for (;;) {
+       yield;
+       if (stale()) { steps.return(false); return false; }
+-      const step = steps.next(); if (step.done === true) { saved = step.value; break; }
++      const step = steps.next(); if (step.done === true) return step.value;
+     }
+-    if (!saved) return false;
+-    if (packed !== undefined) this.saved.store(instance, packed); return true;
+   }
+   /** Prepare durability before allocator eviction; commit only disposes an already-frozen world. */
+   prepareUnload(instance: string): ResidencyEviction | null {
+diff --git a/src/game/grid/liveSession.ts b/src/game/grid/liveSession.ts
+index 4a98a4103..56c51a0e2 100644
+--- a/src/game/grid/liveSession.ts
++++ b/src/game/grid/liveSession.ts
+@@ -271,6 +271,7 @@ export class LiveGridSession {
+       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
+       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
+       saveSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
++      saveBytesSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
+       bindFrame: (frame) => { this.bind(frame); },
+       gameplayReady: () => this.gameplayReady(),
+       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
+diff --git a/src/game/shardfile/clientState.ts b/src/game/shardfile/clientState.ts
+index d57c58254..146579a30 100644
+--- a/src/game/shardfile/clientState.ts
++++ b/src/game/shardfile/clientState.ts
+@@ -87,7 +87,7 @@ export function captureClientState(source: Shardfile, sim: ShardfileSimulation,
+     quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
+ }
+ /** Persist a portable companion to a same-engine region snapshot, so later revisions never need its old Rapier bytes. Legacy regions supply their known state-version-1 origin. */
+-export function clientStateFromRegion(source: Shardfile, snapshot: SimSnapshot, revision = source.identity.revision, stateVersion = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {
++export function clientStateFromRegion(source: Shardfile, snapshot: Omit<SimSnapshot, 'physics'>, revision = source.identity.revision, stateVersion = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {
+   v.parse(v.literal(source.identity.slug), snapshot.levelId);
+   const lane = snapshot.adapters.find((adapter) => adapter.id === 'script.declared')?.state ?? null;
+   if (lane !== null && typeof lane !== 'string') throw new Error('Invalid regional script state');
+diff --git a/test/engine/snapshot-native-bytes.test.ts b/test/engine/snapshot-native-bytes.test.ts
+new file mode 100644
+index 000000000..49cc42663
+--- /dev/null
++++ b/test/engine/snapshot-native-bytes.test.ts
+@@ -0,0 +1,45 @@
++// oxlint-disable-next-line import/no-nodejs-modules -- Exercise exact native snapshots with the shipped Rapier binary.
++import { readFileSync } from 'node:fs';
++import { beforeAll, expect, it } from 'vitest';
++import { createSimHost } from '../../src/engine/sim';
++import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
++import { snapshotSimHost, snapshotSimHostBytes, serializeSimSnapshot, serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, restoreSimHost } from '../../src/engine/sim/snapshot';
++import { SIM_LEVEL } from '../fixtures/sim-level/level';
++
++let rapier: Rapier;
++beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
++it('writes byte-identical native captures and restores the same tick, state and physical world', () => {
++  const host = createSimHost(SIM_LEVEL, { rapier });
++  try {
++    host.flags.set('native-bytes'); host.slots.scriptMemory['fixture'] = { coins: 17 };
++    for (let tick = 0; tick < 7; tick++) host.step();
++    const plain = snapshotSimHost(host), native = snapshotSimHostBytes(host);
++    expect(Array.isArray(plain.physics)).toBe(true); expect(native.physics).toBeInstanceOf(Uint8Array);
++    expect(native.physics).toEqual(Uint8Array.from(plain.physics));
++    for (const basis of [undefined, native.physics.slice()]) {
++      const wire = serializeSimSnapshot(native, basis);
++      expect(wire).toBe(serializeSimSnapshot(plain, basis));
++      const decoded = decodeSimSnapshot(wire, basis); expect(decoded).toEqual(plain);
++      const restored = restoreSimHost(SIM_LEVEL, { rapier }, decoded);
++      try { expect(serializeSimSnapshot(snapshotSimHostBytes(restored), basis)).toBe(wire); }
++      finally { restored.dispose(); }
++    }
++  } finally { host.dispose(); }
++});
++it('freezes a byte subview before the first pause, and interleaved or cancelled jobs share no capacity', () => {
++  const host = createSimHost(SIM_LEVEL, { rapier });
++  try {
++    const native = snapshotSimHostBytes(host), backing = new Uint8Array(131_093);
++    for (let i = 0; i < backing.length; i++) backing[i] = i % 251;
++    native.physics = backing.subarray(7, 131_086);
++    const expected = serializeSimSnapshot(native), first = serializeSimSnapshotSteps(native);
++    expect(first.next().done).toBe(false);
++    native.physics.fill(255); native.state.tick = 11;
++    const changed = serializeSimSnapshot(native), second = serializeSimSnapshotSteps(native), cancelled = serializeSimSnapshotSteps(native);
++    expect(second.next().done).toBe(false); expect(cancelled.next().done).toBe(false); cancelled.return('cancelled');
++    expect(finishSimSteps(first)).toBe(expected); expect(finishSimSteps(second)).toBe(changed);
++    expect(serializeSimSnapshot(native)).toBe(changed);
++    expect(() => serializeSimSnapshot({ ...native, physics: new Uint8Array() })).toThrow();
++    expect(() => serializeSimSnapshot({ ...native, physics: new Uint8Array(32_000_001) })).toThrow('32 MB');
++  } finally { host.dispose(); }
++});
+diff --git a/test/fixtures/grid/live.mjs b/test/fixtures/grid/live.mjs
+index 50cfe86e7..79aa107e4 100644
+--- a/test/fixtures/grid/live.mjs
++++ b/test/fixtures/grid/live.mjs
+@@ -21,7 +21,7 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
+ import { PageResidency } from '../../../src/game/grid/pageResidency.ts';
+ 
+ assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
+-const durableOnly = argv.includes('--durable');
++const durableOnly = argv.includes('--durable'), nativeBytes = argv.includes('--bytes');
+ const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+ const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
+ const assembly = new GridAssembly({ developer: false, devserver: false }), homeCell = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
+@@ -53,6 +53,14 @@ const ports = {
+   } },
+   readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 }, bundle: () => ({ criticalWireBytes: 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 }) },
+   save: (id, snapshot) => { if (!durable) return false; const packed = serializeSimSnapshot(snapshot); assert.deepEqual(decodeSimSnapshot(packed), snapshot); saves.set(id, packed); return true; },
++  ...(nativeBytes ? { saveBytesSteps: function* (id, snapshot) {
++    assert.ok(snapshot.physics instanceof Uint8Array);
++    const wire = serializeSimSnapshot(snapshot);
++    assert.equal(wire, serializeSimSnapshot({ ...snapshot, physics: Array.from(snapshot.physics) }));
++    yield;
++    if (!durable) return false;
++    saves.set(id, wire); return true;
++  } } : {}),
+   gameplayReady: () => gameplay,
+   bindFrame: ({ physics, host, instance }) => { assert.equal(host === undefined, instance === homeCell.instance); if (host !== undefined) assert.equal(host.physics, physics); currentPhysics = physics; frameBinds++; },
+   admit: async () => ({ bytes: source.budgets.sim.resident, reloadsCheckpoint: factoryCanReload, create: async (input) => {
+@@ -134,6 +142,6 @@ try {
+   assert.equal(allocator.entries()[0].refs, 1);
+   // The page's world and early claim remain live after registry teardown, until the page itself disposes.
+   assert.equal(allocator.entries()[0].bytes, homeBytes);
+-  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true, ...(durableOnly ? { durableOnly: true, retainedChars: registry.state().continuations.storedChars } : {}) }));
++  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true, ...(durableOnly ? { durableOnly: true, retainedChars: registry.state().continuations.storedChars, ...(nativeBytes ? { nativeBytes: true } : {}) } : {}) }));
+ } finally { blocker.release(); registry.dispose(); player.motor.dispose(); pageHost.dispose(); pageResidency.dispose(); }
+ assert.deepEqual(allocator.entries(), []);
+diff --git a/test/grid-staged-autosave.test.ts b/test/grid-staged-autosave.test.ts
+index 27d1d1d23..8d4e440a9 100644
+--- a/test/grid-staged-autosave.test.ts
++++ b/test/grid-staged-autosave.test.ts
+@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
+ import * as v from 'valibot';
+ import { SaveStore } from '../src/engine/saves/store';
+ import { loadRapier } from '../src/engine/physics/rapier';
+-import { snapshotSimHost, serializeSimSnapshot, serializeSimSnapshotSteps, finishSimSteps } from '../src/engine/sim/snapshot';
++import { snapshotSimHost, snapshotSimHostBytes, serializeSimSnapshot, serializeSimSnapshotSteps, finishSimSteps } from '../src/engine/sim/snapshot';
+ import * as simulation from '../src/game/shardfile/simulation';
+ import { GridRegionDurability } from '../src/game/grid/durability';
+ import source from '../src/shards/_template/shard.config';
+@@ -12,7 +12,7 @@ import { MemoryStorage } from './setup';
+ 
+ // rt3-freeze: a template cell's 5 s autosave was one 1.0–1.6 s task on the phone. The staged form must pause between
+ // its encode stages, write nothing until its last stage, and store exactly what the one-call checkpoint stores.
+-it('stages a regional autosave across pauses and writes the one-call checkpoint bytes only at the end', async () => {
++it.each(['array', 'bytes'] as const)('stages a %s regional autosave and writes the one-call checkpoint bytes only at the end', async (capture) => {
+   const assets = new Map(source.files.map((file) => [file.hash, readFileSync(`src/shards/_template/assets/${file.hash}`)]));
+   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
+   const staged = new MemoryStorage();
+@@ -22,7 +22,7 @@ it('stages a regional autosave across pauses and writes the one-call checkpoint
+     const basis = sim.host.physics.snapshot();
+     region.bind(sim.host, sim.colliders); region.setPhysicsBasis(basis);
+     sim.host.step();
+-    const snapshot = snapshotSimHost(sim.host);
++    const snapshot = capture === 'bytes' ? snapshotSimHostBytes(sim.host) : snapshotSimHost(sim.host);
+     expect(finishSimSteps(serializeSimSnapshotSteps(snapshot, basis))).toBe(serializeSimSnapshot(snapshot, basis));
+     const key = 'wildshard.save.v2.template-3', region0 = (): string | undefined => {
+       const doc = v.parse(v.looseObject({ keys: v.looseObject({ 'platform.region': v.optional(v.looseObject({ data: v.nullable(v.looseObject({ snapshot: v.nullable(v.string()) })) })) }) }),
+diff --git a/test/live-grid.test.ts b/test/live-grid.test.ts
+index 812592117..2dee60a20 100644
+--- a/test/live-grid.test.ts
++++ b/test/live-grid.test.ts
+@@ -13,3 +13,8 @@ it('restores the same authoritative continuation without a permanent in-memory p
+   const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs', '--durable'], { encoding: 'utf8', timeout: 20_000 });
+   expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true, durableOnly: true, retainedChars: 0 });
+ });
++
++it('uses native bytes for durable saves without changing quota refusal, restoration or continuation ownership', () => {
++  const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs', '--durable', '--bytes'], { encoding: 'utf8', timeout: 20_000 });
++  expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true, durableOnly: true, retainedChars: 0, nativeBytes: true });
++});

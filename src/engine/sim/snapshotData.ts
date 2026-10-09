@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { deflateSync, inflateSync } from 'fflate';
 import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
 import type { SimValue } from '../sim';
-import type { SimSnapshot } from './snapshot';
+import type { SimSnapshot, SimSnapshotBytes } from './snapshot';
 import { DAY_CLOCK_PHASES } from './dayClock';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -261,10 +261,12 @@ export function finishSteps<T>(steps: Generator<undefined, T>): T {
 /** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
  *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
  *  touch nothing the live simulation can change. */
-export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
-  if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
+export function* serializeSnapshotDataSteps(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
+  if ((!Array.isArray(input.physics) && !(input.physics instanceof Uint8Array)) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
   // The byte array is checked in one flat pass; every other field keeps the strict JSON-tree and schema validation.
-  const raw = physicsArray(input.physics), metadata = { ...input, physics: [0] };
+  // Freeze the caller's typed input as bytes, just as physicsArray freezes legacy arrays. No boxed number[] is
+  // created; cancellation and interleaved jobs own only their transient byte buffers, with no retained workspace.
+  const raw = input.physics instanceof Uint8Array ? input.physics.slice() : physicsArray(input.physics), metadata = { ...input, physics: [0] };
   jsonTree(metadata, new Set(), 0, true);
   const saved = identities(v.parse(snapshot, metadata), apiVersion);
   yield;
@@ -273,7 +275,7 @@ export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: numb
   return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } });
 }
 /** Internal packed wire writer; the defining public entry supplies its current engine version. */
-export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): string {
+export function serializeSnapshotData(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, physicsBasis?: Uint8Array): string {
   return finishSteps(serializeSnapshotDataSteps(input, apiVersion, physicsBasis));
 }
 /** Internal strict wire parser; unknown static fields are refused at every nesting level. */

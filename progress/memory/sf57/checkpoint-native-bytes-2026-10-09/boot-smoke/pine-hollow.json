@@ -1,0 +1,21 @@
+{
+  "mode": "standalone",
+  "phases": {
+    "titleMs": 10578,
+    "gameplayMs": 10755
+  },
+  "telemetryPosts": 0,
+  "lifecycleReports": 0,
+  "gridNavigationObserved": false,
+  "elapsedMs": 11143,
+  "fatal": [],
+  "ready": true,
+  "entered": true,
+  "revealing": false,
+  "frameGate": true,
+  "frame": 13,
+  "shard": "pine-hollow",
+  "grid": null,
+  "faults": [],
+  "reports": []
+}

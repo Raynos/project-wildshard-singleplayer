@@ -87,7 +87,7 @@ export function captureClientState(source: Shardfile, sim: ShardfileSimulation, 
     quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
 }
 /** Persist a portable companion to a same-engine region snapshot, so later revisions never need its old Rapier bytes. Legacy regions supply their known state-version-1 origin. */
-export function clientStateFromRegion(source: Shardfile, snapshot: SimSnapshot, revision = source.identity.revision, stateVersion = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {
+export function clientStateFromRegion(source: Shardfile, snapshot: Omit<SimSnapshot, 'physics'>, revision = source.identity.revision, stateVersion = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {
   v.parse(v.literal(source.identity.slug), snapshot.levelId);
   const lane = snapshot.adapters.find((adapter) => adapter.id === 'script.declared')?.state ?? null;
   if (lane !== null && typeof lane !== 'string') throw new Error('Invalid regional script state');

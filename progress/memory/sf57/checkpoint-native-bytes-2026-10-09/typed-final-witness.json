@@ -1,0 +1,13 @@
+[
+  "test/proof/far-reach/checkpoints/step.snap.gz",
+  "test/proof/far-reach/checkpoints/storm.snap.gz",
+  "test/proof/far-reach/checkpoints/gale.snap.gz",
+  "test/proof/pine-hollow/checkpoints/night.snap.gz",
+  "test/proof/pine-hollow/checkpoints/king.snap.gz",
+  "test/proof/pine-hollow/checkpoints/fallen.snap.gz",
+  "test/proof/pine-hollow/checkpoints/ridge.snap.gz",
+  "test/proof/pine-hollow/checkpoints/basis.snap.gz",
+  "test/proof/pine-hollow/checkpoints/dam.snap.gz",
+  "test/proof/nine-dragon-stack/checkpoints/ride.snap.gz",
+  "test/proof/nine-dragon-stack/checkpoints/crossing.snap.gz"
+]

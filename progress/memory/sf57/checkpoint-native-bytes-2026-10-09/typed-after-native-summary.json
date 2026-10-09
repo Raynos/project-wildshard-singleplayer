@@ -1,0 +1,176 @@
+{
+  "pid": "40225",
+  "samples": 152,
+  "maximumGapSeconds": 1.0200000000000005,
+  "phases": {
+    "baseline": {
+      "count": 10,
+      "medianWebContentBytes": 509841128.0,
+      "peakWebContentBytes": 560418560
+    },
+    "drive": {
+      "count": 116,
+      "medianWebContentBytes": 506359552.0,
+      "peakWebContentBytes": 516624152
+    },
+    "settle": {
+      "count": 10,
+      "medianWebContentBytes": 505925400.0,
+      "peakWebContentBytes": 509841176
+    }
+  },
+  "transients": [
+    {
+      "excessBytes": 9650176,
+      "footprintBytes": 508104472,
+      "intervalHighBytes": 516624152,
+      "t": "2026-10-09T14:18:48.795425+00:00",
+      "route": "template-2-to-template-3",
+      "routeSeconds": 31.32342505455017
+    },
+    {
+      "excessBytes": 7995392,
+      "footprintBytes": 507006720,
+      "intervalHighBytes": 515002112,
+      "t": "2026-10-09T14:17:27.332197+00:00",
+      "route": "driftwood-isle-to-template-1",
+      "routeSeconds": 6.219197034835815
+    },
+    {
+      "excessBytes": 7979008,
+      "footprintBytes": 507137816,
+      "intervalHighBytes": 514952984,
+      "t": "2026-10-09T14:18:47.793792+00:00",
+      "route": "template-2-to-template-3",
+      "routeSeconds": 30.321792125701904
+    },
+    {
+      "excessBytes": 7733248,
+      "footprintBytes": 511627032,
+      "intervalHighBytes": 512839448,
+      "t": "2026-10-09T14:18:24.648690+00:00",
+      "route": "template-2-to-template-3",
+      "routeSeconds": 7.176690101623535
+    },
+    {
+      "excessBytes": 6586368,
+      "footprintBytes": 513543936,
+      "intervalHighBytes": 513658624,
+      "t": "2026-10-09T14:17:41.410141+00:00",
+      "route": "template-1-to-template-2",
+      "routeSeconds": 3.4731409549713135
+    },
+    {
+      "excessBytes": 6569984,
+      "footprintBytes": 505106200,
+      "intervalHighBytes": 511676184,
+      "t": "2026-10-09T14:18:25.657547+00:00",
+      "route": "template-2-to-template-3",
+      "routeSeconds": 8.185547113418579
+    },
+    {
+      "excessBytes": 6242304,
+      "footprintBytes": 507383552,
+      "intervalHighBytes": 513625856,
+      "t": "2026-10-09T14:17:42.416594+00:00",
+      "route": "template-1-to-template-2",
+      "routeSeconds": 4.479593992233276
+    },
+    {
+      "excessBytes": 4882432,
+      "footprintBytes": 507285248,
+      "intervalHighBytes": 509480704,
+      "t": "2026-10-09T14:18:11.561246+00:00",
+      "route": "template-1-to-template-2",
+      "routeSeconds": 33.6242458820343
+    },
+    {
+      "excessBytes": 3620864,
+      "footprintBytes": 509431552,
+      "intervalHighBytes": 511561472,
+      "t": "2026-10-09T14:17:45.434532+00:00",
+      "route": "template-1-to-template-2",
+      "routeSeconds": 7.497531890869141
+    },
+    {
+      "excessBytes": 3538944,
+      "footprintBytes": 503320320,
+      "intervalHighBytes": 507023104,
+      "t": "2026-10-09T14:18:03.523552+00:00",
+      "route": "template-1-to-template-2",
+      "routeSeconds": 25.586551904678345
+    },
+    {
+      "excessBytes": 2686976,
+      "footprintBytes": 504614656,
+      "intervalHighBytes": 507301632,
+      "t": "2026-10-09T14:18:12.571425+00:00",
+      "route": "template-1-to-template-2",
+      "routeSeconds": 34.634424924850464
+    },
+    {
+      "excessBytes": 1998848,
+      "footprintBytes": 506367744,
+      "intervalHighBytes": 508514048,
+      "t": "2026-10-09T14:17:32.374173+00:00",
+      "route": "driftwood-isle-to-template-1",
+      "routeSeconds": 11.261173009872437
+    }
+  ],
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-09T14:19:28.074265+00:00",
+    "phases": {
+      "loading": {
+        "samples": 16,
+        "seconds": 15.1,
+        "gamePid": 40225,
+        "gameHighGB": 0.719,
+        "gameSampledGB": 0.624,
+        "allWebContentGB": 0.737,
+        "gpuProcessGB": 0.188
+      },
+      "baseline": {
+        "samples": 10,
+        "seconds": 9.1,
+        "gamePid": 40225,
+        "gameHighGB": 0.56,
+        "gameSampledGB": 0.557,
+        "allWebContentGB": 0.58,
+        "gpuProcessGB": 0.184
+      },
+      "drive": {
+        "samples": 116,
+        "seconds": 115.7,
+        "gamePid": 40225,
+        "gameHighGB": 0.517,
+        "gameSampledGB": 0.514,
+        "allWebContentGB": 0.556,
+        "gpuProcessGB": 0.202
+      },
+      "settle": {
+        "samples": 10,
+        "seconds": 9.1,
+        "gamePid": 40225,
+        "gameHighGB": 0.51,
+        "gameSampledGB": 0.508,
+        "allWebContentGB": 0.549,
+        "gpuProcessGB": 0.198
+      }
+    },
+    "lost": [],
+    "qos": "user-interactive",
+    "load": {
+      "min": 61.49,
+      "max": 142.41,
+      "mean": 106.75
+    },
+    "slowestRead": {
+      "readMs": 9.2,
+      "listMs": 9.1,
+      "elapsed": 65.37,
+      "phase": "drive"
+    }
+  },
+  "errors": []
+}

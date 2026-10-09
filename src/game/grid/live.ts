@@ -1,5 +1,5 @@
 import type { SimExternalPlayer, SimHost } from '@wildshard/engine/sim';
-import { snapshotSimHost, finishSimSteps, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { snapshotSimHost, snapshotSimHostBytes, finishSimSteps, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
 import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/frame';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink, type ReadinessTicket } from '@wildshard/engine/sim/readiness';
@@ -54,6 +54,9 @@ export interface LiveGridPorts {
   save: (instance: string, snapshot: SimSnapshot) => boolean;
   /** The same save in stages (each `yield` may wait a frame) for {@link LiveGridHost.checkpointSteps}; absent saves in one stage. */
   saveSteps?: (instance: string, snapshot: SimSnapshot) => Generator<undefined, boolean>;
+  /** Optional durable writer accepting native capture bytes without a boxed physics array. Used only with durable
+   *  continuations; absent preserves the legacy capture/cache/save ports exactly. The generator owns no live host. */
+  saveBytesSteps?: (instance: string, snapshot: SimSnapshotBytes) => Generator<undefined, boolean>;
   read?: (instance: string) => SimSnapshot | undefined;
   bindFrame: (frame: LiveGridFrame) => void;
   gameplayReady: (instance: string) => boolean;
@@ -375,24 +378,30 @@ export class LiveGridHost {
     if (resident.region.checkpoint !== undefined) return resident.region.checkpoint();
     let snapshot = this.saved.read(instance);
     const active = instance === this.active;
+    const stale = (): boolean => this.disposed || generation !== this.checkpointGenerations.get(instance) || this.residents.get(instance) !== resident || (instance === this.active) !== active;
+    let nativeSteps: Generator<undefined, boolean> | undefined;
     if (active) {
       const host = resident.region.host; host.player.position.copy(this.ports.player.position); host.player.yaw = this.ports.player.yaw;
       host.attachPlayerMotor(this.ports.player.motor);
-      try { snapshot = snapshotSimHost(host); } finally { host.releasePlayerMotor(); }
+      try {
+        if (this.ports.continuations === 'durable' && this.ports.saveBytesSteps !== undefined) nativeSteps = this.ports.saveBytesSteps(instance, snapshotSimHostBytes(host));
+        else snapshot = snapshotSimHost(host);
+      } finally { host.releasePlayerMotor(); }
     }
+    if (nativeSteps !== undefined) return yield* this.writeCheckpointSteps(nativeSteps, stale);
     if (snapshot === undefined) return true; // Never-entered bodyless content is reconstructed from immutable admission.
     const packed = this.ports.continuations === 'durable' ? undefined : this.saved.pack(instance, snapshot); if (packed === null) return false;
-    const stale = (): boolean => this.disposed || generation !== this.checkpointGenerations.get(instance) || this.residents.get(instance) !== resident || (instance === this.active) !== active;
     const steps = this.ports.saveSteps?.(instance, snapshot);
-    let saved: boolean;
-    if (steps === undefined) saved = this.ports.save(instance, snapshot);
-    else for (;;) {
-      yield;
-      if (stale()) { steps.return(false); return false; }
-      const step = steps.next(); if (step.done === true) { saved = step.value; break; }
-    }
+    const saved = steps === undefined ? this.ports.save(instance, snapshot) : yield* this.writeCheckpointSteps(steps, stale);
     if (!saved) return false;
     if (packed !== undefined) this.saved.store(instance, packed); return true;
+  }
+  private *writeCheckpointSteps(steps: Generator<undefined, boolean>, stale: () => boolean): Generator<undefined, boolean> {
+    for (;;) {
+      yield;
+      if (stale()) { steps.return(false); return false; }
+      const step = steps.next(); if (step.done === true) return step.value;
+    }
   }
   /** Prepare durability before allocator eviction; commit only disposes an already-frozen world. */
   prepareUnload(instance: string): ResidencyEviction | null {

@@ -21,7 +21,7 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { PageResidency } from '../../../src/game/grid/pageResidency.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
-const durableOnly = argv.includes('--durable');
+const durableOnly = argv.includes('--durable'), nativeBytes = argv.includes('--bytes');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
 const assembly = new GridAssembly({ developer: false, devserver: false }), homeCell = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
@@ -53,6 +53,14 @@ const ports = {
   } },
   readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 }, bundle: () => ({ criticalWireBytes: 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 }) },
   save: (id, snapshot) => { if (!durable) return false; const packed = serializeSimSnapshot(snapshot); assert.deepEqual(decodeSimSnapshot(packed), snapshot); saves.set(id, packed); return true; },
+  ...(nativeBytes ? { saveBytesSteps: function* (id, snapshot) {
+    assert.ok(snapshot.physics instanceof Uint8Array);
+    const wire = serializeSimSnapshot(snapshot);
+    assert.equal(wire, serializeSimSnapshot({ ...snapshot, physics: Array.from(snapshot.physics) }));
+    yield;
+    if (!durable) return false;
+    saves.set(id, wire); return true;
+  } } : {}),
   gameplayReady: () => gameplay,
   bindFrame: ({ physics, host, instance }) => { assert.equal(host === undefined, instance === homeCell.instance); if (host !== undefined) assert.equal(host.physics, physics); currentPhysics = physics; frameBinds++; },
   admit: async () => ({ bytes: source.budgets.sim.resident, reloadsCheckpoint: factoryCanReload, create: async (input) => {
@@ -134,6 +142,6 @@ try {
   assert.equal(allocator.entries()[0].refs, 1);
   // The page's world and early claim remain live after registry teardown, until the page itself disposes.
   assert.equal(allocator.entries()[0].bytes, homeBytes);
-  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true, ...(durableOnly ? { durableOnly: true, retainedChars: registry.state().continuations.storedChars } : {}) }));
+  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true, ...(durableOnly ? { durableOnly: true, retainedChars: registry.state().continuations.storedChars, ...(nativeBytes ? { nativeBytes: true } : {}) } : {}) }));
 } finally { blocker.release(); registry.dispose(); player.motor.dispose(); pageHost.dispose(); pageResidency.dispose(); }
 assert.deepEqual(allocator.entries(), []);

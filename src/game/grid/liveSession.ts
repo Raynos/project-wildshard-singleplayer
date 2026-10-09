@@ -271,6 +271,7 @@ export class LiveGridSession {
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
       saveSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
+      saveBytesSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => this.gameplayReady(),
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },

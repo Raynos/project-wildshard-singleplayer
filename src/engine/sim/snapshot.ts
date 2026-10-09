@@ -71,13 +71,17 @@ export interface SimSnapshot {
   boardColliders?: number[] | undefined;
 }
 
+/** A fresh native capture for encoding, without a boxed JavaScript array for each Rapier byte. The packed wire and
+ *  decoded/restore API remain {@link SimSnapshot}; staged serialization freezes these bytes before its first pause. */
+export type SimSnapshotBytes = Omit<SimSnapshot, 'physics'> & { physics: Uint8Array };
+
 /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
-export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Array): string {
+export function serializeSimSnapshot(saved: SimSnapshot | SimSnapshotBytes, physicsBasis?: Uint8Array): string {
   return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
 }
 /** The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and
  *  {@link finishSimSteps} runs it whole. The snapshot is read only before the first pause. */
-export function serializeSimSnapshotSteps(saved: SimSnapshot, physicsBasis?: Uint8Array): Generator<undefined, string> {
+export function serializeSimSnapshotSteps(saved: SimSnapshot | SimSnapshotBytes, physicsBasis?: Uint8Array): Generator<undefined, string> {
   return serializeSnapshotDataSteps(saved, SIM_API_VERSION, physicsBasis);
 }
 /** Run a staged snapshot job to completion now. */
@@ -183,7 +187,10 @@ function dayField(host: SimHost): { day?: DayClockState } {
 }
 
 /** Capture at a fixed-step boundary; pending events are preserved without flushing them. */
-export function snapshotSimHost(host: SimHost): SimSnapshot {
+export function snapshotSimHost(host: SimHost): SimSnapshot { return captureSimHost(host, byteArray); }
+/** Capture the same fixed-boundary state with owned native bytes, ready for the packed writer without number[]. */
+export function snapshotSimHostBytes(host: SimHost): SimSnapshotBytes { return captureSimHost(host, bytes => bytes); }
+function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, physics: (bytes: Uint8Array) => Bytes): Omit<SimSnapshot, 'physics'> & { physics: Bytes } {
   if (host.embedded) throw new Error('Borrowed simulation snapshots belong to the client world owner');
   if (host.scope.disposed) throw new Error('Cannot snapshot a disposed host');
   const colliderTags: SimSnapshot['colliderTags'] = [];
@@ -200,7 +207,7 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
       ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}),
       ...jumpFields(host) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
-    events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
+    events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
     ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host) };

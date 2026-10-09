@@ -1,0 +1,16 @@
+{
+  "parent": "297e99d6e55a3994a349b2368123ef867842d492",
+  "sha": "4e94f29177d9bf9d4a93916e4b95976bf6755dd0",
+  "paths": [
+    "src/engine/sim/snapshot.ts",
+    "src/engine/sim/snapshotData.ts",
+    "src/game/grid/durability.ts",
+    "src/game/grid/live.ts",
+    "src/game/grid/liveSession.ts",
+    "src/game/shardfile/clientState.ts",
+    "test/engine/snapshot-native-bytes.test.ts",
+    "test/grid-staged-autosave.test.ts",
+    "test/fixtures/grid/live.mjs",
+    "test/live-grid.test.ts"
+  ]
+}
