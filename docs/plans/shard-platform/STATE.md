@@ -29,7 +29,8 @@
 - **Nalati headless witness:** sp-x1 (elites, Kokbori, Qyran done; Qara night next).
 - **M2:** sp-x5 (SF57 re-soak on G270, SF22 gates); Jake's three phone runs.
 - **Still on SF72 gameplay:** sp-x2 Pine (King FK activation etc.), sp-x4 Driftwood (posed volumes).
-- **Other Opus:** op-signal (Signal 25.4 % candidate), op-sky (Sky 18.1 % candidate), op-bfill (fill the Blender cell), op-nine (Nine Dragon ledger + bakes).
+- **Other Opus:** op-signal (Signal 25.4 % candidate), op-bfill (fill the Blender cell), op-nine (Nine Dragon ledger + bakes).
+- **op-skin:** generic SDK offline skinned-model bake (the main M3 blocker; first consumer Sky's rigs). Sky landed at 18.5 % (`124b14522`).
 - **Floors on HEAD (`bb4d2409b`):** Simulator 8/8, Developer grid both surfaces, public grid PASS (quiet). Desktop 7/8: the Pine cabin is GPU-bound at vsync; Developer label fix `64b9b57ef` (rerun queued to sp-x5).
 
 **Unowned, next as slots free:**
@@ -40,6 +41,7 @@
 **Jake:**
 - **Done:** pier ramps, Signal tiles, shadow new, public 3×3.
 - **Pending:**
+  - Sky's playable isles are seeded per session; baking them fixes one look (a pick for Jake via the plan agent);
   - G269 phone runs (+ the KTX2 phone verdict);
   - G260 Blender board;
   - confirm G120/G123/SF48 boards are moot.
