@@ -3,8 +3,8 @@
 // standalone level's native floor (the terrain heightfield collider exactly as the page built it), its edge walls and every
 // solid world collider (POIs, crags, outcrops, the kurgan, the bridge, the camps, props), the registry pieces' metadata,
 // the lone spruces' trunk circles, and the bodies AnimalManager simulates at load (Wildlife's wolf pack, the wild herd with
-// its stallion, the flock's dog and the camp's two saddled horses) with their model-derived simulation specs, seeds, scales
-// and herd membership. Two independent same-page captures must match exactly.
+// its stallion, the flock's dog and the camp's two saddled horses) with their model-derived simulation specs, seeds, scales,
+// herd membership and tick-0 spots and headings. Two independent same-page captures must match exactly.
 // scripts/browser-lane.sh node scripts/bake-nalati-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -27,6 +27,21 @@ try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   const page = await context.newPage(); page.on('pageerror', error => { errors.push(String(error)); });
+  // tick 0: every body's spot and heading the frame it first exists, before any frame callback runs after its spawn (the
+  // manager thinks and moves it from the next frame on), checked against the renderer-free boot roster
+  // (test/shards/nalati-grasslands/boot-roster.test.ts). Read on first sight, so a body spawned later is caught at its own
+  // tick 0. The one exception is the shepherd's horse (creatures/sheepRaid.ts): ride.ts builds him before the page exposes
+  // its manager, and his ring has turned him a frame's worth by first sight (his spot is still exact)
+  await page.addInitScript(() => {
+    const seen = new Map(), raf = window.requestAnimationFrame.bind(window);
+    window.__nalatiSpawns = seen;
+    window.requestAnimationFrame = onFrame => raf(time => {
+      for (const a of window.__wildshard?.world?.animals?.animals ?? []) {
+        if (!seen.has(a.entityId)) seen.set(a.entityId, { id: a.entityId, at: [a.position.x, a.position.y, a.position.z], yaw: a.yaw });
+      }
+      onFrame(time);
+    });
+  });
   await page.goto(new URL('/?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => {
     const w = window.__wildshard?.world;
@@ -86,11 +101,12 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids };
+    const spawns = actors.map(a => { const row = window.__nalatiSpawns.get(a.id); if (row === undefined) throw new Error(`No tick-0 spawn for ${a.id}`); return row; });
+    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids, spawns };
     const nalati = g.app.debug.snapshot().nalati;
     return { kinds, actors: actors.map(a => `${a.id} ${a.kind}.${a.variant} herd ${a.herd}${a.scripted ? ' scripted' : ''}`), herds, trees: trees.length, pieces: pieces.length, solids: solids.length,
       solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ rows: gr.rows, cols: gr.cols, scale: gr.scale, at: gr.at, friction: gr.friction, groups: gr.groups, heights: gr.heights.length })),
-      clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
+      spawns, clock: nalati?.weather?.clock?.dayPhase ?? null, elites: (nalati?.elites?.scripts ?? []).map(s => s.animal?.entityId ?? null) };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -102,7 +118,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Nalati bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces, spawns: first.spawns };
     writeFileSync(resolve(root, 'src/shards/nalati-grasslands/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-nalati-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }

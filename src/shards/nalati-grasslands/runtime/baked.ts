@@ -19,7 +19,8 @@ const Solid = v.strictObject({ shape: v.picklist([1, 2, 6, 9]), groups: finite, 
 const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(NALATI_GROUND_RES - 1), cols: v.literal(NALATI_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
   solids: v.array(Solid), actors: v.array(Actor), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })),
-  trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])) });
+  trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])),
+  spawns: v.array(v.strictObject({ id: v.string(), at: triple, yaw: finite })) });
 
 /** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
 export interface NalatiSolid {
@@ -38,7 +39,11 @@ export interface NalatiBake {
   readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
   /** the lone spruces' trunk circles (x, z, r), in the forest's order */
   readonly trees: readonly (readonly [number, number, number])[];
+  /** every body's spot and heading at its tick 0 (the frame it first exists, before the manager moves it), in the list's order */
+  readonly spawns: readonly NalatiBakedSpawn[];
 }
+/** A body's tick-0 pose as the page placed it: its id, its spot (on the creature floor) and its heading. */
+export interface NalatiBakedSpawn { readonly id: string; readonly at: readonly [number, number, number]; readonly yaw: number }
 
 const bytesOf = (text: string): Uint8Array => Uint8Array.from(atob(text), c => c.codePointAt(0) ?? 0);
 const floats = (text: string): Float32Array => new Float32Array(bytesOf(text).buffer);
@@ -58,8 +63,9 @@ export function nalatiBake(): NalatiBake {
     return { ...rest, ...(vertices === undefined ? {} : { points: floats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(bytesOf(indices).buffer) }) };
   });
   const ids = new Set(bake.actors.map(actor => actor.id));
-  if (ids.size !== bake.actors.length || !bake.herds.every(herd => herd.members.every(id => ids.has(id)))) throw new Error('Nalati baked roster is not one id per body');
+  if (ids.size !== bake.actors.length || !bake.herds.every(herd => herd.members.every(id => ids.has(id)))
+    || bake.spawns.length !== bake.actors.length || bake.spawns.some((spawn, i) => spawn.id !== bake.actors[i]?.id)) throw new Error('Nalati baked roster is not one id per body');
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
-    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees };
+    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds, trees: bake.trees, spawns: bake.spawns };
   return parsed;
 }
