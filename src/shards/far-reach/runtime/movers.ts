@@ -1,19 +1,13 @@
 import type { MoverInstallation, MoverView } from '@wildshard/game/shardfile/moverRuntime';
-import { MOVERS } from '../data/movers';
 import source from '../shard.config';
+import { SKY_MOVERS, isIsletMover as isIslet } from './moverRows';
+import { runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { LIFT_MODULE } from '../data/liftModule';
+import { BRIDGE_MODULE } from '../data/bridgeModule';
 import type { BuiltWorld } from '../world/build';
 
-const BRIDGES = '1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd';
-const modules = new Map([[BRIDGES, new URL('../assets/1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', import.meta.url).href],
+const modules = new Map([[BRIDGE_MODULE.hash, new URL('../assets/1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', import.meta.url).href],
   [LIFT_MODULE.hash, new URL('../assets/f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22', import.meta.url).href]]);
-/** SF49-g (G183): the Rising Islets' rows and their road gates (the platform carries their riders; the plugin draws them). */
-const isIslet = (id: string): boolean => id.startsWith('far.islet.');
-/**
- * SF8c socketLift: the bridges stay this recipe's rows; the islets and their gates are the shardfile's compiled `movers`
- * (shard.config.ts), the exact rows `wildshard validate` proves, installed once on this one host (no second body or host).
- */
-export const SKY_MOVERS = [...MOVERS.filter((row) => !isIslet(row.id)), ...source.movers];
 /**
  * Legacy presentation reads script fields; no context, world allocation or tick installer lives in this shard recipe.
  * The bridges are adopted (their pieces collide); the islets are not, so the platform gives each its KinematicMover body,
@@ -28,5 +22,6 @@ export function skyMoverViews(built: BuiltWorld, permissions: () => number, rais
     built.state.raised = pose.enabled; built.state.raising = fields[6] === 1;
     if (!previouslyRaised && built.state.raised) raised();
   } }]));
-  return { data, modules, views, systemId: 'far.movers', permissions: () => new Map([['far.winch.bridge', permissions()]]), onDispose };
+  // SF72: in a grid cell both modules are the admission's verified bytes (shard.config.ts `files`); standalone fetches them
+  return { data, modules, admitted: runtimeProduct(source).assets.retained, views, systemId: 'far.movers', permissions: () => new Map([['far.winch.bridge', permissions()]]), onDispose };
 }

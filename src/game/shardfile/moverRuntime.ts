@@ -41,6 +41,9 @@ export interface MoverView { pose: (value: MoverPose, fields: Readonly<Record<nu
 export interface MoverInstallation {
   data: MoverData; modules: ReadonlyMap<string, string>; views: ReadonlyMap<string, MoverView>; systemId: string;
   shared?: { host: ScriptHost; tick: () => number };
+  /** A grid cell's admitted product bytes by module hash (`runtimeProduct(...).assets.retained`): a module present here is
+   *  read from them (hash-checked again by {@link createMoverHost}) instead of fetched a second time from `modules`. */
+  admitted?: ReadonlyMap<string, Uint8Array>;
   permissions?: () => ReadonlyMap<string, number>;
   onDispose?: () => void;
 }
@@ -158,6 +161,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
   if (host === undefined) {
     const assets = new Map<string, Uint8Array>();
     for (const hash of new Set(options.data.map((row) => row.module))) {
+      const present = options.admitted?.get(hash); if (present !== undefined) { assets.set(hash, present); continue; }
       const url = options.modules.get(hash); if (url === undefined) throw new Error('Missing mover module URL');
       const response = await fetch(url); if (!response.ok) throw new Error('Missing mover script'); assets.set(hash, new Uint8Array(await response.arrayBuffer()));
     }

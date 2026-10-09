@@ -27,7 +27,9 @@ import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/he
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
+  // the admitted product's files (the islet and bridge mover modules) from their committed bytes
+  const assets = new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))]));
+  plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
 });
 const noEffects = { commands: () => [], emit: () => { throw new Error('the flock keeper emits no gameplay effects'); } };
 interface Effects { commands: () => readonly HeadlessCommand[]; emit: (effect: HeadlessEffect) => void }
@@ -66,7 +68,6 @@ it('spawns the eight flyers at install and the five goats on the first fixed ste
     }
     // each goat stands on its island's deck (the first WORLD floor under deck + 2 m), never on the analytic -1000 m floor
     GOATS.forEach((goat, i) => { expect(host.entities.get(`far.goat.${String(i)}`)?.position.y).toBeCloseTo(goat.isle.y, 1); });
-    expect(plan.proveEntries).toBeUndefined(); // finish stays refused until the entry proof is real
   } finally { host.dispose(); }
 });
 
@@ -266,3 +267,9 @@ it('imports the trusted headless runtime without DOM or renderer modules', () =>
     "const m = await import('./src/shards/far-reach/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });
+
+it('proves all four Rising Islet entries on the trusted world: a real capsule boards, rides, walks on and the road gates close', () => {
+  const proof = plan.proveEntries?.(boot());
+  expect(proof).toMatchObject({ lanes: 92, liftRides: 8, liftCalls: 8 });
+  expect(proof?.steps).toBeGreaterThan(1000);
+}, 120_000);

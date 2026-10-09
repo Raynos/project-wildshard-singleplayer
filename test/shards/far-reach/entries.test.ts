@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The admission check reads the committed, content-addressed islet module.
 import { readFileSync } from 'node:fs';
 import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
+import { BRIDGE_MODULE } from '../../../src/shards/far-reach/data/bridgeModule';
 import { describe, expect, it } from 'vitest';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '../../../src/engine/core/config';
 import { contentHash } from '../../../src/sdk/project';
@@ -24,8 +25,10 @@ describe('Sky Reach Rising Islet entries', () => {
   it('declares four socketLift entries: a static approach over a full-width stone lip at y = 0 to the islet, a road gate, the gate isle beyond', () => {
     expect(source.entryways.map((row) => [row.edge, row.kind, row.width])).toEqual(['north', 'east', 'south', 'west'].map((edge) => [edge, 'socketLift', ENTRY_WIDTH]));
     expect(source.accent).toBe('pink'); // G104: 18 PINK
-    const module = Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${LIFT_MODULE.hash}`));
-    expect(() => validateShardfileAssets(source, new Map([[LIFT_MODULE.hash, module]]), contentHash)).not.toThrow();
+    // every admitted file (the islet and the bridge modules) from its committed bytes
+    const admitted = new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))]));
+    expect(source.files.map((file) => file.hash).sort()).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash].sort());
+    expect(() => validateShardfileAssets(source, admitted, contentHash)).not.toThrow();
     const lifts = socketLiftEntries(source.entryways);
     expect(lifts.map((row) => [row.lift.mover, row.lift.gate, row.lift.approach?.colliders])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`, [`landing.${e.edge}`]]));
     expect(socketLiftRules(lifts, source.movers, source)).toEqual([]);

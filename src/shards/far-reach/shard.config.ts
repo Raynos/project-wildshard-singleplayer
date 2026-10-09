@@ -10,6 +10,7 @@ import { SKY_STATE } from './data/state';
 import { AUDIO } from './data/audio';
 import { MOVERS } from './data/movers';
 import { LIFT_MODULE } from './data/liftModule';
+import { BRIDGE_MODULE } from './data/bridgeModule';
 import { RISING_ISLETS, isleStrips } from './world/islets';
 import { ISLET_LIFTS } from './data/isletLift';
 
@@ -22,7 +23,7 @@ import { ISLET_LIFTS } from './data/isletLift';
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, parseSocketLift(entry.lift)]));
-const script = { hash: LIFT_MODULE.hash, kind: 'wasm', compressed: LIFT_MODULE.bytes, decoded: LIFT_MODULE.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
+const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO,
   quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
@@ -31,8 +32,10 @@ export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runt
     return { edge, at, width, kind: 'socketLift' as const, lift };
   }),
   movers: MOVERS.filter((row) => row.id.startsWith('far.islet.')),
-  files: [script], critical: [LIFT_MODULE.hash],
-  budgets: { ...base.budgets, sim: { resident: 1_000_000, compressed: LIFT_MODULE.bytes } },
+  // SF72: the winch and rope bridges' module (behaviour/bridges.as) is admitted beside the islets' so the grid admission and
+  // the trusted headless runtime read the same verified bytes; the bridge rows stay the trusted runtime's (runtime/movers.ts)
+  files: [wasm(BRIDGE_MODULE), wasm(LIFT_MODULE)], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash],
+  budgets: { ...base.budgets, sim: { resident: 1_000_000, compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes } },
   sim: { ...base.sim, scripts: [LIFT_MODULE.hash] },
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),

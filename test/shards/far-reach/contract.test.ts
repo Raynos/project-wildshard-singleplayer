@@ -2,6 +2,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture serves the committed, content-addressed mover module without a browser server.
 import { readFileSync } from 'node:fs';
 import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
+import { BRIDGE_MODULE } from '../../../src/shards/far-reach/data/bridgeModule';
+import { provideRuntimeProduct } from '../../../src/game/shardfile/runtimeProduct';
+import { Scope } from '../../../src/engine/app/scope';
+import source from '../../../src/shards/far-reach/shard.config';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
@@ -38,7 +42,9 @@ import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 
 const noop = (): void => undefined;
 const loaded = new Set<App>();
-afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); });
+/** every mover module the page fetched (SF72: a grid cell reads its admitted bytes instead) */
+const moduleFetches: string[] = [];
+afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); moduleFetches.length = 0; });
 async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: ShardPlayHooks; physics: Physics; retained: RetainedRuntimeHooks | undefined }> {
   const fake = new FakeGame(), surface = fakeWorld();
   const physics = new Physics(await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer));
@@ -50,10 +56,11 @@ async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin;
   } };
   const originalFetch = globalThis.fetch;
   // the admitted mover modules: the bridges' and (SF49-g) the Rising Islets'
-  const modules = ['1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', LIFT_MODULE.hash];
+  const modules = [BRIDGE_MODULE.hash, LIFT_MODULE.hash];
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const module = modules.find((hash) => url.endsWith(`/assets/${hash}`));
+    if (module !== undefined) moduleFetches.push(module);
     if (module !== undefined) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
     return originalFetch(input, init);
   });
@@ -118,6 +125,21 @@ describe('Sky Reach contract', () => {
     expect(app.registry.pieces).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
     expect(Object.values(app.systemsByPhase()).flat()).toEqual([]);
     expect(physics.world.bodies).toBeUndefined(); expect(physics.world.colliders).toBeUndefined();
+  });
+  it('SF72: standalone fetches each mover module once; a grid cell reads its admission\'s verified bytes and fetches none', async () => {
+    await boot();
+    expect(moduleFetches.sort()).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash].sort());
+    for (const app of loaded) await app.unloadLevel(); loaded.clear(); moduleFetches.length = 0;
+    // the grid's admission (grid-discovery.test.ts: each declared file fetched once) hands its product to the resident runtime
+    const resident = new Scope('sky.grid.resident');
+    try {
+      provideRuntimeProduct({ source, cached: false, assets: new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))])) }, resident);
+      const { app, plugin } = await boot();
+      expect(moduleFetches).toEqual([]);
+      // the movers run on those bytes: INTERACT rides the north islet off its road stop
+      const before = plugin.isletAt('north'); plugin.interactIslet('north', 1); tick(app, 1, 0);
+      expect(plugin.isletAt('north')).not.toEqual(before);
+    } finally { resident.dispose(); }
   });
   it('SF49-g (G183) / SF8c: each Rising Islet rests at the road until INTERACT rides it to its gate isle, then comes back by itself', async () => {
     const { app, plugin } = await boot(), at = (edge: string) => plugin.isletAt(edge);

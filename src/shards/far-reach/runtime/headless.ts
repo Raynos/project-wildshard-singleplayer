@@ -1,10 +1,15 @@
 import * as v from 'valibot';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import type { Material } from '@wildshard/engine/physics/surface';
+import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
+import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
+import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
+import { socketLiftEntries } from '@wildshard/game/shardfile/socketLift';
+import { proveSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
 import { DECK, SPAWN } from '../layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS } from './variants';
 import { GALE_WISP } from '../species/galeWisp';
@@ -12,6 +17,7 @@ import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
 import { ROC_ID } from './rocEncounter';
 import { FAN_ACT, FAN_ACTOR, installSkyFan, type FanCommand } from './fan';
+import { installSkyMovers, verifiedMoverModules } from './headlessMovers';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -61,11 +67,16 @@ export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]>
  * bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
  * fact and purse) and the War Fan (runtime/fan.ts: the browser fan's own move recipe; a `player.attack` is its light
  * SWING, `far.fan` script commands its HEAVY and GUST; locked through the Roc's intro). Not yet owned (fail-closed, see the
- * SF72 handoff): the movers (islet lifts, winch bridge), so the crown is not yet reachable by play, the quest and its
- * facts, and the entry proof; `finish` refuses.
+ * SF72 handoff): the movers in the played host (islet lifts, winch bridge: a native restore re-parents every parentless
+ * static collider to rigid body 0, Rapier's `coParent` miss, so a capsule on a static deck anchors to the first mover
+ * body; the engine fix is the handoff's), so the crown is not yet reachable by play, and the quest and its facts.
+ * `finish` proves all four Rising Islet entries by a real capsule traversal on fresh hosts of this world with the movers
+ * on their admitted modules (runtime/headlessMovers.ts).
  */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, rapier }) => {
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
+  // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
+  const modules = await verifiedMoverModules(assets);
   const specs = skySpecs(), ranges = skyScaleRanges(), pieces = baked.pieces.map(piece => v.parse(BakedPiece, piece));
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: SKY_ANALYTIC_FLOOR },
     // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum
@@ -82,7 +93,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
         }) });
     });
   };
-  return { level, ports: { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR }, install: (host, context) => {
+  const ports = { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR } as const;
+  return { level, ports, install: (host, context) => {
     if (!context.restoring) colliders(host);
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
@@ -97,6 +109,25 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
       return command.value === FAN_ACT.heavy ? [{ kind: 'heavy' }] : command.value === FAN_ACT.gust ? [{ kind: 'gust' }] : [];
     }));
     flock.land();
+  }, proveEntries: () => {
+    // Every Rising Islet entry on a fresh host of this same world (the baked colliders, the movers), plus what the grid
+    // adds around a cell: the road's entry socket decks and the shardfile's declared landing / gate-isle colliders. The
+    // platform's socket-lift proof walks a real capsule in from the road, boards, rides, walks the onward route, calls both
+    // stops and probes the closed road gate across all 23 lanes, on actual fixed steps of the host.
+    let lanes = 0, steps = 0, liftRides = 0, liftCalls = 0;
+    socketLiftEntries(shard.entryways).forEach(entry => {
+      const fresh = createSimHost(level, { ...ports, rapier });
+      try {
+        colliders(fresh);
+        installEntrySockets(fresh.physics, fresh.scope, [{ x: 0, z: 0 }]);
+        installDeclaredPropColliders(shard.props === null ? [] : propColliderDescriptors(shard.props), () => fresh.physics, fresh.scope);
+        const movers = installSkyMovers(fresh, modules, false, () => 0);
+        const proof = proveSocketLift(entry, { physics: fresh.physics, runtime: movers.runtime, approachSource: shard,
+          fixedStep: () => { fresh.step(); if (movers.failures() !== 0) throw new Error('Sky Reach mover script call failed'); } });
+        lanes += 23; steps += proof.steps; liftRides += proof.rides; liftCalls += proof.calls;
+      } finally { fresh.dispose(); }
+    });
+    return { lanes, steps, liftRides, liftCalls };
   } };
 };
 const SURFACES: readonly Material[] = ['wood', 'metal', 'stone', 'grass'];
