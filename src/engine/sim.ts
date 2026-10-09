@@ -17,6 +17,9 @@ import type { TickRate } from './app/scheduler';
 import { addImpulse, decayImpulse } from './player/impulse';
 import { fallStep, groundedVelocity, hardFallHit, hardLanding } from './player/fall';
 import { hitShoveSpeed, shoveHop, startShove, stepShove, type ShoveState } from './player/shove';
+import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardPorts, type BoardState, type BoardStepOut } from './player/board';
+import { hoverSpeed } from './player/hoverSpeed';
+import { floorBelow } from './physics/query';
 import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
 import { tagCollider } from './physics/surface';
@@ -47,7 +50,12 @@ export interface SimLevel {
   entities: readonly SimSpawn[]; weapon: SimStrike; quests: readonly QuestDef[];
 }
 /** Resolved world-space movement and an optional targeted attack for one fixed tick. */
-export interface SimCommand { moveX: number; moveZ: number; yaw: number; attack?: { targetId: string } }
+export interface SimCommand {
+  moveX: number; moveZ: number; yaw: number; attack?: { targetId: string };
+  /** The HOVER press this tick (SF72): steps on or off the hoverboard, as the client's `hover` action toggles
+   * `Player.setHover(!hover)`. A press, not a held state: `advance`, which repeats its command, refuses it. */
+  hover?: true;
+}
 /** Each future brain/script instance registers its own continuation state, never a process singleton. */
 export interface SimStateAdapter {
   snapshot: () => SimValue; restore: (value: SimValue) => void;
@@ -117,6 +125,27 @@ export class SimHost {
   readonly playerFall = { vy: 0, grounded: true };
   /** The owned player's running creature-hit knockback, the client Player's shove law (player/shove.ts). */
   readonly playerShove: ShoveState = { t: 0, vx: 0, vz: 0 };
+  /** The owned player's hoverboard (SF72): on the board, each step runs the client Player's board law (player/board.ts)
+   * instead of the walk, and the board-only colliders (boardColliders) collide. Off by default. */
+  readonly playerBoard: BoardState & { on: boolean } = { on: false, hoverAir: false, hoverBob: 0, onGround: false };
+  /** The riding board's world velocity (m/s), the client Player's `velocity` while it hovers; zero on foot. */
+  readonly boardVelocity = new Vector3();
+  private boardHandles: number[] = [];
+  private readonly boardOut: BoardStepOut = { lat: 0, fwd: 0, accel: 0, water: null };
+  private readonly boardPorts: BoardPorts = {
+    move: (feet, want) => { this.player.motor.move(feet, want, true); },
+    // the client Player's board ground with no floor functions: the terrain, or the first WORLD floor within 80 m under
+    // the feet + 0.5 m (decks, islands and, while riding, the board-only decks); the headless host has no water
+    ground: () => {
+      const p = this.player.position, g = this.heightAt(p.x, p.z);
+      const c = floorBelow(this.physics, p.x, p.z, p.y + 0.5, 80, this.player.motor.collider);
+      return c !== undefined && c > g ? c : g;
+    },
+    water: () => null,
+    jumped: () => { /* SimCommand carries no jump: the headless board never jumps */ },
+    // a hard board touchdown files the client's fall hit (Player.onLand(hard) → PlayerHurt.fall)
+    landed: (speed) => { if (speed > HOVER_HARD_LANDING) this.combat.hit(hardFallHit(this.player.health, this.player.position)); },
+  };
   private readonly direction = new Vector3();
   private readonly hitOrigin = new Vector3();
   private readonly hitPoint = new Vector3();
@@ -362,15 +391,61 @@ export class SimHost {
   impulsePlayer(velocity: Readonly<Vector3>): void {
     if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its impulse');
     addImpulse(this.playerImpulse, velocity);
+    if (this.playerBoard.on) boardShoved(this.playerBoard, velocity.y); // an upward shove (an updraft) lifts the board off
   }
   /** Knock the owned player `speed` m/s away from (fromX, fromZ), exactly as the client Player's `shove`: the knockback
    * overrides the walk input and fades over SHOVE_TIME through the motor, and a grounded player hops off the ground. */
   shovePlayer(fromX: number, fromZ: number, speed: number): void {
     if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its knockback');
     if (![fromX, fromZ, speed].every(Number.isFinite)) throw new RangeError('Invalid player knockback');
+    if (this.playerBoard.on) return; // the client Player ignores a creature's knockback on the board
     startShove(this.playerShove, this.player.position.x, this.player.position.z, fromX, fromZ, this.player.yaw, speed);
     const fall = this.playerFall;
     if (fall.grounded) { fall.vy = shoveHop(fall.vy); fall.grounded = false; }
+  }
+  /** Step the owned player on or off the hoverboard, as the client Player's `setHover`: on, the board starts from the
+   * feet's vertical speed with no horizontal speed (the host's walk keeps none) and is not yet riding; off, the board's
+   * vertical speed becomes the fall's and the feet drop from the ride height. The board-only colliders follow on the
+   * next step, before physics, as the client's movers sync before its world step. */
+  setBoard(on: boolean): void {
+    if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its board');
+    const board = this.playerBoard, fall = this.playerFall;
+    if (on === board.on) return;
+    board.on = on; board.hoverAir = false; board.hoverBob = 0; board.onGround = false;
+    if (on) { this.boardVelocity.set(0, fall.vy, 0); fall.vy = 0; fall.grounded = true; }
+    else { fall.vy = this.boardVelocity.y; fall.grounded = false; this.boardVelocity.set(0, 0, 0); }
+  }
+  /** Register board-only colliders (Sky Reach's hover decks and updraft, `Piece.active` = the player is on the board):
+   * enabled only while the owned player rides, synced every step before physics. Their handles are snapshot state. */
+  boardColliders(colliders: readonly { readonly handle: number }[]): void {
+    if (this.disposed || this.embedded) throw new Error('Board-only colliders belong to an owned host');
+    for (const collider of colliders) {
+      if (this.boardHandles.includes(collider.handle) || !this.physics.world.colliders.contains(collider.handle)) throw new Error('Invalid board-only collider');
+      this.boardHandles.push(collider.handle);
+    }
+    this.syncBoardColliders();
+  }
+  /** The registered board-only collider handles, in registration order (SimSnapshot.boardColliders). */
+  boardColliderHandles(): readonly number[] { return [...this.boardHandles]; }
+  /** Exact restore: the saved handles, each present in the restored world, then synced to the restored board. */
+  restoreBoardColliders(handles: readonly number[]): void {
+    if (new Set(handles).size !== handles.length || handles.some((handle) => !this.physics.world.colliders.contains(handle))) throw new RangeError('Snapshot board collider does not exist');
+    this.boardHandles = [...handles]; this.syncBoardColliders();
+  }
+  private syncBoardColliders(): void {
+    const on = this.playerBoard.on;
+    for (const handle of this.boardHandles) { const collider = this.physics.world.getCollider(handle); if (collider.isEnabled() !== on) collider.setEnabled(on); }
+  }
+  /** The board step: the client Player's law (player/board.ts) on the command's world move, then the impulse decays. */
+  private stepBoardPlayer(command: SimCommand | undefined): void {
+    if (command !== undefined) this.player.yaw = command.yaw;
+    let mx = command?.moveX ?? 0, mz = command?.moveZ ?? 0;
+    const len = Math.hypot(mx, mz);
+    if (len > 1) { mx /= len; mz /= len; }
+    stepBoard(this.player.position, this.boardVelocity, this.playerImpulse, this.wanted, this.playerBoard,
+      { mx, mz, len, yaw: this.player.yaw, top: hoverSpeed(), capped: false, jump: false }, this.boardPorts, FIXED_STEP, this.boardOut);
+    decayImpulse(this.playerImpulse, FIXED_STEP);
+    if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
   }
   /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
   step(command?: SimCommand): void {
@@ -379,9 +454,13 @@ export class SimHost {
     if (!this.hasPlayerMotor) throw new Error('Frozen simulation cannot step');
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
+    // the HOVER press lands in the input phase, the board-only colliders sync in the fixed pre phase (the client's movers)
+    if (command?.hover === true) this.setBoard(!this.playerBoard.on);
+    if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
     const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall, knocked = this.playerShove;
-    if (command !== undefined || shoved || knocked.t > 0 || !fall.grounded || fall.vy !== 0) {
+    if (this.playerBoard.on) this.stepBoardPlayer(command);
+    else if (command !== undefined || shoved || knocked.t > 0 || !fall.grounded || fall.vy !== 0) {
       if (command === undefined) this.wanted.set(0, 0, 0);
       else {
         this.player.yaw = command.yaw;
@@ -433,6 +512,7 @@ export class SimHost {
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Invalid simulation delta');
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+    if (command?.hover !== undefined) throw new RangeError('A HOVER press is one tick\'s input; advance repeats its command');
     this.state.accumulator += seconds; let ticks = 0;
     while (this.state.accumulator + Number.EPSILON >= FIXED_STEP) { this.state.accumulator -= FIXED_STEP; this.step(command); ticks++; }
     return ticks;

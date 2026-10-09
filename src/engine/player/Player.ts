@@ -1,4 +1,5 @@
-import { hoverCoastDecel, hoverSpeed } from './hoverSpeed';
+import { hoverSpeed } from './hoverSpeed';
+import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardStepOut } from './board';
 import type { AimCommand, PlayerCommand } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
@@ -33,14 +34,7 @@ const MAX_CLIMB_DEG = 40;              // steeper ground is a wall to walk into 
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
 export const HOVER_TOP = 14;          // m/s cruise
-const HOVER_ACCEL = 12;               // m/s² with input → 0 → top in ~1.2 s
-const HOVER_LAT_DRAG = 3.5;           // /s — sideways velocity (relative to the heading) bleeds off faster than forward: carve, not shopping cart
-const HOVER_HEIGHT = 0.45;            // m above the terrain / platform
-const HOVER_SPRING_K = 70;            // spring to the ride height (ω ≈ 8.4 rad/s) …
-const HOVER_SPRING_C = 6.5;           // … slightly under-damped (ζ ≈ 0.39) so it bobs after a hop / a bump
-const HOVER_SPRING_MAX = 30;          // m/s² — clamp so a cliff edge feels like falling, not a slingshot
-const HOVER_JUMP = 9.5;               // m/s launch — a real jump, not a bob: the spring lets go and gravity (lighter) brings you down
-const HOVER_JUMP_GRAVITY = 15;        // m/s² while airborne on the board (floatier than on foot)
+// the board's motion law and its tuning (accel, carve, ride height, spring, jump) are player/board.ts, shared with SimHost
 const DOUBLE_JUMP = 8.6;              // m/s second jump on foot (E120: 6.8 → 8.6, ~1.7 m on top of the first: wading beside the pier you clear its deck by ~0.2 m)
 const HOVER_ROLL = 6 * Math.PI / 180; // camera roll cap, reached at HOVER_ROLL_AT m/s sideways
 const HOVER_ROLL_AT = 7;
@@ -180,6 +174,8 @@ export class Player {
   moveScale = 1;
   /** Grid driver supplies a position-dependent board limit; standalone cruise retains HOVER_TOP. */
   hoverSpeedLimit: (() => number) | null = null;
+  /** the last board step's telemetry (player/board.ts), reused every step */
+  private readonly boardOut: BoardStepOut = { lat: 0, fwd: 0, accel: 0, water: null };
   /** Status effects have their own channels; weapons keep moveScale. */
   effectMoveScale = 1;
   effectMoveLocked = false;
@@ -365,7 +361,7 @@ export class Player {
     if (![worldVelocityMps.x, worldVelocityMps.y, worldVelocityMps.z].every(Number.isFinite)) throw new Error('Player impulse must be finite');
     if (this.ride !== null || this.carried || this.effectMoveLocked || this.swimming) return;
     addImpulse(this.impulseVelocity, worldVelocityMps);
-    if (worldVelocityMps.y > 0) { this.onGround = false; if (this.hover) this.hoverAir = true; }
+    if (worldVelocityMps.y > 0) { if (this.hover) boardShoved(this, worldVelocityMps.y); else this.onGround = false; }
   }
 
   /** A creature hit you from (fromX, fromZ): knocked `speed` m/s away from it, fading over SHOVE_TIME (≈ a step at 6 m/s). */
@@ -534,58 +530,17 @@ export class Player {
     if (swim) impulse.set(0, 0, 0);
 
     if (hover) {
-      // ── hoverboard: momentum steering — velocity is pulled toward the input direction at a fixed rate, glides with no input ──
-      const v = this.velocity;
-      const inAir = this.hoverBob > 0.35;                            // above the ride height (hop / ledge): half the grip
-      const grip = inAir ? 0.5 : 1;
-      const wantMove = len > 0.02;
-      const top = hoverSpeed(this.hoverSpeedLimit?.());
-      const tx = wantMove ? mx * top : 0, tz = wantMove ? mz * top : 0;
-      const dx = tx - v.x, dz = tz - v.z, dl = Math.hypot(dx, dz);
-      const rate = (wantMove ? HOVER_ACCEL : hoverCoastDecel(Math.hypot(v.x, v.z))) * grip; // coast: speed-dependent decay (hoverSpeed.ts)
-      const stepV = Math.min(dl, rate * dt);
-      const vfx = v.x, vfz = v.z;
-      if (dl > 1e-6) { v.x += dx / dl * stepV; v.z += dz / dl * stepV; }
-      // carve: the sideways component (relative to the heading) is pulled toward what the stick asks for much faster
-      // than the forward one — turn at speed and the old momentum, now sideways, bleeds off instead of sliding you
-      const fx = -sin, fz = -cos, rx = cos, rz = -sin;
-      const vf = v.x * fx + v.z * fz; let vl = v.x * rx + v.z * rz;
-      const tl = tx * rx + tz * rz;
-      vl += (tl - vl) * (1 - Math.exp(-HOVER_LAT_DRAG * grip * dt));
-      v.x = fx * vf + rx * vl; v.z = fz * vf + rz * vl;
-      if (this.hoverSpeedLimit !== null) {
-        const boardSpeed = Math.hypot(v.x, v.z);
-        if (boardSpeed > top) { v.x *= top / boardSpeed; v.z *= top / boardSpeed; }
-      }
-      this.hoverLat = vl; this.hoverFwd = vf;
-      const af = ((v.x - vfx) * fx + (v.z - vfz) * fz) / dt;
-      this.hoverAccel += (af - this.hoverAccel) * Math.min(1, dt * 8);
-
-      // across: walls, posts and trunks stop the board; the terrain never does (the repulsors glide up anything)
-      want.x = (v.x + impulse.x) * dt; want.y = 0; want.z = (v.z + impulse.z) * dt;
-      this.motor.move(this.position, want, true);
-      // ride height: a stiff, slightly under-damped spring to ground + HOVER_HEIGHT (no gravity — the repulsors hold you)
-      const ws = this.waterSurfaceAt(this.position.x, this.position.z);
-      const g = Math.max(groundAt(), ws ?? -Infinity); // the repulsors ride the water surface, not the seabed
-      const target = g + HOVER_HEIGHT;
-      const err = target - this.position.y;
+      // ── hoverboard: momentum steering, the ride-height spring, board jumps (player/board.ts, the law SimHost shares) ──
       this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4);
-      if (jump && this.onGround && !this.hoverAir) { this.commandJumpUsed = true; v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
-      if (this.hoverAir) {
-        // ── airborne: the repulsors can't reach the ground — ballistic, a little floaty, until we fall back to the ride height
-        v.y -= HOVER_JUMP_GRAVITY * dt;
-        if (impulse.y === 0) this.position.y += v.y * dt;
-        else { want.x = 0; want.y = (v.y + impulse.y) * dt; want.z = 0; this.motor.move(this.position, want, true); }
-        if (v.y < 0 && this.position.y <= target + 0.05) { this.hoverAir = false; this.hoverLanded = -v.y; this.onLand?.(-v.y > 9); }
-      } else {
-        const a = Math.max(-HOVER_SPRING_MAX, Math.min(HOVER_SPRING_MAX, HOVER_SPRING_K * err)) - HOVER_SPRING_C * v.y;
-        v.y += a * dt;
-        if (impulse.y === 0) this.position.y += v.y * dt;
-        else { want.x = 0; want.y = (v.y + impulse.y) * dt; want.z = 0; this.motor.move(this.position, want, true); }
-      }
-      if (this.position.y < g) { this.position.y = g; if (v.y < 0) v.y = 0; } // steep slope / bump: the board never goes under
-      this.hoverBob = this.position.y - target;
-      this.onGround = !this.hoverAir && Math.abs(this.hoverBob) < 0.3; // "grounded" = riding near the ride height (jump allowed)
+      const out = this.boardOut, motor = this.motor;
+      stepBoard(this.position, this.velocity, impulse, want, this,
+        { mx, mz, len, yaw: this.yaw, top: hoverSpeed(this.hoverSpeedLimit?.()), capped: this.hoverSpeedLimit !== null, jump },
+        { move: (feet, w) => { motor.move(feet, w, true); }, ground: groundAt, water: (x, z) => this.waterSurfaceAt(x, z),
+          jumped: () => { this.commandJumpUsed = true; this.hoverJumpKick = 1; app.events.emit('player.jump', true); this.onJump?.(); },
+          landed: (landing) => { this.hoverLanded = landing; this.onLand?.(landing > HOVER_HARD_LANDING); } }, dt, out);
+      this.hoverLat = out.lat; this.hoverFwd = out.fwd;
+      this.hoverAccel += (out.accel - this.hoverAccel) * Math.min(1, dt * 8);
+      const ws = out.water;
       this.onPlatform = false;
       this.waterSurface = ws; this.depth = 0; this.wading = false;
     } else if (swim) {

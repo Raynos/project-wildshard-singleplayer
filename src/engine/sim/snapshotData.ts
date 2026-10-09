@@ -70,7 +70,8 @@ const entries = {
     name: v.picklist(['gameplay', 'ai', 'spawn', 'cosmetic']), state: rng })) }),
   entities: v.array(v.strictObject({ id, state: animal, motor: v.nullable(motor) })),
   player: v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
-    fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })) }),
+    fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
+    board: v.optional(v.strictObject({ velocity: vector, air: v.boolean(), bob: finite, ground: v.boolean() })) }),
   strikes: v.array(v.strictObject({ id, state: strike })), targets: v.array(v.tuple([id, id])),
   events: v.strictObject({ version, queue: v.array(v.strictObject({
     name: v.custom<SimSnapshot['events']['queue'][number]['name']>((input) => typeof input === 'string' && input.length > 0), payload: eventValue })),
@@ -83,6 +84,7 @@ const entries = {
   adapters: v.array(v.strictObject({ id, state: simValue })),
   bands: v.optional(v.strictObject({ rates: uint32, time: nonnegative, frame: integer, frameDt: nonnegative,
     rows: v.array(v.strictObject({ id, rate: id, brain: bandClock, body: bandClock })) })),
+  boardColliders: v.optional(v.pipe(v.array(nonnegative), v.minLength(1))), // Rapier handles, as colliderTags'
 };
 const snapshot: v.GenericSchema<SimSnapshot> = v.strictObject({ ...entries,
   physics: v.pipe(v.array(v.pipe(integer, v.maxValue(255))), v.minLength(1), v.maxLength(maxPhysicsBytes)) });

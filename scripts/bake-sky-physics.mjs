@@ -35,8 +35,14 @@ try {
     sky.roostRays.forEach((actor, i) => add(`far.roost.${i}`, actor));
     sky.wisps.forEach((actor, i) => add(`far.wisp.${i}`, actor)); add('far.roc', sky.roc);
     sky.goats.forEach((actor, i) => add(`far.goat.${i}`, actor));
+    // a piece whose `active` follows the rider's mode (the hover decks and the updraft collide only on the board) is
+    // sampled both ways: `active` stays the on-foot state, `mode` names the one mode it collides in (SimHost.boardColliders)
+    const player = window.__wildshard.world.player, riding = player.hover;
+    const activeIn = (piece, hover) => { player.hover = hover; try { return piece.active?.() ?? true; } finally { player.hover = riding; } };
     const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
-      const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: piece.active?.() ?? true };
+      const foot = activeIn(piece, false), board = activeIn(piece, true);
+      const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: foot,
+        ...(foot === board ? {} : { mode: board ? 'board' : 'foot' }) };
       if (piece.surface !== undefined) row.surface = piece.surface;
       if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
       if (piece.follows !== undefined) {

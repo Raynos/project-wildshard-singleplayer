@@ -1840,6 +1840,15 @@ The keeper must register its own respawn clocks/generation counters through `onS
 must not advance them. A missing roster or changed recipe refuses exact restoration. Pending strikes
 resolve through `strikeSpecifications(id)` against those installed recipes, including dynamic actors.
 
+The owned player rides the hoverboard on the client Player's own board law (`player/board.ts` `stepBoard`: momentum
+steering, the 0.45 m ride-height spring, ballistic flight after an upward shove, a hard touchdown past 9 m/s files the
+fall hit). `SimCommand.hover: true` is that tick's HOVER press and toggles the board, as the client's `hover` action
+(`advance` refuses it, since it repeats its command); `setBoard(on)` is the direct switch. `boardColliders(colliders)`
+registers board-only colliders (a `Piece.active` that follows `app.player.mode === 'board'`, such as hover decks):
+they collide only while the player rides, synced before each step's physics. On the board a creature's knockback is
+ignored and `impulsePlayer` with upward speed lifts the board off, as on the client. The snapshot keeps the ride
+(`player.board`) and the handles (`boardColliders`) only when present, so a host that never boards keeps its bytes.
+
 **Body bands (SF72).** By default a host steps and collides every body every tick. A native shard's headless runtime
 calls `useBodyBands({ rates?, rate?, physics? })` once, in its install (before restore), to run its bodies as the page's
 creature manager does: each body updates on its tick rate (§12; `rate(body)` names it, default `'always'` for a driven

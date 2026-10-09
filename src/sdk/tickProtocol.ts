@@ -4,7 +4,8 @@ const text = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0x7fffffff));
 export const TickCommandSchema = v.variant('kind', [
-  v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })) }),
+  // `hover: true` is the HOVER press this tick: on or off the hoverboard (SimCommand.hover)
+  v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), hover: v.optional(v.literal(true)) }),
   v.strictObject({ kind: v.literal('script'), actorId: text, value: finite }),
   v.strictObject({ kind: v.literal('event'), type: natural, target: natural, value: finite }),
 ]);

@@ -49,7 +49,9 @@ export interface SimSnapshot {
   clock: GameClockState; rng: RngStreamsState;
   entities: { id: string; state: ReturnType<AnimalSim['snapshot']>; motor: MotorState | null }[];
   player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
-    fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined };
+    fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined;
+    /** SF72: the riding hoverboard (SimHost.playerBoard + boardVelocity); absent on foot, so a host that never boards keeps its bytes. */
+    board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined };
   strikes: { id: string; state: ReturnType<StrikeRunner['snapshot']> }[];
   targets: readonly (readonly [string, string])[];
   events: { version: number; queue: { name: keyof EventMap; payload: EventValue }[]; frameCount: number; frameBound: boolean };
@@ -58,6 +60,8 @@ export interface SimSnapshot {
   slots: SimSlots; adapters: { id: string; state: SimValue }[];
   /** SF72 body band clocks (SimHost.useBodyBands); absent for a host without bands, so its bytes are unchanged. */
   bands?: BandsState | undefined;
+  /** SF72 board-only collider handles (SimHost.boardColliders); absent when none are registered. */
+  boardColliders?: number[] | undefined;
 }
 
 /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
@@ -180,11 +184,13 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
       ...(host.playerImpulse.lengthSq() > 0 ? { impulse: host.playerImpulse.toArray() } : {}),
       // likewise a player at rest on the ground (the fall law's canonical state) is omitted
       ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }),
-      ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}) },
+      ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}),
+      ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
-    adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host) };
+    adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
+    ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}) };
 }
 
 function sameIds(actual: readonly string[], expected: Iterable<string>): boolean {
@@ -209,12 +215,17 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       || saved.player.position.length !== 3 || !saved.player.position.every(Number.isFinite) || !Number.isFinite(saved.player.yaw)
       || (saved.player.impulse !== undefined && (saved.player.impulse.length !== 3 || !saved.player.impulse.every(Number.isFinite) || saved.player.impulse.every(value => value === 0)))
       || (saved.player.fall !== undefined && (!Number.isFinite(saved.player.fall.vy) || (saved.player.fall.grounded && saved.player.fall.vy === 0)))
-      || (saved.player.shove !== undefined && (![saved.player.shove.t, saved.player.shove.vx, saved.player.shove.vz].every(Number.isFinite) || saved.player.shove.t <= 0 || saved.player.shove.t > SHOVE_TIME))) throw new RangeError('Snapshot instance registrations do not match');
+      || (saved.player.shove !== undefined && (![saved.player.shove.t, saved.player.shove.vx, saved.player.shove.vz].every(Number.isFinite) || saved.player.shove.t <= 0 || saved.player.shove.t > SHOVE_TIME))
+      || (saved.player.board !== undefined && (saved.player.board.velocity.length !== 3 || ![...saved.player.board.velocity, saved.player.board.bob].every(Number.isFinite) || saved.player.fall !== undefined))
+      || saved.boardColliders?.length === 0) throw new RangeError('Snapshot instance registrations do not match');
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
     host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
     if (saved.player.impulse === undefined) host.playerImpulse.set(0, 0, 0); else host.playerImpulse.fromArray(saved.player.impulse);
     host.playerFall.vy = saved.player.fall?.vy ?? 0; host.playerFall.grounded = saved.player.fall?.grounded ?? true;
     Object.assign(host.playerShove, saved.player.shove ?? { t: 0, vx: 0, vz: 0 });
+    const board = saved.player.board;
+    Object.assign(host.playerBoard, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
+    if (board === undefined) host.boardVelocity.set(0, 0, 0); else host.boardVelocity.fromArray(board.velocity);
     host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);
@@ -255,6 +266,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       if (!host.physics.world.colliders.contains(tag.handle)) throw new RangeError('Snapshot collider tag does not exist');
       tagCollider(host.physics.world.getCollider(tag.handle), tag.material, decode(tag.owner, host));
     }
+    host.restoreBoardColliders(saved.boardColliders ?? []);
     for (const adapter of host.adapters.values()) adapter.physicsRestored?.();
     return host;
   } catch (error) { replacement?.dispose(); host.dispose(); throw error; }
