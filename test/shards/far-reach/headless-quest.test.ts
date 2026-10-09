@@ -16,6 +16,7 @@ import { WINCH_BRIDGE } from '../../../src/shards/far-reach/runtime/moverRows';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/runtime/quest';
 import { prepareSkyRuntime, type SkyRuntime } from '../../../src/shards/far-reach/runtime/headless';
 import type { SkyMovers } from '../../../src/shards/far-reach/runtime/headlessMovers';
+import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, sky: SkyRuntime;
 beforeAll(async () => {
@@ -121,10 +122,10 @@ it('restores mid-raise exactly: the winch bridge resumes on its mover and the qu
     expect(original.flags.has(FLAGS.raised)).toBe(false); expect(paid).toEqual([]);
     const decoded = decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(original))), ports = { ...sky.plan.ports, rapier };
     restored = restoreSimHost(sky.plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); sky.plan.install(fresh, { restoring: true, snapshot: decoded, commands: () => tape, emit: effect => { resumed.push(effect); } }); });
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     for (let i = 0; i < 3000; i++) { run(original); run(restored); }
     expect(original.flags.has(FLAGS.complete)).toBe(true);
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     expect(resumed).toEqual(paid); expect(paid).toHaveLength(2);
   } finally { restored?.dispose(); original.dispose(); }
 }, 600_000);

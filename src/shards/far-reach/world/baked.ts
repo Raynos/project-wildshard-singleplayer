@@ -3,6 +3,7 @@ import { bakedColliders, bakedKindsGroup, loadBakedKinds } from '@wildshard/game
 import { InstancedBufferAttribute, InstancedMesh, type Group } from 'three';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
 import roost from '../data/roost.json' with { type: 'json' };
+import docks from '../data/docks.json' with { type: 'json' };
 import { BAKED_PIECES, bakedUrl, type BakedPiece } from '../boot/files';
 import { shackMaterial, type ShackKind } from './shack';
 
@@ -12,7 +13,7 @@ import { shackMaterial, type ShackKind } from './shack';
  * client loads each piece's GLB behind the loading screen and draws it in its own materials: a shack part in its kind's
  * procedural shader (`world/shack.ts`), anything else in its row's standard material. The colliders are the rows'.
  */
-const PIECES = { 'winch-house': winchHouse, roost } as const satisfies Readonly<Record<BakedPiece, unknown>>;
+const PIECES = { 'winch-house': winchHouse, roost, docks } as const satisfies Readonly<Record<BakedPiece, unknown>>;
 
 const SHACK: readonly ShackKind[] = ['plank', 'shingle', 'stone', 'beam'];
 const shackKind = (kind: object): ShackKind | undefined => {

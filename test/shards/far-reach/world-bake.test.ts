@@ -8,11 +8,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { colliderRows } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyWinchHouse, buildWinchHouse } from '../../../src/shards/far-reach/generators/winchHouse';
 import { bakeSkyRoost, roost } from '../../../src/shards/far-reach/generators/roost';
+import { bakeSkyDocks, buildSkyDocks } from '../../../src/shards/far-reach/generators/skyDock';
 import { skyBakedPiece } from '../../../src/shards/far-reach/world/baked';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/boot/files';
 import { STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
 import roostRows from '../../../src/shards/far-reach/data/roost.json' with { type: 'json' };
+import dockRows from '../../../src/shards/far-reach/data/docks.json' with { type: 'json' };
 
 const folder = new URL('../../../public/assets/far-reach/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
@@ -27,7 +29,7 @@ async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promi
 
 describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
   it('every committed piece is byte-exact against its generator (the stale gate: rerun scripts/bake-sky-world.mjs)', () => {
-    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows]] as const;
+    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows]] as const;
     for (const [piece, { glb, ...rows }, committed] of pieces) {
       expect({ glb: sha(glb), ...rows }).toEqual(committed);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
@@ -100,6 +102,28 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
       if (hit !== undefined && w.color !== undefined) {
         const c = hit.o.instanceColor;
         expect(c === null ? null : [c.getX(hit.i), c.getY(hit.i), c.getZ(hit.i)]).toEqual(w.color);
+      }
+    }
+  });
+
+  it('the docks draw every built timber box and beacon as an instance of their kind, the timber tints restored', async () => {
+    const drawn = skyBakedPiece('docks', await nodesOf('docks', dockRows.kinds)), built = buildSkyDocks();
+    drawn.root.updateMatrixWorld(true);
+    expect(drawn.colliders).toEqual(colliderRows(built.colliders));
+    const kinds = drawn.root.children.filter(instanced);
+    expect(kinds.map((k) => k.count)).toEqual([built.timber.count, built.beacon.count]);
+    const a = new Matrix4(), b = new Matrix4(), corner = new Vector3(), want = new Vector3(), got = new Vector3();
+    for (const [kind, from] of [[kinds[0], built.timber], [kinds[1], built.beacon]] as const) {
+      if (kind === undefined) throw new Error('missing kind');
+      const p = from.geometry.getAttribute('position'), q = kind.geometry.getAttribute('position');
+      expect(q.count).toBe(p.count);
+      for (let i = 0; i < from.count; i++) {
+        // every vertex where the builder put it (≤ 1e-4 m after the TRS round trip)
+        from.getMatrixAt(i, a); kind.getMatrixAt(i, b); b.premultiply(drawn.root.matrixWorld);
+        for (let v = 0; v < p.count; v++) expect(got.fromBufferAttribute(q, v).applyMatrix4(b).distanceTo(want.copy(corner.fromBufferAttribute(p, v)).applyMatrix4(a))).toBeLessThan(1e-4);
+        // the timber's colour is the builder's own, exactly; the beacon has none
+        const c = from.instanceColor, d = kind.instanceColor;
+        expect(d === null ? null : [d.getX(i), d.getY(i), d.getZ(i)]).toEqual(c === null ? null : [c.getX(i), c.getY(i), c.getZ(i)]);
       }
     }
   });

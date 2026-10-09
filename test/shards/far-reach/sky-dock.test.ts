@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { InstancedMesh, type Object3D } from 'three';
 import { ENTRY_ASPHALT } from '../../../src/engine/core/config';
 import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
@@ -7,7 +6,8 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import type { ColliderDesc } from '../../../src/engine/world/registry';
 import { ISLET, RISING_ISLETS, type RisingIslet } from '../../../src/shards/far-reach/world/islets';
 import { lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
-import { DOCK, dockColliders, skyDockPiece, skyDocksFor } from '../../../src/shards/far-reach/world/skyDock';
+import { DOCK, buildSkyDocks, dockColliders } from '../../../src/shards/far-reach/generators/skyDock';
+import { skyDockPiece, skyDocksFor } from '../../../src/shards/far-reach/world/skyDock';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 // G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone, each Rising Islet lip ends at a railed timber
@@ -36,10 +36,12 @@ function walk(physics: Physics, motor: CharacterMotor, entry: RisingIslet, t: nu
 }
 
 describe('G200: Sky Reach sky docks (standalone)', () => {
-  it('draws all four docks in two instanced draws, a beacon each, colliding as plain boxes', () => {
-    const piece = skyDockPiece(), meshes: Object3D[] = piece.object?.children ?? [];
-    expect(meshes).toHaveLength(2); for (const m of meshes) expect(m).toBeInstanceOf(InstancedMesh);
-    const beacon = meshes[1]; expect(beacon instanceof InstancedMesh ? beacon.count : 0).toBe(RISING_ISLETS.length);
+  it('builds all four docks as two instanced kinds, a beacon each, colliding as plain boxes', () => {
+    // the built docks (generators/skyDock.ts; world-bake.test.ts proves the client draws the bake of exactly these)
+    const built = buildSkyDocks(), piece = skyDockPiece();
+    expect(built.beacon.count).toBe(RISING_ISLETS.length); expect(built.timber.instanceColor).not.toBe(null);
+    // the piece collides from the baked rows, the builder's own boxes
+    expect(piece.colliders).toEqual(built.colliders);
     expect(piece.colliders?.length).toBe(RISING_ISLETS.reduce((n, entry) => n + dockColliders(entry).length, 0));
     for (const entry of RISING_ISLETS) {
       // the deck's top is flush with the lip (y 0) and abuts its outer edge; the dock stays in the cell

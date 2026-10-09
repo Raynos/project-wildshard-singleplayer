@@ -47,9 +47,9 @@ const HD_URLS: Readonly<Record<SkyHdName, string>> = {
 };
 export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
 /** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-sky-world.mjs`), drawn by `world/baked.ts`. */
-export const BAKED_PIECES = ['winch-house', 'roost'] as const;
+export const BAKED_PIECES = ['winch-house', 'roost', 'docks'] as const;
 export type BakedPiece = (typeof BAKED_PIECES)[number];
-const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house': '/assets/far-reach/baked/winch-house.glb', roost: '/assets/far-reach/baked/roost.glb' };
+const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house': '/assets/far-reach/baked/winch-house.glb', roost: '/assets/far-reach/baked/roost.glb', docks: '/assets/far-reach/baked/docks.glb' };
 export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
 export const TEX_URL = { rock: '/assets/far-reach/tex/rock.webp', meadow: '/assets/far-reach/tex/meadow.webp', clouds: '/assets/far-reach/tex/clouds.webp', branches: '/assets/far-reach/tex/branches.webp', cloudsea: '/assets/far-reach/tex/cloudsea.webp', maelstrom: '/assets/far-reach/tex/maelstrom.webp', stormeye: '/assets/far-reach/tex/stormeye.webp',
