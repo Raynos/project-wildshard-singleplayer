@@ -266,8 +266,10 @@ export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBa
   const parsed: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   jsonTree(parsed);
   const saved = v.parse(wire, parsed).snapshot;
-  // Validate metadata/engine/identities before reporting a recoverable basis change. The placeholder is never returned.
-  identities(v.parse(snapshot, { ...saved, physics: [0] }), apiVersion);
+  // Validate metadata/engine/identities before reporting a recoverable basis change. The placeholder is never returned:
+  // the checksummed bytes replace it, as the writer does (a schema walk of Pine's 8.4M bytes was ~2 of a 2.3 s decode).
+  const metadata = identities(v.parse(snapshot, { ...saved, physics: [0] }), apiVersion);
   const physics = physicsBytes(saved.physics, physicsBasis, () => mismatch?.(saved.levelId, saved.state.tick) ?? new RangeError('Snapshot physics basis mismatch'));
-  return identities(v.parse(snapshot, { ...saved, physics }), apiVersion);
+  if (physics.length === 0 || physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds byte bounds');
+  return { ...metadata, physics };
 }

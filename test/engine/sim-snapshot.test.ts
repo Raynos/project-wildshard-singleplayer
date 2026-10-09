@@ -153,3 +153,27 @@ it('refuses unknown fields, incompatible versions, malformed continuations and c
     expect(snapshotSimHost(host)).toEqual(saved);
   } finally { host.dispose(); }
 });
+
+it('decodes the checksummed physics bytes as given and refuses one corrupted byte by its checksum', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier }); install(host);
+  try {
+    const saved = snapshotSimHost(host), text = serializeSimSnapshot(saved);
+    const decoded = decodeSimSnapshot(text);
+    expect(decoded).toEqual(saved);
+    expect(serializeSimSnapshot(decoded)).toBe(text); // byte-identical round trip
+    // the same snapshot with one physics byte flipped, carrying the original bytes' checksum
+    const flipped = [...saved.physics], at = Math.floor(flipped.length / 2);
+    flipped[at] = (flipped[at] ?? 0) ^ 1;
+    const wire = (value: string): { snapshot: { physics: { checksum: number } } } => {
+      const data: unknown = JSON.parse(value);
+      if (data === null || typeof data !== 'object' || !('snapshot' in data) || data.snapshot === null || typeof data.snapshot !== 'object'
+        || !('physics' in data.snapshot) || data.snapshot.physics === null || typeof data.snapshot.physics !== 'object'
+        || !('checksum' in data.snapshot.physics) || typeof data.snapshot.physics.checksum !== 'number') throw new Error('Missing wire physics');
+      return { ...data, snapshot: { ...data.snapshot, physics: { ...data.snapshot.physics, checksum: data.snapshot.physics.checksum } } };
+    };
+    const good = wire(text), corrupt = wire(serializeSimSnapshot({ ...saved, physics: flipped }));
+    expect(corrupt.snapshot.physics.checksum).not.toBe(good.snapshot.physics.checksum);
+    corrupt.snapshot.physics.checksum = good.snapshot.physics.checksum;
+    expect(() => decodeSimSnapshot(corrupt)).toThrow(/checksum/u);
+  } finally { host.dispose(); }
+});
