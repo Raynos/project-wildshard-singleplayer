@@ -47,7 +47,8 @@ ask.** A plan can't archive while it has open rows.
 
 ## Handoffs
 
-**One live `## Handoff (<lane>)` section per lane**, overwritten in place at every commit: Done, Next, Owns, Learned,
+**Superseded (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): no per-lane handoff files; lanes report landings over herdr and the coordinator's
+`docs/plans/<plan>/STATE.md` (≤ 3 KB) is the restart record.** Historical rule: one live `## Handoff (<lane>)` section per lane, overwritten in place at every commit: Done, Next, Owns, Learned,
 Done when. It is deleted when the work closes; the commits are the history. Old append-only logs live in
 `project/archive/handoffs/<ID>.md`. The pre-commit check refuses two sections with the same lane, and any Handoff in a
 closed ask.

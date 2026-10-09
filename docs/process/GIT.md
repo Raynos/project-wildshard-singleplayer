@@ -8,7 +8,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Commit early and often** with small commits, and `scripts/push-main.sh` after every commit. Before you push, HEAD
   must pass the CI gates on a clean export of the tree (`tsc --noEmit`, `oxlint`, `node scripts/check-css.mjs`,
   `vite build`), not just the files you touched. The pre-push gate does this for you (below).
-- **The per-push CI gate (E357 Z4)** stays green: the `macos-15` parity jobs for every shard and the template, and
+- **The gpu-gate parity jobs run nightly and at milestones, not on every push** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`); the node checks still run per push.
+  Historical (E357 Z4): **The per-push CI gate** stays green: the `macos-15` parity jobs for every shard and the template, and
   the node checks (layers, ratchets, contracts, the asset audit, `gen-shards --check`, coverage). Keep the nightly
   `gpu-perf` run on Jake's Mac enabled.
 - **Strict means strict.** `tsconfig.json` has every strictness flag on, and `.oxlintrc.json` is type-aware with every

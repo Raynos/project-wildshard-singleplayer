@@ -86,7 +86,8 @@ renamed `trash/` instead of deleted). Nothing else cleans a scratchpad.
   blocked, say so in your report.
 - **Reuse, don't multiply:** one export dir per job, emptied and refilled. Symlink `node_modules` into an export; never
   `pnpm install` into a scratch copy.
-- **What you keep goes in the repo** (`progress/` or `art/<subject>/round-<n>-<label>/`, as JPEG). A tool you will
+- **What you keep goes in the repo** (`progress/` or `art/<subject>/round-<n>-<label>/`, as JPEG): summaries, boards and
+  the numbers, never raw soak / census / receipt archives (`.gz` / `.br` / raw `.jsonl`), which stay in the scratchpad (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`). A tool you will
   reuse goes in the repo too, not the scratchpad.
 - **Logs and captures go in the scratchpad**, never loose in the repo root.
 - `du -sh <scratchpad>` over ~10 GB means something should already be gone.

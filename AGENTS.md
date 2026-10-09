@@ -33,9 +33,9 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
   live build id when the deploy ships it.
 - **Plans are the one queue.** Follow-up work is a plan row, never another ask. **A leftover is built in the session
   that found it, or it stays an open row of its live plan.** Never file a plan's tail as asks.
-- **Plan State lines stay true by commit**: a commit naming a live plan touches it (or says `Plan-State: unchanged`).
-  A plan archives (to `project/archive/<date>-<name>.md`) in the same commit it finishes, with no row open.
-- **One live `## Handoff (<lane>)` per lane**, overwritten at every commit, deleted when the work closes.
+- **Status lives in one small State file per plan** (`docs/plans/<plan>/STATE.md`, ≤ 3 KB), written only by that plan's
+  coordinator; the plan file holds decisions and rows; no `Plan-State` trailer check (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`). A plan archives (to `project/archive/<date>-<name>.md`) in the same commit it finishes, with no row open.
+- **No per-lane handoff files** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): lanes report landings over herdr; the coordinator's STATE.md is the restart record.
 - **Agent-to-agent requests** go over herdr to the owner (who replies with the SHA), else into the owner's plan.
 - **Pages for Jake to read** get `docs/reviews/<slug>.md` in the commit that links them; only Jake's words mark one read.
 - **Council rounds** ([docs/process/COUNCIL.md](docs/process/COUNCIL.md)): three fresh seats a round, four rounds at
@@ -94,6 +94,9 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - The main agent builds by default. **At most 3 live subagents, no forks**, one job each, capped at **400k context,
   90 min, ~200 turns**; reports ≤ 40 lines. Never recycle a finished one. Long waits belong to the main agent.
 - Every brief says: don't run `set-label.sh`, mute browsers, capture as the phone, follow GIT.md.
+- **Heavy proofs run per milestone, not per slice** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): the soak, frame floor, boot smoke and Simulator runs at each
+  milestone and before a deploy that changes the grid; the physics walk only after collider changes; slices land on quick
+  checks of what they touched. The gpu-gate parity CI runs nightly and at milestones, not on every push.
 - **Hard ceiling for the build fleet: at most 5 Opus and at most 5 Codex agents live at once** (Jake, 2026-10-09: *"max
   five opus, max five codecs. That's the new fucking rule"*); never more, whatever the usage headroom.
 - **Codex vs Opus by remaining usage** (Jake, 2026-10-08): graphical work is Opus-only, Codex does non-graphical engineering;
