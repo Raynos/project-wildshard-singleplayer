@@ -192,6 +192,11 @@ else:  # ground
     if 'water' in S:
         w = S['water']
         wat = ndi.binary_opening(H < w['below'], iterations=1) & mask
+        if 'within' in w:  # only inside a world rectangle {x0, x1, z0, z1} (metres; +X left, +Z up the image): Nine Dragon's Well, not the road's decks
+            r = w['within']
+            cols, rows = np.meshgrid(np.arange(N), np.arange(N))
+            wx, wz = 250 - (cols + 0.5) / PPM, 250 - (rows + 0.5) / PPM
+            wat &= (wx >= r['x0']) & (wx <= r['x1']) & (wz >= r['z0']) & (wz <= r['z1'])
         C[wat] = hex3(w['fill'])
         if 'edge' in w:
             C[outline(wat, 1)] = hex3(w['edge'])

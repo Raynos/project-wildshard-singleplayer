@@ -1,5 +1,5 @@
 {
-  "why": "Nine Dragon's map as its floors seen from above (G252, Jake's pick B): the stack's towers rise far over the playable levels and from straight up their roofs and the bridge blocks hide the square, the stair-street and the street, so the bake clips everything above 153 m (just over the deck at Y0 + 24) and the cut towers drop out; what is left is granite floors in cool greys, the plaza's cinnabar neon picked out, every change of level inked, the Well's drop dark with a blue lip, and the void transparent so the map's own dark frame shows through (as Sky Reach)",
+  "why": "Nine Dragon's map as its floors seen from above (G252, Jake's pick B): the stack's towers rise far over the playable levels and from straight up their roofs and the bridge blocks hide the square, the stair-street and the street, so the bake clips everything above 153 m (just over the deck at Y0 + 24) and the cut towers drop out; what is left is granite floors in cool greys, the plaza's cinnabar neon picked out, every change of level inked, the Well's drop dark with a blue lip, and the void transparent so the map's own dark frame shows through (as Sky Reach); the Well's dark water is only the Well (\"within\" its rectangle, layout.ts WELL plus 6 m): the road's four portal decks stand at road height, far under the 100 m water line, and were painted as water, black on the dark frame (SF66)",
   "clipAbove": 153,
   "style": {
     "kind": "ground",
@@ -61,6 +61,12 @@
     },
     "water": {
       "below": 100,
+      "within": {
+        "x0": -34,
+        "x1": 6,
+        "z0": -50,
+        "z1": 22
+      },
       "fill": "#141822",
       "edge": "#3d5a7a"
     },

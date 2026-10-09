@@ -76,3 +76,13 @@ it does the baked map); Sky Reach its four rising islets (its isles and Signal D
 A pin at the chunk's edge now labels inward instead of being cut off (`src/engine/ui/Map.ts`: off the canvas counts as taken).
 `test/map-coverage.test.ts` also fails a portal, lift, quest trigger, interaction, map marker, encounter arena, boss or mover
 that is on no listed place and not in the reviewed `lint/map-ignore.json` (a reason per entry; a dead entry fails).
+
+## Two map faults fixed at the bake (op-maps, 2026-10-09)
+
+`map-faults-before-after.jpg` (top.webp before at HEAD / after the rebake, over the MAP frame, cyan rings = quest places and
+road portals). Sky Reach drew its fourteen decorative sky isles (no colliders, hung beside and above the decks) as brown land
+where no place is: its look/map.json now hides `far.sky-isles.*`, keeps the playable isles' keels that share those model names
+(`keep`), and hides the firs rooted on a hidden isle's top (`hideStanding`, a new bake rule: instances of the shared forest on
+that footprint). Nine Dragon painted everything under 100 m as the Well's water, so the road's four portal decks (road height)
+came out black: its water is now only `within` the Well's rectangle (a new stylizer option), and the decks draw in the floors'
+granite; a lower walkway east of the street that was also painted water now draws as floor.

@@ -45,11 +45,47 @@ function bake(arg) {
   const hidden = [], hide = (o) => { if (o.visible) { o.visible = false; hidden.push(o); } };
   for (const c of g.camera.children) hide(c); // held items
   const clouds = g.sky?.clouds; if (clouds) hide(clouds);
-  const named = (o) => arg.hide.some((p) => (p.endsWith('*') ? o.name.startsWith(p.slice(0, -1)) : o.name === p));
+  const match = (list, o) => list.some((p) => (p.endsWith('*') ? o.name.startsWith(p.slice(0, -1)) : o.name === p));
+  const kept = (o) => { for (let p = o; p; p = p.parent) if (arg.keep.includes(p.name)) return true; return false; };
+  const named = (o) => match(arg.hide, o) && !kept(o);
+  const standing = []; // the hidden meshes whose riders hide too ("hideStanding")
   scene.traverse((o) => {
     // the engine sky and backdrops by name (never an island or a sky isle), the shard's own hides, particles and sprites
     const sky = o.name === 'look-dome' || (/cloud|sky|dome|backdrop/iu.test(o.name) && !/isle|island/iu.test(o.name));
+    if (named(o) && match(arg.hideStanding, o)) standing.push(o);
     if (named(o) || sky || o.isPoints === true || o.isSprite === true) hide(o);
+  });
+  // what stands on a "hideStanding" mesh hides with it: every instance of a visible instanced mesh rooted on the top of one of
+  // that mesh's instances, within 80 % of its half width of its origin and from 4 m under to 6 m over the origin's height (a
+  // fir on the turf; never a bridge plank or an updraft streak passing under, over or beside it). Sky Reach's sky-isle firs
+  // share the archipelago's one forest.
+  const M = g.camera.matrixWorld.clone(), V = g.camera.position.clone(), zero = M.clone().makeScale(0, 0, 0);
+  const boxes = []; // per hidden instance: its origin (ox, oy, oz) and its top's reach r
+  for (const o of standing) o.traverse((m) => {
+    if (!m.isMesh || !m.geometry) return;
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    const b = m.geometry.boundingBox, n = m.isInstancedMesh ? m.count : 1;
+    for (let k = 0; k < n; k++) {
+      if (m.isInstancedMesh) { m.getMatrixAt(k, M); M.premultiply(m.matrixWorld); } else M.copy(m.matrixWorld);
+      const box = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity, z0: Infinity, z1: -Infinity };
+      for (let c = 0; c < 8; c++) {
+        V.set(c & 1 ? b.max.x : b.min.x, c & 2 ? b.max.y : b.min.y, c & 4 ? b.max.z : b.min.z).applyMatrix4(M);
+        box.x0 = Math.min(box.x0, V.x); box.x1 = Math.max(box.x1, V.x); box.y0 = Math.min(box.y0, V.y); box.y1 = Math.max(box.y1, V.y); box.z0 = Math.min(box.z0, V.z); box.z1 = Math.max(box.z1, V.z);
+      }
+      boxes.push({ ox: M.elements[12], oy: M.elements[13], oz: M.elements[14], r: 0.4 * Math.min(box.x1 - box.x0, box.z1 - box.z0) });
+    }
+  });
+  const collapsed = []; // [mesh, index, original matrix]
+  if (boxes.length > 0) scene.traverse((m) => {
+    if (!m.isInstancedMesh || standing.includes(m)) return;
+    for (let p = m; p; p = p.parent) if (!p.visible) return;
+    let changed = false;
+    for (let k = 0; k < m.count; k++) {
+      m.getMatrixAt(k, M); const local = M.clone(); M.premultiply(m.matrixWorld);
+      const x = M.elements[12], y = M.elements[13], z = M.elements[14];
+      if (boxes.some((b) => Math.hypot(x - b.ox, z - b.oz) <= b.r && y >= b.oy - 4 && y <= b.oy + 6)) { collapsed.push([m, k, local]); m.setMatrixAt(k, zero); changed = true; }
+    }
+    if (changed) m.instanceMatrix.needsUpdate = true;
   });
   const fog = scene.fog, bg = scene.background; scene.fog = null;
   const cam0 = g.camera, side = Math.min(arg.tile, gl.drawingBufferWidth, gl.drawingBufferHeight), ratio = r.getPixelRatio(), half = arg.metres / 2;
@@ -103,10 +139,11 @@ function bake(arg) {
     }
   } finally {
     for (const o of hidden) o.visible = true;
+    for (const [m, k, local] of collapsed) { m.setMatrixAt(k, local); m.instanceMatrix.needsUpdate = true; }
     scene.fog = fog; scene.background = bg;
     r.setViewport(0, 0, r.domElement.width / ratio, r.domElement.height / ratio);
   }
-  return { side, colour, height };
+  return { side, colour, height, collapsed: collapsed.length, from: [...new Set(collapsed.map(([m]) => (m.name !== '' ? m.name : m.parent?.name ?? '?')))].join(' ') };
 }
 
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
@@ -123,7 +160,7 @@ try {
       await page.goto(`${base}?chunk=${encodeURIComponent(slug)}&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && !document.querySelector('.ws-load')), null, { timeout: 180_000, polling: 250 });
       await page.waitForTimeout(6000); // late streamed pieces and models
-      const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove });
+      const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, keep: settings.keep, hideStanding: settings.hideStanding, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove });
       const colourPng = join(work, `colour-${slug}.png`), heightPng = join(work, `height-${slug}.png`), stylePath = join(work, `style-${slug}.json`);
       writeFileSync(colourPng, Buffer.from(out.colour.slice(out.colour.indexOf(',') + 1), 'base64'));
       if (out.height !== null) writeFileSync(heightPng, Buffer.from(out.height.slice(out.height.indexOf(',') + 1), 'base64'));
@@ -135,7 +172,7 @@ try {
       const bytes = statSync(webp).size;
       const stamp = { version: 1, tilesHash: mapTilesHash(dir), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
       writeFileSync(stampPath(dir), `${JSON.stringify(stamp, null, 2)}\n`);
-      console.log(`bake-maps: ${slug} ${OUT}px ${(bytes / 1024).toFixed(0)} KB`);
+      console.log(`bake-maps: ${slug} ${OUT}px ${(bytes / 1024).toFixed(0)} KB${out.collapsed > 0 ? `, ${String(out.collapsed)} instances hidden with what they stand on (${out.from})` : ''}`);
     } catch (error) {
       failed++; console.error(`bake-maps: ${slug} FAILED — ${error instanceof Error ? error.message : String(error)}`);
     } finally { await context.close(); }
