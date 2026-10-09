@@ -1,8 +1,8 @@
 # Plan: TRAILERS — an alpha in-engine trailer and a cinematic vision trailer (E466)
 
-**State:** `in progress` 2026-10-09 — Jake's picks are in (TR0, CT0, §5). Next: TR2, the capture rig on today's engine.
-Part A (the alpha trailer) is built first, by this plan's agent; Part B (the cinematic) starts with a one-shot bake-off,
-local models and Blender only.
+**State:** `in progress` 2026-10-09 — building Part A, the alpha trailer (TR1–TR6). The capture rig runs on today's
+build as it is (`capture.mjs` boots through the allowed harness params). Part B waits until the alpha trailer is done
+(Jake: no cinematic experiments before it); its research is in.
 
 ## 0. Why
 
@@ -89,7 +89,9 @@ source can also be **a capture from the alpha game**, remastered. Three ways, al
 
 Research before the build (2026-10-09, two research lanes): which open video models do control-video and image-to-video,
 their licences for a shipped asset, and whether they run on the M5 Max; and the community's best practice (Reddit, X)
-for grey-blockout previs into AI video, camera direction, per-frame restyle and the finish. Findings land in §3.4.
+for grey-blockout previs into AI video, camera direction, per-frame restyle and the finish. Findings:
+[trailers/research-2026-10-09.md](trailers/research-2026-10-09.md) (lead: B = LTX-2.5 + the Layout-To-Render IC-LoRA;
+Qwen-Image-2.1 is non-commercial, so shipped frames need an Apache-2.0 image model).
 
 **CT1 tests all three on the same shot** (the shard docking into the grid, ~6 s, one Blender grey blockout plus one
 in-game capture as sources) and shows Jake one labelled A / B / C video. Then we feel it out: the winner, or a mix per
