@@ -83,12 +83,12 @@ it('draws the footprint gauge with the 1.0 GB cap line and the no-owner share', 
   const overlay = installBudgetOverlay({ scope: page, hudRoot: root, allocator, name: owner => owner, memory: () => ledger.snapshot(allocator.cost().accounted) });
   overlay.toggle();
   const gauge = root.querySelector<HTMLElement>('.ws-grid-budget-gauge');
-  expect(gauge?.dataset.source).toBe('calibrated');
+  expect(gauge?.dataset['source']).toBe('calibrated');
   expect(root.textContent).toContain('FOOTPRINT · SIMULATOR-CALIBRATED'); expect(root.textContent).toMatch(/CAP 1000(\.0)? MB/);
   const cap = root.querySelector<HTMLElement>('.ws-grid-budget-gauge-cap');
   expect(cap?.style.left).toMatch(/%$/);
-  const parts = [...root.querySelectorAll<HTMLElement>('.ws-grid-budget-gauge-bar > [data-bytes]')].map(node => Number(node.dataset.bytes));
-  expect(parts.reduce((a, b) => a + b, 0)).toBe(Number(gauge?.dataset.footprintBytes));
-  expect(root.querySelector<HTMLElement>('[data-unattributed-share]')?.dataset.tone).toBe('red');
+  const parts = [...root.querySelectorAll<HTMLElement>('.ws-grid-budget-gauge-bar > [data-bytes]')].map(node => Number(node.dataset['bytes']));
+  expect(parts.reduce((a, b) => a + b, 0)).toBe(Number(gauge?.dataset['footprintBytes']));
+  expect(root.querySelector<HTMLElement>('[data-unattributed-share]')?.dataset['tone']).toBe('red');
   setDev(false); page.dispose(); root.remove();
 });
