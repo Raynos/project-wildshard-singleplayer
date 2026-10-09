@@ -1130,6 +1130,7 @@ export const BUDGETS: LevelSpec['budgets'] = { phone: tier(30), desktop: tier(60
 | Export | What it is |
 |---|---|
 | `castRay`, `castSegment`, `floorBelow`, `lineOfSight`, `sticksIn` | the queries |
+| `EngineProbe.colliderTag(handle)` | reads the active probe world's actual material / owner identity for a live native collider; missing handles return `undefined`, retired probes refuse, with no debug overlay or native write |
 | `ctx.piece(piece)` | registers a built piece: `{ id, name, category, file, object, colliders?, surface?, active?, floor?, model? }`. It draws, collides, shows on the map and in Explore's catalog |
 | `WorldRegistry`, `activeRegistry` | the registry (`app.registry`); `activeRegistry` is a port |
 | `boxDesc`, `ColliderDesc` | collider descriptions: `box`, `capsule`, `ball`, `hull`, `treads` (stairs), `trimesh` (walk-inside only) |

@@ -12,6 +12,7 @@ import type { WildshardProbe as ScriptProbe } from '../scripts/types/wildshard-p
 import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import { Physics } from '../src/engine/physics/Physics';
+import { tagCollider } from '../src/engine/physics/surface';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { withOwner } from '../src/engine/app/ownership';
 import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/rapier3d-simd';
@@ -79,6 +80,27 @@ afterEach(() => {
 });
 
 describe('probe contract', () => {
+  it('captures exact native query owners in its own world without an overlay or native mutation, then retires the reader', async () => {
+    const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
+    const a = new Physics(R), b = new Physics(R), world = fixture(), owner = { id: 'piece' };
+    Object.assign(world, { physics: a });
+    try {
+      const first = a.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1));
+      const foreign = b.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1));
+      expect(first.handle).toBe(foreign.handle);
+      tagCollider(first, 'wood', owner); tagCollider(foreign, 'stone', 'declared');
+      const before = a.snapshot(), probe = installProbe(world, deps);
+      expect(probe.colliderTag(first.handle)).toEqual({ material: 'wood', owner });
+      expect(probe.colliderTag(first.handle)?.owner).toBe(owner);
+      expect(a.snapshot()).toEqual(before);
+      a.world.removeCollider(first, true);
+      expect(probe.colliderTag(first.handle)).toBeUndefined();
+      const untagged = a.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1));
+      expect(probe.colliderTag(untagged.handle)).toBeUndefined();
+      world.game.levelScope.dispose();
+      expect(() => probe.colliderTag(untagged.handle)).toThrow('Debug level has retired');
+    } finally { a.dispose(); b.dispose(); world.game.app.engineScope.dispose(); }
+  });
   it('reads authored handles and quest flags from this level and forgets scoped readers on disposal', () => {
     const world = fixture(), debug = world.game.app.debug, slug = world.game.level.id, scope = world.game.levelScope;
     const handles = { cabins: { id: 'authored-building' }, pineLife: { alive: true } }, flags = ['second', 'first'];
@@ -200,7 +222,7 @@ describe('probe contract', () => {
     // the shard exposes its own handles (E405 AG25: the engine's probe has no per-shard key table)
     world.game.levelScope.onDispose(world.game.app.debug.scopedExpose(`harness.shard.${world.game.level.id}`, { ocean: world['ocean'] }));
     const probe = installProbe(world, deps);
-    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'requireWorld', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app', 'budgets', 'memory', 'textures'].sort());
+    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'requireWorld', 'colliderTag', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app', 'budgets', 'memory', 'textures'].sort());
     expect(window.__wildshard).toBe(probe);
     expect(Reflect.has(window, '__world')).toBe(false);
     expect(probe.shard).toMatchObject({ slug: 'driftwood-isle', ocean: 'ocean-handle' });

@@ -11,6 +11,7 @@ import type { Audio } from '../audio/Audio';
 import type { Music } from '../audio/Music';
 import type { Interactable } from '../world/interact/types';
 import { floorBelow } from '../physics/query';
+import { tagOf, type ColliderTag } from '../physics/surface';
 import type { Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
@@ -132,6 +133,8 @@ export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
   readonly boot: Fingerprint;
   /** Active-level access for controls; throws once the world has retired. */
   requireWorld: () => W;
+  /** Actual query material / owner identity in the active probe world, for trusted bake capture; no native write. */
+  colliderTag: (handle: number) => Readonly<ColliderTag> | undefined;
   fingerprint: () => Fingerprint;
   pose: (p: ProbePose) => Promise<void>;
   walkLeg: (leg: WalkLeg) => Promise<WalkResult>;
@@ -377,6 +380,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get owners() { return ownerCensus(); },
     }),
     version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), textures: textureReport, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
+    colliderTag: (handle) => world.physics.world.colliders.contains(handle) ? tagOf(world.physics.world.getCollider(handle)) : undefined,
     get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
@@ -469,6 +473,7 @@ function scopedProbe<W extends ProbeWorld>(source: EngineProbe<W>, scope: Scope)
     version: 1, get boot() { boot ??= structuredClone(read().boot); return boot; }, memory: () => memoryAttribution.snapshot(), textures: textureReport,
     get world() { return live?.world; },
     requireWorld: () => read().requireWorld(),
+    colliderTag: (handle) => read().colliderTag(handle),
     get shard() { return live?.shard ?? { slug }; },
     get combat() { return read().combat; },
     get saves() { return read().saves; },
