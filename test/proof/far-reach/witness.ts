@@ -1,5 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the shard's admitted in-tree bytes and the native physics module.
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The committed checkpoints are gzipped snapshot wires.
+import { gunzipSync, gzipSync } from 'node:zlib';
+import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete serialized continuations.
 import { createHash } from 'node:crypto';
 import source from '../../../src/shards/far-reach/shard.config';
@@ -56,7 +59,7 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => createHash('sha256').update(serializeSimSnapshot(snapshotSimHost(host))).digest('hex');
 
 export function skyRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareHeadlessRuntime({ shard: source, assets, rapier }); }
+export async function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { const plan = await prepareHeadlessRuntime({ shard: source, assets, rapier }); return plan; }
 
 function context(session: Omit<Session, 'host'>, saved?: string): HeadlessRuntimeInstallation {
   return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: decodeSimSnapshot(saved) }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };
@@ -78,7 +81,8 @@ function restore(plan: HeadlessRuntimePlan, rapier: Rapier, saved: string): Sess
 function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessEffect[] {
   session.tape = commands; session.tick = [];
   try {
-    const player = commands.findLast(command => command.kind === 'player');
+    let player: HeadlessCommand | undefined;
+    for (const command of commands) if (command.kind === 'player') player = command;
     session.host.step(player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw,
       ...(player.attack === undefined ? {} : { attack: player.attack }), ...(player.hover === undefined ? {} : { hover: player.hover }) } : undefined);
   } finally { session.tape = []; }
@@ -88,13 +92,15 @@ function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessE
 
 interface Encounter { state: string; phase: number; attempts: number }
 function encounter(host: SimHost): Encounter {
-  const saved = snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state;
+  const saved = host.adapters.get(ROC_STEP)?.snapshot();
   if (typeof saved !== 'string') throw new Error('Missing Roc continuation');
   const value = JSON.parse(saved) as { boss: Encounter };
   return { state: value.boss.state, phase: value.boss.phase, attempts: value.boss.attempts };
 }
 
 type Point = readonly [number, number];
+/** Where a tape is: resumable from a checkpoint exactly as the uninterrupted tape continues. */
+export interface TapeState { leg: number; waypoint: number; ticks: number; hold: Point | null }
 /**
  * One stretch of the tape. `go` walks (or rides, on the board) through waypoints; `mode` stops and presses HOVER once
  * the player has come to rest; `act` presses a prompt once it is in reach; `gust` faces a vane and GUSTs until it turns;
@@ -173,6 +179,11 @@ export class SkyTape {
   /** The last point a `go` leg reached: a `mode` press brakes onto it before stepping off the board. */
   private hold: Point | null = null;
   readonly log: { leg: number; kind: string; tick: number; x: number; y: number; z: number }[] = [];
+  /** A tape resumed where a checkpoint left it (its leg, waypoint, leg ticks and held point ride the checkpoint). */
+  constructor(from?: TapeState) { if (from !== undefined) ({ leg: this.leg, waypoint: this.waypoint, ticks: this.ticks, hold: this.hold } = from); }
+  get state(): TapeState { return { leg: this.leg, waypoint: this.waypoint, ticks: this.ticks, hold: this.hold }; }
+  /** Past the board's last leg: on foot on the step, the winch next. */
+  get atStep(): boolean { return this.leg >= this.legs.findIndex(leg => leg.kind === 'act' && leg.value === SKY_ACT.winch) - 1; }
   next(host: SimHost): HeadlessCommand[] {
     const leg = this.legs[this.leg];
     if (leg === undefined) return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw }];
@@ -203,7 +214,7 @@ export class SkyTape {
       case 'mode': {
         if (board === leg.board) return null;
         // a rider brakes onto the leg's last point before stepping off; a walker stands still and steps on
-        const v = host.boardVelocity, moving = board && Math.hypot(v.x, v.z) > REST;
+        const bv = host.boardVelocity, moving = board && Math.hypot(bv.x, bv.z) > REST;
         if (moving && this.hold !== null) return [this.ride(host, this.hold, true)];
         return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw, ...(moving ? {} : { hover: true as const }) }];
       }
@@ -237,6 +248,7 @@ export class SkyTape {
         return [{ kind: 'player', moveX: g > near ? gx / g : 0, moveZ: g > near ? gz / g : 0, yaw: facing(host, roc.position.x, roc.position.z), attack: { targetId: ROC_ID } },
           { kind: 'script', actorId: FAN_AIM, value: pitch }, { kind: 'script', actorId: FAN_ACTOR, value: FAN_ACT.gust }];
       }
+      default: return null;
     }
   }
   /**
@@ -244,8 +256,8 @@ export class SkyTape {
    * toward CRUISE m/s along the line to the point (slowing into the last one), full stick against any larger error.
    */
   private ride(host: SimHost, to: Point, last: boolean): HeadlessCommand {
-    const p = host.player.position, v = host.boardVelocity, dx = to[0] - p.x, dz = to[1] - p.z, d = Math.max(1e-6, Math.hypot(dx, dz));
-    const speed = last ? Math.min(CRUISE, d * 1.2) : CRUISE, ex = (dx / d) * speed - v.x, ez = (dz / d) * speed - v.z, e = Math.max(STICK, Math.hypot(ex, ez));
+    const p = host.player.position, bv = host.boardVelocity, dx = to[0] - p.x, dz = to[1] - p.z, d = Math.max(1e-6, Math.hypot(dx, dz));
+    const speed = last ? Math.min(CRUISE, d * 1.2) : CRUISE, ex = (dx / d) * speed - bv.x, ez = (dz / d) * speed - bv.z, e = Math.max(STICK, Math.hypot(ex, ez));
     return { kind: 'player', moveX: ex / e, moveZ: ez / e, yaw: Math.atan2(-dx, -dz) };
   }
   /** A move; on foot it also swings at the nearest creature in reach (never the Roc outside its fight). */
@@ -301,7 +313,7 @@ export async function headlessProof(rapier: Rapier): Promise<object> {
       if (host.playerBoard.on) { boardTicks++; peak = Math.max(peak, host.player.position.y); if (host.playerImpulse.y > 0) lifted++; }
       return false;
     }), host = session.host, done = encounter(host);
-    const quest = host.quests.find(q => q.def.id === source.quests[0]?.id) ?? null;
+    const quest = host.quests.find(q => q.def.id === source.quests.quests[0]?.id) ?? null;
     if (victoryTick === null || done.state !== 'victory' || !tape.walked || !host.flags.has(FLAGS.complete)) throw new Error(`No gameplay victory: ${JSON.stringify({ done, quest: quest?.isComplete })}`);
     const entries = requireValue(plan.proveEntries, 'Missing entry proof')(host);
     if (entries.lanes < 1 || entries.steps < 1) throw new Error('Empty entry proof');
@@ -367,4 +379,158 @@ export async function ledgerProof(rapier: Rapier): Promise<object> {
     return { status: 'passed', rules: source.ledger.length, facts: rows.map(row => ({ name: row.name, origin: `${row.origin.kind}.${row.origin.source}`, tick: row.tick, entity: row.entity })),
       achievements: achievements.map(a => ({ id: a.id, count: a.count, earned: a.earned })), durableReload: true, duplicateStable: true, restoredReemits: 0, gameplayEmissionProven: true };
   } finally { after?.host.dispose(); session.host.dispose(); }
+}
+
+// ── The CI slices (DEPLOY.md's headless budget: at most 10k ticks a test) ─────────────────────────────────────────────
+// `run.mjs all` plays the whole spawn → victory tape in one run (the authoritative witness, compatibility.json); the
+// vitest legs replay it in slices that resume from committed checkpoints of that same tape: spawn → step, step → the
+// gale-wall phase (and its replay), the gale-wall phase → the storm phase, and the storm phase → the Roc's fall (the
+// ledger). Every slice asserts outcomes only: a checkpoint is data, so x64 CI restores it exactly, but its continuation
+// is not compared byte for byte across platforms. A checkpoint carries the hash of the witness's headless inputs, and
+// `run.mjs fresh` refuses a stale set; `run.mjs checkpoints` regenerates them.
+
+export type CheckpointName = 'step' | 'gale' | 'storm';
+const CHECKPOINT_NAMES: readonly CheckpointName[] = ['step', 'gale', 'storm'];
+const CheckpointSchema = v.object({ tick: v.number(), tape: v.object({ leg: v.number(), waypoint: v.number(), ticks: v.number(), hold: v.nullable(v.tuple([v.number(), v.number()])) }), snapshot: v.string() });
+const ManifestSchema = v.object({ inputs: v.string(), ticks: v.object({ step: v.number(), gale: v.number(), storm: v.number() }) });
+type Checkpoint = v.InferOutput<typeof CheckpointSchema>;
+const CHECKPOINTS = new URL('test/proof/far-reach/checkpoints/', ROOT);
+const checkpointFile = (name: CheckpointName): URL => new URL(`${name}.snap.gz`, CHECKPOINTS);
+const MANIFEST = new URL('manifest.json', CHECKPOINTS);
+const readCheckpoint = (name: CheckpointName): Checkpoint => v.parse(CheckpointSchema, JSON.parse(gunzipSync(readFileSync(checkpointFile(name))).toString('utf8')));
+/** A slice's own budget: past it the slice failed (the tape is stuck), never a long CI wait. */
+const SLICE = 10_000;
+/** The Roc's fight in a phase (the gale wall is phase 1, the storm phase 2), checked every 30th tick as the draft did. */
+const fighting = (tape: SkyTape, phase: number) => (host: SimHost): boolean => {
+  if (!tape.walked || host.state.tick % 30 !== 0) return false;
+  const e = encounter(host); return e.state === 'fight' && e.phase === phase;
+};
+/** Run the tape until `until` holds (checked after each tick), at most `limit` ticks; the ticks it ran. */
+function playUntil(session: Session, tape: SkyTape, until: (host: SimHost) => boolean, limit: number): number {
+  for (let i = 0; i < limit; i++) {
+    if (until(session.host)) return i;
+    step(session, tape.next(session.host));
+    if (session.host.player.position.y < FLOOR) throw new Error(`The player fell at tick ${String(session.host.state.tick)}: ${JSON.stringify(tape.log.at(-1))}`);
+  }
+  throw new Error(`The slice did not finish within ${String(limit)} ticks: ${JSON.stringify(tape.log.at(-1))}`);
+}
+/** A session resumed from a committed checkpoint, its restore proven byte-exact, and the tape where it was. */
+function resume(plan: HeadlessRuntimePlan, rapier: Rapier, name: CheckpointName): { session: Session; tape: SkyTape; checkpoint: Checkpoint } {
+  const checkpoint = readCheckpoint(name), session = restore(plan, rapier, checkpoint.snapshot);
+  if (serializeSimSnapshot(snapshotSimHost(session.host)) !== checkpoint.snapshot) { session.host.dispose(); throw new Error(`The ${name} checkpoint does not restore byte-exactly`); }
+  return { session, tape: new SkyTape(checkpoint.tape), checkpoint };
+}
+
+/** `run.mjs checkpoints`: play the whole tape once and write its three checkpoints and their inputs hash. */
+export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<object> {
+  const plan = await skyPlan(rapier), session = boot(plan, rapier), tape = new SkyTape(), ticks: Partial<Record<CheckpointName, number>> = {};
+  const at = { step: (): boolean => tape.atStep, gale: fighting(tape, 1), storm: fighting(tape, 2) };
+  try {
+    mkdirSync(CHECKPOINTS, { recursive: true });
+    for (const name of CHECKPOINT_NAMES) {
+      playUntil(session, tape, at[name], LIMIT);
+      const state = tape.state, hold = state.hold === null ? null : [state.hold[0], state.hold[1]] satisfies [number, number];
+      const checkpoint: Checkpoint = { tick: session.host.state.tick, tape: { ...state, hold }, snapshot: serializeSimSnapshot(snapshotSimHost(session.host)) };
+      writeFileSync(checkpointFile(name), gzipSync(JSON.stringify(checkpoint), { level: 9 }));
+      ticks[name] = checkpoint.tick;
+    }
+    const manifest = v.parse(ManifestSchema, { inputs, ticks });
+    writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);
+    return { status: 'written', ...manifest };
+  } finally { session.host.dispose(); }
+}
+/** `run.mjs fresh`: the committed checkpoints were written from these headless inputs. */
+export function checkpointsFresh(inputs: string): object {
+  const manifest = v.parse(ManifestSchema, JSON.parse(readFileSync(MANIFEST, 'utf8')));
+  return { status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs, ticks: manifest.ticks };
+}
+
+/** Slice 1, spawn → step and on to the 10,000th tick: the quest's spoken, GUSTed, felled and ridden legs, up the updraft to the step, the winch and the raised bridge. */
+export async function stepSlice(rapier: Rapier): Promise<object> {
+  const plan = await skyPlan(rapier), session = boot(plan, rapier), tape = new SkyTape();
+  let boardTicks = 0, lifted = 0, peak = -Infinity;
+  try {
+    const ticks = playUntil(session, tape, host => {
+      if (host.playerBoard.on) { boardTicks++; peak = Math.max(peak, host.player.position.y); if (host.playerImpulse.y > 0) lifted++; }
+      return tape.atStep;
+    }, SLICE), host = session.host, p = host.player.position;
+    const onStep = Math.hypot(p.x - STEP.x, p.z - STEP.z) < STEP.r && Math.abs(p.y - STEP.y) < 0.6, stepTick = host.state.tick;
+    const flags = { vanes: VANES.every(row => host.flags.has(vaneFlag(row.id))), roost: host.flags.has(FLAGS.roost) };
+    if (!onStep || !flags.vanes || !flags.roost) throw new Error(`Not on the step with the vanes turned and the roost quiet: ${JSON.stringify({ at: p.toArray(), flags })}`);
+    // on to the platform's 10,000 headless ticks (the slice budget's cap): the winch, its quest fact and the raised bridge
+    const more = playUntil(session, tape, () => host.state.tick >= SLICE, SLICE);
+    if (!host.flags.has(FLAGS.raised) || !host.flags.has(FLAGS.complete)) throw new Error('The winch did not raise the bridge');
+    const entries = requireValue(plan.proveEntries, 'Missing entry proof')(host);
+    if (entries.lanes < 1 || entries.steps < 1) throw new Error('Empty entry proof');
+    return { status: 'passed', ticksExecuted: ticks + more, stepTick, onStep, flags, raised: true, alive: host.player.health.attributes.health > 0, boardTicks, updraftTicks: lifted, boardPeak: Number(peak.toFixed(2)),
+      facts: facts(session.effects), legs: tape.log.map(row => row.kind), entries };
+  } finally { session.host.dispose(); }
+}
+
+/** Slice 2, step → the gale wall: the winch, the raised bridge, the Roc's second phase; its checkpoint restored byte-exactly, in process and in the shipping worker. */
+export async function replaySlice(rapier: Rapier): Promise<object> {
+  const plan = await skyPlan(rapier), { session: original, tape, checkpoint: from } = resume(plan, rapier, 'step');
+  let restored: Session | undefined, worker: HeadlessSimulation | undefined;
+  try {
+    const prefixTicks = playUntil(original, tape, fighting(tape, 1), SLICE), prefixFacts = facts(original.effects);
+    const mid = encounter(original.host), hp = original.host.entities.get(ROC_ID)?.hp ?? null, checkpoint = serializeSimSnapshot(snapshotSimHost(original.host)), checkpointTick = original.host.state.tick;
+    const before = original.effects.length;
+    restored = restore(plan, rapier, checkpoint);
+    if (serializeSimSnapshot(snapshotSimHost(restored.host)) !== checkpoint) throw new Error('Restore is not byte-exact');
+    const commands: HeadlessCommand[][] = [], WORKER = 60, SUFFIX = 1500;
+    let atWorker = '';
+    for (let i = 0; i < SUFFIX; i++) {
+      const tick = tape.next(original.host); commands.push(tick);
+      step(original, tick); step(restored, tick);
+      if (i + 1 === WORKER) atWorker = serializeSimSnapshot(snapshotSimHost(restored.host));
+    }
+    const hash = digest(original.host), replayHash = digest(restored.host);
+    if (hash !== replayHash || JSON.stringify(original.effects.slice(before)) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
+    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    let commit;
+    for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
+    if (commit?.snapshot !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
+    return { status: 'passed', resumedFrom: 'step', resumedTick: from.tick, prefixTicks, prefixFacts, checkpointCaptured: true, checkpointTick, checkpoint: { state: mid.state, phase: mid.phase, hp },
+      suffixTicksExecuted: SUFFIX, hash, replayHash, workerTicks: WORKER, workerExact: true };
+  } finally { await worker?.dispose(); restored?.host.dispose(); original.host.dispose(); }
+}
+
+/** Slice 3, the gale wall → the storm: the War Fan carries the Roc through its second phase. */
+export async function stormSlice(rapier: Rapier): Promise<object> {
+  const plan = await skyPlan(rapier), { session, tape, checkpoint } = resume(plan, rapier, 'gale');
+  try {
+    const hp = (): number => requireValue(session.host.entities.get(ROC_ID), 'missing Roc').hp, start = { encounter: encounter(session.host), hp: hp() };
+    const ticks = playUntil(session, tape, fighting(tape, 2), SLICE), end = { encounter: encounter(session.host), hp: hp() };
+    if (end.hp >= start.hp || end.encounter.attempts !== start.encounter.attempts || session.host.player.health.attributes.health <= 0) throw new Error(`No storm phase by fan play: ${JSON.stringify({ start, end })}`);
+    return { status: 'passed', resumedFrom: 'gale', resumedTick: checkpoint.tick, ticksExecuted: ticks, from: { phase: start.encounter.phase, hp: start.hp }, to: { state: end.encounter.state, phase: end.encounter.phase, hp: end.hp }, attempts: end.encounter.attempts };
+  } finally { session.host.dispose(); }
+}
+
+/** Slice 4, the ledger: the quest's fact past the winch (from the step) and the Roc's at its fall (from the storm), granted once, durably. */
+export async function ledgerSlice(rapier: Rapier): Promise<object> {
+  const plan = await skyPlan(rapier), local = new ProfileStorage(), ledger = profile(local), receipts: LedgerReceipt[] = [];
+  const windows: { from: CheckpointName; ticks: number }[] = [];
+  let after: Session | undefined, last: Session | undefined;
+  try {
+    // the two windows, one ingress each, into one profile (one restore a window: the quest's at the winch, the Roc's in the storm)
+    for (const [from, done] of [['step', (host: SimHost) => host.flags.has(FLAGS.complete)], ['storm', (host: SimHost) => host.flags.has(FLAGS.roc)]] as const) {
+      const { session, tape } = resume(plan, rapier, from), ingress = new FactIngress(ledger, () => session.host.state.tick);
+      last?.host.dispose(); last = session;
+      let ticks = 0;
+      for (; ticks < SLICE && !done(session.host); ticks++) receipts.push(...ingress.ingest(step(session, tape.next(session.host))));
+      if (from === 'storm') for (let i = 0; i < AFTER; i++, ticks++) receipts.push(...ingress.ingest(step(session, tape.next(session.host))));
+      if (!done(session.host)) throw new Error(`The ${from} window did not finish within ${String(SLICE)} ticks`);
+      windows.push({ from, ticks });
+    }
+    const durable = ledger.state(), rows = Object.values(durable.facts), achievements = Object.values(durable.achievements);
+    if (rows.length !== 2 || receipts.length !== 2 || receipts.some(r => r.status !== 'granted') || achievements.some(a => !a.earned || a.count !== 1)) throw new Error('Gameplay facts did not grant once');
+    // a restored session re-emits nothing; the reopened profile holds the same grants and refuses a replayed fact
+    const ended = requireValue(last, 'missing storm window'), tail = new SkyTape(); // past its last leg the tape stands still
+    after = restore(plan, rapier, serializeSimSnapshot(snapshotSimHost(ended.host)));
+    for (let i = 0; i < AFTER; i++) step(after, tail.next(after.host));
+    const reopened = profile(local), replayed = rows.map(row => reopened.record(row).status);
+    if (after.effects.length > 0 || JSON.stringify(reopened.state()) !== JSON.stringify(durable) || replayed.some(status => status !== 'duplicate')) throw new Error('Ledger was not durable and deduplicated');
+    return { status: 'passed', rules: source.ledger.length, windows, facts: rows.map(row => ({ name: row.name, origin: `${row.origin.kind}.${row.origin.source}`, entity: row.entity })),
+      achievements: achievements.map(a => ({ id: a.id, count: a.count, earned: a.earned })), durableReload: true, duplicateStable: true, restoredReemits: 0, gameplayEmissionProven: true };
+  } finally { after?.host.dispose(); last?.host.dispose(); }
 }

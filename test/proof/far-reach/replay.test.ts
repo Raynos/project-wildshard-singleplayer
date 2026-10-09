@@ -1,10 +1,12 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import { skyWitness } from './native';
 
-it('refuses replay without a real encounter checkpoint and complete native continuation', () => {
-  const result = nativeCompatibility('far-reach', 'replay');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
-  const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ compatible: false, replay: { status: 'blocked',
-    checkpointCaptured: false, suffixTicksExecuted: 0, dependency: 'Renderer dependency in Node simulation: repo:/src/engine/anim/rig.ts' } });
-});
+it('resumes at the step, raises the bridge, reaches the gale-wall phase, and its checkpoint continues byte-exactly in process and in the shipping worker', () => {
+  const result = skyWitness('slice-replay');
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
+  const report = JSON.parse(result.stdout) as { 'slice-replay': { hash: string; replayHash: string; prefixTicks: number } };
+  expect(report).toMatchObject({ 'slice-replay': { status: 'passed', resumedFrom: 'step', prefixFacts: ['far-reach.quest'], checkpointCaptured: true,
+    checkpoint: { state: 'fight', phase: 1 }, suffixTicksExecuted: 1500, workerTicks: 60, workerExact: true } });
+  expect(report['slice-replay'].replayHash).toBe(report['slice-replay'].hash);
+  expect(report['slice-replay'].prefixTicks).toBeLessThanOrEqual(10_000);
+}, 120_000);

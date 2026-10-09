@@ -31,7 +31,7 @@ compatibility green. Unknown modes throw rather than emit a passing result.
 | Shard | Actual trusted entry | First runtime blocker | Full source / partial ledger |
 | --- | --- | --- | --- |
 | Signal Dunes | `sunscar-dunes/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay) | 2 rules, both from gameplay |
-| Sky Reach | `far-reach/runtime/index.ts` | `engine/anim/rig.ts` | Source rejects `engine/app/runtime.ts`; blocked |
+| Sky Reach | `far-reach/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay); CI runs it in checkpointed slices | 2 rules, both from gameplay |
 | Pine Hollow | `pine-hollow/runtime/index.ts` | `runtime/audio/score.ts` parameter property | Loads; 19 rules tested |
 | Driftwood | `driftwood-isle/runtime/hybrid.ts` | `game/shardfile/hybrid.ts` parameter property | Loads; 10 rules tested |
 | Nalati | `nalati-grasslands/runtime/index.ts` | `engine/app/runtime.ts` | Loads; 17 rules tested |
@@ -81,15 +81,14 @@ whip's unroll / second lash / pull / stagger, and no heavy attack in the tick pr
 
 ### Sky Reach (`far-reach`)
 
-The **source** already reaches `shard.config.ts -> world/risingIslet.ts -> engine/world/registry.ts ->
-engine/app/runtime.ts`; extract the rising-islet collider/manifest constants from the runtime registry.
-The entry also imports `world/meshes.ts -> engine/anim/rig.ts`, shader patches, memory-saver views and
-`combat/stormRoc.ts -> engine/ui/BossBar.ts`. Split those from physics/quest/flight logic.
-Native ownership: `far.ray.0`, `far.roost.0..2`, `far.wisp.0..2`, `far.goat.0..4`, `far.roc`, the fan/gust,
-winch/rope bridges and moving islets/gates. Keep deferred goat WORLD-floor placement and spawn identity
-order, home/flight policy state, shared RNG, vane/roost flags, Roc phase/strike clocks and encounter
-checkpoint/reward state. The mover script continuation, rider attachment and pending interactions must
-join the same host snapshot. Next target: source load first, then winch/quest and Roc fight suffix.
+Passes on the trusted renderer-free entry `runtime/headless.ts` (SF72). `run.mjs all` plays one tape of tick commands
+from the spawn to the Storm Roc's fall (21,134 ticks): the keeper, the three vanes GUSTed, the roost's rays felled by the
+War Fan, both hover bridges and the updraft on the board, the winch, the raised bridge and the Roc felled by fan play;
+its gale-wall checkpoint (phase 1) restores byte-exactly, the suffix to the fall hashes identically and the shipping
+worker commits the same 60th-tick bytes; both facts reach the durable `Ledger` once. The vitest legs replay that tape in
+slices under DEPLOY.md's 10k-tick budget, resumed from committed checkpoints (`far-reach/checkpoints/`: step, gale,
+storm; `run.mjs checkpoints` rewrites them, `run.mjs fresh` refuses a set written from other headless inputs). They
+assert outcomes only, so x64 CI restores the data exactly without comparing continuations across platforms.
 
 ### Pine Hollow
 

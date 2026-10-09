@@ -1,55 +1,38 @@
-# Handoff (sf72-sky) — 2026-10-09, SF72 Sky Reach headless, part 6 (sf72-sky6, 90-min cap)
+# Handoff (sf72-sky) — 2026-10-09, SF72 Sky Reach headless, part 7 (sf72-sky7)
 
-Coordinator `wildshard-new` pushes. Sky's canonical witness (`test/proof/far-reach/`) is still UNCHANGED and fails
-closed. Part 6 landed the board seam's Sky half; the spawn-to-crown tape is drafted and plays the whole quest up to the
-updraft, where it finds a board-law bug (below) that blocks the step on the shared law, so it is not landed.
+Coordinator `wildshard-new` pushes. **Sky's canonical witness passes** (`test/proof/far-reach/compatibility.json`,
+compatible: true, from a real `run.mjs all`, two identical native runs). The lane's SF72 work is done; what follows is
+for the plan row and whoever touches Sky's headless code next.
 
-## Landed (part 6)
+## Landed (part 7)
 
-- This commit (see git log): **Sky's board pieces and updraft in the played host.**
-  - `physics.baked.json` rebaked from the clean candidate (muted Chromium, iPhone 16 Pro): 13 actors and 43 pieces
-    byte-identical except `mode: 'board'` on `far.hover.roost`, `far.hover.keeper`, `far.updraft` (and the input hash of
-    runtime/index.ts).
-  - `runtime/headless.ts`: `BakedPiece.mode`; the board pieces are added and registered with `host.boardColliders` on a
-    fresh install (and on the entry proof's fresh hosts), never on a restore; the War Fan is stowed on the board (the
-    browser's `fan.stowed = board`); the updraft's lift is an onStep (`far.updraft`) feeding `UPDRAFT_LIFT * dt` through
-    `impulsePlayer` while riding inside the column.
-  - `runtime/updraft.ts`: the column rule and `UPDRAFT_LIFT`, now shared by the browser's `far.updraft` system and the
-    headless host (index.ts uses it; same arithmetic).
-  - `runtime/stormRocBrain.ts`: its parameter property became a field (Node's strip-only TypeScript refuses parameter
-    properties, so the plain-Node witness could not import the Roc).
+- `f395e123c` the board updraft fix (engine `player/board.ts`): a same-tick touchdown (the board began the step at the
+  ride height) spends its fall; ordinary landings keep their dip (board-tape oracle byte-identical). Receipts:
+  `progress/shard-platform/sf72-sky-updraft/`.
+- The next commit: the witness. `run.mjs all` plays one tape of tick commands from the spawn to the Storm Roc's fall
+  (21,134 ticks, victory 21,014): keeper, three vanes GUSTed, the roost felled, both hover bridges and the updraft on the
+  board, the winch (quest fact 7,928), the raised bridge, the Roc by War Fan play; replay from the gale-wall checkpoint
+  (10,140) byte-exact in process and in the shipping worker; both facts into the durable Ledger once.
+- CI runs the tape in slices (DEPLOY.md: ≤ 10k ticks a test): `slice-step` (spawn → 10,000 ticks, past the step and
+  the winch), `slice-replay` (step → gale wall + its replay), `slice-storm` (gale wall → storm phase), `slice-ledger`
+  (the winch window from the step, the fall from the storm). They resume from `test/proof/far-reach/checkpoints/`
+  (step / gale / storm, ~88 KB gzipped wires, byte-deterministic) and assert outcomes only.
 
-## The updraft finding (needs a ruling before the tape can land)
+## When a checkpoint test fails
 
-On the board the updraft never lets the board land properly: every lifted tick `boardShoved` puts the board in the air,
-the airborne branch of `stepBoard` (`src/engine/player/board.ts`) adds `-HOVER_JUMP_GRAVITY * dt` to `v.y`, the motor
-keeps it on the ramp, and the touchdown (`v.y < 0 && position.y <= target + 0.05`) sets `hoverAir = false` and files
-`landed(-v.y)` but never zeroes `v.y`. So `v.y` runs down ~5 m/s every 20 ticks (-125 m/s at the ramp's top, x -53.7,
-z -116, y 43.75), each touchdown past 9 m/s files a hard-landing fall hit (the player died climbing), and at the ramp's
-end the board drops 2 m a tick through the 0.6 m `HOVER_GAP` to the step and falls. The lift itself is tiny: the impulse
-decay zeroes the 0.2 m/s feed every tick (it never builds to "UPDRAFT_LIFT / 3.5"). The law is the client Player's own
-(bit-identical, sim-player-board.test.ts), so the browser should do the same; a browser probe
-(`physics-baseline --route=` with a `start.hover` leg at the ramp foot) teleport did not apply (it drove from the spawn),
-so the browser half is unconfirmed. Next: confirm in the browser (teleport the player to the ramp foot, `setHover(true)`,
-hold the stick toward the step, log y / vy / health), then the coordinator's ruling on an engine fix (zero `v.y` on the
-touchdown, or the updraft feeding the board's own `v.y`), as its own commit with the board-tape oracle re-recorded.
+`checkpoints.test.ts` refuses checkpoints written from other headless inputs: the hash covers every repo module the
+witness loads (Sky's runtime, the engine's sim / physics / player, the tape), the Rapier wasm and Sky's assets. Any
+change there (an engine sim commit too) needs:
 
-The coordinator's three board gaps: no jump needed (no Sky leg jumps); boarding from rest is honest; the updraft's
-onStep is not late in steady state (it reads the position after move N and feeds move N+1, as the browser's fixed.pre
-does at tick N+1); the two differ only on a HOVER-toggle tick inside the column, and the tape boards outside it.
+    node --import ./scripts/sim-node-loader.mjs test/proof/far-reach/run.mjs checkpoints
 
-## The tape draft
+(~12 s), committed with the change; then `run.mjs all` and refresh `compatibility.json` if its numbers moved.
 
-`progress/shard-platform/handoffs/sf72-sky-witness.ts.txt` (copy to `test/proof/far-reach/witness.ts`; Signal's
-shape: boot / restore / step / FactIngress / worker). `SkyTape` plays tick commands only: spawn → keeper talk (tick
-77) → grove rope bridge, GUST its vane (797) → board over the keeper hover bridge (1393), GUST its vane (1563) → board
-over both bridges to the roost (3050) → the three rays felled by fan swings (3987) → ruin rope bridge, GUST (4697) →
-back, board to Sunrest (5935) → windmill rope bridge → board up the updraft (fails ~7440, above). Board steering steers
-the board's velocity toward 9 m/s along the line (braking into the stop). ~10 s for 7.6k ticks locally.
-Still to do: the lint (findLast → a loop, `play` return, the quest lookup), the winch → bridge → crown legs past the
-updraft, then the CI budget (ci-green's rule in DEPLOY.md: walk tapes ≤ 10k ticks at 60 s, one checkpoint per test,
-`expectSameSimSnapshot`, digests via test/fake/portableMath): split the tape into legs, e.g. a spawn → step test and a
-step → crown test resumed from a restore at the step, the gale-wall checkpoint (phase 1, `fight`) in the replay test.
-Then flip `run.mjs`, the three tests, `compatibility.json`, determinism.test.ts and the compatibility README.
+## Open notes (not blockers)
+
+- The updraft's lift is cosmetic headless and in the browser: its 0.2 m/s-a-tick feed sits under `IMPULSE_REST_SQ`, so
+  `decayImpulse` zeroes it every tick; the ramp collider carries the board up (sf72-sky6's finding). A taste call.
+- The Roc's gale-wall phase takes the tape 7,200 ticks (phase 0: 1,220, phase 2: 3,700): fan play at its height is slow.
+- Public SDK share: far-reach 1.4 % (93 public / 6,644 custom lines), runtime + trusted 1,245 / 1,377 ceiling.
 
 Plan-State: unchanged.
