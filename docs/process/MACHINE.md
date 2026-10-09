@@ -67,6 +67,8 @@ Through `scripts/sim-lane.sh`: `run [--max <min>] <device> <cmd…>` boots, runs
 holds it while you drive it; `release` shuts it down. The hook blocks a raw `simctl boot`. How to drive one:
 `.claude/skills/ios-simulator/SKILL.md`. The Simulator runs on the Mac GPU: it cannot show the iPhone's memory limit,
 GPU cost or throttling.
+The reaper quits Simulator.app once nothing is booted: one AppleScript quit, then one SIGTERM on a later reap if the app
+ignored it, each logged once per app PID (`~/.sim-lane/app-quit.<pid>`); it used to retry from every hook, 2,024 times in 12 h.
 
 ## Local models: one at a time
 

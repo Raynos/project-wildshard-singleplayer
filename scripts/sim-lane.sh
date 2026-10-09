@@ -103,7 +103,24 @@ is_booted() { booted | cut -f1 | grep -qx "$1"; }
 shutdown_dev() {
   xcrun simctl shutdown "$1" >/dev/null 2>&1
   rm -f "$(lease_file "$1")"
-  [ "$(booted_count)" -eq 0 ] && pgrep -x Simulator >/dev/null && osascript -e 'quit app "Simulator"' >/dev/null 2>&1
+  [ "$(booted_count)" -eq 0 ] && quit_app
+  return 0
+}
+
+# Quit Simulator.app once nothing is booted, idempotently and quietly. A Simulator.app that ignores the AppleScript quit
+# (2026-10-09: pid 51352, up 14 days, "quit" from every Stop hook 2,024 times in 12 h) gets one SIGTERM on a later reap,
+# then is left alone: each step runs and logs once per app PID ($DIR/app-quit.<pid> holds "quit" or "term").
+quit_app() {
+  local pid f step
+  pid="$(pgrep -x Simulator | head -1)"
+  [ -z "$pid" ] && { rm -f "$DIR"/app-quit.* 2>/dev/null; return 0; }
+  f="$DIR/app-quit.$pid"; step="$(cat "$f" 2>/dev/null)"
+  case "$step" in
+    "") osascript -e 'quit app "Simulator"' >/dev/null 2>&1; echo quit > "$f"; log "quit Simulator.app pid $pid (nothing booted)";;
+    quit) kill -TERM "$pid" 2>/dev/null; echo term > "$f"; log "Simulator.app pid $pid ignored quit; sent SIGTERM once";;
+    *) ;; # already asked twice: leave it, say nothing
+  esac
+  for f in "$DIR"/app-quit.*; do [ -e "$f" ] && [ "${f##*.}" != "$pid" ] && rm -f "$f"; done
   return 0
 }
 
@@ -130,9 +147,7 @@ reap() {
     [ "$?" -eq 2 ] && n=$((n + 1))
   done < <(booted)
   [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "no idle simulator"
-  if [ "$dry" != "--dry-run" ] && [ "$(booted_count)" -eq 0 ] && pgrep -x Simulator >/dev/null; then
-    osascript -e 'quit app "Simulator"' >/dev/null 2>&1; log "quit Simulator.app (nothing booted)"
-  fi
+  [ "$dry" != "--dry-run" ] && [ "$(booted_count)" -eq 0 ] && quit_app
   return 0
 }
 
