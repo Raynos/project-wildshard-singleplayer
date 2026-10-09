@@ -10489,6 +10489,12 @@
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
+        "name": "SimSnapshotBytes",
+        "kind": "type",
+        "doc": "A fresh native capture for encoding, without a boxed JavaScript array for each Rapier byte. The packed wire and",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
         "name": "SnapshotBasisMismatchError",
         "kind": "class",
         "doc": "A supplied immutable basis differs after strict metadata and packed framing validation. This does not authenticate",
@@ -10498,6 +10504,12 @@
         "name": "snapshotSimHost",
         "kind": "function",
         "doc": "Capture at a fixed-step boundary; pending events are preserved without flushing them.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "snapshotSimHostBytes",
+        "kind": "function",
+        "doc": "Capture the same fixed-boundary state with owned native bytes, ready for the packed writer without number[].",
         "from": "@wildshard/engine/sim/snapshot"
       },
       {

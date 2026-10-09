@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2333 members; 841 without a doc line (—).
+2335 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1753,8 +1753,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SIM_REGION_SNAPSHOT_CHAR_BUDGET` | const | @wildshard/engine/sim/snapshot | Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. |
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
+| `SimSnapshotBytes` | type | @wildshard/engine/sim/snapshot | A fresh native capture for encoding, without a boxed JavaScript array for each Rapier byte. The packed wire and |
 | `SnapshotBasisMismatchError` | class | @wildshard/engine/sim/snapshot | A supplied immutable basis differs after strict metadata and packed framing validation. This does not authenticate |
 | `snapshotSimHost` | function | @wildshard/engine/sim/snapshot | Capture at a fixed-step boundary; pending events are preserved without flushing them. |
+| `snapshotSimHostBytes` | function | @wildshard/engine/sim/snapshot | Capture the same fixed-boundary state with owned native bytes, ready for the packed writer without number[]. |
 | `generateCrossroads` | function | @wildshard/engine/sim/strips | B-clamped corners meet every floor endpoint; retaining walls and cliffs return10m around the junction. |
 | `GeneratedStrip` | interface | @wildshard/engine/sim/strips | The highway owns the primary mesh; neighbouring worlds receive exact translated duplicates. |
 | `generatePlatform` | function | @wildshard/engine/sim/strips | Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. |
