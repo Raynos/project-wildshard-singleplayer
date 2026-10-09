@@ -4,7 +4,7 @@ import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { advanceKingPose, newPose, type KingPoseInput, type KingPoseRest } from '../combat/kingRig';
 import type { KingCollisionJoints, KingCollisionVolumes } from './kingCollision';
-import { KingQueryPose } from './kingQueryPose';
+import { KingQueryPose, type KingQueryPoseSaved } from './kingQueryPose';
 
 const finite = v.pipe(v.number(), v.finite());
 const Saved = v.strictObject({ version: v.literal(1), timers: v.pipe(v.string(), v.maxLength(8192)),
@@ -71,17 +71,24 @@ export class PineKingPose {
   /** The live cage getter updates its root/chest parents immediately; head and body queries themselves stay passive. */
   ribs(out: Vector3): Vector3 { this.publish('ribs'); return this.query.ribs(out); }
 
-  snapshot(): v.InferOutput<typeof Saved> {
+  snapshot(): { version: 1; timers: string; query: KingQueryPoseSaved; rootPitch: number; rootRoll: number } {
     return { version: 1, timers: this.timers.snapshot(), query: this.query.snapshot(),
       rootPitch: this.rootPitch, rootRoll: this.rootRoll };
   }
   /** Validate both clocks before mutation, and retain the exact pending/cached query difference. No terrain reads or ticks. */
   restore(input: unknown): void {
+    this.prepareRestore(input)();
+  }
+
+  /** A roster validates every King's history before committing any of them. */
+  prepareRestore(input: unknown): () => void {
     const saved = v.parse(Saved, input);
     const timers = new AnimalPoseLaw({ custom: true, dims: this.body.dims });
     const query = new KingQueryPose(this.joints, this.volumes);
     timers.restore(saved.timers); query.restore(saved.query);
-    this.timers.restore(saved.timers); this.query.restore(saved.query);
-    this.rootPitch = saved.rootPitch; this.rootRoll = saved.rootRoll;
+    return () => {
+      this.timers.restore(saved.timers); this.query.restore(saved.query);
+      this.rootPitch = saved.rootPitch; this.rootRoll = saved.rootRoll;
+    };
   }
 }
