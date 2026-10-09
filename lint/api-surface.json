@@ -5423,6 +5423,12 @@
         "from": "@wildshard/engine/entities/eliteBrain"
       },
       {
+        "name": "EntityIds",
+        "kind": "class",
+        "doc": "Entity identity belongs to the simulation instance, never a tile, position or draw LOD.",
+        "from": "@wildshard/engine/entities/ids"
+      },
+      {
         "name": "killBelowWorld",
         "kind": "function",
         "doc": "A declared world death plane runs on the body clock; the four original worlds declare none. The one law for a creature",
@@ -16036,6 +16042,36 @@
         "kind": "function",
         "doc": "Compile the TypeScript-authored cue map, ambience and score without executable audio closures.",
         "from": "@wildshard/game/shardfile/audio"
+      },
+      {
+        "name": "bossFlagRecord",
+        "kind": "function",
+        "doc": "A boss row's record kept on the shard's own flags (no save of its own): `saved` to start from, `persist` to write.",
+        "from": "@wildshard/game/shardfile/bossRow"
+      },
+      {
+        "name": "BossRowFlagNames",
+        "kind": "interface",
+        "doc": "A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`).",
+        "from": "@wildshard/game/shardfile/bossRow"
+      },
+      {
+        "name": "BossRowFlags",
+        "kind": "interface",
+        "doc": "The shard flags a boss record reads and writes.",
+        "from": "@wildshard/game/shardfile/bossRow"
+      },
+      {
+        "name": "BossRowSpec",
+        "kind": "interface",
+        "doc": "What a boss row's encounter is given: its definition and view-free script, its body, its record and its fight state.",
+        "from": "@wildshard/game/shardfile/bossRow"
+      },
+      {
+        "name": "installBossRow",
+        "kind": "function",
+        "doc": "A declared boss row's encounter in a renderer-free host (SHARD-PLATFORM SF72): the engine's `BossBrain` (arm, intro,",
+        "from": "@wildshard/game/shardfile/bossRow"
       },
       {
         "name": "DeclaredBrainPorts",

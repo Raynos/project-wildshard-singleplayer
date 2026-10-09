@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-839 members; 157 without a doc line (—).
+844 members; 157 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -386,6 +386,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
+| `bossFlagRecord` | function | @wildshard/game/shardfile/bossRow | A boss row's record kept on the shard's own flags (no save of its own): `saved` to start from, `persist` to write. |
+| `BossRowFlagNames` | interface | @wildshard/game/shardfile/bossRow | A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). |
+| `BossRowFlags` | interface | @wildshard/game/shardfile/bossRow | The shard flags a boss record reads and writes. |
+| `BossRowSpec` | interface | @wildshard/game/shardfile/bossRow | What a boss row's encounter is given: its definition and view-free script, its body, its record and its fight state. |
+| `installBossRow` | function | @wildshard/game/shardfile/bossRow | A declared boss row's encounter in a renderer-free host (SHARD-PLATFORM SF72): the engine's `BossBrain` (arm, intro, |
 | `DeclaredBrainPorts` | interface | @wildshard/game/shardfile/brainRuntime | Loader-injected native recipes retain navigation, vertical movement, attack tokens and strike ownership. |
 | `DeclaredBrainRecipe` | interface | @wildshard/game/shardfile/brainRuntime | One trusted actor's observations and body recipe; construction must not execute gameplay or consume RNG. |
 | `DeclaredNativeBrain` | type | @wildshard/game/shardfile/brainRuntime | Native decision families and the existing pursuit family; custom scripts require a composed host. |

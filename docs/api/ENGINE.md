@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2291 members; 843 without a doc line (—).
+2292 members; 843 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -910,6 +910,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `setEliteAct` | function | @wildshard/engine/entities/eliteBrain | — |
 | `setEliteBrain` | function | @wildshard/engine/entities/eliteBrain | — |
 | `setEliteDamage` | function | @wildshard/engine/entities/eliteBrain | — |
+| `EntityIds` | class | @wildshard/engine/entities/ids | Entity identity belongs to the simulation instance, never a tile, position or draw LOD. |
 | `killBelowWorld` | function | @wildshard/engine/entities/killHeight | A declared world death plane runs on the body clock; the four original worlds declare none. The one law for a creature |
 | `crestSpikes` | function | @wildshard/engine/entities/lowpoly | The boar's dorsal crest as a serrated row of faceted spikes. `pts` are the crest points of species/boar.ts |
 | `facetGeometry` | function | @wildshard/engine/entities/lowpoly | Turn the merged indexed model into a faceted one: every triangle gets its own three vertices and a |

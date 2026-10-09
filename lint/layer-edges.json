@@ -2,7 +2,7 @@
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
     "commons → sdk": 3,
-    "game → engine": 875,
+    "game → engine": 879,
     "root → engine": 19,
     "root → game": 25,
     "root → sdk": 2,
@@ -11,7 +11,7 @@
     "shards/_template → engine": 7,
     "shards/_template → game": 1,
     "shards/_template → sdk": 9,
-    "shards/driftwood-isle → engine": 575,
+    "shards/driftwood-isle → engine": 576,
     "shards/driftwood-isle → game": 72,
     "shards/driftwood-isle → sdk": 14,
     "shards/far-reach → engine": 126,
@@ -23,11 +23,11 @@
     "shards/nine-dragon-stack → engine": 175,
     "shards/nine-dragon-stack → game": 19,
     "shards/nine-dragon-stack → sdk": 4,
-    "shards/pine-hollow → engine": 558,
+    "shards/pine-hollow → engine": 571,
     "shards/pine-hollow → game": 104,
-    "shards/pine-hollow → sdk": 14,
-    "shards/sunscar-dunes → engine": 127,
-    "shards/sunscar-dunes → game": 29,
+    "shards/pine-hollow → sdk": 15,
+    "shards/sunscar-dunes → engine": 126,
+    "shards/sunscar-dunes → game": 31,
     "shards/sunscar-dunes → sdk": 12
   }
 }

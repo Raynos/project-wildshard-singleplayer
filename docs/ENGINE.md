@@ -2007,7 +2007,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2274 exports, grouped by the module to import them from.
+2275 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2161,6 +2161,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalPoseSample`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
 - `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/eliteBrain`: `eliteAct`, `eliteDamageMul`, `eliteThink`, `setEliteAct`, `setEliteBrain`, `setEliteDamage`
+- `@wildshard/engine/entities/ids`: `EntityIds`
 - `@wildshard/engine/entities/killHeight`: `killBelowWorld`
 - `@wildshard/engine/entities/lowpoly`: `crestSpikes`, `facetGeometry`, `lowPolyMaterials`, `LowPolyMaterials`, `oneMaterial`, `patchEyeGlow`
 - `@wildshard/engine/entities/species/loft`: `boneIndex`, `isLowPoly`, `loft`, `lowPolySides`, `mix`, `Paint`, `paintNoise`, `paletteColors`, `registerToonPaint`, `RGB`, `S`, `setLowPoly`, `setShag`, `setShapeFn`, `skinPlain`, `srgb`, `Station`, `TEX_M`, `toonPaint`, `ToonPaint`, `tube`
@@ -2391,7 +2392,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-839 exports, grouped by the module to import them from.
+844 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2461,6 +2462,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/assetGraph`: `preflightAssetGraph`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `assetOverdraw`, `parseAudio`, `parseGlb`, `parseKtx2`, `visitGlbTriangles`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
+- `@wildshard/game/shardfile/bossRow`: `bossFlagRecord`, `BossRowFlagNames`, `BossRowFlags`, `BossRowSpec`, `installBossRow`
 - `@wildshard/game/shardfile/brainRuntime`: `DeclaredBrainPorts`, `DeclaredBrainRecipe`, `DeclaredNativeBrain`, `installDeclaredBrains`
 - `@wildshard/game/shardfile/brains`: `GuardianSchema`, `parseGuardian`, `parsePerchHunter`, `parseScriptBrain`, `parseSkirmisher`, `PerchHunterSchema`, `ScriptBrainSchema`, `ShardGuardian`, `ShardPerchHunter`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`
 - `@wildshard/game/shardfile/budget`: `memoryTargetWarnings`, `nearbyContentCost`, `worstContentCost`
