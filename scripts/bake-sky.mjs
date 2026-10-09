@@ -90,7 +90,7 @@ function encodeSky(width, height, px) {
     gain[p] = gq;
   }
   const size = `${width}x${height}`;
-  const sky = execFileSync('magick', ['-size', size, '-depth', '8', 'rgb:-', '-quality', '95', '-sampling-factor', '1x1', '-strip', 'jpg:-'], { input: rgb, maxBuffer: 64 << 20 });
-  const gainBytes = execFileSync('magick', ['-size', size, '-depth', '8', 'gray:-', '-strip', '-define', 'png:compression-level=9', 'PNG8:-'], { input: gain, maxBuffer: 64 << 20 });
+  const sky = execFileSync('magick', ['-size', size, '-depth', '8', 'rgb:-', '-quality', '95', '-sampling-factor', '1x1', '-strip', 'jpg:-'], { input: rgb, maxBuffer: 64 << 20, timeout: 180_000 });
+  const gainBytes = execFileSync('magick', ['-size', size, '-depth', '8', 'gray:-', '-strip', '-define', 'png:compression-level=9', 'PNG8:-'], { input: gain, maxBuffer: 64 << 20, timeout: 180_000 });
   return { sky, gain: gainBytes };
 }
