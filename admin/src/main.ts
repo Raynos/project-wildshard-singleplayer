@@ -6,6 +6,7 @@ import { h } from './dom.ts';
 import { memoryView } from './memory.ts';
 import { planView } from './plan.ts';
 import { playtestsView } from './playtests.ts';
+import { installUpdates } from './update.ts';
 
 const TABS = ['memory', 'loading', 'playtests', 'plan'] as const;
 type Tab = (typeof TABS)[number];
@@ -66,6 +67,7 @@ async function main(): Promise<void> {
   });
   last = location.hash.split('/')[0] ?? '';
   render(bundle);
+  installUpdates(bundle.build);
 }
 
 main().catch((e: unknown) => {

@@ -45,11 +45,20 @@ export function planView(root: HTMLElement, p: PlanData): void {
   const parts: HTMLElement[] = [
     h('h1', {}, p.slug),
     h('p', { class: 'sub' }, p.title.replace(new RegExp(`^${p.slug}\\s*—\\s*`), '')),
+    h('section', { class: 'card', 'aria-label': 'Shards at 80/20' },
+      h('h2', { style: 'margin-top:0' }, 'Shards at 80/20'),
+      h('p', { class: 'hard-count' }, p.hardCount ? `${p.hardCount.done} of ${p.hardCount.total}` : 'Not reported'),
+      h('p', { class: 'small' }, 'The plan State’s hard count, not effort or lines ported.')),
+    h('h2', {}, 'Ready to share'),
+    h('section', { class: 'card' }, p.readiness
+      ? h('p', { class: 'statelead', style: 'margin:0' }, rich(p.readiness))
+      : h('p', { class: 'small' }, 'No current checklist reported in State.')),
+    h('h2', {}, 'Effort'),
     h('section', { class: 'card' },
       h('div', { class: 'hero' }, whole ? ring(whole.pct, 'by effort') : h('span', {}), bars(milestones)),
       h('p', { class: 'small', style: 'margin:10px 0 0' }, "The plan State's own reported percentages.")),
   ];
-  if (shards.length > 0) parts.push(h('h2', {}, 'M3: each shard toward 80/20'), h('section', { class: 'card' }, bars(shards)));
+  if (shards.length > 0) parts.push(h('h2', {}, 'M3: effort toward 80/20'), h('section', { class: 'card' }, bars(shards)));
 
   parts.push(h('h2', {}, `Waiting for Jake (${p.waiting.length})`));
   parts.push(h('section', { class: 'card' }, p.waiting.length === 0

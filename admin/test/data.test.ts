@@ -93,4 +93,17 @@ describe('admin view mapping', () => {
     expect(poseTitle('_template-centre')).toBe('Template centre');
     expect(sectionBullets('## (d) What works\n- a\n  b\n## next\n- c', /what work/i)).toEqual(['a b']);
   });
+
+  it('reads the hard count and current checklist from State, keeping effort separate', () => {
+    const data = structuredClone(ADMIN);
+    data.plan.state = 'Hard count first: shards at 80/20: 1 of 7 (template). Ready-to-share checklist: no known P0 — OPEN; phone fps — met. Then effort: whole plan ≈ 57 %. Ready-to-share checklist: stale handoff.';
+    const plan = toView(data, '2026-10-09T00:00:00Z', new Set()).plans;
+    expect(plan.hardCount).toEqual({ done: 1, total: 7 });
+    expect(plan.readiness).toBe('no known P0 — OPEN; phone fps — met.');
+    expect(toView(ADMIN, '2026-10-09T00:00:00Z', new Set()).plans.hardCount).toBeNull();
+    data.plan.state = 'shards at 80/20: 0 of 7';
+    expect(toView(data, '', new Set()).plans.hardCount).toEqual({ done: 0, total: 7 });
+    data.plan.state = 'shards at 80/20: 8 of 7';
+    expect(toView(data, '', new Set()).plans.hardCount).toBeNull();
+  });
 });

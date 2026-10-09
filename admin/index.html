@@ -17,9 +17,13 @@
   <body>
     <div id="app" class="app">
       <header class="top">
+        <div class="identity">
         <div class="brand"><span class="mark" aria-hidden="true"></span><span>Wildshard Admin</span></div>
         <div class="build" id="build">loading…</div>
+        </div>
+        <button id="reload" class="reload" type="button">Reload</button>
       </header>
+      <button id="data-update" class="data-update" type="button" hidden>NEW DATA · TAP TO UPDATE</button>
       <main id="view" class="view" tabindex="-1"></main>
       <nav class="tabs" aria-label="Tools">
         <a href="#memory" data-tab="memory"><span class="ti ti-mem" aria-hidden="true"></span>Memory</a>

@@ -160,6 +160,10 @@ export interface PlanData {
   title: string;
   state: string;
   source: string;
+  /** G256: State's literal hard count, unavailable when State does not report it. */
+  hardCount: { done: number; total: number } | null;
+  /** The first, current checklist in State; dated handoffs are not current status. */
+  readiness: string | null;
   /** State's own reported percentages, verbatim (never inferred). */
   effort: Effort[];
   milestones: Milestone[];

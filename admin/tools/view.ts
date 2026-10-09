@@ -221,11 +221,18 @@ function plan(p: Plan): PlanData {
     return m ? [{ label: `${label === 'template' ? 'Template' : label} (M3)`, pct: Number(m[1]) }] : [];
   });
   const source = p.source.path;
+  const state = plain(p.state.replace(/^\*\*State:\*\*\s*/, ''));
+  const count = /shards at 80\/20:\s*(\d+) of (\d+)/iu.exec(state);
+  const done = Number(count?.[1]), total = Number(count?.[2]);
+  const hardCount = count && Number.isSafeInteger(done) && Number.isSafeInteger(total) && total > 0 && done <= total ? { done, total } : null;
+  const readiness = /Ready-to-share checklist:\s*(.*?)(?:Then effort\b|$)/iu.exec(state)?.[1]?.trim() ?? null;
   return {
     slug: source.slice(source.lastIndexOf('/') + 1).replace(/\.md$/, ''),
     title: plain(p.title.replace(/^Plan:\s*/, '')),
-    state: plain(p.state.replace(/^\*\*State:\*\*\s*/, '')),
+    state,
     source,
+    hardCount,
+    readiness,
     effort: [...p.reportedPercent.map((e) => ({ label: EFFORT_LABELS[e.label] ?? e.label, pct: e.percent })), ...shardEffort],
     milestones,
     rows,
