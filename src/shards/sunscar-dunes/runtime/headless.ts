@@ -8,6 +8,7 @@ import type { Material } from '@wildshard/engine/physics/surface';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import { SCOUT_FLAG } from '../data/flags';
 import { installSignalHomes } from './homes';
+import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */
@@ -40,8 +41,9 @@ export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
 /**
  * Signal Dunes' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the admitted terrain
  * collider and heights, the browser-baked native colliders, and the 13 declared homes with their shipping policies,
- * creature stream, attack tokens and respawn clocks. Not yet owned (fail-closed, see the SF72 handoff): the whip as its
- * declared item, the signal quest's interactions, the Matriarch encounter and the entry proof; `finish` refuses.
+ * creature stream, attack tokens and respawn clocks, and the whip as its declared item row (a player command's attack is
+ * its light crack). Not yet owned (fail-closed, see the SF72 handoff): the signal quest's interactions, the Matriarch
+ * encounter and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   if (shard.terrain === null) throw new Error('Signal Dunes declares its admitted terrain collider');
@@ -50,7 +52,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   const terrain = decodeTerrainTile(bytes), heightAt = (x: number, z: number): number => terrainTileHeight(terrain, x, z), specs = signalSpecs();
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
     player: { at: { x: shard.spawn.x, y: heightAt(shard.spawn.x, shard.spawn.z) + 0.1, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
-    // the host's player strike is a zero-damage probe, never the whip: the whip is a declared item row (data/items.ts)
+    // the host's player strike is a zero-damage probe, never the whip: the whip is its declared item row (runtime/whip.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
   const colliders = (host: SimHost): void => {
     addBakedTerrainCollider(host.physics, bytes, host.scope);
@@ -60,9 +62,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
         colliders: piece.colliders.map(c => ({ kind: 'box' as const, x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...('yaw' in c ? { yaw: c.yaw } : {}), ...('surface' in c ? { surface: surface(c.surface) } : {}) })), colliderOwner: piece.id });
     });
   };
+  const whip = shard.items.rows.find(row => row.id === WHIP_ID);
+  if (whip === undefined) throw new Error('Signal Dunes declares its whip row');
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     if (!context.restoring) colliders(host);
     installSignalHomes(host, { specs, attackers: SIGNAL_ATTACKERS, held: () => !host.flags.has(SCOUT_FLAG) }, context.snapshot);
+    installSignalWhip(host, whip, () => context.commands().flatMap((command): WhipCommand[] => command.kind === 'player' && command.attack !== undefined ? [{ targetId: command.attack.targetId }] : []));
   } };
 };
 const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];

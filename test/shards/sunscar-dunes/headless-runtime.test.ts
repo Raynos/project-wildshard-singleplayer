@@ -15,6 +15,9 @@ import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { SIGNAL_SPAWNS } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { HOMES_STEP } from '../../../src/shards/sunscar-dunes/runtime/homes';
+import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/whip';
+import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
+import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import { prepareHeadlessRuntime, SIGNAL_ATTACKERS } from '../../../src/shards/sunscar-dunes/runtime/headless';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
@@ -23,12 +26,20 @@ beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
 });
-const noEffects = { commands: () => [], emit: () => { throw new Error('the homes keeper emits no gameplay effects'); } };
+/** The tick's commands, as the trusted adapter lends them (a player attack names its target). */
+let tape: HeadlessCommand[] = [];
+const noEffects = { commands: () => tape, emit: () => { throw new Error('the homes keeper emits no gameplay effects'); } };
 const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...noEffects }); return host; };
 const restore = (saved: string): SimHost => {
   const decoded = decodeSimSnapshot(saved), ports = { ...plan.ports, rapier };
   return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...noEffects }); });
 };
+/** One tick with the player standing still, cracking the whip at `target` (the adapter's command, then the host's step). */
+function crack(host: SimHost, target: string | null): void {
+  const player = { kind: 'player' as const, moveX: 0, moveZ: 0, yaw: host.player.yaw };
+  tape = target === null ? [] : [{ ...player, attack: { targetId: target } }];
+  try { host.step({ moveX: 0, moveZ: 0, yaw: host.player.yaw, ...(target === null ? {} : { attack: { targetId: target } }) }); } finally { tape = []; }
+}
 /** The player's tape: meet Sefa (the ray is released), walk into the skitterer pack west of camp, then on to a strider. */
 const route = [new Vector3(-28, 0, 6), new Vector3(-24, 0, -38), new Vector3(-96, 0, 2)];
 function step(host: SimHost): void {
@@ -88,6 +99,35 @@ it('restores mid-fight and mid-respawn continuation exactly, reinstalling the sa
       expect(keeper).toBeDefined();
     } finally { restored?.dispose(); original.dispose(); }
   }
+});
+
+it('cracks the declared whip row through the platform ItemRuntime: 18 per light contact inside its reach, cooldown-gated, exact on restore', () => {
+  const host = boot(); let restored: SimHost | undefined;
+  try {
+    const target = host.entities.get('sunscar.home:12'); if (target === undefined) throw new Error('missing strider');
+    for (let tick = 0; tick < 2; tick++) crack(host, null);
+    // stand 4 m from the strider's body, inside the row's 7 m reach
+    host.player.position.set(target.position.x, target.position.y, target.position.z + 4);
+    const hp = target.combatActor().attributes.health;
+    crack(host, target.entityId);
+    expect(target.combatActor().attributes.health).toBe(hp - WHIP_ITEM.light.damage);
+    crack(host, target.entityId); // inside the 0.45 s cooldown: no second contact
+    expect(target.combatActor().attributes.health).toBe(hp - WHIP_ITEM.light.damage);
+    const saved = serializeSimSnapshot(snapshotSimHost(host));
+    expect(snapshotSimHost(host).adapters.some(adapter => adapter.id === WHIP_STEP)).toBe(true);
+    restored = restore(saved);
+    const twin = restored.entities.get(target.entityId); if (twin === undefined) throw new Error('missing restored strider');
+    for (let tick = 0; tick < 40; tick++) {
+      host.player.position.set(target.position.x, target.position.y, target.position.z + 4); restored.player.position.set(twin.position.x, twin.position.y, twin.position.z + 4);
+      crack(host, tick % 10 === 0 ? target.entityId : null); crack(restored, tick % 10 === 0 ? twin.entityId : null);
+    }
+    expect(target.combatActor().attributes.health).toBeLessThan(hp - WHIP_ITEM.light.damage);
+    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(host)));
+    // out of reach (12 m): the lash lands on nothing
+    const before = target.combatActor().attributes.health;
+    for (let tick = 0; tick < 40; tick++) { host.player.position.set(target.position.x, target.position.y, target.position.z + 12); crack(host, tick % 30 === 0 ? target.entityId : null); }
+    expect(target.combatActor().attributes.health).toBe(before);
+  } finally { restored?.dispose(); host.dispose(); }
 });
 
 it('refuses a saved roster whose recipe no longer matches the baked spec', () => {
