@@ -10,12 +10,14 @@ import { LANTERN_FLAGS } from '../quest/wardensHollow';
 import { pineTable, RESIN_COUNT, TOKEN_NAMES } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
-import { createPineFacts, recordPineFeatKill, syncPineFlagFeats } from '../quest/featLaw';
+import { createPineFacts, recordPineFeatKill, syncPineFlagFeats, isPineThrall } from '../quest/featLaw';
 import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
 import { createPinePack, PinePackSchema } from './pack';
-import { PineDialogue } from './dialogue';
+import { PinePeople } from './people';
+import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
+import { eliteOf } from '../quest/contracts';
 import { pineBenchPose } from '../quest/benchPose';
 import baked from './spots.baked.json' with { type: 'json' };
 
@@ -23,7 +25,7 @@ import baked from './spots.baked.json' with { type: 'json' };
 export const PINE_INTERACT = 'pine.interact';
 /** The prompts a command's value names: Hale's talk, the table's quest rows, the three lanterns, the zipline, the lever-action, eight carved tokens and lookout bench. */
 export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5, ridge: 6, den: 7, zip: 8, rifle: 9,
-  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, bench: 18, cancelTalk: -1 } as const;
+  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, bench: 18, miller: 19, trader: 20, cancelTalk: -1 } as const;
 /** The quest keeper's fixed-step id (the stag's walk, the dawn's clock, the clock's fast-forward, the ride, the feats' counts). */
 export const QUEST_STEP = 'pine.quest';
 
@@ -52,7 +54,7 @@ const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite
 const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
   dawn: finite, fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
-  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null) });
+  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false) });
 
 /** The day clock the quest fast-forwards (the host's, PineDayNight's law). */
 export interface PineQuestDay { phase: number; readonly night: number }
@@ -63,6 +65,8 @@ export interface PineQuestPorts {
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
+  /** The actual crossbow owner applies the page quiver cap. */
+  readonly addBolts: (count: number) => void;
   /** the host's day clock (null: none, as a page without a sky clock: no fast-forward, no night wait) */
   readonly day: () => PineQuestDay | null;
   /** PineDayNight's night (0 day … 1 night) */
@@ -77,6 +81,9 @@ export interface PineQuest {
   readonly riding: () => boolean;
   /** The dialogue modal owns use input and suppresses weapon actions until completion or cancellation. */
   readonly talking: () => boolean;
+  readonly lodge: PineLodge;
+  /** Lodge finish ownership is gameplay state; its material view remains on the page. */
+  readonly ownsLodgeFinish: () => boolean;
   /** the lever-action was just taken: the page's pickup selects it (read once, by the loadout's next pick) */
   readonly takeRifle: () => boolean;
 }
@@ -104,6 +111,9 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
  *    taken flag and resin fact precedes the pack add, as in Interactables.take / the page's take listener;
  *  - the eight captured carved tokens use the same table pickup flags, with no inventory item; repeated takes are hidden;
  *  - the lookout bench uses the shared page seat pose, raises its vista secret and clears ordinary fall velocity;
+ *  - Brandt and Mott use their authored reading branches; Brandt pays ribbons/resin once after his thank-you completes;
+ *  - the captured lodge prompt owns its modal and shared contract draws; deaths, pack rewards, bolt cap, finish ownership
+ *    and streak facts have one silent continuation;
  *  - the shared page feat law files every flag-driven feat and actual creature death; its counters and pack restore silently.
  * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its prompt); the reward's resin;
  * the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
@@ -154,7 +164,15 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const chapter = quests.quests[0];
   if (chapter === undefined) throw new Error('Pine declares the Warden\'s Hollow');
   const eye = new Vector3(), at = new Vector3();
-  const dialogue = new PineDialogue(flags, spots.talk, spots.talk.radius);
+  const people = spots.people, boardPrompt = spots.board;
+  if (people === undefined || boardPrompt === undefined) throw new Error('Pine needs captured NPC and lodge prompts');
+  const personSpots = { ranger: people.find(person => person.kind === 'ranger'),
+    miller: people.find(person => person.kind === 'miller'), trader: people.find(person => person.kind === 'trader') };
+  const dialogue = new PinePeople(flags, people, kind => {
+    if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {
+      flags.set('errand:paid'); pack.add('lodge-ribbon', 3); pack.add('amber-resin', 4);
+    }
+  });
   const near = (p: { x: number; y: number; z: number } | null, radius: number): boolean => {
     if (p === null || radius <= 0) return false;
     eye.copy(host.player.position); eye.y += EYE;
@@ -228,6 +246,14 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     flags.set('used:ph-zip');
   };
 
+  let counts: Record<string, number> = {};
+  const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
+  let hollowAsh = false;
+  const lodge = new PineLodge({ prompt: boardPrompt, radius: boardPrompt.radius,
+    addItem: (id, n) => { pack.add(id, n); }, addBolts: ports.addBolts, ownSkin: () => { hollowAsh = true; },
+    streak: total => { feats.event('streak', total); } });
+  const initialLodge = lodge.snapshot();
+
   // ── the prompts ──
   const LIT = { pond: 'lit:pond', ridge: 'lit:ridge', den: 'lit:den' } as const;
   const lantern = (id: 'pond' | 'ridge' | 'den', needs: string): void => {
@@ -236,9 +262,15 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
   const act = (value: number): void => {
     if (state.zip.on) return; // the ride owns the player
-    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); return; }
-    if (dialogue.active) { dialogue.use(); return; } // modal USE advances text; it cannot also take another prompt
-    if (value === PINE_ACT.talk) { if (near(spots.talk, spots.talk.radius)) dialogue.use(); return; }
+    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(PINE_LODGE_ACT.close, eye); return; }
+    if (lodge.active) { lodge.use(PINE_LODGE_ACT.close, eye); return; }
+    if (dialogue.active) { dialogue.press('ranger'); return; } // modal USE advances text; it cannot also take another prompt
+    const speaker = value === PINE_ACT.talk ? 'ranger' : value === PINE_ACT.miller ? 'miller' : value === PINE_ACT.trader ? 'trader' : null;
+    if (speaker !== null) {
+      const spot = personSpots[speaker];
+      if (spot !== undefined && near(spot.prompt, spot.prompt.radius)) dialogue.press(speaker);
+      return;
+    }
     if (value === PINE_ACT.pond) { lantern('pond', 'taken:pond-glass'); return; }
     if (value === PINE_ACT.ridge) { lantern('ridge', 'taken:ridge-flint'); return; }
     if (value === PINE_ACT.den) { lantern('den', 'talked:ranger'); return; }
@@ -249,8 +281,6 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
 
   // ── one page/host feat law, fed only by committed flags and actual creature deaths ──
-  let counts: Record<string, number> = {};
-  const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
   const syncFeats = (): void => { syncPineFlagFeats(flags, feats); };
   const offFlags = flags.onChange((f, on) => {
     if (!on) return;
@@ -262,6 +292,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
     if (body === undefined) return;
     recordPineFeatKill(feats, body);
+    lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(body.kind, body.variant), thrall: isPineThrall(body) });
   }, host.scope);
   syncFeats();
 
@@ -271,8 +302,11 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     for (let c = 0; c < MAX_COMMANDS; c++) {
       const command = list[c]; if (command === undefined) break;
       if (command.actorId === PINE_INTERACT) act(command.value);
+      else if (command.actorId === PINE_LODGE && !dialogue.active && !state.zip.on) {
+        eye.copy(host.player.position); eye.y += EYE; lodge.use(command.value, eye);
+      }
     }
-    dialogue.step(dt, host.player.position);
+    dialogue.advanceReading(dt, host.player.position);
     ride(dt);
     touchResin();
     // the sluice lifts on its own once both logs are off and latches open (Interactables.update's latching door)
@@ -291,15 +325,19 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: state.zip.on ? { s: state.zip.s, v: state.zip.v } : null,
-      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}) }),
+      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       const restoreDialogue = dialogue.prepareRestore(saved.dialogue);
+      const lodgeState = saved.lodge === undefined ? initialLodge : saved.lodge;
+      const restoreLodge = lodge.prepareRestore(lodgeState);
+      const finish = v.parse(v.object({ board: v.object({ claimed: v.number() }), open: v.boolean() }), lodgeState);
+      if (saved.hollowAsh !== (finish.board.claimed >= 3) || (finish.open && saved.dialogue !== null)) throw new RangeError('Invalid Pine lodge/modal ownership');
       stag.load(saved.stag); clock.load(saved.dawn); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
       counts = { ...saved.counts };
       pack.restore(saved.pack);
-      restoreDialogue();
+      restoreDialogue(); restoreLodge(); hollowAsh = saved.hollowAsh;
     },
   });
-  return { quests, stag, pack, riding: () => state.zip.on, talking: () => dialogue.active, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
+  return { quests, stag, pack, riding: () => state.zip.on, talking: () => dialogue.active || lodge.active, lodge, ownsLodgeFinish: () => hollowAsh, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
 }

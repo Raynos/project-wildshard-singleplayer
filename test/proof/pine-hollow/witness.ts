@@ -501,9 +501,9 @@ export function gameplayProof(rapier: Rapier, from?: 'night'): ReturnType<typeof
 /** These omissions can change damage, inventory, quest/ledger outcomes or persistence relative to the browser. */
 export const OUTCOME_DIFFERENCES = [
   'Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.',
-  'Hale dialogue completion, input guard and cancellation are hosted; named prompt commands still omit nearest/line-of-sight selection and the other NPCs.',
-  'Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets, miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.',
-  'Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.',
+  'All three NPC readings, completion flags, Brandt\'s once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott\'s trades.',
+  'Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.',
+  'Night-roaming thralls and millrace are not hosted: their combat and quest outcomes are absent.',
   'King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.',
   'Rain wander goals are null: creature positions can differ.',
   'The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.',

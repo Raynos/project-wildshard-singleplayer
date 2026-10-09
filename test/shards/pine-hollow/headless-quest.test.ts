@@ -12,6 +12,7 @@ import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PINE_LODGE, PINE_LODGE_ACT } from '../../../src/shards/pine-hollow/runtime/lodge';
 import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
 import * as v from 'valibot';
 import { pineBenchPose } from '../../../src/shards/pine-hollow/quest/benchPose';
@@ -34,13 +35,13 @@ beforeAll(async () => {
 });
 
 /** The tick's inputs a test holds: its prompt presses and the night it reads; the facts the quest filed. */
-interface Tick { press: number[]; night: number; facts: string[] }
+interface Tick { press: number[]; lodge?: number[]; night: number; facts: string[] }
 function parts(tick: Tick): PineInstall {
   const bytes = readFileSync(PINE_NAVMESH_ASSET), nav = parseNavmesh(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   if (nav === null) throw new Error('navmesh');
   nav.datum = () => 0;
   return { bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y, night: () => tick.night,
-    interact: () => tick.press.map(value => ({ actorId: PINE_INTERACT, value })), fact: (name, entity) => { tick.facts.push(`${name}/${entity}`); } };
+    interact: () => [...tick.press.map(value => ({ actorId: PINE_INTERACT, value })), ...(tick.lodge ?? []).map(value => ({ actorId: PINE_LODGE, value }))], fact: (name, entity) => { tick.facts.push(`${name}/${entity}`); } };
 }
 const boot = (tick: Tick): { host: SimHost } & ReturnType<typeof installPine> => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); return { host, ...installPine(host, parts(tick)) }; };
 const restore = (tick: Tick, saved: SimSnapshot): SimHost => {
@@ -61,6 +62,75 @@ function finishTalk(host: SimHost, tick: Tick, talking: () => boolean): void {
   for (let i = 0; i < 16 && talking(); i++) { tick.press = [PINE_ACT.talk]; host.step(still); tick.press = []; }
   expect(talking()).toBe(false);
 }
+
+it('hosts Brandt and Mott at their actual prompts, resumes the chosen reading and pays Brandt only on completion', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    const miller = spots.people?.find(person => person.kind === 'miller'), trader = spots.people?.find(person => person.kind === 'trader');
+    if (miller === undefined || trader === undefined) throw new Error('Missing captured Pine speakers');
+    press(host, tick, miller.prompt, PINE_ACT.miller, 3.3); expect(quest.talking()).toBe(false);
+    press(host, tick, miller.prompt, PINE_ACT.miller); expect(quest.talking()).toBe(true);
+    expect(host.flags.has('errand:asked')).toBe(false);
+    const saved = snapshotSimHost(host), before = tick.facts.length;
+    resumed = restore(tick, saved); expectSameSimSnapshot(snapshotSimHost(resumed), saved); expect(tick.facts).toHaveLength(before);
+    finishTalk(host, tick, quest.talking); finishTalk(resumed, tick, () => {
+      const reading = v.parse(v.object({ dialogue: v.optional(v.unknown(), null) }), resumed?.adapters.get(QUEST_STEP)?.snapshot()).dialogue;
+      return reading !== null;
+    });
+    expect(host.flags.has('errand:asked')).toBe(true); expect(resumed.flags.has('errand:asked')).toBe(true);
+    expect(quest.pack.count('lodge-ribbon')).toBe(0);
+    // The millrace producer is a later slice; this fixture isolates the page's completed-errand thank-you branch.
+    host.flags.set('errand:done'); press(host, tick, miller.prompt, PINE_ACT.miller); stepN(host, 10);
+    expect(host.flags.has('errand:paid')).toBe(false);
+    tick.press = [PINE_ACT.cancelTalk]; host.step(still); tick.press = [];
+    expect(quest.pack.count('lodge-ribbon')).toBe(0);
+    press(host, tick, miller.prompt, PINE_ACT.miller); finishTalk(host, tick, quest.talking);
+    expect([host.flags.has('errand:thanked'), host.flags.has('errand:paid')]).toEqual([true, true]);
+    expect([quest.pack.count('lodge-ribbon'), quest.pack.count('amber-resin')]).toEqual([3, 4]);
+    press(host, tick, miller.prompt, PINE_ACT.miller); finishTalk(host, tick, quest.talking);
+    expect([quest.pack.count('lodge-ribbon'), quest.pack.count('amber-resin')]).toEqual([3, 4]);
+    expect(trader.prompt).not.toEqual(trader.at);
+    press(host, tick, trader.prompt, PINE_ACT.trader); finishTalk(host, tick, quest.talking);
+    expect(host.flags.has('talked:trader')).toBe(true);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
+
+it('advances the actual lodge from native deaths, caps the real quiver and restores an open board without rewards', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest, roster, crossbow } = boot(tick);
+  let resumed: SimHost | undefined;
+  const board = spots.board; if (board === undefined) throw new Error('Missing captured lodge');
+  const use = (value: number): void => { tick.lodge = [value]; host.step(still); tick.lodge = []; };
+  try {
+    press(host, tick, board, PINE_ACT.cancelTalk, 3); use(PINE_LODGE_ACT.open); expect(quest.talking()).toBe(false);
+    press(host, tick, board, PINE_ACT.cancelTalk); use(PINE_LODGE_ACT.open); expect(quest.talking()).toBe(true);
+    use(PINE_LODGE_ACT.claim0); expect(quest.pack.count('lodge-ribbon')).toBe(0);
+    expect(quest.lodge.snapshot().board.slots[0]?.target).toBe('deer');
+    const deerBodies = roster.bodies().filter(body => body.kind === 'deer' && !body.scripted).slice(0, 3);
+    expect(deerBodies).toHaveLength(3);
+    for (const entry of deerBodies) {
+      const deer = entry.actor;
+      const hit = { source: host.player.health, sourceTags: ['dmg.melee', 'cover.checked'] as const, target: deer.combatActor(),
+        amount: deer.maxHp * 10, point: deer.position.clone(), dir: new Vector3() };
+      host.combat.hit(hit); host.combat.hit(hit);
+    }
+    host.step(still);
+    expect(quest.lodge.snapshot().board.slots[0]?.have).toBe(3);
+    crossbow.state.quiver = 25; use(PINE_LODGE_ACT.claim0);
+    expect(quest.pack.count('lodge-ribbon')).toBe(1); expect(crossbow.state.quiver).toBe(30);
+    expect(tick.facts.filter(fact => fact === 'pine.feat.streak/streak:1')).toHaveLength(1);
+    const saved = snapshotSimHost(host), before = tick.facts.length;
+    resumed = restore(tick, saved); expectSameSimSnapshot(snapshotSimHost(resumed), saved); expect(tick.facts).toHaveLength(before);
+    for (let i = 0; i < 120; i++) { host.step(still); resumed.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(resumed), snapshotSimHost(host)); expect(tick.facts).toHaveLength(before);
+    use(PINE_LODGE_ACT.tear0); expect(quest.lodge.snapshot().board.streak).toBe(0);
+    expect(quest.pack.count('lodge-ribbon')).toBe(1);
+    const adapter = host.adapters.get(QUEST_STEP); if (adapter === undefined) throw new Error('Missing keeper');
+    const current = v.parse(v.object({ hollowAsh: v.optional(v.boolean()), lodge: v.unknown() }), adapter.snapshot());
+    expect(() => adapter.restore({ ...v.parse(v.record(v.string(), v.unknown()), adapter.snapshot()), hollowAsh: true })).toThrow('Invalid Pine lodge/modal ownership');
+    expect(v.parse(v.object({ lodge: v.unknown() }), adapter.snapshot()).lodge).toEqual(current.lodge);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
 
 it('uses the captured lookout bench reach and shared page pose, and restores its secret without a second fact', () => {
   const tick: Tick = { press: [], night: 0, facts: [] }, { host } = boot(tick);

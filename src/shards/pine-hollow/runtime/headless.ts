@@ -20,6 +20,7 @@ import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
 import { isPineEdgeWall, provePineEntries } from './entries';
 import { installPineAir } from './air';
+import { PINE_LODGE } from './lodge';
 import { installPineRangedMotion } from './weapons/motion';
 import { boltFlight } from '../loadout/ammo';
 import type { PineWeatherMode } from '../world/weatherProfile';
@@ -126,7 +127,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets, 
       // a `pine.aim` script command says where on the target's body the tick's shots go (the tick's last; none: its middle)
       aim: () => context.commands().reduce((aim, command) => command.kind === 'script' && command.actorId === AIM_COMMAND ? aimShare(command.value) : aim, AIM_MIDDLE),
       // a `pine.interact` script command presses a quest prompt (runtime/quest.ts PINE_ACT)
-      interact: () => context.commands().flatMap(command => command.kind === 'script' && command.actorId === PINE_INTERACT ? [command] : []) });
+      interact: () => context.commands().flatMap(command => command.kind === 'script' && (command.actorId === PINE_INTERACT || command.actorId === PINE_LODGE) ? [command] : []) });
   } };
 };
 
@@ -204,7 +205,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
-    fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, day: () => day, night });
+    fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night });
   air = installPineAir(host, () => day.phase, parts.weatherMode);
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();

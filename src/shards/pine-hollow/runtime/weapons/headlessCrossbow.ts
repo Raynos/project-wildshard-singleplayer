@@ -54,7 +54,7 @@ export interface PineCrossbowPorts {
  * intro of a boss locks it (BossPorts.lockInput), and only the held weapon's trigger is live (runtime/weapons/headlessLoadout.ts);
  * a stowed bow still reloads itself and its bolts fly on, as the page updates every weapon. Stuck bolts are the page's view alone.
  */
-export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { readonly state: { loaded: boolean; quiver: number; reloading: boolean }; readonly flying: () => number } {
+export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { readonly state: { loaded: boolean; quiver: number; reloading: boolean }; readonly flying: () => number; readonly addBolts: (count: number) => void } {
   const p = CROSSBOW_PROFILE, random = (): number => host.rng.stream('gameplay').next(), player = host.player;
   if (p.maxFlying !== MAX_FLYING) throw new Error('Pine crossbow profile changed its bolt pool');
   const state = { loaded: true, quiver: p.quiver, reloading: false, reloadT: 0, cooldown: 0, sinceFire: 99 };
@@ -137,5 +137,8 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
       saved.bolts.forEach((s, i) => { const b = bolts[i]; if (b !== undefined) { b.active = s.active; b.pos.set(...s.pos); b.vel.set(...s.vel); b.age = s.age; b.glanced = s.glanced; } });
     },
   }, 'afterBodies');
-  return { state, flying: () => bolts.filter(b => b.active).length };
+  return { state, flying: () => bolts.filter(b => b.active).length, addBolts: count => {
+    if (!Number.isFinite(count) || count < 0) throw new RangeError('Invalid native Pine bolt grant');
+    state.quiver = Math.min(p.quiver, state.quiver + count);
+  } };
 }
