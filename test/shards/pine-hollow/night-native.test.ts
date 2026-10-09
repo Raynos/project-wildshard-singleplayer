@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual native physics and terrain/navmesh fixtures.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
+import * as v from 'valibot';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { snapshotSimHost, restoreSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
@@ -9,7 +10,7 @@ import { parseNavmesh } from '../../../src/engine/physics/navmesh';
 import { bakedSamplers } from '../../../src/engine/world/BakedTerrain';
 import { installPine, pineTerrainGrid, prepareHeadlessRuntime, PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET } from '../../../src/shards/pine-hollow/runtime/headless';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
-import { installPineNight, NIGHT_STEP } from '../../../src/shards/pine-hollow/runtime/night';
+import { NIGHT_STEP } from '../../../src/shards/pine-hollow/runtime/night';
 import { pineNightSpec } from '../../../src/shards/pine-hollow/quest/nightSpec';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import { OLD_GROWTH, HAMLET_SITES } from '../../../src/shards/pine-hollow/layout';
@@ -30,10 +31,8 @@ beforeAll(async () => {
 const night = { value: 1 };
 function install(host: SimHost, saved?: SimSnapshot) {
   const parts = installPine(host, { bake: pineBake(), grid, nav: nativeNav, heightAt, spawnY: 0,
-    night: () => 0, dusk: () => 0, ...(saved === undefined ? {} : { saved }) });
-  const brain = installPineNight(host, { night: () => night.value, heightAt,
-    spawn: parts.roster.spawn, retire: parts.roster.retire, find: parts.roster.actor });
-  return { ...parts, brain };
+    night: () => night.value, dusk: () => 0, ...(saved === undefined ? {} : { saved }) });
+  return { ...parts, brain: parts.thralls };
 }
 function boot() { const host = createSimHost(plan.level, { ...plan.ports, rapier }); return { host, ...install(host) }; }
 function resumed(saved: SimSnapshot): SimHost {
@@ -55,7 +54,14 @@ it('hosts the authored three real millrace bodies, restores them asleep and wake
     for (let i = 0; i < 60; i++) host.step();
     const race = [...host.entities.values()].filter(a => a.variant === 'thrall');
     expect(race.map(a => [a.kind, a.scripted, a.state])).toEqual([['boar', true, 'sidestep'], ['elk', true, 'sidestep'], ['boar', true, 'sidestep']]);
-    expect(race.map(a => [a.position.x, a.position.z])).toEqual(pineNightSpec(3).race.map(a => [a.x, a.z]));
+    // The manager updates bodies after the population callback on this same tick. Check the immutable birth
+    // coordinates, rather than mistaking the first collision correction for an authored placement change.
+    const birth = v.looseObject({ at: v.looseObject({ x: v.number(), z: v.number() }) });
+    expect(race.map(a => {
+      const recipe = host.adapters.get(`runtime.actor.${a.entityId}`)?.snapshot();
+      if (typeof recipe !== 'string') throw new Error('Missing actual birth recipe');
+      const { at } = v.parse(birth, JSON.parse(recipe)); return [at.x, at.z];
+    })).toEqual(pineNightSpec(3).race.map(a => [a.x, a.z]));
     restored = resumed(snapshotSimHost(host)); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     const first = race[0]; if (first === undefined) throw new Error('Missing race');
     for (const world of [host, restored]) place(world, first.position.x + 10, first.position.z);

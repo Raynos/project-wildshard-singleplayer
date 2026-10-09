@@ -3,16 +3,16 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "deb008308c070c17ea14c21cb445db5cb32c41ff3d911359cd4f8b8fb6b8ede2",
+  "inputs": "321506f4f26b27eb2c9941e802422224ec8d7d0af72e4f99f69a109e43c6520f",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
-    "ticksExecuted": 31222,
-    "tick": 31222,
+    "ticksExecuted": 31224,
+    "tick": 31224,
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "f698aeeedc9143b271391ea7a71bcc94d6f6be34c6ea4b4215cddf347b779a91",
+    "hash": "e01af035e199283e1c4c87b12bd20cc555e2ce1a7d0b57ba54a516e352c3dd56",
     "pack": {
       "counts": {
         "amber-resin": 2
@@ -116,7 +116,7 @@
       {
         "name": "pine.feat.boar5",
         "entity": "boar5:1",
-        "tick": 29367,
+        "tick": 29371,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -125,7 +125,7 @@
       {
         "name": "pine.feat.thralls",
         "entity": "thralls:2",
-        "tick": 29367,
+        "tick": 29371,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -134,7 +134,7 @@
       {
         "name": "pine.feat.king",
         "entity": "king:1",
-        "tick": 30502,
+        "tick": 30504,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -143,7 +143,7 @@
       {
         "name": "pine.feat.quest",
         "entity": "quest:1",
-        "tick": 31221,
+        "tick": 31223,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -530,18 +530,18 @@
       {
         "leg": 35,
         "kind": "king",
-        "tick": 30502,
-        "x": 130.69431322212827,
-        "y": 3.776556929736069,
-        "z": -38.353241344602125
+        "tick": 30504,
+        "x": 130.61786655315814,
+        "y": 3.777499236835263,
+        "z": -38.259110004781476
       },
       {
         "leg": 36,
         "kind": "wait",
-        "tick": 31221,
-        "x": 130.69432102093162,
-        "y": 3.7766609408925778,
-        "z": -38.35323527628691
+        "tick": 31223,
+        "x": 130.61785355186652,
+        "y": 3.7765944677442693,
+        "z": -38.259074573679676
       }
     ]
   },
@@ -550,8 +550,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 27851,
     "suffixTicksExecuted": 1200,
-    "hash": "3c51533d1d24178eacc4a9790b7564d1d0e5521dcb8f686641247b77d7b7b833",
-    "replayHash": "3c51533d1d24178eacc4a9790b7564d1d0e5521dcb8f686641247b77d7b7b833",
+    "hash": "c1d4789da1a487d2cf6b7507079fc6af217079141481ba81575da56e72aef834",
+    "replayHash": "c1d4789da1a487d2cf6b7507079fc6af217079141481ba81575da56e72aef834",
     "checkpoint": {
       "state": "fight",
       "phase": 1
@@ -658,7 +658,7 @@
       {
         "name": "pine.feat.boar5",
         "entity": "boar5:1",
-        "tick": 29367,
+        "tick": 29371,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -667,7 +667,7 @@
       {
         "name": "pine.feat.thralls",
         "entity": "thralls:2",
-        "tick": 29367,
+        "tick": 29371,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -676,7 +676,7 @@
       {
         "name": "pine.feat.king",
         "entity": "king:1",
-        "tick": 30502,
+        "tick": 30504,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -685,7 +685,7 @@
       {
         "name": "pine.feat.quest",
         "entity": "quest:1",
-        "tick": 31221,
+        "tick": 31223,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -776,7 +776,7 @@
     "Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.",
     "All three NPC readings, completion flags, Brandt's once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott's trades.",
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
-    "Night-roaming thralls and millrace are not hosted: their combat and quest outcomes are absent.",
+    "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
     "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved."
@@ -789,7 +789,7 @@
     "Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.",
     "All three NPC readings, completion flags, Brandt's once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott's trades.",
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
-    "Night-roaming thralls and millrace are not hosted: their combat and quest outcomes are absent.",
+    "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
     "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.",

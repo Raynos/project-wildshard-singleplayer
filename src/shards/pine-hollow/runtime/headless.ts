@@ -20,6 +20,7 @@ import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
 import { isPineEdgeWall, provePineEntries } from './entries';
 import { installPineAir } from './air';
+import { installPineNight } from './night';
 import { PINE_LODGE } from './lodge';
 import { installPineRangedMotion } from './weapons/motion';
 import { boltFlight } from '../loadout/ammo';
@@ -139,6 +140,8 @@ export interface PineInstall {
   readonly saved?: PineRosterPorts['saved'];
   /** PineDayNight's dusk / night, held by a test (absent: the host's day clock, the page's own) */
   readonly dusk?: () => number; readonly night?: () => number;
+  /** Match the phone or desktop population limit; absent is the native phone tier. */
+  readonly nightMax?: 3 | 4;
   /** Explicit native input setting; absent is the page's ordinary live weather. */
   readonly weatherMode?: PineWeatherMode;
   /** the platform's fact effect (the page feat law files committed flags and creature deaths) */
@@ -163,6 +166,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof installPineLoadout>;
   quest: ReturnType<typeof installHollowQuest>;
   air: ReturnType<typeof installPineAir>;
+  thralls: ReturnType<typeof installPineNight>;
 } {
   const { bake, grid, nav, heightAt } = parts;
   // the page's own day clock (look/dayKeys.ts PINE_DAY, as PineDayNight builds it), stepped by the host before every step and
@@ -206,8 +210,12 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night });
+  // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster
+  // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
+  const thralls = installPineNight(host, { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
+    retire: actor => { live().retire(actor); }, find: id => live().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
   air = installPineAir(host, () => day.phase, parts.weatherMode);
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
-  return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air };
+  return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air, thralls };
 }
