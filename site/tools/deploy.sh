@@ -15,7 +15,7 @@ if [ -n "$dirty" ]; then
   echo "$dirty" >&2
 fi
 
-work="$(mktemp -d "${TMPDIR:-/tmp}/wildshard-site-deploy.XXXXXX")"
+work="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/wildshard-site-deploy.XXXXXX")" && pwd -P)" # canonical: link-node-modules needs it (E432)
 trap 'rm -rf "$work"' EXIT
 git archive HEAD site tsconfig.json package.json | tar -x -C "$work"
 node "$repo/scripts/link-node-modules.mjs" "$repo" "$work" # E432: no whole-folder node_modules symlink
