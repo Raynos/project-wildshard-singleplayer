@@ -25,6 +25,7 @@ import { TERRAIN } from './terrain';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { ND_BUDGET_INPUTS } from './budgets';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
+import { NINE_DRAGON_PLACES } from './places';
 import thumbnail from './thumbs/nine-dragon-stack.jpg';
 import heroPortrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import heroLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
@@ -35,6 +36,16 @@ import compareStairLive from './explore/nine-stair-live.jpg';
 import compareStairTarget from './explore/nine-stair-target.jpg';
 
 const SEED = 0x9d2a;
+/** where each named place sits on the plan, the middle of its layout.ts rectangle (PLAZA, STALL, STAIR, WELL) to the metre;
+ *  the Well's galleries and crossings hang under its rim, so the rim names them */
+const PLACE_AT: Readonly<Record<string, { x: number; z: number; r: number }>> = {
+  'lantern-square': { x: 11, z: -3, r: 16 },
+  'night-market': { x: 19, z: -17, r: 6 },
+  'stair-street': { x: 46, z: 6, r: 24 },
+  'well-rim': { x: -14, z: -14, r: 18 },
+};
+/** the full map's name for each of the road's four portals (the decks at the cell's edge midpoints) */
+const ROAD_PORTAL_LABEL = 'Road portal';
 
 /** the world's files, declared so the loading bar counts them and the offline cache holds them */
 const TEX = ['concrete', 'flag', 'flag-a', 'flag2', 'flag2-a', 'lacquer', 'panel', 'poster', 'poster-a', 'stone', 'tiles', 'wood'];
@@ -143,6 +154,15 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   minimap: { image: '/assets/nine-dragon-stack/map/top.webp' }, // the map baked from the world (SF66)
+  // the full map's places (SF66; test/map-coverage.test.ts holds every portal on one): the named places the baked map shows
+  // from above (the Well's galleries and crossings hang under its rim, so the rim names them) and the road's four portals
+  pois: [
+    ...NINE_DRAGON_PLACES.flatMap(({ id, label }) => {
+      const at = PLACE_AT[id];
+      return at === undefined ? [] : [{ id, name: label.charAt(0) + label.slice(1).toLowerCase(), ...at }];
+    }),
+    ...(['north', 'east', 'south', 'west'] as const).map((edge, i) => ({ id: `portal-${edge}`, name: ROAD_PORTAL_LABEL, x: [0, 236, 0, -236][i] ?? 0, z: [236, 0, -236, 0][i] ?? 0, r: 8 })),
+  ],
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
   // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain
   // The look culls its instanced batches right before drawing, with the camera final.

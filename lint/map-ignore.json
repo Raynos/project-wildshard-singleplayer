@@ -1,0 +1,18 @@
+{
+  "why": "SF66 (E457): the POI-bearing data a shard's map leaves off its listed places (manifest pois), each with a reviewed reason. test/map-coverage.test.ts fails a portal, lift, quest trigger, interaction, map marker, encounter arena, boss or mover that is on no listed place and matched by no entry here, and fails an entry here that matches nothing (dead) or says no reason. A pattern is `<kind>:<id>`, a trailing * a prefix.",
+  "shards": {
+    "blender-template": [
+      { "pattern": "interaction:blender.door.use", "reason": "TODO(sp-x6): the Developer-only Blender shard lists no places yet; its owner replaces this entry with a door place in data/discovery.ts pois" },
+      { "pattern": "quest:guardian", "reason": "TODO(sp-x6): the Developer-only Blender shard lists no places yet; its owner replaces this entry with a hall place in data/discovery.ts pois" }
+    ],
+    "far-reach": [
+      { "pattern": "boss:far.roc", "reason": "the Storm Roc fights on the storm crown, one of the quest's places (quest/install.ts PLACES) that the full map names once discovered, so it is not listed in the manifest twice" }
+    ],
+    "sunscar-dunes": [
+      { "pattern": "boss:sunscar.matriarch", "reason": "the Matriarch fights in the sand bowl, one of the quest's places (quest/install.ts, sunscar.basin) that the full map names once discovered, so it is not listed in the manifest twice" }
+    ],
+    "nalati-grasslands": [
+      { "pattern": "boss:nalati.golden-king", "reason": "the Golden King fights in a dungeon chamber 140 m above the field (combat/goldenKing.ts), reached only through the great kurgan's door; the map leads there with the GREAT KURGAN place and the quest's THE KURGAN marker" }
+    ]
+  }
+}

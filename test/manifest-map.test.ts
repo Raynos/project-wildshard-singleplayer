@@ -2866,6 +2866,16 @@ const ORIGINAL = [
   {
     "data": {
       "id": "chunk://local/nine-dragon-stack",
+      "pois": [
+        { "id": "lantern-square", "name": "Lantern square", "x": 11, "z": -3, "r": 16 },
+        { "id": "night-market", "name": "Night market", "x": 19, "z": -17, "r": 6 },
+        { "id": "stair-street", "name": "Stair-street", "x": 46, "z": 6, "r": 24 },
+        { "id": "well-rim", "name": "The well rim", "x": -14, "z": -14, "r": 18 },
+        { "id": "portal-north", "name": "Road portal", "x": 0, "z": 236, "r": 8 },
+        { "id": "portal-east", "name": "Road portal", "x": 236, "z": 0, "r": 8 },
+        { "id": "portal-south", "name": "Road portal", "x": 0, "z": -236, "r": 8 },
+        { "id": "portal-west", "name": "Road portal", "x": -236, "z": 0, "r": 8 }
+      ],
       "slug": "nine-dragon-stack",
       "displayName": "Nine Dragon Stack",
       "gridCoords": "(−2, +1)",

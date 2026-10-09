@@ -445,6 +445,9 @@ export class FullMap {
     const taken: Box[] = [{ x0: you.x - you.r, y0: you.y - you.r, x1: you.x + you.r, y1: you.y + you.r }];
     for (const m of pins) taken.push({ x0: m.x - m.r, y0: m.y - m.r, x1: m.x + m.r, y1: m.y + m.r });
     taken.push(...avoid);   // the PLACES tally (E309 A) and the extras' labels (the grid's shard names)
+    // off the canvas counts as taken, so a pin at the chunk's edge (a road portal) labels inward instead of cut off (SF66)
+    const cw = ctx.canvas.width, ch = ctx.canvas.height, far = Math.max(cw, ch);
+    taken.push({ x0: -far, y0: -far, x1: 0, y1: ch + far }, { x0: cw, y0: -far, x1: cw + far, y1: ch + far }, { x0: -far, y0: -far, x1: cw + far, y1: 0 }, { x0: -far, y0: ch, x1: cw + far, y1: ch + far });
     const rank = (m: (typeof pins)[number]): number => (m.glyph ? 0 : m.p.kind === 'place' ? 1 : 2);
     const gw = fs * 0.62, gap = fs * 0.3, pad = 2 * d;
     // (an unfound place's "?" is inside its ring: it carries no label unless a quest marker named it)

@@ -155,6 +155,8 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     entries: shardEntries(manifest),
     // G252b: so does its map (the baked image, SF66): the admitted source's empty minimap left Bag ▸ MAP with only the fog
     ...(manifest.minimap === undefined ? {} : { minimap: manifest.minimap }),
+    // and its listed places, the full map's pins (SF66): the admitted source has none
+    ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
   }, true);
 }
 

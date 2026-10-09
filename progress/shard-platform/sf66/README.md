@@ -66,3 +66,13 @@ Still to do:
 - Nine Dragon renders as black blocks from above.
 - A few cloud puffs remain over Sky Reach.
 - The image is not yet inside the shardfile (that needs a format module for sp-x5).
+
+## Places on the full map, and coverage the other way (op-maps, 2026-10-09)
+
+`places-board.jpg` (Bag ▸ MAP at 1×, iPhone 16 Pro portrait, preview build 8636c8c; `capture-places.mjs` re-runs it): Nine
+Dragon now names its square, night market, stair-street, Well rim and four road portals; the template its hut and both arenas
+(a shardfile-admitted shard dropped its manifest's places before: `src/game/shardfile/loader.ts` now passes `pois` through, as
+it does the baked map); Sky Reach its four rising islets (its isles and Signal Dunes' stops stay the quests' discovered places).
+A pin at the chunk's edge now labels inward instead of being cut off (`src/engine/ui/Map.ts`: off the canvas counts as taken).
+`test/map-coverage.test.ts` also fails a portal, lift, quest trigger, interaction, map marker, encounter arena, boss or mover
+that is on no listed place and not in the reviewed `lint/map-ignore.json` (a reason per entry; a dead entry fails).

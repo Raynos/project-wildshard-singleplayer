@@ -1,5 +1,7 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { SPAWN } from './data/spawn';
+import { TEMPLATE_TEXT } from './data/text';
+import { ENCOUNTERS } from './data/encounters';
 import { BUDGETS } from './budgets';
 import { GREY_CARD, EXPLORE } from './explore/art';
 
@@ -15,6 +17,12 @@ export const TEMPLATE: ShardManifest = {
   regionalSimCost: { residentMB: 3.21, rev: '01e880c73', device: 'Chromium 153 + WebKit 26.6 content footprint, Node 24 V8 + Rapier', evidence: 'progress/memory/sf57/regional-sim-cost/summary.json' },
   ground: { paths: 'plugin', structures: true },
   minimap: { image: '/assets/_template/map/top.webp' }, // the map baked from the world (SF66)
+  // the full map's places (SF66; test/map-coverage.test.ts holds every trigger, interaction, marker and arena on one): the
+  // hut and the two teaching fights' arenas
+  pois: [
+    { id: 'hut', name: TEMPLATE_TEXT.hut, x: 0, z: -9, r: 6 },
+    ...ENCOUNTERS.map(({ entity, name, arena }) => ({ id: entity, name, x: arena.at[0] ?? 0, z: arena.at[2] ?? 0, r: arena.radius })),
+  ],
   assetGlobs: ['public/assets/_template/map/**'],
   // Start above the sampled collision floor: the analytic trail bed is lower between grid vertices.
   spawn: SPAWN, bounds: { x0: -100, x1: 100, z0: -100, z1: 100, floor: -10 },
