@@ -392,9 +392,10 @@ it('the Antler King comes at night on the boss row: his prewarm body (creature:1
     // past 60 %: the beat, then the lanterns fall and he rings his bells for two thralls (the next entity ids)
     if (body === null) throw new Error('no King');
     body.hp = Math.round(body.maxHp * 0.55);
-    for (let tick = 0; tick < 900 && !host.entities.has('creature:169'); tick++) host.step(still);
+    // Three night roamers consume 168–170 before the King's phase-II summons.
+    for (let tick = 0; tick < 900 && !host.entities.has('creature:172'); tick++) host.step(still);
     expect(king.boss.phase).toBe(1);
-    expect(['creature:168', 'creature:169'].map(id => { const a = host.entities.get(id); return [a?.kind, a?.variant, a?.scripted]; })).toEqual([['elk', 'thrall', true], ['boar', 'thrall', true]]);
+    expect(['creature:171', 'creature:172'].map(id => { const a = host.entities.get(id); return [a?.kind, a?.variant, a?.scripted]; })).toEqual([['elk', 'thrall', true], ['boar', 'thrall', true]]);
     exactAfter(parts, host, 60);
   } finally { host.dispose(); }
 }, 30_000);
@@ -467,7 +468,7 @@ it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once a
     expect([king.boss.state, king.fight.king, host.entities.has('creature:161')]).toEqual(['dormant', null, false]);
     clock.night = 1; standAtClearing(host, 50); host.step(still);
     const next = king.fight.king;
-    expect([king.boss.state, next?.entityId, next?.kind, next?.variant, next?.scripted, next?.alive, king.fight.hpFrac]).toEqual(['armed', 'creature:168', 'antler-king', 'warden', true, true, 1]);
+    expect([king.boss.state, next?.entityId, next?.kind, next?.variant, next?.scripted, next?.alive, king.fight.hpFrac]).toEqual(['armed', 'creature:171', 'antler-king', 'warden', true, true, 1]);
     expect(Math.hypot((next?.position.x ?? 0) - KINGS_CLEARING.x, (next?.position.z ?? 0) - KINGS_CLEARING.z)).toBeLessThan(1);
     exactAfter(parts, host, 30);
     // a re-fight: the record counts him twice, the bow is not paid again
