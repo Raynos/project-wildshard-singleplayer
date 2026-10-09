@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-761 members; 126 without a doc line (—).
+765 members; 126 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -679,6 +679,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `WaterSchema` | const | @wildshard/game/shardfile/water | Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. |
 | `CombatAudio` | interface | @wildshard/game/systems/audio/combatCues | Sound operations supplied by the owning mixer; the router allocates no audio resources. |
 | `sharedCombatCues` | function | @wildshard/game/systems/audio/combatCues | Shared synth fallback retains the methods which own today's literal sound tap ids. |
+| `installSilentScore` | function | @wildshard/game/systems/audio/silentScore | Silence this score's output, preserving the user's volume setting and the other sound buses. |
+| `declaredWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. |
+| `sharedWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | The platform's default equipment voices; samples and synth blocks come from the level's mixer. |
+| `WeaponSynth` | interface | @wildshard/game/systems/audio/weaponVoices | Only the oscillator blocks and sample/cue ports that an equipment recipe reads. |
 | `fogGLSL` | const | @wildshard/game/systems/looks/fogProgram | — |
 | `configureGrassField` | function | @wildshard/game/systems/looks/grassField | — |
 | `flowerPatchAt` | function | @wildshard/game/systems/looks/grassField | 0..1 flower-drift strength |

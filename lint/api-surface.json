@@ -17664,6 +17664,30 @@
         "from": "@wildshard/game/systems/audio/combatCues"
       },
       {
+        "name": "installSilentScore",
+        "kind": "function",
+        "doc": "Silence this score's output, preserving the user's volume setting and the other sound buses.",
+        "from": "@wildshard/game/systems/audio/silentScore"
+      },
+      {
+        "name": "declaredWeaponVoices",
+        "kind": "function",
+        "doc": "Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing.",
+        "from": "@wildshard/game/systems/audio/weaponVoices"
+      },
+      {
+        "name": "sharedWeaponVoices",
+        "kind": "function",
+        "doc": "The platform's default equipment voices; samples and synth blocks come from the level's mixer.",
+        "from": "@wildshard/game/systems/audio/weaponVoices"
+      },
+      {
+        "name": "WeaponSynth",
+        "kind": "interface",
+        "doc": "Only the oscillator blocks and sample/cue ports that an equipment recipe reads.",
+        "from": "@wildshard/game/systems/audio/weaponVoices"
+      },
+      {
         "name": "fogGLSL",
         "kind": "const",
         "doc": "",
@@ -18216,30 +18240,6 @@
         "kind": "function",
         "doc": "A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime.",
         "from": "@wildshard/kit/audio/forest"
-      },
-      {
-        "name": "installSilentScore",
-        "kind": "function",
-        "doc": "Silence this score's output, preserving the user's volume setting and the other sound buses.",
-        "from": "@wildshard/kit/audio/forest"
-      },
-      {
-        "name": "declaredWeaponVoices",
-        "kind": "function",
-        "doc": "Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing.",
-        "from": "@wildshard/kit/audio/weaponVoices"
-      },
-      {
-        "name": "sharedWeaponVoices",
-        "kind": "function",
-        "doc": "The kit's default equipment voices; samples and synth blocks come from the level's mixer.",
-        "from": "@wildshard/kit/audio/weaponVoices"
-      },
-      {
-        "name": "WeaponSynth",
-        "kind": "interface",
-        "doc": "Only the oscillator blocks and sample/cue ports that an equipment recipe reads.",
-        "from": "@wildshard/kit/audio/weaponVoices"
       },
       {
         "name": "installStarterEffects",
@@ -19808,6 +19808,30 @@
         "kind": "const",
         "doc": "Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy.",
         "from": "@wildshard/sdk/runtime/audio/combatCues"
+      },
+      {
+        "name": "installSilentScore",
+        "kind": "const",
+        "doc": "Mute only this score's output until its owning scope disposes, preserving the user's other audio buses.",
+        "from": "@wildshard/sdk/runtime/audio/silentScore"
+      },
+      {
+        "name": "declaredWeaponVoices",
+        "kind": "const",
+        "doc": "Resolve declared equipment voices without installing services or allocating mixer nodes on import.",
+        "from": "@wildshard/sdk/runtime/audio/weaponVoices"
+      },
+      {
+        "name": "sharedWeaponVoices",
+        "kind": "const",
+        "doc": "Preserve the existing sample-first recipes, random draw order and cue taps.",
+        "from": "@wildshard/sdk/runtime/audio/weaponVoices"
+      },
+      {
+        "name": "WeaponSynth",
+        "kind": "type",
+        "doc": "Trusted sample and oscillator ports supplied by the owning mixer.",
+        "from": "@wildshard/sdk/runtime/audio/weaponVoices"
       },
       {
         "name": "bindPlayerEffects",

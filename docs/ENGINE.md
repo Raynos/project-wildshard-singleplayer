@@ -2345,7 +2345,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-761 exports, grouped by the module to import them from.
+765 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2469,6 +2469,8 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/version`: `SHARDFILE_PREVIOUS_VERSION`, `SHARDFILE_VERSION`, `shardfileRevision`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
 - `@wildshard/game/systems/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
+- `@wildshard/game/systems/audio/silentScore`: `installSilentScore`
+- `@wildshard/game/systems/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/game/systems/looks/fogProgram`: `fogGLSL`
 - `@wildshard/game/systems/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassFieldLayout`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`
 - `@wildshard/game/systems/looks/particles`: `makeMistTexture`, `Particles`
@@ -2488,10 +2490,9 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-110 exports, grouped by the module to import them from.
+106 exports, grouped by the module to import them from.
 
-- `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
-- `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
+- `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
 - `@wildshard/kit/effects/starter`: `STARTER_EFFECTS`
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
@@ -2521,7 +2522,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-237 exports, grouped by the module to import them from.
+241 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2562,6 +2563,8 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/reportCard`: `PerformanceObservations`, `performanceReport`, `PerformanceReport`, `performanceReportLines`, `performanceTargetIssues`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/sdk/runtime/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
+- `@wildshard/sdk/runtime/audio/silentScore`: `installSilentScore`
+- `@wildshard/sdk/runtime/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/sdk/runtime/effects`: `bindPlayerEffects`, `StatusMovement`
 - `@wildshard/sdk/runtime/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
 - `@wildshard/sdk/runtime/viewmodel/armRig`: `HandSpec`, `JointAngles`, `LEFT_HAND`, `measure`, `RIGHT_HAND`

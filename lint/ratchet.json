@@ -101,7 +101,7 @@
     "src/shards/pine-hollow/runtime/audio/ambience.ts": 4
   },
   "wildshard/public-index": {
-    "src/entry.ts": 19,
+    "src/entry.ts": 18,
     "src/identity.ts": 7,
     "src/native.ts": 1,
     "src/pageServices.ts": 5,
@@ -109,13 +109,9 @@
   },
   "wildshard/runtime-commons": {
     "src/shards/driftwood-isle/runtime/audio/install.ts": 1,
-    "src/shards/far-reach/runtime/audio/cues.ts": 1,
-    "src/shards/far-reach/runtime/index.ts": 1,
-    "src/shards/nalati-grasslands/runtime/audio/synth.ts": 1,
     "src/shards/nalati-grasslands/runtime/index.ts": 1,
     "src/shards/nalati-grasslands/runtime/state.ts": 1,
-    "src/shards/pine-hollow/runtime/index.ts": 3,
-    "src/shards/sunscar-dunes/runtime/audio/cues.ts": 1
+    "src/shards/pine-hollow/runtime/index.ts": 3
   },
   "wildshard/shard-sandbox": {
     "src/shards/driftwood-isle/boot/sources.ts": 2,

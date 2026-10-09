@@ -4,16 +4,12 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-112 members; 33 without a doc line (—).
+108 members; 33 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
 | `createForestAudio` | function | @wildshard/kit/audio/forest | Asset-free profile; installForestAmbience supplies the shared synth wind bed. |
 | `installForestAmbience` | function | @wildshard/kit/audio/forest | A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime. |
-| `installSilentScore` | function | @wildshard/kit/audio/forest | Silence this score's output, preserving the user's volume setting and the other sound buses. |
-| `declaredWeaponVoices` | function | @wildshard/kit/audio/weaponVoices | Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. |
-| `sharedWeaponVoices` | function | @wildshard/kit/audio/weaponVoices | The kit's default equipment voices; samples and synth blocks come from the level's mixer. |
-| `WeaponSynth` | interface | @wildshard/kit/audio/weaponVoices | Only the oscillator blocks and sample/cue ports that an equipment recipe reads. |
 | `installStarterEffects` | function | @wildshard/kit/effects/install | An optional entered installer retires observers and icons while statuses remain player-owned. |
 | `STARTER_EFFECTS` | const | @wildshard/kit/effects/starter | Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play. |
 | `BAG_ICONS` | const | @wildshard/kit/icons | the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) |

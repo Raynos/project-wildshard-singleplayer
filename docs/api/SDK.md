@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-243 members; 0 without a doc line (—).
+247 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -163,6 +163,10 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
 | `CombatAudio` | type | @wildshard/sdk/runtime/audio/combatCues | Existing mixer operations consumed by the trusted combat-cue router. |
 | `sharedCombatCues` | const | @wildshard/sdk/runtime/audio/combatCues | Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy. |
+| `installSilentScore` | const | @wildshard/sdk/runtime/audio/silentScore | Mute only this score's output until its owning scope disposes, preserving the user's other audio buses. |
+| `declaredWeaponVoices` | const | @wildshard/sdk/runtime/audio/weaponVoices | Resolve declared equipment voices without installing services or allocating mixer nodes on import. |
+| `sharedWeaponVoices` | const | @wildshard/sdk/runtime/audio/weaponVoices | Preserve the existing sample-first recipes, random draw order and cue taps. |
+| `WeaponSynth` | type | @wildshard/sdk/runtime/audio/weaponVoices | Trusted sample and oscillator ports supplied by the owning mixer. |
 | `bindPlayerEffects` | const | @wildshard/sdk/runtime/effects | Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called. |
 | `StatusMovement` | type | @wildshard/sdk/runtime/effects | Independent status-effect movement channels, separate from equipment and traversal multipliers. |
 | `ARM_CLIPS` | const | @wildshard/sdk/runtime/viewmodel/armClips | Engine clip names mapped to the authored arm rigs' track names (metadata only; source tracks stay byte-identical). |
