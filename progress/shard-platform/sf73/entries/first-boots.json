@@ -1,0 +1,210 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Blender Template",
+      "badge": "97% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 7,
+      "name": "Template shard",
+      "badge": "90% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "nine-dragon-stack",
+      "saveKeys": [
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle"
+      ],
+      "seconds": 9,
+      "slot": {
+        "nine-dragon-stack": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardnine-dragon-stack | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "sunscar-dunes",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.sunscar-dunes",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 9,
+      "slot": {
+        "sunscar-dunes": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardsunscar-dunes | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Sky Reach",
+      "mode": "shardfile",
+      "entered": false,
+      "reports": [
+        "{\"system\":\"shard-load\",\"message\":\"Error: Shardfile requires the normal play stage\",\"stack\":\"Error: Shardfile requires the normal play stage\\n    at default.play (http://127.0.0.1:4400/assets/loader-m783NWmw.js:201:104781)\\n    at j.play (http://127.0.0.1:4400/assets/hybrid-BLeEuYfb.js:1:7111)\\n    at e.play (http://127.0.0.1:4400/assets/plugin-CMsfUWAb.js:2:3743)\\n    at Object.play (http://127.0.0.1:4400/assets/session-BmO21JKP.js:2221:21186)\\n    at http://127.0.0.1:4400/assets/runtime-Do0ohCga.js:1:37357\\n    at async l (http://127.0.0.1:4400/assets/runtime-Do0ohCga.js:1:36910)\\n    at async ze.load (http://127.0.0.1:4400/assets/runtime-Do0ohCga.js:1:37294)\\n    at async up (http://127.0.0.1:4400/assets/session-BmO21JKP.js:336:2711)\\n    at async WB (http://127.0.0.1:4400/assets/session-BmO21JKP.js:2221:20651)\\n    at async _p (http://127.0.0.1:4400/assets/session-BmO21JKP.js:336:5938)\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":1516,\"context\":{\"kind\":\"shard-load\",\"shard\":\"far-reach\",\"build\":\"0eabd22-mv1bthmg\",\"stage\":\"level.play\"}}"
+      ],
+      "failure": "Sky Reach could not loadBUILD 0eabd22-mv1bthmg · STAGE level.playShardfile requires the normal play stageError: Shardfile requires the normal play stage",
+      "screen": "CHUNK BOUNDARY\nNO-MAN'S LAND BEYOND · NOTHING HAS BEEN GENERATED HERE\n0EABD22 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nSKY REACH\n00:01.5\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n36.0 MB / 36.0 MB · 144 / 144 files\n99\nSETUP\nstep 14 / 16 · Title art · explore · 19 / 19 pictures · UI\n61\n▸ Renderer\n11 ms\n▸ Sky · lighting\n84 ms\n▸ Terrain · heightfield\n256² heightfield\n0 ms\n▸ Tree cards\n1 ms\n▸ Trees\n0 pines\n0 ms\n▸ Physics · Rapier · navmesh\n4 colliders\n0 ms\n▸ Chunk edge · water · horizon\n3 ms\n▸ Grass · ground cover\n0 ms\n▸ Buildings\n0 ms\n▸ Props\n1.2 s\n▸ Animals\n0 animals\n1 ms\n▸ Weapons · HUD\n0 ms\n▸ Title art · explore\n19 / 19 pictures · UI\n2 ms\nLoad 1 · JS heap 12 MiB\nLongest page pause 0.3s at Props\nLast reload: shard switch to far-reach (fresh page) · 1 s ago · resident driftwood-isle (playing) ~9 MB · build 0eabd22 · nav navigate\nTotal RAM / CPU unavailable in page\nSky Reach could not load\n\nBUILD 0eabd22-mv1bthmg · STAGE level.play\n\nShardfile requires the normal play stage\n\nError: Shardfile requires the normal play stage\n    at default.play (http://127.0.0.1:4400/assets/loader-m783NWmw.js:201:104781)\n    at j.play (http://127.0.0.1:4400/assets/hybrid-BLeEuYfb.js:1:7111)\n    at e.play (http://127.0.0.1:4400/assets/plugin-CMsfUWAb.js:2:3743)\n    at Object.play (http://127.0.0.1:4400/assets/session-BmO21JKP.js:2221:21186)\n    at http://127.0.0.1:4400/assets/runtime-Do0ohCga.js:1:37357\n    at async l (http://127.0.0.1:4400/assets/runtime-Do0ohCga.js:1:36910)\n    at async ze.load (http://127.0.0.1:4400/assets/runtime-Do0ohCga.js:1:37294)\n    at async up (http://127.0.0.1:4400/assets/session-BmO21JKP.js:336:2711)\n    at async WB (http://127.0.0.1:4400/assets/session-BmO21JKP.js:2221:20651)\n    at async _p (http://127.0.0.1:4400/assets/session-BmO21JKP.js:336:5938)\nRELOAD",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

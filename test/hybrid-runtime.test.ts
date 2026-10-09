@@ -323,6 +323,39 @@ it('the admitted runtime-owned audio hybrid preserves the legacy service census 
   } finally { app.engineScope.dispose(); }
 });
 
+it('explicit runtime stage ownership admits data without installing a second simulation', async () => {
+  const app = new App(), parent = runtime(), calls: string[] = [];
+  const base = emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 });
+  const source = { ...base, runtime: { entry }, state: { ...base.state, shared: [
+    { id: 1, name: 'fixture', type: 'i32' as const, privacy: 'host' as const, default: 0 },
+  ] } };
+  let constructed = 0, announced = 0;
+  class Runtime extends ShardPlugin {
+    constructor() { super(); constructed++; }
+    override world(): void { calls.push('world'); }
+    override kit(): void { calls.push('kit'); }
+    override play(): void { calls.push('play'); }
+  }
+  const options = { base: 'https://fixture.test/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('No files')), hash: () => Promise.reject(new Error('No files')) };
+  const bindings = { stagesOwner: 'runtime' as const, catalogue: [], recipes: new Map(), items: new Map(),
+    voices: () => new Map(), icon: () => { throw new Error('No icons'); }, onSimulationExpected: () => { announced++; } };
+  const entries = [{ slug: 'template', entry, load: () => Promise.resolve({ default: Runtime }) }];
+  await expect(prepareHybridShard(source, { ...options, firstParty: false }, bindings, entries)).rejects.toThrow('trusted first-party');
+  await expect(prepareHybridShard({ ...source, state: { ...source.state, shared: [...source.state.shared, ...source.state.shared] } },
+    options, bindings, entries)).rejects.toThrow();
+  expect(constructed).toBe(0);
+  const plugin = await prepareHybridShard(source, options, bindings, entries);
+  expect(constructed).toBe(0); expect(announced).toBe(0);
+  const scope = app.engineScope.child('runtime-stages'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  try {
+    await plugin.world?.(ctx); await plugin.kit?.(ctx); await plugin.play?.(ctx);
+    expect(constructed).toBe(1); expect(calls).toEqual(['world', 'kit', 'play']);
+    expect(app.systemIds(app.engineScope)).toEqual([]);
+  } finally { app.engineScope.dispose(); }
+});
+
 it('the default-off Debug row returns the legacy plugin without admitting data or binding runtime slots', async () => {
   const app = new App(), parent = runtime(), calls: string[] = [];
   const scope = app.engineScope.child('legacy'), installation = createLevelInstallation(app, scope, {

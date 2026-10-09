@@ -7,7 +7,7 @@ async function prepareHybrid(ctx: ShardContext): Promise<ShardPlugin> {
     import('@wildshard/game/shardfile/hybrid'), import('../shard.config'),
   ]);
   return prepareHybridShard(source, { firstParty: true }, {
-    residencyContext: ctx, retainHomeRuntime: true,
+    residencyContext: ctx, retainHomeRuntime: true, stagesOwner: 'runtime',
     catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
     icon: () => { throw new Error('Transitional Sky Reach has no declared item icon'); },
   }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./index') }]);

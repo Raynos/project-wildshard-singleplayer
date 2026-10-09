@@ -241,10 +241,14 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
     readonly residencyContext?: Pick<ShardContext, 'game'>;
     /** Retain an adapted borrowed home runtime across road visits; neighbours remain fenced. */
     readonly retainHomeRuntime?: boolean;
+    /** First-party transition whose runtime installs every admitted world/kit/play declaration.
+     * Admission and residency still run; the data client must not install a second simulation. */
+    readonly stagesOwner?: 'declared' | 'runtime';
   },
   entries: readonly TrustedRuntimeEntry[],
   debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
+  if (bindings.stagesOwner === 'runtime' && !options.firstParty) throw new Error('Runtime stage ownership requires a trusted first-party shard');
   if (debug !== undefined) {
     const choice = { hybrid: false };
     const adapters = debug.context;
@@ -254,7 +258,7 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
       return new Runtime();
     }
   }
-  const { residencyContext, retainHomeRuntime, ...providedBindings } = bindings;
+  const { residencyContext, retainHomeRuntime, stagesOwner, ...providedBindings } = bindings;
   const residency = residencyContext?.game.residency;
   if (residency !== undefined && providedBindings.residency !== undefined && residency !== providedBindings.residency) {
     throw new Error('Hybrid installation and bindings must share one page residency owner');
@@ -275,8 +279,9 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   };
   const data = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
-  const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
-  return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) });
+  const [installed, Runtime] = await Promise.all([stagesOwner === 'runtime' ? Promise.resolve(new class extends ShardPlugin {}) : load().then(({ default: Data }) => new Data()),
+    prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
+  return new HybridShardPlugin(installed, Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) });
 }
 
 /** Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. */
