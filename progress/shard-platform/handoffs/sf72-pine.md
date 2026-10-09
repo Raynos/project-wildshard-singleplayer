@@ -1,4 +1,4 @@
-# Handoff (sf72-pine) — 2026-10-08, SF72 Pine Hollow headless, 90-min cap
+# Handoff (sf72-pine) — 2026-10-08, SF72 Pine Hollow headless (herd brain landed by sf72-herds)
 
 Coordinator `wildshard-new` pushes. Pine's canonical witness (`test/proof/pine-hollow/`) is UNCHANGED and still fails
 closed. There is no `runtime/headless.ts` yet. Landed: the trusted native bake (floor, solid world, roster recipes) and
@@ -18,25 +18,29 @@ its test.
     yaws and herd centres are NOT baked: the page ticks and recentres between captures, so they are not stable facts.
   - `pieces`: the 50 registry pieces' metadata only (their colliders are in `solids`).
 
-## The real blocker (needs the coordinator's call before more Pine work)
+## Herd brain: landed (sf72-herds, 334031a26)
 
-Pine's ordinary fauna has no renderer-free policy. Deer / boar / elk / bear run `AnimalManager.think` (engine,
-`src/engine/entities/AnimalManager.ts` ~L933–1430): senses/awareness, herd panic, flee, charge, ring/back-off fight rules,
-the director's tokens, ambient calls, nav-path steering. It lives in the renderer-bound manager (it imports
-`fx/ParticlePool`, so the Node loader refuses it) and shares the manager's one `Rng(SEED + 31)` with herd placement.
-Signal avoided this because each of its species has its own brain. Honest next step (engine, shared with Nalati's herds):
-1. Extract the legacy hunt brain into a renderer-free engine module (e.g. `src/engine/ai/hunt.ts`) over `AnimalSim` +
-   ports (player, physics `canReach`, floor, nav, rng stream, director claim), with AnimalManager delegating to it and a
-   parity run on Pine + Nalati unchanged. Land it first, alone.
-2. Reproduce herd placement in Node: `spawnHerds` draws (centre search uses `isOpen`/`isDry`: the forest's tree positions
-   and the water), then per member ang / r / yaw and the six spawn draws. Either bake the tree positions or add a
-   capture-before-first-tick hook to the bake for exact initial placement; verify seeds against `actors[].seed`.
-3. `runtime/headless.ts`: `ground:false`, the baked heightfield through the engine `addTerrain(physics, grid)` (convert the
+The hunting loop that was `AnimalManager.think` now lives in `src/engine/ai/hunt.ts`: `HuntBrain<A extends HuntBody>`
+over `HuntPorts` (ground / water / trees, navmesh, reach, wander goal, unaware, sound, charge); the browser delegates to
+it. Placement: `HuntBrain.placeHerds(plan, spawn, make)`, then per spawn `spawnRolls(rng, kind, variant, hasLegendary)`
+and `adopt(a, x, z)`, in the exact `Rng(SEED + 31)` order. `test/engine/hunt-brain-oracle.test.ts` pins old = new bit for
+bit (9 family x fight-style configs, 10.7k–13.2k think ticks each, plus placement); `hunt-node.test.ts` places herds in
+plain Node under the renderer-denying loader. Pine was rebaked in that commit (actors / solids / herds byte-identical;
+the inputs add `ai/hunt.ts`). Not yet measured: a desktop frame-floor row for Pine + Nalati. Parity at the parity poses
+ran on the candidate: walk / combat / poses green; reds only in save-key fields (Nalati) and phone weather-texture leak
+fields (Pine), not compared against the parent build.
+
+## Next (Pine headless), in order
+
+1. Reproduce herd placement in Node: `placeHerds` needs `isOpen` over the forest's trunks (`HuntGround.trees`) and the
+   water, so bake the tree positions (x, z, r) into `physics.baked.json` (or capture before the first tick), wire a
+   `HuntGround` from the baked heightfield, and verify seeds against `actors[].seed`.
+2. `runtime/headless.ts`: `ground:false`, the baked heightfield through the engine `addTerrain(physics, grid)` (convert the
    column-major heights back to row-major) (the edge walls are already inside `solids`); the roster via `host.spawn`, the
-   hunt brains at the manager's cadence, the four elites (`combat/elites.ts` EliteGoals, needs the view split), the Antler
+   `HuntBrain.think` at the manager's cadence (20 Hz within 60 m, 10 Hz to 160 m), the four elites (`combat/elites.ts` EliteGoals, needs the view split), the Antler
    King (`runtime/KingGoals.ts` already loads in Node; `antlerKing.ts` must split its BossScript from BossBar/fx/fog),
    night thralls, roster reinstall before restore. Shoves use the landed `SimHost.impulsePlayer` (defff10d1).
-4. Witness: headless 10k → replay (King mid-fight) → ledger from gameplay (feat facts via `pine.progress`) → entry proof
+3. Witness: headless 10k → replay (King mid-fight) → ledger from gameplay (feat facts via `pine.progress`) → entry proof
    on the four 8 m entryways. Flip `compatibility.json` only from a real run.
 
 Note: `test/proof/*/run.mjs` runs Node without `--experimental-transform-types`; Pine's entry fails on a parameter
