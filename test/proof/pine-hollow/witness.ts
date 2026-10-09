@@ -91,7 +91,7 @@ export interface TapeState { leg: number; waypoint: number; ticks: number; best:
  */
 type Leg =
   | { kind: 'go'; path: readonly Point[] }
-  | { kind: 'act'; value: number; at: Spot; reach: number; done: (host: SimHost) => boolean; once?: true }
+  | { kind: 'act'; value: number; at: Spot; reach: number; done: (host: SimHost) => boolean }
   | { kind: 'ride' }
   | { kind: 'wait'; until: (host: SimHost) => boolean }
   | { kind: 'king' };
@@ -147,8 +147,9 @@ function route(spots: PineSpots, nav: Navmesh, heightAt: (x: number, z: number) 
     { kind: 'go', path: [LOOKOUT_FOOT, ...CLIMB] }, act(PINE_ACT.zip, zip.prompt, zip.prompt.radius, 'used:ph-zip'), { kind: 'ride' },
     // 6. east past Old Blackpaw's cave to the den's lantern
     walk(landing, atDen), act(PINE_ACT.den, lanterns.den, lanterns.den.radius, 'lit:den'),
-    // 7. back to Hale on the porch: he keeps watch till dark (one press: his lines raise `wait:night`, the clock runs on to night)
-    walk(atDen, OFF_ROAD), { kind: 'go', path: reverse(OFF_PORCH).slice(1) }, { ...act(PINE_ACT.talk, talk, talk.radius, 'wait:night'), once: true },
+    // 7. finish Hale's watch dialogue. Its completion starts the night clock and immediately consumes wait:night.
+    walk(atDen, OFF_ROAD), { kind: 'go', path: reverse(OFF_PORCH).slice(1) }, { kind: 'act', value: PINE_ACT.talk, at: talk, reach: talk.radius,
+      done: host => night(host) > 0.5 || v.parse(v.object({ fast: v.nullable(v.unknown()) }), host.adapters.get(QUEST_STEP)?.snapshot()).fast !== null },
     { kind: 'wait', until: host => night(host) > 0.5 },
     // 8. off the porch and down the west road after the Ghost Stag, bend to bend, into the stones
     { kind: 'go', path: OFF_PORCH }, walk(OFF_ROAD, STAG_FIRST), ...STAG_PATH.slice(1).map((bend, i) => walk(STAG_PATH[i] ?? STAG_FIRST, [bend[0], bend[1]])),
@@ -213,10 +214,9 @@ export class PineTape {
         return [move(dx / d, dz / d, Math.atan2(-dx, -dz))];
       }
       case 'act': {
-        // a one-press prompt (Hale's watch): pressed once in reach (`waypoint` 1), it is done
-        if (leg.done(host) || (leg.once === true && this.waypoint > 0)) return null;
+        if (leg.done(host)) return null;
         const eye = new Vector3(p.x, p.y + EYE, p.z), d = eye.distanceTo(new Vector3(leg.at.x, leg.at.y, leg.at.z));
-        if (d < leg.reach - 0.2) { if (leg.once === true) this.waypoint = 1; return [{ kind: 'script', actorId: PINE_INTERACT, value: leg.value }, move(0, 0, host.player.yaw)]; }
+        if (d < leg.reach - 0.2) return [{ kind: 'script', actorId: PINE_INTERACT, value: leg.value }, move(0, 0, host.player.yaw)];
         const dx = leg.at.x - p.x, dz = leg.at.z - p.z, h = Math.max(1e-6, Math.hypot(dx, dz));
         return [move(dx / h, dz / h, Math.atan2(-dx, -dz))];
       }
@@ -501,7 +501,7 @@ export function gameplayProof(rapier: Rapier, from?: 'night'): ReturnType<typeof
 /** These omissions can change damage, inventory, quest/ledger outcomes or persistence relative to the browser. */
 export const OUTCOME_DIFFERENCES = [
   'Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.',
-  'Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.',
+  'Hale dialogue completion, input guard and cancellation are hosted; named prompt commands still omit nearest/line-of-sight selection and the other NPCs.',
   'Resin walk-in takes, the eight carved tokens and the seven-kind pack are hosted; bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.',
   'Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.',
   'King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.',

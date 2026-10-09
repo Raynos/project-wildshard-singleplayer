@@ -1,13 +1,12 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
-import { lineFor } from '@wildshard/engine/quest/core';
 import { test } from '@wildshard/engine/world/interact/flags';
 import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/game/shardfile/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { LANTERN_FLAGS, RANGER } from '../quest/wardensHollow';
+import { LANTERN_FLAGS } from '../quest/wardensHollow';
 import { pineTable, RESIN_COUNT, TOKEN_NAMES } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
@@ -16,13 +15,14 @@ import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
 import { createPinePack, PinePackSchema } from './pack';
+import { PineDialogue } from './dialogue';
 import baked from './spots.baked.json' with { type: 'json' };
 
 /** The script command actor that carries Pine's [E] prompts (`{ kind: 'script', actorId: PINE_INTERACT, value: PINE_ACT.* }`). */
 export const PINE_INTERACT = 'pine.interact';
 /** The prompts a command's value names: Hale's talk, the table's quest rows, the three lanterns, the zipline, the lever-action and eight carved tokens. */
 export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5, ridge: 6, den: 7, zip: 8, rifle: 9,
-  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17 } as const;
+  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, cancelTalk: -1 } as const;
 /** The quest keeper's fixed-step id (the stag's walk, the dawn's clock, the clock's fast-forward, the ride, the feats' counts). */
 export const QUEST_STEP = 'pine.quest';
 
@@ -50,7 +50,7 @@ const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite
 const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
   dawn: finite, fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
-  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })) });
+  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null) });
 
 /** The day clock the quest fast-forwards (the host's, PineDayNight's law). */
 export interface PineQuestDay { phase: number; readonly night: number }
@@ -73,6 +73,8 @@ export interface PineQuest {
   readonly pack: ReturnType<typeof createPinePack>;
   /** the zipline carries the player (the page's weapons are off and stowed for the ride) */
   readonly riding: () => boolean;
+  /** The dialogue modal owns use input and suppresses weapon actions until completion or cancellation. */
+  readonly talking: () => boolean;
   /** the lever-action was just taken: the page's pickup selects it (read once, by the loadout's next pick) */
   readonly takeRifle: () => boolean;
 }
@@ -85,8 +87,8 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
  * (`DeclaredQuests` on `host.flags`, its `pine.feat.quest` fact through the platform's fact port) and the page's own rules
  * for every beat, each at the point the page placed it (baked: scripts/bake-pine-spots.mjs), driven by `script` commands at
  * the browser's prompt radii from the player's eye:
- *  - Hale's talk (3.2 m from his head) plays his current dialogue (engine `lineFor`) and raises its `sets` at once (the
- *    page raises them when the box closes): `talked:ranger` starts the quest, `wait:night` asks the clock for the night;
+ *  - Hale's talk (3.2 m from his head) plays the shared dialogue clock and raises its `sets` only on completion:
+ *    `talked:ranger` starts the quest, `wait:night` asks the clock for the night;
  *  - the beaver dam (quest/table.ts, the kit's rules): the two logs are latching levers that need `talked:ranger`, the
  *    sluice latches open on both, its glass shows then and is taken (`taken:pond-glass`); the fire-watcher's flint is on the
  *    fire finder in the lookout's cab (`taken:ridge-flint`);
@@ -100,8 +102,8 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
  *    taken flag and resin fact precedes the pack add, as in Interactables.take / the page's take listener;
  *  - the eight captured carved tokens use the same table pickup flags, with no inventory item; repeated takes are hidden;
  *  - the shared page feat law files every flag-driven feat and actual creature death; its counters and pack restore silently.
- * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its prompt); the dialogue box's
- * reading time; the reward's resin; the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
+ * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its prompt); the reward's resin;
+ * the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
  */
 export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQuest {
   const { spots } = ports, flags = host.flags;
@@ -144,6 +146,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const chapter = quests.quests[0];
   if (chapter === undefined) throw new Error('Pine declares the Warden\'s Hollow');
   const eye = new Vector3(), at = new Vector3();
+  const dialogue = new PineDialogue(flags, spots.talk, spots.talk.radius);
   const near = (p: { x: number; y: number; z: number } | null, radius: number): boolean => {
     if (p === null || radius <= 0) return false;
     eye.copy(host.player.position); eye.y += EYE;
@@ -220,7 +223,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
   const act = (value: number): void => {
     if (state.zip.on) return; // the ride owns the player
-    if (value === PINE_ACT.talk) { if (near(spots.talk, spots.talk.radius)) raiseAll(lineFor(RANGER, flags)?.sets, true); return; }
+    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); return; }
+    if (dialogue.active) { dialogue.use(); return; } // modal USE advances text; it cannot also take another prompt
+    if (value === PINE_ACT.talk) { if (near(spots.talk, spots.talk.radius)) dialogue.use(); return; }
     if (value === PINE_ACT.pond) { lantern('pond', 'taken:pond-glass'); return; }
     if (value === PINE_ACT.ridge) { lantern('ridge', 'taken:ridge-flint'); return; }
     if (value === PINE_ACT.den) { lantern('den', 'talked:ranger'); return; }
@@ -254,6 +259,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       const command = list[c]; if (command === undefined) break;
       if (command.actorId === PINE_INTERACT) act(command.value);
     }
+    dialogue.step(dt, host.player.position);
     ride(dt);
     touchResin();
     // the sluice lifts on its own once both logs are off and latches open (Interactables.update's latching door)
@@ -272,13 +278,15 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: state.zip.on ? { s: state.zip.s, v: state.zip.v } : null,
-      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot() }),
+      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}) }),
     restore: value => {
       const saved = v.parse(Saved, value);
+      const restoreDialogue = dialogue.prepareRestore(saved.dialogue);
       stag.load(saved.stag); clock.load(saved.dawn); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
       counts = { ...saved.counts };
       pack.restore(saved.pack);
+      restoreDialogue();
     },
   });
-  return { quests, stag, pack, riding: () => state.zip.on, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
+  return { quests, stag, pack, riding: () => state.zip.on, talking: () => dialogue.active, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
 }

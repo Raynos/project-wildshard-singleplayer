@@ -179,7 +179,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null), pick = parts.pick ?? ((): null => null);
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
   let quest: ReturnType<typeof installHollowQuest> | null = null;
-  const loadout = installPineLoadout(host, { locked: () => king.locked() || (quest?.riding() ?? false),
+  const loadout = installPineLoadout(host, { locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
     pick: () => { const picked = pick(), took = quest?.takeRifle() ?? false; return picked ?? (took ? PINE_WEAPON.lever : null); } });
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
   const bodyBuffer: AnimalSim[] = [];

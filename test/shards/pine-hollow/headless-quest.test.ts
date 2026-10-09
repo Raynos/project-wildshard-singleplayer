@@ -54,6 +54,12 @@ function press(host: SimHost, tick: Tick, at: { x: number; y: number; z: number 
 }
 const row = (id: string): { x: number; y: number; z: number } => { const r = spots.rows.find(s => s.id === id)?.prompt; if (r === undefined || r === null) throw new Error(id); return r; };
 const stepN = (host: SimHost, n: number): void => { for (let i = 0; i < n; i++) host.step(still); };
+function finishTalk(host: SimHost, tick: Tick, talking: () => boolean): void {
+  // The first keyboard advance is held for 150 ms after open; each use then finishes typing or advances one line.
+  stepN(host, 10);
+  for (let i = 0; i < 16 && talking(); i++) { tick.press = [PINE_ACT.talk]; host.step(still); tick.press = []; }
+  expect(talking()).toBe(false);
+}
 
 it('walks from the actual spawn into resin-1 and restores the take, pack and ledger fact without a second grant', () => {
   const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest } = boot(tick);
@@ -120,6 +126,8 @@ it('walks the Warden\'s Hollow by its prompts at the page\'s points: Hale, the d
     press(host, tick, row('dam-log-a'), PINE_ACT.logA);
     expect(host.flags.has('lever:dam-log-a')).toBe(false); // the log is jammed until Hale has spoken
     press(host, tick, spots.talk, PINE_ACT.talk, 1.5);
+    expect(host.flags.has('talked:ranger')).toBe(false);
+    finishTalk(host, tick, quest.talking);
     expect([host.flags.has('talked:ranger'), step()]).toEqual([true, 'pond']);
     press(host, tick, row('dam-log-a'), PINE_ACT.logA); press(host, tick, row('dam-log-b'), PINE_ACT.logB);
     expect(host.flags.has('open:dam-sluice')).toBe(true); // both logs off: the sluice lifts and latches
@@ -144,6 +152,7 @@ it('walks the Warden\'s Hollow by its prompts at the page\'s points: Hale, the d
     const day = host.dayClock; if (day === undefined) throw new Error('no day clock');
     day.phase = PINE_PHASES.day;
     press(host, tick, spots.talk, PINE_ACT.talk, 1.5);
+    finishTalk(host, tick, quest.talking);
     expect(host.flags.has('wait:night')).toBe(false); // the clock consumed the ask
     stepN(host, 6 * 60 + 2);
     expect(day.phase).toBeCloseTo(PINE_PHASES.night, 3);
@@ -230,5 +239,33 @@ it('takes all eight captured carved tokens and restores their flags and ledger w
     expect(tick.facts).toHaveLength(count); expectSameSimSnapshot(snapshotSimHost(resumed), saved);
     for (let i = 0; i < 8; i++) press(resumed, tick, row(`token-${i + 1}`), PINE_ACT.token1 + i);
     expect(tick.facts).toHaveLength(count); expect(resumed.flags.count('token:')).toBe(8);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
+
+it('resumes Hale mid-line silently and keeps use modal until completion or walking away', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest, loadout } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    press(host, tick, spots.talk, PINE_ACT.talk);
+    expect(quest.talking()).toBe(true); expect(loadout.live(PINE_WEAPON.crossbow)).toBe(false);
+    const begun = snapshotSimHost(host);
+    resumed = restore(tick, begun); expectSameSimSnapshot(snapshotSimHost(resumed), begun);
+    expect(tick.facts).toEqual([]); expect(resumed.flags.has('talked:ranger')).toBe(false);
+    // Every USE is routed to the open modal, even if its named target is a token; the opening press cannot skip text.
+    tick.press = [PINE_ACT.token1]; host.step(still); resumed.step(still); tick.press = [];
+    expect(host.flags.has('token:1')).toBe(false); expect(host.flags.has('talked:ranger')).toBe(false);
+    expectSameSimSnapshot(snapshotSimHost(resumed), snapshotSimHost(host));
+    for (let i = 0; i < 10; i++) { host.step(still); resumed.step(still); }
+    for (let i = 0; i < 8; i++) { tick.press = [PINE_ACT.talk]; host.step(still); resumed.step(still); tick.press = []; }
+    expect(host.flags.has('talked:ranger')).toBe(true); expect(quest.talking()).toBe(false);
+    expectSameSimSnapshot(snapshotSimHost(resumed), snapshotSimHost(host));
+    expect(loadout.live(PINE_WEAPON.crossbow)).toBe(true);
+    host.flags.clear('talked:ranger'); press(host, tick, spots.talk, PINE_ACT.talk);
+    press(host, tick, spots.talk, PINE_ACT.cancelTalk); expect(quest.talking()).toBe(false);
+    expect(host.flags.has('talked:ranger')).toBe(false);
+    press(host, tick, spots.talk, PINE_ACT.talk);
+    const feet = new Vector3(spots.talk.x + spots.talk.radius + 3, spots.talk.y - EYE, spots.talk.z);
+    host.player.motor.resetAt(feet); host.player.position.copy(feet); host.step(still);
+    expect(quest.talking()).toBe(false); expect(host.flags.has('talked:ranger')).toBe(false);
   } finally { resumed?.dispose(); host.dispose(); }
 }, 60_000);

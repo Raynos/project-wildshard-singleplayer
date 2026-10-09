@@ -1,18 +1,18 @@
 {
-  "inputs": "fcc05e496b79be0516d56feb34e476c554f9d59954d692f73a881da5e8e1201a",
+  "inputs": "cb6609ec725475bc8397a00e7b6d6d2a200a0448ef7377bd919f318307b9ac37",
   "ticks": {
     "dam": 8000,
     "ridge": 16000,
     "night": 24000,
-    "king": 29076,
-    "fallen": 31658
+    "king": 27851,
+    "fallen": 30502
   },
   "hashes": {
-    "dam": "ad232a3686983a6acefd640ce5058277435b7f7de9bb7b08fe247e43e12710a9",
-    "ridge": "36ad16def3fa5522c8055677191e5abffb7b4318414b447f0c86563aae1ced2d",
-    "night": "d434aa49bc6972e97c66af5694d99dfbc106ad177933c8c49a324b4525994371",
-    "king": "28cc68126fb99a9da253121548726264e839d92ba145256701b2214f1184f0b1",
-    "fallen": "7f15a4fecc97f68341b5f509255ff3e6fef9ee493610673071ee21e58e4adea4",
-    "dawn": "408112cbfd05440e7a21a39a6957af791e73c4b9614ef3bd970725228172e354"
+    "dam": "33c0c7b6f6a0e113eda6045645dc9327e1d940efb8852b2336c10ff27b75c0d5",
+    "ridge": "aa9803c3df4d003d6227fc2ae1d56aebcdc10a3dd2ee9bac7fa05e4db249b735",
+    "night": "557477841e3fc5a1874257dc42447fd62c35d0ca784f82ed0ca4c7c599894f6c",
+    "king": "6aceabcdefa439b2850f6e53ab703b6abc22e4fd08cfa9cbdfef93e80ab6dcd1",
+    "fallen": "7d9b8bb18c3f63c73ccc44336e210a3fe9dd39c6b4b97db6cf1e1bdb48b9330f",
+    "dawn": "3c78322b0c3d57bd66fcd09fa7a4fb9c422d2f2a0920679c5210150b1b48ca17"
   }
 }
