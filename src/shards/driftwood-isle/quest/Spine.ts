@@ -9,7 +9,7 @@
  */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
+import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import { boxInFrame } from '@wildshard/engine/physics/box';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { NpcTalk, type LiveMarker } from '@wildshard/engine/quest/view';
@@ -38,7 +38,12 @@ const TALK_R = 3.2;
 
 /** SF57: a subtree one home entry built belongs to that entry's scope: it leaves the scene and frees what it alone holds
  *  when the entry ends (a re-entered borrowed home runs its installs again; the page scene must not keep every copy). */
-export function ownEnteredTree(object: THREE.Object3D, scope: Parameters<typeof ownSceneTree>[1]): void { ownSceneTree(object, scope, app.assets); }
+export function ownEnteredTree(object: THREE.Object3D, scope: Parameters<typeof ownSceneTree>[1]): void {
+  // A grid region's view already owns a registered piece's object (its own entry-lived scope): that owner stands.
+  const mine = sceneObjectOwner(object);
+  if (mine !== null && mine !== (object.parent === null ? null : sceneObjectOwner(object.parent))) return;
+  ownSceneTree(object, scope, app.assets);
+}
 
 export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ShardContext, facts: RuntimeFacts): Spine {
   const { flags, kit, place } = adv;
