@@ -10,6 +10,10 @@ import { setHome } from '../../src/shards/far-reach/species/rig';
 import { SkyGoatBrain, RAM, GOAT } from '../fixtures/grazer-oracle/goat';
 import { creature } from '../fake/creature';
 
+// SF72: a lane strike with no `motion` is swept and ends at its `active` window (the Roc's gale wall); the captured goat's
+// RAM ran as a charge, which the shipping RAM now declares (`motion: {}`). The source-hashed fixture keeps its bytes, so
+// the capture's RAM gets the same declaration here (test/shards/far-reach/goat-ram-oracle.test.ts: goats byte-identical).
+RAM.motion = {};
 registerSpecies(speciesWithLook(SKY_GOAT, SKY_GOAT_LOOK));
 const unbind = overrideTerrain({ heightAt: () => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(unbind);

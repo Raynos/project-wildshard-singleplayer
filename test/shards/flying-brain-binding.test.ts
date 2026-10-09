@@ -13,7 +13,7 @@ import { DUNE_RAY } from '../../src/shards/sunscar-dunes/runtime/species/duneRay
 import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
 import { setHome, bindPlayerPush, homeOf } from '../../src/shards/far-reach/species/rig';
 import { creature } from '../fake/creature';
-import { SkyGoatBrain } from '../fixtures/grazer-oracle/goat';
+import { SkyGoatBrain, RAM as CAPTURED_RAM } from '../fixtures/grazer-oracle/goat';
 import { StriderBrain } from '../fixtures/grazer-oracle/strider';
 import { DriftRayBrain } from '../fixtures/flight-oracle/orbit';
 import { GaleWispBrain } from '../fixtures/flight-oracle/burst';
@@ -24,6 +24,10 @@ import { STORM_ROC } from '../../src/shards/far-reach/species/stormRoc';
 import { SAND_SKITTERER } from '../../src/shards/sunscar-dunes/species/skitterer';
 import { DUNE_MATRIARCH } from '../../src/shards/sunscar-dunes/species/matriarch';
 
+// SF72: a lane strike with no `motion` is swept and ends at its `active` window (the Roc's gale wall); the captured goat's
+// RAM ran as a charge, which the shipping RAM now declares (`motion: {}`). The source-hashed fixture keeps its bytes, so
+// the capture's RAM gets the same declaration here (test/shards/far-reach/goat-ram-oracle.test.ts: goats byte-identical).
+CAPTURED_RAM.motion = {};
 for (const [row, look] of [[SKY_GOAT, SKY_GOAT_LOOK], [DRIFT_RAY, DRIFT_RAY_LOOK], [GALE_WISP, GALE_WISP_LOOK], [DUNE_STRIDER, DUNE_STRIDER_LOOK], [DUNE_RAY, DUNE_RAY_LOOK]] as const) registerSpecies(speciesWithLook(row, look));
 const unbind = overrideTerrain({ heightAt: () => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(() => { unbind(); bindPlayerPush(null); });

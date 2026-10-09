@@ -29,6 +29,11 @@ export interface StrikeSpec {
   weight: (ctx: StrikeContext) => number;
   units?: 'world' | 'actor';
   alternatives?: readonly StrikeShape[];
+  /**
+   * A charge: the actor runs the lane, and its active window ends when it reaches the lane's end (or after
+   * length / max(1, speed) + 1.2 s). `speed` is the runner's own drive (none when the owning brain drives the body, as
+   * the ram grazer does). Without `motion` a lane is swept, not run: it ends at `active`.
+   */
   motion?: { speed?: number; delay?: number; track?: 'none' | 'lead' | 'follow'; overshoot?: number; skid?: number };
   eligibility?: { maxDy?: number; jumpDodges?: boolean };
 }
@@ -120,9 +125,11 @@ export class StrikeRunner {
     if (this.state === 'active') {
       if (laneMotion(spec)) a.setMotion(this.yaw, (spec.motion?.speed ?? 0) * this.speedMul, 0.35);
       if (!this.hit && this.elapsed >= (spec.motion?.delay ?? 0)) this.hit = this.contact(spec, ctx);
-      if (laneMotion(spec)) {
+      // a charge (declared `motion`) runs until the actor reaches the lane's end, or a runaway timeout; a motionless lane
+      // (a wall of wind swept from a hover) keeps its full length for contact and ends at its declared `active` window
+      if (laneMotion(spec) && spec.motion !== undefined) {
         const along = ((a.position.x - this.x0) * (this.x1 - this.x0) + (a.position.z - this.z0) * (this.z1 - this.z0)) / (this.length * this.length);
-        if (along >= 1 || this.elapsed > this.length / Math.max(1, (spec.motion?.speed ?? 0) * this.speedMul) + 1.2) this.phase('recover');
+        if (along >= 1 || this.elapsed > this.length / Math.max(1, (spec.motion.speed ?? 0) * this.speedMul) + 1.2) this.phase('recover');
       } else if (this.elapsed >= spec.active) this.phase('recover');
       return;
     }

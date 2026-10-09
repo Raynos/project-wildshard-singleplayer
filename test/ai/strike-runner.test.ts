@@ -70,4 +70,34 @@ describe('S2.3 StrikeRunner replays the current Pine body-clock lanes', () => {
     expect(hit).not.toHaveBeenCalled(); ctx.canReach = () => true; runner.update(0.01, ctx); runner.update(0.01, ctx);
     expect(hit).toHaveBeenCalledExactlyOnceWith(strike);
   });
+  // SF72: a lane with no `motion` is swept, not run (Sky Reach's gale wall): it ended as a charge that never moved,
+  // 26 / max(1, 0) + 1.2 = 27.2 s, instead of its declared 0.6 s.
+  const wall: StrikeSpec = { id: 'strike.test.wall', shape: { kind: 'lane', length: 26, width: 6 }, windup: 1.5, active: 0.6, recover: 1.4,
+    cooldown: 3.5, range: 30, damage: 12, tags: ['creature.charge'], units: 'world', weight: () => 1 };
+  function sweep(strike: StrikeSpec, target: { x: number; y: number; z: number }): { active: number; recover: number; hits: number } {
+    const f = creature('crab', 'small'), runner = new StrikeRunner(); let hits = 0, active = -1, recover = -1;
+    const ctx = { actor: f.animal, target, canReach: () => true, hit: (): void => { hits++; } };
+    runner.start(strike, f.animal, { x: f.animal.position.x, y: 0, z: f.animal.position.z + 10 });
+    for (let frame = 1; frame <= 60 * 40 && runner.busy; frame++) {
+      runner.update(1 / 60, ctx); f.animal.update(1 / 60, frame / 60, false);
+      if (active < 0 && runner.state === 'active') active = frame;
+      if (recover < 0 && runner.state === 'recover') recover = frame;
+    }
+    return { active, recover, hits };
+  }
+  it('a motionless lane ends at its declared active window and keeps its full length for contact', () => {
+    const f = creature('crab', 'small'), far = { x: f.animal.position.x, y: f.animal.position.y, z: f.animal.position.z + 20 };
+    const run = sweep(wall, far);
+    // frames at 60 Hz, within one frame of the float clock
+    expect(Math.abs(run.active - 90)).toBeLessThanOrEqual(1); expect(Math.abs(run.recover - run.active - 36)).toBeLessThanOrEqual(1);
+    expect(run.hits).toBe(1);
+    // off the lane's 6 m strip, no contact
+    expect(sweep(wall, { ...far, x: far.x + 4 }).hits).toBe(0);
+  });
+  it('a lane with motion is still a charge: it runs until the actor reaches its end or the runaway timeout', () => {
+    const f = creature('crab', 'small'), held = { ...wall, id: 'strike.test.held', motion: {} };
+    const run = sweep(held, { x: f.animal.position.x, y: 0, z: f.animal.position.z + 100 });
+    // a charge whose owner never drives the body: 26 / max(1, 0) + 1.2 s
+    expect(Math.abs(run.recover - run.active - 27.2 * 60)).toBeLessThanOrEqual(1);
+  });
 });
