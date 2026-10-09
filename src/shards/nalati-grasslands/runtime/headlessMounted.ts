@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { SimHost, SimValue } from '@wildshard/engine/sim';
+import type { SimHost, SimPlayerMotionSample, SimValue } from '@wildshard/engine/sim';
 import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
@@ -118,7 +118,13 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     host.player.motor.setEnabled(false); ports.groups.env.playerMounted = true;
     return true;
   };
-  host.usePlayerDriver({ walking, input: (command, dt) => {
+  const motion = { velocityX: 0, velocityZ: 0, grounded: true, swimming: false, hover: false };
+  const sampleMotion = (): SimPlayerMotionSample => {
+    // MountedBody owns carrier velocity; neither corrected feet displacement nor the on-foot approximation supplies it.
+    motion.velocityX = rider.velocity.x; motion.velocityZ = rider.velocity.z; motion.grounded = rider.onGround;
+    return motion;
+  };
+  host.usePlayerDriver({ walking, motionSample: sampleMotion, input: (command, dt) => {
     if (horse?.alive === false) dismount(true);
     previousFoot.copy(host.player.position);
     const a = horse;

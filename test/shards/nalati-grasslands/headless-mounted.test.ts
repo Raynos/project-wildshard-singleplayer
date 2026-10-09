@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier and the admitted page terrain bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
-import { createSimHost, type SimCommand, type SimHost } from '../../../src/engine/sim';
+import { createSimHost, type SimCommand, type SimHost, type SimPlayerMotionSample } from '../../../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
@@ -35,6 +35,8 @@ function command(tick: number): SimCommand {
 
 it('rides only the two real camp horses with a separate lying motor, then restores the standing capsule on dismount', () => {
   const host = boot(), ride = mounted(host);
+  const samples: (SimPlayerMotionSample | null)[] = [];
+  const removeSample = host.observePlayerMotion(value => { samples.push(value === null ? null : { ...value }); });
   try {
     expect(campIds).toHaveLength(2);
     expect(ride.mount('creature:23')).toBe(false); expect(ride.mount('missing')).toBe(false);
@@ -44,7 +46,14 @@ it('rides only the two real camp horses with a separate lying motor, then restor
     expect(host.player.motor.snapshot().enabled).toBe(false); expect(a.driven).toBe(true);
     expect(ride.body.motor?.opts.length).toBe(2.4);
     const start = a.position.clone();
-    for (let tick = 0; tick < 200; tick++) host.step(command(tick));
+    for (let tick = 0; tick < 200; tick++) {
+      host.step(command(tick));
+      expect(samples.at(-1)).toEqual({ velocityX: ride.rider.velocity.x, velocityZ: ride.rider.velocity.z,
+        grounded: ride.rider.onGround, swimming: false, hover: false });
+      // The page's mounted update retains MountedBody's zero camera/combat factor despite its nonzero carrier velocity.
+      expect(ride.rider.speedFactor).toBe(0);
+    }
+    expect(samples.some(value => value !== null && Math.hypot(value.velocityX, value.velocityZ) > 1)).toBe(true);
     expect(a.position.distanceTo(start)).toBeGreaterThan(1); expect(ride.phase(id)).toBeGreaterThan(0);
     expect(nalatiGroupsOf(host)?.env.playerMounted).toBe(true);
     expect(a.motor).toBeNull(); // the native body LOD owns no second upright creature capsule
@@ -54,6 +63,8 @@ it('rides only the two real camp horses with a separate lying motor, then restor
     expect(nalatiGroupsOf(host)?.env.playerMounted).toBe(false);
     expect(host.player.position.distanceTo(a.position)).toBeGreaterThan(1);
     host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(samples.at(-1)).toEqual({ velocityX: 0, velocityZ: 0, grounded: host.playerFall.grounded, swimming: false, hover: false });
+    const captured = samples.length; removeSample(); host.step(); expect(samples).toHaveLength(captured);
   } finally { host.dispose(); }
   expect(Object.values(host.scope.census).every(n => n === 0)).toBe(true);
 });
