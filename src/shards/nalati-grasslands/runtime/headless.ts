@@ -29,6 +29,9 @@ import { exposeTrees, steppeStorm, stepStorm, stormEnv, stormWind, windEnv, yurt
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { Vector3 } from 'three';
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
+import { installNalatiMountedPlayer, nalatiMountedOf } from './headlessMounted';
+import { HITCH_HORSE_SPOTS } from '../world/layout';
+import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
@@ -279,7 +282,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati12.md): the remaining dusk/night/storm elite brains, the
- * Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
+ * Golden King and the Storm Titan, taming/companions and crouch, the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -318,7 +321,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
       spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
+    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, mounted: () => nalatiMountedOf(host)?.mounted === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
+    // The same two camp identities and authored road order as ride/ride.ts; taming adds other mountables later.
+    const mountable = bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId);
+    installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, wetAt: nalatiWetAt,
+      inBounds: (x, z, margin) => Math.abs(x) < NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) < NALATI_GROUND_SIZE / 2 - margin,
+      roads: [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL] });
     scare = (x, z) => { manager().scare(x, z, 60); };
     if (!context.restoring) elites.initialize();
   } };
