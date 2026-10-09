@@ -15,7 +15,8 @@ import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 
 /** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
 export class HeadlessSimulation {
-  private constructor(private readonly runner: TickWorkerHost) {}
+  private readonly runner: TickWorkerHost;
+  private constructor(runner: TickWorkerHost) { this.runner = runner; }
   /** Start the fixed worker with runtime deadlines by default. Trusted offline validation selects advisory timing; author data cannot select this policy. */
   static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; trustedRuntime?: TrustedHeadlessRuntime } = {}): Promise<HeadlessSimulation> {
     const trustedRuntime = options.trustedRuntime === undefined ? undefined : { module: trustedHeadlessModule(options.trustedRuntime.module) };

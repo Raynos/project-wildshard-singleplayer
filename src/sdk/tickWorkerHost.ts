@@ -29,7 +29,10 @@ export class TickWorkerHost {
   private tickBudgetMicros: number;
   private readonly scope = new Scope('headless watchdog');
   private readonly ready: Promise<Reply>;
-  constructor(url: URL, payload: unknown, private readonly budget: { tickMicros: number; commandsPerTick: number }, execArgv: string[] = [], private readonly deadline: 'runtime' | 'advisory' = 'runtime') {
+  private readonly budget: { tickMicros: number; commandsPerTick: number };
+  private readonly deadline: 'runtime' | 'advisory';
+  constructor(url: URL, payload: unknown, budget: { tickMicros: number; commandsPerTick: number }, execArgv: string[] = [], deadline: 'runtime' | 'advisory' = 'runtime') {
+    this.budget = budget; this.deadline = deadline;
     if (!Number.isInteger(budget.tickMicros) || budget.tickMicros < 1 || budget.tickMicros > 16_666 || !Number.isInteger(budget.commandsPerTick) || budget.commandsPerTick < 0 || budget.commandsPerTick > 1024) throw new Error('Invalid headless budget');
     this.tickBudgetMicros = budget.tickMicros;
     this.ready = this.wait();
