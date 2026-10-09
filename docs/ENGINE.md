@@ -1754,6 +1754,8 @@ It uses Driftwood's exact 2.5 s camera ease, shortest yaw, 3.5 s forward clock e
 the reward flag in `finish()`; return `true` if a completion card takes camera ownership, otherwise `false` or
 `undefined`. `QuestRewardBeat` exposes the same beat for authored finales with a `QuestRewardHost` / player port.
 
+`@wildshard/game/quest/rewardMotion` defines renderer-free `applyQuestRewardPose(elapsed, origin, target, player, dayNight)` and its structural pose ports. It is the same defining law called by `QuestRewardBeat`: no timer, carry owner, caption, DOM, renderer or state restore is installed. The trusted owner captures/persists the origin and elapsed time, then supplies its existing player and clock; omitted destinations preserve the shipping behavior.
+
 `QuestPresentation` returns `quest`, `chip`, `markers()`, `places`, `reward`, `update(dt, t)` and `dispose()`.
 Disposal removes views, prompts and overlays, removes transition observers and releases an active reward hold.
 A state created by the installer is unsubscribed; an external state remains caller-owned. `QuestPresentationContext`
