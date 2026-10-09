@@ -26,6 +26,7 @@ if [ -n "$dirty" ]; then
 fi
 
 work="$(mktemp -d "${TMPDIR:-/tmp}/wildshard-admin-deploy.XXXXXX")"
+work="$(cd "$work" && pwd -P)"
 trap 'rm -rf "$work"' EXIT
 # the site, sp-x2's admin-data pipeline and every report path it reads (scripts/admin-data.mjs exportedAdminTree)
 reports=(progress/memory art/playtest docs/plans/SHARD-PLATFORM.md)
