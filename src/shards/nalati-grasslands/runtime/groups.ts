@@ -140,6 +140,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
     const row = groupBrain({ ...NALATI_PACK_BRAIN, home: [x, z], members: members.map(a => a.entityId) });
     if (row.kind !== 'pack') throw new Error('Invalid raid pack declaration');
     const p = new PackBrain(members, x, z, row, { ...nativePackPorts(group, world), preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
+    p.findPrey = nearestFoal; // Wildlife.spawnPack uses the same foal query as its boot pack.
     p.initialize(); packs.push(p); members.forEach(a => { packOf.set(a, p); }); return p;
   };
   const bindPrey = (id: string, prey: PackPrey): void => {

@@ -316,6 +316,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     // The page's elite rules run after weather and BEFORE Wildlife. Setup adopts the already rolled boot actors;
     // a restoring install only reconnects saved identities after the manager has reinstalled its deferred roster.
     const elites = installNalatiElites(host, { bindings, heightAt, ledges: bake.ledges, phase: () => clock.dayPhase, storm: () => env.storm,
+      environment: () => env, packs: () => groups.packs,
+      spawnPack: (x, z, variants) => manager().spawnElitePack(x, z, variants), retirePack: pack => { manager().retirePack(pack); },
       bodies: () => installed.creatures?.bodies ?? bodies.map(b => b.actor), herd: () => groups.herds[1] ?? null,
       spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
