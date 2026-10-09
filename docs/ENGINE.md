@@ -2381,7 +2381,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-797 exports, grouped by the module to import them from.
+806 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2424,6 +2424,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/loot/runtime`: `installLoot`, `installRuntimeLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
 - `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
+- `@wildshard/game/models/creatures`: `bear`, `boar`, `deer`
 - `@wildshard/game/models/pickups`: `carvedToken`, `carvedTokenGeometry`, `doubloon`, `flintKit`, `flintKitGeometry`, `glyphShard`, `glyphShardGeometry`, `installKitPickups`, `resinDrop`, `resinDropGeometry`, `seaGlass`, `seaGlassGeometry`, `tokenRimGeometry`
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
 - `@wildshard/game/Progress`: `Progress`, `ProgressLedger`, `ProgressRow`, `ProgressSink`
@@ -2506,6 +2507,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/version`: `SHARDFILE_PREVIOUS_VERSION`, `SHARDFILE_VERSION`, `shardfileRevision`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
 - `@wildshard/game/systems/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
+- `@wildshard/game/systems/audio/forest`: `createForestAudio`, `installForestAmbience`
 - `@wildshard/game/systems/audio/silentScore`: `installSilentScore`
 - `@wildshard/game/systems/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/game/systems/effects/starter`: `STARTER_EFFECTS`
@@ -2515,6 +2517,8 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/systems/looks/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
 - `@wildshard/game/systems/looks/trample`: `grassHeightAt`, `GrassTrample`, `MAX_MOVERS`, `RECOVER`, `trample`, `TRAMPLE_GLSL`
 - `@wildshard/game/systems/npc/npcRig`: `footPlan`, `LEG_BONE_NAMES`, `legBones`, `LegBuilt`, `legPose`, `LegPoseIn`, `legRigOf`, `NpcFace`, `NpcModel`, `NpcRig`, `NpcRigProfile`, `NpcRow`, `rigLegs`, `WALK`
+- `@wildshard/game/systems/species/bear`: `BEAR`, `BEAR_TUNING`
+- `@wildshard/game/systems/species/boar`: `BOAR`, `BOAR_TUNING`
 - `@wildshard/game/systems/species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
 - `@wildshard/game/systems/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
 - `@wildshard/game/systems/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
@@ -2531,18 +2535,14 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-72 exports, grouped by the module to import them from.
+63 exports, grouped by the module to import them from.
 
-- `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
 - `@wildshard/kit/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
-- `@wildshard/kit/models/creatures`: `bear`, `boar`, `deer`
 - `@wildshard/kit/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`
 - `@wildshard/kit/npc/figureMotion`: `NpcFigureMotionProfile`, `npcFigurePose`, `NpcFigureState`, `stepNpcFigure`
 - `@wildshard/kit/npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigure`, `NpcFigureBones`, `NpcFigureFrame`, `NpcFigureRig`, `packNpcAtlases`
-- `@wildshard/kit/species/bear`: `BEAR`, `BEAR_TUNING`
-- `@wildshard/kit/species/boar`: `BOAR`, `BOAR_TUNING`
 - `@wildshard/kit/weapons/bow/family`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
 - `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`

@@ -14916,6 +14916,24 @@
         "from": "@wildshard/game/loot/ui/ShopPanel"
       },
       {
+        "name": "bear",
+        "kind": "const",
+        "doc": "black and brown bears, and their old ones",
+        "from": "@wildshard/game/models/creatures"
+      },
+      {
+        "name": "boar",
+        "kind": "const",
+        "doc": "wild boar: sows to the old boars, and the spawn-only variants a level asks for by name",
+        "from": "@wildshard/game/models/creatures"
+      },
+      {
+        "name": "deer",
+        "kind": "const",
+        "doc": "red deer: hinds, stags and their rare coats (the ghost stag, the great stag)",
+        "from": "@wildshard/game/models/creatures"
+      },
+      {
         "name": "carvedToken",
         "kind": "const",
         "doc": "",
@@ -17760,6 +17778,18 @@
         "from": "@wildshard/game/systems/audio/combatCues"
       },
       {
+        "name": "createForestAudio",
+        "kind": "function",
+        "doc": "Asset-free profile; installForestAmbience supplies the shared synth wind bed.",
+        "from": "@wildshard/game/systems/audio/forest"
+      },
+      {
+        "name": "installForestAmbience",
+        "kind": "function",
+        "doc": "A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime.",
+        "from": "@wildshard/game/systems/audio/forest"
+      },
+      {
         "name": "installSilentScore",
         "kind": "function",
         "doc": "Silence this score's output, preserving the user's volume setting and the other sound buses.",
@@ -18004,6 +18034,30 @@
         "kind": "const",
         "doc": "the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H)",
         "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "BEAR",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/bear"
+      },
+      {
+        "name": "BEAR_TUNING",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/bear"
+      },
+      {
+        "name": "BOAR",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/boar"
+      },
+      {
+        "name": "BOAR_TUNING",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/boar"
       },
       {
         "name": "BEAR_LOOK",
@@ -18440,18 +18494,6 @@
     ],
     "kit": [
       {
-        "name": "createForestAudio",
-        "kind": "function",
-        "doc": "Asset-free profile; installForestAmbience supplies the shared synth wind bed.",
-        "from": "@wildshard/kit/audio/forest"
-      },
-      {
-        "name": "installForestAmbience",
-        "kind": "function",
-        "doc": "A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime.",
-        "from": "@wildshard/kit/audio/forest"
-      },
-      {
         "name": "installStarterEffects",
         "kind": "function",
         "doc": "An optional entered installer retires observers and icons while statuses remain player-owned.",
@@ -18480,24 +18522,6 @@
         "kind": "const",
         "doc": "The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:",
         "from": "@wildshard/kit/items/declared"
-      },
-      {
-        "name": "bear",
-        "kind": "const",
-        "doc": "black and brown bears, and their old ones",
-        "from": "@wildshard/kit/models/creatures"
-      },
-      {
-        "name": "boar",
-        "kind": "const",
-        "doc": "wild boar: sows to the old boars, and the spawn-only variants a level asks for by name",
-        "from": "@wildshard/kit/models/creatures"
-      },
-      {
-        "name": "deer",
-        "kind": "const",
-        "doc": "red deer: hinds, stags and their rare coats (the ghost stag, the great stag)",
-        "from": "@wildshard/kit/models/creatures"
       },
       {
         "name": "faceHead",
@@ -18582,30 +18606,6 @@
         "kind": "function",
         "doc": "the five atlases in one texture (3 × 2 cells, flipY off like glTF): each figure's uv moved into its cell",
         "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "BEAR",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/species/bear"
-      },
-      {
-        "name": "BEAR_TUNING",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/species/bear"
-      },
-      {
-        "name": "BOAR",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/species/boar"
-      },
-      {
-        "name": "BOAR_TUNING",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/species/boar"
       },
       {
         "name": "Bow",

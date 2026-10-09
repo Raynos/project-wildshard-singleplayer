@@ -4,20 +4,15 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-74 members; 18 without a doc line (—).
+65 members; 14 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
-| `createForestAudio` | function | @wildshard/kit/audio/forest | Asset-free profile; installForestAmbience supplies the shared synth wind bed. |
-| `installForestAmbience` | function | @wildshard/kit/audio/forest | A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime. |
 | `installStarterEffects` | function | @wildshard/kit/effects/install | An optional entered installer retires observers and icons while statuses remain player-owned. |
 | `BAG_ICONS` | const | @wildshard/kit/icons | the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) |
 | `installKitIcons` | function | @wildshard/kit/icons | — |
 | `declaredKitItemFamilies` | function | @wildshard/kit/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |
 | `ITEM_VIEW_LIFT` | const | @wildshard/kit/items/declared | The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item: |
-| `bear` | const | @wildshard/kit/models/creatures | black and brown bears, and their old ones |
-| `boar` | const | @wildshard/kit/models/creatures | wild boar: sows to the old boars, and the spawn-only variants a level asks for by name |
-| `deer` | const | @wildshard/kit/models/creatures | red deer: hinds, stags and their rare coats (the ghost stag, the great stag) |
 | `faceHead` | function | @wildshard/kit/npc/faceHeads | — |
 | `FaceHead` | interface | @wildshard/kit/npc/faceHeads | — |
 | `loadFaceHead` | function | @wildshard/kit/npc/faceHeads | — |
@@ -32,10 +27,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `NpcFigureFrame` | interface | @wildshard/kit/npc/figureRig | a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) |
 | `NpcFigureRig` | interface | @wildshard/kit/npc/figureRig | — |
 | `packNpcAtlases` | function | @wildshard/kit/npc/figureRig | the five atlases in one texture (3 × 2 cells, flipY off like glTF): each figure's uv moved into its cell |
-| `BEAR` | const | @wildshard/kit/species/bear | — |
-| `BEAR_TUNING` | const | @wildshard/kit/species/bear | — |
-| `BOAR` | const | @wildshard/kit/species/boar | — |
-| `BOAR_TUNING` | const | @wildshard/kit/species/boar | — |
 | `Bow` | type | @wildshard/kit/weapons/bow/family | Compatibility name for the original starter Bow binding; all trusted callers share its identity. |
 | `BowInstance` | type | @wildshard/kit/weapons/bow/family | The one shared starter bow instance. |
 | `BowOptions` | type | @wildshard/kit/weapons/bow/family | Options for the trusted starter bow constructor. |

@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-797 members; 141 without a doc line (—).
+806 members; 145 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -218,6 +218,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShopOpts` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopPanel` | class | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopState` | type | @wildshard/game/loot/ui/ShopPanel | 'full': the buyer has no room for what the good gives (a full quiver) |
+| `bear` | const | @wildshard/game/models/creatures | black and brown bears, and their old ones |
+| `boar` | const | @wildshard/game/models/creatures | wild boar: sows to the old boars, and the spawn-only variants a level asks for by name |
+| `deer` | const | @wildshard/game/models/creatures | red deer: hinds, stags and their rare coats (the ghost stag, the great stag) |
 | `carvedToken` | const | @wildshard/game/models/pickups | — |
 | `carvedTokenGeometry` | function | @wildshard/game/models/pickups | a carved wooden token — lit batch: a wooden disc on edge, a burnt antler glyph on both faces, a bark rim |
 | `doubloon` | const | @wildshard/game/models/pickups | — |
@@ -692,6 +695,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `WaterSchema` | const | @wildshard/game/shardfile/water | Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. |
 | `CombatAudio` | interface | @wildshard/game/systems/audio/combatCues | Sound operations supplied by the owning mixer; the router allocates no audio resources. |
 | `sharedCombatCues` | function | @wildshard/game/systems/audio/combatCues | Shared synth fallback retains the methods which own today's literal sound tap ids. |
+| `createForestAudio` | function | @wildshard/game/systems/audio/forest | Asset-free profile; installForestAmbience supplies the shared synth wind bed. |
+| `installForestAmbience` | function | @wildshard/game/systems/audio/forest | A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime. |
 | `installSilentScore` | function | @wildshard/game/systems/audio/silentScore | Silence this score's output, preserving the user's volume setting and the other sound buses. |
 | `declaredWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. |
 | `sharedWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | The platform's default equipment voices; samples and synth blocks come from the level's mixer. |
@@ -733,6 +738,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `NpcRow` | interface | @wildshard/game/systems/npc/npcRig | — |
 | `rigLegs` | function | @wildshard/game/systems/npc/npcRig | place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node |
 | `WALK` | const | @wildshard/game/systems/npc/npcRig | the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H) |
+| `BEAR` | const | @wildshard/game/systems/species/bear | — |
+| `BEAR_TUNING` | const | @wildshard/game/systems/species/bear | — |
+| `BOAR` | const | @wildshard/game/systems/species/boar | — |
+| `BOAR_TUNING` | const | @wildshard/game/systems/species/boar | — |
 | `BEAR_LOOK` | const | @wildshard/game/systems/species/view/bear | — |
 | `BEAR_PALETTE` | const | @wildshard/game/systems/species/view/bear | Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown / |
 | `BOAR_LOOK` | const | @wildshard/game/systems/species/view/boar | — |
