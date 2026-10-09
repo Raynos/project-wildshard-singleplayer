@@ -31,7 +31,8 @@ import { boxDesc, type Piece } from '../registry';
 import type { Physics } from '../../physics/Physics';
 import type { GroupName } from '../../physics/groups';
 import { castSegment, lineOfSight } from '../../physics/query';
-import { overlapBox, type Body, type BodySpec } from '../../physics/bodies';
+import { overlapBox, type Body } from '../../physics/bodies';
+import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, type BarrelEnv } from './barrel';
 import { waterLevel } from '../Heightfield';
 import { test, type Flags } from './flags';
 import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
@@ -106,16 +107,7 @@ export class Live {
   }
 }
 
-const PROMPT_R = 2.5, TOUCH_R = 1.1, BARREL_R = 0.38, BARREL_HALF = 0.475, PLAYER_R = 0.35;
-/**
- * The puzzle barrel's body (PHYSICS P7-L1): a free cylinder, ~110 kg, never culled. It starts upright; the player's 80 kg
- * capsule walking into it tips it (grippy wood on sand: it tips before it slides), and on its side it rolls — across
- * the push, or down a slope steeper than ~3.5° (its rolling resistance, packed sand's); along its length it is shoved.
- */
-export const BARREL_BODY = {
-  shape: { cylinder: { radius: BARREL_R, halfHeight: BARREL_HALF } }, material: 'wood', density: 250, friction: 1.0,
-  angularDamping: 0.2, rolling: 0.06, keep: true,
-} as const satisfies Omit<BodySpec, 'owner'>;
+const PROMPT_R = 2.5, TOUCH_R = 1.1, PLAYER_R = 0.35;
 /** a plate feels what overlaps a slab this far inside its rim and this deep over it (feet, a barrel's base) */
 const PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
 const _m = new THREE.Matrix4(), _local = new THREE.Matrix4(), _c = new THREE.Color(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _v = new THREE.Vector3(), _e = new THREE.Euler();
@@ -161,73 +153,6 @@ const T = (x: number, y: number, z: number, out: THREE.Matrix4, rx = 0, ry = 0, 
   out.compose(_v.set(x, y, z), _q.setFromEuler(_e.set(rx, ry, rz)), _s.setScalar(s));
 };
 
-// ── the barrel never jams the puzzle (PHYSICS P7-L1) ─────────────────────────────────────────────────────────────────
-
-interface V3 { x: number; y: number; z: number }
-export interface BarrelEnv {
-  /** feet and the velocity the player is asking for (Player.velocity: what the input wants, even against a wall) */
-  player: { position: V3; velocity: V3 };
-  /** walkable floor height at (x, z): the highest platform, else the ground (the sea floor offshore) */
-  floorAt: (x: number, z: number) => number;
-  /** the still water level (the sea; a pond) */
-  water: () => number;
-  /** is (the barrel's centre) on or at a plate? — it is never sent home from there */
-  onPlate: (c: V3) => boolean;
-}
-
-/** lost: offshore (the ground under it this far under the water line), or this far under the floor (through the world) */
-export const BARREL_SEA_DEPTH = 0.3, BARREL_UNDER = 1.5;
-/** …for this long (s) */
-export const BARREL_LOST_T = 4;
-/** wedged: the player walks into it (within PUSH_R of its centre, asking ≥ PUSH_SPEED m/s at it) for this long (s) and
- *  it ends up less than WEDGE_MOVE m from where it was */
-export const BARREL_WEDGE_T = 4;
-const PUSH_R = BARREL_R + PLAYER_R + 0.4, PUSH_SPEED = 1, WEDGE_MOVE = 0.6, HOME_R = 1, PLATE_NEAR = 0.3;
-
-/**
- * When the puzzle barrel has to go home (PHYSICS P7-L1: it rolls now, so it can end up somewhere the puzzle can't use
- * it). `check` is called every frame with the body's centre and answers true when it must go, now:
- *   - past its leash (as before), at once;
- *   - lost — offshore, or under the world — for BARREL_LOST_T;
- *   - wedged — the player has been walking into it for BARREL_WEDGE_T and it got no further than WEDGE_MOVE (jammed in
- *     rocks, against a wall, on its end in a corner).
- * Never while it is at a plate (the puzzle is being solved) or at home (nothing to fix).
- */
-export class BarrelWatch {
-  lost = 0;
-  wedge = 0;
-  private readonly from = { x: 0, y: 0, z: 0 };
-
-  readonly home: V3;
-  readonly leash: number;
-  constructor(home: V3, leash: number) {
-    this.home = home;
-    this.leash = leash;
-  }
-
-  check(c: V3, dt: number, env: BarrelEnv): boolean {
-    const h = this.home, dx = c.x - h.x, dz = c.z - h.z, dy = c.y - BARREL_HALF - h.y;
-    if (dx * dx + dy * dy + dz * dz > this.leash * this.leash) return true;
-    if (dx * dx + dz * dz < HOME_R * HOME_R || env.onPlate(c)) { this.clear(); return false; }
-    const floor = env.floorAt(c.x, c.z);
-    this.lost = floor < env.water() - BARREL_SEA_DEPTH || c.y < floor - BARREL_UNDER ? this.lost + dt : 0;
-    const p = env.player.position, v = env.player.velocity;
-    const px = c.x - p.x, pz = c.z - p.z, pd = Math.hypot(px, pz);
-    const into = pd < PUSH_R && pd > 1e-3 && Math.abs(c.y - p.y) < 1.5 && (v.x * px + v.z * pz) / pd > PUSH_SPEED;
-    if (into) {
-      if (this.wedge === 0) { this.from.x = c.x; this.from.y = c.y; this.from.z = c.z; }
-      this.wedge += dt;
-      if (this.wedge >= BARREL_WEDGE_T) {
-        // a window of pushing: judged by where it got to, not by the jostling on the way (a pinned barrel rattles)
-        if (Math.hypot(c.x - this.from.x, c.y - this.from.y, c.z - this.from.z) < WEDGE_MOVE) return true;
-        this.wedge = 0;
-      }
-    } else this.wedge = Math.max(0, this.wedge - dt);
-    return this.lost > BARREL_LOST_T;
-  }
-
-  clear(): void { this.lost = 0; this.wedge = 0; }
-}
 
 export class Interactables {
   onEvent?: (e: InteractEvent) => void;
@@ -745,7 +670,7 @@ export class Interactables {
       floorAt: (x, z) => this.host.floorAt(x, z),
       water: () => waterLevel(),
       onPlate: (c) => this.lives.some((p) => p.def.kind === 'plate' && p.shown
-        && Math.hypot(c.x - p.position.x, c.z - p.position.z) < p.def.size / 2 + PLATE_NEAR && Math.abs(c.y - p.position.y) < 1.2),
+        && barrelAtPlate(c, p.position, p.def.size)),
     };
   }
 

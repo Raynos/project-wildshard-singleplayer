@@ -41,6 +41,13 @@ export interface MotorOptions {
   weight?: number;
 }
 
+/**
+ * The player's body law, one for the page's Player and the headless SimHost (SF72): a PLAYER capsule stopped by the
+ * world, creatures and ITEM bodies (the puzzle barrel, coconuts, which its 80 kg mass pushes), pressing 80 kg on a
+ * riding body. (PLAYER never meets PLAYER: groups.ts's filter.)
+ */
+export const PLAYER_BODY = { group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], weight: 80 } as const satisfies Pick<MotorOptions, 'group' | 'blockedBy' | 'weight'>;
+
 /** dynamic bodies a character rides like a kinematic one (feet pinned to it) and loads with its weight */
 const RIDEABLE = new WeakSet<RigidBody>();
 export function rideable(body: RigidBody): void { RIDEABLE.add(body); }

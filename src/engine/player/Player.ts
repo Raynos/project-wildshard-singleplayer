@@ -12,7 +12,7 @@ import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 import { getNumber } from '../ui/Settings';
 import { lockOn, targetRadius } from './AimTargets';
 import { addLockOffset } from './LockOnTarget';
-import { CharacterMotor } from '../physics/CharacterMotor';
+import { CharacterMotor, PLAYER_BODY } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import { addImpulse, decayImpulse } from './impulse';
 import { fallStep, groundedVelocity, hardLanding, landingCushion } from './fall';
@@ -234,7 +234,7 @@ export class Player {
     this.physics = physics;
     this.canvas = canvas;
     this.waterLine = views.waterLine ?? new WaterLine();
-    this.currentMotor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
+    this.currentMotor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, ...PLAYER_BODY, owner: this });
   }
 
   /** Bind an already committed local frame without respawning, advancing physics or clearing travel state. */

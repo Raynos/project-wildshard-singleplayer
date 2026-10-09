@@ -298,6 +298,7 @@
     "./world/geometryKit": "./world/geometryKit.ts",
     "./world/groundField": "./world/groundField.ts",
     "./world/interact/Interactables": "./world/interact/Interactables.ts",
+    "./world/interact/barrel": "./world/interact/barrel.ts",
     "./world/interact/flags": "./world/interact/flags.ts",
     "./world/interact/kit": "./world/interact/kit.ts",
     "./world/interact/types": "./world/interact/types.ts",

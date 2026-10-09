@@ -1,4 +1,4 @@
-import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
+import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider } from '@wildshard/engine/physics/surface';
@@ -66,9 +66,18 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * "The Sealed Ring" with the island's interactables at the page's baked points (`script` commands on `driftwood.interact`:
  * Wendell, the chest, the beacon, the hold key / pump / winch / strongbox, the shards, the plates and the sluice, the altar,
  * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).
- * Not yet owned (fail-closed, see the SF72 handoff): the puzzle barrel's body (the second tide plate), the night respawns,
- * and the entry proof; `finish` refuses.
+ * the puzzle barrel the player pushes onto the second tide plate (the kit's body and never-jam rule), and the open sluice.
+ * Not yet owned (fail-closed, see the SF72 handoff): the night respawns and the entry proof; `finish` refuses.
  */
+/** The walk the tick's last `player` command asks for (m/s): the host's walk (SimHost.step: the stick clamped to 1, times
+ * the level's speed), the velocity the page's Player asks for and the barrel's watch reads. */
+function walkOf(list: ReturnType<HeadlessRuntimeInstallation['commands']>, speed: number): { x: number; z: number } {
+  let x = 0, z = 0;
+  for (let i = 0; i < MAX_COMMANDS; i++) { const command = list[i]; if (command === undefined) break; if (command.kind === 'player') { x = command.moveX; z = command.moveZ; } }
+  const len = Math.hypot(x, z), k = len > 1 ? speed / len : speed;
+  return { x: x * k, z: z * k };
+}
+
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
@@ -94,7 +103,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
     // the quest and its interactables at the page's points: `script` commands on `driftwood.interact` (runtime/quest.ts)
     installDriftwoodQuest(host, { quests: shard.quests, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
-      floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); } });
+      floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); },
+      waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
   } };

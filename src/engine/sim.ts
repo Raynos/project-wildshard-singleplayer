@@ -11,7 +11,7 @@ import { canReach } from './ai/reach';
 import { CombatPipeline } from './combat/pipeline';
 import { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
-import { CharacterMotor, type MotorOptions } from './physics/CharacterMotor';
+import { CharacterMotor, PLAYER_BODY, type MotorOptions } from './physics/CharacterMotor';
 import { BodyBandClocks, creatureBodyDistance, creatureBodyShape, keepsCreatureBody, tickDistance, type BandsState } from './sim/bands';
 import type { TickRate } from './app/scheduler';
 import { addImpulse, decayImpulse } from './player/impulse';
@@ -292,8 +292,11 @@ export class SimHost {
     const spec = this.weapons.get(id);
     return spec === undefined ? [] : [{ ...spec, shape: { ...spec.shape }, tags: [...spec.tags] }];
   }
+  /** The player's capsule on the page's body law (PLAYER_BODY: ITEM bodies stop it and its 80 kg pushes them), a creature's
+   * on the page's creature filter. */
   private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
-    return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner });
+    const law = group === 'PLAYER' ? PLAYER_BODY : { group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'] as const };
+    return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, ...law, owner });
   }
   /** Opt into the page's distance bands for every body (SimBodyBands), once, before the first step; the installer runs
    * it again on a restoring host, before restore. The physics body LOD drops the bodies' host motors at once. */
