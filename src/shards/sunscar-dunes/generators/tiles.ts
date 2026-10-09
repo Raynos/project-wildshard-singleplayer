@@ -1,6 +1,6 @@
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
-import { SEED, TRAIL } from '../layout';
+import { SEED, TRAIL } from '../data/layout';
 import { duneHeight } from '../world/dunes';
 import { SIGNAL_DUNES_MINIMAP } from '../look/minimap';
 

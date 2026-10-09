@@ -14,7 +14,7 @@ import { installSignalMatriarch } from './matriarch';
 import { proveSignalEntries } from './entries';
 import { SIGNAL_SPAWNS } from '../data/spawns';
 import { MATRIARCH_ID } from '../combat/matriarchFight';
-import { BRAZIERS } from '../layout';
+import { BRAZIERS } from '../data/layout';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */

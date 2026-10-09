@@ -1,9 +1,9 @@
 import { Group, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
 import type { NpcDef } from '@wildshard/engine/quest/core';
 import { duneMesh, fit, without } from '../world/meshes';
-import { SPAWN } from '../layout';
+import { SPAWN } from '../data/layout';
 import { SCOUT_AT, SCOUT_FLAG } from '../data/flags';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../data/strings';
 
 /** She waves while the player is this close (metres) and has not talked to her yet, as Wendell does. */
 export const WAVE_RANGE = 16;

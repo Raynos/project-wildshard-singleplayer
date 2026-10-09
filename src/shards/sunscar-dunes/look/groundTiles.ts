@@ -9,7 +9,7 @@ import { jsonSlot } from '@wildshard/engine/saves/slots';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { developerToolsEnabled, runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import source from '../shard.config';
-import { SPAWN } from '../layout';
+import { SPAWN } from '../data/layout';
 
 /** A vertex's sand tint (linear RGB) at (x, z) and height h, written at `out[at..at+2]`: the painter's own hollow / crest tint. */
 export type SandTint = (x: number, z: number, h: number, out: Float32Array, at: number) => void;

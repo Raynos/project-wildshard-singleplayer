@@ -6,7 +6,7 @@ import { challengeGrazer } from '@wildshard/sdk/grazers';
 import { patrolDiver } from '@wildshard/sdk/flyers';
 import { RAY_BRAIN, STRIDER_BRAIN } from '../data/brains';
 import { SIGNAL_SPAWNS } from '../data/spawns';
-import { RAY_HOME, SEED } from '../layout';
+import { RAY_HOME, SEED } from '../data/layout';
 import { DUNE_RAY } from './species/duneRay';
 import { DUNE_STRIDER } from './species/strider';
 import { SKITTERER_DATA } from './species/skitterer';

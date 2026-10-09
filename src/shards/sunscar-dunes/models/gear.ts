@@ -8,8 +8,8 @@ import { striderSpecimen } from '../species/strider';
 import { rayGeometry } from '../species/duneRay';
 import { matriarchBody } from '../species/matriarch';
 import { scoutModelGroup } from '../quest/scout';
-import { CARAVAN, TOWER, WELL } from '../layout';
-import { STRINGS } from '../strings';
+import { CARAVAN, TOWER, WELL } from '../data/layout';
+import { STRINGS } from '../data/strings';
 
 const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
 /** C6: the caravan, the well, the brazier and the strider are Hunyuan3D-2 models (`art/sunscar-dunes/round-7-models/`), each with its code model as the stand-in. */

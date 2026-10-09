@@ -5,7 +5,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import * as v from 'valibot';
-import { STRINGS } from '../../strings';
+import { STRINGS } from '../../data/strings';
 import type { SimValue } from '@wildshard/engine/sim';
 
 const finite = v.pipe(v.number(), v.finite());

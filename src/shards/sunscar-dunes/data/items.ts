@@ -1,4 +1,4 @@
-import { STRINGS } from '../strings';
+import { STRINGS } from './strings';
 
 /** The whip's numbers' tags: what the lash's hits carry into the combat pipeline. */
 const TAGS = ['actor.player', 'weapon.sunscar-whip', 'dmg.melee'] as const;

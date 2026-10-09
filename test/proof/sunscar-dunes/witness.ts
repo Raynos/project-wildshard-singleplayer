@@ -20,7 +20,7 @@ import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/combat/matriarch
 import { lashContact } from '../../../src/shards/sunscar-dunes/weapons/lash';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
-import { BASIN } from '../../../src/shards/sunscar-dunes/layout';
+import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
 import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 
 /**

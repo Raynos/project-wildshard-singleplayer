@@ -8,7 +8,7 @@ import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { brazierFlag } from '../../../src/shards/sunscar-dunes/quest/brazierFlag';
+import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import { INTERACTIONS_STEP, SIGNAL_ACT, SIGNAL_INTERACT, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';

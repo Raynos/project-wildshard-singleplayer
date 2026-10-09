@@ -1,6 +1,6 @@
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { STRINGS } from '../../strings';
+import { STRINGS } from '../../data/strings';
 
 /** The flight numbers (metres, m/s, seconds). */
 export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, patrolR: 34, patrolAlt: 22, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;

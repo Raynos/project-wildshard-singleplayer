@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { FLAG } from '../data/flags';
-import { brazierFlag } from '../quest/brazierFlag';
+import { brazierFlag } from '../quests/brazierFlag';
 
 const saved = v.strictObject({ version: v.literal(1), raised: v.boolean(), fire: v.boolean(), braziers: v.array(v.strictObject({ oiled: v.boolean(), lit: v.boolean() })) });
 /** Actual well, oil, waymark and signal-fire rules, independent of their meshes and prompts. */

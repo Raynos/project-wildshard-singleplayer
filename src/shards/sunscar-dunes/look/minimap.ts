@@ -6,8 +6,8 @@
  * runtime engine import (the manifest imports this).
  */
 import type { MapOverlay, MapPoi, MinimapPalette } from '@wildshard/engine/ui/Minimap';
-import { BASIN, BRAZIERS, CARAVAN, RIDGES, TOWER, WELL } from '../layout';
-import { STRINGS } from '../strings';
+import { BASIN, BRAZIERS, CARAVAN, RIDGES, TOWER, WELL } from '../data/layout';
+import { STRINGS } from '../data/strings';
 
 type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number, out: RGB): RGB => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; return out; };

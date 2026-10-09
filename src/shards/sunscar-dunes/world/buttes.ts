@@ -1,7 +1,7 @@
 import { Box3, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry, type Object3D } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { GROUND_HALF, SEED } from '../layout';
+import { GROUND_HALF, SEED } from '../data/layout';
 import type { DuneHdName } from '../boot/files';
 import { Soup, type RGB, type V3 } from './dressing';
 import { duneHd } from './meshes';

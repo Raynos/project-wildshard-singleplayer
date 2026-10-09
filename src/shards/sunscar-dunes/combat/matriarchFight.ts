@@ -1,8 +1,8 @@
-import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';
+import type { BossDefinition, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { Vector3 } from 'three';
-import { BASIN } from '../layout';
-import { STRINGS } from '../strings';
+import { BASIN } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../quests/signal';
 
 /** Her declared boss row's id (data/spawns.ts `bosses`), her encounter's id and her saved actor's identity. */
@@ -21,14 +21,8 @@ export function matriarchDefinition(): BossDefinition {
       { at: 0.33, caption: STRINGS.phaseGrounded, name: STRINGS.phaseGrounded }], reward: {} };
 }
 
-/** The shard's flags as her record reads and writes them. */
-export interface MatriarchFlags { has: (flag: string) => boolean; set: (flag: string) => void }
-/** Her record (SF50-p: no save of her own): beaten and paid are the shard's flags. */
-export function matriarchFlagRecord(flags: MatriarchFlags): { saved: BossSaved; persist: (value: BossSaved) => void } {
-  const defeated = flags.has(MATRIARCH_DEFEATED_FLAG);
-  return { saved: { defeated, rewardTaken: flags.has(MATRIARCH_PAID_FLAG), kills: defeated ? 1 : 0 },
-    persist: (value) => { if (value.defeated) flags.set(MATRIARCH_DEFEATED_FLAG); if (value.rewardTaken) flags.set(MATRIARCH_PAID_FLAG); } };
-}
+/** Her record's flags (SF50-p: no save of her own; `bossFlagRecord` keeps beaten and paid on the shard's flags). */
+export const MATRIARCH_RECORD = { defeated: MATRIARCH_DEFEATED_FLAG, paid: MATRIARCH_PAID_FLAG } as const;
 
 /** Her body: the declared boss row, spawned fresh at every reset (the previous body retired first). */
 export interface MatriarchBody<A extends AnimalSim> { spawn: (previous: A | undefined) => A | null; retire: (actor: A) => void }

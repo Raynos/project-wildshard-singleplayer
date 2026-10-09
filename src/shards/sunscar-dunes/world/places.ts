@@ -5,7 +5,7 @@ import { BoxGeometry, BufferGeometry, CapsuleGeometry, CylinderGeometry, DataTex
 import { Rng } from '@wildshard/engine/core/rng';
 import { rock } from '@wildshard/engine/world/geometryKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { CARAVAN, SEED, WELL } from '../layout';
+import { CARAVAN, SEED, WELL } from '../data/layout';
 import { WIND } from './dunes';
 import { duneHd, duneMaterial, duneMesh, fit, smoothColors, warmByFire, without } from './meshes';
 

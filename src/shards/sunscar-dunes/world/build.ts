@@ -3,8 +3,8 @@ import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { BRAZIERS, TOWER } from '../layout';
-import { STRINGS } from '../strings';
+import { BRAZIERS, TOWER } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
@@ -14,7 +14,7 @@ import { buildButtes } from './buttes';
 import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
-import { brazierFlag } from '../quest/brazierFlag';
+import { brazierFlag } from '../quests/brazierFlag';
 
 /** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
 export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }

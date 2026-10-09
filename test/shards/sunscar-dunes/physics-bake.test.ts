@@ -5,7 +5,7 @@ import { signalPhysicsInputs } from '../../../scripts/signal-physics-inputs.mjs'
 import baked from '../../../src/shards/sunscar-dunes/runtime/physics.baked.json';
 import { SIGNAL_SPAWNS } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { Rng } from '../../../src/engine/core/rng';
-import { SEED } from '../../../src/shards/sunscar-dunes/layout';
+import { SEED } from '../../../src/shards/sunscar-dunes/data/layout';
 import { DUNE_RAY } from '../../../src/shards/sunscar-dunes/runtime/species/duneRay';
 import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/runtime/species/strider';
 import { SKITTERER_DATA } from '../../../src/shards/sunscar-dunes/runtime/species/skitterer';

@@ -4,7 +4,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
 import { rock } from '@wildshard/engine/world/geometryKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../layout';
+import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../data/layout';
 import { WIND } from './dunes';
 
 /**

@@ -1,4 +1,4 @@
-import { BASIN, PACKS, RAY_HOME, STRIDERS } from '../layout';
+import { BASIN, PACKS, RAY_HOME, STRIDERS } from './layout';
 
 /** Seconds after a creature falls before its home spawns it again. */
 export const RESPAWN = { duneRay: 25, sandSkitterer: 50, duneStrider: 70 } as const;

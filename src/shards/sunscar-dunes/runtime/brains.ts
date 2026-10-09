@@ -8,7 +8,7 @@ import { DUNE_RAY, SWOOP } from './species/duneRay';
 import { SAND_SKITTERER } from '../species/skitterer';
 import { slot } from './species/skitterer';
 import { DUNE_MATRIARCH } from '../species/matriarch';
-import { RAY_HOME } from '../layout';
+import { RAY_HOME } from '../data/layout';
 
 type Actor = Parameters<NonNullable<typeof DUNE_STRIDER.think>>[0];
 type Context = Parameters<NonNullable<typeof DUNE_STRIDER.think>>[1];

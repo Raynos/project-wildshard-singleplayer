@@ -4,7 +4,7 @@ import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { Vector3 } from 'three';
-import { RAY_HOME } from '../../../src/shards/sunscar-dunes/layout';
+import { RAY_HOME } from '../../../src/shards/sunscar-dunes/data/layout';
 
 /** The flight numbers (metres, m/s, seconds). */
 export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, patrolR: 34, patrolAlt: 22, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;

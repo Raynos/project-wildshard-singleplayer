@@ -6,8 +6,8 @@ import { expect, it } from 'vitest';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { SignalInteractions } from '../../../src/shards/sunscar-dunes/runtime/interactions';
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { BRAZIERS } from '../../../src/shards/sunscar-dunes/layout';
-import { brazierFlag } from '../../../src/shards/sunscar-dunes/quest/brazierFlag';
+import { BRAZIERS } from '../../../src/shards/sunscar-dunes/data/layout';
+import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
 
 const fresh = (): { flags: Flags; rules: SignalInteractions; order: string[] } => {
   const flags = new Flags('test:sunscar-interactions', false), order: string[] = [];

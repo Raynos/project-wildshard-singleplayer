@@ -2,7 +2,7 @@ import { DUSK, fillAt, keyAt } from './dusk';
 import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { GROUND_HALF, SEED, TRAIL } from '../layout';
+import { GROUND_HALF, SEED, TRAIL } from '../data/layout';
 import { duneHeight, WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';

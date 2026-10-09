@@ -15,7 +15,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `status`, `order` | `experimental`, 50 |
 | `style`, `kitLook` | `dusk`, `pbr` |
 | `uses` | `quests`, `coins`, `loot`, `hover` |
-| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
+| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`data/layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
 | `horizon`, `boundary` | two low dune rings in shadowed sand; no cloud sea; the drawn edge hidden (containment stays) |
 | `loadout` | the bullwhip (held) and the kit hoverboard |
 | `species` | `duneRay` (flying), `sandSkitterer` (burrowing packs), `duneStrider` (charger), `duneMatriarch` (the boss, flying): each its own brain |
@@ -31,7 +31,7 @@ alone (E357 Z3, round 4). No engine edits.
 | File | What |
 |---|---|
 | `plugin.ts` | the three hooks; `buildEquipment` builds the whip; `play` installs the creatures, the quest and the Matriarch |
-| `layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
+| `data/layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
 | `world/places.ts`, `world/rocks.ts` | the half-buried caravan (logbook), the dry well (stone ring, windlass crank, bucket, oil jar), the waymark braziers; the yardangs, boulders and scrub as three `InstancedMesh` |
 | `world/meshes.ts`, `boot/files.ts` | C6: the generated models load once in the `world` hook (and before the roster); each builder uses its GLB when it loaded and its code model otherwise. The well's generated bucket and crank are cut away (the code ones animate); the strider's facets bind rigidly to its seven bones (legs per quadrant). Recipe: `art/sunscar-dunes/round-7-models/props.json` |
 | `data/spawns.ts`, `combat/creatures.ts` | the homes (a ray, 10 skitterers in three packs, two striders, `sunscar.home:<index>`) and the Matriarch's body as declared rows (`runtime.spawns`); the platform keeps them (`bindRuntimeHomes`: one creature per home, refilled after it falls), the runtime dresses each body |

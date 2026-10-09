@@ -1,5 +1,6 @@
 {
   "why": "Signal Dunes' map as flat dune sand in its dusk oranges (G252, Jake's pick B): the sand in three tones with a strong hillshade from the height pass so the dunes read, the long shadows folded into a darker sand; the signal posts raised with an edge and a shadow",
+  "inputs": ["shard.config.ts", "data/layout.ts", "world", "generators", "models"],
   "style": {
     "kind": "ground",
     "smooth": 9,

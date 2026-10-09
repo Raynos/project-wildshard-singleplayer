@@ -6,15 +6,16 @@ import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import { bossesSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeBoss, bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
+import { bossFlagRecord } from '@wildshard/game/shardfile/bossRow';
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
-import { BASIN } from '../layout';
-import { STRINGS } from '../strings';
+import { BASIN } from '../data/layout';
+import { STRINGS } from '../data/strings';
 import { BASIN_FLOOR } from '../world/dunes';
 import { stormMaterial } from '../world/stormFx';
 import { lastLightAll } from '../look/light';
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../quests/signal';
 import source from '../shard.config';
-import { MATRIARCH_ID, MATRIARCH_REWARD, matriarchDefinition, matriarchFight, matriarchFlagRecord } from './matriarchFight';
+import { MATRIARCH_ID, MATRIARCH_REWARD, matriarchDefinition, matriarchFight, MATRIARCH_RECORD } from './matriarchFight';
 import type { SignalWorld } from '../world/build';
 
 type Flags = SignalWorld['flags'];
@@ -27,7 +28,7 @@ export function matriarchRecord(ctx: Pick<ShardContext, 'manifest'>, flags: Flag
   const legacy = shardSave(bossesSave, ctx.manifest.slug).read()[MATRIARCH_ID];
   if (legacy?.defeated === true) flags.set(MATRIARCH_DEFEATED_FLAG);
   if (legacy?.rewardTaken === true) flags.set(MATRIARCH_PAID_FLAG);
-  return matriarchFlagRecord(flags);
+  return bossFlagRecord(flags, MATRIARCH_RECORD);
 }
 /**
  * The sand storm of phase II, over `STORM_FADE` seconds: a weather fog (E390, `weatherFog`) of `dist` per metre closes in

@@ -1,6 +1,6 @@
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { STRINGS } from '../../strings';
+import { STRINGS } from '../../data/strings';
 
 /** The strider's numbers (metres, m/s, seconds). */
 export const STRIDE = { notice: 24, charge: 17, walk: 1.1, approach: 2.4, homeR: 16, lose: 40, face: 0.7 } as const;

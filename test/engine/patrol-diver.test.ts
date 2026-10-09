@@ -7,7 +7,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { DUNE_RAY } from '../../src/shards/sunscar-dunes/runtime/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
 import { DuneRayBrain, SWOOP, RAY } from '../fixtures/flight-oracle/patrol';
-import { RAY_HOME } from '../../src/shards/sunscar-dunes/layout';
+import { RAY_HOME } from '../../src/shards/sunscar-dunes/data/layout';
 import { creature } from '../fake/creature';
 
 registerSpecies(speciesWithLook(DUNE_RAY, DUNE_RAY_LOOK));

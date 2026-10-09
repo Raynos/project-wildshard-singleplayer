@@ -12,7 +12,7 @@ import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../../../src/game/sh
 import { bindRuntimeTerrain } from '../../../src/game/shardfile/runtimeWorld';
 import { parseShardfile } from '../../../src/game/shardfile/schema';
 import { signalDunesTiles } from '../../../src/shards/sunscar-dunes/generators/tiles';
-import { SEED, SPAWN, TOWER, TRAIL } from '../../../src/shards/sunscar-dunes/layout';
+import { SEED, SPAWN, TOWER, TRAIL } from '../../../src/shards/sunscar-dunes/data/layout';
 import { duneHeight } from '../../../src/shards/sunscar-dunes/world/dunes';
 import tiles from '../../../src/shards/sunscar-dunes/data/tiles.json' with { type: 'json' };
 import source from '../../../src/shards/sunscar-dunes/shard.config';
