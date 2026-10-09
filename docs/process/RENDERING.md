@@ -76,7 +76,7 @@ unresident clone without upload data. Cache presence alone does not prove GPU re
   scripts/bake-navmesh.mjs`; `--check` tells you when it's stale).
 - **Moving things** go in the fixed step: a system in phase `'fixed.pre'`, `'fixed.step'` or `'fixed.post'`
   (`ctx.system` in a shard; 60 Hz, hit-stop slows it), interpolated with `game.alpha`. Dynamic bodies go through
-  `activeBodies` (`@wildshard/engine/physics/bodies`), which enforces the per-tier caps (phone 40 awake /
+  `activeBodies` (`@wildshard/engine/physics/active`; the service is `@wildshard/engine/physics/bodies`), which enforces the per-tier caps (phone 40 awake /
   2 ragdolls).
 
 ## Traps that already cost hours

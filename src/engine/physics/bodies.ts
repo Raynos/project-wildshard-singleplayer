@@ -23,9 +23,7 @@ import type { Physics } from './Physics';
 import { groups, type GroupName } from './groups';
 import { tagCollider, untagCollider, type Material } from './surface';
 import { overlapBox as queryOverlapBox } from './overlap';
-import { TIER } from '../core/tier';
 import { floorBelow } from './query';
-import { app } from '../app/runtime';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
@@ -197,11 +195,12 @@ export class Bodies {
   private clock: FixedClock | null = null;
   private readonly order: Body[] = [];
 
-  /** `focus`: the point the cap keeps bodies near (the player's feet, a live reference) */
+  /** `focus`: the point the cap keeps bodies near (the player's feet, a live reference); `cap` defaults to the phone's
+   *  (bootstrap passes the device tier's). Renderer-free: a headless runtime runs its own service over its host's world. */
   readonly focus: Vec3;
 
   readonly physics: Physics;
-  constructor(physics: Physics, focus?: Vec3, cap: number = BODY_CAP[TIER]) {
+  constructor(physics: Physics, focus?: Vec3, cap: number = BODY_CAP.phone) {
     this.physics = physics;
     this.focus = focus ?? { x: 0, y: 0, z: 0 };
     this.cap = cap;
@@ -385,6 +384,3 @@ export class Drop {
   }
 }
 
-/** bootstrap sets the shard's body service once the world is built; null before that and in node tests */
-export function setActiveBodies(b: Bodies | null): Bodies | null { app.bodies = b; return b; }
-export function activeBodies(): Bodies | null { return app.bodies; }

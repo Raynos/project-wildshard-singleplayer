@@ -19,10 +19,10 @@ import type { StepRunner } from '../boot/plan';
 import { needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
-import { setActivePhysics } from '../physics/active';
+import { setActiveBodies, setActivePhysics } from '../physics/active';
 import { loadNavmesh } from '../physics/navmeshLoad';
 import { setRagdollClock } from '../physics/ragdoll';
-import { Bodies, setActiveBodies } from '../physics/bodies';
+import { Bodies, BODY_CAP } from '../physics/bodies';
 import { addEdgeWalls, addTerrain } from '../physics/terrain';
 import { addPiece } from '../physics/pieces';
 import type { WorldRegistry } from '../world/registry';
@@ -110,7 +110,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   if (inputContexts.length > 0) installGameplayInput(player, canvas, game.levelScope, inputContexts);
   app.input.buffer.ms = level.fight.input?.bufferMs ?? 120;
   player.coyoteMs = level.fight.input?.coyoteMs ?? 100;
-  setActiveBodies(new Bodies(physics, player.position).attach(game)); // PHYSICS P7: items as bodies (src/engine/physics/bodies.ts), stepped in the fixed phases, capped near the player
+  setActiveBodies(new Bodies(physics, player.position, BODY_CAP[TIER]).attach(game)); // PHYSICS P7: items as bodies (src/engine/physics/bodies.ts), stepped in the fixed phases, capped near the player
   // the registry's listeners: a registered piece is drawn, collides, and (until P4 / P3) lends the player its floor
   const registry = app.registry; // the one list of built things: scene, physics, floors and Explore's catalog read it
   const moving: (() => void)[] = []; // pieces that follow a moving object (the boat): posed every fixed step

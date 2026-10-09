@@ -7,15 +7,13 @@ import { worldTime } from '@wildshard/engine/core/time';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
-import type { Body, BodySpec } from '@wildshard/engine/physics/bodies';
-import { groups } from '@wildshard/engine/physics/groups';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { PalmSpec } from '../world/Palms';
 import { WRECK } from '../manifest';
 import { enemyCount, DRIFTWOOD_PRACTICE } from './tables';
-import { DRIFTWOOD_STRIKES } from '../combat/strikes';
+import { COCONUT_R, COCONUTS, Coconuts } from '../combat/coconuts';
 import { preloadSailorHead } from '../species/sailor';
 
 /**
@@ -60,27 +58,16 @@ export interface EnemiesOpts {
 
 const { delay: PRACTICE_BACK, away: PRACTICE_AWAY } = DRIFTWOOD_PRACTICE.respawn;
 
-const COCONUTS = 16, COCONUT_R = 0.13, G = 9.81, REST_T = 4, MAX_AGE = 16;
-/** a knock this hard (m/s of velocity change) in flight is the landing */
-const LAND_IMPACT = 1.5;
-/** below this speed (m/s) a landed coconut counts as resting */
-const REST_SPEED = 0.15;
-const DEBRIS_GROUPS = groups('DEBRIS');
+const G = 9.81;
 /** the sea surface a coconut floats on: the still level + the swell, where the ground is under water */
 const seaSurface = (x: number, z: number): number | undefined => {
   const lvl = waterLevel();
   if (heightAt(x, z) >= lvl) return undefined;
   return lvl + waveHeight(x, z);
 };
-/** a coconut's body (PHYSICS P7): a light ball that bounces a little, rolls (its spin damped so it stops on the flat) and
- *  floats (lighter than water); DEBRIS in flight; removed, not frozen, when the body cap is full */
-export const COCONUT_BODY = {
-  shape: { ball: COCONUT_R }, material: 'wood', group: 'DEBRIS', density: 650, friction: 0.7, restitution: 0.35,
-  angularDamping: 3, ccd: true, expendable: true, float: { surface: seaSurface, buoyancy: 1.6, drag: 1.5 },
-} as const satisfies Omit<BodySpec, 'owner'>;
 const DROPS = 240;
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _e = new THREE.Euler();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
 
 export class Enemies {
   group = new THREE.Group();
@@ -89,12 +76,18 @@ export class Enemies {
   private rng = new Rng(SEED ^ 0xe11e);
   private coconutMesh: THREE.InstancedMesh | null = null;
   private get coconuts(): THREE.InstancedMesh { if (this.coconutMesh === null) throw new Error('Enemies not built'); return this.coconutMesh; }
-  private cBody: (Body | null)[] = [];
-  private cState = new Int8Array(COCONUTS);     // 0 free, 1 flying, 2 landed
-  private cRest = new Float32Array(COCONUTS);   // seconds at rest (landed)
-  private cAge = new Float32Array(COCONUTS);
-  private cThrower: (Animal | null)[] = [];
-  private cNext = 0;
+  /** the coconuts' bodies and rules (combat/coconuts.ts, shared with the renderer-free runtime); this draws them */
+  private readonly volley = new Coconuts<Animal>({
+    bodies: () => app.bodies, rng: this.rng, surface: seaSurface, owner: this,
+    hit: (th, amount, moveId) => {
+      if (app.player !== null) app.combat.hit({
+        source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: app.player,
+        amount, moveId, point: th.position.clone(), dir: new THREE.Vector3(), cause: { kind: th.kind, label: th.label },
+      });
+    },
+    sound: (name, at) => { this.animals.onSound?.(name, at); },
+    splash: (at, strength) => { this.splash(at, strength); },
+  });
   /** the splash droplets (E357 X5: on the one ParticlePool) */
   private dropPool: ParticlePool | null = null;
   private get drops(): ParticlePool { if (this.dropPool === null) throw new Error('Enemies not built'); return this.dropPool; }
@@ -116,10 +109,7 @@ export class Enemies {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    for (let k = 0; k < this.cBody.length; k++) {
-      const body = this.cBody[k]; if (body !== null && body !== undefined) app.bodies?.remove(body);
-      this.cBody[k] = null; this.cState[k] = 0;
-    }
+    this.volley.dispose();
     for (const actor of this.spawned) this.animals.retire(actor);
     this.spawned.clear(); this.group.removeFromParent();
     if (this.opts.scope === undefined) {
@@ -154,7 +144,7 @@ export class Enemies {
       this.coconutMesh = new THREE.InstancedMesh(g, mat, COCONUTS);
       opts.scope?.own(this.coconuts);
       this.coconuts.castShadow = true; this.coconuts.frustumCulled = false;
-      for (let i = 0; i < COCONUTS; i++) { this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0)); this.cThrower.push(null); this.cBody.push(null); }
+      for (let i = 0; i < COCONUTS; i++) this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0));
       this.coconuts.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       this.group.add(this.coconuts);
     }
@@ -271,37 +261,7 @@ export class Enemies {
   // ── projectiles + fx ───────────────────────────────────────────────────────────────────
 
   /** lob a coconut from `from` to land on `to` in 0.8–1.5 s (the flight time grows with the range) */
-  throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void {
-    const bodies = app.bodies;
-    if (bodies === null) return;
-    const k = this.cNext; this.cNext = (this.cNext + 1) % COCONUTS;
-    this.freeCoconut(k);
-    const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
-    const T = THREE.MathUtils.clamp(Math.hypot(dx, dz) / 9, 0.8, 1.5);
-    const spin = this.rng.range(0, 6.28);
-    _q.setFromEuler(_e.set(spin, spin * 0.7, 0));
-    const spec: BodySpec = {
-      ...COCONUT_BODY, owner: this,
-      onRemoved: (b) => { if (this.cBody[k] === b) { this.cBody[k] = null; this.cState[k] = 0; this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0)); this.coconuts.instanceMatrix.needsUpdate = true; } },
-    };
-    const b = bodies.spawn(spec, from, { x: dx / T, y: dy / T + 0.5 * G * T, z: dz / T }, _q);
-    b.rb.setAngvel({ x: this.rng.range(-7, 7), y: this.rng.range(-3, 3), z: this.rng.range(-7, 7) }, true);
-    this.cBody[k] = b; this.cState[k] = 1; this.cRest[k] = 0; this.cAge[k] = 0; this.cThrower[k] = thrower;
-  }
-
-  /** take slot `k`'s coconut out of the world */
-  private freeCoconut(k: number): void {
-    const b = this.cBody[k];
-    this.cBody[k] = null; this.cState[k] = 0;
-    if (b) app.bodies?.remove(b);
-    this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));
-  }
-
-  /** a flying coconut came down: from now on the player nudges it and plates feel it */
-  private land(k: number, b: Body): void {
-    this.cState[k] = 2; this.cRest[k] = 0;
-    b.setGroup('ITEM');
-  }
+  throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void { this.volley.throw(from, to, thrower); }
 
   /** a burst of water droplets at `at` (strength 1 = the sailor surfacing) */
   splash(at: THREE.Vector3, strength = 1): void {
@@ -322,46 +282,12 @@ export class Enemies {
     this.playerPos.copy(playerPos);
     if (this.disposed) return;
     this.tickPractice(dt, playerPos);
-    // ── coconuts: their bodies fly, bounce, roll and float in the physics world; this reads them ──
-    const bodies = app.bodies;
-    let dirty = false;
-    for (let k = 0; k < COCONUTS; k++) {
-      const st = this.cState[k], b = this.cBody[k];
-      if (!st || b === null || b === undefined || bodies === null) continue;
-      dirty = true;
-      b.pose(bodies.alpha, _v, _q);
-      const age = (this.cAge[k] ?? 0) + dt; this.cAge[k] = age;
-      if (st === 1) {
-        // the player: feet → head segment
-        const cy = THREE.MathUtils.clamp(_v.y, playerPos.y, playerPos.y + 1.75);
-        if ((_v.x - playerPos.x) ** 2 + (cy - _v.y) ** 2 + (_v.z - playerPos.z) ** 2 < 0.45 * 0.45) {
-          const th = this.cThrower[k];
-          if (th !== null && th !== undefined && app.player !== null) app.combat.hit({
-            source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: app.player,
-            amount: DRIFTWOOD_STRIKES.coconut.damage, moveId: DRIFTWOOD_STRIKES.coconut.id,
-            point: th.position.clone(), dir: new THREE.Vector3(), cause: { kind: th.kind, label: th.label },
-          });
-          this.animals.onSound?.('coconut_hit', _v);
-          const vel = b.rb.linvel();
-          b.launch({ x: vel.x * -0.2, y: 1.5, z: vel.z * -0.2 });   // bounces off you (still DEBRIS: it is inside your capsule)
-          this.cState[k] = 2; this.cRest[k] = 0;
-          continue;
-        }
-        if (b.takeImpact() > LAND_IMPACT || b.wet > 0 || age > 3) {
-          if (age <= 3) this.animals.onSound?.('coconut_land', _v);
-          if (b.wet > 0) this.splash(_v, 0.3);
-          this.land(k, b);
-        }
-      } else {
-        if (b.collider.collisionGroups() === DEBRIS_GROUPS && Math.hypot(_v.x - playerPos.x, _v.z - playerPos.z) > 0.8) b.setGroup('ITEM'); // clear of you after a bounce
-        const rest = b.rb.isSleeping() || b.speed < REST_SPEED;
-        this.cRest[k] = rest ? (this.cRest[k] ?? 0) + dt : 0;
-        if ((this.cRest[k] ?? 0) > REST_T || age > MAX_AGE) { this.freeCoconut(k); continue; }
-      }
-      _m.compose(_v, _q, _s.set(1, 1, 1));
-      this.coconuts.setMatrixAt(k, _m);
-    }
-    if (dirty) this.coconuts.instanceMatrix.needsUpdate = true;
+    // ── coconuts: their bodies fly, bounce, roll and float in the physics world; the volley reads them, this draws them ──
+    const drew = this.volley.step(dt, app.bodies?.alpha ?? 1, playerPos, (k, at, rot) => {
+      if (at === null) this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));
+      else this.coconuts.setMatrixAt(k, _m.compose(at, rot, _s.set(1, 1, 1)));
+    });
+    if (drew) this.coconuts.instanceMatrix.needsUpdate = true;
     // ── droplets ──
     if (this.dActive) {
       const rdt = worldTime.realDt || dt; // droplets keep falling through a hit-stop

@@ -2,8 +2,7 @@ import { afterEach, expect, it } from 'vitest';
 import { App } from '../../src/engine/app/app';
 import { app } from '../../src/engine/app/runtime';
 import { activeRegistry, WorldRegistry } from '../../src/engine/world/registry';
-import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
-import { activeBodies, setActiveBodies } from '../../src/engine/physics/bodies';
+import { activeBodies, activePhysics, setActiveBodies, setActivePhysics } from '../../src/engine/physics/active';
 import { activeNavmesh, setActiveNavmesh } from '../../src/engine/physics/navmeshLoad';
 
 afterEach(() => { app.registryValue = null; setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null); });

@@ -8,12 +8,15 @@ import { ATTACK_TURN, HuntBrain, type HuntBody, type HuntGround, type HuntMemory
 import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
 import { EntityIds } from '@wildshard/engine/entities/ids';
+import { Bodies } from '@wildshard/engine/physics/bodies';
+import { waveHeight } from '@wildshard/engine/world/waves';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { CRAB } from '../species/crab';
 import { SAILOR } from '../species/sailor';
 import { MONKEY_VARIANTS } from '../species/monkeyVariants';
 import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
+import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { placeEnemies, PRACTICE_AT } from './placement';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake } from './baked';
@@ -69,7 +72,12 @@ const Point = v.tuple([finite, finite, finite]);
 const Memory = v.strictObject({ timer: finite, tx: finite, tz: finite, fleeT: finite, fleeUntil: finite, chargeCd: finite, callT: finite, awareness: finite,
   freeze: finite, spooked: v.boolean(), wary: finite, sensed: v.boolean(), windup: finite, backoff: finite, side: finite, committed: v.boolean(),
   path: v.array(Point), pathI: finite, goalX: finite, goalZ: finite, repathAt: finite });
-const Saved = v.strictObject({ version: v.literal(2), rng: Stream,
+const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), state: v.picklist([1, 2]), rest: finite, age: finite,
+  thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(BODY_COUNT - 1)), handle: finite, wet: finite });
+/** a coconut collider's owner tag (plain data: the host's snapshot encodes collider owners) */
+const COCONUT_OWNER = { kind: 'coconut' } as const;
+const Saved = v.strictObject({ version: v.literal(3), rng: Stream,
+  coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])), clocks: v.array(v.tuple([finite, finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
@@ -101,14 +109,17 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  * shipping policies (runtime/enemyBrains.ts) and strike every tick, steering and confined through the hunting brain over
  * the island (the baked floor, its normals, the open sea, no trees, no cabins). Every body holds the manager's two E297
  * attack tokens (swept when an attack is over). The practice crab comes back 45 s after it dies once the player is 30 m
- * off, after its 1.5 s shell fade: a fresh body in its slot (the manager's next entity id, six more draws), a new herd of one. Restore
- * reinstalls exactly the saved roster from its recipes before the host restores, with no stream draw kept.
+ * off, after its 1.5 s shell fade: a fresh body in its slot (the manager's next entity id, six more draws), a new herd of one. A
+ * monkey's throw releases a real coconut (combat/coconuts.ts, the browser's own rules) into the host's world through a
+ * body service stepped around the host's world step; the continuation keeps each live slot and its native handle, and the
+ * restored world's bodies are adopted back by handle. Restore reinstalls exactly the saved roster from its recipes before
+ * the host restores, with no stream draw kept.
  *
  * Known differences from the browser (the SF72 handoff): every body's physics steps every tick (the host owns the bodies;
  * the browser halves them 60–160 m out and pauses them beyond); a charge's contact is tested at the start of the next
  * tick, against the player where the charging tick saw it (the host steps bodies after its systems), so its knockback
  * starts one tick later; no 'target.attack' / 'target.dodge' wakes (no weapon or dodge is owned yet); no player
- * push-out (`clearBody`); a monkey's coconut releases nothing.
+ * push-out (`clearBody`); the coconuts float on the swell at the host clock (the browser's ocean clock starts with its view).
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
@@ -141,9 +152,27 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     ground, nav: () => ports.nav, reach, wanderGoal: () => null, unaware: () => false,
     now: () => host.clock.now * 1000, sound: () => undefined, charge,
   }, player);
-  const habitat = bake.habitat, world = {
+  const habitat = bake.habitat;
+  const placed = placeEnemies({ seed: ports.seed, crabSites: habitat.crabSites, palms: habitat.perchBases, heightAt, waterLevel: ports.waterLevel });
+  // the coconuts (combat/coconuts.ts, as Enemies.ts throws them): bodies in the host's world, spun from the placement
+  // stream past placement, floating on the sea's swell at the host's clock; a hit is the thrower's blow on the player
+  let service = new Bodies(host.physics, player);
+  const volley = new Coconuts<HuntBody>({
+    bodies: () => service, rng: placed.stream, owner: COCONUT_OWNER,
+    surface: (x, z) => heightAt(x, z) >= ports.waterLevel ? undefined : ports.waterLevel + waveHeight(x, z, host.clock.now),
+    hit: (th, amount, moveId) => {
+      host.combat.hit({ source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: host.player.health, amount, moveId,
+        point: th.position.clone(), dir: new Vector3(), cause: { kind: th.kind, label: th.label } });
+    },
+    // the hit / landing voices and the splash are presentation
+    sound: () => undefined, splash: () => undefined,
+  });
+  let reattach: (() => void) | null = null;
+  const world = {
     perches: habitat.perches.map(p => new Vector3(p.x, p.y, p.z)), perchBases: habitat.perchBases.map(p => new Vector3(p.x, p.y, p.z)),
     hold: { x: habitat.hold.x, z: habitat.hold.z, r: habitat.hold.r, guardR: habitat.hold.guardR, floorAt: bake.holdFloorAt },
+    // a monkey's lob releases a real coconut from the volley
+    throwCoconut: (from: Vector3, to: Vector3, thrower: HuntBody): void => { volley.throw(from, to, thrower); },
   };
   const brainPorts = { host, hunt, rng, world, heightAt, waterLevel: ports.waterLevel };
   const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const, under = { structure: false };
@@ -184,7 +213,6 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   };
   const fauna = bake.actors.filter(actor => actor.kind === 'boar' || actor.kind === 'bear');
   const herdBase = new Set(fauna.map(actor => actor.herd)).size;
-  const placed = placeEnemies({ seed: ports.seed, crabSites: habitat.crabSites, palms: habitat.perchBases, heightAt, waterLevel: ports.waterLevel });
   // the fauna's spawns, yaws and herd centres as the anchor searches drew them off the creature stream (runtime/fauna.ts)
   const stream = faunaPlacement(ports.seed, fauna);
   if (stream.draws !== FAUNA_DRAWS || stream.centres.length !== herdBase) throw new Error('Driftwood fauna placement diverges from the stream');
@@ -291,6 +319,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     hunt.hurt(a); wake(i);
   }, host.scope);
   const keep = (): void => { host.onStep(ISLAND_STEP, dt => {
+    // the coconuts' bodies after the host's world step (Bodies' fixed 'post' phase)
+    service.post(dt);
     // the last frame's charge contacts, after its bodies moved (the host steps its bodies after every system), against the
     // player where that frame saw it
     if (tracked.seen) for (let i = 0; i < BODY_COUNT; i++) {
@@ -322,6 +352,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       if (body === undefined || a === null || !a.alive || a.stunned) continue;
       if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, dt, player); } else body.brain.move(dt);
     }
+    // the coconuts strike, land and rest (Enemies.update), then their bodies ready the next world step ('pre')
+    volley.step(dt, 1, player);
+    service.pre(dt);
     const crab = practice.body?.actor ?? null;
     if (crab === null || crab.alive || practice.body === null) return;
     practice.dead += dt;
@@ -330,7 +363,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
-    snapshot: () => ({ version: 2, rng: { ...rng.snapshot() }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
+    snapshot: () => ({ version: 3, rng: { ...rng.snapshot() },
+      coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
         memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight] },
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), clocks: [...last].map((t, i) => [t, elapsed[i] ?? 0, credit[i] ?? 0] as [number, number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
@@ -341,6 +375,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== BODY_COUNT
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
       const holders = state.tokens.map(id => { const a = bodies.find(b => b.id === id)?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
+      placed.stream.restore(state.coconuts.rng);
+      reattach = volley.restore(state.coconuts, i => bodies[i]?.actor ?? null);
       rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
       state.clocks.forEach(([t, e, c], i) => { last[i] = t; elapsed[i] = e; credit[i] = c; });
@@ -356,6 +392,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         if (m !== null && memory !== undefined) Object.assign(memory, { ...m, path: m.path.map(p => new Vector3(...p)) });
       });
     },
+    // the restored world holds the coconuts' native bodies: a body service over it adopts them by handle
+    physicsRestored: () => { service = new Bodies(host.physics, player); reattach?.(); reattach = null; },
   }); };
   if (saved === undefined) { keep(); return { bodies: () => bodies, hunt, settle: () => undefined }; }
 

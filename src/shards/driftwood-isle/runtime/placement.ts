@@ -36,9 +36,9 @@ export interface EnemyPlacementInputs {
  * the densest palm groves (≥ 60 m from the spawn, ≥ 30 m from the wreck, ≥ 45 m apart) and the sailor in the wreck's
  * hold, all from the placement stream `Rng(SEED ^ 0xe11e)`. The bodies' own draws (scale, seeds, variants) are the
  * creature manager's stream, not this one. `centres` is each herd's `addHerd` point (the tidepool, the practice spot, the
- * troop's grove palm).
+ * troop's grove palm). `stream` is the placement stream past placement, which spins each thrown coconut (Enemies.ts draws its own copy of it).
  */
-export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlacement[]; herds: number; centres: { x: number; z: number }[] } {
+export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlacement[]; herds: number; centres: { x: number; z: number }[]; stream: Rng } {
   const rng = new Rng(inputs.seed ^ 0xe11e), out: EnemyPlacement[] = [], palms = inputs.palms, at: { x: number; z: number }[] = [];
   if (inputs.crabSites.length > MAX_SITES || palms.length > MAX_PALMS) throw new Error('Driftwood placement inputs exceed their bounds');
   let herds = 0;
@@ -85,7 +85,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
   // the hold (Wreck.ts hull frame: local x starboard, z stern): the sailor rises 2 m forward of the iron sword
   const h = WRECK_SITE.heading, cs = Math.cos(h), sn = Math.sin(h);
   out.push({ kind: 'sailor', variant: 'sailor', x: WRECK_SITE.x + 0.5 * cs + 2.2 * sn, z: WRECK_SITE.z - 0.5 * sn + 2.2 * cs, yaw: h + Math.PI, herd: -1 });
-  return { enemies: out, herds, centres: at };
+  return { enemies: out, herds, centres: at, stream: rng };
 }
 
 /** The wreck hold's centre (Enemies.ts `habitat.hold`): local (0, 3.2) in the hull frame. */

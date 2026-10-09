@@ -38,8 +38,8 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
  * world (the island's heightfield as Rapier built it and every fixed WORLD collider; `ground: false`, the baked floor as
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
- * browser's baked navmesh), the practice crab's return and exact restore (runtime/keeper.ts). Not yet owned (fail-closed,
- * see the SF72 handoff): coconuts, the captain, the swords, the quest and its facts, and the entry proof; `finish` refuses.
+ * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts). Not yet
+ * owned (fail-closed, see the SF72 handoff): the captain, the swords, the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh();

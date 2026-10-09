@@ -7,7 +7,7 @@ import { Physics } from '../src/engine/physics/Physics';
 import { Bodies, type Body } from '../src/engine/physics/bodies';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { groups } from '../src/engine/physics/groups';
-import { COCONUT_BODY } from '../src/shards/driftwood-isle/creatures/Enemies';
+import { COCONUT_BODY } from '../src/shards/driftwood-isle/combat/coconuts';
 import { BARREL_BODY, plateDown } from '../src/engine/world/interact/Interactables';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

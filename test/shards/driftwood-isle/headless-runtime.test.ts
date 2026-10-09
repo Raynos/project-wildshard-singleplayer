@@ -172,6 +172,31 @@ it('runs the fauna through the hunting brain: wander paths on the baked navmesh,
   } finally { host.dispose(); }
 }, 90_000);
 
+it('releases a real coconut on a monkey\'s throw: it flies in the host\'s world, strikes the player, lands, and restores mid-flight exactly', () => {
+  const dynamic = (host: SimHost): number => { let n = 0; host.physics.world.forEachRigidBody(b => { if (b.isDynamic()) n++; }); return n; };
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    // 7 m off the first troop's monkey (creature:22, the grove at 105, 108)
+    const m = original.entities.get('creature:22'); if (m === undefined) throw new Error('missing monkey');
+    const at = new Vector3(m.position.x + 7, 0, m.position.z); at.y = bake.floorAt(at.x, at.z) + 0.3;
+    original.player.motor.resetAt(at); original.player.position.copy(at);
+    let hits = 0, most = 0, flying = -1;
+    original.events.on('damage.dealt', ({ req }) => { if (req.moveId === 'strike.monkey.coconut' && req.amount === 8) hits++; }, original.scope);
+    for (let tick = 0; tick < 2400 && flying < 0; tick++) { original.step({ moveX: 0, moveZ: 0, yaw: 0 }); if (dynamic(original) > 0) flying = original.state.tick; }
+    expect(flying).toBeGreaterThan(0);
+    for (let tick = 0; tick < 5; tick++) original.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(dynamic(original)).toBeGreaterThan(0);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+    for (let tick = 0; tick < 1500; tick++) {
+      original.step({ moveX: 0, moveZ: 0, yaw: 0 }); restored.step({ moveX: 0, moveZ: 0, yaw: 0 });
+      most = Math.max(most, dynamic(original));
+    }
+    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expect(hits).toBeGreaterThan(0); expect(most).toBeGreaterThan(1); expect(most).toBeLessThanOrEqual(16);
+  } finally { restored?.dispose(); original.dispose(); }
+}, 90_000);
+
 it('restores exactly at install, mid-walk and after a practice crab came back, reinstalling the saved roster before restore', () => {
   const checkpoint = (host: SimHost, at: number): void => {
     for (let tick = host.state.tick; tick < at; tick++) {
