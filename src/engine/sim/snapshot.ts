@@ -2,6 +2,7 @@ import { Vector3 } from 'three';
 import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, finishSteps } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
+import { SHOVE_TIME } from '../player/shove';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { StrikeRunner } from '../ai/strikes';
 import type { PlayerHealth } from '../combat/health';
@@ -47,7 +48,7 @@ export interface SimSnapshot {
   clock: GameClockState; rng: RngStreamsState;
   entities: { id: string; state: ReturnType<AnimalSim['snapshot']>; motor: MotorState | null }[];
   player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
-    fall?: { vy: number; grounded: boolean } | undefined };
+    fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined };
   strikes: { id: string; state: ReturnType<StrikeRunner['snapshot']> }[];
   targets: readonly (readonly [string, string])[];
   events: { version: number; queue: { name: keyof EventMap; payload: EventValue }[]; frameCount: number; frameBound: boolean };
@@ -169,7 +170,8 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
     player: { id: host.player.id, position: host.player.position.toArray(), yaw: host.player.yaw, health: encode(host.player.health.snapshot(), host), motor: host.player.motor.snapshot(),
       ...(host.playerImpulse.lengthSq() > 0 ? { impulse: host.playerImpulse.toArray() } : {}),
       // likewise a player at rest on the ground (the fall law's canonical state) is omitted
-      ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }) },
+      ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }),
+      ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
@@ -197,11 +199,13 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       || !sameIds(saved.quests.map((entry) => entry.id), host.quests.map((quest) => quest.def.id))
       || saved.player.position.length !== 3 || !saved.player.position.every(Number.isFinite) || !Number.isFinite(saved.player.yaw)
       || (saved.player.impulse !== undefined && (saved.player.impulse.length !== 3 || !saved.player.impulse.every(Number.isFinite) || saved.player.impulse.every(value => value === 0)))
-      || (saved.player.fall !== undefined && (!Number.isFinite(saved.player.fall.vy) || (saved.player.fall.grounded && saved.player.fall.vy === 0)))) throw new RangeError('Snapshot instance registrations do not match');
+      || (saved.player.fall !== undefined && (!Number.isFinite(saved.player.fall.vy) || (saved.player.fall.grounded && saved.player.fall.vy === 0)))
+      || (saved.player.shove !== undefined && (![saved.player.shove.t, saved.player.shove.vx, saved.player.shove.vz].every(Number.isFinite) || saved.player.shove.t <= 0 || saved.player.shove.t > SHOVE_TIME))) throw new RangeError('Snapshot instance registrations do not match');
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
     host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
     if (saved.player.impulse === undefined) host.playerImpulse.set(0, 0, 0); else host.playerImpulse.fromArray(saved.player.impulse);
     host.playerFall.vy = saved.player.fall?.vy ?? 0; host.playerFall.grounded = saved.player.fall?.grounded ?? true;
+    Object.assign(host.playerShove, saved.player.shove ?? { t: 0, vx: 0, vz: 0 });
     host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);

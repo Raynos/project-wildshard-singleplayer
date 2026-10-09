@@ -68,7 +68,7 @@ const entries = {
     name: v.picklist(['gameplay', 'ai', 'spawn', 'cosmetic']), state: rng })) }),
   entities: v.array(v.strictObject({ id, state: animal, motor: v.nullable(motor) })),
   player: v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
-    fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })) }),
+    fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })) }),
   strikes: v.array(v.strictObject({ id, state: strike })), targets: v.array(v.tuple([id, id])),
   events: v.strictObject({ version, queue: v.array(v.strictObject({
     name: v.custom<SimSnapshot['events']['queue'][number]['name']>((input) => typeof input === 'string' && input.length > 0), payload: eventValue })),

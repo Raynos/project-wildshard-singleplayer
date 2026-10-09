@@ -4,6 +4,7 @@ import type { Scope } from '../app/scope';
 import type { CombatPipeline, CombatTag, DeathCause } from '../combat/pipeline';
 import type { PlayerHealth } from '../combat/health';
 import { hardFallHit } from '../player/fall';
+import { hitShoveSpeed } from '../player/shove';
 
 export interface HurtPlayer {
   position: Vector3; yaw: number;
@@ -34,7 +35,7 @@ export class PlayerHurt {
           ports.arc(at.x, at.z, p.position, p.yaw, dealt);
           ports.trauma(Math.min(0.85, 0.3 + dealt / 40));
         }
-        p.shove(at.x, at.z, 5 + Math.min(4, dealt * 0.15));
+        p.shove(at.x, at.z, hitShoveSpeed(dealt));
         const dx = at.x - p.position.x, dz = at.z - p.position.z, d = Math.hypot(dx, dz);
         ports.hurt(dealt / 20, d > 0.3 ? ((dx * Math.cos(p.yaw) - dz * Math.sin(p.yaw)) / d) * 0.7 : 0);
       } else if (req.sourceTags.includes('feel.jolt')) {

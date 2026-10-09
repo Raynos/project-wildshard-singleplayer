@@ -15,6 +15,7 @@ import { CharacterMotor } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import { addImpulse, decayImpulse } from './impulse';
 import { fallStep, groundedVelocity, hardLanding, landingCushion } from './fall';
+import { shoveHop, startShove, stepShove, type ShoveState } from './shove';
 import type { Physics } from '../physics/Physics';
 
 /** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
@@ -79,9 +80,6 @@ const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the
 const DODGE_ROLL = 0.122;             // rad of camera lean into a fully sideways T dodge at its peak (7°, E63; 0.06 before)
 const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
 const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
-// ── shove: a creature's hit knocks you back a step, through the controller (a wall behind you stops it) ──
-const SHOVE_TIME = 0.18;              // s of the burst; the speed fades to 0 over it
-const SHOVE_HOP = 1.6;                // m/s up, so it reads as a knock, not a slide
 
 export class Player {
   position = new THREE.Vector3(0, 0, 0);
@@ -199,7 +197,8 @@ export class Player {
   private dashT = 0; private dashVx = 0; private dashVz = 0; private dodgeCd = 0;
   private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
   private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
-  private shoveT = 0; private shoveVx = 0; private shoveVz = 0;
+  /** a creature hit's knockback (player/shove.ts): it overrides the walk input and fades, through the controller */
+  private readonly shoveState: ShoveState = { t: 0, vx: 0, vz: 0 };
   private readonly impulseVelocity = new THREE.Vector3();
   /** something else owns the position (the zipline's cable, the finale's reward shot): the fixed step leaves it alone */
   carried = false;
@@ -372,11 +371,9 @@ export class Player {
   /** A creature hit you from (fromX, fromZ): knocked `speed` m/s away from it, fading over SHOVE_TIME (≈ a step at 6 m/s). */
   shove(fromX: number, fromZ: number, speed: number): void {
     if (this.hover || this.swimming) return;
-    const dx = this.position.x - fromX, dz = this.position.z - fromZ, d = Math.hypot(dx, dz);
-    const ux = d > 1e-3 ? dx / d : Math.sin(this.yaw), uz = d > 1e-3 ? dz / d : Math.cos(this.yaw); // on top of us: straight back
-    this.shoveVx = ux * speed; this.shoveVz = uz * speed; this.shoveT = SHOVE_TIME;
+    startShove(this.shoveState, this.position.x, this.position.z, fromX, fromZ, this.yaw, speed);
     this.dashT = 0;
-    if (this.onGround) { this.velocity.y = Math.max(this.velocity.y, SHOVE_HOP); this.onGround = false; }
+    if (this.onGround) { this.velocity.y = shoveHop(this.velocity.y); this.onGround = false; }
   }
   /** deep water at (x, z) with no deck over it — where a dash must not carry you */
   private deepAt(x: number, z: number): boolean {
@@ -687,11 +684,11 @@ export class Player {
       if (this.onGround && !this.onPlatform && !this.wading && last.groundNormalY < SLOPE_SLIDE) {
         wx = last.downhillX * SLIDE_SPEED; wz = last.downhillZ * SLIDE_SPEED; accel = SLIDE_ACCEL; this.sliding = true;
       }
-      if (this.shoveT > 0) {
+      const shove = this.shoveState;
+      if (shove.t > 0) {
         // knocked back: the shove overrides the input and fades out; the motor below stops it at a wall
-        this.shoveT = Math.max(0, this.shoveT - dt);
-        const k2 = this.shoveT / SHOVE_TIME;
-        this.velocity.x = this.shoveVx * k2; this.velocity.z = this.shoveVz * k2;
+        const k2 = stepShove(shove, dt);
+        this.velocity.x = shove.vx * k2; this.velocity.z = shove.vz * k2;
       } else if (this.dashT > 0) {
         // dash (dodge / lunge): the burst overrides the input; deep water just ahead (off a pier edge, no deck) ends it on the spot
         this.dashT -= dt;

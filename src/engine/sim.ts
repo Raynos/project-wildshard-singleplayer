@@ -14,6 +14,7 @@ import { Physics } from './physics/Physics';
 import { CharacterMotor } from './physics/CharacterMotor';
 import { addImpulse, decayImpulse } from './player/impulse';
 import { fallStep, groundedVelocity, hardFallHit, hardLanding } from './player/fall';
+import { hitShoveSpeed, shoveHop, startShove, stepShove, type ShoveState } from './player/shove';
 import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
 import { tagCollider } from './physics/surface';
@@ -94,6 +95,8 @@ export class SimHost {
   /** The owned player's vertical speed (m/s, negative = falling) and whether the motor last stood it on ground, the client
    * Player's on-foot fall law (player/fall.ts). At rest (grounded, still) an idle tick leaves the player untouched. */
   readonly playerFall = { vy: 0, grounded: true };
+  /** The owned player's running creature-hit knockback, the client Player's shove law (player/shove.ts). */
+  readonly playerShove: ShoveState = { t: 0, vx: 0, vz: 0 };
   private readonly direction = new Vector3();
   private readonly hitOrigin = new Vector3();
   private readonly hitPoint = new Vector3();
@@ -135,7 +138,13 @@ export class SimHost {
     const writeMotor = (motor: CharacterMotor): void => { this.playerMotor = motor; };
     this.player = ports.player ?? { id: health.id, position, yaw: level.player.yaw, health,
       get motor(): CharacterMotor { return readMotor(); }, set motor(motor: CharacterMotor) { writeMotor(motor); } };
-    if (this.ownsPlayer) this.combat.playerRules(this.scope, { target: health });
+    if (this.ownsPlayer) {
+      this.combat.playerRules(this.scope, { target: health });
+      // a creature's blow knocks the owned player back, as the client's PlayerHurt shoves its Player on `feel.blow`
+      this.events.on('damage.dealt', ({ req, dealt }) => {
+        if (req.target === this.player.health && this.externalPlayer === undefined && this.hasPlayerMotor && req.sourceTags.includes('feel.blow')) this.shovePlayer(req.point.x, req.point.z, hitShoveSpeed(dealt));
+      }, this.scope);
+    }
     this.flags = new Flags(level.id, false);
     this.quests = level.quests.map((def) => new QuestState(def, this.flags, this.events, this.scope));
     this.strikes.set(this.player.id, new StrikeRunner());
@@ -277,6 +286,15 @@ export class SimHost {
     if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its impulse');
     addImpulse(this.playerImpulse, velocity);
   }
+  /** Knock the owned player `speed` m/s away from (fromX, fromZ), exactly as the client Player's `shove`: the knockback
+   * overrides the walk input and fades over SHOVE_TIME through the motor, and a grounded player hops off the ground. */
+  shovePlayer(fromX: number, fromZ: number, speed: number): void {
+    if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its knockback');
+    if (![fromX, fromZ, speed].every(Number.isFinite)) throw new RangeError('Invalid player knockback');
+    startShove(this.playerShove, this.player.position.x, this.player.position.z, fromX, fromZ, this.player.yaw, speed);
+    const fall = this.playerFall;
+    if (fall.grounded) { fall.vy = shoveHop(fall.vy); fall.grounded = false; }
+  }
   /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
   step(command?: SimCommand): void {
     if (this.disposed) throw new Error('Simulation host is disposed');
@@ -285,12 +303,17 @@ export class SimHost {
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     this.physics.step();
-    const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall;
-    if (command !== undefined || shoved || !fall.grounded || fall.vy !== 0) {
+    const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall, knocked = this.playerShove;
+    if (command !== undefined || shoved || knocked.t > 0 || !fall.grounded || fall.vy !== 0) {
       if (command === undefined) this.wanted.set(0, 0, 0);
       else {
         this.player.yaw = command.yaw;
         this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
+      }
+      if (knocked.t > 0) {
+        // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
+        const k = stepShove(knocked, FIXED_STEP);
+        this.wanted.x = knocked.vx * k * FIXED_STEP; this.wanted.z = knocked.vz * k * FIXED_STEP;
       }
       if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
       // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
