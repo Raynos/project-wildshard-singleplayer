@@ -68,3 +68,22 @@ it('samples the page keyboard and analog controls separately, with explicit reco
     input.setHeld('sprint', false); expect(player.sampleCommand(1).sprint).toBe(false);
   } finally { player.motor.dispose(); physics.dispose(); }
 });
+
+it('records the traversal consumed controls only with version-1 opt-in, detached from live device state', () => {
+  const physics = new Physics(rapier);
+  const player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
+  const used = { steer: { keyX: -1, keyY: 1, stickX: 0.2, stickY: 0.8 }, sprint: true, jump: true };
+  let samples = 0;
+  try {
+    const ordinary = player.sampleCommand();
+    player.ride = { drive: () => undefined, step: () => undefined, pose: () => undefined, dismount: () => undefined,
+      sampleCommand: () => { samples++; return used; } };
+    expect(player.sampleCommand()).toEqual(ordinary); expect(samples).toBe(0);
+    const captured = player.sampleCommand(1); expect(samples).toBe(1);
+    expect(captured.steer).toEqual(used.steer); expect(captured.sprint).toBe(true); expect(captured.jump).toBe(true);
+    used.steer.keyX = 1; used.sprint = false; used.jump = false;
+    expect(captured.steer?.keyX).toBe(-1); expect(captured.sprint).toBe(true); expect(captured.jump).toBe(true);
+    player.ride = { drive: () => undefined, step: () => undefined, pose: () => undefined, dismount: () => undefined };
+    expect(player.sampleCommand(1).steer).toEqual(player.sampleSteer());
+  } finally { player.motor.dispose(); physics.dispose(); }
+});

@@ -71,10 +71,14 @@ export interface SimCommand extends LocalMovementCommand {
    * with none; refused on its 0.8 s cooldown and on the board. A press: `advance` refuses it. */
   dodge?: true;
 }
+/** Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative. */
+export interface SimWalkingControl { readonly speed: number; readonly crouching: boolean }
 /** One owned host's alternative player-motion law, without changing its single physics/system authority.
  * Input runs before physics and returns true only while it owns motion; step then runs after physics instead of the
  * ordinary walk/board/dodge/jump. False retains that ordinary law. Register mutable state through a SimStateAdapter. */
 export interface SimPlayerDriver {
+  /** Consulted only when input returns false, outside board motion; absent keeps the level speed and ordinary jump. */
+  readonly walking?: SimWalkingControl;
   input: (command: Readonly<SimCommand> | undefined, dt: number, host: SimHost) => boolean;
   step: (dt: number, host: SimHost) => void;
 }
@@ -586,6 +590,8 @@ export class SimHost {
     }
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     const driver = this.playerDriver, delegated = driver?.input(command, FIXED_STEP, this) === true;
+    const walking = delegated ? undefined : driver?.walking;
+    if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
     if (!delegated && command?.hover === true) this.setBoard(!this.playerBoard.on);
     if (this.boardHandles.length > 0) this.syncBoardColliders();
@@ -604,7 +610,7 @@ export class SimHost {
         if (command === undefined) this.wanted.set(0, 0, 0);
         else {
           this.player.yaw = command.yaw;
-          this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
+          this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar((walking?.speed ?? this.level.player.speed) * FIXED_STEP);
         }
         if (knocked.t > 0) {
           // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
@@ -624,7 +630,7 @@ export class SimHost {
         if (this.playerJump !== null) jumpClock(this.playerJump, fall.grounded, FIXED_STEP);
         if (command?.jump === true) {
           this.playerJump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
-          const vy = jumpLaw(this.playerJump, fall.grounded, fall.vy, COYOTE_MS, false, JUMP_SPEED);
+          const vy = jumpLaw(this.playerJump, fall.grounded, fall.vy, COYOTE_MS, walking?.crouching === true, JUMP_SPEED);
           if (vy !== null) { fall.vy = vy; fall.grounded = false; this.events.emit('player.jump', true); }
         }
         const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);

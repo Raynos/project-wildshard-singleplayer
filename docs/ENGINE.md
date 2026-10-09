@@ -1873,6 +1873,18 @@ frozen, disposed and duplicate bindings refuse; the returned remover releases th
 The installer registers its mutable clocks/native handles through a `SimStateAdapter` and reinstalls
 both before restore; `physicsRestored` reconnects its handles after the native world is replaced.
 An absent driver adds no continuation fields and preserves the original snapshot bytes.
+Optional resident walking: {speed, crouching} on SimPlayerDriver tunes ordinary on-foot motion only
+when input returns false; the standing native motor, fall, impulse and jump law still run. Crouching
+blocks the grounded/coyote jump through the same jump law as the page; absent controls retain the
+level speed and exact prior output. Non-finite or negative speed refuses before physics.
+The defining module @wildshard/engine/player/walk exports walkingSpeed(crouching, sprinting,
+wadeFraction, moveScale, effectMoveScale), the page's unchanged on-foot speed arithmetic;
+callers resolve eligibility and depth.
+
+A player's optional ride.sampleCommand() returns RideCommandSample (defined in input/commands):
+{steer, sprint, jump} from the traversal's last consumed inputs. Only sampleCommand(1) reads it
+and detaches its axes into existing fields. Legacy sampling and a traversal without that port keep
+the original device sampling; no traversal identity or new wire version is introduced.
 
 **Command version 1.** Optional `steer: {keyX, keyY, stickX, stickY}` preserves raw local
 keyboard/semantic direction and stick strength separately; optional `sprint` / `crouch` are held

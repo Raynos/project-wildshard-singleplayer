@@ -400,6 +400,7 @@
     "./combat/view/bowProfile": "./combat/view/bowProfile.ts",
     "./combat/view/SweptMelee": "./combat/view/SweptMelee.ts",
     "./core/meshCollision": "./core/meshCollision.ts",
-    "./physics/meshCollision": "./physics/meshCollision.ts"
+    "./physics/meshCollision": "./physics/meshCollision.ts",
+    "./player/walk": "./player/walk.ts"
   }
 }

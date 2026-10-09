@@ -116,3 +116,34 @@ it('refuses borrowed, frozen, disposed or duplicate driver bindings and releases
   expect(() => owner.usePlayerDriver(driver)).toThrow('owned active');
   expect(Object.values(owner.scope.census).every(n => n === 0)).toBe(true);
 });
+
+it.each([{ crouching: false, sprinting: false, speed: 4.3 }, { crouching: false, sprinting: true, speed: 7.2 }, { crouching: true, sprinting: true, speed: 2.2 }])('uses opted-in walking controls with the real standing motor ($speed m/s)', value => {
+  const host = createSimHost(LEVEL, { rapier }), walking = { speed: value.speed, crouching: value.crouching };
+  const control = createSimHost({ ...LEVEL, player: { ...LEVEL.player, speed: value.speed } }, { rapier });
+  host.usePlayerDriver({ walking, input: () => false, step: () => { throw new Error('On-foot motion must stay native'); } });
+  try {
+    for (let tick = 0; tick < 60; tick++) { const input = { moveX: 0, moveZ: -1, yaw: 0 }; host.step(input); control.step(input); }
+    // Different authored speeds intentionally have different level fingerprints; every continuation byte still agrees.
+    const { levelFingerprint: supplied, ...actual } = snapshotSimHost(host), { levelFingerprint: authored, ...expected } = snapshotSimHost(control);
+    expect(supplied).not.toBe(authored); expect(actual).toEqual(expected);
+    if (value.crouching) {
+      host.step({ moveX: 0, moveZ: 0, yaw: 0, jump: true });
+      expect(host.playerFall.grounded).toBe(true); expect(host.playerFall.vy).toBe(0);
+      walking.crouching = false;
+      host.step({ moveX: 0, moveZ: 0, yaw: 0, jump: true });
+      expect(host.playerFall.grounded).toBe(false); expect(host.playerFall.vy).toBeGreaterThan(0);
+    }
+  } finally { host.dispose(); control.dispose(); }
+});
+
+it('ignores walking controls during delegated motion and rejects invalid ordinary speeds before physics', () => {
+  const host = createSimHost(LEVEL, { rapier }), walking = { speed: Number.NaN, crouching: false };
+  let delegate = true;
+  host.usePlayerDriver({ walking, input: () => delegate, step: () => undefined });
+  const physics = vi.spyOn(host.physics, 'step');
+  try {
+    host.step(); expect(physics).toHaveBeenCalledTimes(1);
+    delegate = false;
+    expect(() => host.step()).toThrow('Invalid walking control'); expect(physics).toHaveBeenCalledTimes(1);
+  } finally { host.dispose(); }
+});

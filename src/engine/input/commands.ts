@@ -1,5 +1,8 @@
 /** Raw local inputs, kept separate because keyboard holds and analog strength can select different motion. */
 export interface LocalSteer { readonly keyX: number; readonly keyY: number; readonly stickX: number; readonly stickY: number }
+/** A traversal's last consumed local controls, sampled without asking live device state again.
+ * Uses the existing version-1 fields; the caller detaches the raw axes before recording. */
+export interface RideCommandSample { readonly steer: LocalSteer; readonly sprint: boolean; readonly jump: boolean }
 /** Additive raw-input protocol. New fields require version 1; absent fields retain legacy command bytes. */
 export interface LocalMovementCommand {
   readonly commandVersion?: 1;

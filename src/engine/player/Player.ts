@@ -1,6 +1,7 @@
 import { hoverSpeed } from './hoverSpeed';
+import { walkingSpeed } from './walk';
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardStepOut } from './board';
-import type { AimCommand, PlayerCommand, LocalSteer } from '../input/commands';
+import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
 import { dodgeFx, dodgeEnv } from './dodge';
@@ -164,7 +165,7 @@ export class Player {
   /** riding (Nalati B7, src/shards/nalati-grasslands/ride/Mount.ts): while set, the frame is handed to it — `drive` reads the input (input
    *  phase), `step` moves the horse on its own motor (each fixed step), `pose` places the rider and the camera from the
    *  interpolated saddle (update, `alpha`) — and walking / swimming / the board are skipped */
-  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void; dismount: () => void } | null = null;
+  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void; sampleCommand?: () => RideCommandSample; dismount: () => void } | null = null;
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
@@ -436,15 +437,16 @@ export class Player {
   /** Device edge. Version 1 adds detached raw steering; ordinary recordings keep their original shape. */
   sampleCommand(commandVersion?: 1): PlayerCommand {
     const input = this.inputService, k = this.keys;
+    const ride = commandVersion === 1 ? this.ride?.sampleCommand?.() : undefined;
     return {
       moveX: this.inStr, moveY: this.inFwd, yaw: this.yaw, pitch: this.pitch,
       crouch: this.crouchWanted, aim: this.sampleAimCommand(),
-      sprint: (input?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint,
-      jump: input?.pressed('jump') ?? this.jumpQueued,
+      sprint: ride?.sprint ?? ((input?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint),
+      jump: ride?.jump ?? (input?.pressed('jump') ?? this.jumpQueued),
       dodge: (input?.pressed('dodge') ?? false) || this.dodgeQueued,
       dive: (input?.held('dive') ?? k.has('Space')) || this.touchDive,
       surface: (input?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface,
-      ...(commandVersion === 1 ? { commandVersion, steer: this.sampleSteer() } : {}),
+      ...(commandVersion === 1 ? { commandVersion, steer: ride === undefined ? this.sampleSteer() : { ...ride.steer } } : {}),
     };
   }
 
@@ -480,7 +482,7 @@ export class Player {
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && this.crouchWanted;
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && command.sprint && fwd > 0 && !this.crouching;
-    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale * this.effectMoveScale;
+    const speed = walkingSpeed(this.crouching, this.sprinting, wadeT, this.moveScale, this.effectMoveScale);
     this.waveTime += dt;
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
