@@ -10,7 +10,10 @@ import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
  */
 
 /** One baked instanced kind: the GLB node's name, its instance count and the material the client draws it in. */
-export interface BakedKind { name: string; count: number; color: number; roughness: number; vertexColors: boolean; doubleSided: boolean }
+export interface BakedKind {
+  name: string; count: number; color: number; roughness: number; metalness: number; flat: boolean; emissive: number; emissiveIntensity: number;
+  vertexColors: boolean; doubleSided: boolean;
+}
 /** A piece's bake: the GLB bytes and its rows (`data/<piece>.json`, with the GLB's content hash). */
 export interface PieceBake { glb: Uint8Array; kinds: BakedKind[]; colliders: ColliderDesc[] }
 
@@ -24,7 +27,8 @@ export function bakeKinds(piece: string, meshes: readonly (readonly [string, Ins
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
     if (!(material instanceof MeshStandardMaterial)) throw new Error(`${piece}.${name}: one standard material per kind`);
     primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false });
-    kinds.push({ name, count: mesh.count, color: material.color.getHex(), roughness: material.roughness, vertexColors: material.vertexColors, doubleSided: material.side === DoubleSide });
+    kinds.push({ name, count: mesh.count, color: material.color.getHex(), roughness: material.roughness, metalness: material.metalness, flat: material.flatShading,
+      emissive: material.emissive.getHex(), emissiveIntensity: material.emissiveIntensity, vertexColors: material.vertexColors, doubleSided: material.side === DoubleSide });
   }
   const rows: ColliderDesc[] = colliders.map((c) => 'yaw' in c && c.yaw === 0 ? { ...c, yaw: 0 } : c);
   return { glb: staticGlb(primitives, `sunscar.${piece}`), kinds, colliders: rows };

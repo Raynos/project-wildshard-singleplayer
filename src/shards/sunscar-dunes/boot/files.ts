@@ -44,9 +44,11 @@ const URLS: Readonly<Record<DuneMeshName, string>> = {
 };
 export const duneMeshUrl = (name: DuneMeshName): string => URLS[name];
 /** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`. */
-export const BAKED_PIECES = ['rocks', 'dressing'] as const;
+export const BAKED_PIECES = ['rocks', 'dressing', 'tower'] as const;
 export type BakedPiece = (typeof BAKED_PIECES)[number];
-const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { rocks: '/assets/sunscar-dunes/baked/rocks.glb', dressing: '/assets/sunscar-dunes/baked/dressing.glb' };
+const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
+  rocks: '/assets/sunscar-dunes/baked/rocks.glb', dressing: '/assets/sunscar-dunes/baked/dressing.glb', tower: '/assets/sunscar-dunes/baked/tower.glb',
+};
 export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
 
 /** The flame's flipbook (world/fireFx.ts loadFireBook; art/sunscar-dunes/round-26-fire; E407 row 6). */

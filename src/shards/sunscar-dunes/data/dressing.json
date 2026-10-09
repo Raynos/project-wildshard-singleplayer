@@ -6,6 +6,10 @@
       "count": 5,
       "color": 16777215,
       "roughness": 0.95,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
       "vertexColors": true,
       "doubleSided": true
     },
@@ -14,6 +18,10 @@
       "count": 1,
       "color": 16777215,
       "roughness": 0.95,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
       "vertexColors": true,
       "doubleSided": true
     },
@@ -22,6 +30,10 @@
       "count": 60,
       "color": 8143920,
       "roughness": 0.95,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
       "vertexColors": false,
       "doubleSided": false
     }

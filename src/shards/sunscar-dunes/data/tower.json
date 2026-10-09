@@ -1,0 +1,517 @@
+{
+  "glb": "921599df1a0d89f2dacb5214c7dd203d2a37e7e76193132b32fab15d33f08cd8",
+  "kinds": [
+    {
+      "name": "wood",
+      "count": 43,
+      "color": 3813934,
+      "roughness": 0.55,
+      "metalness": 0.5,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "dark",
+      "count": 68,
+      "color": 2761760,
+      "roughness": 0.6,
+      "metalness": 0.5,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "plank-a",
+      "count": 3,
+      "color": 5917762,
+      "roughness": 0.7,
+      "metalness": 0.35,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "plank-b",
+      "count": 3,
+      "color": 5128762,
+      "roughness": 0.7,
+      "metalness": 0.35,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "plank-c",
+      "count": 3,
+      "color": 6575178,
+      "roughness": 0.7,
+      "metalness": 0.35,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "iron",
+      "count": 5,
+      "color": 7233110,
+      "roughness": 0.6,
+      "metalness": 0.4,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "antenna",
+      "count": 1,
+      "color": 3813934,
+      "roughness": 0.55,
+      "metalness": 0.5,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "beacon",
+      "count": 1,
+      "color": 3803654,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 16722448,
+      "emissiveIntensity": 1.6,
+      "vertexColors": false,
+      "doubleSided": false
+    }
+  ],
+  "colliders": [
+    {
+      "kind": "box",
+      "x": 6.2,
+      "y": 20.909358205215334,
+      "z": -76.8,
+      "hx": 0.12,
+      "hy": 4.151905960904177,
+      "hz": 0.12,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 9.8,
+      "y": 20.726332769746804,
+      "z": -76.8,
+      "hx": 0.12,
+      "hy": 4.3349313963727045,
+      "hz": 0.12,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 6.2,
+      "y": 21.26126416611951,
+      "z": -73.2,
+      "hx": 0.12,
+      "hy": 3.8000000000000007,
+      "hz": 0.12,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 9.8,
+      "y": 21.26126416611951,
+      "z": -73.2,
+      "hx": 0.12,
+      "hy": 3.8000000000000007,
+      "hz": 0.12,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8,
+      "y": 24.961264166119513,
+      "z": -75,
+      "hx": 2.1,
+      "hy": 0.09999999999999964,
+      "hz": 2.1,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8,
+      "y": 25.56126416611951,
+      "z": -77.05,
+      "hx": 2.05,
+      "hy": 0.5,
+      "hz": 0.04,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 5.95,
+      "y": 25.56126416611951,
+      "z": -75,
+      "hx": 0.04,
+      "hy": 0.5,
+      "hz": 2.05,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 10.05,
+      "y": 25.56126416611951,
+      "z": -75,
+      "hx": 0.04,
+      "hy": 0.5,
+      "hz": 2.05,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 6.7700000000000005,
+      "y": 25.56126416611951,
+      "z": -72.95,
+      "hx": 0.82,
+      "hy": 0.5,
+      "hz": 0.04,
+      "yaw": 0,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.219518066076674,
+      "z": -60.56,
+      "hx": 0.65,
+      "hy": 0.2142668830515735,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.33378494912825,
+      "z": -60.980000000000004,
+      "hx": 0.65,
+      "hy": 0.32853376610314733,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.44805183217982,
+      "z": -61.4,
+      "hx": 0.65,
+      "hy": 0.4428006491547194,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.562318715231395,
+      "z": -61.82,
+      "hx": 0.65,
+      "hy": 0.5570675322062932,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.67658559828297,
+      "z": -62.24,
+      "hx": 0.65,
+      "hy": 0.6713344152578671,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.790852481334543,
+      "z": -62.660000000000004,
+      "hx": 0.65,
+      "hy": 0.7856012983094409,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 18.905119364386117,
+      "z": -63.08,
+      "hx": 0.65,
+      "hy": 0.8998681813610148,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.019386247437687,
+      "z": -63.5,
+      "hx": 0.65,
+      "hy": 1.0141350644125868,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.133653130489265,
+      "z": -63.92,
+      "hx": 0.65,
+      "hy": 1.1284019474641607,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.247920013540835,
+      "z": -64.34,
+      "hx": 0.65,
+      "hy": 1.2426688305157345,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.362186896592412,
+      "z": -64.76,
+      "hx": 0.65,
+      "hy": 1.3569357135673084,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.476453779643983,
+      "z": -65.18,
+      "hx": 0.65,
+      "hy": 1.4712025966188804,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.590720662695556,
+      "z": -65.6,
+      "hx": 0.65,
+      "hy": 1.5854694796704543,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.70498754574713,
+      "z": -66.02,
+      "hx": 0.65,
+      "hy": 1.699736362722028,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.819254428798704,
+      "z": -66.44,
+      "hx": 0.65,
+      "hy": 1.814003245773602,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 19.933521311850278,
+      "z": -66.86,
+      "hx": 0.65,
+      "hy": 1.9282701288251758,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 20.04778819490185,
+      "z": -67.28,
+      "hx": 0.65,
+      "hy": 2.0425370118767496,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 22.068858972881745,
+      "z": -67.7,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 22.297392738984893,
+      "z": -68.12,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 22.52592650508804,
+      "z": -68.54,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 22.75446027119119,
+      "z": -68.96000000000001,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 22.982994037294333,
+      "z": -69.38,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 23.21152780339748,
+      "z": -69.8,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 23.440061569500628,
+      "z": -70.22,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 23.668595335603776,
+      "z": -70.64,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 23.897129101706923,
+      "z": -71.06,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 24.12566286781007,
+      "z": -71.48,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 24.354196633913215,
+      "z": -71.9,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 24.582730400016363,
+      "z": -72.32,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 8.75,
+      "y": 24.81126416611951,
+      "z": -72.74,
+      "hx": 0.65,
+      "hy": 0.25,
+      "hz": 0.21,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": 7.6,
+      "y": 25.63626416611951,
+      "z": -75.5,
+      "hx": 0.4,
+      "hy": 0.5749999999999993,
+      "hz": 0.4,
+      "yaw": 0,
+      "surface": "metal"
+    }
+  ],
+  "anchors": {
+    "deckY": 25.06126416611951,
+    "lampY": 33.01126416611952
+  }
+}

@@ -4,6 +4,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { DoubleSide, FrontSide, Group, InstancedMesh, MeshStandardMaterial, type Object3D } from 'three';
 import rocks from '../data/rocks.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
+import tower from '../data/tower.json' with { type: 'json' };
 import { BAKED_PIECES, bakedUrl, type BakedPiece } from '../boot/files';
 
 /**
@@ -15,10 +16,13 @@ import { BAKED_PIECES, bakedUrl, type BakedPiece } from '../boot/files';
  */
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
 
-interface KindRow { name: string; count: number; color: number; roughness: number; vertexColors: boolean; doubleSided: boolean }
-interface ColliderRow { kind: string; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw: number; surface: string }
+interface KindRow {
+  name: string; count: number; color: number; roughness: number; metalness: number; flat: boolean; emissive: number; emissiveIntensity: number;
+  vertexColors: boolean; doubleSided: boolean;
+}
+interface ColliderRow { kind: string; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw?: number; surface: string }
 interface PieceRows { kinds: readonly KindRow[]; colliders: readonly ColliderRow[] }
-const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing };
+const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower };
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>>;
@@ -34,20 +38,24 @@ async function loadPiece(piece: BakedPiece): Promise<ReadonlyMap<string, Instanc
   return meshes;
 }
 
+let last: BakedWorld | null = null;
 /** Load every baked piece behind the loading screen (the plugin's `world` hook); a piece that fails to load is empty. */
 export async function loadBakedWorld(): Promise<BakedWorld> {
   const names = BAKED_PIECES, loaded = await Promise.all(names.map(loadPiece));
-  return new Map(names.map((name, i) => [name, loaded[i] ?? new Map<string, InstancedMesh>()]));
+  last = new Map(names.map((name, i) => [name, loaded[i] ?? new Map<string, InstancedMesh>()]));
+  return last;
 }
+/** The bake loaded last (the Model Explorer's specimens draw from it), or null before the first load. */
+export const lastBakedWorld = (): BakedWorld | null => last;
 
-const SURFACES: readonly Material[] = ['rock', 'wood'];
+const SURFACES: readonly Material[] = ['rock', 'wood', 'metal'];
 const surface = (s: string): Material => {
   const found = SURFACES.find((m) => m === s); if (found === undefined) throw new Error(`baked collider: unknown surface ${s}`);
   return found;
 };
 const box = (c: ColliderRow): ColliderDesc => {
   if (c.kind !== 'box') throw new Error('baked collider: a box');
-  return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, yaw: c.yaw, surface: surface(c.surface) };
+  return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), surface: surface(c.surface) };
 };
 
 /** A world piece from its bake: each kind one `InstancedMesh` in its own material, and the baked colliders. */
@@ -55,7 +63,8 @@ export function bakedPiece(baked: BakedWorld, piece: BakedPiece): { root: Group;
   const root = new Group(), rows = PIECES[piece], nodes = baked.get(piece);
   for (const kind of rows.kinds) {
     const node = nodes?.get(kind.name); if (node === undefined) continue;
-    const material = new MeshStandardMaterial({ roughness: kind.roughness, flatShading: true, side: kind.doubleSided ? DoubleSide : FrontSide, vertexColors: kind.vertexColors });
+    const material = new MeshStandardMaterial({ roughness: kind.roughness, metalness: kind.metalness, flatShading: kind.flat, emissive: kind.emissive, emissiveIntensity: kind.emissiveIntensity,
+      side: kind.doubleSided ? DoubleSide : FrontSide, vertexColors: kind.vertexColors });
     if (!kind.vertexColors) material.color.setHex(kind.color);
     // a triangle soup (the dressing) bakes with the identity index glTF requires: it draws unindexed, as built
     const index = node.geometry.getIndex();

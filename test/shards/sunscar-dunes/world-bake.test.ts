@@ -3,22 +3,25 @@ import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the client loads.
 import { readdirSync, readFileSync } from 'node:fs';
-import { InstancedMesh, Matrix4, type Object3D } from 'three';
+import { BoxGeometry, InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { signalDunesField } from '../../../src/shards/sunscar-dunes/generators/tiles';
 import { bakeSignalRocks, buildRocks } from '../../../src/shards/sunscar-dunes/generators/rocks';
 import { bakeSignalDressing, buildDressing } from '../../../src/shards/sunscar-dunes/generators/dressing';
+import { bakeSignalTower, buildTowerFrame } from '../../../src/shards/sunscar-dunes/generators/tower';
+import { TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
 import type { PieceBake } from '../../../src/shards/sunscar-dunes/generators/kinds';
 import { bakedPiece, type BakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
 import { BAKED_PIECES, type BakedPiece } from '../../../src/shards/sunscar-dunes/boot/files';
 import rocks from '../../../src/shards/sunscar-dunes/data/rocks.json' with { type: 'json' };
 import dressing from '../../../src/shards/sunscar-dunes/data/dressing.json' with { type: 'json' };
+import tower from '../../../src/shards/sunscar-dunes/data/tower.json' with { type: 'json' };
 
 const folder = new URL('../../../public/assets/sunscar-dunes/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
-const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing };
-const BAKES: Record<BakedPiece, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing };
+const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower };
+const BAKES: Record<BakedPiece, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower };
 
 async function loadBaked(): Promise<BakedWorld> {
   const world = new Map<BakedPiece, Map<string, InstancedMesh>>();
@@ -66,6 +69,29 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
       near(got, want);
       // the soup draws unindexed, its own vertices
       expect([got.geometry.getIndex(), got.geometry.getAttribute('position').count]).toEqual([want.geometry.getIndex(), want.geometry.getAttribute('position').count]);
+    }
+  });
+
+  it('the tower\'s frame draws as eight instanced kinds: every built mesh one instance, its box size in the scale', async () => {
+    const baked = await loadBaked(), field = signalDunesField(), drawn = bakedPiece(baked, 'tower');
+    const frame = buildTowerFrame(field.heightAt(TOWER.x, TOWER.z), field.heightAt);
+    // the builder's own boxes (a `-0` yaw is the rows' `0`)
+    expect(drawn.colliders).toEqual(bakeSignalTower().colliders);
+    expect(drawn.colliders.length).toBe(frame.colliders.length);
+    expect(tower.anchors).toEqual(frame.anchors);
+    expect(drawn.root.children.length).toBe(8);
+    expect(drawn.root.children.reduce((n, m) => n + (instanced(m) ? m.count : 0), 0)).toBe(frame.root.children.length);
+    // each kind's instances world-transform the unit box onto the builder's own box corners (≤ 1e-4 m after the TRS round trip)
+    const corner = new Vector3(), got = new Vector3(), m = new Matrix4();
+    const boxes = frame.root.children.flatMap((o) => { const g: unknown = o instanceof Mesh ? o.geometry : null; return g instanceof BoxGeometry ? [{ mesh: o, box: g }] : []; });
+    const all = drawn.root.children.flatMap((o) => instanced(o) && o.geometry.getAttribute('position').count === 24 ? Array.from({ length: o.count }, (_, i) => { const t = new Matrix4(); o.getMatrixAt(i, t); return t; }) : []);
+    expect(all.length).toBe(boxes.length);
+    frame.root.updateMatrixWorld(true);
+    for (const { mesh, box } of boxes) {
+      const { width, height, depth } = box.parameters;
+      corner.set(width / 2, height / 2, depth / 2).applyMatrix4(mesh.matrixWorld);
+      const hit = all.some((t) => { m.copy(t); got.set(0.5, 0.5, 0.5).applyMatrix4(m); return got.distanceTo(corner) < 1e-4; });
+      expect(hit).toBe(true);
     }
   });
 });

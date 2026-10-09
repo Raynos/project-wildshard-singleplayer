@@ -3,7 +3,7 @@ import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { BRAZIERS, TOWER } from '../data/layout';
+import { BRAZIERS } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
@@ -43,9 +43,10 @@ const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales th
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
   const file = (name: string): string => `src/shards/sunscar-dunes/world/${name}.ts`;
-  const tower = buildTower(groundAt(TOWER.x, TOWER.z), groundAt);
+  // SF72: the tower's frame is baked offline (generators/tower.ts); the client adds its lamp, brazier and fire
+  const tower = buildTower(baked);
   ctx.root.add(tower.root);
-  ctx.piece({ id: 'sunscar.tower', name: STRINGS.tower, category: 'buildings', file: file('tower'), object: tower.root, colliders: tower.colliders, surface: 'wood' });
+  ctx.piece({ id: 'sunscar.tower', name: STRINGS.tower, category: 'buildings', file: 'src/shards/sunscar-dunes/generators/tower.ts', object: tower.root, colliders: tower.colliders, surface: 'wood' });
   const caravan = buildCaravan(groundAt); ctx.root.add(caravan.root); for (const t of caravan.textures) ctx.scope.own(t);
   ctx.piece({ id: 'sunscar.caravan', name: STRINGS.caravan, category: 'props', file: file('places'), object: caravan.root, colliders: caravan.colliders, surface: 'wood' });
   const wellParts = buildWell(groundAt); ctx.root.add(wellParts.root);

@@ -6,6 +6,10 @@
       "count": 30,
       "color": 9194542,
       "roughness": 0.95,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
       "vertexColors": false,
       "doubleSided": false
     }
