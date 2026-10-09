@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "ca969df25908be165a71648a2ecbbca8040477a1",
-    "build": "ca969df-mv057rza",
+    "sha": "7d731563a2f792ffe01bfe93c4b63b095070d4ed",
+    "build": "7d73156-mv082jx6",
     "shard": "pine-hollow",
     "tier": "desktop",
     "viewport": {
@@ -3910,35 +3910,37 @@
         "local:wildshard.save.v2.nalati-grasslands",
         "local:wildshard.save.v2.nine-dragon-stack",
         "local:wildshard.save.v2.pine-hollow",
+        "local:wildshard.save.v2.profile",
         "local:wildshard.save.v2.sunscar-dunes",
         "session:wildshard.save.v2.session"
       ],
       "written": [
         "local:wildshard.save.v2.device",
         "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.pine-hollow",
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 35623.5,
+    "playMs": 31693.799999713898,
     "stepMs": {
       "renderer": 15,
-      "sky": 408,
-      "terrain": 286,
-      "cards": 178,
-      "forest": 15,
+      "sky": 390,
+      "terrain": 252,
+      "cards": 160,
+      "forest": 14,
       "physics": 5,
-      "edge": 59,
-      "grass": 38,
-      "cabins": 564,
-      "props": 58,
-      "animals": 28920,
+      "edge": 74,
+      "grass": 33,
+      "cabins": 525,
+      "props": 59,
+      "animals": 25003,
       "weapon": 1,
       "menu": 9,
-      "shaders": 1085,
-      "firstFrame": 301,
-      "audio": 215
+      "shaders": 1029,
+      "firstFrame": 303,
+      "audio": 198
     },
-    "heapMB": 260.73667907714844
+    "heapMB": 288.8452682495117
   },
   "poses": {
     "gate": {
@@ -3950,10 +3952,10 @@
       ],
       "calls": 245,
       "tris": 8432508,
-      "fps": 19.30627000319815,
-      "frameP95Ms": 54.200000286102295,
-      "cpuP50Ms": 51.5,
-      "cpuP95Ms": 53.60000038146973,
+      "fps": 20.117736013133815,
+      "frameP95Ms": 53.19999980926514,
+      "cpuP50Ms": 49.30000019073486,
+      "cpuP95Ms": 52.59999990463257,
       "creatureBoxes": 116,
       "boxes": [
         [
@@ -4665,10 +4667,10 @@
       ],
       "calls": 278,
       "tris": 7991952,
-      "fps": 18.271671551802648,
-      "frameP95Ms": 57.90000009536743,
-      "cpuP50Ms": 54.5,
-      "cpuP95Ms": 57.09999990463257,
+      "fps": 22.84120000546401,
+      "frameP95Ms": 53.299999713897705,
+      "cpuP50Ms": 40.90000009536743,
+      "cpuP95Ms": 52.59999990463257,
       "creatureBoxes": 55,
       "boxes": [
         [
@@ -5014,10 +5016,10 @@
       ],
       "calls": 185,
       "tris": 5241788,
-      "fps": 20.708537755135428,
-      "frameP95Ms": 51.80000019073486,
-      "cpuP50Ms": 47.19999980926514,
-      "cpuP95Ms": 51.10000038146973,
+      "fps": 20.789150575394185,
+      "frameP95Ms": 52.80000019073486,
+      "cpuP50Ms": 48,
+      "cpuP95Ms": 51.80000019073486,
       "creatureBoxes": 4,
       "boxes": [
         [
@@ -5405,7 +5407,7 @@
         },
         "maxY": 4.249,
         "out": 0,
-        "seconds": 22.166666666665346,
+        "seconds": 22.16666666666363,
         "trace": [
           [
             0.033,
@@ -28314,7 +28316,8 @@
     "loot": {
       "written": [
         "local:wildshard.save.v2.global",
-        "local:wildshard.save.v2.pine-hollow"
+        "local:wildshard.save.v2.pine-hollow",
+        "local:wildshard.save.v2.profile"
       ]
     },
     "sounds": {
@@ -32153,18 +32156,18 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:35:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:36:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at O (http://127.0.0.1:4688/assets/bootTrace-BemYI8W3.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:960)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1268)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1378)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:50006/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:35:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:50006/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:36:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4209)\n    at O (http://127.0.0.1:50006/assets/bootTrace-B1IT5R64.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:960)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:1268)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:1378)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at Pj.killFeed (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:2087:50903)\n    at HL.b.onKill (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:2111:14704)\n    at et.damaged [as onDamaged] (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:333:136499)\n    at et.damaged (http://127.0.0.1:4688/assets/AnimalView-CkvUEVkN.js:1:21962)\n    at et.applyFinalDamage (http://127.0.0.1:4688/assets/AnimalSim-DSrG4e3g.js:1:8673)\n    at Object.applyDamage (http://127.0.0.1:4688/assets/AnimalSim-DSrG4e3g.js:1:8196)\n    at Q.hit (http://127.0.0.1:4688/assets/runtime-Rw-315fG.js:1:43400)\n    at et.applyDamage (http://127.0.0.1:4688/assets/AnimalView-CkvUEVkN.js:1:20206)",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at e.combat (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:75196)\n    at HL.E.onHit (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:2111:13862)\n    at e.onHit (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:333:72189)\n    at arrows.onHit (http://127.0.0.1:4688/assets/Elite-DedXOXlu.js:61:16187)\n    at Ge.testHit (http://127.0.0.1:4688/assets/Elite-DedXOXlu.js:61:9312)\n    at Ge.update (http://127.0.0.1:4688/assets/Elite-DedXOXlu.js:61:7493)\n    at dt.update (http://127.0.0.1:4688/assets/Elite-DedXOXlu.js:61:21759)\n    at vv.update (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:333:77083)",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at http://127.0.0.1:4688/assets/ToastStack-CGN-WYZo.js:1:1141\n    at b (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:1:2181)\n    at http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4973\n    at <anonymous>:31:83\n    at Object.run (<anonymous>:17:205)\n    at MessagePort.tick (<anonymous>:51:13)",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at http://127.0.0.1:4688/assets/ToastStack-CGN-WYZo.js:1:1141\n    at b (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:1:2181)\n    at http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4973\n    at <anonymous>:31:83\n    at Object.run (<anonymous>:17:205)\n    at MessagePort.tick (<anonymous>:51:13)",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:5181)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1236)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864"
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:5181)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:1236)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:5181)\n    at Wt (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:74:4045)\n    at G (http://127.0.0.1:50006/assets/pageServices-4qa2m7aH.js:1:273795)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:5181)\n    at Wt (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:74:4145)\n    at G (http://127.0.0.1:50006/assets/pageServices-4qa2m7aH.js:1:273795)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:5181)\n    at Wt (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:74:4254)\n    at G (http://127.0.0.1:50006/assets/pageServices-4qa2m7aH.js:1:273795)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:5181)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:11:6890"
       ]
     },
     "retained": [
@@ -34107,7 +34110,7 @@
         },
         {
           "type": "Gs",
-          "uuid": "0e355f7a-8973-413b-b852-18bdc951f690",
+          "uuid": "3006fb88-d292-4493-a6e3-3a47c39b0167",
           "name": "",
           "owner": {
             "name": "level",
@@ -34117,7 +34120,7 @@
           "retained": false,
           "texture": false,
           "programs": [],
-          "source": "5c1fa29e-e2e0-4b71-a724-8eff0a8360db",
+          "source": "2ae3dd31-0bc6-4b4d-ae10-6abab42897ac",
           "image": {
             "width": 1024,
             "height": 640
@@ -34270,18 +34273,18 @@
       },
       "stacks": {
         "listeners": [
-          "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&sw=0&weather=rain:35:16",
-          "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&sw=0&weather=rain:36:16",
-          "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at O (http://127.0.0.1:4688/assets/bootTrace-BemYI8W3.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:960)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-          "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1268)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-          "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1378)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864"
+          "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:50006/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&sw=0&weather=rain:35:16",
+          "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:50006/?chunk=pine-hollow&tier=desktop&skipintro=1&nolock=1&mute=1&sw=0&weather=rain:36:16",
+          "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4209)\n    at O (http://127.0.0.1:50006/assets/bootTrace-B1IT5R64.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:960)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864",
+          "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:1268)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864",
+          "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:1378)\n    at http://127.0.0.1:50006/assets/main-CbE2v-Sp.js:3:864"
         ],
         "timers": [
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420"
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4912)\n    at jf (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:11664)\n    at c (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13407)\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13617\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:6420",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4912)\n    at jf (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:11664)\n    at c (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13407)\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13617\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:6420",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4912)\n    at jf (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:11664)\n    at c (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13407)\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13617\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:6420",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4912)\n    at jf (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:11664)\n    at c (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13407)\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13617\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:6420",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:50006/assets/runtime-CSZpImLO.js:3:4912)\n    at jf (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:11664)\n    at c (http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13407)\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:13617\n    at async http://127.0.0.1:50006/assets/session-DkVXXJ8Z.js:228:6420"
         ]
       },
       "retained": [
@@ -36236,24 +36239,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 9838.60000038147,
-    "boot.stepMs.renderer": 8,
-    "boot.stepMs.sky": 302,
-    "boot.stepMs.terrain": 186,
-    "boot.stepMs.cards": 114,
-    "boot.stepMs.forest": 4,
-    "boot.stepMs.physics": 2,
-    "boot.stepMs.edge": 60,
-    "boot.stepMs.grass": 14,
-    "boot.stepMs.cabins": 267,
-    "boot.stepMs.props": 34,
-    "boot.stepMs.animals": 8556,
+    "boot.playMs": 9019.099999904633,
+    "boot.stepMs.renderer": 7,
+    "boot.stepMs.sky": 509,
+    "boot.stepMs.terrain": 182,
+    "boot.stepMs.cards": 108,
+    "boot.stepMs.forest": 3,
+    "boot.stepMs.physics": 1,
+    "boot.stepMs.edge": 54,
+    "boot.stepMs.grass": 3,
+    "boot.stepMs.cabins": 466,
+    "boot.stepMs.props": 84,
+    "boot.stepMs.animals": 6240,
     "boot.stepMs.weapon": 0,
-    "boot.stepMs.menu": 9,
-    "boot.stepMs.shaders": 115,
-    "boot.stepMs.firstFrame": 39,
-    "boot.stepMs.audio": 19,
-    "boot.heapMB": 199.62775802612305,
+    "boot.stepMs.menu": 2,
+    "boot.stepMs.shaders": 276,
+    "boot.stepMs.firstFrame": 25,
+    "boot.stepMs.audio": 29,
+    "boot.heapMB": 21.002758026123047,
     "poses.gate.pos": [
       0,
       0,
@@ -36261,10 +36264,10 @@
     ],
     "poses.gate.calls": 0,
     "poses.gate.tris": 0,
-    "poses.gate.fps": 2.9289484685831866,
-    "poses.gate.frameP95Ms": 5.799999713897705,
-    "poses.gate.cpuP50Ms": 7.000000476837158,
-    "poses.gate.cpuP95Ms": 5.599999904632568,
+    "poses.gate.fps": 1.2694375886825888,
+    "poses.gate.frameP95Ms": 3.299999713897705,
+    "poses.gate.cpuP50Ms": 2.299999713897705,
+    "poses.gate.cpuP95Ms": 3.299999713897705,
     "poses.gate.creatureBoxes": 0,
     "poses.gate.ssim": 0,
     "poses.cabin.pos": [
@@ -36274,10 +36277,10 @@
     ],
     "poses.cabin.calls": 0,
     "poses.cabin.tris": 0,
-    "poses.cabin.fps": 0.7561496129033323,
-    "poses.cabin.frameP95Ms": 2.3000001907348633,
-    "poses.cabin.cpuP50Ms": 2.09999942779541,
-    "poses.cabin.cpuP95Ms": 2.4000000953674316,
+    "poses.cabin.fps": 3.8416963419672605,
+    "poses.cabin.frameP95Ms": 3.200000286102295,
+    "poses.cabin.cpuP50Ms": 10.100000381469727,
+    "poses.cabin.cpuP95Ms": 3.200000286102295,
     "poses.cabin.creatureBoxes": 0,
     "poses.cabin.ssim": 0,
     "poses.pond.pos": [
@@ -36287,10 +36290,10 @@
     ],
     "poses.pond.calls": 0,
     "poses.pond.tris": 0,
-    "poses.pond.fps": 7.500748407445535,
-    "poses.pond.frameP95Ms": 13.200000286102295,
-    "poses.pond.cpuP50Ms": 15.699999809265137,
-    "poses.pond.cpuP95Ms": 13.099999904632568,
+    "poses.pond.fps": 3.322514898503666,
+    "poses.pond.frameP95Ms": 4.100000381469727,
+    "poses.pond.cpuP50Ms": 9.799999713897705,
+    "poses.pond.cpuP95Ms": 4.400000095367432,
     "poses.pond.creatureBoxes": 0,
     "poses.pond.ssim": 0,
     "budgets.gate.derived.draws": 0,
@@ -36473,14 +36476,14 @@
     "walk.legs.cabin-porch.end.z": 0,
     "walk.legs.cabin-porch.maxY": 0,
     "walk.legs.cabin-porch.out": 0,
-    "walk.legs.cabin-porch.seconds": 2.1245227799226996e-12,
+    "walk.legs.cabin-porch.seconds": 1.5702994460298214e-12,
     "walk.legs.lookout-climb.stuck": [],
     "walk.legs.lookout-climb.end.x": 0,
     "walk.legs.lookout-climb.end.y": 0,
     "walk.legs.lookout-climb.end.z": 0,
     "walk.legs.lookout-climb.maxY": 0,
     "walk.legs.lookout-climb.out": 0,
-    "walk.legs.lookout-climb.seconds": 2.0587975768648903e-12,
+    "walk.legs.lookout-climb.seconds": 2.262190434976219e-12,
     "walk.legs.creek-bridge.stuck": [],
     "walk.legs.creek-bridge.end.x": 0,
     "walk.legs.creek-bridge.end.y": 0,
@@ -36715,10 +36718,10 @@
   "selfMin": {
     "gate": 1,
     "cabin": 1,
-    "pond": 0.9999644878352171
+    "pond": 0.999940589988978
   },
   "harness": 2,
-  "sha": "ca969df25908be165a71648a2ecbbca8040477a1",
-  "recorded": "2026-10-08T23:39:18.245Z",
+  "sha": "7d731563a2f792ffe01bfe93c4b63b095070d4ed",
+  "recorded": "2026-10-09T00:52:59.673Z",
   "browser": "153.0.8010.12"
 }
