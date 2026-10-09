@@ -208,6 +208,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [creature-color.mjs](./creature-color.mjs)
 - [driftwood-physics-inputs.d.mts](./driftwood-physics-inputs.d.mts)
 - [driftwood-physics-inputs.mjs](./driftwood-physics-inputs.mjs)
+- [driftwood-spots-inputs.d.mts](./driftwood-spots-inputs.d.mts)
+- [driftwood-spots-inputs.mjs](./driftwood-spots-inputs.mjs)
 - [explore-multitouch.mjs](./explore-multitouch.mjs)
 - [explore-view-taps.mjs](./explore-view-taps.mjs)
 - [fetch-assets.mjs](./fetch-assets.mjs)
