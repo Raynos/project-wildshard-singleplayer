@@ -1,13 +1,16 @@
 # sp-x4 handoff
 
-Contact seam (locally landed in the commit containing this handoff; coordinator push pending): shared SimHost afterBodies + bodyClear, Driftwood per-body contact/root/equipment order,
-flared-only retirement, x5 shared page prompt adapters, actual three physics bakes/spots/map and four witness
-refreshes. Source diagnostic1f97f1300928bfb0ce62eeb99a9e3fa2fca10c7e; full clean ticket1112:1081files/5945tests green119.72s.
-Final native tape19255, Captain18339/190HP,916exact suffix+60worker,92entries and actual ledger green.
-Previous22794 and intermediate21482 counts are disclosed; failed roster-chase tape rejected, real player route fixed.
-Current private index paths only; no sp-x2 Pine King/ranged/material WIP consumed. Pine witness/checkpoint paths release with this commit; x2 rebuilds its independent King/ranged/material candidate
-on the defining committed SHA before its one actual bake. Coordinator alone pushes. Graph Driftwood->engine+1 approved; Debug -1.
+Contact seam landed `794c4e1287c96ea3322feb9f3b731490f492038b`: afterBodies/bodyClear,
+same-tick Driftwood contacts, flared-only ramps, actual physics/spots/map captures. Full 5945 tests,
+boot 2/2 and walk 8/8 zero stuck; compatibility remains false for the documented open list.
 
-Both owned4401/4402 previews and all browsers are closed. Next: posed head/body volumes via game/combat/collisionPose using the exact AnimalView
-scalar blend; compatibility staysfalse until its volume oracle and remaining optional/ecology/camera laws match.
-No plan edits, no wildshard-v, no rendered/look changes. See sf72/driftwood-contact/README.md for receipts.
+Crossed-input forward (commit containing this handoff): official re-record of all four checkpoint sets
+on clean `49a7a133feaa3cd5ef3949280baba12e606f51b1`, including SF73 `2f765d83b`.
+All 14 snapshot gzip payloads and the command tape remain byte-identical; only six JSON input fields
+change. Real Pine/Driftwood compatibility outcomes match exactly. See
+`sf72/crossed-witness-refresh/` for hashes and proof. Pine paths release to sp-x2 after this defining SHA;
+it must rebuild its King/ranged/material candidate on that SHA before its one actual bake.
+
+No owned browsers, previews or Simulator. Coordinator alone pushes. Next: posed head/body volumes via
+game/combat/collisionPose from the exact AnimalView scalar blend, then optional gameplay, bounded
+ecology and camera/prompt laws. No plan edits, no wildshard-v, no look changes.

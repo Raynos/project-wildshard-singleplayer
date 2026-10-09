@@ -1,0 +1,145 @@
+{
+  "base": "49a7a133feaa3cd5ef3949280baba12e606f51b1",
+  "recordings": [
+    {
+      "slug": "driftwood-isle",
+      "mode": "checkpoints",
+      "oldInputs": "4ce7e2bce9d20c2df7399d5a64ebb37f743591b0e77cbaf44bd1f36ed93b5b51",
+      "inputs": "415d9e4b9cde0576d5549b3d03662709ec16c596f9f8be7bafa151fe974394a4",
+      "seconds": 5.135,
+      "otherManifestFieldsIdentical": true
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "mode": "checkpoints",
+      "oldInputs": "42147f33781826801bd449d54e97bff1e4edb9667ac8aa0b460a793e3eac6749",
+      "inputs": "1ea7455a7b6783d64ae4988a80ee4e789a2996c274ac513126f30a4eea6d5a6b",
+      "seconds": 5.63,
+      "otherManifestFieldsIdentical": true
+    },
+    {
+      "slug": "pine-hollow",
+      "mode": "checkpoints",
+      "oldInputs": "eea6cca66434423584edf5200043442079298c99c52da2dfb12961c631f95cc3",
+      "inputs": "866ac669edc3f59527c6ae05194e491da7c944f9c94e7a5c4da528b99337ce7e",
+      "seconds": 6.69,
+      "otherManifestFieldsIdentical": true
+    },
+    {
+      "slug": "far-reach",
+      "mode": "checkpoints",
+      "oldInputs": "eea1ad3f2207eafb375e4a8bf6edca222015fe30baa79bd1e521429cf8e58c2c",
+      "inputs": "d8279d1879d3b2d18192f183490fb5da49d36ded0a69283bf3c49fdf1b635913",
+      "seconds": 3.07,
+      "otherManifestFieldsIdentical": true
+    }
+  ],
+  "payloads": [
+    {
+      "path": "test/proof/driftwood-isle/checkpoints/captain.snap.gz",
+      "bytes": 1764687,
+      "beforeSha256": "f1f090b3d647dad8f36ff7f813c2da92dc603967c01dfe2341c1e7d6dc4d9655",
+      "afterSha256": "f1f090b3d647dad8f36ff7f813c2da92dc603967c01dfe2341c1e7d6dc4d9655",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/driftwood-isle/checkpoints/commands.json.gz",
+      "bytes": 397286,
+      "beforeSha256": "2cfc3356171e68cb146109fef67ceef1ece208f1dcf67b2f76e9f1d2fa457128",
+      "afterSha256": "2cfc3356171e68cb146109fef67ceef1ece208f1dcf67b2f76e9f1d2fa457128",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/driftwood-isle/checkpoints/spawn.snap.gz",
+      "bytes": 1684588,
+      "beforeSha256": "1a46bc7e5c8a3c08a5f05892a79fa4d5214d4983d1625ba1c9847a261eb3d9ff",
+      "afterSha256": "1a46bc7e5c8a3c08a5f05892a79fa4d5214d4983d1625ba1c9847a261eb3d9ff",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/driftwood-isle/checkpoints/tick-10000.snap.gz",
+      "bytes": 1764834,
+      "beforeSha256": "9cc8b5e6a033a46a98345f00333626443f8c21ade34253006dcb765891b1c7e0",
+      "afterSha256": "9cc8b5e6a033a46a98345f00333626443f8c21ade34253006dcb765891b1c7e0",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/nine-dragon-stack/checkpoints/crossing.snap.gz",
+      "bytes": 26819,
+      "beforeSha256": "2a45f08dbcca1654d27931c23a1fff8af90d15eb5feb0652770ca35a17661c1b",
+      "afterSha256": "2a45f08dbcca1654d27931c23a1fff8af90d15eb5feb0652770ca35a17661c1b",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/nine-dragon-stack/checkpoints/ride.snap.gz",
+      "bytes": 26496,
+      "beforeSha256": "685f6bbb8694ce7b79c2a9cb704f33a279009592c1d4ece63320b7b9f9fd1aab",
+      "afterSha256": "685f6bbb8694ce7b79c2a9cb704f33a279009592c1d4ece63320b7b9f9fd1aab",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/pine-hollow/checkpoints/basis.snap.gz",
+      "bytes": 2349827,
+      "beforeSha256": "a7f8adb13116cfc0289ee43cb890ea14143ad5e2796281cd224b8d518d776d6e",
+      "afterSha256": "a7f8adb13116cfc0289ee43cb890ea14143ad5e2796281cd224b8d518d776d6e",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/pine-hollow/checkpoints/dam.snap.gz",
+      "bytes": 161954,
+      "beforeSha256": "6f4b446fe887a4fe5b800d7106c19ce39979cd6d7a6a32c8aa9540d4ddfe7b84",
+      "afterSha256": "6f4b446fe887a4fe5b800d7106c19ce39979cd6d7a6a32c8aa9540d4ddfe7b84",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/pine-hollow/checkpoints/fallen.snap.gz",
+      "bytes": 167520,
+      "beforeSha256": "dd17c0421f4eae6f0b6f31cfb84c969452716f42e5798da17a65ee5132b0657e",
+      "afterSha256": "dd17c0421f4eae6f0b6f31cfb84c969452716f42e5798da17a65ee5132b0657e",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/pine-hollow/checkpoints/king.snap.gz",
+      "bytes": 165845,
+      "beforeSha256": "95fb038d57bd00e31d0b02b99d3d881af0fe4cae2d01436626a2764e749a6270",
+      "afterSha256": "95fb038d57bd00e31d0b02b99d3d881af0fe4cae2d01436626a2764e749a6270",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/pine-hollow/checkpoints/night.snap.gz",
+      "bytes": 164694,
+      "beforeSha256": "47a7e6bb658e84209232ae18d948d675a6cbe21df242f1f7a3beb016a4c4fb89",
+      "afterSha256": "47a7e6bb658e84209232ae18d948d675a6cbe21df242f1f7a3beb016a4c4fb89",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/pine-hollow/checkpoints/ridge.snap.gz",
+      "bytes": 164103,
+      "beforeSha256": "d35cc9a2303e7505a3452162251678e80cc755d7cad82b8a61ea645fffeabe4a",
+      "afterSha256": "d35cc9a2303e7505a3452162251678e80cc755d7cad82b8a61ea645fffeabe4a",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/far-reach/checkpoints/gale.snap.gz",
+      "bytes": 88229,
+      "beforeSha256": "da2973a2d300ebcdabf6d613663a688c38f2768fcbbbf8fa730ae596c29594b9",
+      "afterSha256": "da2973a2d300ebcdabf6d613663a688c38f2768fcbbbf8fa730ae596c29594b9",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/far-reach/checkpoints/step.snap.gz",
+      "bytes": 87879,
+      "beforeSha256": "cf30b3a07d64c6aa161d1487781bde52d363141c4ada65dadd9044efbacc3d51",
+      "afterSha256": "cf30b3a07d64c6aa161d1487781bde52d363141c4ada65dadd9044efbacc3d51",
+      "byteIdentical": true
+    },
+    {
+      "path": "test/proof/far-reach/checkpoints/storm.snap.gz",
+      "bytes": 88353,
+      "beforeSha256": "c31db5913bfc694d22260722fe07c799666b522ae74bbc2e9a545ff1a5a9850e",
+      "afterSha256": "c31db5913bfc694d22260722fe07c799666b522ae74bbc2e9a545ff1a5a9850e",
+      "byteIdentical": true
+    }
+  ],
+  "allPayloadsByteIdentical": true
+}
