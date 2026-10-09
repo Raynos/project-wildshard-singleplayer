@@ -1,0 +1,949 @@
+diff --git a/src/game/quest/interactionRows.ts b/src/game/quest/interactionRows.ts
+index 51471bf97..c36509117 100644
+--- a/src/game/quest/interactionRows.ts
++++ b/src/game/quest/interactionRows.ts
+@@ -99,7 +99,7 @@ export interface InteractionRowPorts {
+   /** every row's spot by its `at` name (the built world's placements, baked) */
+   readonly spots: Readonly<Record<string, InteractionSpot>>;
+   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
+-  /** the item that cracks: its light / heavy reach, and the act its crack reached this tick (null: none or cooling) */
++  /** the item that cracks: its light / heavy reach, and the act its lash reached this tick (null: none); its step runs before this one */
+   readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
+   /** a row ran (the shard's beat on it: a summons, a cue) */
+   readonly done?: (row: string) => void;
+@@ -111,10 +111,10 @@ const EYE = 1.68;
+ const MAX_COMMANDS = 1024;
+ 
+ /**
+- * The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the row whose `act`
+- * they name, when the player's eye stands within the row's spot radius (a crack row: only when the item's crack reached
+- * that act this tick, within the spot's radius plus the crack's reach), through the same `InteractionRules` the browser's
+- * interactables use. The marks are the step's exact continuation. Not modelled: the prompts' line of sight and the
++ * The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the prompt row whose
++ * `act` they name, when the player's eye stands within the row's spot radius; a crack row runs on the tick the item's
++ * lash reaches its act (the command started the crack; the lash lands later, as the browser's does), within the spot's
++ * radius plus the crack's reach. Both go through the same `InteractionRules` the browser's interactables use. The marks are the step's exact continuation. Not modelled: the prompts' line of sight and the
+  * nearest-prompt pick (a command names its row).
+  */
+ export function installInteractionRows(host: SimHost, rules: InteractionRules, ports: InteractionRowPorts): void {
+@@ -125,11 +125,11 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
+     return [entry.act, { entry, spot }] as const;
+   }));
+   const eye = new Vector3(), at = new Vector3();
+-  const act = (value: number): void => {
++  const act = (value: number, lashed: boolean): void => {
+     const found = byAct.get(value); if (found === undefined) return;
+     const { entry, spot } = found, crack = ports.crack;
+-    let reach = 0;
+-    if (entry.crack !== undefined && crack !== undefined) { if (crack.cracked() !== value) return; reach = crack.reach[entry.crack]; }
++    if ((entry.crack !== undefined) !== lashed) return;
++    const reach = entry.crack !== undefined && crack !== undefined ? crack.reach[entry.crack] : 0;
+     eye.copy(host.player.position); eye.y += EYE;
+     if (at.set(spot.x, spot.y, spot.z).distanceTo(eye) >= spot.radius + reach) return;
+     if (rules.run(entry.id).ok) ports.done?.(entry.id);
+@@ -138,7 +138,9 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
+     const list = ports.commands();
+     for (let i = 0; i < MAX_COMMANDS; i++) {
+       const command = list[i]; if (command === undefined) break;
+-      if (command.actorId === ports.actorId) act(command.value);
++      if (command.actorId === ports.actorId) act(command.value, false);
+     }
++    const reached = ports.crack?.cracked() ?? null;
++    if (reached !== null) act(reached, true);
+   }, { snapshot: () => rules.snapshot(), restore: value => { rules.restore(v.parse(v.string(), value)); } });
+ }
+diff --git a/src/shards/sunscar-dunes/data/items.ts b/src/shards/sunscar-dunes/data/items.ts
+index da136a13f..e7eb915bb 100644
+--- a/src/shards/sunscar-dunes/data/items.ts
++++ b/src/shards/sunscar-dunes/data/items.ts
+@@ -21,3 +21,11 @@ export const WHIP_ITEMS = { version: 1,
+ } as const;
+ /** The one declared weapon row. */
+ export const WHIP_ITEM = WHIP_ITEMS.rows[0];
++/**
++ * The lash's own timing (seconds) and reactions, read by the platform's lash runtime (`@wildshard/game/systems/items/lash`)
++ * in the browser whip and the headless one alike: the 0.12 s unroll, the heavy's second lash at 0.32 s, the 0.42 s show,
++ * the second lash's stagger, and the first lash's 16 m/s yank on a creature of 40 hit points or less.
++ */
++export const WHIP_TIMING = { unroll: 0.12, second: 0.32, show: 0.42, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
++/** The move ids the lash's hits carry: the light crack and the double crack's two lashes. */
++export const WHIP_MOVES = { light: 'sunscar.whip.crack', first: 'sunscar.whip.double.1', second: 'sunscar.whip.double.2' } as const;
+diff --git a/src/shards/sunscar-dunes/runtime/headless.ts b/src/shards/sunscar-dunes/runtime/headless.ts
+index 8bb6c552b..cf101f406 100644
+--- a/src/shards/sunscar-dunes/runtime/headless.ts
++++ b/src/shards/sunscar-dunes/runtime/headless.ts
+@@ -8,14 +8,13 @@ import type { Material } from '@wildshard/engine/physics/surface';
+ import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
+ import { SCOUT_FLAG } from '../data/flags';
+ import { installSignalHomes } from './homes';
+-import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
++import { installSignalWhip, WHIP_ID, type WhipCommand, type WhipWorldTarget } from './whip';
+ import { installSignalQuest, type SignalSpots } from './quest';
+-import { SIGNAL_ACT, SIGNAL_INTERACT } from '../quests/interactions';
++import { SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../quests/interactions';
+ import { installSignalMatriarch } from './matriarch';
+ import { proveSignalEntries } from './entries';
+ import { SIGNAL_SPAWNS } from '../data/spawns';
+ import { MATRIARCH_ID } from '../combat/matriarchFight';
+-import { BRAZIERS } from '../data/layout';
+ import baked from './physics.baked.json' with { type: 'json' };
+ 
+ /** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */
+@@ -77,6 +76,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
+   };
+   const whip = shard.items.rows.find(row => row.id === WHIP_ID), spots = signalSpots();
+   if (whip?.kind !== 'weapon') throw new Error('Signal Dunes declares its whip row');
++  // the crack rows' spots (a crack row's `at` is `crack.<baked crack spot id>`)
++  const cracks = SIGNAL_INTERACTIONS.rows.flatMap((row): WhipWorldTarget[] => {
++    if (row.crack === undefined) return [];
++    const spot = spots.crack.find(s => `crack.${s.id}` === row.at); if (spot === undefined) throw new Error(`Signal's crack row ${row.id} has no baked spot`);
++    return [{ act: row.act, at: spot, radius: spot.radius, crack: row.crack }];
++  });
+   const reach = { light: whip.light.range, heavy: whip.heavy.range }, matriarchRow = SIGNAL_SPAWNS.bosses.find(row => row.id === MATRIARCH_ID);
+   if (matriarchRow === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
+   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveSignalEntries(host.physics, shard.entryways, heightAt), install: (host, context) => {
+@@ -87,16 +92,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
+     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
+     const matriarch = installSignalMatriarch(host, { body: keeper.boss, fact, coins });
+     // the browser disables the player's weapons through her intro (BossPorts.lockInput)
+-    // a crack command at the well's crank (heavy) or a waymark's brazier (light) is the whip's own crack at that spot
+-    const world = (value: number): WhipCommand | null => {
+-      const at = value === SIGNAL_ACT.crank ? spots.crack[0] : value >= SIGNAL_ACT.light && value < SIGNAL_ACT.light + BRAZIERS.length ? spots.crack[1 + value - SIGNAL_ACT.light] : undefined;
+-      return at === undefined ? null : { world: value, at, heavy: value === SIGNAL_ACT.crank };
+-    };
++    // a crack command on a crack row's act (the crank's double crack, a waymark's light one) is the whip's own crack at that row's spot
+     const signalWhip = installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): WhipCommand[] => {
+       if (command.kind === 'player') return command.attack === undefined ? [] : [{ targetId: command.attack.targetId }];
+-      const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? world(command.value) : null;
+-      return crack === null ? [] : [crack];
+-    }));
++      const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? cracks.find(row => row.act === command.value) : undefined;
++      return crack === undefined ? [] : [{ world: crack.act, heavy: crack.crack === 'heavy' }];
++    }), cracks);
+     installSignalQuest(host, { quests: shard.quests, spots, reach, cracked: signalWhip.cracked,
+       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []), fact, coins, lit: matriarch.summon });
+     keeper.settle();
+diff --git a/src/shards/sunscar-dunes/runtime/whip.ts b/src/shards/sunscar-dunes/runtime/whip.ts
+index 14a25de32..db6d8f579 100644
+--- a/src/shards/sunscar-dunes/runtime/whip.ts
++++ b/src/shards/sunscar-dunes/runtime/whip.ts
+@@ -1,9 +1,10 @@
+ import * as v from 'valibot';
+ import { Vector3 } from 'three';
+-import { ItemRuntime, type ItemSpec, type ItemState, type ItemTarget } from '@wildshard/engine/combat/items';
++import type { ItemSpec } from '@wildshard/engine/combat/items';
++import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
+ import type { SimHost } from '@wildshard/engine/sim';
+-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+-import { lashContact } from '../weapons/lash';
++import { LashRuntime, lashSpec, lashVolumeHit, type LashWorldTarget } from '@wildshard/game/systems/items/lash';
++import { WHIP_MOVES, WHIP_TIMING } from '../data/items';
+ 
+ /** The declared whip row's id (data/items.ts) and its fixed-step adapter id. */
+ export const WHIP_ID = 'weapon.sunscar-whip';
+@@ -14,80 +15,79 @@ const EYE = 1.68;
+ const MAX_COMMANDS = 1024;
+ /** One player attack this tick: a light crack at the named target (the protocol's `player.attack`), or a heavy one. */
+ export interface WhipCreatureCommand { readonly targetId: string; readonly heavy?: boolean }
+-/** A crack at a world target (a lever, a brazier): `world` names it back to its owner, `at` is where the lash aims. */
+-export interface WhipWorldCommand { readonly world: number; readonly at: { readonly x: number; readonly y: number; readonly z: number }; readonly heavy: boolean }
++/** A crack at a world target: `world` names the crack row's act, whose spot the lash aims at. */
++export interface WhipWorldCommand { readonly world: number; readonly heavy: boolean }
+ /** Every whip command a tick carries, in tape order. */
+ export type WhipCommand = WhipCreatureCommand | WhipWorldCommand;
+-/** The whip in the host: its item, and the world target its crack reached this tick (null: none, or the lash was cooling). */
+-export interface SignalWhip { readonly item: ItemRuntime; readonly cracked: () => number | null }
++/** A world target the lash can reach (a crack row's spot): the act it answers and the crack that reaches it. */
++export interface WhipWorldTarget { readonly act: number; readonly at: { readonly x: number; readonly y: number; readonly z: number }; readonly radius: number; readonly crack: 'light' | 'heavy' }
++/** The whip in the host: the act its lash reached this tick (null: none). */
++export interface SignalWhip { readonly lash: LashRuntime; readonly cracked: () => number | null }
+ 
+ const finite = v.pipe(v.number(), v.finite());
+-const Aim = v.strictObject({ x: finite, y: finite, z: finite });
+-const Saved = v.strictObject({ version: finite, id: v.string(), tick: finite, cooldown: finite, fuel: finite, lit: v.boolean(), held: v.boolean(), chargeTime: finite,
+-  pending: v.array(v.strictObject({ action: v.picklist([1, 2, 3, 4]), aim: v.nullable(v.strictObject({ origin: Aim, direction: Aim })) })) });
++const Saved = v.strictObject({ version: v.literal(2), cooldown: finite, crackT: finite, heavy: v.boolean(), landed: v.picklist([0, 1, 2]),
++  target: v.nullable(v.string()), world: v.nullable(finite), dir: v.tuple([finite, finite, finite]) });
+ 
+ /**
+- * Signal's bullwhip as its declared item row in the renderer-free host (SF72): the platform's own `ItemRuntime` with the
+- * row's light (18) and heavy (16) contacts, reach, width and cooldowns, aimed from the player's eye at the commanded
+- * target's body. A body's contact point is where the lash first meets its head ball or body capsule, the browser
+- * whip's rule (weapons/lash.ts): the reach runs to her skin, never to her centre. The browser's trusted family (weapons/Bullwhip.ts) adds the lash's 0.12 s unroll, the heavy's second
+- * lash, the pull and the stagger as presentation-timed extras; headless strikes are the row's single declared contacts,
+- * never an invented one. Its cooldown and queued commands are exact continuation. A world crack (the well's crank, a
+- * waymark's brazier) is the same item's crack aimed at its target, so the row's cooldown gates it as the browser's crack
+- * does: it reaches the target only when the whip fires on it this tick (`cracked`).
++ * Signal's bullwhip in the renderer-free host (SF72): the platform's lash runtime (`@wildshard/game/systems/items/lash`)
++ * on the declared row, the browser Bullwhip's own crack: the lash lands 0.12 s after the swing, the heavy's second lash
++ * at 0.32 s staggers a big creature, its first yanks a small one, and the row's cooldowns refuse a swing. The player's
++ * whip is locked on (the row's `lockOn`): each lash leaves the eye toward the commanded target's body as it stands
++ * then (a world crack toward its spot); a target gone keeps the last aim. A lash takes the first body it meets (the
++ * creatures' head balls and body capsules), else a chest in its lane, else a crack row's spot in its lane: a `light`
++ * row is reached by a crack's first lash, a `heavy` row by the double crack's second (its first wraps), as the
++ * browser's levers and braziers answer. The lash and its aim are exact continuation.
+  */
+-export function installSignalWhip(host: SimHost, row: ItemSpec, commands: () => readonly WhipCommand[]): SignalWhip {
++export function installSignalWhip(host: SimHost, row: ItemSpec, commands: () => readonly WhipCommand[], worldRows: readonly WhipWorldTarget[]): SignalWhip {
+   if (row.kind !== 'weapon' || row.id !== WHIP_ID) throw new Error('Signal declares its whip as a weapon row');
+-  const origin = new Vector3(), target = new Vector3(), eye = new Vector3(), ray = new Vector3();
+   const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
+-  const reach = Math.max(row.light.range, row.heavy.range), width = row.light.width;
+-  // Each body's contact point: where a lash from the eye at its centre first meets its head ball or body capsule (or
+-  // its chest in the lane), the browser whip's rule (weapons/lash.ts); out of reach it stays the centre, which the
+-  // item's own range then refuses.
+-  const contact = (actor: AnimalSim): Vector3 => {
+-    const centre = actor.position.clone(); centre.y += actor.dims.bodyY * actor.scale;
+-    eye.copy(host.player.position); eye.y += EYE; ray.subVectors(centre, eye);
+-    const length = ray.length(); if (length < 1e-9) return centre;
+-    ray.multiplyScalar(1 / length);
+-    actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
+-    volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
+-    const along = lashContact(eye, ray, reach, width, volumes, actor.position);
+-    return along === null ? centre : eye.clone().addScaledVector(ray, along);
++  const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
++  let cracked: number | null = null;
++  const port = (id: string): CombatTarget | null => {
++    const actor = host.entities.get(id); return actor === undefined ? null : host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
+   };
+-  const targets = (): readonly ItemTarget[] => [...host.entities.values()].map(actor =>
+-    Object.assign(host.combat.targetPort(actor.combatActor(), actor), { aimPoint: contact(actor) }));
+-  const whip = new ItemRuntime(row, { actor: host.player.health, combat: host.combat, hook: null, targets,
+-    effect: () => { throw new Error('The whip row declares no contact effect'); } });
+-  // the item copies the aim at its input boundary, so one buffer serves every command
+-  const aim = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: 0 } };
+-  // The item drops every command it cannot fire, so within a tick only the first queued command can fire (the row's
+-  // cooldowns are positive): a world crack reached its target exactly when it was first and the whip fired.
+-  const shot = { fired: false }, fired = (): boolean => shot.fired;
+-  let first: WhipCommand | undefined, cracked: number | null = null;
+-  whip.observe(host.scope, phase => { if (phase === 'fire') shot.fired = true; });
++  const world: LashWorldTarget[] = worldRows.map(entry => ({ at: new Vector3(entry.at.x, entry.at.y, entry.at.z), radius: entry.radius,
++    crack: (heavy, second) => {
++      if (entry.crack === 'light') { if (second) return false; cracked = entry.act; return true; }
++      if (heavy && second) cracked = entry.act;
++      return true;
++    } }));
++  const lash = new LashRuntime(lashSpec(row, WHIP_TIMING, WHIP_MOVES), { source: host.player.health, hit: req => host.combat.hit(req), world: () => world,
++    targets: () => [...host.entities.keys()].flatMap(id => { const p = port(id); return p === null ? [] : [p]; }),
++    aim: (from, dir) => {
++      from.copy(host.player.position); from.y += EYE;
++      const actor = aimed.target === null ? undefined : host.entities.get(aimed.target), spot = aimed.world === null ? undefined : worldRows.find(entry => entry.act === aimed.world);
++      if (actor !== undefined) dir.copy(actor.position).setY(actor.position.y + actor.dims.bodyY * actor.scale).sub(from);
++      else if (spot !== undefined) dir.set(spot.at.x, spot.at.y, spot.at.z).sub(from);
++      else dir.copy(aimed.dir);
++      if (dir.lengthSq() < 1e-9) dir.copy(aimed.dir);
++      dir.normalize(); aimed.dir.copy(dir); return true;
++    },
++    body: (from, dir, reach) => {
++      let best: { port: CombatTarget; point: Vector3 } | null = null, bestT = Infinity;
++      for (const [id, actor] of host.entities) {
++        const p = port(id); if (p === null || !p.hittable) continue;
++        actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
++        volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
++        const t = lashVolumeHit(from, dir, reach, volumes);
++        if (t !== null && t < bestT) { best = { port: p, point: from.clone().addScaledVector(dir, t) }; bestT = t; }
++      }
++      return best;
++    } });
+   host.onStep(WHIP_STEP, dt => {
+     const list = commands();
+-    first = undefined; shot.fired = false; cracked = null;
++    cracked = null; lash.cool(dt);
+     for (let i = 0; i < MAX_COMMANDS; i++) {
+       const command = list[i]; if (command === undefined) break;
+-      origin.copy(host.player.position); origin.y += EYE;
+-      if ('world' in command) target.set(command.at.x, command.at.y, command.at.z);
+-      else {
+-        const actor = host.entities.get(command.targetId); if (actor === undefined) continue;
+-        target.copy(actor.position); target.y += actor.dims.bodyY * actor.scale;
+-      }
+-      target.sub(origin);
+-      if (target.lengthSq() < 1e-9) continue;
+-      target.normalize();
+-      aim.origin.x = origin.x; aim.origin.y = origin.y; aim.origin.z = origin.z; aim.direction.x = target.x; aim.direction.y = target.y; aim.direction.z = target.z;
+-      first ??= command;
+-      whip.queue(command.heavy === true ? 2 : 1, aim);
++      if (!('world' in command) && !host.entities.has(command.targetId)) continue;
++      if (!lash.swing(command.heavy === true)) continue;
++      aimed.target = 'world' in command ? null : command.targetId; aimed.world = 'world' in command ? command.world : null;
+     }
+-    whip.step(host.state.tick, dt);
+-    if (fired() && first !== undefined && 'world' in first) cracked = first.world;
+-  }, { snapshot: () => JSON.stringify(whip.snapshot()), restore: value => {
++    lash.advance(dt);
++  }, { snapshot: () => JSON.stringify({ version: 2, ...lash.snapshot(), target: aimed.target, world: aimed.world, dir: aimed.dir.toArray() }), restore: value => {
+     if (typeof value !== 'string') throw new Error('Invalid Signal whip continuation');
+-    const state: ItemState = v.parse(Saved, JSON.parse(value)); whip.restore(state);
++    const state = v.parse(Saved, JSON.parse(value));
++    lash.restore(state); aimed.target = state.target; aimed.world = state.world; aimed.dir.fromArray(state.dir);
+   } });
+-  return { item: whip, cracked: () => cracked };
++  return { lash, cracked: () => cracked };
+ }
+diff --git a/src/shards/sunscar-dunes/weapons/Bullwhip.ts b/src/shards/sunscar-dunes/weapons/Bullwhip.ts
+index 4ce2307db..2fb79d313 100644
+--- a/src/shards/sunscar-dunes/weapons/Bullwhip.ts
++++ b/src/shards/sunscar-dunes/weapons/Bullwhip.ts
+@@ -1,27 +1,19 @@
+ import type { App } from '@wildshard/engine/app/app';
+ import { blocks } from '@wildshard/engine/blocks';
+ import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+-import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
+ import type { Targets } from '@wildshard/engine/combat/types';
+ import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
+ import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3 } from 'three';
+ import { WHIP_ROW } from './rows';
+-import { WHIP_ITEM } from '../data/items';
++import { WHIP_ITEM, WHIP_MOVES, WHIP_TIMING } from '../data/items';
+ import { braidedMaterial, buildWhipModel, type WhipParts } from './whipModel';
+-import type { Crackable } from '../world/build';
+-import { lashLane } from './lash';
++import { LashRuntime, lashSpec, type LashTarget, type LashWorldTarget } from '@wildshard/game/systems/items/lash';
+ 
+-/** What the lash lands on: the combat actor, and the body's yank and stagger when it has them. */
+-export interface WhipTarget { actor: Actor; impulse?: (velocity: Vector3) => void; stagger?: (dir: Vector3, strength: number) => void }
+-
+-/** The crack's numbers (metres, seconds, hit points); `pull` is the yank's speed (m/s) on a creature of `pullMaxHp` or less. */
+ /** The wrap round a caught lever (metres, seconds): coil radius, height, turns, cord, how long it holds. */
+ const WRAP = { r: 0.06, h: 0.24, turns: 4, cord: 0.018, hold: 0.9 } as const;
+ 
+-/** Reach, width, damage, cooldowns and charge are the declared item row's (data/items.ts, SF50-p); the lash's timing is the runtime's own. */
+-export const CRACK = { reach: WHIP_ITEM.light.range, heavyReach: WHIP_ITEM.heavy.range, width: WHIP_ITEM.light.width, light: WHIP_ITEM.light.damage, heavy: WHIP_ITEM.heavy.damage,
+-  cooldown: WHIP_ITEM.light.cooldown, heavyCooldown: WHIP_ITEM.heavy.cooldown, charge: WHIP_ITEM.charge,
+-  unroll: 0.12, second: 0.32, show: 0.42, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
++/** The crack's numbers: reach, width, damage, cooldowns and charge are the declared item row's (data/items.ts); the lash's timing is the whip's own (`pull` is the yank's speed, m/s, on a creature of `pullMaxHp` or less). */
++export const CRACK = lashSpec(WHIP_ITEM, WHIP_TIMING, WHIP_MOVES);
+ 
+ /**
+  * The bullwhip (rung 3, `extends Weapon`): a light crack is one long, narrow lash to the crosshair; the heavy is a
+@@ -37,12 +29,12 @@ export class Bullwhip extends Weapon {
+   private readonly contact: ReturnType<typeof blocks.melee>;
+   private readonly vm = blocks.viewmodel({ gain: 0.012, clampYaw: 0.12, clampPitch: 0.1, k: 46, c: 11 });
+   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
+-  private cooldown = 0; private held = 0; private wasHeld = false;
+-  /** Time since the current crack started, or −1 when idle. */
+-  private crackT = -1; private crackHeavy = false; private landed = 0; private time = 0;
++  private held = 0; private wasHeld = false; private time = 0;
+   private readonly from = new Vector3(); private readonly end = new Vector3();
+   /** Levers and braziers the lash reacts to when it hits no creature (C3). */
+-  private crackables: readonly Crackable[] = [];
++  private crackables: readonly LashWorldTarget[] = [];
++  /** The crack itself: the platform's lash runtime on the declared row (`@wildshard/game/systems/items/lash`), shared with the headless whip. */
++  private readonly lash: LashRuntime;
+   /**
+    * The pull's wrap (after the check pass: the board showed no lash round the crank): the world point the lash caught,
+    * how long it holds there, and a braided coil wound round it in the world while it holds.
+@@ -51,48 +43,43 @@ export class Bullwhip extends Weapon {
+   constructor(app: App, targets: Targets | null = null) {
+     super(WHIP_ROW); this.app = app; this.targets = targets;
+     this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
++    // Each lash: the shared raycast first (it knows the bodies' shapes), then the nearest target whose chest is inside
++    // the lane, through the shared combat targets (`app.combat.targets()`, ENGINE §19), so the Practice Arena's
++    // dummies take the crack like creatures; then the levers and braziers.
++    this.lash = new LashRuntime(CRACK, { source: 'env', hit: req => this.contact.hit(req), world: () => this.crackables, targets: () => this.app.combat.targets(),
++      aim: (from, dir) => {
++        const host = this.app.equipmentHost; if (host === null) return false;
++        this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir); return true;
++      },
++      body: (from, dir, reach) => {
++        const hit = this.targets?.raycast(from, dir, reach) ?? null, port = hit === null ? null : this.app.combat.target(hit.animal);
++        return hit === null || port === null ? null : { port, point: hit.point };
++      },
++      fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
++      caught: caught => { if (this.lash.heavy) this.wrap(caught.at); } });
+     this.parts = buildWhipModel(); this.model = this.parts.root;
+     // mockup D: the fist whole at the right, above the DODGE / JUMP discs, the coil beside it on the left, the centre
+     // clear (loop 3 tune G: half a metre out, so the generated glove reads a hand's size and nothing hides it)
+     this.model.position.set(this.parts.glove === null ? 0.08 : 0.1, this.parts.glove === null ? -0.17 : -0.095, this.parts.glove === null ? -0.38 : -0.5); // round 1: lower
+   }
+   /** The world things the lash can crack (the windlass crank, the braziers). */
+-  aimAt(crackables: readonly Crackable[]): void { this.crackables = crackables; }
++  aimAt(crackables: readonly LashWorldTarget[]): void { this.crackables = crackables; }
+   override get charge(): number { return Math.min(1, this.held / CRACK.charge); }
+   override install(ctx: EquipContext): void {
+     super.install(ctx);
+     this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
+     this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
+     ctx.scope.onDispose(() => {
+-      this.wasHeld = false; this.held = 0; this.crackT = -1;
++      this.wasHeld = false; this.held = 0; this.lash.cancel();
+       if (this.wrapCoil) { this.wrapCoil.removeFromParent(); this.wrapCoil.geometry.dispose(); this.wrapCoil = null; }
+     });
+   }
+   override tryFire(): void { this.swing(false); }
+   /** Starts a crack; the lash lands `CRACK.unroll` s later (and again at `CRACK.second` for the heavy). */
+   swing(heavy: boolean): boolean {
+-    if (this.cooldown > 0 || !this.enabled) return false;
+-    this.cooldown = heavy ? CRACK.heavyCooldown : CRACK.cooldown; this.crackT = 0; this.crackHeavy = heavy; this.landed = 0;
++    if (!this.enabled || !this.lash.swing(heavy)) return false;
+     this.onSwing?.(heavy); return true;
+   }
+-  /**
+-   * One lash lands: a narrow lane from the eye along the view, `reach` metres long. Selection goes through the shared
+-   * combat targets (`app.combat.targets()`, ENGINE §19), so the Practice Arena's dummies take the crack like creatures:
+-   * the shared raycast first (it knows the bodies' shapes), then the nearest target whose chest is inside the lane. The
+-   * headless whip runs the same rule on the same volumes (weapons/lash.ts `lashContact`).
+-   */
+-  private land(second: boolean): void {
+-    const host = this.app.equipmentHost; if (host === null) return;
+-    const from = new Vector3(), dir = new Vector3();
+-    this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir);
+-    const reach = this.crackHeavy ? CRACK.heavyReach : CRACK.reach;
+-    const hit = this.targets?.raycast(from, dir, reach) ?? null, port = hit === null ? null : this.app.combat.target(hit.animal);
+-    if (hit !== null && port?.hittable === true) { this.strike(whipTarget(port), hit.point, dir, from, this.crackHeavy, second); this.onFire?.(); return; }
+-    const lane = this.inLane(from, dir, reach);
+-    if (lane !== null) { this.strike(whipTarget(lane.port), lane.point, dir, from, this.crackHeavy, second); this.onFire?.(); return; }
+-    const caught = this.crackWorld(from, dir, reach, second);
+-    if (caught !== null && this.crackHeavy) this.wrap(caught.at);
+-  }
+   /** Winds the lash round a caught lever: a short braided helix at the point, shown while the wrap holds. */
+   private wrap(at: Vector3): void {
+     const scene = this.app.equipmentHost?.game.scene; if (!scene) return;
+@@ -105,53 +92,16 @@ export class Bullwhip extends Weapon {
+     this.wrapCoil.position.copy(at); this.wrapCoil.visible = true; // wound round the crank's upright
+     this.wrapAt = at.clone(); this.wrapT = WRAP.hold;
+   }
+-  /** The nearest hittable combat target whose chest sits inside the lash's lane. */
+-  private inLane(from: Vector3, dir: Vector3, reach: number): { port: CombatTarget; point: Vector3 } | null {
+-    let best: { port: CombatTarget; point: Vector3 } | null = null, bestT = Infinity;
+-    for (const port of this.app.combat.targets()) {
+-      if (!port.hittable) continue;
+-      const forward = lashLane(from, dir, reach, CRACK.width, port.position);
+-      if (forward === null || forward >= bestT) continue;
+-      best = { port, point: from.clone().addScaledVector(dir, Math.min(forward, reach)) }; bestT = forward;
+-    }
+-    return best;
+-  }
+   /** The lash reaches a lever or a brazier bowl inside its lane: the nearest one along the view reacts. */
+-  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): Crackable | null {
+-    let best: Crackable | null = null, bestT = Infinity;
+-    for (const c of this.crackables) {
+-      const delta = c.at.clone().sub(from), forward = delta.dot(dir);
+-      if (forward < 0 || forward > reach + c.radius || forward >= bestT) continue;
+-      if (delta.addScaledVector(dir, -forward).length() > CRACK.width + c.radius) continue;
+-      best = c; bestT = forward;
+-    }
+-    return best?.crack(this.crackHeavy, second) === true ? best : null;
+-  }
++  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): LashWorldTarget | null { return this.lash.crackWorld(from, dir, reach, second); }
+   /** Damage through the pipeline; the heavy's first lash yanks a small creature in, its second staggers a big one (ENGINE §18, §19). */
+-  strike(target: WhipTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
+-    const reach = heavy ? CRACK.heavyReach : CRACK.reach, delta = point.clone().sub(from), forward = delta.dot(dir);
+-    if (forward < 0 || forward > reach || delta.addScaledVector(dir, -forward).length() > CRACK.width) return false;
+-    const { actor } = target;
+-    const result = this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.sunscar-whip', 'dmg.melee'], target: actor,
+-      amount: heavy ? CRACK.heavy : CRACK.light, point, dir, from, weaponId: this.row.id,
+-      moveId: heavy ? (second ? 'sunscar.whip.double.2' : 'sunscar.whip.double.1') : 'sunscar.whip.crack', surface: 'flesh' });
+-    if (result === null) return false;
+-    this.onHit?.(actor.id, false, result.killed);
+-    // The pull: the double crack's first lash wraps a small creature and yanks it to the player's feet (the second
+-    // lash then lands on it close); a big one shrugs the wrap off and the second lash staggers it.
+-    if (heavy && !result.killed) {
+-      const small = actor.attributes.maxHealth <= CRACK.pullMaxHp;
+-      if (small && !second) target.impulse?.(new Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(CRACK.pull));
+-      else if (!small && second) target.stagger?.(dir, CRACK.stagger);
+-    }
+-    return true;
+-  }
++  strike(target: LashTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean { return this.lash.strike(target, point, dir, from, heavy, second); }
+   override update(dt: number): void {
+-    this.time += dt; this.cooldown = Math.max(0, this.cooldown - dt);
++    this.time += dt; this.lash.cool(dt);
+     const drawn = this.enabled && this.holster <= 0.001;
+     if (!drawn) { this.wasHeld = false; this.held = 0; }
+     else if (this.adsHeld) this.held += dt;
+-    else if (this.wasHeld) { this.cooldown = 0; this.swing(true); this.held = 0; }
++    else if (this.wasHeld) { this.lash.cooldown = 0; this.swing(true); this.held = 0; }
+     this.wasHeld = drawn && this.adsHeld;
+     this.model.visible = this.holster < 0.5;
+     this.vm.step(this.spring, new Vector2(), dt); this.model.rotation.y = this.spring.yaw;
+@@ -160,13 +110,9 @@ export class Bullwhip extends Weapon {
+   private animate(dt: number): void {
+     const { grip, coil, lash, tip } = this.parts;
+     if (this.wrapT > 0) { this.wrapT -= dt; if (this.wrapT <= 0 && this.wrapCoil) this.wrapCoil.visible = false; }
+-    if (this.crackT < 0) { lash.mesh.visible = false; coil.visible = this.parts.hd === null; grip.position.set(0, 0, 0); return; }
+-    this.crackT += dt;
+-    const t = this.crackT, double = this.crackHeavy;
+-    if (this.landed === 0 && t >= CRACK.unroll) { this.landed = 1; this.land(false); }
+-    if (double && this.landed === 1 && t >= CRACK.second) { this.landed = 2; this.land(true); }
+-    const length = double ? CRACK.show + CRACK.second - CRACK.unroll : CRACK.show;
+-    if (t > length) { this.crackT = -1; return; }
++    if (this.lash.crackT < 0) { lash.mesh.visible = false; coil.visible = this.parts.hd === null; grip.position.set(0, 0, 0); return; }
++    const t = this.lash.advance(dt), double = this.lash.heavy;
++    if (t < 0) return;
+     // The flick: the hand snaps forward on each lash, the lash unrolls to the crosshair, then falls slack.
+     const local = double && t > CRACK.second - 0.08 ? t - (CRACK.second - CRACK.unroll) : t;
+     const ext = Math.min(1, local / CRACK.unroll), slack = Math.max(0, (local - CRACK.unroll) / (CRACK.show - CRACK.unroll));
+@@ -182,10 +128,3 @@ export class Bullwhip extends Weapon {
+     lash.shape(this.from, this.end, taut ? 1 : Math.min(1, ext * (1 - slack * 0.35)), taut ? 0.05 : 0.25 + slack * 0.4, this.time);
+   }
+ }
+-
+-/** A combat port as the lash's target: its actor, its yank (when the body has one) and its stagger. */
+-function whipTarget(port: CombatTarget): WhipTarget {
+-  const body = port.target;
+-  return { actor: port.actor, ...(port.impulse === undefined ? {} : { impulse: port.impulse }),
+-    stagger: (dir: Vector3, strength: number): void => { body.stagger?.(dir, strength); } };
+-}
+diff --git a/src/shards/sunscar-dunes/weapons/lash.ts b/src/shards/sunscar-dunes/weapons/lash.ts
+deleted file mode 100644
+index 3526303ba..000000000
+--- a/src/shards/sunscar-dunes/weapons/lash.ts
++++ /dev/null
+@@ -1,66 +0,0 @@
+-import { Vector3 } from 'three';
+-
+-/** A combat target's chest above its port position (its feet), and the lane's body allowance (metres). */
+-export const LASH_CHEST = 0.9, LASH_BODY = 0.7;
+-
+-/** A creature's hit volumes in world space: the head ball and the body capsule (the shapes `CreatureBodies` poses). */
+-export interface LashVolumes {
+-  readonly head: Vector3; readonly headRadius: number;
+-  readonly a: Vector3; readonly b: Vector3; readonly bodyRadius: number;
+-}
+-
+-const oc = new Vector3(), ba = new Vector3(), oa = new Vector3(), closest = new Vector3(), delta = new Vector3();
+-
+-/** First non-negative hit of the ray on a ball, or null (the origin is outside it). */
+-function ball(from: Vector3, dir: Vector3, centre: Vector3, radius: number): number | null {
+-  oc.subVectors(from, centre);
+-  const b = oc.dot(dir), c = oc.lengthSq() - radius * radius, h = b * b - c;
+-  if (h < 0) return null;
+-  const t = -b - Math.sqrt(h);
+-  return t >= 0 ? t : null;
+-}
+-
+-/**
+- * The lash's first contact with a creature's volumes along `dir` (unit) within `reach`, in metres from `from`, or null:
+- * the same test the browser's shared raycast runs against the posed head ball and body capsule. An origin inside a
+- * volume touches it at once (Rapier's solid cast answers 0 there too).
+- */
+-export function lashVolumeHit(from: Vector3, dir: Vector3, reach: number, body: LashVolumes): number | null {
+-  ba.subVectors(body.b, body.a); oa.subVectors(from, body.a);
+-  const baba = ba.lengthSq(), along = baba > 1e-12 ? Math.min(1, Math.max(0, oa.dot(ba) / baba)) : 0;
+-  closest.copy(body.a).addScaledVector(ba, along);
+-  if (from.distanceToSquared(closest) <= body.bodyRadius ** 2 || from.distanceToSquared(body.head) <= body.headRadius ** 2) return 0;
+-  let best = Infinity;
+-  // the capsule's side: the infinite cylinder's entry, kept only between its two caps
+-  const bard = ba.dot(dir), baoa = ba.dot(oa), rdoa = dir.dot(oa), a = baba - bard * bard;
+-  if (a > 1e-12) {
+-    const b = baba * rdoa - baoa * bard, c = baba * oa.lengthSq() - baoa * baoa - body.bodyRadius ** 2 * baba, h = b * b - a * c;
+-    if (h >= 0) { const t = (-b - Math.sqrt(h)) / a, y = baoa + t * bard; if (t >= 0 && y > 0 && y < baba) best = t; }
+-  }
+-  // its two caps and the head
+-  for (const t of [ball(from, dir, body.a, body.bodyRadius), ball(from, dir, body.b, body.bodyRadius), ball(from, dir, body.head, body.headRadius)]) if (t !== null && t < best) best = t;
+-  return best <= reach ? best : null;
+-}
+-
+-/**
+- * The browser lash's lane (Bullwhip.inLane): how far along `dir` a target's chest (`LASH_CHEST` over its feet) sits when
+- * it is inside the narrow lane (`reach` + `LASH_BODY` long, `width` + `LASH_BODY` wide), or null. The lash lands at
+- * `min(forward, reach)` along the ray.
+- */
+-export function lashLane(from: Vector3, dir: Vector3, reach: number, width: number, feet: Vector3): number | null {
+-  delta.copy(feet).sub(from); delta.y += LASH_CHEST;
+-  const forward = delta.dot(dir);
+-  if (forward < 0 || forward > reach + LASH_BODY) return null;
+-  return delta.addScaledVector(dir, -forward).length() > width + LASH_BODY ? null : forward;
+-}
+-
+-/**
+- * One lash's contact rule, shared by the browser whip and the headless one (SF72): the first hit on the creature's
+- * head ball or body capsule inside the reach, else its chest in the lane; the distance along the ray where it lands.
+- */
+-export function lashContact(from: Vector3, dir: Vector3, reach: number, width: number, body: LashVolumes, feet: Vector3): number | null {
+-  const hit = lashVolumeHit(from, dir, reach, body);
+-  if (hit !== null) return hit;
+-  const lane = lashLane(from, dir, reach, width, feet);
+-  return lane === null ? null : Math.min(lane, reach);
+-}
+diff --git a/test/proof/sunscar-dunes/witness.ts b/test/proof/sunscar-dunes/witness.ts
+index e35938dfb..e251bac9f 100644
+--- a/test/proof/sunscar-dunes/witness.ts
++++ b/test/proof/sunscar-dunes/witness.ts
+@@ -17,7 +17,7 @@ import type { SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest
+ import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
+ import { MATRIARCH_STEP } from '../../../src/shards/sunscar-dunes/runtime/matriarch';
+ import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/combat/matriarchFight';
+-import { lashContact } from '../../../src/shards/sunscar-dunes/weapons/lash';
++import { lashContact } from '../../../src/game/systems/items/lash';
+ import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
+ import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
+ import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
+@@ -94,7 +94,7 @@ function encounter(host: SimHost): Encounter {
+   return { ...value.boss, storm: value.fight.storm };
+ }
+ 
+-/** The player's eyes: is a prompt in reach, is a creature inside the lash (the shared contact rule, weapons/lash.ts)? */
++/** The player's eyes: is a prompt in reach, is a creature inside the lash (the shared contact rule, @wildshard/game/systems/items/lash)? */
+ const eye = new Vector3(), ray = new Vector3(), at = new Vector3();
+ const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
+ function sees(host: SimHost, spot: SignalSpot, reach = 0): boolean {
+diff --git a/test/shards/sunscar-dunes/lash-contact.test.ts b/test/shards/sunscar-dunes/lash-contact.test.ts
+index a1f571260..2fb4b6933 100644
+--- a/test/shards/sunscar-dunes/lash-contact.test.ts
++++ b/test/shards/sunscar-dunes/lash-contact.test.ts
+@@ -1,6 +1,6 @@
+ import { Vector3 } from 'three';
+ import { describe, expect, it } from 'vitest';
+-import { LASH_BODY, LASH_CHEST, lashContact, lashLane, lashVolumeHit } from '../../../src/shards/sunscar-dunes/weapons/lash';
++import { LASH_BODY, LASH_CHEST, lashContact, lashLane, lashVolumeHit } from '../../../src/game/systems/items/lash';
+ 
+ /** The grounded Matriarch at 3.6x (bodyY 0.3, half-length 1.1, radius 0.8, head 0.4), facing +z (the player at the origin). */
+ function matriarch(at: Vector3) {
+diff --git a/src/game/systems/items/lash.ts b/src/game/systems/items/lash.ts
+new file mode 100644
+index 000000000..46bb27768
+--- /dev/null
++++ b/src/game/systems/items/lash.ts
+@@ -0,0 +1,221 @@
++import { Vector3 } from 'three';
++import type { ItemSpec } from '@wildshard/engine/combat/items';
++import type { Actor, CombatTag, CombatTarget, DamageDealt, DamageRequest } from '@wildshard/engine/combat/pipeline';
++
++/** A combat target's chest above its port position (its feet), and the lane's body allowance (metres). */
++export const LASH_CHEST = 0.9, LASH_BODY = 0.7;
++
++/** A creature's hit volumes in world space: the head ball and the body capsule (the shapes `CreatureBodies` poses). */
++export interface LashVolumes {
++  readonly head: Vector3; readonly headRadius: number;
++  readonly a: Vector3; readonly b: Vector3; readonly bodyRadius: number;
++}
++
++const oc = new Vector3(), ba = new Vector3(), oa = new Vector3(), closest = new Vector3(), delta = new Vector3();
++
++/** First non-negative hit of the ray on a ball, or null (the origin is outside it). */
++function ball(from: Vector3, dir: Vector3, centre: Vector3, radius: number): number | null {
++  oc.subVectors(from, centre);
++  const b = oc.dot(dir), c = oc.lengthSq() - radius * radius, h = b * b - c;
++  if (h < 0) return null;
++  const t = -b - Math.sqrt(h);
++  return t >= 0 ? t : null;
++}
++
++/**
++ * The lash's first contact with a creature's volumes along `dir` (unit) within `reach`, in metres from `from`, or null:
++ * the same test the browser's shared raycast runs against the posed head ball and body capsule. An origin inside a
++ * volume touches it at once (Rapier's solid cast answers 0 there too).
++ */
++export function lashVolumeHit(from: Vector3, dir: Vector3, reach: number, body: LashVolumes): number | null {
++  ba.subVectors(body.b, body.a); oa.subVectors(from, body.a);
++  const baba = ba.lengthSq(), along = baba > 1e-12 ? Math.min(1, Math.max(0, oa.dot(ba) / baba)) : 0;
++  closest.copy(body.a).addScaledVector(ba, along);
++  if (from.distanceToSquared(closest) <= body.bodyRadius ** 2 || from.distanceToSquared(body.head) <= body.headRadius ** 2) return 0;
++  let best = Infinity;
++  // the capsule's side: the infinite cylinder's entry, kept only between its two caps
++  const bard = ba.dot(dir), baoa = ba.dot(oa), rdoa = dir.dot(oa), a = baba - bard * bard;
++  if (a > 1e-12) {
++    const b = baba * rdoa - baoa * bard, c = baba * oa.lengthSq() - baoa * baoa - body.bodyRadius ** 2 * baba, h = b * b - a * c;
++    if (h >= 0) { const t = (-b - Math.sqrt(h)) / a, y = baoa + t * bard; if (t >= 0 && y > 0 && y < baba) best = t; }
++  }
++  // its two caps and the head
++  for (const t of [ball(from, dir, body.a, body.bodyRadius), ball(from, dir, body.b, body.bodyRadius), ball(from, dir, body.head, body.headRadius)]) if (t !== null && t < best) best = t;
++  return best <= reach ? best : null;
++}
++
++/**
++ * The lash's lane: how far along `dir` a target's chest (`LASH_CHEST` over its feet) sits when it is inside the narrow
++ * lane (`reach` + `LASH_BODY` long, `width` + `LASH_BODY` wide), or null. The lash lands at `min(forward, reach)`.
++ */
++export function lashLane(from: Vector3, dir: Vector3, reach: number, width: number, feet: Vector3): number | null {
++  delta.copy(feet).sub(from); delta.y += LASH_CHEST;
++  const forward = delta.dot(dir);
++  if (forward < 0 || forward > reach + LASH_BODY) return null;
++  return delta.addScaledVector(dir, -forward).length() > width + LASH_BODY ? null : forward;
++}
++
++/**
++ * One lash's contact rule on one creature: the first hit on its head ball or body capsule inside the reach, else its
++ * chest in the lane; the distance along the ray where it lands.
++ */
++export function lashContact(from: Vector3, dir: Vector3, reach: number, width: number, body: LashVolumes, feet: Vector3): number | null {
++  const hit = lashVolumeHit(from, dir, reach, body);
++  if (hit !== null) return hit;
++  const lane = lashLane(from, dir, reach, width, feet);
++  return lane === null ? null : Math.min(lane, reach);
++}
++
++/** The lash's own timing (seconds) and reactions: the unroll, the heavy's second lash, how long it shows, the stagger, the yank (m/s on ≤ `pullMaxHp`). */
++export interface LashTiming { readonly unroll: number; readonly second: number; readonly show: number; readonly stagger: number; readonly pull: number; readonly pullMaxHp: number }
++/** The move ids a lash's hits carry: the light crack, and the heavy double crack's first and second lash. */
++export interface LashMoves { readonly light: string; readonly first: string; readonly second: string }
++/** A lash's numbers: reach, width, damage and cooldowns from its declared weapon row, its timing, tags and moves. */
++export interface LashSpec extends LashTiming {
++  readonly id: string; readonly reach: number; readonly heavyReach: number; readonly width: number;
++  readonly light: number; readonly heavy: number; readonly cooldown: number; readonly heavyCooldown: number; readonly charge: number;
++  readonly tags: readonly CombatTag[]; readonly moves: LashMoves;
++}
++/** A declared weapon row's lash: its light / heavy reach, width, damage and cooldowns and its charge, with the lash's timing. */
++export function lashSpec(row: ItemSpec, timing: LashTiming, moves: LashMoves): LashSpec {
++  if (row.kind !== 'weapon') throw new Error(`Item ${row.id} is not a weapon row`);
++  const positive = (n: number): boolean => Number.isFinite(n) && n > 0;
++  if (![timing.unroll, timing.second, timing.show, timing.pull, timing.pullMaxHp].every(positive) || !(timing.second > timing.unroll) || !(timing.stagger >= 0)) throw new RangeError(`Invalid lash timing for ${row.id}`);
++  return { id: row.id, reach: row.light.range, heavyReach: row.heavy.range, width: row.light.width, light: row.light.damage, heavy: row.heavy.damage,
++    cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...moves }, ...timing };
++}
++
++/** What a lash lands on: the combat actor, and the body's yank and stagger when it has them. */
++export interface LashTarget { readonly actor: Actor; readonly impulse?: (velocity: Vector3) => void; readonly stagger?: (dir: Vector3, strength: number) => void }
++/** A combat port as a lash target: its actor, its yank (when the body has one) and its body's stagger. */
++export function lashTarget(port: CombatTarget): LashTarget {
++  const body = port.target;
++  return { actor: port.actor, ...(port.impulse === undefined ? {} : { impulse: port.impulse }),
++    stagger: (dir: Vector3, strength: number): void => { body.stagger?.(dir, strength); } };
++}
++/** Something a lash can crack in the world (a lever, a brazier): `crack` says whether it reacted. */
++export interface LashWorldTarget { readonly at: Vector3; readonly radius: number; crack: (heavy: boolean, second: boolean) => boolean }
++/** The lash's ports: its aim at the landing, the first body it meets, the lane's candidates, the world, the pipeline. */
++export interface LashPorts {
++  /** this landing's aim from the eye; false: no aim, the lash lands on nothing */
++  aim: (from: Vector3, dir: Vector3) => boolean;
++  /** the first creature body along the lash within `reach` (the browser's shared raycast, the host's volumes) */
++  body: (from: Vector3, dir: Vector3, reach: number) => { port: CombatTarget; point: Vector3 } | null;
++  /** every combat target the lane may pick */
++  targets: () => Iterable<CombatTarget>;
++  /** what the lash can crack in the world */
++  world: () => readonly LashWorldTarget[];
++  /** the damage pipeline's contact */
++  hit: (req: DamageRequest) => DamageDealt | null;
++  /** the hits' source (the browser whip's is `env`; a host whip's the player's actor) */
++  readonly source: Actor | 'env';
++  /** a lash landed on a creature (before the pipeline answers) */
++  fired?: () => void;
++  /** a hit went through the pipeline */
++  struck?: (actorId: string, killed: boolean) => void;
++  /** the lash caught a world target */
++  caught?: (target: LashWorldTarget, second: boolean) => void;
++}
++/** A lash's exact continuation. */
++export interface LashState { readonly cooldown: number; readonly crackT: number; readonly heavy: boolean; readonly landed: number }
++
++/**
++ * A lash weapon's crack, renderer-free (SF72), shared by a browser weapon (which draws it) and a renderer-free host
++ * (which steps it on fixed ticks): a light crack is one long, narrow lash along the aim `unroll` seconds after the
++ * swing; the heavy is a double crack whose second lash lands at `second`. Each lash takes the first creature body it
++ * meets, else the nearest hittable target whose chest is in its lane, else the nearest world target in the lane.
++ * The heavy's first lash yanks a small creature (≤ `pullMaxHp`) toward the player; its second staggers a big one. A
++ * swing is refused while the row's cooldown runs.
++ */
++export class LashRuntime {
++  readonly spec: LashSpec;
++  private readonly ports: LashPorts;
++  /** Seconds left before the next swing. */
++  cooldown = 0;
++  /** Time since the current crack started, or −1 when idle. */
++  crackT = -1;
++  heavy = false;
++  /** Lashes landed in the current crack (0, 1, 2). */
++  landed = 0;
++  constructor(spec: LashSpec, ports: LashPorts) { this.spec = spec; this.ports = ports; }
++  /** The current crack's whole showing time. */
++  get length(): number { return this.heavy ? this.spec.show + this.spec.second - this.spec.unroll : this.spec.show; }
++  /** Starts a crack when the cooldown allows; it lands `unroll` s later (and again at `second` for the heavy). */
++  swing(heavy: boolean): boolean {
++    if (this.cooldown > 0) return false;
++    this.cooldown = heavy ? this.spec.heavyCooldown : this.spec.cooldown; this.crackT = 0; this.heavy = heavy; this.landed = 0;
++    return true;
++  }
++  /** The cooldown runs down. */
++  cool(dt: number): void { this.cooldown = Math.max(0, this.cooldown - dt); }
++  /** The crack advances by `dt` and lands its lashes on time; answers its time, or −1 once it ended (or was idle). */
++  advance(dt: number): number {
++    if (this.crackT < 0) return -1;
++    this.crackT += dt;
++    const t = this.crackT;
++    if (this.landed === 0 && t >= this.spec.unroll) { this.landed = 1; this.land(false); }
++    if (this.heavy && this.landed === 1 && t >= this.spec.second) { this.landed = 2; this.land(true); }
++    if (t > this.length) { this.crackT = -1; return -1; }
++    return t;
++  }
++  /** Drops the crack in flight (the weapon put away). */
++  cancel(): void { this.crackT = -1; }
++  private land(second: boolean): void {
++    const from = new Vector3(), dir = new Vector3();
++    if (!this.ports.aim(from, dir)) return;
++    const reach = this.heavy ? this.spec.heavyReach : this.spec.reach;
++    const hit = this.ports.body(from, dir, reach);
++    if (hit !== null && hit.port.hittable) { this.strike(lashTarget(hit.port), hit.point, dir, from, this.heavy, second); this.ports.fired?.(); return; }
++    const lane = this.inLane(from, dir, reach);
++    if (lane !== null) { this.strike(lashTarget(lane.port), lane.point, dir, from, this.heavy, second); this.ports.fired?.(); return; }
++    const caught = this.crackWorld(from, dir, reach, second);
++    if (caught !== null) this.ports.caught?.(caught, second);
++  }
++  /** The nearest hittable combat target whose chest sits inside the lash's lane. */
++  private inLane(from: Vector3, dir: Vector3, reach: number): { port: CombatTarget; point: Vector3 } | null {
++    let best: { port: CombatTarget; point: Vector3 } | null = null, bestT = Infinity;
++    for (const port of this.ports.targets()) {
++      if (!port.hittable) continue;
++      const forward = lashLane(from, dir, reach, this.spec.width, port.position);
++      if (forward === null || forward >= bestT) continue;
++      best = { port, point: from.clone().addScaledVector(dir, Math.min(forward, reach)) }; bestT = forward;
++    }
++    return best;
++  }
++  /** The lash reaches a world target inside its lane: the nearest one along the aim reacts (null: none, or it did not). */
++  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): LashWorldTarget | null {
++    let best: LashWorldTarget | null = null, bestT = Infinity;
++    for (const c of this.ports.world()) {
++      const delta = c.at.clone().sub(from), forward = delta.dot(dir);
++      if (forward < 0 || forward > reach + c.radius || forward >= bestT) continue;
++      if (delta.addScaledVector(dir, -forward).length() > this.spec.width + c.radius) continue;
++      best = c; bestT = forward;
++    }
++    return best?.crack(this.heavy, second) === true ? best : null;
++  }
++  /** Damage through the pipeline; the heavy's first lash yanks a small creature in, its second staggers a big one. */
++  strike(target: LashTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
++    const spec = this.spec, reach = heavy ? spec.heavyReach : spec.reach, delta = point.clone().sub(from), forward = delta.dot(dir);
++    if (forward < 0 || forward > reach || delta.addScaledVector(dir, -forward).length() > spec.width) return false;
++    const { actor } = target;
++    const result = this.ports.hit({ source: this.ports.source, sourceTags: spec.tags, target: actor,
++      amount: heavy ? spec.heavy : spec.light, point, dir, from, weaponId: spec.id,
++      moveId: heavy ? (second ? spec.moves.second : spec.moves.first) : spec.moves.light, surface: 'flesh' });
++    if (result === null) return false;
++    this.ports.struck?.(actor.id, result.killed);
++    // The pull: the double crack's first lash wraps a small creature and yanks it to the player's feet (the second
++    // lash then lands on it close); a big one shrugs the wrap off and the second lash staggers it.
++    if (heavy && !result.killed) {
++      const small = actor.attributes.maxHealth <= spec.pullMaxHp;
++      if (small && !second) target.impulse?.(new Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(spec.pull));
++      else if (!small && second) target.stagger?.(dir, spec.stagger);
++    }
++    return true;
++  }
++  snapshot(): LashState { return { cooldown: this.cooldown, crackT: this.crackT, heavy: this.heavy, landed: this.landed }; }
++  restore(saved: LashState): void {
++    if (!Number.isFinite(saved.cooldown) || saved.cooldown < 0 || !Number.isFinite(saved.crackT) || saved.crackT < -1
++      || ![0, 1, 2].includes(saved.landed) || (saved.landed === 2 && !saved.heavy)) throw new RangeError('Invalid lash snapshot');
++    this.cooldown = saved.cooldown; this.crackT = saved.crackT; this.heavy = saved.heavy; this.landed = saved.landed;
++  }
++}
+diff --git a/test/shards/sunscar-dunes/whip-parity.test.ts b/test/shards/sunscar-dunes/whip-parity.test.ts
+new file mode 100644
+index 000000000..89f69c877
+--- /dev/null
++++ b/test/shards/sunscar-dunes/whip-parity.test.ts
+@@ -0,0 +1,116 @@
++// @vitest-environment happy-dom
++import { Vector3 } from 'three';
++// oxlint-disable-next-line import/no-nodejs-modules -- WHIP_PARITY_RECORD=1 re-pins the trace from a base tree.
++import { writeFileSync } from 'node:fs';
++// oxlint-disable-next-line import/no-nodejs-modules -- the record switch is a test-runner environment value, not game configuration.
++import process from 'node:process';
++import { afterAll, describe, expect, it } from 'vitest';
++import { App } from '../../../src/engine/app/app';
++import { Scope } from '../../../src/engine/app/scope';
++import type { Actor, CombatTarget } from '../../../src/engine/combat/pipeline';
++import type { TargetAnimal, TargetHit } from '../../../src/engine/combat/types';
++import type { EquipmentHost } from '../../../src/engine/combat/view/EquipmentHost';
++import type { AimCommand } from '../../../src/engine/input/commands';
++import type { Player } from '../../../src/engine/player/Player';
++import { Bullwhip } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
++import { FakeGame, legacyDouble } from '../../fake/FakeGame';
++import expected from './whip-parity.json' with { type: 'json' };
++
++/** One creature in the probe: a ball the shared raycast meets (or not), its feet, its health and its reactions. */
++interface Body { id: string; at: Vector3; radius: number; hp: number; ray: boolean }
++/** One world thing the lash can crack: where, how wide, what it answers. */
++interface World { id: string; at: Vector3; radius: number; answer: (heavy: boolean, second: boolean) => boolean }
++/** One probe case: who stands where, and what the player does frame by frame. */
++interface Case { name: string; bodies: Body[]; world?: World[]; frames: { dt: number; act?: 'attack' | 'heavy' | 'hold' | 'release' | 'holster' | 'draw' | 'disable' | 'enable' | { yaw: number } }[] }
++
++const round = (n: number): number => Math.round(n * 1e6) / 1e6;
++const vec = (v: Vector3): number[] => [round(v.x), round(v.y), round(v.z)];
++const frames = (n: number, dt = 1 / 60): Case['frames'] => Array.from({ length: n }, () => ({ dt }));
++
++/**
++ * Drives the browser Bullwhip through one case on a fake equipment host and records everything it does: swings, hits
++ * (actor, amount, move, point), yanks, staggers, world cracks, fire / hit callbacks and, every frame, the lash's view
++ * (visible, grip offset) and whether a wrap coil shows. The trace is pinned from the pre-refactor Bullwhip (SF72 part 2):
++ * moving the crack onto the shared lash runtime must leave the browser whip byte-identical.
++ */
++function run(c: Case): unknown[] {
++  const trace: unknown[] = [], app = new App(), scope = new Scope(`whip-parity-${c.name}`), fake = new FakeGame();
++  app.levelScope = scope; app.setState('play');
++  const aim = { origin: { x: 0, y: 1.68, z: 0 }, direction: { x: 0, y: 0, z: -1 } };
++  const game = fake.asGame();
++  const host: EquipmentHost = { game, physics: legacyDouble({}), viewmodel: fake.viewmodel, player: legacyDouble<Player>({ sampleAimCommand: (): AimCommand => ({ origin: { ...aim.origin }, direction: { ...aim.direction } }) }),
++    arms: null, lock: legacyDouble({}), toast: () => undefined, enabled: () => true };
++  app.registerEquipmentHost(host, scope);
++  const ports: CombatTarget[] = c.bodies.map(body => {
++    let alive = true;
++    const actor: Actor = { id: body.id, tags: ['actor.creature'], state: [], attributes: { health: body.hp, maxHealth: body.hp }, get alive() { return alive; },
++      applyDamage: req => { trace.push(['damage', body.id, req.amount, req.moveId ?? null, req.point === undefined ? null : vec(req.point), req.dir === undefined ? null : vec(req.dir), req.weaponId ?? null, req.source === 'env' ? 'env' : req.source.id, [...req.sourceTags], req.surface ?? null]); actor.attributes.health -= req.amount; if (actor.attributes.health <= 0) { alive = false; return true; } return false; } };
++    const animal: TargetAnimal = { kind: 'probe', position: body.at, get alive() { return actor.alive; }, applyDamage: () => false, damageFor: () => 0,
++      stagger: (dir, strength) => { trace.push(['stagger', body.id, vec(dir), strength]); } };
++    return app.combat.targetPort(actor, animal, velocity => { trace.push(['impulse', body.id, vec(velocity)]); });
++  });
++  app.combat.registerTargets(scope, () => ports);
++  const raycast = (origin: Vector3, dir: Vector3, maxDist: number): TargetHit | null => {
++    let best: TargetHit | null = null;
++    c.bodies.forEach((body, i) => {
++      const port = ports[i]; if (!body.ray || port === undefined || !port.actor.alive) return;
++      const oc = origin.clone().sub(body.at), b = oc.dot(dir), h = b * b - (oc.lengthSq() - body.radius ** 2);
++      if (h < 0) return; const t = -b - Math.sqrt(h);
++      if (t < 0 || t > maxDist || (best !== null && t >= best.distance)) return;
++      best = { animal: port.target, point: origin.clone().addScaledVector(dir, t), distance: t, headshot: false };
++    });
++    return best;
++  };
++  const whip = new Bullwhip(app, { raycast });
++  whip.onSwing = heavy => { trace.push(['swing', heavy]); };
++  whip.onFire = () => { trace.push(['fire']); };
++  whip.onHit = (id, headshot, killed) => { trace.push(['hit', id, headshot, killed]); };
++  whip.aimAt((c.world ?? []).map(w => ({ at: w.at, radius: w.radius, crack: (heavy: boolean, second: boolean) => { const r = w.answer(heavy, second); trace.push(['crack', w.id, heavy, second, r]); return r; } })));
++  whip.install({ scope });
++  try {
++    c.frames.forEach((frame, i) => {
++      const act = frame.act;
++      if (act === 'attack' || act === 'heavy') app.input.press(act);
++      else if (act === 'hold') whip.adsHeld = true;
++      else if (act === 'release') whip.adsHeld = false;
++      else if (act === 'holster') whip.holster = 1;
++      else if (act === 'draw') whip.holster = 0;
++      else if (act === 'disable') whip.enabled = false;
++      else if (act === 'enable') whip.enabled = true;
++      else if (act !== undefined) { aim.direction = { x: -Math.sin(act.yaw), y: 0, z: -Math.cos(act.yaw) }; }
++      whip.update(frame.dt);
++      const { lash, grip } = whip.parts, coil = game.scene.children.find(child => child.type === 'Mesh');
++      trace.push(['frame', i, lash.mesh.visible, vec(grip.position), coil?.visible ?? null, round(whip.charge)]);
++    });
++  } finally { scope.dispose(); app.engineScope.dispose(); }
++  return trace;
++}
++
++const small = (z: number, ray = true, hp = 30): Body => ({ id: 'small', at: new Vector3(0, 1.2, z), radius: 0.5, hp, ray });
++const big = (z: number): Body => ({ id: 'big', at: new Vector3(0, 1.2, z), radius: 1.2, hp: 120, ray: true });
++const CASES: Case[] = [
++  { name: 'light-raycast', bodies: [small(-5)], frames: [{ dt: 1 / 60, act: 'attack' }, ...frames(40)] },
++  { name: 'light-lane', bodies: [{ id: 'lane', at: new Vector3(0.6, 0.8, -6), radius: 0.3, hp: 50, ray: false }], frames: [{ dt: 1 / 60, act: 'attack' }, ...frames(40)] },
++  { name: 'light-out-of-reach', bodies: [small(-9)], frames: [{ dt: 1 / 60, act: 'attack' }, ...frames(40)] },
++  { name: 'cooldown', bodies: [small(-4, true, 200)], frames: [{ dt: 1 / 60, act: 'attack' }, ...frames(10), { dt: 1 / 60, act: 'attack' }, ...frames(30), { dt: 1 / 60, act: 'attack' }, ...frames(40)] },
++  { name: 'variable-dt', bodies: [small(-5, true, 200)], frames: [{ dt: 1 / 30, act: 'heavy' }, ...frames(8, 1 / 30), { dt: 0.05 }, ...frames(12, 1 / 24)] },
++  { name: 'charge-release', bodies: [small(-5, true, 200)], frames: [{ dt: 1 / 60, act: 'attack' }, ...frames(5), { dt: 1 / 60, act: 'hold' }, ...frames(20), { dt: 1 / 60, act: 'release' }, ...frames(50)] },
++  { name: 'holster-drops-charge', bodies: [small(-5)], frames: [{ dt: 1 / 60, act: 'hold' }, ...frames(40), { dt: 1 / 60, act: 'holster' }, { dt: 1 / 60, act: 'draw' }, { dt: 1 / 60, act: 'release' }, ...frames(30)] },
++  { name: 'world-brazier', bodies: [], world: [{ id: 'brazier', at: new Vector3(0.5, 2.3, -6), radius: 1.2, answer: () => true }], frames: [{ dt: 1 / 60, act: 'attack' }, ...frames(40)] },
++  { name: 'disabled-in-flight', bodies: [small(-5, true, 200)], frames: [{ dt: 1 / 60, act: 'attack' }, { dt: 1 / 60, act: 'disable' }, ...frames(30), { dt: 1 / 60, act: 'attack' }, ...frames(10), { dt: 1 / 60, act: 'enable' }, { dt: 1 / 60, act: 'attack' }, ...frames(30)] },
++  // the second lash and the pull (the coordinator's added cases)
++  { name: 'heavy-pull-small', bodies: [small(-6, true, 35)], frames: [{ dt: 1 / 60, act: 'heavy' }, ...frames(60)] },
++  { name: 'heavy-second-staggers-big', bodies: [big(-6)], frames: [{ dt: 1 / 60, act: 'heavy' }, ...frames(60)] },
++  { name: 'heavy-kills-no-pull', bodies: [small(-6, true, 10)], frames: [{ dt: 1 / 60, act: 'heavy' }, ...frames(60)] },
++  { name: 'heavy-crank-wrap', bodies: [], world: [{ id: 'crank', at: new Vector3(0, 1.4, -5), radius: 0.8, answer: (heavy, second) => heavy && (second || true) }], frames: [{ dt: 1 / 60, act: 'heavy' }, ...frames(30), { dt: 1 / 60, act: { yaw: 0.6 } }, ...frames(60)] },
++];
++
++describe('the browser Bullwhip is byte-identical on the shared lash runtime', () => {
++  it.each(CASES.map(c => [c.name, c] as const))('%s', (name, c) => {
++    const trace = run(c);
++    if (process.env['WHIP_PARITY_RECORD'] === '1') { recorded[name] = trace; return; }
++    expect(JSON.parse(JSON.stringify(trace))).toEqual(Object.entries(expected).find(([key]) => key === name)?.[1]);
++  });
++  afterAll(() => { if (process.env['WHIP_PARITY_RECORD'] === '1') writeFileSync('test/shards/sunscar-dunes/whip-parity.json', `${JSON.stringify(recorded)}\n`); });
++});
++const recorded: Record<string, unknown> = {};
+diff --git a/test/shards/sunscar-dunes/whip-parity.json b/test/shards/sunscar-dunes/whip-parity.json
+new file mode 100644
+index 000000000..8c059d528
+--- /dev/null
++++ b/test/shards/sunscar-dunes/whip-parity.json
+@@ -0,0 +1 @@
++{"light-raycast":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","small",18,"sunscar.whip.crack",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.017,-0.022667],null,0],["frame",15,true,[0,0.015333,-0.020444],null,0],["frame",16,true,[0,0.013667,-0.018222],null,0],["frame",17,true,[0,0.012,-0.016],null,0],["frame",18,true,[0,0.010333,-0.013778],null,0],["frame",19,true,[0,0.008667,-0.011556],null,0],["frame",20,true,[0,0.007,-0.009333],null,0],["frame",21,true,[0,0.005333,-0.007111],null,0],["frame",22,true,[0,0.003667,-0.004889],null,0],["frame",23,true,[0,0.002,-0.002667],null,0],["frame",24,true,[0,0.000333,-0.000444],null,0],["frame",25,true,[0,0.000333,-0.000444],null,0],["frame",26,false,[0,0,0],null,0],["frame",27,false,[0,0,0],null,0],["frame",28,false,[0,0,0],null,0],["frame",29,false,[0,0,0],null,0],["frame",30,false,[0,0,0],null,0],["frame",31,false,[0,0,0],null,0],["frame",32,false,[0,0,0],null,0],["frame",33,false,[0,0,0],null,0],["frame",34,false,[0,0,0],null,0],["frame",35,false,[0,0,0],null,0],["frame",36,false,[0,0,0],null,0],["frame",37,false,[0,0,0],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0]],"light-lane":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","lane",18,"sunscar.whip.crack",[0,1.68,-6],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","lane",false,false],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.017,-0.022667],null,0],["frame",15,true,[0,0.015333,-0.020444],null,0],["frame",16,true,[0,0.013667,-0.018222],null,0],["frame",17,true,[0,0.012,-0.016],null,0],["frame",18,true,[0,0.010333,-0.013778],null,0],["frame",19,true,[0,0.008667,-0.011556],null,0],["frame",20,true,[0,0.007,-0.009333],null,0],["frame",21,true,[0,0.005333,-0.007111],null,0],["frame",22,true,[0,0.003667,-0.004889],null,0],["frame",23,true,[0,0.002,-0.002667],null,0],["frame",24,true,[0,0.000333,-0.000444],null,0],["frame",25,true,[0,0.000333,-0.000444],null,0],["frame",26,false,[0,0,0],null,0],["frame",27,false,[0,0,0],null,0],["frame",28,false,[0,0,0],null,0],["frame",29,false,[0,0,0],null,0],["frame",30,false,[0,0,0],null,0],["frame",31,false,[0,0,0],null,0],["frame",32,false,[0,0,0],null,0],["frame",33,false,[0,0,0],null,0],["frame",34,false,[0,0,0],null,0],["frame",35,false,[0,0,0],null,0],["frame",36,false,[0,0,0],null,0],["frame",37,false,[0,0,0],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0]],"light-out-of-reach":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.017,-0.022667],null,0],["frame",15,true,[0,0.015333,-0.020444],null,0],["frame",16,true,[0,0.013667,-0.018222],null,0],["frame",17,true,[0,0.012,-0.016],null,0],["frame",18,true,[0,0.010333,-0.013778],null,0],["frame",19,true,[0,0.008667,-0.011556],null,0],["frame",20,true,[0,0.007,-0.009333],null,0],["frame",21,true,[0,0.005333,-0.007111],null,0],["frame",22,true,[0,0.003667,-0.004889],null,0],["frame",23,true,[0,0.002,-0.002667],null,0],["frame",24,true,[0,0.000333,-0.000444],null,0],["frame",25,true,[0,0.000333,-0.000444],null,0],["frame",26,false,[0,0,0],null,0],["frame",27,false,[0,0,0],null,0],["frame",28,false,[0,0,0],null,0],["frame",29,false,[0,0,0],null,0],["frame",30,false,[0,0,0],null,0],["frame",31,false,[0,0,0],null,0],["frame",32,false,[0,0,0],null,0],["frame",33,false,[0,0,0],null,0],["frame",34,false,[0,0,0],null,0],["frame",35,false,[0,0,0],null,0],["frame",36,false,[0,0,0],null,0],["frame",37,false,[0,0,0],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0]],"cooldown":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","small",18,"sunscar.whip.crack",[0,1.68,-3.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.017,-0.022667],null,0],["frame",15,true,[0,0.015333,-0.020444],null,0],["frame",16,true,[0,0.013667,-0.018222],null,0],["frame",17,true,[0,0.012,-0.016],null,0],["frame",18,true,[0,0.010333,-0.013778],null,0],["frame",19,true,[0,0.008667,-0.011556],null,0],["frame",20,true,[0,0.007,-0.009333],null,0],["frame",21,true,[0,0.005333,-0.007111],null,0],["frame",22,true,[0,0.003667,-0.004889],null,0],["frame",23,true,[0,0.002,-0.002667],null,0],["frame",24,true,[0,0.000333,-0.000444],null,0],["frame",25,true,[0,0.000333,-0.000444],null,0],["frame",26,false,[0,0,0],null,0],["frame",27,false,[0,0,0],null,0],["frame",28,false,[0,0,0],null,0],["frame",29,false,[0,0,0],null,0],["frame",30,false,[0,0,0],null,0],["frame",31,false,[0,0,0],null,0],["frame",32,false,[0,0,0],null,0],["frame",33,false,[0,0,0],null,0],["frame",34,false,[0,0,0],null,0],["frame",35,false,[0,0,0],null,0],["frame",36,false,[0,0,0],null,0],["frame",37,false,[0,0,0],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0],["frame",41,false,[0,0,0],null,0],["swing",false],["frame",42,true,[0,0.004167,-0.005556],null,0],["frame",43,true,[0,0.008333,-0.011111],null,0],["frame",44,true,[0,0.0125,-0.016667],null,0],["frame",45,true,[0,0.016667,-0.022222],null,0],["frame",46,true,[0,0.020833,-0.027778],null,0],["frame",47,true,[0,0.025,-0.033333],null,0],["frame",48,true,[0,0.029167,-0.038889],null,0],["damage","small",18,"sunscar.whip.crack",[0,1.68,-3.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",49,true,[0,0.028667,-0.038222],null,0],["frame",50,true,[0,0.027,-0.036],null,0],["frame",51,true,[0,0.025333,-0.033778],null,0],["frame",52,true,[0,0.023667,-0.031556],null,0],["frame",53,true,[0,0.022,-0.029333],null,0],["frame",54,true,[0,0.020333,-0.027111],null,0],["frame",55,true,[0,0.018667,-0.024889],null,0],["frame",56,true,[0,0.017,-0.022667],null,0],["frame",57,true,[0,0.015333,-0.020444],null,0],["frame",58,true,[0,0.013667,-0.018222],null,0],["frame",59,true,[0,0.012,-0.016],null,0],["frame",60,true,[0,0.010333,-0.013778],null,0],["frame",61,true,[0,0.008667,-0.011556],null,0],["frame",62,true,[0,0.007,-0.009333],null,0],["frame",63,true,[0,0.005333,-0.007111],null,0],["frame",64,true,[0,0.003667,-0.004889],null,0],["frame",65,true,[0,0.002,-0.002667],null,0],["frame",66,true,[0,0.000333,-0.000444],null,0],["frame",67,true,[0,0.000333,-0.000444],null,0],["frame",68,false,[0,0,0],null,0],["frame",69,false,[0,0,0],null,0],["frame",70,false,[0,0,0],null,0],["frame",71,false,[0,0,0],null,0],["frame",72,false,[0,0,0],null,0],["frame",73,false,[0,0,0],null,0],["frame",74,false,[0,0,0],null,0],["frame",75,false,[0,0,0],null,0],["frame",76,false,[0,0,0],null,0],["frame",77,false,[0,0,0],null,0],["frame",78,false,[0,0,0],null,0],["frame",79,false,[0,0,0],null,0],["frame",80,false,[0,0,0],null,0],["frame",81,false,[0,0,0],null,0],["frame",82,false,[0,0,0],null,0]],"variable-dt":[["swing",true],["frame",0,true,[0,0.008333,-0.011111],null,0],["frame",1,true,[0,0.016667,-0.022222],null,0],["frame",2,true,[0,0.025,-0.033333],null,0],["damage","small",16,"sunscar.whip.double.1",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",3,true,[0,0.028667,-0.038222],null,0],["frame",4,true,[0,0.025333,-0.033778],null,0],["frame",5,true,[0,0.022,-0.029333],null,0],["frame",6,true,[0,0.018667,-0.024889],null,0],["frame",7,true,[0,0.016667,-0.022222],null,0],["frame",8,true,[0,0.025,-0.033333],null,0],["damage","small",16,"sunscar.whip.double.2",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["stagger","small",[0,0,-1],0.8],["fire"],["frame",9,true,[0,0.027,-0.036],null,0],["frame",10,true,[0,0.022833,-0.030444],null,0],["frame",11,true,[0,0.018667,-0.024889],null,0],["frame",12,true,[0,0.0145,-0.019333],null,0],["frame",13,true,[0,0.010333,-0.013778],null,0],["frame",14,true,[0,0.006167,-0.008222],null,0],["frame",15,true,[0,0.002,-0.002667],null,0],["frame",16,true,[0,0.002,-0.002667],null,0],["frame",17,false,[0,0,0],null,0],["frame",18,false,[0,0,0],null,0],["frame",19,false,[0,0,0],null,0],["frame",20,false,[0,0,0],null,0],["frame",21,false,[0,0,0],null,0]],"charge-release":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0.027778],["damage","small",18,"sunscar.whip.crack",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0.055556],["frame",8,true,[0,0.027,-0.036],null,0.083333],["frame",9,true,[0,0.025333,-0.033778],null,0.111111],["frame",10,true,[0,0.023667,-0.031556],null,0.138889],["frame",11,true,[0,0.022,-0.029333],null,0.166667],["frame",12,true,[0,0.020333,-0.027111],null,0.194444],["frame",13,true,[0,0.018667,-0.024889],null,0.222222],["frame",14,true,[0,0.017,-0.022667],null,0.25],["frame",15,true,[0,0.015333,-0.020444],null,0.277778],["frame",16,true,[0,0.013667,-0.018222],null,0.305556],["frame",17,true,[0,0.012,-0.016],null,0.333333],["frame",18,true,[0,0.010333,-0.013778],null,0.361111],["frame",19,true,[0,0.008667,-0.011556],null,0.388889],["frame",20,true,[0,0.007,-0.009333],null,0.416667],["frame",21,true,[0,0.005333,-0.007111],null,0.444444],["frame",22,true,[0,0.003667,-0.004889],null,0.472222],["frame",23,true,[0,0.002,-0.002667],null,0.5],["frame",24,true,[0,0.000333,-0.000444],null,0.527778],["frame",25,true,[0,0.000333,-0.000444],null,0.555556],["frame",26,false,[0,0,0],null,0.583333],["swing",true],["frame",27,true,[0,0.004167,-0.005556],null,0],["frame",28,true,[0,0.008333,-0.011111],null,0],["frame",29,true,[0,0.0125,-0.016667],null,0],["frame",30,true,[0,0.016667,-0.022222],null,0],["frame",31,true,[0,0.020833,-0.027778],null,0],["frame",32,true,[0,0.025,-0.033333],null,0],["frame",33,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.1",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",34,true,[0,0.028667,-0.038222],null,0],["frame",35,true,[0,0.027,-0.036],null,0],["frame",36,true,[0,0.025333,-0.033778],null,0],["frame",37,true,[0,0.023667,-0.031556],null,0],["frame",38,true,[0,0.022,-0.029333],null,0],["frame",39,true,[0,0.020333,-0.027111],null,0],["frame",40,true,[0,0.018667,-0.024889],null,0],["frame",41,true,[0,0.0125,-0.016667],null,0],["frame",42,true,[0,0.016667,-0.022222],null,0],["frame",43,true,[0,0.020833,-0.027778],null,0],["frame",44,true,[0,0.025,-0.033333],null,0],["frame",45,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.2",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["stagger","small",[0,0,-1],0.8],["fire"],["frame",46,true,[0,0.028667,-0.038222],null,0],["frame",47,true,[0,0.027,-0.036],null,0],["frame",48,true,[0,0.025333,-0.033778],null,0],["frame",49,true,[0,0.023667,-0.031556],null,0],["frame",50,true,[0,0.022,-0.029333],null,0],["frame",51,true,[0,0.020333,-0.027111],null,0],["frame",52,true,[0,0.018667,-0.024889],null,0],["frame",53,true,[0,0.017,-0.022667],null,0],["frame",54,true,[0,0.015333,-0.020444],null,0],["frame",55,true,[0,0.013667,-0.018222],null,0],["frame",56,true,[0,0.012,-0.016],null,0],["frame",57,true,[0,0.010333,-0.013778],null,0],["frame",58,true,[0,0.008667,-0.011556],null,0],["frame",59,true,[0,0.007,-0.009333],null,0],["frame",60,true,[0,0.005333,-0.007111],null,0],["frame",61,true,[0,0.003667,-0.004889],null,0],["frame",62,true,[0,0.002,-0.002667],null,0],["frame",63,true,[0,0.000333,-0.000444],null,0],["frame",64,true,[0,0.000333,-0.000444],null,0],["frame",65,false,[0,0,0],null,0],["frame",66,false,[0,0,0],null,0],["frame",67,false,[0,0,0],null,0],["frame",68,false,[0,0,0],null,0],["frame",69,false,[0,0,0],null,0],["frame",70,false,[0,0,0],null,0],["frame",71,false,[0,0,0],null,0],["frame",72,false,[0,0,0],null,0],["frame",73,false,[0,0,0],null,0],["frame",74,false,[0,0,0],null,0],["frame",75,false,[0,0,0],null,0],["frame",76,false,[0,0,0],null,0],["frame",77,false,[0,0,0],null,0]],"holster-drops-charge":[["frame",0,false,[0,0,0],null,0.027778],["frame",1,false,[0,0,0],null,0.055556],["frame",2,false,[0,0,0],null,0.083333],["frame",3,false,[0,0,0],null,0.111111],["frame",4,false,[0,0,0],null,0.138889],["frame",5,false,[0,0,0],null,0.166667],["frame",6,false,[0,0,0],null,0.194444],["frame",7,false,[0,0,0],null,0.222222],["frame",8,false,[0,0,0],null,0.25],["frame",9,false,[0,0,0],null,0.277778],["frame",10,false,[0,0,0],null,0.305556],["frame",11,false,[0,0,0],null,0.333333],["frame",12,false,[0,0,0],null,0.361111],["frame",13,false,[0,0,0],null,0.388889],["frame",14,false,[0,0,0],null,0.416667],["frame",15,false,[0,0,0],null,0.444444],["frame",16,false,[0,0,0],null,0.472222],["frame",17,false,[0,0,0],null,0.5],["frame",18,false,[0,0,0],null,0.527778],["frame",19,false,[0,0,0],null,0.555556],["frame",20,false,[0,0,0],null,0.583333],["frame",21,false,[0,0,0],null,0.611111],["frame",22,false,[0,0,0],null,0.638889],["frame",23,false,[0,0,0],null,0.666667],["frame",24,false,[0,0,0],null,0.694444],["frame",25,false,[0,0,0],null,0.722222],["frame",26,false,[0,0,0],null,0.75],["frame",27,false,[0,0,0],null,0.777778],["frame",28,false,[0,0,0],null,0.805556],["frame",29,false,[0,0,0],null,0.833333],["frame",30,false,[0,0,0],null,0.861111],["frame",31,false,[0,0,0],null,0.888889],["frame",32,false,[0,0,0],null,0.916667],["frame",33,false,[0,0,0],null,0.944444],["frame",34,false,[0,0,0],null,0.972222],["frame",35,false,[0,0,0],null,1],["frame",36,false,[0,0,0],null,1],["frame",37,false,[0,0,0],null,1],["frame",38,false,[0,0,0],null,1],["frame",39,false,[0,0,0],null,1],["frame",40,false,[0,0,0],null,1],["frame",41,false,[0,0,0],null,0],["frame",42,false,[0,0,0],null,0.027778],["swing",true],["frame",43,true,[0,0.004167,-0.005556],null,0],["frame",44,true,[0,0.008333,-0.011111],null,0],["frame",45,true,[0,0.0125,-0.016667],null,0],["frame",46,true,[0,0.016667,-0.022222],null,0],["frame",47,true,[0,0.020833,-0.027778],null,0],["frame",48,true,[0,0.025,-0.033333],null,0],["frame",49,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.1",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["impulse","small",[0,0,16]],["fire"],["frame",50,true,[0,0.028667,-0.038222],null,0],["frame",51,true,[0,0.027,-0.036],null,0],["frame",52,true,[0,0.025333,-0.033778],null,0],["frame",53,true,[0,0.023667,-0.031556],null,0],["frame",54,true,[0,0.022,-0.029333],null,0],["frame",55,true,[0,0.020333,-0.027111],null,0],["frame",56,true,[0,0.018667,-0.024889],null,0],["frame",57,true,[0,0.0125,-0.016667],null,0],["frame",58,true,[0,0.016667,-0.022222],null,0],["frame",59,true,[0,0.020833,-0.027778],null,0],["frame",60,true,[0,0.025,-0.033333],null,0],["frame",61,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.2",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,true],["fire"],["frame",62,true,[0,0.028667,-0.038222],null,0],["frame",63,true,[0,0.027,-0.036],null,0],["frame",64,true,[0,0.025333,-0.033778],null,0],["frame",65,true,[0,0.023667,-0.031556],null,0],["frame",66,true,[0,0.022,-0.029333],null,0],["frame",67,true,[0,0.020333,-0.027111],null,0],["frame",68,true,[0,0.018667,-0.024889],null,0],["frame",69,true,[0,0.017,-0.022667],null,0],["frame",70,true,[0,0.015333,-0.020444],null,0],["frame",71,true,[0,0.013667,-0.018222],null,0],["frame",72,true,[0,0.012,-0.016],null,0],["frame",73,true,[0,0.010333,-0.013778],null,0]],"world-brazier":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["crack","brazier",false,false,true],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.017,-0.022667],null,0],["frame",15,true,[0,0.015333,-0.020444],null,0],["frame",16,true,[0,0.013667,-0.018222],null,0],["frame",17,true,[0,0.012,-0.016],null,0],["frame",18,true,[0,0.010333,-0.013778],null,0],["frame",19,true,[0,0.008667,-0.011556],null,0],["frame",20,true,[0,0.007,-0.009333],null,0],["frame",21,true,[0,0.005333,-0.007111],null,0],["frame",22,true,[0,0.003667,-0.004889],null,0],["frame",23,true,[0,0.002,-0.002667],null,0],["frame",24,true,[0,0.000333,-0.000444],null,0],["frame",25,true,[0,0.000333,-0.000444],null,0],["frame",26,false,[0,0,0],null,0],["frame",27,false,[0,0,0],null,0],["frame",28,false,[0,0,0],null,0],["frame",29,false,[0,0,0],null,0],["frame",30,false,[0,0,0],null,0],["frame",31,false,[0,0,0],null,0],["frame",32,false,[0,0,0],null,0],["frame",33,false,[0,0,0],null,0],["frame",34,false,[0,0,0],null,0],["frame",35,false,[0,0,0],null,0],["frame",36,false,[0,0,0],null,0],["frame",37,false,[0,0,0],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0]],"disabled-in-flight":[["swing",false],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","small",18,"sunscar.whip.crack",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.017,-0.022667],null,0],["frame",15,true,[0,0.015333,-0.020444],null,0],["frame",16,true,[0,0.013667,-0.018222],null,0],["frame",17,true,[0,0.012,-0.016],null,0],["frame",18,true,[0,0.010333,-0.013778],null,0],["frame",19,true,[0,0.008667,-0.011556],null,0],["frame",20,true,[0,0.007,-0.009333],null,0],["frame",21,true,[0,0.005333,-0.007111],null,0],["frame",22,true,[0,0.003667,-0.004889],null,0],["frame",23,true,[0,0.002,-0.002667],null,0],["frame",24,true,[0,0.000333,-0.000444],null,0],["frame",25,true,[0,0.000333,-0.000444],null,0],["frame",26,false,[0,0,0],null,0],["frame",27,false,[0,0,0],null,0],["frame",28,false,[0,0,0],null,0],["frame",29,false,[0,0,0],null,0],["frame",30,false,[0,0,0],null,0],["frame",31,false,[0,0,0],null,0],["frame",32,false,[0,0,0],null,0],["frame",33,false,[0,0,0],null,0],["frame",34,false,[0,0,0],null,0],["frame",35,false,[0,0,0],null,0],["frame",36,false,[0,0,0],null,0],["frame",37,false,[0,0,0],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0],["frame",41,false,[0,0,0],null,0],["frame",42,false,[0,0,0],null,0],["frame",43,false,[0,0,0],null,0],["swing",false],["frame",44,true,[0,0.004167,-0.005556],null,0],["frame",45,true,[0,0.008333,-0.011111],null,0],["frame",46,true,[0,0.0125,-0.016667],null,0],["frame",47,true,[0,0.016667,-0.022222],null,0],["frame",48,true,[0,0.020833,-0.027778],null,0],["frame",49,true,[0,0.025,-0.033333],null,0],["frame",50,true,[0,0.029167,-0.038889],null,0],["damage","small",18,"sunscar.whip.crack",[0,1.68,-4.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",51,true,[0,0.028667,-0.038222],null,0],["frame",52,true,[0,0.027,-0.036],null,0],["frame",53,true,[0,0.025333,-0.033778],null,0],["frame",54,true,[0,0.023667,-0.031556],null,0],["frame",55,true,[0,0.022,-0.029333],null,0],["frame",56,true,[0,0.020333,-0.027111],null,0],["frame",57,true,[0,0.018667,-0.024889],null,0],["frame",58,true,[0,0.017,-0.022667],null,0],["frame",59,true,[0,0.015333,-0.020444],null,0],["frame",60,true,[0,0.013667,-0.018222],null,0],["frame",61,true,[0,0.012,-0.016],null,0],["frame",62,true,[0,0.010333,-0.013778],null,0],["frame",63,true,[0,0.008667,-0.011556],null,0],["frame",64,true,[0,0.007,-0.009333],null,0],["frame",65,true,[0,0.005333,-0.007111],null,0],["frame",66,true,[0,0.003667,-0.004889],null,0],["frame",67,true,[0,0.002,-0.002667],null,0],["frame",68,true,[0,0.000333,-0.000444],null,0],["frame",69,true,[0,0.000333,-0.000444],null,0],["frame",70,false,[0,0,0],null,0],["frame",71,false,[0,0,0],null,0],["frame",72,false,[0,0,0],null,0],["frame",73,false,[0,0,0],null,0],["frame",74,false,[0,0,0],null,0]],"heavy-pull-small":[["swing",true],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.1",[0,1.68,-5.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["impulse","small",[0,0,16]],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.0125,-0.016667],null,0],["frame",15,true,[0,0.016667,-0.022222],null,0],["frame",16,true,[0,0.020833,-0.027778],null,0],["frame",17,true,[0,0.025,-0.033333],null,0],["frame",18,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.2",[0,1.68,-5.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,false],["fire"],["frame",19,true,[0,0.028667,-0.038222],null,0],["frame",20,true,[0,0.027,-0.036],null,0],["frame",21,true,[0,0.025333,-0.033778],null,0],["frame",22,true,[0,0.023667,-0.031556],null,0],["frame",23,true,[0,0.022,-0.029333],null,0],["frame",24,true,[0,0.020333,-0.027111],null,0],["frame",25,true,[0,0.018667,-0.024889],null,0],["frame",26,true,[0,0.017,-0.022667],null,0],["frame",27,true,[0,0.015333,-0.020444],null,0],["frame",28,true,[0,0.013667,-0.018222],null,0],["frame",29,true,[0,0.012,-0.016],null,0],["frame",30,true,[0,0.010333,-0.013778],null,0],["frame",31,true,[0,0.008667,-0.011556],null,0],["frame",32,true,[0,0.007,-0.009333],null,0],["frame",33,true,[0,0.005333,-0.007111],null,0],["frame",34,true,[0,0.003667,-0.004889],null,0],["frame",35,true,[0,0.002,-0.002667],null,0],["frame",36,true,[0,0.000333,-0.000444],null,0],["frame",37,true,[0,0.000333,-0.000444],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0],["frame",41,false,[0,0,0],null,0],["frame",42,false,[0,0,0],null,0],["frame",43,false,[0,0,0],null,0],["frame",44,false,[0,0,0],null,0],["frame",45,false,[0,0,0],null,0],["frame",46,false,[0,0,0],null,0],["frame",47,false,[0,0,0],null,0],["frame",48,false,[0,0,0],null,0],["frame",49,false,[0,0,0],null,0],["frame",50,false,[0,0,0],null,0],["frame",51,false,[0,0,0],null,0],["frame",52,false,[0,0,0],null,0],["frame",53,false,[0,0,0],null,0],["frame",54,false,[0,0,0],null,0],["frame",55,false,[0,0,0],null,0],["frame",56,false,[0,0,0],null,0],["frame",57,false,[0,0,0],null,0],["frame",58,false,[0,0,0],null,0],["frame",59,false,[0,0,0],null,0],["frame",60,false,[0,0,0],null,0]],"heavy-second-staggers-big":[["swing",true],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","big",16,"sunscar.whip.double.1",[0,1.68,-4.900182],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","big",false,false],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.0125,-0.016667],null,0],["frame",15,true,[0,0.016667,-0.022222],null,0],["frame",16,true,[0,0.020833,-0.027778],null,0],["frame",17,true,[0,0.025,-0.033333],null,0],["frame",18,true,[0,0.029167,-0.038889],null,0],["damage","big",16,"sunscar.whip.double.2",[0,1.68,-4.900182],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","big",false,false],["stagger","big",[0,0,-1],0.8],["fire"],["frame",19,true,[0,0.028667,-0.038222],null,0],["frame",20,true,[0,0.027,-0.036],null,0],["frame",21,true,[0,0.025333,-0.033778],null,0],["frame",22,true,[0,0.023667,-0.031556],null,0],["frame",23,true,[0,0.022,-0.029333],null,0],["frame",24,true,[0,0.020333,-0.027111],null,0],["frame",25,true,[0,0.018667,-0.024889],null,0],["frame",26,true,[0,0.017,-0.022667],null,0],["frame",27,true,[0,0.015333,-0.020444],null,0],["frame",28,true,[0,0.013667,-0.018222],null,0],["frame",29,true,[0,0.012,-0.016],null,0],["frame",30,true,[0,0.010333,-0.013778],null,0],["frame",31,true,[0,0.008667,-0.011556],null,0],["frame",32,true,[0,0.007,-0.009333],null,0],["frame",33,true,[0,0.005333,-0.007111],null,0],["frame",34,true,[0,0.003667,-0.004889],null,0],["frame",35,true,[0,0.002,-0.002667],null,0],["frame",36,true,[0,0.000333,-0.000444],null,0],["frame",37,true,[0,0.000333,-0.000444],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0],["frame",41,false,[0,0,0],null,0],["frame",42,false,[0,0,0],null,0],["frame",43,false,[0,0,0],null,0],["frame",44,false,[0,0,0],null,0],["frame",45,false,[0,0,0],null,0],["frame",46,false,[0,0,0],null,0],["frame",47,false,[0,0,0],null,0],["frame",48,false,[0,0,0],null,0],["frame",49,false,[0,0,0],null,0],["frame",50,false,[0,0,0],null,0],["frame",51,false,[0,0,0],null,0],["frame",52,false,[0,0,0],null,0],["frame",53,false,[0,0,0],null,0],["frame",54,false,[0,0,0],null,0],["frame",55,false,[0,0,0],null,0],["frame",56,false,[0,0,0],null,0],["frame",57,false,[0,0,0],null,0],["frame",58,false,[0,0,0],null,0],["frame",59,false,[0,0,0],null,0],["frame",60,false,[0,0,0],null,0]],"heavy-kills-no-pull":[["swing",true],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["damage","small",16,"sunscar.whip.double.1",[0,1.68,-5.86],[0,0,-1],"weapon.sunscar-whip","env",["actor.player","weapon.sunscar-whip","dmg.melee"],"flesh"],["hit","small",false,true],["fire"],["frame",7,true,[0,0.028667,-0.038222],null,0],["frame",8,true,[0,0.027,-0.036],null,0],["frame",9,true,[0,0.025333,-0.033778],null,0],["frame",10,true,[0,0.023667,-0.031556],null,0],["frame",11,true,[0,0.022,-0.029333],null,0],["frame",12,true,[0,0.020333,-0.027111],null,0],["frame",13,true,[0,0.018667,-0.024889],null,0],["frame",14,true,[0,0.0125,-0.016667],null,0],["frame",15,true,[0,0.016667,-0.022222],null,0],["frame",16,true,[0,0.020833,-0.027778],null,0],["frame",17,true,[0,0.025,-0.033333],null,0],["frame",18,true,[0,0.029167,-0.038889],null,0],["frame",19,true,[0,0.028667,-0.038222],null,0],["frame",20,true,[0,0.027,-0.036],null,0],["frame",21,true,[0,0.025333,-0.033778],null,0],["frame",22,true,[0,0.023667,-0.031556],null,0],["frame",23,true,[0,0.022,-0.029333],null,0],["frame",24,true,[0,0.020333,-0.027111],null,0],["frame",25,true,[0,0.018667,-0.024889],null,0],["frame",26,true,[0,0.017,-0.022667],null,0],["frame",27,true,[0,0.015333,-0.020444],null,0],["frame",28,true,[0,0.013667,-0.018222],null,0],["frame",29,true,[0,0.012,-0.016],null,0],["frame",30,true,[0,0.010333,-0.013778],null,0],["frame",31,true,[0,0.008667,-0.011556],null,0],["frame",32,true,[0,0.007,-0.009333],null,0],["frame",33,true,[0,0.005333,-0.007111],null,0],["frame",34,true,[0,0.003667,-0.004889],null,0],["frame",35,true,[0,0.002,-0.002667],null,0],["frame",36,true,[0,0.000333,-0.000444],null,0],["frame",37,true,[0,0.000333,-0.000444],null,0],["frame",38,false,[0,0,0],null,0],["frame",39,false,[0,0,0],null,0],["frame",40,false,[0,0,0],null,0],["frame",41,false,[0,0,0],null,0],["frame",42,false,[0,0,0],null,0],["frame",43,false,[0,0,0],null,0],["frame",44,false,[0,0,0],null,0],["frame",45,false,[0,0,0],null,0],["frame",46,false,[0,0,0],null,0],["frame",47,false,[0,0,0],null,0],["frame",48,false,[0,0,0],null,0],["frame",49,false,[0,0,0],null,0],["frame",50,false,[0,0,0],null,0],["frame",51,false,[0,0,0],null,0],["frame",52,false,[0,0,0],null,0],["frame",53,false,[0,0,0],null,0],["frame",54,false,[0,0,0],null,0],["frame",55,false,[0,0,0],null,0],["frame",56,false,[0,0,0],null,0],["frame",57,false,[0,0,0],null,0],["frame",58,false,[0,0,0],null,0],["frame",59,false,[0,0,0],null,0],["frame",60,false,[0,0,0],null,0]],"heavy-crank-wrap":[["swing",true],["frame",0,true,[0,0.004167,-0.005556],null,0],["frame",1,true,[0,0.008333,-0.011111],null,0],["frame",2,true,[0,0.0125,-0.016667],null,0],["frame",3,true,[0,0.016667,-0.022222],null,0],["frame",4,true,[0,0.020833,-0.027778],null,0],["frame",5,true,[0,0.025,-0.033333],null,0],["frame",6,true,[0,0.029167,-0.038889],null,0],["crack","crank",true,false,true],["frame",7,true,[0,0.028667,-0.038222],true,0],["frame",8,true,[0,0.027,-0.036],true,0],["frame",9,true,[0,0.025333,-0.033778],true,0],["frame",10,true,[0,0.023667,-0.031556],true,0],["frame",11,true,[0,0.022,-0.029333],true,0],["frame",12,true,[0,0.020333,-0.027111],true,0],["frame",13,true,[0,0.018667,-0.024889],true,0],["frame",14,true,[0,0.0125,-0.016667],true,0],["frame",15,true,[0,0.016667,-0.022222],true,0],["frame",16,true,[0,0.020833,-0.027778],true,0],["frame",17,true,[0,0.025,-0.033333],true,0],["frame",18,true,[0,0.029167,-0.038889],true,0],["crack","crank",true,true,true],["frame",19,true,[0,0.028667,-0.038222],true,0],["frame",20,true,[0,0.027,-0.036],true,0],["frame",21,true,[0,0.025333,-0.033778],true,0],["frame",22,true,[0,0.023667,-0.031556],true,0],["frame",23,true,[0,0.022,-0.029333],true,0],["frame",24,true,[0,0.020333,-0.027111],true,0],["frame",25,true,[0,0.018667,-0.024889],true,0],["frame",26,true,[0,0.017,-0.022667],true,0],["frame",27,true,[0,0.015333,-0.020444],true,0],["frame",28,true,[0,0.013667,-0.018222],true,0],["frame",29,true,[0,0.012,-0.016],true,0],["frame",30,true,[0,0.010333,-0.013778],true,0],["frame",31,true,[0,0.008667,-0.011556],true,0],["frame",32,true,[0,0.007,-0.009333],true,0],["frame",33,true,[0,0.005333,-0.007111],true,0],["frame",34,true,[0,0.003667,-0.004889],true,0],["frame",35,true,[0,0.002,-0.002667],true,0],["frame",36,true,[0,0.000333,-0.000444],true,0],["frame",37,true,[0,0.000333,-0.000444],true,0],["frame",38,false,[0,0,0],true,0],["frame",39,false,[0,0,0],true,0],["frame",40,false,[0,0,0],true,0],["frame",41,false,[0,0,0],true,0],["frame",42,false,[0,0,0],true,0],["frame",43,false,[0,0,0],true,0],["frame",44,false,[0,0,0],true,0],["frame",45,false,[0,0,0],true,0],["frame",46,false,[0,0,0],true,0],["frame",47,false,[0,0,0],true,0],["frame",48,false,[0,0,0],true,0],["frame",49,false,[0,0,0],true,0],["frame",50,false,[0,0,0],true,0],["frame",51,false,[0,0,0],true,0],["frame",52,false,[0,0,0],true,0],["frame",53,false,[0,0,0],true,0],["frame",54,false,[0,0,0],true,0],["frame",55,false,[0,0,0],true,0],["frame",56,false,[0,0,0],true,0],["frame",57,false,[0,0,0],true,0],["frame",58,false,[0,0,0],true,0],["frame",59,false,[0,0,0],true,0],["frame",60,false,[0,0,0],true,0],["frame",61,false,[0,0,0],true,0],["frame",62,false,[0,0,0],true,0],["frame",63,false,[0,0,0],true,0],["frame",64,false,[0,0,0],true,0],["frame",65,false,[0,0,0],true,0],["frame",66,false,[0,0,0],true,0],["frame",67,false,[0,0,0],true,0],["frame",68,false,[0,0,0],true,0],["frame",69,false,[0,0,0],true,0],["frame",70,false,[0,0,0],true,0],["frame",71,false,[0,0,0],true,0],["frame",72,false,[0,0,0],true,0],["frame",73,false,[0,0,0],false,0],["frame",74,false,[0,0,0],false,0],["frame",75,false,[0,0,0],false,0],["frame",76,false,[0,0,0],false,0],["frame",77,false,[0,0,0],false,0],["frame",78,false,[0,0,0],false,0],["frame",79,false,[0,0,0],false,0],["frame",80,false,[0,0,0],false,0],["frame",81,false,[0,0,0],false,0],["frame",82,false,[0,0,0],false,0],["frame",83,false,[0,0,0],false,0],["frame",84,false,[0,0,0],false,0],["frame",85,false,[0,0,0],false,0],["frame",86,false,[0,0,0],false,0],["frame",87,false,[0,0,0],false,0],["frame",88,false,[0,0,0],false,0],["frame",89,false,[0,0,0],false,0],["frame",90,false,[0,0,0],false,0],["frame",91,false,[0,0,0],false,0]]}
