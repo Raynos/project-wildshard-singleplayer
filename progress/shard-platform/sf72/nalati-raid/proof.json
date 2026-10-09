@@ -1,0 +1,162 @@
+{
+  "candidate": "396527c328e53d4da46278efac859a77f42f7275",
+  "profile": "Chromium muted / iPhone 16 Pro / phone / DPR2",
+  "build": "396527c-mv0zmqah",
+  "bake": {
+    "bodies": 35,
+    "trees": 155,
+    "solids": 2694,
+    "pieces": 81,
+    "floor": [
+      255,
+      255
+    ],
+    "flockMembers": 40,
+    "repeatedCapturesEqual": true,
+    "worldDefinitionsUnchanged": true,
+    "knownRenderTimedFields": [
+      "creature:21.mem._graze",
+      "creature:23.yaw"
+    ]
+  },
+  "walk": [
+    {
+      "name": "road-camp",
+      "seconds": 26.6,
+      "end": {
+        "x": 94.218,
+        "y": -4.337,
+        "z": 204.056
+      },
+      "stuck": []
+    },
+    {
+      "name": "bridge",
+      "seconds": 13.5,
+      "end": {
+        "x": 0.199,
+        "y": -7.037,
+        "z": 142.749
+      },
+      "stuck": []
+    },
+    {
+      "name": "eagle-rock",
+      "seconds": 38.7,
+      "end": {
+        "x": 181.197,
+        "y": 65.02,
+        "z": 85.739
+      },
+      "stuck": []
+    },
+    {
+      "name": "kurgan-crown",
+      "seconds": 2.5,
+      "end": {
+        "x": -94.253,
+        "y": 31.806,
+        "z": 103.33
+      },
+      "stuck": []
+    },
+    {
+      "name": "great-kurgan-crown",
+      "seconds": 6.7,
+      "end": {
+        "x": -191.035,
+        "y": 39.585,
+        "z": 72.229
+      },
+      "stuck": []
+    },
+    {
+      "name": "great-kurgan-door",
+      "seconds": 3.4,
+      "end": {
+        "x": -172.843,
+        "y": 34.935,
+        "z": 75
+      },
+      "stuck": []
+    },
+    {
+      "name": "dungeon",
+      "seconds": 4.9,
+      "end": {
+        "x": -38.892,
+        "y": 140.47,
+        "z": -94.829
+      },
+      "stuck": []
+    },
+    {
+      "name": "leopard-cave",
+      "seconds": 39.7,
+      "end": {
+        "x": 137.206,
+        "y": 54.116,
+        "z": -65.905
+      },
+      "stuck": []
+    },
+    {
+      "name": "summer-camp",
+      "seconds": 4.3,
+      "end": {
+        "x": -87.236,
+        "y": 28.361,
+        "z": -24.184
+      },
+      "stuck": []
+    },
+    {
+      "name": "cairn",
+      "seconds": 4.9,
+      "end": {
+        "x": -26.538,
+        "y": 33.54,
+        "z": -41.344
+      },
+      "stuck": []
+    },
+    {
+      "name": "watchtower",
+      "seconds": 9.5,
+      "end": {
+        "x": -199.842,
+        "y": 44.127,
+        "z": -37.443
+      },
+      "stuck": []
+    },
+    {
+      "name": "argymaq-pasture",
+      "seconds": 23.5,
+      "end": {
+        "x": -159.527,
+        "y": 51.847,
+        "z": -71.5
+      },
+      "stuck": []
+    }
+  ],
+  "walkErrors": [],
+  "colliders": 2776,
+  "rawWalkSha256": "96dc1c858a18538e859bb9a12cfeb7806996240d7cce6e7a82f4ba0f1c31082e",
+  "compatibility": "still fail-closed: later Nalati gameplay not yet hosted",
+  "validation": {
+    "fullFiles": 1061,
+    "fullTests": 5879,
+    "fullSeconds": 104.27,
+    "coverageRestoreSeconds": [
+      9.523,
+      9.883
+    ],
+    "coverageWalk2kSeconds": 5.694,
+    "rootStrict": true,
+    "rootLint": true,
+    "ratchet": true,
+    "coupling": true
+  }
+}

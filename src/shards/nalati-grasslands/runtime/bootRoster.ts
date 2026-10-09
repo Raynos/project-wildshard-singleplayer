@@ -53,6 +53,7 @@ export function nalatiBootRoster(ground: WildGround, clock: NalatiBootClock, spe
   bodies: NalatiBootBody[]; parked: NalatiBootBody[]; herds: NalatiBootHerd[];
   /** the manager stream after the boot (its decisions' `ThinkCtx.rng` and every later spawn draw on from here) */
   stream: RngState;
+  wildStream: RngState;
 } {
   const rng = new Rng(NALATI_CREATURE_STREAM), bodies: NalatiBootBody[] = [], parked: NalatiBootBody[] = [], herds: NalatiBootHerd[] = [];
   let next = 0;
@@ -95,5 +96,5 @@ export function nalatiBootRoster(ground: WildGround, clock: NalatiBootClock, spe
       join(herd)(spawn(who.kind, def.lair.x, def.lair.z, 0, who.variant));
     } else throw new Error(`Nalati boot roster does not model the ${id} elite (${clock.phase}${clock.storm ? ', storm' : ''})`);
   });
-  return { bodies, parked, herds, stream: rng.snapshot() };
+  return { bodies, parked, herds, stream: rng.snapshot(), wildStream: wild.rng.snapshot() };
 }

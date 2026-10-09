@@ -1,4 +1,4 @@
-import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
+import { PackBrain, type PackPorts, type PackPrey } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -22,6 +22,9 @@ export interface NalatiGroups {
   readonly env: WildEnv;
   /** the host's grass under that view: the page's field and the host's trample map (runtime/headless.ts) */
   readonly grass: NalatiGrassView;
+  readonly firstRaid: number;
+  readonly bindPrey: (id: string, prey: PackPrey) => void;
+  readonly addPack: (members: AnimalSim[], x: number, z: number) => PackBrain<AnimalSim>;
 }
 
 const installed = new WeakMap<SimHost, NalatiGroups>();
@@ -61,10 +64,10 @@ export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
  * Nalati's declared groups in a renderer-free host (SF72), built and seeded exactly as the page builds them: Wildlife's pack
  * (`PackBrain` over NALATI_PACK_BRAIN, home at its layout spot) and its wild herd (`HerdBrain` over NALATI_HERD_BRAIN), each
  * initialized right after its placement on the host's 'ai' stream (the pack's three draws a wolf, the herd's one), then the
- * raid director's first-raid draw and the Golden King's `reset(0)` draw (both systems not modelled yet), then Argymaq's herd (its mares and
+ * raid director's first-raid timer and the Golden King's `reset(0)` draw (the King is not modelled yet), then Argymaq's herd (its mares and
  * foal, one draw) adopting him as its stallion (combat/elites.ts `Argymaq.spawn`). The packs see the herds' foals as prey and
  * the herds see the living wolves as threats (Wildlife's `nearestFoal` / `nearestWolf`); prey is an actor (`actor:<id>`), the
- * flock's sheep are not modelled. Checked against the bake's tick-0 continuations
+ * flock's sheep are bound by the creature installer. Checked against the bake's tick-0 continuations
  * (test/shards/nalati-grasslands/headless-runtime.test.ts). Their wild view is `env` when given (the host's, which its
  * weather step keeps current), else a fresh one (nalatiHeadlessEnv). They decide on the creatures' step
  * (runtime/headlessCreatures.ts), whose adapter carries their continuations.
@@ -76,16 +79,16 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const group: NativeGroupHost<AnimalSim> = { sharedRng: () => host.rng.stream('ai'), register: (a, director) => { policies.set(a, director); } };
   const packOf = new WeakMap<AnimalSim, PackBrain<AnimalSim>>();
   const world: NativeGroupWorld<AnimalSim> = { env: ports.env ?? nalatiHeadlessEnv(ports.grass), normalY: ports.normalY, passThrough: hostPassThrough, packOf: a => packOf.get(a) ?? null };
+  const preyById = new Map<string, PackPrey>();
+  const preyIds = new WeakMap<PackPrey, string>();
+  ports.bodies.forEach(b => { preyIds.set(b.actor, `actor:${b.boot.id}`); });
   const identity = {
-    preyIdentity: (prey: unknown): string => {
-      const found = ports.bodies.find(b => b.actor === prey);
-      if (found === undefined) throw new Error('Unbound Nalati headless prey (the flock is not modelled)');
-      return `actor:${found.boot.id}`;
+    preyIdentity: (prey: PackPrey): string => {
+      const id = preyIds.get(prey);
+      if (id === undefined) throw new Error('Unbound Nalati headless prey');
+      return id;
     },
-    resolvePrey: (id: string): AnimalSim | null => {
-      if (!id.startsWith('actor:')) throw new Error(`Nalati headless prey ${id} is not modelled`);
-      return byId.get(id.slice(6)) ?? null;
-    },
+    resolvePrey: (id: string): PackPrey | null => id.startsWith('actor:') ? byId.get(id.slice(6)) ?? null : preyById.get(id) ?? null,
     resolveActor: (id: string): AnimalSim | null => byId.get(id) ?? null,
   };
   const packs: PackBrain<AnimalSim>[] = [], herds: HerdBrain<AnimalSim>[] = [], wolves: AnimalSim[] = [];
@@ -124,15 +127,26 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   policy.initialize(); packs.push(policy);
   pack.forEach(w => { packOf.set(w, policy); });
   herd(herdOf(1, 'horse'));
-  // two load-time draws the page takes before Argymaq's herd, from systems not modelled yet: the raid director's first raid
+  // Two load-time draws the page takes before Argymaq's herd: the hosted raid director's first raid
   // clock (creatures/sheepRaid.ts `raidT = rand(FIRST_RAID)`, as ride.ts builds the shepherd), then the Golden King's
   // reset(0) burst cooldown (combat/goldenKing.ts, his body parked)
-  host.rng.stream('ai').next(); host.rng.stream('ai').next();
+  const firstRaid = 150 + host.rng.stream('ai').next() * 90; host.rng.stream('ai').next();
   // Argymaq's herd: the mares and foal Wildlife places for him, then him as its stallion
   const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ARGYMAQ);
   if (argymaq === undefined || lair[lair.length - 1] !== argymaq) throw new Error('Argymaq\'s herd has no Argymaq');
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
-  const groups: NalatiGroups = { packs, herds, env: world.env, grass: ports.grass, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
+  const addPack = (members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> => {
+    members.forEach(a => { if (byId.has(a.entityId)) throw new Error('Duplicate Nalati raid actor'); byId.set(a.entityId, a); preyIds.set(a, `actor:${a.entityId}`); wolves.push(a); });
+    const row = groupBrain({ ...NALATI_PACK_BRAIN, home: [x, z], members: members.map(a => a.entityId) });
+    if (row.kind !== 'pack') throw new Error('Invalid raid pack declaration');
+    const p = new PackBrain(members, x, z, row, { ...nativePackPorts(group, world), preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
+    p.initialize(); packs.push(p); members.forEach(a => { packOf.set(a, p); }); return p;
+  };
+  const bindPrey = (id: string, prey: PackPrey): void => {
+    if (preyById.has(id) || preyIds.has(prey)) throw new Error('Duplicate Nalati flock prey');
+    preyById.set(id, prey); preyIds.set(prey, id);
+  };
+  const groups: NalatiGroups = { packs, herds, firstRaid, bindPrey, addPack, env: world.env, grass: ports.grass, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
   installed.set(host, groups);
   return groups;
 }

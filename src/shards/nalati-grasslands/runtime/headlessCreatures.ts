@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { HuntBrain, HURT_ARC, type HuntBody, type HuntGround, type HuntMemory, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
+import { HuntBrain, HURT_ARC, ATTACK_TURN, spawnRolls, type HuntBody, type HuntGround, type HuntMemory, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
@@ -14,7 +14,7 @@ import { LEOPARD_SPECIES } from '../species/leopard';
 import { SHEEPDOG_SPECIES } from '../species/sheepdog';
 import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
 import { nalatiFlockRows } from '../creatures/flockRows';
-import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
+import { NALATI_WILDLIFE, placePack, type WildPlacer } from '../creatures/wildPlacement';
 import { setDogFlock, thinkSheepdog } from '../creatures/sheepdogBrain';
 import { ARGYMAQ, argymaqDefinition } from '../combat/eliteRoster';
 import { SEED, TERRAIN } from '../world/terrain';
@@ -22,7 +22,14 @@ import { nalatiWetAt } from '../wet';
 import { pushWildMovers } from '../look/trampleMovers';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import { actHorseBody, actWolfBody, decideHorse, decideWolf, horseHeld } from './groupDispatch';
-import { NALATI_CREATURE_STREAM, type NalatiBootHerd } from './bootRoster';
+import { NALATI_CREATURE_STREAM, nalatiSpawnSpecies, type NalatiBootHerd } from './bootRoster';
+import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import type { NalatiBake } from './baked';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import { creatureBodyDistance, keepsCreatureBody } from '@wildshard/engine/sim/bands';
+import { castRay } from '@wildshard/engine/physics/query';
+import { HeadlessSheepRaid } from './headlessRaid';
 import type { NalatiGroups } from './groups';
 import type { NalatiBody } from './headless';
 
@@ -66,12 +73,16 @@ export function nalatiHuntGround(grid: BakedGrid, trees: (x: number, z: number, 
 const finite = v.pipe(v.number(), v.finite());
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 const Memory = v.record(v.string(), v.union([finite, v.boolean(), v.array(v.tuple([finite, finite, finite]))]));
+const RaidBody = v.strictObject({ id: v.string(), variant: v.string(), seed: finite, scale: finite,
+  at: v.tuple([finite, finite, finite]), yaw: finite, adopted: Stream });
+const RaidPack = v.strictObject({ x: finite, z: finite, herd: v.pipe(finite, v.integer()), bodies: v.array(RaidBody) });
 const Saved = v.strictObject({ rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
   seen: v.array(v.boolean()), memories: v.array(v.tuple([v.string(), Memory])), herds: v.array(v.tuple([finite, finite])),
   // the declared groups' continuations (PackBrain / HerdBrain `snapshot()`), packs then herds: they decide on this step
   groups: v.array(v.string()),
   // Wildlife's own smoothed player speed (the flocks read it) and the flocks' continuations (FlockBrain `snapshot()`)
-  wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }), flocks: v.array(v.string()) });
+  wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }), flocks: v.array(v.string()),
+  placement: Stream, raids: v.array(RaidPack) });
 type SavedMemory = v.InferOutput<typeof Memory>;
 const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Nalati hunting path'); return [p.x, p.y, p.z]; };
 function saveMemory(memory: HuntMemory): SavedMemory {
@@ -97,6 +108,7 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
 export interface NalatiHostCreatures {
   readonly hunt: HuntBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
   readonly scare: (x: number, z: number, r?: number) => void;
+  readonly raid: HeadlessSheepRaid;
 }
 const installed = new WeakMap<SimHost, NalatiHostCreatures>();
 /** The creatures installed into `host`, or undefined. */
@@ -122,13 +134,13 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  * A stampede runs through the player on foot on the bodies' own capsules (`passThroughPlayer`), and a knock-down (the stallion's
  * charge, a stampede) dashes the host's player along the blow (creatures/knockdown.ts, `SimHost.dashPlayer`, the page's
  * `Player.dash`); the creatures' signals are the page's `creature.signal` event; `scare` is Wildlife's (a lightning strike's).
- * Not hosted yet (fail-closed in the runtime's `finish`): the raid director and the shepherd's ring (creatures/sheepRaid.ts,
- * whose ring draws on the shared 'ai' stream every page frame: until it is hosted, every 'ai' draw here, the dog's and the
- * groups', runs on a stream the page has advanced further), Aqbars' elite brain, the marmots, a
+ * The raid's shipping clock and shepherd ring run between Wildlife and thinking, including deferred native valley packs.
+ * Not hosted yet (fail-closed in the runtime's `finish`): Aqbars' elite brain, the marmots, a
  * dodge's 'target.dodge' wake and a weapon's 'target.attack' wake (the host fires no weapon).
  */
 export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
-  trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']> }): NalatiHostCreatures {
+  trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']>;
+  wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
   const { groups } = ports, player = host.player.position, env = groups.env;
   const rng = new Rng(NALATI_CREATURE_STREAM);
   // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it (its tags per kind, made once)
@@ -163,7 +175,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   rng.restore(ports.stream);
   const packOf = new Map<AnimalSim, PackBrain<AnimalSim>>(), herdOf = new Map<AnimalSim, HerdBrain<AnimalSim>>();
   // the groups this step decides for, whose continuations its adapter carries
-  const decided: readonly (PackBrain<AnimalSim> | HerdBrain<AnimalSim>)[] = [...groups.packs, ...groups.herds];
+  const decided = (): readonly (PackBrain<AnimalSim> | HerdBrain<AnimalSim>)[] => [...groups.packs, ...groups.herds];
   groups.packs.forEach(p => { p.members.forEach(m => { packOf.set(m, p); }); });
   groups.herds.forEach(h => { h.members.forEach(m => { herdOf.set(m, h); }); if (h.stallion !== null) herdOf.set(h.stallion, h); });
   // Wildlife's flocks (creatures/wildlife.ts spawnFlock), on the engine's FlockBrain: the shipping flock's own rules (the
@@ -190,6 +202,12 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     }
     return brain;
   });
+  const preyRows = flocks.map((f, index) => Array.from({ length: f.n }, (_, i) => {
+    const position = new Vector3();
+    const prey = { get position() { return f.positions(i, position); }, get yaw() { return f.headingOf(i); },
+      get alive() { return f.isAlive(i); }, applyDamage: (): boolean => { f.kill(i); return true; } };
+    groups.bindPrey(`sheep:${String(index)}:${String(i)}`, prey); return prey;
+  }));
   if (dogIndex !== dogs.length) throw new Error('Nalati roster has a sheepdog with no flock');
   /** Wildlife.scare: packs within 20 m break, herds within r stampede, a flock within r bolts, then the 'scare' signal (the
    *  rider's horse panics on the page; the host has no rider) */
@@ -228,6 +246,69 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     c.herd = a.herd >= 0 ? hunt.herds[a.herd]?.members ?? null : null;
     return c;
   };
+  const placement = new Rng(0); placement.restore(ports.wildStream);
+  const raids: v.InferOutput<typeof RaidPack>[] = [];
+  const spawnSpecies = nalatiSpawnSpecies(), ray = new Vector3(), down = new Vector3(0, -1, 0);
+  let nextId = Math.max(...bodies.map(a => Number(a.entityId.slice('creature:'.length)))) + 1;
+  const makeRaider = (saved: v.InferOutput<typeof RaidBody>, herd: number): NalatiHuntBody => {
+    if (bodies.length >= BODY_MAX || saved.id !== `creature:${String(nextId++)}` || saved.scale <= 0) throw new Error('Invalid Nalati raid roster');
+    const template = ports.bake.actors.find(a => a.kind === 'wolf' && a.variant === saved.variant);
+    if (template === undefined) throw new Error('Missing baked Nalati raid wolf model');
+    const [x, y, z] = saved.at;
+    const actor = host.spawn({ id: saved.id, spec: template.spec, seed: saved.seed, scale: saved.scale, at: { x, y, z }, yaw: saved.yaw });
+    actor.herd = herd; actor.attackTurnCap = ATTACK_TURN;
+    const a = Object.assign(actor, { hidden: false, sampleTerrain: (): void => undefined });
+    bodies.push(a); seen.push(false); byActor.set(a, a); hunt.herds[herd]?.members.push(a); wildWolves.push(a);
+    rng.restore(saved.adopted); hunt.adopt(a, x, z);
+    // Ride can spawn before AnimalManager.sync in this frame. Give nearby new raiders the same native capsule now.
+    // Restoring actors reconnect the saved motors after native world replacement; never allocate a replacement there.
+    if (ports.snapshot === undefined && host.bodyBands?.physics === true && keepsCreatureBody(false, a.alive, a.driven, creatureBodyDistance(a.position, player))) {
+      const motor = withOwner(null, () => new CharacterMotor(host.physics, host.creatureMotorOptions(a)));
+      motor.resetAt(a.position); a.motor = motor;
+    }
+    return a;
+  };
+  const finishPack = (record: v.InferOutput<typeof RaidPack>, members: AnimalSim[]): PackBrain<AnimalSim> => {
+    const pack = groups.addPack(members, record.x, record.z);
+    members.forEach(a => { packOf.set(a, pack); }); raids.push(record); return pack;
+  };
+  const spawnPack = (x: number, z: number, variants: readonly string[]): PackBrain<AnimalSim> => {
+    if (raids.length >= 2) throw new Error('Nalati raid pack bound exceeded');
+    const herd = hunt.herds.length; hunt.addHerd('wolf', x, z);
+    const record: v.InferOutput<typeof RaidPack> = { x, z, herd, bodies: [] };
+    const place: WildPlacer<NalatiHuntBody> = { rng: placement, bodies: () => bodies,
+      ground: { normalY: (px, pz) => floor.normalAt(px, pz)[1], heightAt: floor.heightAt, waterLevel: () => TERRAIN.waterLevel(), wetAt: nalatiWetAt },
+      spawn: (_kind, px, pz, yaw, variant) => {
+        const rolled = spawnRolls(rng, 'wolf', variant, bodies.some(a => a.kind === 'wolf' && a.rarity === 'legendary'), spawnSpecies);
+        const adopted = v.parse(Stream, rng.snapshot()), terrain = floor.heightAt(px, pz), fromY = Math.max(ports.spawnY, terrain) + 1;
+        ray.set(px, fromY, pz);
+        const hit = castRay(host.physics, ray, down, Math.max(201, fromY - terrain + 1), ['WORLD']);
+        const y = hit === null || (hit.material === 'ground' && hit.collider.shape.type === host.physics.R.ShapeType.HeightField) ? terrain : hit.point.y;
+        const saved = { id: `creature:${String(nextId)}`, variant: rolled.variant.id, seed: rolled.seed, scale: rolled.scale, at: [px, y, pz] as [number, number, number], yaw, adopted };
+        record.bodies.push(saved); return makeRaider(saved, herd);
+      }, place: (a, px, pz, yaw) => { a.place(px, pz, yaw); } };
+    const members = placePack(place, x, z, variants, () => undefined);
+    return finishPack(record, members);
+  };
+  // Strictly decoded host state supplies only the roster for reinstall. No tick, reward or random replay at restore.
+  const restoreRoster = (): void => {
+    if (ports.snapshot === undefined) return;
+    const value = ports.snapshot.adapters.find(a => a.id === NALATI_CREATURES_STEP)?.state;
+    const saved = v.parse(Saved, value);
+    if (saved.raids.length > 2) throw new Error('Invalid Nalati saved raid count');
+    for (let i = 0; i < 2; i++) {
+      const record = saved.raids[i]; if (record === undefined) break;
+      if (record.herd !== hunt.herds.length || record.bodies.length !== 3) throw new Error('Invalid Nalati saved raid herd');
+      hunt.addHerd('wolf', record.x, record.z);
+      finishPack(record, record.bodies.map(b => makeRaider(b, record.herd)));
+    }
+  };
+  const firstFlock = flocks[0] ?? null;
+  const horse = bodies.find(a => a.kind === 'horse' && a.herd === -1 && firstFlock !== null
+    && a.position.x === firstFlock.cx + 12 && a.position.z === firstFlock.cz + 16) ?? null;
+  const raid = new HeadlessSheepRaid(host, groups, firstFlock, horse, i => {
+    const prey = preyRows[0]?.[i]; if (prey === undefined) throw new Error('Unknown Nalati sheep'); return prey;
+  }, spawnPack);
   /** AnimalManager.think for a self-thinking species: the dead and the stunned hold, else its own decision, the herd's centre after */
   const think = (a: NalatiHuntBody, dt: number): void => {
     if (UNHOSTED.has(a.kind)) return;
@@ -272,6 +353,8 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
       const h = groups.herds[i]; if (h === undefined) break;
       if (h.stampeding) for (let j = 0; j < GROUP_MAX; j++) { const p = groups.packs[j]; if (p === undefined) break; p.scare(h.cx, h.cz, 20); }
     }
+    // Ride.update follows Wildlife and precedes the manager's think loop on the page.
+    raid.update(dt, wolves);
     // the manager's think loop
     if (!speed.init) { speed.x = player.x; speed.z = player.z; speed.init = true; }
     const moved = Math.hypot(player.x - speed.x, player.z - speed.z);
@@ -293,11 +376,11 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   }, {
     snapshot: () => ({ rng: { ...rng.snapshot() }, clock, speed: { ...speed }, seen: [...seen],
       memories: bodies.flatMap(a => { const m = hunt.memory(a); return m === undefined ? [] : [[a.entityId, saveMemory(m)] as [string, SavedMemory]]; }),
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided.map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()) }),
+      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided().map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()), placement: { ...placement.snapshot() }, raids: raids.map(r => ({ x: r.x, z: r.z, herd: r.herd, bodies: r.bodies.map(b => ({ id: b.id, variant: b.variant, seed: b.seed, scale: b.scale, at: [...b.at], yaw: b.yaw, adopted: { ...b.adopted } })) })) }),
     restore: value => {
       const saved = v.parse(Saved, value);
-      if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided.length || saved.flocks.length !== flocks.length) throw new Error('Incompatible Nalati creatures continuation');
-      rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
+      if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided().length || saved.flocks.length !== flocks.length) throw new Error('Incompatible Nalati creatures continuation');
+      placement.restore(saved.placement); rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
       // the brain's clock is a sum of the same steps: a fresh brain takes the saved sum exactly
       hunt.beginTick(saved.clock - clock); clock = saved.clock;
       const memories = new Map(saved.memories);
@@ -307,11 +390,13 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
         if (m !== undefined && s !== undefined) loadMemory(m, s);
       });
       saved.herds.forEach(([cx, cz], i) => { const h = hunt.herds[i]; if (h !== undefined) { h.cx = cx; h.cz = cz; } });
-      saved.groups.forEach((state, i) => { decided[i]?.restore(state); });
+      saved.groups.forEach((state, i) => { decided()[i]?.restore(state); });
       Object.assign(wild, saved.wild); saved.flocks.forEach((state, i) => { flocks[i]?.restore(state); });
     },
   });
-  const out = { hunt, rng, bodies, flocks, scare: wildScare };
+  // Match the original adapter insertion order: fixed controllers first, actors materialized later.
+  restoreRoster();
+  const out = { hunt, rng, bodies, flocks, raid, scare: wildScare };
   installed.set(host, out);
   return out;
 }

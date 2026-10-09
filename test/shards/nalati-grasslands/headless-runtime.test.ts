@@ -117,6 +117,25 @@ it('reads the page\'s grass: the groups\' standing grass is the page\'s grassBas
   } finally { host.dispose(); }
 });
 
+it('initializes every flock directly against its browser-baked tick-0 positions, headings and centre', () => {
+  const host = boot();
+  try {
+    const flocks = nalatiCreaturesOf(host)?.flocks;
+    if (flocks === undefined) throw new Error('missing actual flock policies');
+    expect(flocks).toHaveLength(bake.flocks.length);
+    flocks.forEach((flock, i) => {
+      const recorded = bake.flocks[i]; if (recorded === undefined) throw new Error('missing baked flock');
+      expect({ n: flock.n, cx: flock.cx, cz: flock.cz }).toEqual({ n: recorded.n, cx: recorded.cx, cz: recorded.cz });
+      expect(recorded.members).toHaveLength(flock.n);
+      const point = host.player.position.clone();
+      recorded.members.forEach((member, index) => {
+        const p = flock.positions(index, point);
+        expect({ at: [p.x, p.y, p.z], yaw: flock.headingOf(index) }).toEqual(member);
+      });
+    });
+  } finally { host.dispose(); }
+});
+
 it('walks 2k ticks: every body stays finite on the ground, on the page\'s distance bands; the player\'s trail flattens the grass and recovers', () => {
   const host = boot();
   try {
@@ -141,7 +160,9 @@ it('walks 2k ticks: every body stays finite on the ground, on the page\'s distan
     const moved = new Set([...host.entities].filter(([id, a]) => { const s0 = start.get(id); return s0 !== undefined && Math.hypot(a.position.x - s0.x, a.position.z - s0.z) > 0.5; }).map(([id]) => id));
     const wild = bake.actors.filter(a => a.herd === 1 || a.kind === 'sheepdog').map(a => a.id), still = bake.actors.filter(a => a.herd === -1 || a.herd === 3).map(a => a.id);
     expect(wild.length).toBe(16);
-    expect(wild.filter(id => !moved.has(id))).toEqual([]); expect(still.filter(id => moved.has(id))).toEqual([]);
+    expect(wild.filter(id => !moved.has(id))).toEqual([]);
+    // The shepherd now patrols on the shipping raid rule; the two hitching-rail horses still hold.
+    expect(still.filter(id => moved.has(id))).toEqual(['creature:23']);
     // the flock stepped on its own 'ai' band clock (FlockBrain): its 40 sheep alive, its clock at the host's last step
     const flock = nalatiCreaturesOf(host)?.flocks[0]; if (flock === undefined) throw new Error('no flock');
     expect(flock.alive).toBe(40); expect(flock.state().time).toBeCloseTo(host.clock.now - 1 / 60, 9);

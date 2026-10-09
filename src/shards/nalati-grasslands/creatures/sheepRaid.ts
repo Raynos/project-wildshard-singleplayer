@@ -13,7 +13,8 @@ import type { SheepPrey, Flock } from './flock';
 import { Pack, type PackController } from '../runtime/groupRegistry';
 import { legacyRaidTick, type RaidClockPorts } from './raidClock';
 import { installRaidDirector } from './raidDirector';
-import { HORSE_SPEED, horseBones } from '../species/horse';
+import { horseBones } from '../species/horse';
+import { shepherdMotion, type ShepherdState } from './shepherdRule';
 import { PaintKit, v3 } from '../world/paint';
 import { pole, lathe } from '@wildshard/engine/world/geometryKit';
 
@@ -61,8 +62,7 @@ const SHOULDER_R = new THREE.Vector3(-0.2, 0.6, 0.0);
 const FIRST_RAID: readonly [number, number] = [150, 240], NEXT_RAID: readonly [number, number] = [360, 540];
 const WATCH = 220;                     // m from the flock you must be for a raid to start (it is there to be seen)
 const MIN_FLOCK = 20;                  // no raid once the flock is down to this many
-const GUARD = 50, CRACK_R = 4.2, CRACK_CD = 1.3, CRACKS_TO_BREAK = 2;
-const RING = 22;                       // m: his slow ring round the flock
+const CRACK_CD = 1.3, CRACKS_TO_BREAK = 2;
 /** the valley pack's den from the flock (m) and its wolves; spawned at most this many times a session */
 const DEN = { dx: -80, dz: -8 }, RAIDERS = ['grey', 'tawny', 'scout'], MAX_PACKS = 2;
 type AnimalSound = Parameters<NonNullable<AnimalManager['onSound']>>[0];
@@ -149,6 +149,8 @@ export class SheepRaid {
   private pendingT = 0;
   private crackCd = 0; private crackT = -1; private cracksNow = 0;
   private patrolA = 0; private restT = 0;
+  private readonly motionState: ShepherdState = { crackCd: 0, patrolA: 0, restT: 0 };
+  private readonly nextAi = (): number => app.rng.stream('ai').next();
   private readonly arm: THREE.Mesh | null = null;
   private readonly rider: THREE.Group | null = null;
   private lean = 0;
@@ -237,33 +239,15 @@ export class SheepRaid {
   private ride(dt: number): void {
     const h = this.shepherd, f = this.flock;
     if (h === null || f === null || !h.alive) return;
-    this.crackCd = Math.max(0, this.crackCd - dt);
-    const hx = h.position.x, hz = h.position.z;
-    let wolf: Animal | null = null, wd = GUARD;
-    for (const w of this.ctx.wildlife.livingWolves) {
-      const d = Math.hypot(w.position.x - f.cx, w.position.z - f.cz);
-      if (d < wd) { wd = d; wolf = w; }
-    }
-    let speed: number, yaw: number;
-    if (wolf !== null) {
-      const dx = wolf.position.x - hx, dz = wolf.position.z - hz, d = Math.hypot(dx, dz);
-      yaw = Math.atan2(dx, dz);
-      speed = d > 9 ? HORSE_SPEED.gallop * 0.92 : d > 3 ? HORSE_SPEED.canter * 0.8 : HORSE_SPEED.trot;
-      if (d < CRACK_R && this.crackCd <= 0) this.crack(wolf, dx / (d || 1), dz / (d || 1));
-    } else {
-      const dx = f.cx - hx, dz = f.cz - hz, d = Math.hypot(dx, dz);
-      if (d > RING + 12) { yaw = Math.atan2(dx, dz); speed = d > 45 ? HORSE_SPEED.canter * 0.8 : HORSE_SPEED.trot; }
-      else if (this.restT > 0) { this.restT -= dt; yaw = h.yaw; speed = 0; }
-      else {
-        // walk the ring: aim a little ahead round it; now and then stand and watch
-        this.patrolA = Math.atan2(hx - f.cx, hz - f.cz) + 0.35;
-        const tx = f.cx + Math.sin(this.patrolA) * RING, tz = f.cz + Math.cos(this.patrolA) * RING;
-        yaw = Math.atan2(tx - hx, tz - hz); speed = HORSE_SPEED.walk;
-        if (app.rng.stream('ai').next() < dt * 0.02) this.restT = 6 + app.rng.stream('ai').next() * 8;
-      }
-    }
+    const state = this.motionState;
+    state.crackCd = this.crackCd; state.patrolA = this.patrolA; state.restT = this.restT;
+    const motion = shepherdMotion(state, dt, h, f, this.ctx.wildlife.livingWolves, this.nextAi);
+    if (motion === null) return;
+    this.crackCd = state.crackCd; this.patrolA = state.patrolA; this.restT = state.restT;
+    const { speed, yaw, turn, crack } = motion;
+    if (crack !== null) this.crack(crack.wolf, crack.dx, crack.dz);
     h.state = speed > 6 ? 'flee' : speed > 0.2 ? 'wander' : Math.sin(app.clock.now * 0.3 + h.seed * 5) > 0.3 ? 'graze' : 'idle';
-    h.setMotion(yaw, speed, speed > 6 ? 3.2 : 2.2);
+    h.setMotion(yaw, speed, turn);
     // the rider leans into a gallop; the whip arm swings up and cracks down
     this.lean += ((h.speed > 9 ? 0.28 : h.speed > 5 ? 0.12 : 0) - this.lean) * Math.min(1, dt * 3);
     if (this.rider !== null) this.rider.rotation.x = this.lean;

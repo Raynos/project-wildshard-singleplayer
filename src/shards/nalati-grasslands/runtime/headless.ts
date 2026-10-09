@@ -237,7 +237,7 @@ export interface NalatiBody { readonly boot: NalatiBootBody; readonly baked: Nal
  * The host runs on the page's distance bands, installed before any spawn (and before a restoring host restores its clocks).
  */
 export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: NalatiBootClock }): {
-  bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; stream: RngState;
+  bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; stream: RngState; wildStream: RngState;
 } {
   const { bake } = ports, s = bakedSamplers(ports.grid);
   host.useBodyBands();
@@ -265,7 +265,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
     actor.attackTurnCap = ATTACK_TURN;
     return { boot, baked: row, actor };
   });
-  return { bodies, herds: roster.herds, stream: roster.stream };
+  return { bodies, herds: roster.herds, stream: roster.stream, wildStream: roster.wildStream };
 }
 
 /**
@@ -277,7 +277,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * restored exactly by an identical install before the host restores, the declared groups (runtime/groups.ts: the pack,
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati11.md): the raid director and the shepherd's ring, the elites' brains, the
+ * progress/shard-platform/handoffs/sf72-nalati12.md): the elites' brains, the
  * marmots, the Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
@@ -288,7 +288,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never the sabre or the bow: the weapons are declared items (data/items.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, install: host => {
+  return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     // the creature floor casts into this world at install, restoring too (the saved physics then replaces it)
     addNalatiWorld(host, bake);
     // the page's day clock, stepped at the start of every tick (restoring too: the host then restores its saved `day`); the
@@ -309,7 +309,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const groups = installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass, env });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    const creatures = installNalatiCreatures(host, { bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream });
+    const creatures = installNalatiCreatures(host, { bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
     scare = (x, z) => { creatures.scare(x, z, 60); };
   } };
 };
