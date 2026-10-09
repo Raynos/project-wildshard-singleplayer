@@ -4,6 +4,7 @@ import type { IconId } from '@wildshard/engine/ui/icons';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 import type { ItemRow } from './bag/items';
+import { addInventory, takeInventory } from './inventoryLaw';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
  * crab claws and coconuts — the drowned sailor and captain fade, nothing to harvest, E318). Counts
@@ -87,9 +88,7 @@ export class Inventory {
 
   /** false, and nothing added, for a kind this shard does not keep or a new kind with every slot taken */
   add(id: ItemId, n = 1): boolean {
-    if (!(id in ITEMS) || !this.keeps(id)) return false;
-    if (!this.order.includes(id)) { if (this.order.length >= this.slots) return false; this.order.push(id); }
-    this.counts[id] = (this.counts[id] ?? 0) + n;
+    if (!addInventory({ counts: this.counts, order: this.order }, { has: (kind) => kind in ITEMS, keeps: (kind) => this.keeps(kind), slots: () => this.slots }, id, n)) return false;
     this.save(); this.onChange?.();
     return true;
   }
@@ -99,9 +98,10 @@ export class Inventory {
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */
   take(id: ItemId, n = 1): boolean {
-    const have = this.counts[id] ?? 0;
-    if (n <= 0 || have < n) return n <= 0;
-    if (have === n) { delete this.counts[id]; this.order = this.order.filter((o) => o !== id); } else this.counts[id] = have - n;
+    const state = { counts: this.counts, order: this.order };
+    if (!takeInventory(state, id, n)) return false;
+    if (n <= 0) return true;
+    this.order = state.order;
     this.save(); this.onChange?.();
     return true;
   }

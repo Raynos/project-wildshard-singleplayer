@@ -38,6 +38,7 @@ import { test, type Flags } from './flags';
 import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
+import { walkInPickup } from './pickup';
 
 export interface InteractEvent {
   type: 'open' | 'locked' | 'take' | 'lever' | 'door' | 'press' | 'release' | 'light' | 'sit' | 'use' | 'found' | 'barrel-reset';
@@ -107,12 +108,12 @@ export class Live {
   }
 }
 
-const PROMPT_R = 2.5, TOUCH_R = 1.1, PLAYER_R = 0.35;
+const PROMPT_R = 2.5, PLAYER_R = 0.35;
 /** a plate feels what overlaps a slab this far inside its rim and this deep over it (feet, a barrel's base) */
 const PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
 const _m = new THREE.Matrix4(), _local = new THREE.Matrix4(), _c = new THREE.Color(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _v = new THREE.Vector3(), _e = new THREE.Euler();
 const OFF: Collider = { x: 0, z: 0, hw: 0, hd: 0, rot: 0, yTop: -1e6, yBottom: -1e6 + 1 };
-const _chest = new THREE.Vector3(), _bp = { x: 0, y: 0, z: 0 }, _bq = { x: 0, y: 0, z: 0, w: 1 };
+const _bp = { x: 0, y: 0, z: 0 }, _bq = { x: 0, y: 0, z: 0, w: 1 };
 const PARKED = { yTop: -1e6, yBottom: -1e6 - 1 };
 const parked = (c: Collider): boolean => c.yTop < -1e5;
 
@@ -609,12 +610,7 @@ export class Interactables {
       if (d.kind === 'plate') {
         const down = physics !== null && plateDown(physics, lv, d.size, d.by);
         if (down !== F.has(`plate:${d.id}`)) { F.set(`plate:${d.id}`, down); for (const s of d.sets ?? []) F.set(s, down); this.emit({ type: down ? 'press' : 'release', def: d, at: lv.position }); }
-      } else if (d.kind === 'pickup' && d.touch === true) {
-        const dx = pl.x - lv.position.x, dz = pl.z - lv.position.z;
-        // walk-in take: within TOUCH_R of your feet, and seen from your chest (not through a deck, hull or wall)
-        if (dx * dx + dz * dz < TOUCH_R * TOUCH_R && Math.abs(pl.y - lv.position.y) < 2.2
-          && (!physics || lineOfSight(physics, _chest.set(pl.x, pl.y + 1.0, pl.z), { x: lv.position.x, y: lv.position.y + 0.5, z: lv.position.z }, 0.3))) this.take(lv);
-      }
+      } else if (d.kind === 'pickup' && d.touch === true && walkInPickup(physics, pl, lv.position)) this.take(lv);
       if (lv.anim !== lv.target) {
         const speed = d.kind === 'door' && d.look !== 'plank' ? 0.7 : d.kind === 'plate' ? 6 : d.kind === 'beacon' ? 1.2 : 2.4;
         lv.anim = lv.target > lv.anim ? Math.min(lv.target, lv.anim + dt * speed) : Math.max(lv.target, lv.anim - dt * speed);

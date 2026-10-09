@@ -1,0 +1,87 @@
+{
+  "candidate": "b8721e9c521021b995d1d1e0bc8e50f52160eba0",
+  "device": "iPhone 16 Pro",
+  "dpr": 2,
+  "muted": true,
+  "driver": "agent-browser / actual semantic movement and use; pointer dialogue taps",
+  "pine": {
+    "start": {
+      "x": -3.508323174937489e-06,
+      "y": 0.020099766737985192,
+      "z": -234.9999949175608
+    },
+    "end": {
+      "t": 7.100900000095372,
+      "x": 7.746986219318124,
+      "y": 0.020049847626069095,
+      "z": -205.9484339067568
+    },
+    "seconds": 7.100900000095372,
+    "flags": [
+      "seen:gate",
+      "taken:resin-1",
+      "resin:1"
+    ],
+    "pack": {
+      "v": 1,
+      "data": {
+        "counts": {
+          "amber-resin": 1
+        },
+        "order": [
+          "amber-resin"
+        ]
+      }
+    }
+  },
+  "driftwood": {
+    "pierWalk": {
+      "i": 6,
+      "t": 36.230400000095216,
+      "x": -21.996291131945338,
+      "y": 17.99723232251149,
+      "z": -72.4488754651874
+    },
+    "chestWalk": {
+      "i": 4,
+      "t": 2.0668999996185295,
+      "x": -21.999919234717375,
+      "y": 18.91068772012063,
+      "z": -64.0388492782096
+    },
+    "flags": [
+      "seen:pier",
+      "taken:glass-2",
+      "glass:2",
+      "taken:glass-3",
+      "glass:3",
+      "seen:hut",
+      "talked:castaway",
+      "open:castaway-chest",
+      "has:flint"
+    ],
+    "pack": {
+      "v": 1,
+      "data": {
+        "counts": {
+          "doubloon": 2
+        },
+        "order": [
+          "doubloon"
+        ]
+      }
+    }
+  },
+  "bootSmoke": {
+    "standaloneDriftwoodMs": 3870,
+    "standalonePineMs": 10647,
+    "standaloneSunMs": 3589,
+    "gridMs": 10997,
+    "faults": 0
+  },
+  "driftwoodSpots": {
+    "rows": 30,
+    "exactRepeatedCapture": true,
+    "positionsAndPromptsUnchanged": true
+  }
+}

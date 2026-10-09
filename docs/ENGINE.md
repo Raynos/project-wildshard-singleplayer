@@ -1680,6 +1680,17 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 
 `CosmeticsLocker<Slot, Row>` (`@wildshard/game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
 
+`@wildshard/game/inventoryLaw` defines renderer-free `InventoryState`, `InventoryPolicy`, `addInventory` and
+`takeInventory`. The page's `Inventory` supplies its actual catalogue, kept kinds and slot limit; it continues to own
+legacy save filtering, write timing and change notifications. Headless consumers supply the same authored pack policy.
+The law preserves first-pickup order, stacks existing kinds when slots are full, and trades all or nothing.
+Nonpositive trades remain successful no-ops; no save format or numeric admission changes are introduced.
+
+`@wildshard/engine/world/interact/pickup` defines `walkInPickup(physics, feet, pickup)`, shared by rendered and native
+pickup hosts: strict 1.1 m horizontal radius and 2.2 m vertical separation, with chest-to-pickup line of sight through
+actual world collision (0.3 m target slack). The caller owns visibility, taken flags, events and inventory admission.
+A null physics world retains the pre-physics page behavior; an admitted headless world supplies its native physics.
+
 The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
 `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk` (load the quest views lazily with `import('@wildshard/engine/quest/view')`)
 (all `@wildshard/engine`). The template's quest:

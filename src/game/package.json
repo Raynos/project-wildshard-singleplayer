@@ -35,6 +35,7 @@
     "./Elite": "./Elite.ts",
     "./eliteSystem": "./eliteSystem.ts",
     "./Inventory": "./Inventory.ts",
+    "./inventoryLaw": "./inventoryLaw.ts",
     "./Progress": "./Progress.ts",
     "./achievements": "./achievements.ts",
     "./bag/bag": "./bag/bag.ts",
