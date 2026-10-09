@@ -83,13 +83,20 @@ export class RetainedRuntimeHooks {
   private readonly installers: ((scope: Scope) => void)[] = [];
   private entered: Scope | undefined;
   private generation = 0;
+  private preparing: boolean;
 
-  constructor(base: ShardContext) {
+  /** Defer entered services while a budget-admitted resident constructs its world on the road.
+   * Construction may queue registrations until activation or cancellation; it never runs those installers. */
+  constructor(base: ShardContext, preparation: { deferActivation?: boolean } = {}) {
     this.resident = base.scope;
-    this.activate();
+    this.preparing = preparation.deferActivation === true;
+    if (!this.preparing) this.activate();
     const generation = this.generation;
     const register = (install: (scope: Scope) => void): void => {
       const entered = this.entered;
+      if (this.preparing && generation === this.generation && !base.scope.disposed) {
+        this.installers.push(install); return;
+      }
       // Existing callbacks re-enter their new owner. A yielded old hook has no such owner and cannot publish here. The owner
       // is read only for that check (SF57: a read on every registration counted as a stray read during owned builds).
       if (base.scope.disposed || entered === undefined || (generation !== this.generation
@@ -110,6 +117,7 @@ export class RetainedRuntimeHooks {
   activate(): void {
     if (this.resident.disposed) throw new Error('Retained home is disposed');
     if (this.entered !== undefined) return;
+    this.preparing = false;
     const scope = this.resident.child('runtime.entered');
     try {
       for (const install of this.installers) withOwner(scope, () => install(scope));
@@ -118,6 +126,7 @@ export class RetainedRuntimeHooks {
   }
   /** Remove every system/listener/answerer before another cell becomes active; resident geometry is untouched. */
   deactivate(): void {
+    if (this.preparing) { this.preparing = false; this.generation++; this.installers.length = 0; }
     const scope = this.entered; if (scope === undefined) return;
     this.entered = undefined; this.generation++; scope.dispose();
   }

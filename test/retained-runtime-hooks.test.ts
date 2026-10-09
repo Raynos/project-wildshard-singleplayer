@@ -9,6 +9,67 @@ import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { emptyShardfile } from '../src/sdk/author';
 
+function preparedFixture() {
+  const app = new App(); app.registryValue = new WorldRegistry();
+  const scope = app.engineScope.child('prepared'), source = emptyShardfile({ slug: 'prepared', name: 'Prepared', author: 'Fixture', seed: 1, revision: 1 });
+  const manifest = emptyShardfileSource(source), base = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const context = shardContext(base.context, manifest, { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } });
+  return { app, scope, hooks: new RetainedRuntimeHooks(context, { deferActivation: true }) };
+}
+
+it('constructs a resident with entered services queued, then publishes them once and retires them on leave', async () => {
+  const f = preparedFixture(), before = f.app.events.census();
+  let service = 'road', installs = 0, ticks = 0, events = 0;
+  try {
+    installEnteredRuntimeService(f.hooks.context, entered => {
+      const prior = service; service = 'prepared'; installs++;
+      entered.onDispose(() => { service = prior; });
+    });
+    f.hooks.context.system({ id: 'prepared.tick', phase: 'update', run: () => { ticks++; } });
+    await Promise.resolve(); // Trusted hook registrations after an asset await are still unpublished.
+    f.hooks.context.on('player.respawned', () => { events++; });
+    f.hooks.context.debug.expose('prepared.owner', true);
+    f.hooks.context.answer('player.crouch', () => ({ allowed: true, latched: false }));
+    const frame = (): void => {
+      for (const system of f.app.systemsByPhase().update) system.run(1 / 60, 0);
+      f.app.events.emit('player.respawned', { at: new Vector3(), checkpoint: false }); f.app.events.flush('update');
+    };
+    frame(); expect(service).toBe('road'); expect(installs).toBe(0); expect(ticks).toBe(0); expect(events).toBe(0);
+    expect(f.app.events.census()).toEqual(before); expect(f.app.debug.snapshot()).toEqual({});
+    for (let visit = 0; visit < 2; visit++) {
+      f.hooks.activate(); f.hooks.activate(); frame();
+      expect(service).toBe('prepared'); expect(installs).toBe(visit + 1); expect(ticks).toBe(visit + 1); expect(events).toBe(visit + 1);
+      expect(f.app.debug.snapshot()).toEqual({ 'prepared.owner': true });
+      expect(f.app.events.ask('player.crouch', { want: true, via: 'toggle' })).toEqual({ allowed: true, latched: false });
+      f.hooks.deactivate(); frame();
+      expect(service).toBe('road'); expect(f.app.events.census()).toEqual(before); expect(f.app.debug.snapshot()).toEqual({});
+    }
+  } finally { f.app.engineScope.dispose(); }
+});
+
+it('fences an unfinished preparatory hook after cancellation without running or resurrecting its services', async () => {
+  const f = preparedFixture(); let installs = 0;
+  try {
+    installEnteredRuntimeService(f.hooks.context, () => { installs++; });
+    f.hooks.deactivate(); await Promise.resolve();
+    expect(() => installEnteredRuntimeService(f.hooks.context, () => { installs++; })).toThrow('left its cell');
+    f.scope.dispose(); expect(() => f.hooks.activate()).toThrow('disposed'); expect(installs).toBe(0);
+    expect(f.app.systemIds(f.scope)).toEqual([]); expect(f.app.debug.snapshot()).toEqual({});
+  } finally { f.app.engineScope.dispose(); }
+});
+
+it('rolls back partially activated preparatory services when one installer fails', () => {
+  const f = preparedFixture(); let service = 'road';
+  try {
+    installEnteredRuntimeService(f.hooks.context, entered => { service = 'prepared'; entered.onDispose(() => { service = 'road'; }); });
+    f.hooks.context.system({ id: 'prepared.tick', phase: 'update', run: () => undefined });
+    installEnteredRuntimeService(f.hooks.context, () => { throw new Error('Admission retired during activation'); });
+    expect(() => f.hooks.activate()).toThrow('Admission retired');
+    expect(service).toBe('road'); expect(f.app.systemIds(f.scope)).toEqual([]);
+    expect(() => f.hooks.context.on('player.respawned', () => undefined)).toThrow('left its cell');
+  } finally { f.app.engineScope.dispose(); }
+});
+
 it('retains the borrowed world across two entries, unregisters entered callbacks and refuses late old installs', () => {
   const app = new App(); app.registryValue = new WorldRegistry();
   const scope = app.engineScope.child('home'), source = emptyShardfile({ slug: 'home', name: 'Home', author: 'Fixture', seed: 1, revision: 1 });
