@@ -4,6 +4,7 @@
 // and keeps doing so when an instance is scaled non-uniformly (the vertex shader rescales aFace by the instance's
 // stretch along aTan and along normal × aTan). One layout for merged and instanced geometry alike.
 import { type Box3, BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { appendGeometry } from '../bakedGeometry';
 
 /** pattern kinds the material draws (aPat.x) */
 export const K = {
@@ -47,12 +48,26 @@ export class Builder {
   private misc: number[] = [];
   private idx: number[] = [];
   private n = 0;
+  /** the layout bake's geometry (world/layoutBake.ts): what build() made of the first `base` vertices (the towers'
+   *  shell), which the pieces batch.ts bakes into it follow */
+  private baked: BufferGeometry | null = null;
+  private base = 0;
+
+  /** a builder holding the layout bake's built geometry; what is added to it after goes on after (build appends it) */
+  static fromBake(g: BufferGeometry): Builder {
+    const b = new Builder();
+    b.baked = g;
+    b.base = b.n = g.getAttribute('position').count;
+    return b;
+  }
 
   get vertexCount(): number { return this.n; }
-  get triangleCount(): number { return this.idx.length / 3; }
+  get triangleCount(): number { return (this.idx.length + (this.baked?.index?.count ?? 0)) / 3; }
 
   /** the bounds of what it holds (a baked piece's own box: its copies' boxes, batch.ts) */
   bounds(target: Box3): Box3 {
+    const b = this.baked?.getAttribute('position');
+    if (b !== undefined) for (let i = 0; i < b.count; i++) target.expandByPoint(vs.fromBufferAttribute(b, i));
     const p = this.pos;
     for (let i = 0; i + 2 < p.length; i += 3) target.expandByPoint(vs.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
     return target;
@@ -252,6 +267,8 @@ export class Builder {
   release(): void {
     this.pos = []; this.nor = []; this.col = []; this.face = []; this.tan = []; this.pat = []; this.misc = []; this.idx = [];
     this.n = 0;
+    this.baked = null;
+    this.base = 0;
   }
 
   /**
@@ -263,7 +280,16 @@ export class Builder {
    * vec3 attribute takes the first three of a padded four).
    */
   build(): BufferGeometry {
-    const n = this.n;
+    if (this.baked === null) return this.buildOwn();
+    if (this.n === this.base) return this.baked;
+    const g = appendGeometry(this.baked, this.buildOwn());
+    g.computeBoundingBox();
+    return g;
+  }
+
+  /** what this builder's own arrays hold (after the bake's vertices, when it has some) as one geometry */
+  private buildOwn(): BufferGeometry {
+    const n = this.n - this.base;
     const nor = new Int8Array(n * 4), tan = new Int8Array(n * 4), col = new Uint8Array(n * 4);
     const pat = new Uint16Array(n * 4), misc = new Uint16Array(n * 2), face = new Uint16Array(n * 4);
     const sn = (v: number): number => Math.round(Math.max(-1, Math.min(1, v)) * 127);
@@ -289,7 +315,7 @@ export class Builder {
     g.setAttribute('aTan', new BufferAttribute(tan, 4, true));
     g.setAttribute('aPat', new Float16BufferAttribute(pat, 4));
     g.setAttribute('aMisc', new Float16BufferAttribute(misc, 2));
-    g.setIndex(n < 65536 ? new Uint16BufferAttribute(this.idx, 1) : new Uint32BufferAttribute(this.idx, 1));
+    g.setIndex(this.n < 65536 ? new Uint16BufferAttribute(this.idx, 1) : new Uint32BufferAttribute(this.idx, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;

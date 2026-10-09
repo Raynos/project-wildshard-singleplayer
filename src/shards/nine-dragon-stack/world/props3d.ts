@@ -84,6 +84,19 @@ export function placeSet(name: string, build: () => BufferGeometry, m: Matrix4):
   s.at.push(m.clone());
 }
 
+/** the lion queue and the queued sets as the layout bake recorded them (world/layoutBake.ts), in place of the builders' */
+export function restoreQueued(lions: readonly Matrix4[], recorded: readonly (readonly [string, { geo: BufferGeometry; at: Matrix4[] }])[]): void {
+  queued.length = 0;
+  queued.push(...lions);
+  sets.clear();
+  for (const [name, s] of recorded) sets.set(name, s);
+}
+
+/** the lion queue and the queued sets as they stand (the layout bake's record of them: ../generators/layout.ts) */
+export function peekQueued(): { lions: readonly Matrix4[]; sets: readonly (readonly [string, { geo: BufferGeometry; at: readonly Matrix4[] }])[] } {
+  return { lions: queued, sets: [...sets] };
+}
+
 function specs(): PropSpec[] {
   // the model faces glTF +z; on the Well's balustrade (x ≈ 0.2) a quarter turn faces the plaza, a little more the spawn
   const plaza = lionPosts('plaza', PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0), street = lionPosts('street', STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0);

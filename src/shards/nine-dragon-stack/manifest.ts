@@ -51,6 +51,8 @@ const ROAD_PORTAL_LABEL = 'Road portal';
 const TEX = ['concrete', 'flag', 'flag-a', 'flag2', 'flag2-a', 'lacquer', 'panel', 'poster', 'poster-a', 'stone', 'tiles', 'wood'];
 const FILES = [
   ...TEX.map((t) => `/assets/nine-dragon/paint/${t}.jpg`),
+  // G285: the layout's offline bake (world/layoutBake.ts)
+  '/assets/nine-dragon/baked/layout.bin',
   '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
   '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
   ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),

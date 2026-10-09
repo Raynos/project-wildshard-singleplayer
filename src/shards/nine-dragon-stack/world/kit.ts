@@ -2,6 +2,7 @@
 // so the Jiehua material can rule its edges and its window / tile / flagstone rows analytically (antialiased with
 // fwidth, never a texture). Geometry is merged per region into one BufferGeometry: one program, few draw calls.
 import { type Box3, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { appendGeometry } from './bakedGeometry';
 
 /** pattern kinds the material draws (vPat.x) */
 export const K = { plain: 0, facade: 1, tiles: 2, flag: 3, bars: 4, panel: 5, net: 6, leaf: 7, cloth: 8, stone: 9 } as const;
@@ -50,13 +51,27 @@ export class Kit {
    * spill bake reads and the spill itself stay float.
    */
   compact = false;
+  /** the layout bake's geometry (world/layoutBake.ts): what build() made of the first `base` vertices, which the page's
+   *  own additions (the entry decks, the sign slots' boards) follow */
+  private baked: BufferGeometry | null = null;
+  private base = 0;
+
+  /** a kit holding the layout bake's built geometry; what is added to it after goes on after (build appends it) */
+  static fromBake(g: BufferGeometry): Kit {
+    const k = new Kit();
+    k.baked = g;
+    k.base = k.n = g.getAttribute('position').count;
+    return k;
+  }
 
   get vertexCount(): number { return this.n; }
 
   /** the bounds of the vertices from the `from`-th on — what one builder call added (a model drawn into the kit) */
   boundsFrom(from: number, target: Box3): Box3 {
+    const b = this.baked?.getAttribute('position');
+    if (b !== undefined) for (let i = from; i < this.base; i++) target.expandByPoint(_bp.fromBufferAttribute(b, i));
     const p = this.pos;
-    for (let i = from * 3; i + 2 < p.length; i += 3) target.expandByPoint(_bp.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
+    for (let i = Math.max(0, from - this.base) * 3; i + 2 < p.length; i += 3) target.expandByPoint(_bp.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
     return target;
   }
 
@@ -64,6 +79,7 @@ export class Kit {
   release(): void {
     this.pos.length = this.nor.length = this.col.length = this.face.length = 0;
     this.pat.length = this.misc.length = this.off.length = this.idx.length = 0;
+    this.baked = null;
   }
 
   private vert(p: Vector3, nrm: Vector3, u: number, v: number, w: number, h: number, look: Look, uo: number, vo: number, flags: number): void {
@@ -277,6 +293,15 @@ export class Kit {
   }
 
   build(): BufferGeometry {
+    if (this.baked === null) return this.buildOwn();
+    if (this.n === this.base) return this.baked;
+    const g = appendGeometry(this.baked, this.buildOwn());
+    g.computeBoundingBox();
+    return g;
+  }
+
+  /** what this builder's own arrays hold (after the bake's vertices, when it has some) as one geometry */
+  private buildOwn(): BufferGeometry {
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new Float32BufferAttribute(this.nor, 3));
@@ -292,7 +317,7 @@ export class Kit {
     g.setAttribute('aMisc', new Float32BufferAttribute(this.misc, 4));
     g.setAttribute('aOff', new Float32BufferAttribute(this.off, 2));
     // baked neon spill (emitters.ts bakeSpill overwrites it for the static kits)
-    g.setAttribute('aSpill', new Float32BufferAttribute(new Float32Array(this.n * 3), 3));
+    g.setAttribute('aSpill', new Float32BufferAttribute(new Float32Array((this.n - this.base) * 3), 3));
     g.setIndex(new Uint32BufferAttribute(this.idx, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();

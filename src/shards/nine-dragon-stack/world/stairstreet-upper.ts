@@ -25,7 +25,7 @@ import { dragonHook } from './props';
 import { hipRoof } from './square';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, stairFloor, towerStack, wallShop } from './stairstreet';
 import { SURF } from '../look/paint';
-import { SignBuilder, type SignPlace } from '../look/signs';
+import type { SignPlace, SignSink } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -81,9 +81,9 @@ class XfKitX extends KitX {
   override build(): BufferGeometry { const g = super.build(); g.applyMatrix4(this.xf); return g; }
 }
 /** forwards signs to the real builder in world space; a sign's board goes into the (local, transformed) kit */
-class XfSigns extends SignBuilder {
-  constructor(private readonly inner: SignBuilder, private readonly xf: Matrix4) { super(inner.atlas); }
-  override place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
+class XfSigns implements SignSink {
+  constructor(private readonly inner: SignSink, private readonly xf: Matrix4) {}
+  place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
     const r = this.inner.place({ ...p, at: p.at.clone().applyMatrix4(this.xf), normal: p.normal.clone().transformDirection(this.xf) }, null);
     if (kit !== null) {
       const depth = p.blade === true ? 0.12 : 0.1;
@@ -94,10 +94,10 @@ class XfSigns extends SignBuilder {
     }
     return r;
   }
-  override tube(a: Vector3, b: Vector3, facing: Vector3, width: number, color: number, gain: number, flicker = 0): void {
+  tube(a: Vector3, b: Vector3, facing: Vector3, width: number, color: number, gain: number, flicker = 0): void {
     this.inner.tube(a.clone().applyMatrix4(this.xf), b.clone().applyMatrix4(this.xf), facing.clone().transformDirection(this.xf), width, color, gain, flicker);
   }
-  override light(c: Vector3, right: Vector3, up: Vector3, w: number, h: number, color: number, gain: number, mode: 1 | 2 = 1, seed = 0): void {
+  light(c: Vector3, right: Vector3, up: Vector3, w: number, h: number, color: number, gain: number, mode: 1 | 2 = 1, seed = 0): void {
     this.inner.light(c.clone().applyMatrix4(this.xf), right.clone().transformDirection(this.xf), up.clone().transformDirection(this.xf), w, h, color, gain, mode, seed);
   }
 }

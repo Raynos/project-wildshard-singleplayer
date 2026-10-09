@@ -12,7 +12,7 @@
 //   couplets, lanterns; a pair of stone lions (石獅) on plinths before the centre bay.
 import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from './kit';
-import type { SignBuilder } from '../look/signs';
+import type { SignSink } from '../look/signs';
 import { type KitX, type XLook, curve } from './hero/kitx';
 import { Rng } from '@wildshard/engine/core/rng';
 import { SURF } from '../look/paint';
@@ -97,7 +97,7 @@ export interface RoofSpec {
  * every slope, a painted rafter soffit closes the underside, the ridge carries chiwen (and, with `ornaments`, a
  * flaming pearl), each hip a curl and a row of beasts.
  */
-export function curvedRoof(k: Kit, x: KitX, signs: SignBuilder | null, r: RoofSpec): void {
+export function curvedRoof(k: Kit, x: KitX, signs: SignSink | null, r: RoofSpec): void {
   const W = r.w / 2, D = r.d / 2, R = Math.max(0.2, W - D);
   const prof = (v: number): number => r.h * v ** 1.65;
   const hip = (sx: number, sz: number, v: number): Vector3 => {
@@ -454,7 +454,7 @@ export function stoneLion(k: Kit, x: KitX, cx: number, y: number, cz: number, fa
 }
 
 /** the gate itself; lantern(x, y, z, scale) hangs one lantern from its top */
-export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: number, y: number, z: number, s: number) => void, P: GateSpec): void {
+export function buildGate(k: Kit, x: KitX, signs: SignSink, lantern: (x: number, y: number, z: number, s: number) => void, P: GateSpec): void {
   const { y, z } = P;
   // s: heights and details; s0: the roofs' spans (GateSpec.k)
   const s0 = P.s, s = P.s * (P.k ?? 1);

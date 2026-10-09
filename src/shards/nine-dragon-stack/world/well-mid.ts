@@ -95,6 +95,8 @@ const SHELL_BOTTOM = -40;
 const COLLIDERS: ColliderDesc[] = [];
 /** the crossings' collision (deck slabs following each deck, rail walls, the far run's walls; the gate bridges' paifang posts are the paifang model's, E346); filled by `buildWell` */
 export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
+/** the crossings' collision as the layout bake recorded it (world/layoutBake.ts), in place of `buildWell`'s */
+export function restoreCrossingColliders(list: readonly ColliderDesc[]): void { COLLIDERS.length = 0; COLLIDERS.push(...list); }
 
 /**
  * (F4, round 2: mockup B's "crossings like ladder rungs receding into the mist to the far gate") the run north goes on

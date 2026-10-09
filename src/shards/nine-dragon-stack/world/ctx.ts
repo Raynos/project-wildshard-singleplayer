@@ -5,7 +5,7 @@ import { Kit } from './kit';
 import type { Emitter } from '../look/emitters';
 import { Dressing } from './facade/grammar';
 import { KitX } from './hero/kitx';
-import type { SignBuilder } from '../look/signs';
+import type { SignSink } from '../look/signs';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { Placement } from '@wildshard/engine/models/model';
 import { WELL, Y0 } from '../layout';
@@ -54,7 +54,7 @@ export class Ctx {
   readonly inst = new Map<string, Instance[]>();
   readonly rng = new Rng(9);
 
-  constructor(readonly signs: SignBuilder) {}
+  constructor(readonly signs: SignSink) {}
 
   kit(name: string, reflective = false): Kit {
     let k = this.kits.get(name);

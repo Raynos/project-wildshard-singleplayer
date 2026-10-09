@@ -65,6 +65,7 @@ import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { buildWell } from './well';
+import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { buildEntryDecks } from './entries';
 import { wellSheets } from './well-lower';
 import { CABLE, SHAFT, WELL_RECTS } from './well-plan';
@@ -170,6 +171,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const phaseProfile: { name: string; ms: number }[] = [];
   const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
   progress(0, 'paint + fonts');
+  const layoutReady = loadLayoutBake();
   const paintStart = performance.now();
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
@@ -198,13 +200,20 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const culler = new InstanceCuller();
   const handed: HandedBatch[] = [];
   const batches: InstancedCuller = { take: (b) => { handed.push(b); } };
-  buildSquare(ctx);
-  progress(0.2, 'layout: towers');
-  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-  buildTowers(ctx);
-  progress(0.25, 'layout: well');
-  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-  buildWell(ctx);
+  // G285: the layout's offline bake (../generators/layout.ts, world/layoutBake.ts); the builders run live only without it
+  const layout = await layoutReady;
+  if (layout !== null) {
+    progress(0.2, 'layout: baked');
+    restoreLayout(layout, ctx);
+  } else {
+    buildSquare(ctx);
+    progress(0.2, 'layout: towers');
+    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
+    buildTowers(ctx);
+    progress(0.25, 'layout: well');
+    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
+    buildWell(ctx);
+  }
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
   const entryCaps = opts.caps === true;

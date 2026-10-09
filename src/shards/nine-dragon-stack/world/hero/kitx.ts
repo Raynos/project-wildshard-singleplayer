@@ -5,6 +5,7 @@
 // aMisc, aOff), so both merge into one geometry, one program, one draw call (`merge`).
 import { type Box3, BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { appendGeometry } from '../bakedGeometry';
 
 /** the same Look the Kit takes (wash colour, pattern kind + params, emit, line weight, edge bits) */
 export interface XLook {
@@ -36,13 +37,26 @@ export class KitX {
   private readonly off: number[] = [];
   private readonly idx: number[] = [];
   private n = 0;
+  /** the layout bake's geometry (world/layoutBake.ts): what build() made of the first `base` vertices */
+  private baked: BufferGeometry | null = null;
+  private base = 0;
+
+  /** a builder holding the layout bake's built geometry; what is added to it after goes on after (build appends it) */
+  static fromBake(g: BufferGeometry): KitX {
+    const k = new KitX();
+    k.baked = g;
+    k.base = k.n = g.getAttribute('position').count;
+    return k;
+  }
 
   get vertexCount(): number { return this.n; }
 
   /** the bounds of the vertices from the `from`-th on — what one builder call added (a model drawn into the kit) */
   boundsFrom(from: number, target: Box3): Box3 {
+    const b = this.baked?.getAttribute('position');
+    if (b !== undefined) for (let i = from; i < this.base; i++) target.expandByPoint(_bp.fromBufferAttribute(b, i));
     const p = this.pos;
-    for (let i = from * 3; i + 2 < p.length; i += 3) target.expandByPoint(_bp.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
+    for (let i = Math.max(0, from - this.base) * 3; i + 2 < p.length; i += 3) target.expandByPoint(_bp.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
     return target;
   }
 
@@ -50,6 +64,7 @@ export class KitX {
   release(): void {
     this.pos.length = this.nor.length = this.col.length = this.face.length = 0;
     this.pat.length = this.misc.length = this.off.length = this.idx.length = 0;
+    this.baked = null;
   }
 
   private vert(p: Vector3, nrm: Vector3, u: number, v: number, w: number, h: number, look: XLook, shade = 1): number {
@@ -204,6 +219,12 @@ export class KitX {
   }
 
   build(): BufferGeometry {
+    if (this.baked === null) return this.buildOwn();
+    return this.n === this.base ? this.baked : appendGeometry(this.baked, this.buildOwn());
+  }
+
+  /** what this builder's own arrays hold (after the bake's vertices, when it has some) as one geometry */
+  private buildOwn(): BufferGeometry {
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new Float32BufferAttribute(this.nor, 3));
@@ -212,7 +233,7 @@ export class KitX {
     g.setAttribute('aPat', new Float32BufferAttribute(this.pat, 4));
     g.setAttribute('aMisc', new Float32BufferAttribute(this.misc, 4));
     g.setAttribute('aOff', new Float32BufferAttribute(this.off, 2));
-    g.setAttribute('aSpill', new Float32BufferAttribute(new Float32Array(this.n * 3), 3));
+    g.setAttribute('aSpill', new Float32BufferAttribute(new Float32Array((this.n - this.base) * 3), 3));
     g.setIndex(new Uint32BufferAttribute(this.idx, 1));
     g.computeBoundingSphere();
     return g;

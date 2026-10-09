@@ -300,11 +300,42 @@ export interface SignPlace {
 /** a sign a builder placed — the sign model's copies (../models/signs.ts): where it hangs, what it says, its size */
 export interface PlacedSign { readonly p: SignPlace; readonly w: number; readonly h: number; readonly neon: boolean }
 
+/**
+ * Where the world's builders hang their signs (world/ctx.ts `Ctx.signs`): the page's SignBuilder, or the layout bake's
+ * recorder (../generators/layout.ts), whose calls the page replays into its SignBuilder in order (world/layoutBake.ts)
+ */
+export interface SignSink {
+  place: (p: SignPlace, kit: Kit | null) => { w: number; h: number };
+  light: (c: Vector3, right: Vector3, up: Vector3, w: number, h: number, color: number, gain: number, mode?: 1 | 2, seed?: number) => void;
+  tube: (a: Vector3, b: Vector3, facing: Vector3, width: number, color: number, gain: number, flicker?: number) => void;
+}
+
+/** a lightbox / plaque / etched sign's face size (m) — every style but calligraphy tubes (neonsigns.ts `NeonSigns.size`) */
+export function signSize(p: SignPlace): { w: number; h: number } {
+  const n = chars(p.spec.text).length;
+  const isV = p.spec.vertical;
+  const etch = p.spec.style === 'etch';
+  const h = etch ? p.size : isV ? p.size * (n + 0.62) : p.size * 1.36;
+  const w = etch ? p.size * 12.5 : isV ? p.size * 1.36 : p.size * (n + 0.62);
+  return { w, h };
+}
+
+/** a sign's board (a dark box behind its face) into `kit`: what `SignBuilder.place` adds to the kit it is given */
+export function signBoard(kit: Kit, p: SignPlace, w: number, h: number): void {
+  const upv = p.spec.style === 'etch' ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
+  const right = new Vector3().crossVectors(upv, p.normal).normalize();
+  const look: Look = { wash: 0x24262c, line: 1 };
+  const depth = p.blade === true ? 0.12 : 0.1;
+  const c = p.at.clone();
+  if (p.blade !== true) c.addScaledVector(p.normal, -depth / 2 + 0.01);
+  kit.boxAxes(c, right, upv, p.normal.clone(), w / 2 + 0.05, h / 2 + 0.05, depth / 2, look);
+}
+
 /** neon quad modes (aNeon.w) */
 const MODE = { mono: 0, solid: 1, blink: 2, colour: 3 } as const;
 
 /** collects sign quads (neon program) and their boards / brackets (Jiehua program) */
-export class SignBuilder {
+export class SignBuilder implements SignSink {
   private readonly pos: number[] = [];
   private readonly uv: number[] = [];
   private readonly col: number[] = [];
@@ -366,11 +397,8 @@ export class SignBuilder {
       return size;
     }
     const cell = this.atlas.get(p.spec);
-    const n = chars(p.spec.text).length;
-    const isV = p.spec.vertical;
+    const { w, h } = signSize(p);
     const etch = p.spec.style === 'etch';
-    const h = etch ? p.size : isV ? p.size * (n + 0.62) : p.size * 1.36;
-    const w = etch ? p.size * 12.5 : isV ? p.size * 1.36 : p.size * (n + 0.62);
     const upv = etch ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
     const right = new Vector3().crossVectors(upv, p.normal).normalize();
     const mono = cell.mono;
@@ -387,13 +415,7 @@ export class SignBuilder {
       this.quad(p.at.clone().addScaledVector(back, eps), rb, upv, w, h, cell, board, tint, nv);
     }
     if (mono && gain > 1.5) this.lights.push({ at: p.at.clone(), color: new Color(p.spec.color), w, h, power: 0.7, spill: 0.25 });
-    if (kit !== null) {
-      const look: Look = { wash: 0x24262c, line: 1 };
-      const depth = p.blade === true ? 0.12 : 0.1;
-      const c = p.at.clone();
-      if (p.blade !== true) c.addScaledVector(p.normal, -depth / 2 + 0.01);
-      kit.boxAxes(c, right, upv, p.normal.clone(), w / 2 + 0.05, h / 2 + 0.05, depth / 2, look);
-    }
+    if (kit !== null) signBoard(kit, p, w, h);
     this.placed.push({ p: { ...p, at: p.at.clone(), normal: p.normal.clone() }, w, h, neon: false });
     return { w, h };
   }

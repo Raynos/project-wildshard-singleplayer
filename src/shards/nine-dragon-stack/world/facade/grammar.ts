@@ -82,7 +82,7 @@ export class Dressing {
   get signs(): readonly SignSlot[] { return this.lateSigns.length === 0 ? this.early : [...this.early, ...this.lateSigns]; }
   addSign(slot: SignSlot): void { (this.late ? this.lateSigns : this.early).push(slot); }
   /** merged opaque geometry: shells, galleries, parapets, cables, antennas (one draw) */
-  readonly shell = new Builder();
+  shell = new Builder();
   towers = 0;
 }
 
