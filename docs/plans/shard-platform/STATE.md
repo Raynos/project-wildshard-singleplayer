@@ -19,7 +19,7 @@
 | Nine Dragon | 0.2 % | 722/5033 | ✗ |
 | Blender Template (8th, not counted) | 97.2 % | — | — |
 
-**Live:** production **1c74e431-mv1exih9** (2026-10-09 20:23 UTC) carries G258 public Pine/Nalati/Sky, G266 Signal tiles-only, G270 public grid, G271 saver off, the shadow fix. Deploy unstuck: W0 `46397ef46` (no duplicate full test for a CI-green pin); deploys stay hourly.
+**Live:** production **1c74e431-mv1exih9** (2026-10-09 20:23 UTC) carries G258 public Pine/Nalati/Sky, G266 Signal tiles-only, G270 public grid, G271 saver off, the shadow fix. Deploy unstuck: W0 `46397ef46` committed (no duplicate full test for a CI-green pin; pushing now); deploys stay hourly. **SF74 pipeline is owned by the plan agent's sf74-speed lane;** no coordinator lane is on pipeline work now (op-pipeline, op-witness and op-process are finished; their commits are listed in wall-clock-plan.md).
 
 **Lanes (5 Codex + 5 Opus):**
 - **sp-x1:** Nalati SF72.
