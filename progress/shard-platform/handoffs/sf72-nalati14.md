@@ -1,4 +1,4 @@
-# Handoff (sp-x1) — 2026-10-09
+# Handoff (sf72-nalati14) — 2026-10-09
 
 Small source seam: runtime/aqbarsKeeper.ts is the renderer-free shipping Aqbars stalk/perch/tell/pounce/skid/swipe law with explicit player, authored ledge, ground, head-hit and output ports. Six ledges are the actual Crags builder bound; overflow refuses. Frame buffers are reused. Every private state/clock/goal/hit counter has a strict continuation; invalid state refuses before mutation. No runtime-performance debt.
 
