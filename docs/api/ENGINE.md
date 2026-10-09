@@ -1249,13 +1249,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `KinematicMover` | class | @wildshard/engine/physics/mover | A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path. |
 | `MoverBox` | interface | @wildshard/engine/physics/mover | Local boxes for a script-owned platform; the physics layer alone constructs Rapier descriptors. |
 | `MoverPose` | interface | @wildshard/engine/physics/mover | Published mover pose, in the world's local frame; Euler order is always YXZ. |
-| `activeNavmesh` | function | @wildshard/engine/physics/navmesh | The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. |
-| `loadNavmesh` | function | @wildshard/engine/physics/navmesh | Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so |
 | `MAX_SEARCH_NODES` | const | @wildshard/engine/physics/navmesh | A path search visits at most this many polys (~0.3 ms); past it the path runs to the poly nearest the goal so far. |
 | `NavLayer` | interface | @wildshard/engine/physics/navmesh | One agent class's mesh. |
 | `Navmesh` | class | @wildshard/engine/physics/navmesh | — |
 | `parseNavmesh` | function | @wildshard/engine/physics/navmesh | Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version. |
-| `setActiveNavmesh` | function | @wildshard/engine/physics/navmesh | Set (or clear) the active navmesh — node tests, or a shard switch. |
+| `activeNavmesh` | function | @wildshard/engine/physics/navmeshLoad | The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. |
+| `loadNavmesh` | function | @wildshard/engine/physics/navmeshLoad | Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so |
+| `setActiveNavmesh` | function | @wildshard/engine/physics/navmeshLoad | Set (or clear) the active navmesh — node tests, or a shard switch. |
 | `pathRampDescs` | function | @wildshard/engine/physics/paths | — |
 | `PathRampOptions` | interface | @wildshard/engine/physics/paths | — |
 | `Physics` | class | @wildshard/engine/physics/Physics | Owns one fixed-step collision world and its complete same-version continuation. |

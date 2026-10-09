@@ -2214,7 +2214,8 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
 - `@wildshard/engine/physics/meshCollision`: `addBakedMeshCollider`, `BakedMeshColliderRow`, `installBakedMeshColliders`
 - `@wildshard/engine/physics/mover`: `KinematicMover`, `MoverBox`, `MoverPose`
-- `@wildshard/engine/physics/navmesh`: `activeNavmesh`, `loadNavmesh`, `MAX_SEARCH_NODES`, `NavLayer`, `Navmesh`, `parseNavmesh`, `setActiveNavmesh`
+- `@wildshard/engine/physics/navmesh`: `MAX_SEARCH_NODES`, `NavLayer`, `Navmesh`, `parseNavmesh`
+- `@wildshard/engine/physics/navmeshLoad`: `activeNavmesh`, `loadNavmesh`, `setActiveNavmesh`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
 - `@wildshard/engine/physics/Physics`: `Physics`
 - `@wildshard/engine/physics/pieces`: `AddedPiece`, `addPiece`, `treadBoxes`

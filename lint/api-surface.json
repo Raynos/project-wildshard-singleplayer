@@ -7464,18 +7464,6 @@
         "from": "@wildshard/engine/physics/mover"
       },
       {
-        "name": "activeNavmesh",
-        "kind": "function",
-        "doc": "The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests.",
-        "from": "@wildshard/engine/physics/navmesh"
-      },
-      {
-        "name": "loadNavmesh",
-        "kind": "function",
-        "doc": "Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so",
-        "from": "@wildshard/engine/physics/navmesh"
-      },
-      {
         "name": "MAX_SEARCH_NODES",
         "kind": "const",
         "doc": "A path search visits at most this many polys (~0.3 ms); past it the path runs to the poly nearest the goal so far.",
@@ -7500,10 +7488,22 @@
         "from": "@wildshard/engine/physics/navmesh"
       },
       {
+        "name": "activeNavmesh",
+        "kind": "function",
+        "doc": "The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests.",
+        "from": "@wildshard/engine/physics/navmeshLoad"
+      },
+      {
+        "name": "loadNavmesh",
+        "kind": "function",
+        "doc": "Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so",
+        "from": "@wildshard/engine/physics/navmeshLoad"
+      },
+      {
         "name": "setActiveNavmesh",
         "kind": "function",
         "doc": "Set (or clear) the active navmesh — node tests, or a shard switch.",
-        "from": "@wildshard/engine/physics/navmesh"
+        "from": "@wildshard/engine/physics/navmeshLoad"
       },
       {
         "name": "pathRampDescs",
