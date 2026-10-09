@@ -20,8 +20,13 @@ import { GAP_HALF, RAIL_OFFSET, ROAD_HALF } from './roadLayout';
 
 /** On the road the neighbours' terrain shows at this opacity (G107: "faded ~50 %"). */
 export const ROAD_TERRAIN_ALPHA = 0.5;
-/** A neighbour's name shows once the road to it is this close (m from the feet to the road's centre line). */
-const NAME_RANGE = 140;
+/** Where a neighbour's name sits: this far past the road's centre line, on the neighbour's own ground (its edge is GAP_HALF out). */
+const NAME_ACROSS = GAP_HALF + 12;
+/** template-prompts (E435): a neighbour's name shows only while its spot across the road is inside the minimap's disc (the
+ *  engine minimap's 110 m view less its 9 m rim), so it reads as the shard across the road. Before, it showed from 140 m
+ *  out, pinned to the rim: in Sky Reach and the template copies "DRIFTWOOD ISLE" sat under the N tab like the minimap's
+ *  own title for the cell you were in. Metres from the feet to the road's centre line. */
+const NAME_RANGE = 101 - NAME_ACROSS;
 /** A neighbour's baked map is kept at this many px a side (0.8 px per metre, 0.64 MB): the minimap shows it ~110 m across */
 export const CELL_PX = 400;
 const STRIP = '#3b4038', ROAD = '#2a2e35', LINE = '#c9a640', VOID = '#0b1016', NAME = '#eaf6ff';
@@ -113,7 +118,7 @@ export function minimapOverlay(host: MinimapBlendHost, rects: readonly MapExtraR
     if (!('instance' in next)) continue;
     const toRoad = dx !== 0 ? edgeToRoad - dx * lx : edgeToRoad - dz * lz;
     if (toRoad > NAME_RANGE) continue;
-    const along = Math.max(-CHUNK_HALF + 40, Math.min(CHUNK_HALF - 40, dx !== 0 ? lz : lx)), across = edgeToRoad + GAP_HALF + 30;
+    const along = Math.max(-CHUNK_HALF + 40, Math.min(CHUNK_HALF - 40, dx !== 0 ? lz : lx)), across = edgeToRoad + NAME_ACROSS;
     labels.push({ x: inside.origin.x - ox + (dx !== 0 ? dx * across : along), z: inside.origin.z - oz + (dz !== 0 ? dz * across : along), text: host.name(next), color: NAME });
   }
   return { outside: VOID, baseAlpha: inside.instance === home.instance && homeImage === null ? 1 : 0, rects, images, labels };

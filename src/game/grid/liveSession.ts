@@ -59,6 +59,7 @@ import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
 import { loadNavmesh } from '@wildshard/engine/physics/navmesh';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
+import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/runtime';
@@ -180,7 +181,7 @@ export class LiveGridSession {
   private readonly loadout: GridLoadout;
   private readonly roadWallet: GridWallet;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
-  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation }>();
+  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation; readonly prompts: ReturnType<typeof copyPrompts> }>();
   private homeSim: GridHomeSimulation | null = null;
   private readonly runtimeScope: Scope;
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
@@ -593,7 +594,7 @@ export class LiveGridSession {
         }, new Map([...host.entities.values()].map(actor => [actor.combatActor(), actor.position])));
         this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
-          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });
+          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, prompts: copyPrompts(copySource, region) });
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
         return Promise.resolve({ host: region.host, dispose: () => {
           this.regions.delete(cell.instance); this.transferWalls.delete(cell.instance); savedRegion.unbind();
@@ -684,10 +685,13 @@ export class LiveGridSession {
   }
 
   /** grid-interact: the entered runtime's own prompts, only after its hooks complete and while the feet stand in its cell
-   *  (`enteredRuntime`); none on the road, in a template copy or mid-crossing. They are frame-local: pick them with `pickPrompt`. */
+   *  (`enteredRuntime`); in an entered template copy, its declared interactions on its own lane (template-prompts,
+   *  `copyPrompts.ts`); none on the road or mid-crossing. They are frame-local: pick them with `pickPrompt`. */
   interactables(): ReturnType<PreparedRegionalRuntime['interactables']> {
     const instance = this.enteredRuntimeInstance();
-    return instance === null ? [] : this.runtimeRegions.get(instance)?.interactables() ?? [];
+    if (instance !== null) return this.runtimeRegions.get(instance)?.interactables() ?? [];
+    const feet = this.live.worldFeet(), copy = enteredCopy({ current: this.live.current(), feetCell: this.ports.assembly.at(feet.x, feet.z)?.instance }, (id) => this.regions.has(id));
+    return copy === null ? [] : this.regions.get(copy)?.prompts ?? [];
   }
   /** The page prompt in the active frame: `list` (the home's or `interactables()`) against the camera less the render
    *  origin applied this frame (C39), with the active frame's physics. */

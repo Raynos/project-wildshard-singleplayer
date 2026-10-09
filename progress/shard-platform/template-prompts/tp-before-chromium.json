@@ -1,0 +1,226 @@
+{
+ "tag": "before",
+ "engine": "chromium",
+ "errors": [],
+ "steps": [
+  {
+   "name": "home",
+   "current": "driftwood-isle",
+   "inside": "driftwood-isle",
+   "feet": {
+    "x": 0,
+    "y": 1.21,
+    "z": -194
+   },
+   "prompt": "",
+   "use": null,
+   "minimapLabels": [
+    "Template shard"
+   ],
+   "menuName": "Driftwood Isle",
+   "region": null
+  },
+  {
+   "walk": "to-road",
+   "why": "arrived",
+   "seconds": 12.1,
+   "reached": 1,
+   "feet": {
+    "x": 0,
+    "z": 279.54
+   },
+   "current": null,
+   "prompts": []
+  },
+  {
+   "name": "road",
+   "current": null,
+   "inside": null,
+   "feet": {
+    "x": 0,
+    "y": 0.02,
+    "z": 279.54
+   },
+   "prompt": "",
+   "use": null,
+   "minimapLabels": [],
+   "menuName": "Driftwood Isle",
+   "region": {
+    "shared": {
+     "template.door.open": 0
+    },
+    "flags": [],
+    "quest": {
+     "started": true,
+     "index": 0,
+     "step": "hut",
+     "complete": false
+    },
+    "doorCollider": true
+   }
+  },
+  {
+   "walk": "into-copy",
+   "why": "arrived",
+   "seconds": 66.8,
+   "reached": 4,
+   "feet": {
+    "x": -0.49,
+    "z": 549.92
+   },
+   "current": "template-1",
+   "prompts": []
+  },
+  {
+   "name": "at-door",
+   "current": "template-1",
+   "inside": "template-1",
+   "feet": {
+    "x": -0.28,
+    "y": -0.16,
+    "z": 549.81
+   },
+   "prompt": "",
+   "use": null,
+   "minimapLabels": [],
+   "menuName": "Template shard",
+   "region": {
+    "shared": {
+     "template.door.open": 0
+    },
+    "flags": [],
+    "quest": {
+     "started": true,
+     "index": 0,
+     "step": "hut",
+     "complete": false
+    },
+    "doorCollider": true
+   }
+  },
+  {
+   "name": "after-use",
+   "current": "template-1",
+   "inside": "template-1",
+   "feet": {
+    "x": -0.26,
+    "y": -0.16,
+    "z": 549.82
+   },
+   "prompt": "",
+   "use": null,
+   "minimapLabels": [],
+   "menuName": "Template shard",
+   "region": {
+    "shared": {
+     "template.door.open": 0
+    },
+    "flags": [],
+    "quest": {
+     "started": true,
+     "index": 0,
+     "step": "hut",
+     "complete": false
+    },
+    "doorCollider": true
+   }
+  },
+  {
+   "walk": "into-hut",
+   "why": "stopped",
+   "seconds": 4.9,
+   "reached": 0,
+   "feet": {
+    "x": 0,
+    "z": 546.5
+   },
+   "current": "template-1",
+   "prompts": []
+  },
+  {
+   "name": "in-hut",
+   "current": "template-1",
+   "inside": "template-1",
+   "feet": {
+    "x": 0,
+    "y": -0.09,
+    "z": 546.5
+   },
+   "prompt": "",
+   "use": null,
+   "minimapLabels": [],
+   "menuName": "Template shard",
+   "region": {
+    "shared": {
+     "template.door.open": 0
+    },
+    "flags": [
+     "template.hut"
+    ],
+    "quest": {
+     "started": true,
+     "index": 1,
+     "step": "blob",
+     "complete": false
+    },
+    "doorCollider": true
+   }
+  },
+  {
+   "walk": "leave",
+   "why": "arrived",
+   "seconds": 67.1,
+   "reached": 5,
+   "feet": {
+    "x": 0,
+    "z": 280.47
+   },
+   "current": null,
+   "prompts": []
+  },
+  {
+   "name": "left-to-road",
+   "current": null,
+   "inside": null,
+   "feet": {
+    "x": 0,
+    "y": 0.02,
+    "z": 280.24
+   },
+   "prompt": "",
+   "use": null,
+   "minimapLabels": [],
+   "menuName": "Template shard",
+   "region": {
+    "shared": {
+     "template.door.open": 0
+    },
+    "flags": [
+     "template.hut"
+    ],
+    "quest": {
+     "started": true,
+     "index": 1,
+     "step": "blob",
+     "complete": false
+    },
+    "doorCollider": true
+   }
+  }
+ ],
+ "version": {
+  "build": "351cd2e-mv09gymm",
+  "time": "2026-10-09T01:02:55.428Z"
+ },
+ "publicFailures": [],
+ "developer": false,
+ "savedDeveloper": false,
+ "cells": [
+  "template-1:_template@0,1",
+  "template-2:_template@1,1",
+  "template-3:_template@-1,0",
+  "driftwood-isle:driftwood-isle@0,0",
+  "template-4:_template@1,0",
+  "template-5:_template@0,-1"
+ ]
+}
