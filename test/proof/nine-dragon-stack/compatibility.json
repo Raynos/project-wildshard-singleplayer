@@ -1,26 +1,56 @@
 {
   "audit": {
-    "sourceRevision": "84c4aedb27d31911e01037861175617b699626ec",
+    "sourceRevision": "01918d5527ba28dd6dcf1294b9b0310759971b4b",
+    "candidate": "this commit (SF72: Nine's trusted headless entry, runtime/headless.ts, on the browser bake of that revision)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
-    "exitStatus": 1,
-    "scope": "real entry import (headless / replay still blocked at the browser plugin) and the real shard source in strict Node: the ledger stage loads shard.config.ts and reports no declared rule; no gameplay proxy",
-    "candidate": "this commit (SF72: the declared floors renderer-free, world/floorRows.ts)"
+    "exitStatus": 0,
+    "scope": "compatible but transitional: the renderer-free trusted entry through the platform's trusted adapter runs the baked grid-cell colliders, the player walk, the Jian's swing clock (row contacts with no target: Nine has no creature) and the format's portal-link entry proof (92 lanes, 8 transfers), with a byte-exact mid-swing restore; the Fei Zhua, play-time portal rides and gates / fragments are browser-only and listed under `open`; the ledger is not-declared because Nine declares no fact (README.md)",
+    "runs": "two independent native processes, identical output"
   },
   "slug": "nine-dragon-stack",
-  "entry": "runtime/index.ts",
-  "compatible": false,
+  "entry": "runtime/headless.ts",
+  "compatible": true,
+  "transitional": true,
+  "covers": [
+    "the browser-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)",
+    "the player capsule walking those colliders from the declared spawn, by tick commands",
+    "the Jian as its declared row on the shipping swept melee clock (combo, one-deep queue, combo gap, cooldown, active windows), exact continuation",
+    "the portal-link entry proof: 23 lanes per deck and the format's checked transfer to the square and back (provePortalLinks)"
+  ],
+  "open": [
+    "Fei Zhua (targeting, rope pull, swing, climb): browser only; the headless world has no grapple",
+    "portal rides during play (ring trigger, hold, checked transfer): browser only; only the entry proof transfers",
+    "gates / fragments: the Well safety cap never opens (NdRuntime.guardOpen is the Fei Zhua's), crossings stand as baked",
+    "Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at nothing; the charged heavy needs a hold the tick protocol does not carry"
+  ],
+  "ledger": {
+    "status": "not-declared",
+    "rules": 0,
+    "gameplayEmissionProven": false
+  },
   "headless": {
-    "status": "blocked",
-    "stage": "runtime-entry",
-    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/combat/view/SweptMelee.ts",
-    "ticksExecuted": 0
+    "status": "passed",
+    "ticksExecuted": 300,
+    "swings": 11,
+    "contacts": 11,
+    "effects": 0,
+    "entries": {
+      "lanes": 92,
+      "steps": 15984,
+      "portalTransfers": 8
+    }
   },
   "replay": {
-    "status": "blocked",
-    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/combat/view/SweptMelee.ts",
-    "checkpointCaptured": false,
-    "suffixTicksExecuted": 0,
-    "reason": "No real headless runtime; no encounter checkpoint or complete continuation can be captured"
+    "status": "passed",
+    "checkpointCaptured": true,
+    "checkpoint": {
+      "tick": 195,
+      "swing": 0,
+      "swings": 7
+    },
+    "suffixTicksExecuted": 105,
+    "hash": "d71e07593ffef0f2b889651f02bf21092a3d40c69fb01fa2bd087762a5f5ca74",
+    "replayHash": "d71e07593ffef0f2b889651f02bf21092a3d40c69fb01fa2bd087762a5f5ca74"
   },
   "declarations": {
     "sourceLoaded": true,
@@ -32,10 +62,5 @@
     "runtimeSpawns": null,
     "quests": [],
     "ledgerRules": []
-  },
-  "ledger": {
-    "status": "not-declared",
-    "rules": 0,
-    "gameplayEmissionProven": false
   }
 }

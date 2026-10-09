@@ -1,57 +1,45 @@
-# Handoff (sf72-nine) — 2026-10-09, SF72 Nine Dragon Stack headless, part 1
+# Handoff (sf72-nine) — 2026-10-09, SF72 Nine Dragon Stack headless, part 2
 
-Coordinator `wildshard-new` pushes. Nine's canonical witness (`test/proof/nine-dragon-stack/`) still fails closed: the
-headless and replay stages import `runtime/index.ts` (the whole browser plugin). There is no `runtime/headless.ts` yet.
+Coordinator `wildshard-new` pushes. Nine's canonical witness (`test/proof/nine-dragon-stack/`) now **passes** on its
+trusted renderer-free entry `runtime/headless.ts`: `compatible: true` but **transitional** (headless + replay passed,
+ledger `not-declared` because Nine declares no fact; the Fei Zhua, play-time portal rides and gates are browser-only and
+listed under `open`, test/proof/nine-dragon-stack/README.md),
+identical in two independent native processes, ~9 s CPU for all three stages (headless / replay ~4.5 s each, inside
+DEPLOY.md's headless budget: a third of the 60 s timeout at CI's 2–2.5×).
 
 ## Landed
 
-- **84c4aedb2, engine: the swept melee clock** (`src/engine/combat/sweptMeleeCore.ts`, `@wildshard/engine/combat/sweptMeleeCore`).
-  `SweptMeleeCore<M>` owns the combo (gap, one-deep chain after `chainLag`), the held heavy's charge and release, the
-  active window, the cooldown and `snapshot()` / `restore()`; `sweptMoveDamage` is a move's damage. `SweptMelee` (every
-  sword, sabre and jian) drives one and keeps only presentation. Proof: the pre-delegation view snapshot
-  (`test/combat/sdk-swept-family.test.ts`) is unchanged; `test/combat/swept-melee-core.test.ts` runs the old inline clock
-  as an oracle on recorded 6000-tick tapes (both starter profiles, exact mid-tape restore); browser runs swinging
-  Driftwood's sword, Nalati's sabre and Nine's jian give the same move sequence as HEAD.
-- **This commit, shard: the declared floors load renderer-free** (`world/floorRows.ts`): the deck frames, deck / balustrade collision,
-  the square's slab and `portalFloorRows` moved out of `world/entries.ts` (which keeps only the drawing) and
-  `world/colliders.ts` (which imports `span`, `SLAB`, `squareFloor`). `shard.config.ts` now loads in plain Node: the
-  ledger stage reports `not-declared` (0 rules, no emission claimed) instead of `blocked` on `render/tiers.ts`. Map-hash inputs changed, so Nine's map is rebaked
-  officially from the clean candidate (stamp `8378f51e…`; the image differs from the last bake only by WebP noise).
-
-## Inventory: what Nine's witness needs (no quest, ledger rule, fauna or encounter exists; none is invented)
-
-Gameplay owners in the fragment, all still browser classes:
-1. **The Jian** (`world/jian.ts`, `vm/`): the native `Sword` (`game/weapons/Sword.ts` → `SweptMelee`). Its declared row
-   (`data/items.ts weapon.jian`) has zero-damage placeholder contacts; there is nothing to hit (no creature). Headless
-   needs: the clock (landed) as a real item over the row (Signal's `runtime/whip.ts` on `ItemRuntime` is the shape),
-   with the combo / heavy timing from the shipping move set + profile; contacts stay the row's.
-2. **Fei Zhua** (`grapple/FeiZhua.ts`, `line.ts`, `course.ts`): targeting (`castRay` / `lineOfSight`), rope pull,
-   swing and climb in `fixed.post` and `player.traversal`. Blocked in Node by `app`, `ui/hudSlots`, the FX, `ndRuntime()`
-   and `world/well-plan.ts → well-galleries.ts → look/paint.ts`. Split: a renderer-free rope / anchor sim taking the
-   physics queries and the player body as ports, the browser `Tool` keeping input, HUD relabel, filament and FX.
-3. **Portal rides** (`world/portalRide.ts`, `portalPlan.ts`): `portalPlan.ts` is already renderer-free;
-   `portalRide.ts` imports `ui/ownership` (the veil) and `shard.config.ts`. Split the ride (the checked transfer
-   over `portalFloorRows`) from the veil.
-4. **Gates / fragments**: the Well safety cap (`nds-grapple-guard`, open while `NdRuntime.guardOpen`), the decks' standalone
-   caps (`entryCapColliders(caps)`), and `well-mid.ts crossingColliders` (dynamic pieces).
-
-World / colliders at load (`world/install.ts`): `nds-floors` (fragment floors minus the square + standalone caps,
-floor function `withDecks`), the five declared floor pieces (`deck.<edge>` ×4, `square`), `nds-fronts`, the grapple
-guard, the crossing pieces, and every placed model's own colliders (`engine/models/place.ts`: balustrade, gates' posts,
-banyan planter, stalls, market). `fragmentColliders()` still reaches `models/wellBalustrade.ts` (GUARD_Z0, PARAPET) and
-`look/paint.ts` via `stairstreet.ts` / `well.ts`; the model colliders need the browser. So the native world comes from a
-**bake** (Signal / Pine pattern), not from importing the world modules.
+- **84c4aedb2** (part 1): the engine swept melee clock (`@wildshard/engine/combat/sweptMeleeCore`).
+- **e015703b3** (part 1): the declared floors renderer-free (`world/floorRows.ts`); `shard.config.ts` loads in Node.
+- **This commit** (part 2):
+  - **Native bake** `scripts/bake-nine-physics.mjs` + `scripts/nine-physics-inputs.mjs` → `runtime/physics.baked.json`:
+    23 collider pieces / 489 colliders (485 boxes, 1 hull, 3 treads) from a clean DEVSERVER build of `1b213b9e2`
+    (Developer on, iPhone 16 Pro, phone tier), two same-page captures equal. Inputs: shard.config, layout, terrain,
+    places, runtime/state, data/**, world/** (minus jian.ts, portalRide.ts, portalVeil.ts: no collider), models/**,
+    public/assets/nine-dragon/**.glb. Freshness + shape test: `test/shards/nine-dragon-stack/physics-bake.test.ts`
+    (the five declared portal floors baked equal to `portalFloorRows()`).
+  - **`runtime/headless.ts`** (`PrepareHeadlessRuntime`): `ground: false`; the baked pieces (each owner its piece id; the
+    engine's practice arena skipped; the standalone deck caps `entryCapColliders(true)` removed by exact match, so the cell
+    is the grid's with decks open to the road); the player at the declared spawn on the square's slab (+125 m); the
+    entry proof is the format's own `provePortalLinks` (92 lanes, 8 transfers).
+  - **`runtime/jian.ts`**: the Jian on `SweptMeleeCore` over `JIAN_ROW`'s shipping moves / profile; a player command's
+    attack is a light tap (the protocol has no heavy hold); each active window fires the declared row contact once
+    (nothing to strike: no creature); clock + queue + counts are exact continuation (`item.weapon.jian`).
+  - **Witness** `test/proof/nine-dragon-stack/{run.mjs,witness.ts}` through `createTrustedHeadlessAdapter`: 300 ticks
+    (11 swings) + finish; mid-swing checkpoint at tick 195 restored into a fresh adapter, suffix hash equal; ledger via
+    the probe (`not-declared`). `determinism.test.ts` now checks Nine passes identically twice. The in-process
+    restore test (`headless-runtime.test.ts`) has one checkpoint, one string round trip, `expectSameSimSnapshot`.
 
 ## Next, in order
 
-1. **Native bake** `scripts/bake-nine-physics.mjs` (+ inputs hash): from a trusted DEVSERVER candidate preview
-   (Developer on), capture every registered piece's colliders at load (ids, boxes / trimeshes, surfaces, `active`
-   state of the guard), the spawn, the four entryways and the portal nodes; two same-page captures must match. Output
-   `runtime/physics.baked.json` + parser + freshness test (pattern `scripts/bake-signal-physics.mjs`).
-2. **`runtime/headless.ts`** (`PrepareHeadlessRuntime`): `ground:false`, the baked pieces, the entry proof walking in on
-   the four decks, the Jian as an item on `SweptMeleeCore` (snapshot in the step's continuation).
-3. Fei Zhua sim split (2. above) and the portal ride split, then repoint `test/proof/nine-dragon-stack/run.mjs` to
-   `runtime/headless.ts` and replace the fail-closed tests with the real witness (headless → replay → ledger
-   `not-declared`).
+1. **Portal ride split** (written once, backed out of this landing because `world/` is a map-hash input and needs an
+   official map rebake in the same commit): move `installPortals` (the veil, `engine/ui/ownership`) to
+   `world/portalVeil.ts`, keep `portalRide` / `playerRider` renderer-free in `portalRide.ts`, repoint `plugin.ts` line 16
+   (own hunk only: plugin.ts carries foreign WIP), update `test/proof/compatibility/dependency-chains.json`; rebake the
+   map from the clean candidate. The physics bake inputs already exclude both files. Then a headless ride step (ring
+   trigger → hold → `createPortalTraversal` with the host's player motor) so a walked tape rides like the browser.
+2. **Fei Zhua sim split** (`grapple/FeiZhua.ts`, `line.ts`, `course.ts`): renderer-free rope / anchor sim taking physics
+   queries and the player body as ports; the browser `Tool` keeps input, HUD relabel, filament and FX. Then the Well
+   safety cap (`nds-grapple-guard`, baked `active: true`) can open in the headless world.
 
 Plan-State: unchanged.

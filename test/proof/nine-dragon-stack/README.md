@@ -17,3 +17,33 @@ Grid proof at this SF51-p pin is explicitly **not green**. Two real held-input a
 The later [SF51-g admission proof](grid-admission.md) closes that descriptor/runtime gate and crosses the north readiness wall by real held movement. It preserves these original failures and states the limits of the new claim.
 
 Map: rebuilt after the Nine map-style commit `f9a2e7493`, using the official `scripts/bake-maps.mjs` command from the clean candidate. The stamp is `c9c32e3ef2792cfc2afee6d6bd73a15c25b56d33042115a03bf28c4ff9060d5c`, stylized ground, 1,000 px / 13,488 bytes. The browser proof pin predates this map-only rebake; the native world / layout inputs are unchanged.
+
+## SF72 witness (part 2): what `compatible: true` covers, and what it does not
+
+`run.mjs` runs the trusted renderer-free entry `runtime/headless.ts` through the platform's own trusted adapter
+(`createTrustedHeadlessAdapter`). The result is **compatible but transitional** (`transitional: true` in
+`compatibility.json`): it passes for the systems the headless world runs, and the systems still browser-only are listed
+as open, not proven.
+
+**Runs headless (proven):**
+- the browser-baked native colliders of the grid cell (`runtime/physics.baked.json`, `scripts/bake-nine-physics.mjs`):
+  the fragment at +125 m, the four landing decks open to the road (the standalone end caps removed), the square's slab,
+  the Well's crossings and safety cap, every placed model's colliders;
+- the player capsule walking them from the declared spawn, by tick commands;
+- the Jian as its declared row on the shipping swept melee clock (`runtime/jian.ts`, `SweptMeleeCore` over `JIAN_ROW`):
+  combo, one-deep queue, combo gap, cooldown and active windows, with exact continuation (the replay restores mid-swing);
+- the portal-link entry proof (`provePortalLinks`): 23 capsule lanes per deck and the format's checked transfer to the
+  square and back (92 lanes, 8 transfers).
+
+**Still not headless (open):**
+- the Fei Zhua (targeting, rope pull, swing, climb): browser only; the headless world has no grapple;
+- portal rides during play (ring trigger, hold, checked transfer): browser only; only the entry proof transfers;
+- gates / fragments: the Well safety cap never opens (`NdRuntime.guardOpen` is the Fei Zhua's), the crossings stand
+  as baked;
+- Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at
+  nothing; the charged heavy needs a hold the tick protocol does not carry.
+
+**Ledger `not-declared`** is the truth, not a skipped stage: Nine declares no quest, fact or ledger rule
+(`shard.config.ts`), so there is nothing to emit. The stage loads the real source in strict Node and reports the empty
+declaration; no gameplay emission is claimed. (The platform gate, `scripts/shard-platform.mjs`, still reads Nine as not
+compatible, since its ledger flag needs a proven emission, and transitional, since `runtime/` has trusted code.)

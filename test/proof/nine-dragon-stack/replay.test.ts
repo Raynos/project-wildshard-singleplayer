@@ -1,10 +1,10 @@
 import { expect, it } from 'vitest';
 import { nativeCompatibility } from '../compatibility/native';
 
-it('refuses replay without a real encounter checkpoint and complete native continuation', () => {
+it('restores a mid-swing checkpoint into a fresh trusted adapter and replays the suffix to the identical snapshot', () => {
   const result = nativeCompatibility('nine-dragon-stack', 'replay');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
-  const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ compatible: false, replay: { status: 'blocked',
-    checkpointCaptured: false, suffixTicksExecuted: 0, dependency: 'Renderer dependency in Node simulation: repo:/src/engine/combat/view/SweptMelee.ts' } });
-});
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
+  const report = JSON.parse(result.stdout) as { replay: { hash: string; replayHash: string } };
+  expect(report).toMatchObject({ replay: { status: 'passed', checkpointCaptured: true, checkpoint: { tick: 195, swing: 0 }, suffixTicksExecuted: 105 } });
+  expect(report.replay.replayHash).toBe(report.replay.hash);
+}, 60_000);
