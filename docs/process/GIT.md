@@ -73,7 +73,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
   `.blend`. `.gitattributes` marks binaries `-delta`.
 - **The pre-push gate builds what Vercel builds.** `.githooks/pre-push` runs `scripts/vercel-tree-gate.sh` on the tip
-  you push (stamped per commit, so a passed SHA never reruns): only the files `.vercelignore` lets through, then
+  you push (stamped per commit, so a passed SHA never reruns); `push-main.sh` runs it before it opens the `git push`, so the hook only finds the stamp (SF74 W20: GitHub dropped the idle SSH session after a 385 s gate): only the files `.vercelignore` lets through, then
   check-css, typecheck, oxlint, the ratchet, the audits, bake-check, vitest, liveness and vite build, **in parallel**,
   each printing its own wall time. Jake's budget is **≤ 2 min for the whole push** (E454: ~65 s for the gate plus
   ~17 s for the regeneration on 2026-10-07); a step that pushes it over moves to CI, never silently away. It refuses

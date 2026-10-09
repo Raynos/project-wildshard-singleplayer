@@ -49,8 +49,15 @@ for _ in 1 2 3 4 5 6; do
     echo "push-main: origin/main has every local commit ($(git rev-parse --short main))"
     exit 0
   fi
-  echo "push-main: pushing $ahead commit(s) to origin main ($(git rev-parse --short "$tip")) …"
   t0=$SECONDS
+  # SF74 W20 (speed audit #5): gate first, push after. The pre-push hook then finds the gate's stamp and returns at
+  # once, so GitHub's SSH session never idles through a 6-minute gate (2026-10-09: "Connection to github.com closed by
+  # remote host" after a 385 s gate, and the whole gate ran again).
+  if [ "${SKIP_VERCEL_GATE:-}" != 1 ]; then
+    bash scripts/vercel-tree-gate.sh "$tip"; rc=$?
+    [ "$rc" = 0 ] || { record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"; exit "$rc"; }
+  fi
+  echo "push-main: pushing $ahead commit(s) to origin main ($(git rev-parse --short "$tip")) …"
   git push origin "$tip:refs/heads/main"; rc=$?
   record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
   [ "$rc" = 0 ] || exit "$rc"
