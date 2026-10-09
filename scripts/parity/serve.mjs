@@ -40,7 +40,8 @@ export async function serve(tree,sha,built=false) {
   let startup='';child.stdout.on('data',(chunk)=>{startup+=String(chunk);});child.stderr.on('data',(chunk)=>{startup+=String(chunk);});
   const url=`http://127.0.0.1:${port}`;
   const close=()=> {if(child.pid) {try {process.kill(-child.pid,'SIGTERM');} catch { /* already stopped */ }} };
-  const deadline=Date.now()+30000;
+  // vite preview runs the config's startup bakes (terrain, sky) before it serves: ~30 s on a loaded Mac
+  const deadline=Date.now()+120000;
   try {while(Date.now()<deadline){if(child.exitCode!==null) throw new Error(`preview exited: ${startup}`);if(await previewReady(`${url}/version.json`,Math.min(1000,Math.max(1,deadline-Date.now())))) return {url,close};await new Promise((resolve)=>{setTimeout(resolve,100);});} throw new Error(`preview never served: ${startup}`);}catch(e){close();throw e;}
 }
 /** @param {string} path @returns {unknown} */
