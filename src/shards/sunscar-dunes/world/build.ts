@@ -42,15 +42,16 @@ const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales th
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
-  const file = (name: string): string => `src/shards/sunscar-dunes/world/${name}.ts`;
+  const file = 'src/shards/sunscar-dunes/generators/places.ts';
   // SF72: the tower's frame is baked offline (generators/tower.ts); the client adds its lamp, brazier and fire
   const tower = buildTower(baked);
   ctx.root.add(tower.root);
   ctx.piece({ id: 'sunscar.tower', name: STRINGS.tower, category: 'buildings', file: 'src/shards/sunscar-dunes/generators/tower.ts', object: tower.root, colliders: tower.colliders, surface: 'wood' });
-  const caravan = buildCaravan(groundAt); ctx.root.add(caravan.root); for (const t of caravan.textures) ctx.scope.own(t);
-  ctx.piece({ id: 'sunscar.caravan', name: STRINGS.caravan, category: 'props', file: file('places'), object: caravan.root, colliders: caravan.colliders, surface: 'wood' });
-  const wellParts = buildWell(groundAt); ctx.root.add(wellParts.root);
-  ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: file('places'), object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });
+  // SF72: the places' code-built parts and colliders are baked offline (generators/places.ts); the client adds the models and what lives
+  const caravan = buildCaravan(baked, groundAt); ctx.root.add(caravan.root);
+  ctx.piece({ id: 'sunscar.caravan', name: STRINGS.caravan, category: 'props', file, object: caravan.root, colliders: caravan.colliders, surface: 'wood' });
+  const wellParts = buildWell(baked); ctx.root.add(wellParts.root);
+  ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file, object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });
   // SF72: the rock field is baked offline (generators/rocks.ts); the client draws the bake and registers its colliders
   const rocks = bakedPiece(baked, 'rocks'); ctx.root.add(rocks.root);
   ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: 'src/shards/sunscar-dunes/generators/rocks.ts', object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
@@ -78,9 +79,9 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
 
   // The braziers: pour oil by hand, light with a crack.
   resetFireLights();
-  const braziers: Brazier[] = BRAZIERS.map((b, i) => {
-    const parts = buildBrazier(b.x, b.z, groundAt); ctx.root.add(parts.root);
-    ctx.piece({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: file('places'), object: parts.root, colliders: parts.colliders, surface: 'stone' });
+  const braziers: Brazier[] = BRAZIERS.map((_, i) => {
+    const parts = buildBrazier(i, groundAt); ctx.root.add(parts.root);
+    ctx.piece({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file, object: parts.root, colliders: parts.colliders, surface: 'stone' });
     const state = interactions.braziers[i]; if (state === undefined) throw new Error('Missing signal brazier state');
     const brazier: Brazier = { parts, get oiled() { return state.oiled; }, set oiled(value) { state.oiled = value; }, get lit() { return state.lit; }, set lit(value) { state.lit = value; },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it

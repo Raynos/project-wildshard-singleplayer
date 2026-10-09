@@ -9,6 +9,7 @@ import { signalDunesField } from '../../../src/shards/sunscar-dunes/generators/t
 import { bakeSignalRocks, buildRocks } from '../../../src/shards/sunscar-dunes/generators/rocks';
 import { bakeSignalDressing, buildDressing } from '../../../src/shards/sunscar-dunes/generators/dressing';
 import { bakeSignalTower, buildTowerFrame } from '../../../src/shards/sunscar-dunes/generators/tower';
+import { bakeSignalBraziers, bakeSignalCaravan, bakeSignalWell, buildCaravanFrame, buildWellFrame } from '../../../src/shards/sunscar-dunes/generators/places';
 import { TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
 import type { PieceBake } from '../../../src/shards/sunscar-dunes/generators/kinds';
 import { bakedPiece, type BakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
@@ -16,12 +17,16 @@ import { BAKED_PIECES, type BakedPiece } from '../../../src/shards/sunscar-dunes
 import rocks from '../../../src/shards/sunscar-dunes/data/rocks.json' with { type: 'json' };
 import dressing from '../../../src/shards/sunscar-dunes/data/dressing.json' with { type: 'json' };
 import tower from '../../../src/shards/sunscar-dunes/data/tower.json' with { type: 'json' };
+import caravan from '../../../src/shards/sunscar-dunes/data/caravan.json' with { type: 'json' };
+import well from '../../../src/shards/sunscar-dunes/data/well.json' with { type: 'json' };
+import braziers from '../../../src/shards/sunscar-dunes/data/braziers.json' with { type: 'json' };
 
 const folder = new URL('../../../public/assets/sunscar-dunes/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
+const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
-const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower };
-const BAKES: Record<BakedPiece, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower };
+const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower, caravan, well };
+const BAKES: Record<BakedPiece, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: bakeSignalWell };
 
 async function loadBaked(): Promise<BakedWorld> {
   const world = new Map<BakedPiece, Map<string, InstancedMesh>>();
@@ -47,6 +52,8 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
       expect({ glb: sha(glb), ...rows }).toEqual(ROWS[piece]);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(ROWS[piece].glb);
     }
+    // the waymarks bake rows only (nothing of them is code-drawn)
+    expect(bakeSignalBraziers()).toEqual(braziers);
     // the folder holds exactly this bake: no orphan GLB from an older bake ships
     expect(readdirSync(folder).filter((name) => name.endsWith('.glb')).sort()).toEqual(BAKED_PIECES.map((piece) => `${piece}.glb`).sort());
   });
@@ -93,5 +100,29 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
       const hit = all.some((t) => { m.copy(t); got.set(0.5, 0.5, 0.5).applyMatrix4(m); return got.distanceTo(corner) < 1e-4; });
       expect(hit).toBe(true);
     }
+  });
+
+  it('the caravan and the well draw every built mesh as one instance of a kind, on the builder\'s own transforms', async () => {
+    const baked = await loadBaked(), field = signalDunesField();
+    for (const [piece, frame, bake] of [['caravan', buildCaravanFrame(field.heightAt), bakeSignalCaravan], ['well', buildWellFrame(field.heightAt), bakeSignalWell]] as const) {
+      const drawn = bakedPiece(baked, piece), meshes: Mesh[] = [];
+      expect(drawn.colliders).toEqual(bake().colliders);
+      expect(drawn.colliders.length).toBe(frame.colliders.length);
+      frame.root.updateMatrixWorld(true); frame.root.traverse((o) => { if (isMesh(o)) meshes.push(o); });
+      expect(drawn.root.children.reduce((n, m) => n + (instanced(m) ? m.count : 0), 0)).toBe(meshes.length);
+      // each mesh's first vertex lands where an instance of its kind puts them (≤ 1e-4 m after the TRS round trip)
+      const all = drawn.root.children.flatMap((o) => instanced(o) ? Array.from({ length: o.count }, (_, i) => { const t = new Matrix4(); o.getMatrixAt(i, t); return { o, t }; }) : []);
+      const want = new Vector3(), got = new Vector3();
+      for (const mesh of meshes) {
+        const p = mesh.geometry.getAttribute('position');
+        want.fromBufferAttribute(p, 0).applyMatrix4(mesh.matrixWorld);
+        const hit = all.some(({ o, t }) => {
+          const q = o.geometry.getAttribute('position'); if (q.count !== p.count) return false;
+          return got.fromBufferAttribute(q, 0).applyMatrix4(t).distanceTo(want) < 1e-4; // a box's unit corner scales onto its own
+        });
+        expect(hit).toBe(true);
+      }
+    }
+    expect(caravan.anchors.y).toBe(field.heightAt(-78, 28));
   });
 });

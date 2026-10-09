@@ -5,7 +5,10 @@ import { DoubleSide, FrontSide, Group, InstancedMesh, MeshStandardMaterial, type
 import rocks from '../data/rocks.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
+import caravan from '../data/caravan.json' with { type: 'json' };
+import well from '../data/well.json' with { type: 'json' };
 import { BAKED_PIECES, bakedUrl, type BakedPiece } from '../boot/files';
+import { warmByFire } from './meshes';
 
 /**
  * SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): Signal Dunes' world pieces drawn from their offline bake.
@@ -18,11 +21,11 @@ const instanced = (node: Object3D): node is InstancedMesh => node instanceof Ins
 
 interface KindRow {
   name: string; count: number; color: number; roughness: number; metalness: number; flat: boolean; emissive: number; emissiveIntensity: number;
-  vertexColors: boolean; doubleSided: boolean;
+  vertexColors: boolean; doubleSided: boolean; warm?: boolean;
 }
 interface ColliderRow { kind: string; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw?: number; surface: string }
 interface PieceRows { kinds: readonly KindRow[]; colliders: readonly ColliderRow[] }
-const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower };
+const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower, caravan, well };
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>>;
@@ -48,7 +51,7 @@ export async function loadBakedWorld(): Promise<BakedWorld> {
 /** The bake loaded last (the Model Explorer's specimens draw from it), or null before the first load. */
 export const lastBakedWorld = (): BakedWorld | null => last;
 
-const SURFACES: readonly Material[] = ['rock', 'wood', 'metal'];
+const SURFACES: readonly Material[] = ['rock', 'wood', 'metal', 'stone', 'flesh', 'felt'];
 const surface = (s: string): Material => {
   const found = SURFACES.find((m) => m === s); if (found === undefined) throw new Error(`baked collider: unknown surface ${s}`);
   return found;
@@ -58,6 +61,9 @@ const box = (c: ColliderRow): ColliderDesc => {
   return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), surface: surface(c.surface) };
 };
 
+/** Baked collider rows as the registry takes them. */
+export const bakedColliders = (rows: readonly ColliderRow[]): ColliderDesc[] => rows.map(box);
+
 /** A world piece from its bake: each kind one `InstancedMesh` in its own material, and the baked colliders. */
 export function bakedPiece(baked: BakedWorld, piece: BakedPiece): { root: Group; colliders: ColliderDesc[] } {
   const root = new Group(), rows = PIECES[piece], nodes = baked.get(piece);
@@ -66,6 +72,7 @@ export function bakedPiece(baked: BakedWorld, piece: BakedPiece): { root: Group;
     const material = new MeshStandardMaterial({ roughness: kind.roughness, metalness: kind.metalness, flatShading: kind.flat, emissive: kind.emissive, emissiveIntensity: kind.emissiveIntensity,
       side: kind.doubleSided ? DoubleSide : FrontSide, vertexColors: kind.vertexColors });
     if (!kind.vertexColors) material.color.setHex(kind.color);
+    if (kind.warm === true) warmByFire(material); // the lantern and the cookfire light it
     // a triangle soup (the dressing) bakes with the identity index glTF requires: it draws unindexed, as built
     const index = node.geometry.getIndex();
     if (index !== null && Array.from(index.array).every((n, i) => n === i)) node.geometry.setIndex(null);
@@ -73,5 +80,5 @@ export function bakedPiece(baked: BakedWorld, piece: BakedPiece): { root: Group;
     mesh.instanceMatrix.array.set(node.instanceMatrix.array.subarray(0, kind.count * 16)); mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere(); mesh.castShadow = false; mesh.receiveShadow = false; root.add(mesh);
   }
-  return { root, colliders: rows.colliders.map(box) };
+  return { root, colliders: bakedColliders(rows.colliders) };
 }

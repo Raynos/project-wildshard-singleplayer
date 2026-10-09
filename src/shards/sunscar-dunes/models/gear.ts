@@ -9,7 +9,10 @@ import { striderSpecimen } from '../species/strider';
 import { rayGeometry } from '../species/duneRay';
 import { matriarchBody } from '../species/matriarch';
 import { scoutModelGroup } from '../quest/scout';
-import { CARAVAN, TOWER, WELL } from '../data/layout';
+import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
+import caravanRows from '../data/caravan.json' with { type: 'json' };
+import wellRows from '../data/well.json' with { type: 'json' };
+import brazierRows from '../data/braziers.json' with { type: 'json' };
 import { STRINGS } from '../data/strings';
 
 const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
@@ -27,14 +30,18 @@ export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRING
 const creature = (geometry: ReturnType<typeof rayGeometry>, scale = 1): Mesh => {
   const mesh = new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true })); mesh.scale.setScalar(scale); return mesh;
 };
-/** A world piece rebuilt on flat ground and moved to the origin. */
-const centred = (root: Group, x: number, z: number): Group => { const group = new Group(); root.position.x -= x; root.position.z -= z; group.add(root); return group; };
+/** A world place from its bake moved to the origin, its ground there (flat under its live parts). */
+const centred = (root: Group, x: number, y: number, z: number): Group => { const group = new Group(); root.position.set(-x, -y, -z); group.add(root); return group; };
+const caravanY = caravanRows.anchors.y, wellY = wellRows.anchors.y, brazierY = brazierRows.braziers[0]?.y ?? 0;
 export const caravanModel = defineModel({ id: 'sunscar-dunes/caravan', name: STRINGS.caravan, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => centred(buildCaravan(() => 0).root, CARAVAN.x, CARAVAN.z) });
+  build: () => centred(buildCaravan(lastBakedWorld() ?? new Map(), () => caravanY).root, CARAVAN.x, caravanY, CARAVAN.z) });
 export const wellModel = defineModel({ id: 'sunscar-dunes/dry-well', name: STRINGS.well, category: 'buildings', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => centred(buildWell(() => 0).root, WELL.x, WELL.z) });
+  build: () => centred(buildWell(lastBakedWorld() ?? new Map()).root, WELL.x, wellY, WELL.z) });
 export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', name: STRINGS.waymark, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => { const parts = buildBrazier(0, 0, () => 0); parts.fire.visible = true; parts.oil.visible = true; return parts.root; } });
+  build: () => {
+    const parts = buildBrazier(0, () => brazierY); parts.fire.visible = true; parts.oil.visible = true;
+    return centred(parts.root, BRAZIERS[0]?.x ?? 0, brazierY, BRAZIERS[0]?.z ?? 0);
+  } });
 export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
   build: () => creature(skittererGeometry()) });
 export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
