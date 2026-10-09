@@ -1795,6 +1795,17 @@ clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
 registers scoped per-instance behaviour with optional continuation state; `SimSlots` provides typed script
 memory, module globals, quest data and ledger dedupe slots for the F1 adapters. `dispose()` frees the host.
 
+
+Trusted deferred keepers use `SimHost.spawn(SimSpawn)` and `retire(id)`. A spawn copies its pure
+recipe, owns a native creature motor and optional strike, and records the recipe in the existing
+adapter continuation. Duplicate identities and conflicting adapter registrations refuse. Retirement
+removes only explicitly spawned actors, frees their motor/strike and cancels attacks targeting them;
+static level entities retain their original lifetime. Reinstall the saved dynamic roster, in its
+original order and with the same recipes, during `restoreSimHost`'s install callback before restore.
+The keeper must register its own respawn clocks/generation counters through `onStep`; installation
+must not advance them. A missing roster or changed recipe refuses exact restoration. Pending strikes
+resolve through `strikeSpecifications(id)` against those installed recipes, including dynamic actors.
+
 `@wildshard/engine/sim/snapshot` exports `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost(host)`
 and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps; the versioned JSON state
 includes entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,

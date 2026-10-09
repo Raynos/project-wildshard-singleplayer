@@ -84,6 +84,7 @@ export class SimHost {
   readonly player: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly weapons = new Map<string, StrikeSpec>();
+  private readonly dynamicActors = new Set<string>();
   private readonly targetIds = new Map<string, string>();
   private readonly wanted = new Vector3();
   private readonly direction = new Vector3();
@@ -132,23 +133,7 @@ export class SimHost {
     this.quests = level.quests.map((def) => new QuestState(def, this.flags, this.events, this.scope));
     this.strikes.set(this.player.id, new StrikeRunner());
     this.weapons.set(this.player.id, { ...level.weapon, weight: () => 1 });
-    for (const spawn of level.entities) {
-      const entity = new AnimalSim(spawn.spec, spawn.seed, spawn.scale, spawn.id, {
-        heightAt: (x, z) => this.heightAt(x, z), now: () => this.clock.now * 1000,
-        floorBelow: (x, z, fromY, maxDrop) => this.floorQuery === undefined ? this.heightAt(x, z) : this.floorQuery(x, z, fromY, maxDrop),
-        random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
-      });
-      entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
-      const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
-      // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
-      // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
-      body.resetAt(entity.position);
-      entity.motor = body;
-      this.entities.set(spawn.id, entity);
-      if (spawn.strike !== undefined) {
-        this.strikes.set(spawn.id, new StrikeRunner()); this.weapons.set(spawn.id, { ...spawn.strike, weight: () => 1 });
-      }
-    }
+    for (const spawn of level.entities) this.createActor(spawn);
     this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
     this.scope.onDispose(() => {
       this.disposed = true;
@@ -161,6 +146,54 @@ export class SimHost {
     if (ports.fixedStep !== undefined) {
       this.scope.onDispose(ports.fixedStep(() => { this.stepEmbedded(); }));
     }
+  }
+  private createActor(spawn: SimSpawn): AnimalSim {
+    const entity = new AnimalSim(spawn.spec, spawn.seed, spawn.scale, spawn.id, {
+      heightAt: (x, z) => this.heightAt(x, z), now: () => this.clock.now * 1000,
+      floorBelow: (x, z, fromY, maxDrop) => this.floorQuery === undefined ? this.heightAt(x, z) : this.floorQuery(x, z, fromY, maxDrop),
+      random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
+    });
+    entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
+    const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
+    // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
+    // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
+    body.resetAt(entity.position);
+    entity.motor = body;
+    this.entities.set(spawn.id, entity);
+    if (spawn.strike !== undefined) {
+      this.strikes.set(spawn.id, new StrikeRunner()); this.weapons.set(spawn.id, { ...spawn.strike, weight: () => 1 });
+    }
+    return entity;
+  }
+  /** Materialize a trusted deferred actor. Stable identity and immutable recipe are included in exact continuation.
+   * The installer reinstalls the saved dynamic roster before restore; native motors belong to this host, never its caller.
+   */
+  spawn(spawn: SimSpawn): AnimalSim {
+    if (this.disposed || this.entities.has(spawn.id) || spawn.id === this.player.id || this.adapters.has(`runtime.actor.${spawn.id}`) || this.callbacks.has(`runtime.actor.${spawn.id}`)
+      || !/^[a-zA-Z0-9._:-]{1,128}$/u.test(spawn.id) || ![spawn.seed, spawn.scale, spawn.at.x, spawn.at.y, spawn.at.z, spawn.yaw].every(Number.isFinite) || spawn.scale <= 0) throw new Error('Invalid dynamic simulation actor');
+    const recipe = structuredClone(spawn), contract = JSON.stringify(recipe);
+    const actor = withOwner(null, () => this.createActor(recipe));
+    this.dynamicActors.add(spawn.id);
+    this.adapters.set(`runtime.actor.${spawn.id}`, { snapshot: () => contract, restore: saved => {
+      if (saved !== contract) throw new Error('Incompatible dynamic simulation actor recipe');
+    } });
+    return actor;
+  }
+  /** Retire only an explicitly spawned actor and its native motor/strike. Static level actors retain their existing lifetime. */
+  retire(id: string): boolean {
+    if (this.disposed) throw new Error('Simulation host is disposed');
+    if (!this.dynamicActors.has(id)) return false;
+    this.entities.get(id)?.motor?.dispose(); this.dynamicActors.delete(id); this.entities.delete(id); this.strikes.delete(id); this.weapons.delete(id);
+    this.adapters.delete(`runtime.actor.${id}`);
+    for (const [source, target] of this.targetIds) if (source === id || target === id) {
+      this.strikes.get(source)?.cancel(); this.entities.get(source)?.cancelAttack(); this.targetIds.delete(source);
+    }
+    return true;
+  }
+  /** Exact restore resolves pending strikes from the currently installed static or trusted dynamic recipe. */
+  strikeSpecifications(id: string): readonly StrikeSpec[] {
+    const spec = this.weapons.get(id);
+    return spec === undefined ? [] : [{ ...spec, shape: { ...spec.shape }, tags: [...spec.tags] }];
   }
   private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
     return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner });
@@ -220,7 +253,7 @@ export class SimHost {
   hasStep(id: string): boolean { return this.callbacks.has(id); }
   /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
   onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {
-    if (this.disposed || this.callbacks.has(id)) throw new Error(`Invalid simulation registration ${id}`);
+    if (this.disposed || this.callbacks.has(id) || this.adapters.has(id)) throw new Error(`Invalid simulation registration ${id}`);
     this.callbacks.set(id, run); if (adapter !== undefined) this.adapters.set(id, adapter);
     let registered = true;
     let forget: () => void = () => undefined;

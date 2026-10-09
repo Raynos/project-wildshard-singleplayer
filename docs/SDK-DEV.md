@@ -108,3 +108,10 @@ not belong in this entry. Complete snapshots use the existing strict native code
 actors, motors, controllers and pending events. An optional `proveEntries(host)` performs real
 entry validation: without it `finish()` refuses, while stepping and exact replay remain available.
 The ordinary data-only path is unchanged.
+
+On restoration, `context.snapshot` is the already strictly decoded native continuation (absent
+on a fresh boot). A trusted home/boss keeper reads its saved roster and controller state there,
+reinstalls matching actors with `host.spawn` before native restore, and registers every deferred
+respawn clock through its `onStep` adapter. Installation does not step or emit rewards. Native
+restore validates the resulting identities and immutable recipes; it never silently drops actors.
+`host.retire` releases a deferred actor's native motor and strike when its keeper retires it.

@@ -3,7 +3,7 @@ import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, 
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import type { AnimalSim } from '../entities/AnimalSim';
-import type { StrikeRunner, StrikeSpec } from '../ai/strikes';
+import type { StrikeRunner } from '../ai/strikes';
 import type { PlayerHealth } from '../combat/health';
 import type { GameClockState } from '../core/clock';
 import { fnv1a32, type RngStreamsState } from '../core/rng';
@@ -175,10 +175,6 @@ function sameIds(actual: readonly string[], expected: Iterable<string>): boolean
   const wanted = new Set(expected);
   return wanted.size === actual.length && new Set(actual).size === actual.length && actual.every((id) => wanted.has(id));
 }
-function specs(level: SimLevel, id: string): StrikeSpec[] {
-  const spec = id === 'actor.player' ? level.weapon : level.entities.find((entity) => entity.id === id)?.strike;
-  return spec === undefined ? [] : [{ ...spec, weight: () => 1 }];
-}
 
 /** Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. */
 export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot, install?: (host: SimHost) => void): SimHost {
@@ -198,7 +194,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
     host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
     host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
-    for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, specs(level, entry.id));
+    for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);
     for (const quest of host.quests) { const state = saved.quests.find((entry) => entry.id === quest.def.id); if (state !== undefined) quest.restore(state); }
     host.rng.restore(saved.rng); host.clock.restore(saved.clock);

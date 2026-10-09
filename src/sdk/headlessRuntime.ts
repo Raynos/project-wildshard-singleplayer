@@ -1,5 +1,5 @@
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@wildshard/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '@wildshard/engine/sim/snapshot';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
 import type { HeadlessCommand, HeadlessEffect } from './tickProtocol';
@@ -12,6 +12,8 @@ export interface HeadlessRuntimePreparation { shard: Shardfile; assets: Readonly
 /** Current tick inputs and buffered effects; only a completed tick publishes them to the parent. */
 export interface HeadlessRuntimeInstallation {
   restoring: boolean;
+  /** Strictly decoded continuation; reinstall its dynamic actor roster before native restore. Never step here. */
+  snapshot?: Readonly<SimSnapshot>;
   commands: () => readonly HeadlessCommand[];
   emit: (effect: HeadlessEffect) => void;
 }
@@ -45,13 +47,14 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeP
   const identity = { id: preparation.shard.identity.slug, seed: preparation.shard.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
-  const context: HeadlessRuntimeInstallation = { restoring: snapshot !== undefined, commands: () => commands, emit: effect => { effects.push(effect); } };
+  const saved = snapshot === undefined ? undefined : decodeSimSnapshot(snapshot);
+  const context: HeadlessRuntimeInstallation = { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, emit: effect => { effects.push(effect); } };
   const ports = { ...plan.ports, rapier: preparation.rapier };
   let installing: SimHost | undefined;
   let host: SimHost;
   try {
-    if (snapshot === undefined) { installing = createSimHost(plan.level, ports); plan.install(installing, context); host = installing; }
-    else host = restoreSimHost(plan.level, ports, decodeSimSnapshot(snapshot), fresh => {
+    if (saved === undefined) { installing = createSimHost(plan.level, ports); plan.install(installing, context); host = installing; }
+    else host = restoreSimHost(plan.level, ports, saved, fresh => {
       installing = fresh; if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, context);
     });
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
