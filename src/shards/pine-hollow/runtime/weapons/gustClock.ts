@@ -31,8 +31,9 @@ export class PineGustClock {
   }
 
   snapshot(): GustSnapshot { return { version: 1, time: this.time, gust: this.gust }; }
-  restore(value: unknown): void {
+  prepareRestore(value: unknown): () => void {
     const saved = v.parse(Saved, value);
-    this.time = saved.time; this.gust = saved.gust;
+    return () => { this.time = saved.time; this.gust = saved.gust; };
   }
+  restore(value: unknown): void { this.prepareRestore(value)(); }
 }
