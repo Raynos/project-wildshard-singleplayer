@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050a12">
-<meta name="description" content="One world. Every shard built by a player. Play it in the browser. Build it in Claude Code.">
 <title>Project Wildshard</title>
+<meta name="description" content="One world. Every shard built by a player. Play it in the browser. Build it in Claude Code.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* Round 2 · C's page (the conversation) in A's Lattice look (navy glass, cyan hairlines, violet seams).
-     The action accent is one variable, switched by data-accent for the A / B / C captures. */
+  /* Round 3 desktop · B · Two columns: each section's question, headline and lede stay put on the left while its visuals scroll on the right.
+     Round 2's picked page (C's conversation in A's Lattice look, violet accent), unchanged below 1024 px. */
   :root {
     --abyss: #050a12; --navy: #0b1622; --glass: rgba(13, 27, 38, .8);
     --cyan: #8fe3ff; --cyan-line: rgba(143, 227, 255, .32); --cyan-faint: rgba(143, 227, 255, .10);
@@ -252,6 +252,121 @@
   footer { padding: 22px var(--g) 40px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--faint); text-transform: uppercase; }
   footer a { text-decoration: none; color: var(--mute); }
 
+  /* ===== Round 3 · B · Two columns: the question, headline and lede hold still on the left; the visuals scroll on the right ===== */
+  .shot picture { display: block; width: 100%; height: 100%; }
+  @media (min-width: 1024px) {
+    :root { --g: 40px; --side: 400px; }
+    body { font-size: 19px; }
+    .wrap { max-width: 1360px; }
+
+    /* hero: the masthead holds the left, the terminal and the world it opens fill the right */
+    .hero { max-width: 1440px; margin: 0 auto; min-height: 900px; height: 900px; padding-top: 40px;
+      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "mast pane" "mast world"; }
+    .pane { grid-area: pane; }
+    .pane-body { padding: 20px 20px 18px; }
+    .hero .ask { font-size: 18px; }
+    .hero .out { font-size: 12.5px; margin-top: 12px; }
+    .world { grid-area: world; height: auto; }
+    .world img { position: absolute; inset: 0; object-position: 50% 90%; }
+    .masthead { grid-area: mast; margin: 0; padding: 0 40px 0 72px; align-self: center; }
+    .kicker { font-size: 14px; }
+    h1 { font-size: 122px; }
+    .tagline { font-size: 40px; margin-top: 18px; max-width: 16ch; }
+    .sub { font-size: 21px; margin-top: 10px; }
+    .doors { margin-top: 34px; padding-bottom: 0; gap: 14px; max-width: 560px; }
+    .door { min-height: 92px; padding: 15px 16px; font-size: 27px; }
+    .door small { font-size: 11.5px; }
+
+    .trailer { max-width: 1280px; margin: 56px auto 0; }
+    .trailer img { aspect-ratio: 21 / 9; }
+    .trailer .play-btn { width: 92px; height: 92px; font-size: 30px; }
+
+    /* every section: a still left column, the visuals on the right */
+    section { padding: 150px var(--g) 0; display: grid; grid-template-columns: var(--side) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+    .side { position: sticky; top: 48px; }
+    .body > :first-child { margin-top: 0; }
+    .q { padding: 12px 16px; margin-bottom: 22px; }
+    .q .ask { font-size: 15px; }
+    h2 { font-size: 58px; max-width: 12ch; }
+    .lede { font-size: 20px; max-width: 32ch; margin-top: 20px; }
+    .note { font-size: 11px; }
+
+    /* the map and the concept plate share a row */
+    #world-sec .body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    #world-sec .map, #world-sec .plate { margin: 0; }
+    #world-sec .plate img { height: 100%; aspect-ratio: auto; }
+    #world-sec .facts { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); margin-top: 8px; }
+    .facts div { border-right: 1px solid var(--cyan-faint); padding: 16px 14px; }
+    .facts div:last-child { border-right: 0; }
+    .facts b { font-size: 40px; }
+    .facts span { font-size: 15px; }
+
+    /* shards two across; the Template takes a row of its own */
+    .shards { display: grid; grid-template-columns: 1fr 1fr; gap: 44px 28px; }
+    .shard { margin: 0; }
+    .shard .ask { font-size: 12.5px; min-height: 66px; }
+    .shard .shot img { object-position: 50% 50% !important; }
+    .shard h3 { font-size: 31px; margin-top: 14px; }
+    .shard h3 a { font-size: 12px; }
+    .shard p { font-size: 17px; }
+    .shard.grey { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; column-gap: 28px; }
+    .shard.grey .ask { grid-column: 1; grid-row: 1; min-height: 0; }
+    .shard.grey .shot { grid-column: 1; grid-row: 2 / 4; aspect-ratio: 2 / 1; }
+    .shard.grey .shot img { transform: scale(1.2) !important; transform-origin: 100% 54% !important; object-position: 50% 54% !important; }
+    .shard.grey h3 { grid-column: 2; grid-row: 2; margin-top: 0; justify-content: flex-start; gap: 20px; }
+    .shard.grey p { grid-column: 2; grid-row: 3; }
+
+    .steps { padding: 8px 24px 12px; }
+    .steps li { grid-template-columns: 44px 1fr; padding: 18px 0; }
+    .steps li::before { font-size: 13px; }
+    .steps strong { font-size: 23px; }
+    .term .ask { font-size: 13px; } .term .out { font-size: 12.5px; }
+
+    .chain { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .chain figure:first-child { grid-column: 1 / -1; }
+    .chain .sentence .ask { font-size: 18px; }
+    .chain .sentence { padding: 20px 22px; }
+    .chain figcaption { font-size: 16px; }
+
+    .ritual { padding: 26px 18px 14px; }
+    .ritual svg { max-height: 500px; margin: 0 auto; }
+
+    .manifest { font-size: 14.5px; padding: 20px 22px; }
+    .json pre { font-size: 13.5px; padding: 16px 20px; }
+    .grow li { font-size: 27px; padding: 20px 0; grid-template-columns: 30px 1fr; }
+    .grow li::before { margin-top: 12px; }
+    .ideas { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .idea { padding: 20px 18px 22px; }
+    .idea b { font-size: 24px; }
+    .idea span { font-size: 16.5px; }
+    .road { font-size: 22px; }
+    .road li { padding: 13px 0; }
+    .log p { font-size: 18px; }
+    .who { font-size: 15px; gap: 10px 22px; }
+    .who b { font-size: 80px; }
+    .faq summary { justify-content: flex-start; align-items: baseline; }
+    .faq summary::after { margin-left: auto; }
+    .faq summary { font-size: 24px; }
+    .faq details { padding: 18px 0; }
+    .faq p { font-size: 18px; }
+    .install { padding: 22px 24px; }
+    .install ol { font-size: 20px; }
+
+    /* the author door: the pitch stays put while you fill the form */
+    .door-end { margin-top: 160px; padding: 80px var(--g) 90px; display: block; }
+    .door-end > .wrap { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+    .door-end h2 { font-size: 92px; max-width: 8ch; }
+    .founding { font-size: 18px; padding: 16px 18px; margin-top: 26px; }
+    form { margin-top: 0; }
+    .field { padding: 16px 20px; }
+    .field input, .field textarea { font-size: 16px; }
+    .claimmap { max-width: 420px; }
+    .send { padding: 20px; font-size: 26px; }
+    .ends a { min-height: 64px; font-size: 21px; }
+    .mail { font-size: 14px; }
+    footer { max-width: 1360px; margin: 0 auto; padding: 28px var(--g) 48px; font-size: 11px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .cursor { animation: none; } .js .line { opacity: 1; transition: none; }
     .js .world { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); transition: none; }
@@ -299,252 +414,304 @@
 
 <main class="wrap">
   <section id="world-sec">
-    <div class="q"><p class="ask">what is a shard?</p></div>
-    <h2>A world made of shards.</h2>
-    <p class="lede">Each shard is 500 × 500 × 500 metres, built by one author and placed on a shared grid. A server-owned highway runs between them; glowing seams stitch them together. The first grid is five by five around a fixed centre.</p>
-    <div class="map bk">
-      <svg class="ink" id="grid-map" viewBox="0 0 300 300" role="img" aria-label="Map of the 5 by 5 grid: a fixed centre, seven shards lit, the highway between them"></svg>
-      <div class="legend"><span><i></i>Playable today</span><span><i class="v"></i>Fixed centre</span><span><i class="e"></i>Unclaimed</span></div>
-      <div class="note">Fig. 1 · the first grid · placement illustrative</div>
+    <div class="side">
+      <div class="q"><p class="ask">what is a shard?</p></div>
+      <h2>A world made of shards.</h2>
+      <p class="lede">Each shard is 500 × 500 × 500 metres, built by one author and placed on a shared grid. A server-owned highway runs between them; glowing seams stitch them together. The first grid is five by five around a fixed centre.</p>
     </div>
-    <figure class="plate bk">
-      <img src="/media/concept-grid.webp" alt="Concept painting: shards of different biomes on a glowing grid">
-      <span class="tag warn">Concept art</span>
-    </figure>
-    <div class="facts">
-      <div><b>500 m</b><span>a cube per shard, one author each</span></div>
-      <div><b>5 × 5</b><span>the first grid, around a fixed centre</span></div>
-      <div><b>15 m</b><span>the server-owned highway between them</span></div>
-      <div><b>Seams</b><span>glowing edges stitch shards together</span></div>
+    <div class="body">
+      <div class="map bk">
+        <svg class="ink" id="grid-map" viewBox="0 0 300 300" role="img" aria-label="Map of the 5 by 5 grid: a fixed centre, seven shards lit, the highway between them"></svg>
+        <div class="legend"><span><i></i>Playable today</span><span><i class="v"></i>Fixed centre</span><span><i class="e"></i>Unclaimed</span></div>
+        <div class="note">Fig. 1 · the first grid · placement illustrative</div>
+      </div>
+      <figure class="plate bk">
+        <img src="/media/concept-grid.webp" alt="Concept painting: shards of different biomes on a glowing grid">
+        <span class="tag warn">Concept art</span>
+      </figure>
+      <div class="facts">
+        <div><b>500 m</b><span>a cube per shard, one author each</span></div>
+        <div><b>5 × 5</b><span>the first grid, around a fixed centre</span></div>
+        <div><b>15 m</b><span>the server-owned highway between them</span></div>
+        <div><b>Seams</b><span>glowing edges stitch shards together</span></div>
+    </div>
     </div>
   </section>
 
   <section id="shards">
-    <div class="q"><p class="ask">show me the shards I can play today</p></div>
-    <h2>Seven shards. Seven looks. One engine.</h2>
-    <ul class="shards">
-      <li class="shard">
-        <p class="ask">a bright low-poly island in a toon ocean, with a pier, a sailboat, a shrine and a wreck</p>
-        <div class="shot"><img src="/media/shard-driftwood.webp" style="object-position:50% 22%" alt="Driftwood Isle in the game"><span class="tag loop">Loop</span></div>
-        <h3>Driftwood Isle <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
-        <p>A bright low-poly island in a toon ocean: pier, sailboat, shrine and wreck.</p>
-      </li>
-      <li class="shard">
-        <p class="ask">a boreal hunt from dawn fog to lantern-lit night, and an Antler King at the end</p>
-        <div class="shot"><img src="/media/shard-pine.webp" style="object-position:50% 4%" alt="Pine Hollow in the game: the Antler King by a fire at night"><span class="tag loop">Loop</span></div>
-        <h3>Pine Hollow <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
-        <p>A boreal hunt from dawn fog to lantern-lit night. Face the Antler King.</p>
-      </li>
-      <li class="shard">
-        <p class="ask">a painted steppe I ride on horseback, with the Golden King's kurgan to open</p>
-        <div class="shot"><img src="/media/shard-nalati.webp" style="object-position:50% 90%" alt="Nalati Grasslands in the game"><span class="tag loop">Loop</span></div>
-        <h3>Nalati Grasslands <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
-        <p>The painted steppe on horseback. Tame horses, open the Golden King's kurgan.</p>
-      </li>
-      <li class="shard">
-        <p class="ask">night dunes, a bullwhip, dune rays to drive off and a signal fire to light</p>
-        <div class="shot"><img src="/media/shard-dunes.webp" style="transform:scale(1.3);transform-origin:62% 52%" alt="Signal Dunes in the game: a caravan wagon on a dune at dusk"><span class="tag loop">Loop</span></div>
-        <h3>Signal Dunes <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
-        <p>Crack the bullwhip, drive off the dune rays and light the signal fire.</p>
-      </li>
-      <li class="shard">
-        <p class="ask">grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride</p>
-        <div class="shot"><img src="/media/shard-skyreach.webp" style="object-position:50% 70%" alt="Sky Reach in the game: floating islands over a sea of cloud"><span class="tag loop">Loop</span></div>
-        <h3>Sky Reach <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
-        <p>Grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride.</p>
-      </li>
-      <li class="shard">
-        <p class="ask">a neon city stacked 500 metres high; start me in Lantern Square</p>
-        <div class="shot"><img src="/media/shard-ninedragon.webp" style="object-position:50% 45%" alt="Nine Dragon Stack in the game: a red gate over a neon square"><span class="tag loop">Loop</span></div>
-        <h3>Nine Dragon Stack <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
-        <p>Lantern Square, halfway up a neon city stacked 500 metres high.</p>
-      </li>
-      <li class="shard grey">
-        <p class="ask">start me a new shard</p>
-        <div class="shot"><img src="/media/shard-template.webp" style="transform:scale(1.42);transform-origin:52% 56%" alt="The Template in the game: a grey hut on a grey floor"></div>
-        <h3>The Template <a href="#author">Build</a></h3>
-        <p>The greybox every new shard starts from.</p>
-      </li>
-    </ul>
+    <div class="side">
+      <div class="q"><p class="ask">show me the shards I can play today</p></div>
+      <h2>Seven shards. Seven looks. One engine.</h2>
+    </div>
+    <div class="body">
+      <ul class="shards">
+        <li class="shard">
+          <p class="ask">a bright low-poly island in a toon ocean, with a pier, a sailboat, a shrine and a wreck</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-driftwood.webp"><img src="/media/shard-driftwood.webp" style="object-position:50% 22%" alt="Driftwood Isle in the game"></picture><span class="tag loop">Loop</span></div>
+          <h3>Driftwood Isle <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>A bright low-poly island in a toon ocean: pier, sailboat, shrine and wreck.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">a boreal hunt from dawn fog to lantern-lit night, and an Antler King at the end</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-pine.webp"><img src="/media/shard-pine.webp" style="object-position:50% 4%" alt="Pine Hollow in the game: the Antler King by a fire at night"></picture><span class="tag loop">Loop</span></div>
+          <h3>Pine Hollow <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>A boreal hunt from dawn fog to lantern-lit night. Face the Antler King.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">a painted steppe I ride on horseback, with the Golden King's kurgan to open</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-nalati.webp"><img src="/media/shard-nalati.webp" style="object-position:50% 90%" alt="Nalati Grasslands in the game"></picture><span class="tag loop">Loop</span></div>
+          <h3>Nalati Grasslands <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>The painted steppe on horseback. Tame horses, open the Golden King's kurgan.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">night dunes, a bullwhip, dune rays to drive off and a signal fire to light</p>
+          <div class="shot"><img src="/media/shard-dunes.webp" style="transform:scale(1.3);transform-origin:62% 52%" alt="Signal Dunes in the game: a caravan wagon on a dune at dusk"><span class="tag loop">Loop</span></div>
+          <h3>Signal Dunes <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>Crack the bullwhip, drive off the dune rays and light the signal fire.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-skyreach.webp"><img src="/media/shard-skyreach.webp" style="object-position:50% 70%" alt="Sky Reach in the game: floating islands over a sea of cloud"></picture><span class="tag loop">Loop</span></div>
+          <h3>Sky Reach <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>Grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">a neon city stacked 500 metres high; start me in Lantern Square</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-ninedragon.webp"><img src="/media/shard-ninedragon.webp" style="object-position:50% 45%" alt="Nine Dragon Stack in the game: a red gate over a neon square"></picture><span class="tag loop">Loop</span></div>
+          <h3>Nine Dragon Stack <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>Lantern Square, halfway up a neon city stacked 500 metres high.</p>
+        </li>
+        <li class="shard grey">
+          <p class="ask">start me a new shard</p>
+          <div class="shot"><img src="/media/shard-template.webp" style="transform:scale(1.42);transform-origin:52% 56%" alt="The Template in the game: a grey hut on a grey floor"></div>
+          <h3>The Template <a href="#author">Build</a></h3>
+          <p>The greybox every new shard starts from.</p>
+        </li>
+      </ul>
+    </div>
   </section>
 
   <section id="how">
-    <div class="q"><p class="ask">how do I make one?</p></div>
-    <h2>Claude Code is the level editor.</h2>
-    <div class="session bk">
-      <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/shards/my-shard</span></div>
-      <ol class="steps">
-        <li><div><strong>Get a creator key</strong><div class="term"><p class="out">key ws_live_••••••••  <span class="ok">✓</span> signed in as you</p></div></div></li>
-        <li><div><strong>Install the Wildshard skill and SDK in your own Claude Code</strong></div></li>
-        <li><div><strong>Describe it. Claude builds it on a floating cube</strong>
-          <div class="term"><p class="ask">a frozen fjord where you are the last ferryman</p><p class="out">· carving the fjord · freezing the bay · placing the village</p></div></div></li>
-        <li><div><strong><code>wildshard build</code> and <code>validate</code> check every budget and edge</strong>
-          <div class="term"><p class="out"><span class="ok">✓</span> budgets &nbsp;<span class="ok">✓</span> edges &nbsp;<span class="ok">✓</span> package</p></div></div></li>
-        <li><div><strong>Walk it locally</strong></div></li>
-        <li><div><strong>Upload it in the game: the beacon ritual</strong></div></li>
-      </ol>
+    <div class="side">
+      <div class="q"><p class="ask">how do I make one?</p></div>
+      <h2>Claude Code is the level editor.</h2>
+    </div>
+    <div class="body">
+      <div class="session bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/shards/my-shard</span></div>
+        <ol class="steps">
+          <li><div><strong>Get a creator key</strong><div class="term"><p class="out">key ws_live_••••••••  <span class="ok">✓</span> signed in as you</p></div></div></li>
+          <li><div><strong>Install the Wildshard skill and SDK in your own Claude Code</strong></div></li>
+          <li><div><strong>Describe it. Claude builds it on a floating cube</strong>
+            <div class="term"><p class="ask">a frozen fjord where you are the last ferryman</p><p class="out">· carving the fjord · freezing the bay · placing the village</p></div></div></li>
+          <li><div><strong><code>wildshard build</code> and <code>validate</code> check every budget and edge</strong>
+            <div class="term"><p class="out"><span class="ok">✓</span> budgets &nbsp;<span class="ok">✓</span> edges &nbsp;<span class="ok">✓</span> package</p></div></div></li>
+          <li><div><strong>Walk it locally</strong></div></li>
+          <li><div><strong>Upload it in the game: the beacon ritual</strong></div></li>
+        </ol>
+    </div>
     </div>
   </section>
 
   <section id="sentence">
-    <div class="q"><p class="ask">can Claude really build a whole shard from one line?</p></div>
-    <h2>One sentence to a shard.</h2>
-    <p class="lede">Our own dry run, Thin Ice: from one line to a playable plan in a day of steering.</p>
-    <div class="chain">
-      <figure><span class="n">The line</span><div class="sentence bk"><p class="ask">a frozen fjord where you are the last ferryman</p></div></figure>
-      <figure><span class="n">Pitch</span><div><img src="/media/thinice-pitch.webp" alt="Pitch C, Thin Ice: racing over black ice above a drowned village"><figcaption>Three pitches; Jake picked Thin Ice.</figcaption></div></figure>
-      <figure><span class="n">Style</span><div><img src="/media/thinice-style.webp" alt="Art direction: the village under an aurora"><figcaption>Art direction: "Aurora, kept simple".</figcaption></div></figure>
-      <figure><span class="n">Map</span><div><img src="/media/thinice-map.webp" alt="The map of the fjord, revision 2"><figcaption>The map, from a 3D blockout.</figcaption></div></figure>
-      <figure><span class="n">In view</span><div><img src="/media/thinice-view.webp" alt="First-person view of the village"><figcaption>First-person views before a line of the level is built.</figcaption></div></figure>
+    <div class="side">
+      <div class="q"><p class="ask">can Claude really build a whole shard from one line?</p></div>
+      <h2>One sentence to a shard.</h2>
+      <p class="lede">Our own dry run, Thin Ice: from one line to a playable plan in a day of steering.</p>
     </div>
-    <div class="note">WorldClaw dry run · concept images, not the built shard</div>
+    <div class="body">
+      <div class="chain">
+        <figure><span class="n">The line</span><div class="sentence bk"><p class="ask">a frozen fjord where you are the last ferryman</p></div></figure>
+        <figure><span class="n">Pitch</span><div><img src="/media/thinice-pitch.webp" alt="Pitch C, Thin Ice: racing over black ice above a drowned village"><figcaption>Three pitches; Jake picked Thin Ice.</figcaption></div></figure>
+        <figure><span class="n">Style</span><div><img src="/media/thinice-style.webp" alt="Art direction: the village under an aurora"><figcaption>Art direction: "Aurora, kept simple".</figcaption></div></figure>
+        <figure><span class="n">Map</span><div><img src="/media/thinice-map.webp" alt="The map of the fjord, revision 2"><figcaption>The map, from a 3D blockout.</figcaption></div></figure>
+        <figure><span class="n">In view</span><div><img src="/media/thinice-view.webp" alt="First-person view of the village"><figcaption>First-person views before a line of the level is built.</figcaption></div></figure>
+      </div>
+      <div class="note">WorldClaw dry run · concept images, not the built shard</div>
+    </div>
   </section>
 
   <section id="ritual">
-    <div class="q"><p class="ask">what happens when I upload it?</p></div>
-    <h2>Uploading is a set piece.</h2>
-    <p class="lede">Plant a beacon at each of the eight corners, a ninth at the centre, and watch your shard rise onto the grid.</p>
-    <div class="ritual bk">
-      <span class="tag warn">Coming</span>
-      <svg viewBox="0 0 360 280" role="img" aria-label="A cube with a beacon at each corner and one at the centre, rising onto the grid">
-        <defs>
-          <radialGradient id="glow"><stop offset="0" style="stop-color:var(--act)" stop-opacity=".9"/><stop offset="1" style="stop-color:var(--act)" stop-opacity="0"/></radialGradient>
-          <radialGradient id="glowc"><stop offset="0" stop-color="#a487ff" stop-opacity=".95"/><stop offset="1" stop-color="#a487ff" stop-opacity="0"/></radialGradient>
-        </defs>
-        <g stroke="rgba(164,135,255,.55)" stroke-width="1"><path d="M20 236 L180 276 L340 236 L180 196 Z" fill="none"/><path d="M60 226 L220 266 M100 216 L260 256 M140 206 L300 246 M60 246 L220 206 M100 256 L260 216 M140 266 L300 226"/></g>
-        <g style="stroke:var(--act)" stroke-width="1" stroke-dasharray="2 4" opacity=".7"><line x1="90" y1="214" x2="90" y2="168"/><line x1="270" y1="214" x2="270" y2="168"/><line x1="180" y1="236" x2="180" y2="190"/></g>
-        <g fill="none" stroke="#8fe3ff" stroke-width="1.2" style="filter:drop-shadow(0 0 3px #8fe3ff)"><path d="M90 78 L180 100 L270 78 L180 56 Z"/><path d="M90 78 L90 168 L180 190 L270 168 L270 78"/><path d="M180 100 L180 190"/><path d="M90 168 L180 146 L270 168 M180 56 L180 146" stroke="#4d6275" stroke-dasharray="3 4"/></g>
-        <g><circle cx="90" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="100" r="12" fill="url(#glow)"/><circle cx="270" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="56" r="12" fill="url(#glow)"/><circle cx="90" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="190" r="12" fill="url(#glow)"/><circle cx="270" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="146" r="12" fill="url(#glow)"/>
-          <g style="fill:var(--act)"><circle cx="90" cy="78" r="3.5"/><circle cx="180" cy="100" r="3.5"/><circle cx="270" cy="78" r="3.5"/><circle cx="180" cy="56" r="3.5"/><circle cx="90" cy="168" r="3.5"/><circle cx="180" cy="190" r="3.5"/><circle cx="270" cy="168" r="3.5"/><circle cx="180" cy="146" r="3.5"/></g>
-          <circle cx="180" cy="123" r="16" fill="url(#glowc)"/><circle cx="180" cy="123" r="4.5" fill="#a487ff"/></g>
-      </svg>
+    <div class="side">
+      <div class="q"><p class="ask">what happens when I upload it?</p></div>
+      <h2>Uploading is a set piece.</h2>
+      <p class="lede">Plant a beacon at each of the eight corners, a ninth at the centre, and watch your shard rise onto the grid.</p>
+    </div>
+    <div class="body">
+      <div class="ritual bk">
+        <span class="tag warn">Coming</span>
+        <svg viewBox="0 0 360 280" role="img" aria-label="A cube with a beacon at each corner and one at the centre, rising onto the grid">
+          <defs>
+            <radialGradient id="glow"><stop offset="0" style="stop-color:var(--act)" stop-opacity=".9"/><stop offset="1" style="stop-color:var(--act)" stop-opacity="0"/></radialGradient>
+            <radialGradient id="glowc"><stop offset="0" stop-color="#a487ff" stop-opacity=".95"/><stop offset="1" stop-color="#a487ff" stop-opacity="0"/></radialGradient>
+          </defs>
+          <g stroke="rgba(164,135,255,.55)" stroke-width="1"><path d="M20 236 L180 276 L340 236 L180 196 Z" fill="none"/><path d="M60 226 L220 266 M100 216 L260 256 M140 206 L300 246 M60 246 L220 206 M100 256 L260 216 M140 266 L300 226"/></g>
+          <g style="stroke:var(--act)" stroke-width="1" stroke-dasharray="2 4" opacity=".7"><line x1="90" y1="214" x2="90" y2="168"/><line x1="270" y1="214" x2="270" y2="168"/><line x1="180" y1="236" x2="180" y2="190"/></g>
+          <g fill="none" stroke="#8fe3ff" stroke-width="1.2" style="filter:drop-shadow(0 0 3px #8fe3ff)"><path d="M90 78 L180 100 L270 78 L180 56 Z"/><path d="M90 78 L90 168 L180 190 L270 168 L270 78"/><path d="M180 100 L180 190"/><path d="M90 168 L180 146 L270 168 M180 56 L180 146" stroke="#4d6275" stroke-dasharray="3 4"/></g>
+          <g><circle cx="90" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="100" r="12" fill="url(#glow)"/><circle cx="270" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="56" r="12" fill="url(#glow)"/><circle cx="90" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="190" r="12" fill="url(#glow)"/><circle cx="270" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="146" r="12" fill="url(#glow)"/>
+            <g style="fill:var(--act)"><circle cx="90" cy="78" r="3.5"/><circle cx="180" cy="100" r="3.5"/><circle cx="270" cy="78" r="3.5"/><circle cx="180" cy="56" r="3.5"/><circle cx="90" cy="168" r="3.5"/><circle cx="180" cy="190" r="3.5"/><circle cx="270" cy="168" r="3.5"/><circle cx="180" cy="146" r="3.5"/></g>
+            <circle cx="180" cy="123" r="16" fill="url(#glowc)"/><circle cx="180" cy="123" r="4.5" fill="#a487ff"/></g>
+        </svg>
+    </div>
     </div>
   </section>
 
   <section id="safe">
-    <div class="q"><p class="ask">is a stranger's shard safe on my phone?</p></div>
-    <h2>Strangers' worlds, safe on your phone.</h2>
-    <p class="lede">A shard ships data and baked assets, never code that can touch your browser. Every shard is metered, deterministic and built against a versioned API.</p>
-    <div class="manifest bk">
-      <div class="h">a shard package holds</div>
-      <div class="y">data</div><div class="y">baked assets</div><div class="y">sandboxed behaviour (wasm)</div>
-      <div class="n">code that can touch your browser</div>
+    <div class="side">
+      <div class="q"><p class="ask">is a stranger's shard safe on my phone?</p></div>
+      <h2>Strangers' worlds, safe on your phone.</h2>
+      <p class="lede">A shard ships data and baked assets, never code that can touch your browser. Every shard is metered, deterministic and built against a versioned API.</p>
     </div>
-    <div class="json bk">
-      <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>template · shard.json (excerpt)</span></div>
-<pre><span class="c">{</span>
-  <span class="k">"slug"</span>: <span class="s">"template"</span>,
-  <span class="k">"name"</span>: <span class="s">"Template shard"</span>,
-  <span class="k">"author"</span>: <span class="s">"Wildshard"</span>,
-  <span class="k">"revision"</span>: 1, <span class="k">"seed"</span>: 357,
-  <span class="k">"budgets"</span>: {
-    <span class="k">"phone"</span>:   { <span class="k">"fps"</span>: 30, <span class="k">"cpuMs"</span>: 9.6 },
-    <span class="k">"desktop"</span>: { <span class="k">"fps"</span>: 60, <span class="k">"cpuMs"</span>: 4.8 }
-  },
-  <span class="k">"scripts"</span>: [{ <span class="k">"kind"</span>: <span class="s">"wasm"</span>, <span class="k">"hash"</span>: <span class="s">"7035c4…aa7"</span> }]
-<span class="c">}</span></pre>
+    <div class="body">
+      <div class="manifest bk">
+        <div class="h">a shard package holds</div>
+        <div class="y">data</div><div class="y">baked assets</div><div class="y">sandboxed behaviour (wasm)</div>
+        <div class="n">code that can touch your browser</div>
+      </div>
+      <div class="json bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>template · shard.json (excerpt)</span></div>
+  <pre><span class="c">{</span>
+    <span class="k">"slug"</span>: <span class="s">"template"</span>,
+    <span class="k">"name"</span>: <span class="s">"Template shard"</span>,
+    <span class="k">"author"</span>: <span class="s">"Wildshard"</span>,
+    <span class="k">"revision"</span>: 1, <span class="k">"seed"</span>: 357,
+    <span class="k">"budgets"</span>: {
+      <span class="k">"phone"</span>:   { <span class="k">"fps"</span>: 30, <span class="k">"cpuMs"</span>: 9.6 },
+      <span class="k">"desktop"</span>: { <span class="k">"fps"</span>: 60, <span class="k">"cpuMs"</span>: 4.8 }
+    },
+    <span class="k">"scripts"</span>: [{ <span class="k">"kind"</span>: <span class="s">"wasm"</span>, <span class="k">"hash"</span>: <span class="s">"7035c4…aa7"</span> }]
+  <span class="c">}</span></pre>
+      </div>
+      <div class="note">Read from the repo at build time</div>
     </div>
-    <div class="note">Read from the repo at build time</div>
   </section>
 
   <section id="grow">
-    <div class="q"><p class="ask">does a shard stay the same forever?</p></div>
-    <h2>Shards that grow.</h2>
-    <ul class="grow">
-      <li>Co-edit with friends.</li>
-      <li>Renovate abandoned shards.</li>
-      <li>Your name and title travel with you.</li>
-      <li>Two wallets, so no shard can break the economy.</li>
-    </ul>
+    <div class="side">
+      <div class="q"><p class="ask">does a shard stay the same forever?</p></div>
+      <h2>Shards that grow.</h2>
+    </div>
+    <div class="body">
+      <ul class="grow">
+        <li>Co-edit with friends.</li>
+        <li>Renovate abandoned shards.</li>
+        <li>Your name and title travel with you.</li>
+        <li>Two wallets, so no shard can break the economy.</li>
+      </ul>
+    </div>
   </section>
 
   <section id="ideas">
-    <div class="q"><p class="ask">what could I build?</p></div>
-    <h2>Coming worlds.</h2>
-    <p class="lede">Shards nobody has built yet. One of them could be yours.</p>
-    <div class="ideas">
-      <div class="idea bk"><b>The Clockwork Tide</b><span>A canal city on a 20-minute tide.</span></div>
-      <div class="idea bk"><b>Skyforge Regatta</b><span>Sky-sailing races through floating islands.</span></div>
-      <div class="idea bk"><b>Ashfall Bastion</b><span>A co-op siege on a volcanic fortress.</span></div>
-      <div class="idea bk"><b>Lantern Night Market</b><span>A social hub that only opens at dusk.</span></div>
-      <div class="idea bk"><b>The Underways</b><span>A deep mine in the 100 m below ground.</span></div>
-      <div class="idea bk"><b>The Drowned Archive</b><span>A sunken library, explored underwater.</span></div>
+    <div class="side">
+      <div class="q"><p class="ask">what could I build?</p></div>
+      <h2>Coming worlds.</h2>
+      <p class="lede">Shards nobody has built yet. One of them could be yours.</p>
     </div>
-    <div class="note">Ideas · not built</div>
+    <div class="body">
+      <div class="ideas">
+        <div class="idea bk"><b>The Clockwork Tide</b><span>A canal city on a 20-minute tide.</span></div>
+        <div class="idea bk"><b>Skyforge Regatta</b><span>Sky-sailing races through floating islands.</span></div>
+        <div class="idea bk"><b>Ashfall Bastion</b><span>A co-op siege on a volcanic fortress.</span></div>
+        <div class="idea bk"><b>Lantern Night Market</b><span>A social hub that only opens at dusk.</span></div>
+        <div class="idea bk"><b>The Underways</b><span>A deep mine in the 100 m below ground.</span></div>
+        <div class="idea bk"><b>The Drowned Archive</b><span>A sunken library, explored underwater.</span></div>
+      </div>
+      <div class="note">Ideas · not built</div>
+    </div>
   </section>
 
   <section id="road">
-    <div class="q"><p class="ask">where are you now?</p></div>
-    <h2>Where we are.</h2>
-    <ul class="road">
-      <li class="done">Seven single-player shards on one engine</li>
-      <li class="done">The shard package</li>
-      <li class="now">The grid: seamless travel between shards</li>
-      <li class="now">Every shard as data</li>
-      <li class="next">Multiplayer</li>
-      <li class="next">Upload</li>
-      <li class="next">The 25-shard world</li>
-    </ul>
-    <div class="log bk">
-      <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>devlog · generated from the build</span></div>
-      <ol>
-        <li><time>This week</time><p>Signal Dunes is the first shard to win its boss fight headless and replay it byte for byte.</p></li>
-        <li><time>This week</time><p>Every shard now fits in 1 GB on the phone.</p></li>
-        <li><time>Last week</time><p>The 3 × 3 grid: walk from shard to shard without a loading screen.</p></li>
-        <li><time>Last week</time><p>The shard package: a sealed file a server could load unchanged.</p></li>
-      </ol>
+    <div class="side">
+      <div class="q"><p class="ask">where are you now?</p></div>
+      <h2>Where we are.</h2>
+    </div>
+    <div class="body">
+      <ul class="road">
+        <li class="done">Seven single-player shards on one engine</li>
+        <li class="done">The shard package</li>
+        <li class="now">The grid: seamless travel between shards</li>
+        <li class="now">Every shard as data</li>
+        <li class="next">Multiplayer</li>
+        <li class="next">Upload</li>
+        <li class="next">The 25-shard world</li>
+      </ul>
+      <div class="log bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>devlog · generated from the build</span></div>
+        <ol>
+          <li><time>This week</time><p>Signal Dunes is the first shard to win its boss fight headless and replay it byte for byte.</p></li>
+          <li><time>This week</time><p>Every shard now fits in 1 GB on the phone.</p></li>
+          <li><time>Last week</time><p>The 3 × 3 grid: walk from shard to shard without a loading screen.</p></li>
+          <li><time>Last week</time><p>The shard package: a sealed file a server could load unchanged.</p></li>
+        </ol>
+    </div>
     </div>
   </section>
 
   <section id="who">
-    <div class="q"><p class="ask">who's building it?</p></div>
-    <h2>Built the way its authors will build.</h2>
-    <div class="who"><b>2</b><span>humans</span><b class="act">+</b><span>a fleet of Claude Code agents</span></div>
+    <div class="side">
+      <div class="q"><p class="ask">who's building it?</p></div>
+      <h2>Built the way its authors will build.</h2>
+    </div>
+    <div class="body">
+      <div class="who"><b>2</b><span>humans</span><b class="act">+</b><span>a fleet of Claude Code agents</span></div>
+    </div>
   </section>
 
   <section id="faq">
-    <div class="q"><p class="ask">questions</p></div>
-    <h2>FAQ.</h2>
-    <div class="faq">
-      <details open><summary>What can I play it on?</summary><p>Any modern browser, on desktop and phone. No install.</p></details>
-      <details><summary>Is it free?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
-      <details><summary>Do I need a Claude subscription to build?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
-      <details><summary>Who owns my shard?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
-      <details><summary>What can't a shard do?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+    <div class="side">
+      <div class="q"><p class="ask">questions</p></div>
+      <h2>FAQ.</h2>
+    </div>
+    <div class="body">
+      <div class="faq">
+        <details open><summary>What can I play it on?</summary><p>Any modern browser, on desktop and phone. No install.</p></details>
+        <details><summary>Is it free?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>Do I need a Claude subscription to build?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>Who owns my shard?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>What can't a shard do?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+    </div>
     </div>
   </section>
 
   <section id="install">
-    <div class="q"><p class="ask">can I keep it on my phone?</p></div>
-    <h2>Install it.</h2>
-    <div class="install bk">
-      <ol><li>Open the game in Safari or Chrome.</li><li>Tap Share, then <b>Add to Home Screen</b>.</li><li>It opens full screen, like an app.</li></ol>
-      <p>iOS and Android apps: coming</p>
+    <div class="side">
+      <div class="q"><p class="ask">can I keep it on my phone?</p></div>
+      <h2>Install it.</h2>
+    </div>
+    <div class="body">
+      <div class="install bk">
+        <ol><li>Open the game in Safari or Chrome.</li><li>Tap Share, then <b>Add to Home Screen</b>.</li><li>It opens full screen, like an app.</li></ol>
+        <p>iOS and Android apps: coming</p>
+    </div>
     </div>
   </section>
 </main>
 
 <section class="door-end" id="author">
   <div class="wrap">
-    <div class="q"><p class="ask">I want to build one</p></div>
-    <h2>Become an author.</h2>
-    <p class="lede">Join the waitlist for a creator key. Tell us the shard you'd build, and claim the empty cell you'd build it in.</p>
-    <div class="founding bk"><b>Founding authors:</b> the first authors to upload get a permanent Founding Author title and a plaque on their shard.</div>
-    <form class="bk" id="waitlist" novalidate>
-      <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/waitlist</span></div>
-      <label class="field"><span class="lab">Email</span><input type="email" name="email" placeholder="you@example.com" autocomplete="email" required></label>
-      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
-      <label class="field"><span class="lab">What would you build?</span><span class="prompt-field"><textarea name="build" rows="2" placeholder="build me a frozen fjord where you are the last ferryman"></textarea></span></label>
-      <div class="field"><span class="lab">Claim a cell (a wish, not a promise)</span>
-        <div class="claimmap map"><svg id="claim-map" viewBox="0 0 300 300" role="img" aria-label="Tap an empty cell to claim it"></svg></div></div>
-      <button class="send" type="submit"><span id="send-label">Join the waitlist</span> <small>enter ↵</small></button>
-      <p class="field lab" id="waitlist-note" style="margin:0;font-family:var(--mono);font-size:10.5px;color:var(--mute)">We only use your email to tell you when creator keys open.</p>
-    </form>
-    <div class="ends">
-      <a class="bk" href="#discord">Join the Discord</a>
-      <a class="bk" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play now ↗</a>
+    <div class="side">
+      <div class="q"><p class="ask">I want to build one</p></div>
+      <h2>Become an author.</h2>
+      <p class="lede">Join the waitlist for a creator key. Tell us the shard you'd build, and claim the empty cell you'd build it in.</p>
+      <div class="founding bk"><b>Founding authors:</b> the first authors to upload get a permanent Founding Author title and a plaque on their shard.</div>
     </div>
-    <p class="mail">or write to <a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></p>
+    <div class="body">
+      <form class="bk" id="waitlist" novalidate>
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/waitlist</span></div>
+        <label class="field"><span class="lab">Email</span><input type="email" name="email" placeholder="you@example.com" autocomplete="email" required></label>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <label class="field"><span class="lab">What would you build?</span><span class="prompt-field"><textarea name="build" rows="2" placeholder="build me a frozen fjord where you are the last ferryman"></textarea></span></label>
+        <div class="field"><span class="lab">Claim a cell (a wish, not a promise)</span>
+          <div class="claimmap map"><svg id="claim-map" viewBox="0 0 300 300" role="img" aria-label="Tap an empty cell to claim it"></svg></div></div>
+        <button class="send" type="submit"><span id="send-label">Join the waitlist</span> <small>enter ↵</small></button>
+      <p class="field lab" style="margin:0;font-family:var(--mono);font-size:10.5px;color:var(--mute)">We only use your email to tell you when creator keys open.</p>
+      </form>
+      <div class="ends">
+        <a class="bk" href="#discord">Join the Discord</a>
+        <a class="bk" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play now ↗</a>
+      </div>
+      <p class="mail">or write to <a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></p>
+    </div>
   </div>
 </section>
 <footer><span style="display:inline-flex;align-items:center;gap:8px"><img src="/favicon.svg" width="18" height="18" alt="">Project Wildshard</span><a href="#press">Press kit</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
@@ -588,9 +755,9 @@
   claimSvg.style.cursor = "pointer";
   claimSvg.addEventListener("click", function (ev) {
     var box = claimSvg.getBoundingClientRect(), x = (ev.clientX - box.left) / box.width * 300, y = (ev.clientY - box.top) / box.height * 300;
-    var c = Math.floor((x - 22) / 57), r = Math.floor((y - 22) / 57);
-    if (c < 0 || c > 4 || r < 0 || r > 4) return;
-    var id = COLS[c] + (r + 1);
+    var c = Math.floor((x - 22) / 57), row = Math.floor((y - 22) / 57);
+    if (c < 0 || c > 4 || row < 0 || row > 4) return;
+    var id = COLS[c] + (row + 1);
     if (id === "C3" || LIT[id]) return;
     claimed = claimed === id ? "" : id; redrawClaim();
   });
