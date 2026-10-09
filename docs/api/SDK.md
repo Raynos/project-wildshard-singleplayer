@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-274 members; 1 without a doc line (—).
+277 members; 1 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -109,6 +109,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `CommonsCosts` | type | @wildshard/sdk/commonsCosts | Parsed exact residency and geometry costs keyed by the pinned commons content hash. |
 | `CommonsCostSchema` | const | @wildshard/sdk/commonsCosts | Pinned commons bytes declare exact decoded/GPU bytes and triangle/draw counts as nonnegative safe integers. |
 | `CommonsCostsSchema` | const | @wildshard/sdk/commonsCosts | Bounded hash-addressed metadata for at most 1024 distinct required commons assets. |
+| `compileScript` | function | @wildshard/sdk/compileScript | Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json. |
+| `instrumentScript` | function | @wildshard/sdk/compileScript | No optimization is run after instrumentation: admission verifies these exact structural guards. |
 | `flock` | function | @wildshard/sdk/crowds | Admit finite crowd tuning before any world construction, setup draws or callback registration. |
 | `FlockData` | type | @wildshard/sdk/crowds | Stable ordered flock declaration with seeded placement and trusted native terrain/view/prey recipes. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
@@ -165,6 +167,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `newProject` | function | @wildshard/sdk/project | Create the canonical SDK project layout without replacing existing work. |
 | `projectAssets` | function | @wildshard/sdk/project | Preflight and read bounded immutable files from an author project or flat built product. |
 | `readProject` | function | @wildshard/sdk/project | Compile a trusted local TypeScript config; only its serialisable default export enters the product. |
+| `readProjectAssets` | function | @wildshard/sdk/project | Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. |
 | `validateProject` | function | @wildshard/sdk/project | Validate graph closure costs and actual bytes through the same admission used by the browser loader. |
 | `parseQuestData` | function | @wildshard/sdk/quests | Compile TypeScript author data after checking declared flags and graph references. |
 | `QuestData` | type | @wildshard/sdk/quests | Validated quest/dialogue declarations consumed by the platform runtime. |

@@ -150,6 +150,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [test-ios-compressed-upload.mjs](./test-ios-compressed-upload.mjs)
 - [test-nine-crash-reports.mjs](./test-nine-crash-reports.mjs)
 - [test-nine-native-startup.mjs](./test-nine-native-startup.mjs)
+- [test-sdk-authored-world.mjs](./test-sdk-authored-world.mjs)
 - [test-sdk-client.mjs](./test-sdk-client.mjs)
 - [test-sdk-distribution.mjs](./test-sdk-distribution.mjs)
 - [test-sdk-full-client.mjs](./test-sdk-full-client.mjs) — `<installed-product> <report.json> <sha> [first-party]`: normal Game stages, mounted equipment, real two-boundary tile driving, zero-download revisit, actual offline state restore and 15 scoped unloads. Optional `first-party` removes the embedded declaration and boots the canonical template descriptor. Run through browser-lane outside quiet windows; owns and closes its muted iPhone-sized browser and static server. Functional proof, not a frame-floor reading.

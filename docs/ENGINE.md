@@ -2469,7 +2469,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-900 exports, grouped by the module to import them from.
+901 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2497,7 +2497,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/grid/memoryAdmission`: `AdmissionMeasurement`, `MemoryAdmission`, `MemoryAdmissionRequest`, `MemoryAdmissionWarning`
 - `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
 - `@wildshard/game/grid/recoveryBoot`: `clearGridRecovery`, `consumeGridRecovery`, `gridRecoveryLoop`, `gridRecoveryRefused`, `pageGridRecovery`, `safeGridRecovery`
-- `@wildshard/game/grid/regionalRuntime`: `createRegionalRuntimeFactory`, `PreparedRegionalRuntime`, `regionalRuntimeAccountedBytes`, `RegionalRuntimeFactory`, `RegionalRuntimeFactoryPorts`, `RegionalRuntimeFoundation`, `RegionalRuntimePage`, `RegionalRuntimeRequest`
+- `@wildshard/game/grid/regionalRuntime`: `createRegionalRuntimeFactory`, `PreparedRegionalRuntime`, `regionalRuntimeAccountedBytes`, `RegionalRuntimeFactory`, `RegionalRuntimeFactoryPorts`, `RegionalRuntimeFoundation`, `RegionalRuntimePage`, `RegionalRuntimeRequest`, `RegionalRuntimeTextures`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `installGridTravellerCombat`, `reframeGridUnit`
 - `@wildshard/game/grid/runtimeRenderDependencies`: `RuntimeRenderDependencies`, `RuntimeRenderDependencyLease`
 - `@wildshard/game/grid/runtimeRenderPlan`: `compileRuntimeRenderPlan`, `RuntimeRenderChunk`, `RuntimeRenderDependency`, `RuntimeRenderDependencyScopes`, `RuntimeRenderFootprint`, `RuntimeRenderInventory`, `RuntimeRenderPlan`, `RuntimeRenderPorts`
@@ -2641,7 +2641,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-268 exports, grouped by the module to import them from.
+271 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2666,6 +2666,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/commons`: `buildCommons`, `BuiltCommons`, `CommonsAsset`, `CommonsCatalogue`, `CommonsEntry`, `CommonsPack`, `commonsRequirements`
 - `@wildshard/sdk/commonsCosts`: `assertCommonsCosts`, `CommonsCosts`, `CommonsCostSchema`, `CommonsCostsSchema`
+- `@wildshard/sdk/compileScript`: `compileScript`, `instrumentScript`
 - `@wildshard/sdk/crowds`: `flock`, `FlockData`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
 - `@wildshard/sdk/flyers`: `burstFlyer`, `BurstFlyerData`, `orbitDiver`, `OrbitDiverData`, `patrolDiver`, `PatrolDiverData`
@@ -2680,7 +2681,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/movers`: `MoverData`, `movers`
 - `@wildshard/sdk/plumbing`: `parsePlumbing`, `PlumbingData`, `PlumbingSchema`
 - `@wildshard/sdk/portalLink`: `parsePortalLink`, `PortalLink`, `PortalLinkSchema`
-- `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
+- `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `readProjectAssets`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/reportCard`: `PerformanceObservations`, `performanceReport`, `PerformanceReport`, `performanceReportLines`, `performanceTargetIssues`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`

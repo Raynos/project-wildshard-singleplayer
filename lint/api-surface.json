@@ -15054,6 +15054,12 @@
         "from": "@wildshard/game/grid/regionalRuntime"
       },
       {
+        "name": "RegionalRuntimeTextures",
+        "kind": "interface",
+        "doc": "One resolved texture policy shared by pre-allocation admission and the resident's builds/frames.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
         "name": "gridCanAct",
         "kind": "function",
         "doc": "Only the active writable shard interior accepts authoritative actions; visible neighbours are projections.",
@@ -20186,6 +20192,18 @@
         "from": "@wildshard/sdk/commonsCosts"
       },
       {
+        "name": "compileScript",
+        "kind": "function",
+        "doc": "Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json.",
+        "from": "@wildshard/sdk/compileScript"
+      },
+      {
+        "name": "instrumentScript",
+        "kind": "function",
+        "doc": "No optimization is run after instrumentation: admission verifies these exact structural guards.",
+        "from": "@wildshard/sdk/compileScript"
+      },
+      {
         "name": "flock",
         "kind": "function",
         "doc": "Admit finite crowd tuning before any world construction, setup draws or callback registration.",
@@ -20519,6 +20537,12 @@
         "name": "readProject",
         "kind": "function",
         "doc": "Compile a trusted local TypeScript config; only its serialisable default export enters the product.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "readProjectAssets",
+        "kind": "function",
+        "doc": "Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder.",
         "from": "@wildshard/sdk/project"
       },
       {

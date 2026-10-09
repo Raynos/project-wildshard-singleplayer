@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-900 members; 159 without a doc line (—).
+901 members; 159 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -154,6 +154,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RegionalRuntimeFoundation` | interface | @wildshard/game/grid/regionalRuntime | Required engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine |
 | `RegionalRuntimePage` | interface | @wildshard/game/grid/regionalRuntime | Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. |
 | `RegionalRuntimeRequest` | interface | @wildshard/game/grid/regionalRuntime | Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes. |
+| `RegionalRuntimeTextures` | interface | @wildshard/game/grid/regionalRuntime | One resolved texture policy shared by pre-allocation admission and the resident's builds/frames. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
