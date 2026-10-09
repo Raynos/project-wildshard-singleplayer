@@ -1946,7 +1946,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2250 exports, grouped by the module to import them from.
+2251 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2019,7 +2019,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/boot/contentCache`: `CONTENT_CACHE_NAME`, `ContentCache`, `ContentCachePorts`, `ContentCacheStats`
 - `@wildshard/engine/boot/extras`: `AudioBanks`, `bootFiles`, `extraFetches`, `Preload`, `startAudioPreload`, `startDeferredAudioPreload`, `startMenuPreload`
 - `@wildshard/engine/boot/filePolicy`: `filePolicy`
-- `@wildshard/engine/boot/gpuFiles`: `autoTexturePolicy`, `gpuFile`, `isRegisteredGpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`, `TexturePolicyBinding`
+- `@wildshard/engine/boot/gpuFiles`: `autoTexturePolicy`, `gpuFile`, `isRegisteredGpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`, `TexturePolicyBinding`, `textureReport`
 - `@wildshard/engine/boot/lastEnd`: `AliveInfo`, `lastEnd`, `LastEnd`, `lastEndLine`, `lastRecordedEnd`, `markReload`, `markUnload`, `PageLife`, `registerBeforeReload`, `ReloadReason`, `setAliveSource`
 - `@wildshard/engine/boot/pack`: `bootParts`, `packFor`, `streamPack`
 - `@wildshard/engine/boot/plan`: `ByteProgress`, `createBootPlan`, `formatMB`, `LogRow`, `macrotask`, `Plan`, `PlanOptions`, `ProgressView`, `runDirect`, `Sink`, `slicer`, `StepProgress`, `StepRunner`

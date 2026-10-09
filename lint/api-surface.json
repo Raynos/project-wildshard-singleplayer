@@ -2435,6 +2435,12 @@
         "from": "@wildshard/engine/boot/gpuFiles"
       },
       {
+        "name": "textureReport",
+        "kind": "function",
+        "doc": "what this page's textures load as and why, with the KTX2 capability probe's result (`__wildshard.textures()`, the perf panel)",
+        "from": "@wildshard/engine/boot/gpuFiles"
+      },
+      {
         "name": "AliveInfo",
         "kind": "interface",
         "doc": "what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' | 'shard'`,",

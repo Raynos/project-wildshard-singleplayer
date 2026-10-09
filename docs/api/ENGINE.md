@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2267 members; 835 without a doc line (—).
+2268 members; 835 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -413,6 +413,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TexMode` | type | @wildshard/engine/boot/gpuFiles | — |
 | `texModeWhy` | function | @wildshard/engine/boot/gpuFiles | the mode this page loads with, and why (fixed on the first call) |
 | `TexturePolicyBinding` | class | @wildshard/engine/boot/gpuFiles | One resident's immutable texture choice, resolved once with the ordinary Debug/Auto precedence. |
+| `textureReport` | function | @wildshard/engine/boot/gpuFiles | what this page's textures load as and why, with the KTX2 capability probe's result (`__wildshard.textures()`, the perf panel) |
 | `AliveInfo` | interface | @wildshard/engine/boot/lastEnd | what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' \| 'shard'`, |
 | `lastEnd` | function | @wildshard/engine/boot/lastEnd | — |
 | `LastEnd` | interface | @wildshard/engine/boot/lastEnd | — |
