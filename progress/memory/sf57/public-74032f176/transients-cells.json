@@ -1,0 +1,49 @@
+{
+ "leg": "cells",
+ "gamePid": 49449,
+ "samples": 1803,
+ "top": [
+  {
+   "mb": 35.5,
+   "at": 33.8,
+   "route": "c0 template-1-to-template-2 +9.7 s"
+  },
+  {
+   "mb": 35.4,
+   "at": 925.4,
+   "route": "c1 template-2-to-template-3 +7.6 s"
+  },
+  {
+   "mb": 17.5,
+   "at": 24.7,
+   "route": "c0 template-1-to-template-2 +0.6 s"
+  },
+  {
+   "mb": 15.3,
+   "at": 30.8,
+   "route": "c0 template-1-to-template-2 +6.7 s"
+  },
+  {
+   "mb": 14.8,
+   "at": 66,
+   "route": "c0 template-2-to-template-3 +0.0 s"
+  },
+  {
+   "mb": 13.7,
+   "at": 67,
+   "route": "c0 template-2-to-template-3 +1.1 s"
+  },
+  {
+   "mb": 10.9,
+   "at": 353.8,
+   "route": "c0 home-to-road-tour +66.3 s"
+  },
+  {
+   "mb": 10.4,
+   "at": 354.8,
+   "route": "c0 home-to-road-tour +67.3 s"
+  }
+ ],
+ "atLeast20MB": 2,
+ "atLeast40MB": 0
+}

@@ -1,0 +1,22 @@
+{
+  "sha": "74032f17647090ee864b98edaf33aa0ddde76741",
+  "out": "/private/tmp/claude-501/sp-builders/sf57-spike/soak/out",
+  "bases": [
+    {
+      "layout": "shipped",
+      "base": "http://127.0.0.1:4401/",
+      "version": {
+        "build": "74032f1-mv0uolj3",
+        "time": "2026-10-09T10:56:47.939Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "catalogue",
+  "dryRun": false,
+  "legs": [
+    "cells",
+    "road"
+  ],
+  "rehearsal": false
+}

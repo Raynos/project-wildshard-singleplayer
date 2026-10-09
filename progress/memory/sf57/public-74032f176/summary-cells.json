@@ -1,0 +1,156 @@
+{
+ "leg": "cells",
+ "sha": "74032f17647090ee864b98edaf33aa0ddde76741",
+ "purpose": "QUALIFYING: prepared conversions, continuous route",
+ "seconds": 1814.759,
+ "circuits": 4,
+ "failure": null,
+ "textures": {
+  "mode": "img",
+  "why": "auto: driftwood-isle's KTX2 set is not cached (yet)",
+  "probe": null
+ },
+ "renderScale": 2,
+ "developer": false,
+ "recorded": {
+  "functionalPass": false,
+  "memoryPass": false,
+  "gatePass": false,
+  "sampling": false,
+  "recovery": true,
+  "calibration": true,
+  "leakZero": true,
+  "missingGlSamples": 0,
+  "admitted": [
+   "template-1",
+   "template-2",
+   "template-3",
+   "driftwood-isle",
+   "template-4",
+   "template-5"
+  ],
+  "refused": [],
+  "crossroads": 16,
+  "rehearsal": false,
+  "peakMB": 840.9,
+  "loadingPeakMB": 887
+ },
+ "playingPeak": {
+  "combinedMB": 840.9,
+  "webContentMB": 596.7,
+  "glMB": 244.3,
+  "t": 89.7,
+  "phase": "drive",
+  "cycle": 0
+ },
+ "loadingPeak": {
+  "combinedMB": 887,
+  "webContentMB": 643.2,
+  "glMB": 243.7,
+  "t": 27.3,
+  "phase": "loading",
+  "cycle": null
+ },
+ "ratios": [
+  {
+   "cycle": 1,
+   "adjusted": 1.046
+  },
+  {
+   "cycle": 2,
+   "adjusted": 1.062
+  },
+  {
+   "cycle": 3,
+   "adjusted": 1.069
+  },
+  {
+   "cycle": 4,
+   "adjusted": 1.074
+  }
+ ],
+ "loops": [
+  {
+   "cycle": 0,
+   "complete": true,
+   "peakMB": 840.9,
+   "troughMB": 740.5
+  },
+  {
+   "cycle": 1,
+   "complete": true,
+   "peakMB": 793.5,
+   "troughMB": 753.2
+  },
+  {
+   "cycle": 2,
+   "complete": true,
+   "peakMB": 773.7,
+   "troughMB": 760.1
+  },
+  {
+   "cycle": 3,
+   "complete": true,
+   "peakMB": 777.1,
+   "troughMB": 763.4
+  },
+  {
+   "cycle": 4,
+   "complete": false,
+   "peakMB": 778.2,
+   "troughMB": 765.6
+  }
+ ],
+ "baselineDeltaMB": [
+  -19.8,
+  -6.9,
+  0,
+  3,
+  5.3
+ ],
+ "settled": [
+  {
+   "stop": "c0",
+   "samples": 13,
+   "webContentMB": 497.7,
+   "glMB": 243,
+   "accountedMB": 433.3
+  },
+  {
+   "stop": "c1",
+   "samples": 10,
+   "webContentMB": 508.3,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  },
+  {
+   "stop": "c2",
+   "samples": 11,
+   "webContentMB": 515.2,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  },
+  {
+   "stop": "c3",
+   "samples": 11,
+   "webContentMB": 518.2,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  },
+  {
+   "stop": "c4",
+   "samples": 10,
+   "webContentMB": 520.5,
+   "glMB": 245.3,
+   "accountedMB": 433.8
+  }
+ ],
+ "routes": 46,
+ "routeFailures": 0,
+ "entries": 27,
+ "evictions": 60,
+ "errors": 0,
+ "leak": {
+  "disposalErrors": 0
+ }
+}

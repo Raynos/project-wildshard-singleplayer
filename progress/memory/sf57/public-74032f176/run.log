@@ -1,0 +1,84 @@
+serve-build: building 74032f17647090ee864b98edaf33aa0ddde76741 74032f176 → /private/tmp/claude-501/sp-builders/sf57-spike/soak/out/serve/20261009-055541-4401/dist
+serve-build: pid 44649, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4401
+PREPARED /private/tmp/claude-501/sp-builders/sf57-spike/soak/out/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sf57-spike/soak/out/GO only after go
+sim-lane: created sf57-sp-x3-shipped-34532 (10C991D2-A182-49BC-B7A7-341EBC2C59AD)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[  32.3s] phase -> baseline-0
+{"layout":"shipped","cycle":0,"route":"driftwood-isle-to-template-1","seconds":0.142}
+[  56.5s] phase -> drive
+{"layout":"shipped","cycle":0,"route":"template-1-to-template-2","seconds":24.067}
+{"layout":"shipped","cycle":0,"route":"template-2-to-template-3","seconds":65.963}
+{"layout":"shipped","cycle":0,"route":"template-3-to-template-4","seconds":126.595}
+{"layout":"shipped","cycle":0,"route":"template-4-to-template-5","seconds":186.757}
+{"layout":"shipped","cycle":0,"route":"template-5-to-driftwood-isle","seconds":226.012}
+{"layout":"shipped","cycle":0,"route":"home-to-road-tour","seconds":287.514}
+{"layout":"shipped","cycle":0,"route":"road-0","seconds":366.259}
+{"layout":"shipped","cycle":0,"route":"road-1","seconds":366.39}
+{"layout":"shipped","cycle":0,"route":"road-2","seconds":387.599}
+{"layout":"shipped","cycle":0,"route":"road-3","seconds":408.222}
+{"layout":"shipped","cycle":0,"route":"road-4","seconds":428.908}
+{"layout":"shipped","cycle":0,"route":"road-5","seconds":449.922}
+{"layout":"shipped","cycle":0,"route":"road-6","seconds":471.161}
+{"layout":"shipped","cycle":0,"route":"road-7","seconds":492.533}
+{"layout":"shipped","cycle":0,"route":"road-8","seconds":513.492}
+{"layout":"shipped","cycle":0,"route":"road-9","seconds":534.452}
+{"layout":"shipped","cycle":0,"route":"road-10","seconds":555.731}
+{"layout":"shipped","cycle":0,"route":"road-11","seconds":577.538}
+{"layout":"shipped","cycle":0,"route":"road-12","seconds":599.284}
+{"layout":"shipped","cycle":0,"route":"road-13","seconds":620.614}
+{"layout":"shipped","cycle":0,"route":"road-14","seconds":641.632}
+{"layout":"shipped","cycle":0,"route":"road-15","seconds":662.466}
+{"layout":"shipped","cycle":0,"route":"road-16","seconds":683.195}
+{"layout":"shipped","cycle":0,"route":"road-17","seconds":722.892}
+{"layout":"shipped","cycle":0,"route":"road-tour-to-home","seconds":781.341}
+[ 897.8s] phase -> settle-1
+{"layout":"shipped","cycle":1,"route":"driftwood-isle-to-template-1","seconds":861.857}
+[ 917.9s] phase -> drive
+{"layout":"shipped","cycle":1,"route":"template-1-to-template-2","seconds":878.393}
+{"layout":"shipped","cycle":1,"route":"template-2-to-template-3","seconds":917.817}
+{"layout":"shipped","cycle":1,"route":"template-3-to-template-4","seconds":978.639}
+{"layout":"shipped","cycle":1,"route":"template-4-to-template-5","seconds":1039.583}
+{"layout":"shipped","cycle":1,"route":"template-5-to-driftwood-isle","seconds":1079.003}
+[1196.6s] phase -> settle-2
+{"layout":"shipped","cycle":2,"route":"driftwood-isle-to-template-1","seconds":1160.836}
+[1217.8s] phase -> drive
+{"layout":"shipped","cycle":2,"route":"template-1-to-template-2","seconds":1177.292}
+{"layout":"shipped","cycle":2,"route":"template-2-to-template-3","seconds":1217.134}
+{"layout":"shipped","cycle":2,"route":"template-3-to-template-4","seconds":1277.661}
+{"layout":"shipped","cycle":2,"route":"template-4-to-template-5","seconds":1338.328}
+{"layout":"shipped","cycle":2,"route":"template-5-to-driftwood-isle","seconds":1377.776}
+[1495.6s] phase -> settle-3
+{"layout":"shipped","cycle":3,"route":"driftwood-isle-to-template-1","seconds":1458.97}
+[1515.7s] phase -> drive
+{"layout":"shipped","cycle":3,"route":"template-1-to-template-2","seconds":1475.539}
+{"layout":"shipped","cycle":3,"route":"template-2-to-template-3","seconds":1515.917}
+{"layout":"shipped","cycle":3,"route":"template-3-to-template-4","seconds":1576.57}
+{"layout":"shipped","cycle":3,"route":"template-4-to-template-5","seconds":1637.424}
+{"layout":"shipped","cycle":3,"route":"template-5-to-driftwood-isle","seconds":1677.052}
+[1794.4s] phase -> settle-4
+{"layout":"shipped","cycle":4,"route":"driftwood-isle-to-template-1","seconds":1758.519}
+[1814.5s] phase -> drive
+{"layout":"shipped","cycle":4,"route":"template-1-to-template-2","seconds":1775.086}
+[1870.9s] phase -> unloaded
+[1894.0s] phase -> done
+{"phases": {"loading": {"samples": 25, "seconds": 31.3, "gamePid": 49449, "gameHighGB": 0.621, "gameSampledGB": 0.62, "allWebContentGB": 0.643, "gpuProcessGB": 0.183}, "baseline-0": {"samples": 24, "seconds": 23.1, "gamePid": 49449, "gameHighGB": 0.549, "gameSampledGB": 0.517, "allWebContentGB": 0.571, "gpuProcessGB": 0.179}, "drive": {"samples": 1722, "seconds": 1813.4, "gamePid": 49449, "gameHighGB": 0.597, "gameSampledGB": 0.562, "allWebContentGB": 0.633, "gpuProcessGB": 0.204}, "settle-1": {"samples": 20, "seconds": 19.1, "gamePid": 49449, "gameHighGB": 0.509, "gameSampledGB": 0.509, "allWebContentGB": 0.548, "gpuProcessGB": 0.196}, "settle-2": {"samples": 21, "seconds": 20.1, "gamePid": 49449, "gameHighGB": 0.516, "gameSampledGB": 0.516, "allWebContentGB": 0.556, "gpuProcessGB": 0.198}, "settle-3": {"samples": 20, "seconds": 19.1, "gamePid": 49449, "gameHighGB": 0.519, "gameSampledGB": 0.519, "allWebContentGB": 0.558, "gpuProcessGB": 0.198}, "settle-4": {"samples": 20, "seconds": 19.1, "gamePid": 49449, "gameHighGB": 0.522, "gameSampledGB": 0.521, "allWebContentGB": 0.561, "gpuProcessGB": 0.198}, "unloaded": {"samples": 23, "seconds": 22.2, "gamePid": 49449, "gameHighGB": 0.525, "gameSampledGB": 0.524, "allWebContentGB": 0.564, "gpuProcessGB": 0.17}}, "lost": []}
+{"layout":"shipped","contentCut":null,"requiredSeconds":1800,"memoryPass":false,"gatePass":false,"peakBytes":840929425,"loadingPeakBytes":886959213,"phoneEstimateBytes":1177301195,"baselines":[{"cycle":0,"start":1791543510.535,"end":1791543523.209,"samples":13,"bytes":740716181},{"cycle":1,"start":1791544374.498,"end":1791544385.022,"samples":10,"bytes":753596989},{"cycle":2,"start":1791544672.953,"end":1791544683.98,"samples":11,"bytes":760543853},{"cycle":3,"start":1791544971.906,"end":1791544982.154,"samples":11,"bytes":763509381},{"cycle":4,"start":1791545271.125,"end":1791545281.574,"samples":10,"bytes":765885085}],"baselineDeltaBytes":[-19827672,-6946864,0,2965528,5341232],"loops":[{"cycle":0,"complete":true,"peakBytes":840929425,"troughBytes":740486805},{"cycle":1,"complete":true,"peakBytes":793481229,"troughBytes":753245725},{"cycle":2,"complete":true,"peakBytes":773730173,"troughBytes":760110669},{"cycle":3,"complete":true,"peakBytes":777140361,"troughBytes":763371109},{"cycle":4,"complete":false,"peakBytes":778207841,"troughBytes":765599357}],"recovery":true,"calibration":true,"ratios":[{"cycle":1,"raw":1.7373434588155716,"adjusted":1.0457230764991667},{"cycle":2,"raw":1.7533587679341718,"adjusted":1.0617383856177671},{"cycle":3,"raw":1.7601954999646052,"adjusted":1.0685751176482003},{"cycle":4,"raw":1.7656724509937738,"adjusted":1.0740520686773691}],"missingGlSamples":0,"sampling":false,"leakZero":true,"admitted":["template-1","template-2","template-3","driftwood-isle","template-4","template-5"],"refused":[],"attemptedEveryCell":true,"crossroads":16,"rehearsal":false,"limitation":null}
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+                                                                                                      ^
+
+Error: /Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh exited 1
+    at ChildProcess.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36:103)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at Socket.<anonymous> (node:internal/child_process:481:11)
+    at Socket.emit (node:events:509:28)
+    at Pipe.<anonymous> (node:net:351:12)
+
+Node.js v24.18.1

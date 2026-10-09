@@ -1,0 +1,18 @@
+{
+ "shipped-cells.json": {
+  "rawBytes": 7912299,
+  "sha256": "0bc991d6c5fc81b596122f79ea5acda30f2087f20717d5d7eb0c03b2e964e3ee"
+ },
+ "shipped-cells-native.jsonl": {
+  "rawBytes": 446179,
+  "sha256": "50167bc930ab5d07bda1563c0d952af325dc269369126eb78274dcfb63d92522"
+ },
+ "shipped-cells-gl.jsonl": {
+  "rawBytes": 341414846,
+  "sha256": "09878f2c0f48fc08f6e5fd17c7975fbb2af5494843ab02abc0243bdb6efde723"
+ },
+ "shipped-cells-gl-events.jsonl": {
+  "rawBytes": 23542130,
+  "sha256": "0cd15cb1b31bff7232d19f77b3ad1e15228cf68725dce4415aa5e53a3765f655"
+ }
+}
