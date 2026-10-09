@@ -1,6 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { releaseDecodedOnUpload } from '../look/image';
+import { preloadSkyBodies } from '../species/bodies';
 import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Uint32BufferAttribute, Vector3, type BufferAttribute, type InterleavedBufferAttribute, type Object3D, type Texture } from 'three';
 
@@ -32,16 +33,25 @@ function flatten(mesh: Mesh): { pos: number[]; col: number[] } {
   return { pos, col };
 }
 
+/**
+ * The faceted intake: every mesh of a loaded generated model as one flat geometry (position, the AO-softened facet colour,
+ * flat normals), or null with no mesh. The runtime load and the offline creature bake (`generators/creatures.ts`) share it.
+ */
+export function facetedGeometry(scene: Object3D): BufferGeometry | null {
+  scene.updateMatrixWorld(true);
+  const pos: number[] = [], col: number[] = [];
+  scene.traverse((o) => { if (isMesh(o)) { const f = flatten(o); pos.push(...f.pos); col.push(...f.col); } });
+  if (pos.length === 0) return null;
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.computeVertexNormals(); g.computeBoundingBox(); return g;
+}
+
 async function load(name: SkyMeshName): Promise<void> {
   try {
-    const gltf = await loadRigFile(skyMeshUrl(name));
-    gltf.scene.updateMatrixWorld(true);
-    const pos: number[] = [], col: number[] = [];
-    gltf.scene.traverse((o) => { if (isMesh(o)) { const f = flatten(o); pos.push(...f.pos); col.push(...f.col); } });
-    if (pos.length === 0) throw new Error(`${name}: no mesh`);
-    const g = new BufferGeometry();
-    g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
-    g.computeVertexNormals(); g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
+    const gltf = await loadRigFile(skyMeshUrl(name)), g = facetedGeometry(gltf.scene);
+    if (g === null) throw new Error(`${name}: no mesh`);
+    retainCachedResources(g); ready.set(name, g);
     cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the code model stands in:`, e); }
 }
@@ -55,22 +65,31 @@ function floats(a: BufferAttribute | InterleavedBufferAttribute): Float32BufferA
   for (let i = 0; i < a.count; i++) for (let k = 0; k < a.itemSize; k++) out[i * a.itemSize + k] = a.getComponent(i, k);
   return new Float32BufferAttribute(out, a.itemSize);
 }
+/**
+ * The textured intake: the first indexed, UV-mapped mesh whose material `painted` accepts, as float position + uv in the
+ * file's frame with smooth normals, and its material; or null. The runtime load and the offline creature bake share it.
+ */
+export function hdGeometry(scene: Object3D, painted: (material: MeshStandardMaterial) => boolean): { geometry: BufferGeometry; material: MeshStandardMaterial } | null {
+  scene.updateMatrixWorld(true);
+  let found: { geometry: BufferGeometry; material: MeshStandardMaterial } | null = null;
+  scene.traverse((o) => {
+    if (found !== null || !isMesh(o)) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material, src = o.geometry, index = src.getIndex();
+    if (!(m instanceof MeshStandardMaterial) || !painted(m) || !src.hasAttribute('uv') || index === null) return;
+    const g = new BufferGeometry();
+    g.setAttribute('position', floats(src.getAttribute('position'))); g.setAttribute('uv', floats(src.getAttribute('uv')));
+    g.setIndex(new Uint32BufferAttribute(Uint32Array.from({ length: index.count }, (_, i) => index.getX(i)), 1));
+    g.applyMatrix4(o.matrixWorld); g.computeVertexNormals(); g.computeBoundingBox();
+    found = { geometry: g, material: m };
+  });
+  return found;
+}
+
 async function loadHd(name: SkyHdName): Promise<void> {
   try {
-    const gltf = await loadRigFile(skyHdUrl(name));
-    gltf.scene.updateMatrixWorld(true);
-    const found: SkyHd[] = [];
-    gltf.scene.traverse((o) => {
-      if (found.length > 0 || !isMesh(o)) return;
-      const m = Array.isArray(o.material) ? o.material[0] : o.material, src = o.geometry, index = src.getIndex();
-      if (!(m instanceof MeshStandardMaterial) || m.map === null || !src.hasAttribute('uv') || index === null) return;
-      const g = new BufferGeometry();
-      g.setAttribute('position', floats(src.getAttribute('position'))); g.setAttribute('uv', floats(src.getAttribute('uv')));
-      g.setIndex(new Uint32BufferAttribute(Uint32Array.from({ length: index.count }, (_, i) => index.getX(i)), 1));
-      g.applyMatrix4(o.matrixWorld); g.computeVertexNormals(); g.computeBoundingBox();
-      found.push({ geometry: g, map: m.map });
-    });
-    const one = found[0]; if (one === undefined) throw new Error(`${name}: no textured mesh`);
+    const gltf = await loadRigFile(skyHdUrl(name)), model = hdGeometry(gltf.scene, (m) => m.map !== null), map = model?.material.map ?? null;
+    const one: SkyHd | undefined = model === null || map === null ? undefined : { geometry: model.geometry, map };
+    if (one === undefined) throw new Error(`${name}: no textured mesh`);
     // Memory saver: the GLB's decoded atlas goes at its upload. Sky Reach never reads these maps on the CPU, every user
     // shares this one texture (no other sampler key), and the GLB is parsed afresh per visit (no cache keeps the source).
     const atlas: unknown = one.map.image;
@@ -80,9 +99,9 @@ async function loadHd(name: SkyHdName): Promise<void> {
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the faceted model stands in:`, e); }
 }
 
-/** Load every generated model once (a failed one is skipped). */
+/** Load every generated model and baked creature body once (a failed one is skipped). */
 export function preloadSkyMeshes(): Promise<void> {
-  loading ??= Promise.all([...SKY_MESHES.filter(name => !ready.has(name)).map(load), ...SKY_HD.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
+  loading ??= Promise.all([...SKY_MESHES.filter(name => !ready.has(name)).map(load), ...SKY_HD.filter(name => !hd.has(name)).map(loadHd), preloadSkyBodies()]).then(() => undefined);
   return loading;
 }
 

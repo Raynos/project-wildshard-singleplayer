@@ -17,12 +17,12 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/far-reach/models/mill/mill-foot.glb": "/assets/gpu/far-reach/models/mill/mill-foot-1ce9ad12.glb",
     "/assets/far-reach/models/mill/mill-tower.glb": "/assets/gpu/far-reach/models/mill/mill-tower-69879071.glb",
     "/assets/far-reach/models/post-hd/post-hd.glb": "/assets/gpu/far-reach/models/post-hd/post-hd-a79ab025.glb",
-    "/assets/far-reach/models/roc-hd/roc-hd.glb": "/assets/gpu/far-reach/models/roc-hd/roc-hd-a92d7ac4.glb",
     "/assets/far-reach/models/trees/tree-bush.glb": "/assets/gpu/far-reach/models/trees/tree-bush-f83b25e1.glb",
     "/assets/far-reach/models/trees/tree-oak.glb": "/assets/gpu/far-reach/models/trees/tree-oak-eec69fd1.glb",
     "/assets/far-reach/models/trees/tree-pine-tall.glb": "/assets/gpu/far-reach/models/trees/tree-pine-tall-137f635a.glb",
     "/assets/far-reach/models/trees/tree-pine-wide.glb": "/assets/gpu/far-reach/models/trees/tree-pine-wide-36ae0de0.glb",
-    "/assets/far-reach/models/trees/tree-pine-young.glb": "/assets/gpu/far-reach/models/trees/tree-pine-young-af30d3a7.glb"
+    "/assets/far-reach/models/trees/tree-pine-young.glb": "/assets/gpu/far-reach/models/trees/tree-pine-young-af30d3a7.glb",
+    "/assets/far-reach/rigs/storm-roc.glb": "/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb"
   },
   "desktop": {}
 };

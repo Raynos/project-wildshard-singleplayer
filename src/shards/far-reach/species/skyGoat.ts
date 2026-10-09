@@ -2,11 +2,11 @@ import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { BoxGeometry, ConeGeometry, type BufferGeometry } from 'three';
-import { bindRigid, fit, skyMesh } from '../world/meshes';
+import { BoxGeometry, ConeGeometry } from 'three';
 import { STRINGS } from '../data/strings';
 import { SKY_GOAT_VARIANTS } from '../runtime/variants';
 import { hull } from './rig';
+import { skyBody } from './bodies';
 
 /** `drop`: how far below its deck a goat counts as falling (metres). */
 export const GOAT = { graze: 1.2, ram: 7.5, notice: 9, rimMargin: 2.5, drop: 1.5 } as const;
@@ -33,46 +33,11 @@ function goatCode(): AnimalSpecies {
     ])],
     dims: { bodyY: 0.85, bodyHalfLen: 0.6, bodyRadius: 0.35, headRadius: 0.22, legLen: 0.7, feet: [], halfWidth: 0.35 } };
 }
-/** The cream the goat's coat leans toward (linear rgb, #f9efdc): warm enough to stay cream under the violet sky light. */
-const CREAM = [0.95, 0.87, 0.72] as const;
-/** How far a bright facet moves toward CREAM; a dark one (horns, hooves) keeps its own colour. */
-const COAT_LIFT = 0.62;
 /**
- * The goat's coat read mauve under Sky Reach's violet sky light (C6 board). The generated albedo carries purple shading
- * (blue over green): those facets lose that blue, then every facet moves toward a warm cream by its brightness.
+ * The body: the generated goat (C6, Hunyuan3D-2), its coat warmed to cream and its legs rigged, baked offline by
+ * `generators/creatures.ts`; the code goat when the bake is not loaded (headless, a failed load).
  */
-export function warmCoat(g: BufferGeometry): BufferGeometry {
-  const c = g.getAttribute('color');
-  for (let i = 0; i < c.count; i++) {
-    const r = c.getX(i), gr = c.getY(i), bl = Math.min(c.getZ(i), gr * 0.9), lum = 0.2126 * r + 0.7152 * gr + 0.0722 * bl;
-    const t = COAT_LIFT * Math.min(1, Math.max(0, (lum - 0.02) / 0.25));
-    c.setXYZ(i, r + (CREAM[0] - r) * t, gr + (CREAM[1] - gr) * t, bl + (CREAM[2] - bl) * t);
-  }
-  c.needsUpdate = true; return g;
-}
-/** Leg facets: below this share of the goat's height. */
-const GOAT_LEG = 0.42;
-/**
- * The generated goat (C6: Hunyuan3D-2 from `art/far-reach/round-7-models/ref-goat.jpg`): 1.45 m nose to tail, hooves at
- * y 0. Facets low under the body ride the leg of their quadrant (each leg bone sits at its leg's top); the front third
- * above the shoulder is the head and horns.
- */
-function goatMesh(source: BufferGeometry): AnimalSpecies {
-  const g = warmCoat(fit(source, { size: 1.45, by: 'span', floor: 0 })), b = g.boundingBox, p = g.getAttribute('position');
-  const h = b ? b.max.y : 1.3, z0 = b ? b.min.z : -0.7, z1 = b ? b.max.z : 0.7, legTop = h * GOAT_LEG, head = z1 - (z1 - z0) * 0.3;
-  // each leg's top: the mean x / z of its quadrant's low vertices
-  const sum = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], quad = (x: number, z: number): number => (z > 0 ? 0 : 2) + (x > 0 ? 0 : 1);
-  for (let i = 0; i < p.count; i++) if (p.getY(i) < legTop * 0.8 && p.getZ(i) < head) { const q = sum[quad(p.getX(i), p.getZ(i))]; if (q) { q[0] = (q[0] ?? 0) + p.getX(i); q[1] = (q[1] ?? 0) + p.getZ(i); q[2] = (q[2] ?? 0) + 1; } }
-  const top = (q: number, x: number, z: number): [number, number, number] => { const s = sum[q], n = s?.[2] ?? 0; return n > 0 ? [(s?.[0] ?? 0) / n, legTop, (s?.[1] ?? 0) / n] : [x, legTop, z]; };
-  bindRigid(g, (x, y, z) => z > head && y > h * 0.5 ? 1 : y < legTop && z <= head + 0.05 ? LEG_FL + quad(x, z) : BODY);
-  return { bones: [{ name: 'body', parent: null, pos: [0, h * 0.55, 0] }, { name: 'head', parent: 'body', pos: [0, h * 0.62, head] },
-    { name: 'legFL', parent: 'body', pos: top(0, 0.2, 0.4) }, { name: 'legFR', parent: 'body', pos: top(1, -0.2, 0.4) },
-    { name: 'legBL', parent: 'body', pos: top(2, 0.2, -0.4) }, { name: 'legBR', parent: 'body', pos: top(3, -0.2, -0.4) }],
-    furParts: [], eyeParts: [], hardParts: [g],
-    dims: { bodyY: h * 0.55, bodyHalfLen: (z1 - z0) / 2, bodyRadius: 0.35, headRadius: 0.22, legLen: legTop, feet: [], halfWidth: 0.35 } };
-}
-/** The body: the generated model when it loaded, else the code one. */
-export const goatBody = (): AnimalSpecies => { const g = skyMesh('sky-goat'); return g ? goatMesh(g) : goatCode(); };
+export const goatBody = (): AnimalSpecies => skyBody('sky-goat') ?? goatCode();
 export const SKY_GOAT_LOOK: SpeciesLook = { id: 'far.look.skyGoat', species: SKY_GOAT.id, kind: 'skyGoat', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.skyGoat', sockets: ['body', 'head', 'legFL', 'legFR', 'legBL', 'legBR'], clips: ['idle', 'walk', 'attack', 'hit', 'die'] },
   build: () => goatBody(),

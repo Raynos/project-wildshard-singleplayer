@@ -78,7 +78,9 @@
     "./items/lashView": "./items/lashView.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
-    "./modelGeometry": "./modelGeometry.ts"
+    "./modelGeometry": "./modelGeometry.ts",
+    "./skinnedModel": "./skinnedModel.ts",
+    "./bake/skinned": "./bake/skinned.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

@@ -1,13 +1,15 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import { GPU_FILES } from '../ktx2.generated';
+import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../data/creatures';
 
-/** The generated models (C6, and the rope-bridge kit): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. */
-export type SkyMeshName = 'storm-roc' | 'sky-goat' | 'drift-ray' | 'wind-vane' | 'bridge-post' | 'bridge-deck' | 'keeper';
-export const SKY_MESHES: readonly SkyMeshName[] = ['storm-roc', 'sky-goat', 'drift-ray', 'wind-vane', 'bridge-post', 'bridge-deck', 'keeper'];
+/**
+ * The generated models (C6, and the rope-bridge kit): loaded by `world/meshes.ts`, listed here so the boot and the offline
+ * cache fetch them. The creatures' sources are read only by their offline bake (`data/creatures.ts`).
+ */
+export type SkyMeshName = 'wind-vane' | 'bridge-post' | 'bridge-deck' | 'keeper';
+export const SKY_MESHES: readonly SkyMeshName[] = ['wind-vane', 'bridge-post', 'bridge-deck', 'keeper'];
 const URLS: Readonly<Record<SkyMeshName, string>> = {
-  'storm-roc': '/assets/far-reach/models/storm-roc/storm-roc.glb', 'sky-goat': '/assets/far-reach/models/sky-goat/sky-goat.glb',
-  'drift-ray': '/assets/far-reach/models/drift-ray/drift-ray.glb',
   'wind-vane': '/assets/far-reach/models/wind-vane/wind-vane.glb', 'bridge-post': '/assets/far-reach/models/bridge-post/bridge-post.glb',
   'bridge-deck': '/assets/far-reach/models/bridge-deck/bridge-deck.glb', keeper: '/assets/far-reach/models/keeper/keeper.glb',
 };
@@ -17,10 +19,10 @@ export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
  * 2048 paint, decimated, the paint kept as a 1024 WebP map on its UVs (the faceted vertex-colour path reads low-poly up
  * close). The faceted models above stay the fallback.
  */
-export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd' | 'tree-pine-tall' | 'tree-pine-wide' | 'tree-pine-young' | 'tree-oak' | 'tree-bush' | 'crown-stone' | 'crown-stone-b' | 'crown-dais' | 'lectern-hd' | 'lantern-hd' | 'mill-tower' | 'mill-foot';
-export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd', 'tree-pine-tall', 'tree-pine-wide', 'tree-pine-young', 'tree-oak', 'tree-bush', 'crown-stone', 'crown-stone-b', 'crown-dais', 'lectern-hd', 'lantern-hd', 'mill-tower', 'mill-foot'];
+export type SkyHdName = 'keeper-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd' | 'tree-pine-tall' | 'tree-pine-wide' | 'tree-pine-young' | 'tree-oak' | 'tree-bush' | 'crown-stone' | 'crown-stone-b' | 'crown-dais' | 'lectern-hd' | 'lantern-hd' | 'mill-tower' | 'mill-foot';
+export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd', 'tree-pine-tall', 'tree-pine-wide', 'tree-pine-young', 'tree-oak', 'tree-bush', 'crown-stone', 'crown-stone-b', 'crown-dais', 'lectern-hd', 'lantern-hd', 'mill-tower', 'mill-foot'];
 const HD_URLS: Readonly<Record<SkyHdName, string>> = {
-  'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb', 'roc-hd': '/assets/far-reach/models/roc-hd/roc-hd.glb',
+  'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb',
   'post-hd': '/assets/far-reach/models/post-hd/post-hd.glb',
   // the war fan's gloved hand (weapons/glove.ts heroHand, art/far-reach/round-20-fan-hand/)
   'hand-hd': '/assets/far-reach/fan/hand-hd.glb',
@@ -62,10 +64,11 @@ export const FAN_LEAF_URL = '/assets/far-reach/fan/leaf.webp';
 /** The painted 360° sky (look/sky.ts), one strip per tier. */
 export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
 
-/** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`) and its baked world pieces (`world/baked.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
+/** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and creature bodies (`species/bodies.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
 // The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name))), ...BAKED_PIECES.map(bakedUrl)], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
+  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name))), ...BAKED_PIECES.map(bakedUrl),
+    ...SKY_CREATURES.map((creature) => filePolicy(tier, tex, GPU_FILES).gpu(SKY_CREATURE_RIGS[creature]))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/far-reach/round-29-lut/). */

@@ -6,7 +6,7 @@ import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, V
 import { DECK } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { DRIFT_RAY_VARIANTS } from '../runtime/variants';
-import { bindRigid, fit, skyMesh } from '../world/meshes';
+import { skyBody } from './bodies';
 
 /** How the ray flies: its circle speed, how high it hangs over the player before the dive, its dive speed, its rest after one. */
 export const RAY = { circleSpeed: 8, hang: 9, stalkSpeed: 10, diveSpeed: 16, rest: 6, notice: 40, giveUp: 60 } as const;
@@ -51,45 +51,11 @@ function rayCode(): AnimalSpecies {
     furParts: [], hardParts: [rayGeometry()], eyeParts: [],
     dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } };
 }
-/** Where a fin starts (metres off the centre line): outboard of it a facet rides its wing bone. */
-const RAY_WING_ROOT = 0.85;
 /**
- * The generated ray (C6: Hunyuan3D-2 from `art/far-reach/round-7-models/ref-manta.jpg`): 5.4 m fin to fin, its middle at
- * the body bone. Facets outboard of the fin roots ride the wings; the back of the centre line (the whip) rides the tail.
+ * The body: the generated manta (C6, Hunyuan3D-2) in the mockup's pale blues, its fins and whip rigged, baked offline by
+ * `generators/creatures.ts`; the code ray when the bake is not loaded (headless, a failed load).
  */
-function rayMesh(source: BufferGeometry): AnimalSpecies {
-  const g = fit(source, { size: 5.4, by: 'span', middle: 0.3 }), p = g.getAttribute('position');
-  let z0 = Infinity, z1 = -Infinity;
-  for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < RAY_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
-  const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.18, tail = z0 + len * 0.45;
-  bindRigid(g, (x, _y, z) => x > RAY_WING_ROOT ? WING_L : x < -RAY_WING_ROOT ? WING_R : z > head ? HEAD : z < tail ? TAIL : BODY);
-  paleRay(g, tail);
-  return { bones: [{ name: 'body', parent: null, pos: [0, 0.3, 0] }, { name: 'head', parent: 'body', pos: [0, 0.3, head] },
-    { name: 'wingL', parent: 'body', pos: [RAY_WING_ROOT, 0.3, 0] }, { name: 'wingR', parent: 'body', pos: [-RAY_WING_ROOT, 0.3, 0] }, { name: 'tail', parent: 'body', pos: [0, 0.3, tail] }],
-    furParts: [], hardParts: [g], eyeParts: [],
-    dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } };
-}
-/**
- * The mockup's manta (review item 9): pale sky blue on top, near-white below, the whip tail a brighter cyan. The generated
- * model's own shading (its baked value) is kept as the shade, its hue replaced.
- */
-const RAY_PALE = { back: new Color(0x8fb4d6), belly: new Color(0xeef3f8), tail: new Color(0x9fe6f2) } as const;
-function paleRay(g: BufferGeometry, tailZ: number): void {
-  if (!g.hasAttribute('color')) return;
-  const c = g.getAttribute('color'), p = g.getAttribute('position'), n = g.hasAttribute('normal') ? g.getAttribute('normal') : null;
-  const out = new Color();
-  for (let i = 0; i < c.count; i++) {
-    const value = Math.min(1, 0.35 + 0.9 * (0.2126 * c.getX(i) + 0.7152 * c.getY(i) + 0.0722 * c.getZ(i)));
-    const up = n === null ? 1 : n.getY(i);
-    out.copy(up < -0.2 ? RAY_PALE.belly : RAY_PALE.back);
-    if (p.getZ(i) < tailZ && Math.abs(p.getX(i)) < RAY_WING_ROOT) out.copy(RAY_PALE.tail);
-    out.multiplyScalar(value);
-    c.setXYZ(i, out.r, out.g, out.b);
-  }
-  c.needsUpdate = true;
-}
-/** The body: the generated model when it loaded, else the code one. */
-export const rayBody = (): AnimalSpecies => { const g = skyMesh('drift-ray'); return g ? rayMesh(g) : rayCode(); };
+export const rayBody = (): AnimalSpecies => skyBody('drift-ray') ?? rayCode();
 export const DRIFT_RAY_LOOK: SpeciesLook = { id: 'far.look.driftRay', species: DRIFT_RAY.id, kind: 'driftRay', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.driftRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => rayBody(),
