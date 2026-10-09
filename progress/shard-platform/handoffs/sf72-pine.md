@@ -1,4 +1,4 @@
-# Handoff (sf72-pine) — 2026-10-08, SF72 Pine Hollow headless (herd brain landed by sf72-herds)
+# Handoff (sf72-pine) — 2026-10-08, SF72 Pine Hollow headless (herd placement reproduced in Node, sf72-pine2)
 
 Coordinator `wildshard-new` pushes. Pine's canonical witness (`test/proof/pine-hollow/`) is UNCHANGED and still fails
 closed. There is no `runtime/headless.ts` yet. Landed: the trusted native bake (floor, solid world, roster recipes) and
@@ -30,11 +30,21 @@ the inputs add `ai/hunt.ts`). Not yet measured: a desktop frame-floor row for Pi
 ran on the candidate: walk / combat / poses green; reds only in save-key fields (Nalati) and phone weather-texture leak
 fields (Pine), not compared against the parent build.
 
+## Herd placement in Node: landed (sf72-pine2, e4616421b)
+
+`runtime/fauna.ts` (the one fauna plan; the manifest reads it), `runtime/herds.ts` (`pineHuntGround(grid)`: terrain.bin
+samplers for height / normal, analytic trails / pads / creek / pond, baked trunks; `PINE_HERD_STREAM` = Rng(1337 + 31)),
+the bake's new `trees` (918). `herd-placement.test.ts` rolls all 160 bodies bit-identical to the bake. The one difference
+is the page's elite swap: `combat/elites.ts` (lines ~106-110) retires the rolled 'black-old' bear and spawns an ordinary
+one (creature:160, next draws on the same stream). Ids 157 (the retired roll) and 161-163 are allocated before the 4
+lair elites (164-167): find who takes 161-163 before reproducing ids. Parity: the Pine leak.textures /
+leak.weather.textures and Nalati save-key reds are present on fbd8b15b6 (334031a26's parent) too: they predate the herd
+brain. Use `HuntConfig.species` (bb6d93f69) for think/tuning; `spawnRolls` still reads the global registry (the test sets
+a resolver to the kit rows: a runtime needs a scoped answer, e.g. a `species` arg on spawnRolls as a small engine seam).
+
 ## Next (Pine headless), in order
 
-1. Reproduce herd placement in Node: `placeHerds` needs `isOpen` over the forest's trunks (`HuntGround.trees`) and the
-   water, so bake the tree positions (x, z, r) into `physics.baked.json` (or capture before the first tick), wire a
-   `HuntGround` from the baked heightfield, and verify seeds against `actors[].seed`.
+1. Elite swap headless: split `combat/elites.ts`'s roll-swap + EliteGoals from its views; reproduce creature:160's seed.
 2. `runtime/headless.ts`: `ground:false`, the baked heightfield through the engine `addTerrain(physics, grid)` (convert the
    column-major heights back to row-major) (the edge walls are already inside `solids`); the roster via `host.spawn`, the
    `HuntBrain.think` at the manager's cadence (20 Hz within 60 m, 10 Hz to 160 m), the four elites (`combat/elites.ts` EliteGoals, needs the view split), the Antler
