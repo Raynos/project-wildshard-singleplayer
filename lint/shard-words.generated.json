@@ -1,5 +1,6 @@
 {
   "slugs": [
+    "blender-template",
     "driftwood-isle",
     "far-reach",
     "nalati-grasslands",
@@ -8,6 +9,8 @@
     "sunscar-dunes"
   ],
   "words": [
+    "Blender Template",
+    "blender-template",
     "Driftwood Isle",
     "driftwood-isle",
     "far-reach",
@@ -66,6 +69,14 @@
       "settings": [],
       "assets": [
         "public/assets/_template/map/**"
+      ]
+    },
+    "blender-template": {
+      "name": "Blender Template",
+      "ids": [],
+      "settings": [],
+      "assets": [
+        "public/assets/blender-template/map/**"
       ]
     },
     "driftwood-isle": {

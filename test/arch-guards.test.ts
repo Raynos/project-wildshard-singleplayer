@@ -115,6 +115,8 @@ describe('AG9 shard layout', () => {
     expect(checkShardLayout({ emberfall: names.concat(['quest.ts']) }, config).join(',')).toContain('name the same concept');
     expect(checkShardLayout({ emberfall: names }, config, () => "export default { slug: 'wrong' };").join(',')).toContain('slug must equal');
     expect(checkShardLayout({ _template: [] }, config)).toEqual([]);
+    expect(checkShardLayout({ emberfall: names }, config, () => "export default { slug: 'emberfall' as const };")).toEqual([]);
+    expect(checkShardLayout({ emberfall: names }, config, () => "export default { slug: 'wrong' as const };").join(',')).toContain('slug must equal');
   });
   it('allows Thin Ice and the seven transition shards, but refuses new runtime folders', () => {
     const runtimeConfig = { ...config, folders: [...config.folders, 'runtime'] };

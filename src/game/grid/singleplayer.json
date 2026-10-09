@@ -91,6 +91,19 @@
         500,
         500
       ]
+    },
+    {
+      "instance": "blender-template-solo",
+      "slug": "blender-template",
+      "cell": [
+        -1,
+        -1
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
     }
   ],
   "grid": {
@@ -348,6 +361,14 @@
         "cell": [
           -1,
           0
+        ]
+      },
+      {
+        "instance": "blender-template-1",
+        "slug": "blender-template",
+        "cell": [
+          -1,
+          -1
         ]
       }
     ],

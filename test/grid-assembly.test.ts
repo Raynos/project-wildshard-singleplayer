@@ -10,18 +10,18 @@ it('assembles shipped, Developer and DEVSERVER grids exclusively from the platfo
   for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
     const grid = new GridAssembly({ developer, devserver, nineDragon });
     const nine = devserver && nineDragon ? 1 : 0; // G198: the cells without a shard alternate Template copies and open plots
-    expect(grid.cells).toHaveLength(6 + nine); expect(grid.plots).toHaveLength(3 - nine); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
+    expect(grid.cells).toHaveLength(6 + nine + (developer ? 1 : 0)); expect(grid.plots).toHaveLength(3 - nine - (developer ? 1 : 0)); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
     expect(grid.cell('driftwood-isle').cell).toEqual([0, 0]);
     expect(grid.cell('pine-hollow').cell).toEqual([0, 1]);
     expect(grid.cell('nalati-grasslands').cell).toEqual([1, 0]);
     expect(grid.at(-555, 0)?.slug).toBe(developer ? 'sunscar-dunes' : '_template');
     expect(grid.at(0, -555)?.slug).toBe('far-reach');
     expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : undefined);
-    expect(grid.plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', 'open-plot-sw', ...(nine === 1 ? [] : ['open-plot-se'])]);
+    expect(grid.plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', ...(developer ? [] : ['open-plot-sw']), ...(nine === 1 ? [] : ['open-plot-se'])]);
     expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(2 - (developer ? 1 : 0));
   }
   expect(new GridAssembly({ developer: false, devserver: true }).at(555, -555)?.slug).toBe('nine-dragon-stack');
-  expect(catalogue.placements).toHaveLength(7);
+  expect(catalogue.placements).toHaveLength(8);
 });
 
 it('admits G258 Pine, Nalati and Sky Reach in the same public and Developer cells', () => {

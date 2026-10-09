@@ -8,9 +8,11 @@
     "nalati-grasslands": 33094,
     "nine-dragon-stack": 25166,
     "pine-hollow": 21698,
-    "sunscar-dunes": 4825
+    "sunscar-dunes": 4825,
+    "blender-template": 90
   },
   "enforced": {
-    "_template": 0
+    "_template": 0,
+    "blender-template": 0
   }
 }

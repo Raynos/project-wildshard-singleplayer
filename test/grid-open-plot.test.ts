@@ -22,9 +22,9 @@ it('keeps the three open plots while G258 opens the three approved public shards
   expect(kinds).toEqual(['plot', 'shard', 'template', 'shard', 'plot', 'shard', 'plot', 'template']);
   // a plot is never a shard cell: no slug, no `at` hit, no instance lookup
   for (const plot of grid.plots) { expect(grid.at(plot.origin.x, plot.origin.z)).toBeUndefined(); expect(() => grid.cell(plot.instance)).toThrow(); }
-  // Developer keeps all three plots (Signal Dunes overrides a Template cell); a DEVSERVER override replaces the SE plot
-  expect(new GridAssembly({ developer: true, devserver: false }).plots).toHaveLength(3);
-  expect(new GridAssembly({ developer: true, devserver: true }).plots.map((row) => row.instance)).toEqual(['open-plot-nw', 'open-plot-sw']);
+  // Developer fills the SW plot with Blender Template; DEVSERVER also replaces the SE plot.
+  expect(new GridAssembly({ developer: true, devserver: false }).plots.map((row) => row.instance)).toEqual(['open-plot-nw', 'open-plot-se']);
+  expect(new GridAssembly({ developer: true, devserver: true }).plots.map((row) => row.instance)).toEqual(['open-plot-nw']);
 });
 
 it('refuses a base layout that leaves a place empty, fills one twice or overrides nothing', () => {

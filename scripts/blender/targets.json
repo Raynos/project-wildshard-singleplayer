@@ -186,6 +186,29 @@
    "lock": false,
    "outputs": ["public/assets/far-reach/models/roc-hd/roc-hd.glb"],
    "feeds": ["src/shards/far-reach/species/stormRoc.ts"]
+  },
+  "blender-template": {
+   "about": "SF55 fully authored clay cell: four entry landmarks, hall and one textured door",
+   "script": "scripts/blender/blender-template/world.py",
+   "args": [
+    "$BUILD"
+   ],
+   "lock": true,
+   "build": [
+    "world.glb"
+   ],
+   "copy": [
+    [
+     "world.glb",
+     "src/shards/blender-template/assets/world.glb"
+    ]
+   ],
+   "outputs": [
+    "src/shards/blender-template/assets/world.glb"
+   ],
+   "feeds": [
+    "src/shards/blender-template/shard.config.ts"
+   ]
   }
  }
 }

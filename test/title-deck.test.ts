@@ -37,8 +37,8 @@ describe('title deck cards', () => {
     setDev(true);
     const deck = buildTitleDeck({ cards: titleCards(), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined });
     const ribbons = [...deck.root.querySelectorAll('.ws-menu-card-exp')].filter((el) => el.textContent === 'DEVELOPER ONLY');
-    expect(ribbons).toHaveLength(1);
-    expect(ribbons[0]?.closest('button')?.textContent).toContain('Template shard');
+    expect(ribbons).toHaveLength(2);
+    expect(ribbons.map(row => row.closest('button')?.textContent)).toEqual(expect.arrayContaining([expect.stringContaining('Template shard'), expect.stringContaining('Blender Template')]));
     deck.dispose();
   });
 

@@ -1,0 +1,184 @@
+{
+  "blender-template": [
+    {
+      "name": "north rise entry to hub",
+      "start": {
+        "x": 0,
+        "z": 245,
+        "yaw": 0
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": 232
+        },
+        {
+          "x": 0,
+          "z": 188
+        },
+        {
+          "x": 0,
+          "z": 54
+        },
+        {
+          "x": -18,
+          "z": 54
+        },
+        {
+          "x": -18,
+          "z": 0
+        },
+        {
+          "x": 0,
+          "z": 0
+        }
+      ],
+      "timeout": 100,
+      "expect": {
+        "y": 0
+      }
+    },
+    {
+      "name": "east colonnade entry to hub",
+      "start": {
+        "x": 245,
+        "z": 0,
+        "yaw": 1.5708
+      },
+      "waypoints": [
+        {
+          "x": 175,
+          "z": 0
+        },
+        {
+          "x": 20,
+          "z": 0
+        },
+        {
+          "x": 0,
+          "z": 0
+        }
+      ],
+      "timeout": 85,
+      "expect": {
+        "y": 0
+      }
+    },
+    {
+      "name": "west court entry to hub",
+      "start": {
+        "x": -245,
+        "z": 0,
+        "yaw": -1.5708
+      },
+      "waypoints": [
+        {
+          "x": -180,
+          "z": 0
+        },
+        {
+          "x": -20,
+          "z": 0
+        },
+        {
+          "x": 0,
+          "z": 0
+        }
+      ],
+      "timeout": 85,
+      "expect": {
+        "y": 0
+      }
+    },
+    {
+      "name": "south arch entry to hub",
+      "start": {
+        "x": 0,
+        "z": -245,
+        "yaw": 3.1416
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": -190
+        },
+        {
+          "x": 0,
+          "z": -20
+        },
+        {
+          "x": 0,
+          "z": 0
+        }
+      ],
+      "timeout": 85,
+      "expect": {
+        "y": 0
+      }
+    },
+    {
+      "name": "north bridge ascent and crossing",
+      "start": {
+        "x": 92,
+        "z": 182,
+        "yaw": 1.5708
+      },
+      "waypoints": [
+        {
+          "x": 18,
+          "z": 182
+        },
+        {
+          "x": 10,
+          "z": 182
+        },
+        {
+          "x": 12,
+          "z": 195
+        },
+        {
+          "x": 12,
+          "z": 209
+        },
+        {
+          "x": 0,
+          "z": 209
+        },
+        {
+          "x": -20,
+          "z": 204
+        }
+      ],
+      "timeout": 50,
+      "expect": {
+        "y": 19.2
+      }
+    },
+    {
+      "name": "hall roof ascent and overhang",
+      "start": {
+        "x": 29,
+        "z": 28,
+        "yaw": 1.5708
+      },
+      "waypoints": [
+        {
+          "x": 10,
+          "z": 28
+        },
+        {
+          "x": 4,
+          "z": 28
+        },
+        {
+          "x": -4,
+          "z": 28
+        }
+      ],
+      "timeout": 15,
+      "expect": {
+        "y": 5.6
+      }
+    }
+  ]
+}

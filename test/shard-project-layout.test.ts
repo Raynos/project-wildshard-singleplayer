@@ -9,9 +9,9 @@ it('accepts pure shardfile projects and still requires plugins for legacy projec
   expect(checkShardLayout({ example: ['shard.config.ts', 'README.md', 'assets/', 'behaviour/', 'quests/'] }, layout)).toEqual([]);
   expect(checkShardLayout({ example: ['manifest.ts', 'README.md', 'roster.ts', 'budgets.ts'] }, layout)).toContain('example: missing required plugin.ts');
 });
-it('gets all seven unchanged placements exclusively from the platform catalogue', () => {
+it('gets all eight declared placements exclusively from the platform catalogue', () => {
   const grid = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')) as { placements: { slug: string; cell: number[]; size: number[]; instance: string }[] };
-  expect(grid.placements).toHaveLength(7);
+  expect(grid.placements).toHaveLength(8);
   for (const p of grid.placements) {
     expect(SHARDS.find((s) => s.slug === p.slug)?.placement).toEqual({ grid: p.cell, size: p.size, instance: p.instance });
     expect(readFileSync(`src/shards/${p.slug}/manifest.ts`, 'utf8')).not.toContain('placement:');

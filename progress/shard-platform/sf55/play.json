@@ -1,0 +1,105 @@
+{
+  "source": {
+    "worldSha256": "6e06995b63aa2a05b1270a15b368ce671a508634bebaa7d5caa843f2acd9f015",
+    "clientBuild": "b-mv16y1lm",
+    "surface": "Chromium, iPhone 16 Pro emulation",
+    "server": "public SDK compiled client",
+    "note": "Gameplay captures precede the flat-floor tessellation change; architecture and behaviour are unchanged."
+  },
+  "realInput": {
+    "closedDoorStopZ": 15.07501061597577,
+    "closedColliderActive": true,
+    "openedSharedField101": 1,
+    "openedColliderActive": false,
+    "hallArrival": [
+      0,
+      0.02,
+      28.11331
+    ],
+    "questCoins": 5,
+    "guardianKillsPlayer": true,
+    "retrySpawn": [
+      0,
+      0.02,
+      9
+    ],
+    "retryCoins": 5
+  },
+  "screenshots": {
+    "door": "spawn view, closed panel",
+    "interior": "live hall after quest; x=0,z=24.8834",
+    "entry-rise": "standing pose at north boundary, then 1.5 seconds forward input",
+    "bridge": "standing approach at y=19.3, then 1.1 seconds forward input"
+  },
+  "limits": {
+    "playingEstimateMB": 741.122283,
+    "loadingEstimateMB": 821.122283,
+    "physicalPhoneMeasured": false
+  },
+  "pending": [
+    "quiet desktop and Simulator frame floor",
+    "sourceManifest/presentation facade"
+  ],
+  "normalApp": {
+    "build": "b-mv19clja",
+    "surface": "Chromium, iPhone 16 Pro, 2x selected through Settings",
+    "developer": true,
+    "entry": "SHARD SELECT data-product button",
+    "closedDoorStopZ": 15.0751184,
+    "closedColliderActive": true,
+    "openedSharedField101": 1,
+    "openedColliderActive": false,
+    "questCoins": 5,
+    "guardianKillsPlayer": true,
+    "retryHealth": 100,
+    "retrySpawn": [
+      0,
+      0.02,
+      9
+    ],
+    "retryCoins": 5,
+    "note": "App build preceded the final spawn heading change; turned yaw to pi before normal movement. Optimized collision geometry and gameplay are the final source."
+  },
+  "normalAppPlacedGrid": {
+    "build": "b-mv1a0yet",
+    "surface": "Chromium, iPhone 16 Pro",
+    "renderScale": 2,
+    "intent": "existing one-shot Blender placed-home tap intent",
+    "entered": "normal Infinite Wildshard button",
+    "appState": "play",
+    "home": "blender-template-1",
+    "inside": "blender-template-1",
+    "cell": [
+      -1,
+      -1
+    ],
+    "cellShows": "playing",
+    "residentHomeBytes": 1095502,
+    "gameplayReady": true,
+    "issues": {},
+    "spawn": [
+      0,
+      0.02,
+      9
+    ],
+    "spawnYaw": 3.141592653589793,
+    "closedDoorStopZ": 15.0749982953,
+    "hallArrival": [
+      -0.004,
+      0.02,
+      28.026
+    ],
+    "questCoins": 5,
+    "flags": [
+      "blender.door",
+      "blender.guardian",
+      "blender.complete"
+    ],
+    "movement": "ordinary held forward input, use pressed at closed door"
+  },
+  "currentSource": {
+    "src/shards/blender-template/assets/world.glb": "8500f99e84327befd28d3ebe37b6e823d22b0ef43b53d283ad90937b99234c39",
+    "src/shards/blender-template/shard.config.ts": "9500deed49d74609081b0c610188bcee8948a8bb9d40c034ae3cd8087bc1c68d",
+    "scripts/blender/blender-template/world.py": "4cbcce9898f0ad149f36acb8181e76e22292a42ab5ed2aa7dbdc477cb7c85718"
+  }
+}

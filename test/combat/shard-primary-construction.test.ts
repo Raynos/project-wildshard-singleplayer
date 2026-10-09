@@ -14,6 +14,7 @@ import { toLevelSpec } from '../../src/game/shard/spec';
 import { installDeclaredItems } from '../../src/game/shardfile/items';
 import { declaredKitItemFamilies } from '../../src/game/systems/items/declared';
 import { Sword } from '../../src/game/weapons/Sword';
+import { EmptyEquipment } from '../../src/game/shardfile/emptyEquipment';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import { WarFan } from '../../src/shards/far-reach/weapons/WarFan';
@@ -44,6 +45,7 @@ function callerWeapons(file: string, name: string, globals: Record<string, unkno
 interface Fixture { scope: Scope; services: App; world: ReturnType<typeof fakeWorld> }
 const emptyTargets = { raycast: () => null };
 const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
+  'blender-template': () => [new EmptyEquipment()],
   'driftwood-isle': ({ world: f }) => callerWeapons('src/shards/driftwood-isle/runtime/loadout.ts', 'Sword', {
     Sword, world: { ...f, game: f.game.asGame() }, targets: emptyTargets, nolock: true,
     wood: SWORD_WOOD, iron: SWORD_IRON, swordRig, woodArms: {}, ironArms: undefined,
@@ -136,7 +138,8 @@ describe('every discovered shard primary equipment constructs', () => {
       for (const weapon of weapons) {
         const model = weapon.model;
         if (!(model instanceof THREE.Group)) throw new Error('Primary model is not a group');
-        expect(model.children.length).toBeGreaterThan(0);
+        if (weapon instanceof EmptyEquipment) { expect(model.children).toHaveLength(0); expect(weapon.enabled).toBe(false); }
+        else expect(model.children.length).toBeGreaterThan(0);
         expect(weapon.row.id).toMatch(/^weapon\./u); weapon.install({ scope });
       }
       if (manifest.slug === 'nine-dragon-stack') {

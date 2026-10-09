@@ -33,7 +33,11 @@ export function checkShardLayout(entries, config, readManifest, runtimeBaseline 
       const found = [];
       const visit = (node) => {
         if (!node || typeof node !== 'object') return;
-        if (node.type === 'Property' && (node.key?.name ?? node.key?.value) === 'slug' && typeof node.value?.value === 'string') found.push(node.value.value);
+        if (node.type === 'Property' && (node.key?.name ?? node.key?.value) === 'slug') {
+          let value = node.value;
+          while (value?.expression && ['TSAsExpression', 'TSSatisfiesExpression', 'ParenthesizedExpression'].includes(value.type)) value = value.expression;
+          if (typeof value?.value === 'string') found.push(value.value);
+        }
         for (const [key, value] of Object.entries(node)) if (key !== 'parent') {
           if (Array.isArray(value)) { for (const child of value) visit(child); }
           else if (value && typeof value === 'object') visit(value);
