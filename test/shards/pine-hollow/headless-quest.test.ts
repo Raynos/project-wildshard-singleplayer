@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
+import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { parseNavmesh } from '../../../src/engine/physics/navmesh';
@@ -52,6 +53,33 @@ function press(host: SimHost, tick: Tick, at: { x: number; y: number; z: number 
 const row = (id: string): { x: number; y: number; z: number } => { const r = spots.rows.find(s => s.id === id)?.prompt; if (r === undefined || r === null) throw new Error(id); return r; };
 const stepN = (host: SimHost, n: number): void => { for (let i = 0; i < n; i++) host.step(still); };
 
+it('files actual creature deaths and resumes bounded counters without replaying a grant', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, roster } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    const deer = roster.bodies().find(body => body.kind === 'deer' && !body.scripted)?.actor;
+    if (deer === undefined) throw new Error('Missing native deer');
+    const kill = (world: SimHost, body: AnimalSim): void => {
+      world.combat.hit({ source: world.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: body.combatActor(),
+        amount: body.maxHp * 10, point: body.position.clone(), dir: new Vector3() });
+    };
+    kill(host, deer); kill(host, deer); host.step(still);
+    expect(tick.facts).toContain('pine.feat.deer5/deer5:1');
+    expect(tick.facts.filter(fact => fact === 'pine.feat.deer5/deer5:1')).toHaveLength(1);
+    const saved = snapshotSimHost(host), before = tick.facts.length;
+    resumed = restore(tick, saved);
+    expect(tick.facts).toHaveLength(before);
+    const second = [...resumed.entities.values()].find(body => body.kind === 'deer' && body.alive && !body.scripted);
+    if (second === undefined) throw new Error('Missing second native deer');
+    kill(resumed, second); resumed.step(still);
+    expect(tick.facts.slice(before)).toEqual(['pine.feat.deer5/deer5:2']);
+    const thrall = roster.spawn('boar', host.player.position.x + 8, host.player.position.z, 0, 'thrall');
+    kill(host, thrall); host.step(still);
+    expect(tick.facts).toContain('pine.feat.boar5/boar5:1');
+    expect(tick.facts).toContain('pine.feat.thralls/thralls:1');
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
+
 it('walks the Warden\'s Hollow by its prompts at the page\'s points: Hale, the dam, the glass, the flint, the lanterns, the zipline, the stag after dark, the King\'s record, the dawn', () => {
   const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest } = boot(tick), chapter = quest.quests.quests[0];
   const step = (): string | null => chapter?.current?.id ?? null;
@@ -99,7 +127,8 @@ it('walks the Warden\'s Hollow by its prompts at the page\'s points: Hale, the d
     expect(step()).toBe('dawn');
     stepN(host, 12 * 60 + 4);
     expect([host.flags.has('seen:dawn'), host.flags.has(QUEST_DONE), chapter?.isComplete]).toEqual([true, true, true]);
-    expect(tick.facts).toEqual(['pine.feat.lanterns/lanterns:1', 'pine.feat.lanterns/lanterns:2', 'pine.feat.zipline/zipline:1', 'pine.feat.lanterns/lanterns:3',
+    expect(tick.facts).toEqual(['pine.feat.lanterns/lanterns:1', 'pine.feat.lanterns/lanterns:2', 'pine.feat.zipline/zipline:1',
+      'pine.feat.lanterns/lanterns:3', 'pine.feat.king/king:1',
       'pine.feat.quest/quest:1', 'pine.feat.quest/wardens-hollow']);
   } finally { host.dispose(); }
 }, 30_000);

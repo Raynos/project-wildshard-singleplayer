@@ -17,10 +17,10 @@ Plain Node, no DOM or renderer shim, real terrain/navmesh/Rapier. Tick commands 
 | Dawn quest fact | 30,014 |
 | Tape complete | 30,015 |
 
-Full canonical digest: `1e3db561d0715b8c2a4da7a919a0de27ec487d5aac1c05fc75e408e7044323d6`.
-Phase-II replay after 1,200 identical command ticks: `71fa1a3675b51ebf19e21478637c427714a1dcdadfa341044d4a253f3bf20a5f`, both worlds equal, no restore emissions. arm64 and Rosetta x64 full JSON results are exactly equal.
+Full canonical digest: `97b55b8c542405e22ae7a0c8e8bc8eccad2128a0772c69c7b929b391a9e57a8b`.
+Phase-II replay after 1,200 identical command ticks: `22262bb1044b310aea148fdf0afa84e75187e689468638ec078f79d2da479c45`, both worlds equal, no restore emissions. arm64 and Rosetta x64 full JSON results are exactly equal.
 
-Seven gameplay emissions become six durable ledger identities, including the duplicate quest ingress. Four achievements are earned: lanterns, zipline, King, quest. An actual storage refusal stays non-durable; retry succeeds; reopened state matches; repeated identities remain duplicates. The CI ledger continuation runs 6,015 ticks from night and proves the King/dawn facts. The full receipt retains all emitted gameplay facts.
+Twelve gameplay submissions become eleven durable ledger identities, including the duplicate quest ingress. The real tape now files one bear, one elk, one boar and two summoned thrall deaths, alongside the lanterns, zipline, King and dawn. Four achievements are earned: lanterns, zipline, King, quest. An actual storage refusal stays non-durable; retry succeeds; reopened state matches; repeated identities remain duplicates. The CI ledger continuation runs 6,015 ticks from night and proves the King/dawn facts. The full receipt retains all emitted gameplay facts.
 
 ## Bounded proof and freshness
 
@@ -32,6 +32,12 @@ Regenerate using `node --import ./scripts/sim-node-loader.mjs test/proof/pine-ho
 
 ## Why compatibility stays false
 
-Known outcome differences, rather than missing tapes, keep Pine refused: rest-pose King volumes omit animated chest/root motion (weak-point hits/damage); still-air arrows and standing spread change hit/miss, and absent arrow recovery changes ammunition; named prompts omit dialogue time and nearest/LOS eligibility; missing feats change ledger outcomes; unhosted night-roaming thralls, millrace and lodge omit combat/quest outcomes; refight resin has no item reward; rain wander goals change creature positions. Browser `pine.bosses` versus host flags additionally leaves save/refight interoperability unproved.
+Known outcome differences, rather than missing tapes, keep Pine refused: rest-pose King volumes omit animated chest/root motion (weak-point hits/damage); still-air arrows and standing spread change hit/miss, and absent arrow recovery changes ammunition; named prompts omit dialogue time and nearest/LOS eligibility; collectible, journal, lodge and miller producers still omit ledger outcomes; unhosted night-roaming thralls, millrace and lodge omit combat/quest outcomes; King victory resin (including refights) has no item reward, and the first bow is granted before the page pickup; rain wander goals change creature positions. Browser `pine.bosses` versus host flags additionally leaves save/refight interoperability unproved.
 
 Coverage gaps are separate: alternate routes, other elite encounters and repeat fights lack uninterrupted tapes, and the recorded quest tape is standalone. The separate native grid-entry proof removes walls; it is not a recorded grid quest tape. These gaps alone do not establish a different outcome in an already-hosted rule. The real compatibility receipt lists both categories explicitly.
+
+## Shared feat law — first outcome-parity slice
+
+The page and headless host now call quest/featLaw.ts for all 19 bounded counters, variant overlap, flag-driven totals and the native thrall predicate. Only an actual actor.died event files a kill; restoration is silent. Counters submit newly reached stable IDs only. Legacy page migration still replays its saved identities. Re-emitting an old ID on a later headless tick would incorrectly grow a not-yet-earned achievement; the two-thrall/two-tick fixture proves exactly two increments, while the shipping Progress oracle covers all 19 feats. The King achievement saturates once across refights, as on the page.
+
+Re-recorded input fingerprint: `91a9c4b66d76139ae327d9853986b450b820dca18f33f95492ed922188f3dcfa`. King/dawn ticks are unchanged; arm64/x64 full receipts remain identical. Nine native coverage proofs plus seven runtime-row checks pass, worst native proof 12.00 s under coverage (<20 s budget). The existing 40 native/page checks also pass under coverage. Rebased clean full suite: 1,059 files / 5,861 passed / 14 skipped, 115.53 s. Strict, root-config touched-file lint, paths and ratchet pass. Generated outputs were refreshed inside the export only. The final arm64/x64 full receipts are exactly equal. The remaining producers and other outcome differences above still keep compatible:false.

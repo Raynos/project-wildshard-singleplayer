@@ -107,7 +107,7 @@ export interface PineInstall {
   readonly saved?: PineRosterPorts['saved'];
   /** PineDayNight's dusk / night, held by a test (absent: the host's day clock, the page's own) */
   readonly dusk?: () => number; readonly night?: () => number;
-  /** the platform's fact effect (the Antler King's fall files his ledger fact) */
+  /** the platform's fact effect (the page feat law files committed flags and creature deaths) */
   readonly fact?: (name: string, entity: string) => void;
   /** the tick's trigger pulls on the held weapon (the bodies they are aimed at; absent: none) */
   readonly shots?: () => readonly string[];
@@ -144,7 +144,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // the King's steps next (the page ticks him after the elites, before its creature manager), before any live spawn
   const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
     spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
-    retire: a => { live().retire(a); }, find: id => live().actor(id), night, ...(parts.fact === undefined ? {} : { fact: parts.fact }) });
+    retire: a => { live().retire(a); }, find: id => live().actor(id), night });
   // the player's loadout and weapons, locked through the King's intro: installed before the roster (a restoring roster
   // reinstalls its live spawns at install, and the host keeps every step in registration order), so their shots fly before
   // the creatures move this tick where the page's weapons update after them (a tick's lag on a moving body); the loadout

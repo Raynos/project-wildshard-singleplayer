@@ -5,7 +5,8 @@ import { appIdentity } from '../../../src/engine/app/identity';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { QuestState } from '../../../src/engine/quest/core';
 import { Progress } from '../../../src/game/Progress';
-import { Ledger } from '../../../src/game/ledger';
+import { Ledger, LedgerEmitter } from '../../../src/game/ledger';
+import { SaveStore } from '../../../src/engine/saves/store';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState, withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { PINE_FEATS } from '../../../src/shards/pine-hollow/feats';
@@ -13,11 +14,13 @@ import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../../../src/shards/
 import { loadBoard, saveBoard, reroll } from '../../../src/shards/pine-hollow/quest/contracts';
 import { bindPineCombatState } from '../../../src/shards/pine-hollow/runtime/persistence';
 import { bindPineFacts } from '../../../src/shards/pine-hollow/runtime/facts';
+import { createPineFacts, recordPineFeatKill } from '../../../src/shards/pine-hollow/quest/featLaw';
 import { bindPineItems } from '../../../src/shards/pine-hollow/runtime/items';
 import { CROSSBOW, LEVER, LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
 import type { Weapon } from '../../../src/engine/combat/Weapon';
 import type { GameServices } from '../../../src/game/shard/context';
 import { legacyDouble } from '../../fake/FakeGame';
+import { FakeStorage } from '../../fake/fakeStorage';
 
 const slug = 'pine-hollow', saveKey = (): string => appIdentity().savePrefix + slug;
 const legacy = () => ({ lodge: loadBoard({ getItem: () => null, setItem: () => undefined }), loadout: { pitch: 4, broadhead: 7, rounds: 19, arrows: 8 },
@@ -31,6 +34,22 @@ const seed = (): ReturnType<typeof legacy> => {
 };
 
 describe('Pine runtime-owned declarations (SF47-p, C26)', () => {
+  it('files two thrall deaths as two achievement increments across real tick identities, not replayed old counters', () => {
+    const store = new SaveStore({ local: new FakeStorage() });
+    const ledger = new Ledger(store, [{ id: slug, shard: slug }], [{ shard: slug, revision: source.identity.revision, rules: source.ledger }], []);
+    let tick = 1, counts: Record<string, number> = {};
+    const emitter = new LedgerEmitter(ledger, { instance: slug, shard: slug, revision: source.identity.revision },
+      { kind: 'engine', source: 'pine.progress' }, () => tick, []);
+    const facts = createPineFacts({ read: () => ({ ...counts }), write: next => { counts = next; }, emit: (fact, entity) => { emitter.emit(fact, entity); } });
+    recordPineFeatKill(facts, { kind: 'boar', variant: 'thrall' }); tick++;
+    recordPineFeatKill(facts, { kind: 'boar', variant: 'thrall' }); tick++;
+    facts.event('thrall', 2);
+    expect([counts['boar5'], counts['thralls']]).toEqual([2, 2]);
+    const state = ledger.state();
+    expect(Object.values(state.achievements).map(row => [row.id, row.count])).toEqual([['pine-hollow.boar5', 2], ['pine-hollow.thralls', 2]]);
+    expect(Object.values(state.facts).map(row => [row.entity, row.tick])).toEqual([['boar5:1', 1], ['thralls:1', 1], ['boar5:2', 2], ['thralls:2', 2]]);
+  });
+
   it('admits the shipping quest, three native item identities, facts and King body while leaving their runtime the owner', () => {
     expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns', 'state']);
     const { onComplete, ...quest } = source.quests.quests[0] ?? {};
@@ -105,16 +124,23 @@ describe('Pine runtime-owned declarations (SF47-p, C26)', () => {
     oracle.onEarned = (feat) => { expected.push(feat.id); }; bound.onEarned = (feat) => { actual.push(feat.id); };
     try {
       const facts = bindPineFacts({ app, scope }, bound, slug);
+      let counts: Record<string, number> = {};
+      const identities = new Set<string>(); let emissions = 0;
+      const hostFacts = createPineFacts({ read: () => ({ ...counts }), write: next => { counts = next; },
+        emit: (fact, entity) => { identities.add(`${fact}/${entity}`); emissions++; } });
       for (const feat of PINE_FEATS) for (let n = 0; n < feat.count + 2; n++) {
-        if (feat.kind !== undefined) { oracle.recordKill(feat.kind, feat.variant); facts.kill(feat.kind, feat.variant); }
-        else if (feat.event !== undefined) { oracle.recordEvent(feat.event); facts.event(feat.event); }
+        if (feat.kind !== undefined) { oracle.recordKill(feat.kind, feat.variant); facts.kill(feat.kind, feat.variant); hostFacts.kill(feat.kind, feat.variant); }
+        else if (feat.event !== undefined) { oracle.recordEvent(feat.event); facts.event(feat.event); hostFacts.event(feat.event); }
         expect(bound.rows).toEqual(oracle.rows); expect(actual).toEqual(expected);
+        for (const row of oracle.rows) expect(counts[row.def.id] ?? 0).toBe(row.count);
       }
       for (const feat of PINE_FEATS) if (feat.event !== undefined) {
-        oracle.recordEvent(feat.event, feat.count - 1); facts.event(feat.event, feat.count - 1);
+        oracle.recordEvent(feat.event, feat.count - 1); facts.event(feat.event, feat.count - 1); hostFacts.event(feat.event, feat.count - 1);
         expect(bound.rows).toEqual(oracle.rows);
       }
       expect(bound.earnedCount).toBe(PINE_FEATS.length); expect(bound.checkpoint()).toBe(true);
+      expect(identities.size).toBe(PINE_FEATS.reduce((sum, feat) => sum + feat.count, 0));
+      expect(emissions).toBe(identities.size); // Each gameplay tick can submit only newly reached IDs; legacy replay is separate.
     } finally { scope.dispose(); }
   });
 

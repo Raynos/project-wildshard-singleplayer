@@ -6,11 +6,11 @@ import { test } from '@wildshard/engine/world/interact/flags';
 import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
 import type { QuestData } from '@wildshard/game/shardfile/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { LANTERN_FLAGS, QUEST_DONE, RANGER } from '../quest/wardensHollow';
+import { LANTERN_FLAGS, RANGER } from '../quest/wardensHollow';
 import { pineTable } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
-import { PINE_FEATS } from '../feats';
+import { createPineFacts, recordPineFeatKill, syncPineFlagFeats } from '../quest/featLaw';
 import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
@@ -30,8 +30,6 @@ const PROMPT_R = 2.5;
 /** questClock's two fast-forwards: to night over 6 s, to just past sunrise over 7 s */
 const NIGHT_PHASE = PINE_PHASES.night, SUNRISE_PHASE = PINE_PHASES.sunrise + 0.012;
 const MAX_COMMANDS = 1024, MAX_SETS = 16;
-/** the feats the quest's flags witness (quest/index.ts syncFeats; the King's is his own fall's, runtime/king.ts) */
-const QUEST_FEATS = ['lanterns', 'zipline', 'quest'] as const;
 const QUEST_ROWS = ['dam-log-a', 'dam-log-b', 'dam-sluice', 'pond-glass', 'ridge-flint'] as const;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
@@ -92,7 +90,7 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
  *  - the Ghost Stag's walk after dark on the stag beat (quest/stagWalk.ts) sets `followed:stag`;
  *  - the King's fall is his own record (`dead:king`, runtime/king.ts); the dawn beat runs the page's clock (questClock.ts:
  *    the day fast-forwards to sunrise, every lantern lights, `seen:dawn` completes the quest);
- *  - the lanterns, the zipline and the quest file their ledger feats from the flags, as the page's progress does.
+ *  - the shared page feat law files every flag-driven feat and actual creature death; its counters restore silently.
  * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its prompt); the dialogue box's
  * reading time; the reward's resin; the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
  */
@@ -189,26 +187,22 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (r !== null && near(r.prompt, radius(r))) interact(r);
   };
 
-  // ── the feats the flags witness (bindPineFacts: one stable entity per count) ──
-  const feats = QUEST_FEATS.map(id => {
-    const feat = PINE_FEATS.find(f => f.id === id); if (feat === undefined) throw new Error(`Pine has no feat ${id}`);
-    return { id, count: feat.count, name: `pine.feat.${id}`, entities: Array.from({ length: feat.count }, (_, k) => `${id}:${String(k + 1)}`), n: 0 };
-  });
-  const total = (id: (typeof QUEST_FEATS)[number]): number => id === 'lanterns' ? LANTERN_FLAGS.filter(f => flags.has(f)).length
-    : id === 'zipline' ? Number(flags.has('used:ph-zip')) : Number(flags.has(QUEST_DONE));
-  const syncFeats = (): void => {
-    for (let i = 0; i < 3; i++) {
-      const feat = feats[i]; if (feat === undefined) break;
-      const value = Math.min(feat.count, Math.max(feat.n, total(feat.id)));
-      for (let k = 0; k < MAX_SETS; k++) { if (feat.n >= value) break; feat.n++; ports.fact(feat.name, feat.entities[feat.n - 1] ?? feat.id); }
-    }
-  };
+  // ── one page/host feat law, fed only by committed flags and actual creature deaths ──
+  let counts: Record<string, number> = {};
+  const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
+  const syncFeats = (): void => { syncPineFlagFeats(flags, feats); };
   const offFlags = flags.onChange((f, on) => {
     if (!on) return;
     if (f === 'wait:night') clock.night();
     if (!f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats();
   });
   host.scope.onDispose(offFlags);
+  host.events.on('actor.died', ({ actor }) => {
+    const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
+    if (body === undefined) return;
+    recordPineFeatKill(feats, body);
+  }, host.scope);
+  syncFeats();
 
   const stag = new StagWalk();
   host.onStep(QUEST_STEP, dt => {
@@ -234,11 +228,11 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: state.zip.on ? { s: state.zip.s, v: state.zip.v } : null,
-      rifle: state.rifle, counts: Object.fromEntries(feats.map(f => [f.id, f.n])) }),
+      rifle: state.rifle, counts: { ...counts } }),
     restore: value => {
       const saved = v.parse(Saved, value);
       stag.load(saved.stag); clock.load(saved.dawn); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
-      feats.forEach(f => { f.n = saved.counts[f.id] ?? 0; });
+      counts = { ...saved.counts };
     },
   });
   return { quests, stag, riding: () => state.zip.on, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };

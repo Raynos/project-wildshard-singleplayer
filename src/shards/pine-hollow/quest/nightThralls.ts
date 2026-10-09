@@ -36,8 +36,6 @@ export function spawnThrall(animals: AnimalManager, kind: 'elk' | 'boar', x: num
   }
   return a;
 }
-/** is `a` one of the King's thralls (roaming, at the millrace or in his fight)? */
-export function isThrall(a: { variant?: string; label?: string }): boolean { return a.variant === 'thrall' || a.label === 'Thrall'; }
 
 const MAX = TIER === 'phone' ? 3 : 4;
 

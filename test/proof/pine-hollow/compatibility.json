@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "760ca49745eba0ed480943c08747e6869501f78160f1fa9b015b13f95422f6fc",
+  "inputs": "91a9c4b66d76139ae327d9853986b450b820dca18f33f95492ed922188f3dcfa",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,7 +12,7 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "1e3db561d0715b8c2a4da7a919a0de27ec487d5aac1c05fc75e408e7044323d6",
+    "hash": "97b55b8c542405e22ae7a0c8e8bc8eccad2128a0772c69c7b929b391a9e57a8b",
     "facts": [
       {
         "name": "pine.feat.lanterns",
@@ -42,9 +42,54 @@
         }
       },
       {
+        "name": "pine.feat.bear2",
+        "entity": "bear2:1",
+        "tick": 18866,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:3",
         "tick": 18939,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.elk3",
+        "entity": "elk3:1",
+        "tick": 27713,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.thralls",
+        "entity": "thralls:1",
+        "tick": 27713,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.boar5",
+        "entity": "boar5:1",
+        "tick": 27850,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.thralls",
+        "entity": "thralls:2",
+        "tick": 27850,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -88,6 +133,38 @@
       },
       {
         "shard": "pine-hollow",
+        "id": "pine-hollow.bear2",
+        "title": "Unbearable",
+        "count": 1,
+        "threshold": 2,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
+        "id": "pine-hollow.elk3",
+        "title": "Elk Yeah",
+        "count": 1,
+        "threshold": 3,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
+        "id": "pine-hollow.thralls",
+        "title": "Moss Remover",
+        "count": 2,
+        "threshold": 10,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
+        "id": "pine-hollow.boar5",
+        "title": "Bacon Procurement Officer",
+        "count": 1,
+        "threshold": 5,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
         "id": "pine-hollow.king",
         "title": "Regicide, Rustic",
         "count": 1,
@@ -110,6 +187,11 @@
     "duplicateStable": true,
     "receipts": [
       "pending",
+      "granted",
+      "granted",
+      "granted",
+      "granted",
+      "granted",
       "granted",
       "granted",
       "granted",
@@ -421,13 +503,18 @@
     "checkpointCaptured": true,
     "checkpointTick": 26652,
     "suffixTicksExecuted": 1200,
-    "hash": "71fa1a3675b51ebf19e21478637c427714a1dcdadfa341044d4a253f3bf20a5f",
-    "replayHash": "71fa1a3675b51ebf19e21478637c427714a1dcdadfa341044d4a253f3bf20a5f",
+    "hash": "22262bb1044b310aea148fdf0afa84e75187e689468638ec078f79d2da479c45",
+    "replayHash": "22262bb1044b310aea148fdf0afa84e75187e689468638ec078f79d2da479c45",
     "checkpoint": {
       "state": "fight",
       "phase": 1
     },
-    "facts": [],
+    "facts": [
+      "pine.feat.elk3/elk3:1",
+      "pine.feat.thralls/thralls:1",
+      "pine.feat.boar5/boar5:1",
+      "pine.feat.thralls/thralls:2"
+    ],
     "restoredReemits": 0
   },
   "ledger": {
@@ -461,9 +548,54 @@
         }
       },
       {
+        "name": "pine.feat.bear2",
+        "entity": "bear2:1",
+        "tick": 18866,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
         "name": "pine.feat.lanterns",
         "entity": "lanterns:3",
         "tick": 18939,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.elk3",
+        "entity": "elk3:1",
+        "tick": 27713,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.thralls",
+        "entity": "thralls:1",
+        "tick": 27713,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.boar5",
+        "entity": "boar5:1",
+        "tick": 27850,
+        "origin": {
+          "kind": "engine",
+          "source": "pine.progress"
+        }
+      },
+      {
+        "name": "pine.feat.thralls",
+        "entity": "thralls:2",
+        "tick": 27850,
         "origin": {
           "kind": "engine",
           "source": "pine.progress"
@@ -507,6 +639,38 @@
       },
       {
         "shard": "pine-hollow",
+        "id": "pine-hollow.bear2",
+        "title": "Unbearable",
+        "count": 1,
+        "threshold": 2,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
+        "id": "pine-hollow.elk3",
+        "title": "Elk Yeah",
+        "count": 1,
+        "threshold": 3,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
+        "id": "pine-hollow.thralls",
+        "title": "Moss Remover",
+        "count": 2,
+        "threshold": 10,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
+        "id": "pine-hollow.boar5",
+        "title": "Bacon Procurement Officer",
+        "count": 1,
+        "threshold": 5,
+        "earned": false
+      },
+      {
+        "shard": "pine-hollow",
         "id": "pine-hollow.king",
         "title": "Regicide, Rustic",
         "count": 1,
@@ -532,9 +696,9 @@
     "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
     "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
-    "Resin/token/secret/miller/thrall/journal/kill feats are not emitted: ledger outcomes differ.",
+    "Collectible, secret/miller, journal and lodge/streak producers remain unhosted: their ledger outcomes are absent; hosted flags and creature deaths use the page feat law.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
-    "Refight amber resin has no item effect: its reward is absent.",
+    "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved."
   ],
@@ -546,9 +710,9 @@
     "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
     "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
-    "Resin/token/secret/miller/thrall/journal/kill feats are not emitted: ledger outcomes differ.",
+    "Collectible, secret/miller, journal and lodge/streak producers remain unhosted: their ledger outcomes are absent; hosted flags and creature deaths use the page feat law.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
-    "Refight amber resin has no item effect: its reward is absent.",
+    "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.",
     "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",

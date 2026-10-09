@@ -10,6 +10,7 @@ import { createSimHost, type SimHost, type SimLevel } from '../../../src/engine/
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
+import type { HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { ROSTER_STEP, type PineHuntBody } from '../../../src/shards/pine-hollow/runtime/roster';
@@ -31,7 +32,9 @@ import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan, basis: Uint8Array;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
-const effects = { commands: () => [], emit: () => { throw new Error('the roster emits no gameplay effects'); } };
+const effects = { commands: () => [], emit: (effect: HeadlessEffect): void => {
+  if (effect.kind !== 'fact') throw new Error('The roster emits only its gameplay ledger facts');
+} };
 const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -440,7 +443,7 @@ it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once a
     // a re-fight: the record counts him twice, the bow is not paid again
     fell();
     expect([king.boss.state, king.boss.snapshot().saved]).toEqual(['victory', { defeated: true, rewardTaken: true, kills: 2 }]);
-    expect(facts).toEqual(['pine.feat.king/king:1', 'pine.feat.king/king:1']);
+    expect(facts).toEqual(['pine.feat.king/king:1']); // the page's saturated King counter does not grant again on a refight
   } finally { host.dispose(); }
 }, 30_000);
 

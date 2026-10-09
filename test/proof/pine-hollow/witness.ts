@@ -495,9 +495,9 @@ export const OUTCOME_DIFFERENCES = [
   'King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.',
   'Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.',
   'Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.',
-  'Resin/token/secret/miller/thrall/journal/kill feats are not emitted: ledger outcomes differ.',
+  'Collectible, secret/miller, journal and lodge/streak producers remain unhosted: their ledger outcomes are absent; hosted flags and creature deaths use the page feat law.',
   'Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.',
-  'Refight amber resin has no item effect: its reward is absent.',
+  'King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.',
   'Rain wander goals are null: creature positions can differ.',
   'The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.',
 ];

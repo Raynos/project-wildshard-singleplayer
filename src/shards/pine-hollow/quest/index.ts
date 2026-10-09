@@ -31,6 +31,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { PineQuestLifetime } from '../runtime/questLifetime';
 import { bindPineFacts } from '../runtime/facts';
+import { isPineThrall, recordPineFeatKill, syncPineFlagFeats } from './featLaw';
 import source from '../shard.config';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
@@ -61,7 +62,7 @@ import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildi
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../runtime/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
-import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, SECRET_FLAGS, type Spot } from './table';
+import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, type Spot } from './table';
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
@@ -72,7 +73,7 @@ import { hollowLogFloor, hollowLogSite, insideHollowLog, HOLLOW_LOG, type Hollow
 import { hollowLog, loadHollowLog } from '../models/hollowLog';
 import { pineModels } from '../world/context';
 import { StagLead } from './stagLead';
-import { NightThralls, isThrall } from './nightThralls';
+import { NightThralls } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
 import { PINE_QUEST_CONTENT } from './content';
@@ -430,9 +431,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const a = animals.animals.find((animal) => animal.combatActor() === actor);
     if (a === undefined) return;
     if (a.kind === KING_KIND) flags.set('dead:king');
-    featFacts.kill(a.kind, a.variant);
-    const thrall = isThrall(a);
-    if (thrall) featFacts.event('thrall');
+    recordPineFeatKill(featFacts, a);
+    const thrall = isPineThrall(a);
     const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(a.kind, a.variant), thrall });
     if (moved.length > 0) {
       saveBoard(board, store);
@@ -543,14 +543,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
   const syncFeats = (): void => {
-    featFacts.event('lantern', LANTERN_FLAGS.filter((f) => flags.has(f)).length);
-    featFacts.event('resin', resinCount());
-    featFacts.event('token', tokenCount());
-    featFacts.event('secret', SECRET_FLAGS.filter((f) => flags.has(f)).length);
-    if (flags.has('used:ph-zip')) featFacts.event('zipline', 1);
-    if (flags.has('errand:done')) featFacts.event('miller', 1);
-    if (flags.has('dead:king')) featFacts.event('king', 1);   // an event: the King's species is registered at runtime
-    if (flags.has(QUEST_DONE)) featFacts.event('quest', 1);
+    syncPineFlagFeats(flags, featFacts);
   };
   syncFeats();
   ctx.scope.onDispose(flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); }));

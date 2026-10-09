@@ -19,8 +19,6 @@ export const KING_STEP = 'pine.king', KING_PRESENCE_STEP = 'pine.king.presence',
 /** His record on the shard's own flags (no save of his own): beaten is the quest's `dead:king` (the page raises it on his
  *  kill), paid is the Warden's Longbow taken (the first fall's reward; a re-fight pays nothing more here). */
 export const KING_RECORD = { defeated: 'dead:king', paid: 'paid:king' } as const;
-/** The ledger fact his fall witnesses (data/ledger.ts: the 'king' feat, its one entity), as the page's progress files it. */
-export const KING_FACT = { name: 'pine.feat.king', entity: 'king:1' } as const;
 /** combat/ctx.ts SCRIPTED: the state a fight's own animal holds. */
 const SCRIPTED = 'sidestep';
 
@@ -37,8 +35,6 @@ export interface PineKingPorts {
   readonly find: (id: string) => PineHuntBody | null;
   /** PineDayNight's night 0..1 (0 without a day-night clock: he never comes on his own) */
   readonly night: () => number;
-  /** the platform's fact effect (his fall's ledger fact); absent in a test that files none */
-  readonly fact?: (name: string, entity: string) => void;
 }
 
 /** Scratch for the page-rig cage centre. */
@@ -140,7 +136,8 @@ function kingDefinition(): BossDefinition {
  * them in the host's order before this restores).
  *
  * His record is the shard's flags (`KING_RECORD`: beaten is `dead:king`, paid is the Warden's Longbow taken); his first fall
- * pays the bow at once (the page's orb waits for a pickup; headless has no interact) and every fall files his ledger fact.
+ * pays the bow at once (the page's orb waits for a pickup; headless has no interact). The quest's shared feat law observes
+ * his defeated flag and files the one saturated King fact, exactly as the page does.
  * A fallen King goes by day and comes back the next night as a fresh body (the declared row spawned live, out of the list);
  * a parked King stays hidden across a restore.
  *
@@ -175,7 +172,6 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
     if (req === null || k === null || req.target !== k.combatActor()) return req;
     return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
   }, host.scope, { order: 50 });
-  host.events.on('boss.attempt', ({ boss, outcome }) => { if (boss === ANTLER_KING_ENCOUNTER.id && outcome === 'won') ports.fact?.(KING_FACT.name, KING_FACT.entity); }, host.scope);
   host.onStep(KING_DORMANT_STEP, dt => { kingDormant(row.boss, fight, dt, host.clock.now); });
   return { boss: row.boss, fight, locked: row.locked };
 }
