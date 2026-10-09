@@ -50,12 +50,6 @@ export function isletMoverRows(module: string): LiftRow[] {
   });
   return [...islets, ...gates];
 }
-/** SF8c: an entry's declared socketLift link (shard.config.ts's entryway; the platform proves and commands it). */
-export function isletLift(entry: RisingIslet): { mover: string; gate: string; roadStop: [number, number, number]; topStop: [number, number, number]; route: [number, number, number][]; rideTicks: number; approach: { colliders: string[]; route: [number, number, number][] } } {
-  const v = (p: P3): [number, number, number] => [p.x + 0, p.y + 0, p.z + 0]; // JSON data: never −0
-  return { mover: isletId(entry), gate: gateId(entry), roadStop: v(entry.rest), topStop: v(entry.dock), route: entry.lift.route.map(v), rideTicks: entry.lift.rideTicks,
-    approach: { colliders: [`landing.${entry.edge}`], route: entry.lift.approach.map(v) } };
-}
 /** The lip's collider exactly as the shardfile declares it. */
 export function lipCollider(entry: RisingIslet): ColliderDesc {
   const l = entry.landing;

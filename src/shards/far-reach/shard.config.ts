@@ -11,7 +11,7 @@ import { AUDIO } from './data/audio';
 import { MOVERS } from './data/movers';
 import { LIFT_MODULE } from './data/liftModule';
 import { RISING_ISLETS, isleStrips } from './world/islets';
-import { isletLift } from './world/risingIslet';
+import { ISLET_LIFTS } from './data/isletLift';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0
@@ -21,7 +21,7 @@ import { isletLift } from './world/risingIslet';
 // gates are this shardfile's compiled `movers` (one admitted module, behaviour/islet.as); the trusted runtime installs
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
-const lifts = new Map(RISING_ISLETS.map((entry) => [entry.edge, parseSocketLift(isletLift(entry))]));
+const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, parseSocketLift(entry.lift)]));
 const script = { hash: LIFT_MODULE.hash, kind: 'wasm', compressed: LIFT_MODULE.bytes, decoded: LIFT_MODULE.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO,
