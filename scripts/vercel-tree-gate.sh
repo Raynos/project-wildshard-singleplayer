@@ -193,6 +193,12 @@ for name in ${failed[@]+"${failed[@]}"}; do
   grep -E '^ *FAIL ' "$work/$name.log" | sort -u >&2
   tail -40 "$work/$name.log" >&2
 done
+# SF74 W14: one JSON line per gate in .git/gate-timings.jsonl (wall, mode, each step's seconds; 0 = cached), so the push
+# path is measured from records rather than from whoever watched the push.
+{ printf '{"at":%s,"sha":"%s","wall":%s,"mode":"%s","vitest":"%s","ok":%s,"steps":{' "$(date +%s)" "$sha" \
+    "$((SECONDS - gate_t0))" "$([ "$full" = 1 ] && echo full || echo cached)" "$vitest_mode" "$([ ${#failed[@]} -eq 0 ] && echo true || echo false)"
+  sep=; for name in "${steps[@]}"; do printf '%s"%s":%s' "$sep" "$name" "$(cat "$work/$name.sec" 2>/dev/null || echo null)"; sep=,; done
+  echo '}}'; } >> "$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)/gate-timings.jsonl" 2>/dev/null || true
 [ ${#failed[@]} -eq 0 ] || fail "${failed[*]}"
 [ -f "$work/shard-platform.log" ] && sed 's/^/    /' "$work/shard-platform.log"
 echo "vercel-gate: $short gates took $((SECONDS - gate_t0)) s wall ($([ "$full" = 1 ] && echo full || echo cached))"

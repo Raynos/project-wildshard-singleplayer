@@ -28,10 +28,15 @@ if [ "${1:-}" != "--locked" ]; then
 fi
 
 tipfile="$(git rev-parse --path-format=absolute --git-common-dir)/push-main.tip"
+# SF74 W14: one JSON line per loop (regeneration seconds, gate + upload seconds) in .git/push-timings.jsonl.
+timings="$(git rev-parse --path-format=absolute --git-common-dir)/push-timings.jsonl"
+record() { printf '{"at":%s,"tip":"%s","ahead":%s,"regen":%s,"push":%s,"rc":%s}\n' "$(date +%s)" "$1" "$2" "$3" "$4" "$5" >> "$timings" 2>/dev/null || true; }
 for _ in 1 2 3 4 5 6; do
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
-  REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs || exit $?
+  t0=$SECONDS
+  REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs || { rc=$?; record '' 0 "$((SECONDS - t0))" 0 "$rc"; exit "$rc"; }
+  regen=$((SECONDS - t0))
   # Push exactly the regenerated tip: a builder commit landing after the regeneration waits for the next loop, so the
   # gate never sees an unregenerated tip (2026-10-09: 'Ratchet rose: … is clean' reds after a lane cleaned debt).
   tip="$(cat "$tipfile")"
@@ -42,7 +47,10 @@ for _ in 1 2 3 4 5 6; do
     exit 0
   fi
   echo "push-main: pushing $ahead commit(s) to origin main ($(git rev-parse --short "$tip")) …"
-  git push origin "$tip:refs/heads/main" || exit $?
+  t0=$SECONDS
+  git push origin "$tip:refs/heads/main"; rc=$?
+  record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
+  [ "$rc" = 0 ] || exit "$rc"
 done
 echo "push-main: still commits left after 6 pushes — run it again" >&2
 exit 1
