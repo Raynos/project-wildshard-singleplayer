@@ -16,6 +16,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { TickCommandSchema } from '../../src/sdk/tickProtocol';
 import { legacyDouble } from '../fake/FakeGame';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -160,7 +161,7 @@ it('keeps the ride in the strict snapshot and continues it exactly; a host that 
     restored = restoreSimHost(SKY, { rapier }, decoded, (fresh) => { fresh.setHeightQuery(PORTS.heightAt); fresh.setFloorQuery(() => undefined); });
     for (let tick = 0; tick < 200; tick++) { const c = tick === 150 ? hover : north(tick < 100 ? -1 : 0); host.step(c); restored.step(c); }
     expect(host.playerBoard.on).toBe(false);
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(host)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     // refused: a ride with a live fall beside it, an empty handle list, a missing handle, a held (false) press
     const bad = snapshotSimHost(host); bad.player.board = { velocity: [0, 0, 0], air: false, bob: 0, ground: true }; bad.player.fall = { vy: -1, grounded: false };
     expect(() => restoreSimHost(SKY, { rapier }, bad)).toThrow('Snapshot instance registrations do not match');

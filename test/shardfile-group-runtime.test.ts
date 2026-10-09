@@ -9,6 +9,7 @@ import { prepareDeclaredGroupBrains, type DeclaredGroupPorts } from '../src/game
 import { parseGroupBrain } from '../src/game/shardfile/groupBrains';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(await readFile('public/assets/physics/rapier.wasm')).buffer); });
@@ -113,7 +114,7 @@ describe('declared group installation', () => {
       });
       expect(suffix).toEqual([]); original.length = 0;
       for (let tick = 0; tick < 10000; tick++) { host.step(); restored.step(); }
-      expect(suffix).toEqual(original); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+      expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     } finally { host.dispose(); restored?.dispose(); }
   });
 });

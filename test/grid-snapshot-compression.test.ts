@@ -8,6 +8,7 @@ import { generatePlatform } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { createShardfileSim, bindShardfileSim } from '../src/game/shardfile/simulation';
 import source from '../src/shards/_template/shard.config';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 it('fits the production eight-duplicate regional continuation without dropping geometry or future sim state', async () => {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -31,6 +32,6 @@ it('fits the production eight-duplicate regional continuation without dropping g
     const decoded = decodeSimSnapshot(text, basis); expect(decoded).toEqual(saved);
     restored = restoreSimHost(sim.host.level, { rapier }, decoded, (host) => { bindShardfileSim(host, source, assets, { rapier, quest, restoring: true }); });
     for (let tick = 0; tick < 30; tick++) { sim.host.step(); restored.step(); }
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { restored?.dispose(); sim.dispose(); }
 }, 60_000); // Complete production Rapier BVHs plus exact restore/suffix verification on the CI runner.

@@ -12,6 +12,7 @@ import type { ShardScriptPorts } from '../src/game/shardfile/scripts';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { scriptSource } from './script/fixture';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 const numericModule = 'a'.repeat(64), brainModule = 'b'.repeat(64);
 const content = { identity: { seed: 357 }, sim: { scripts: [numericModule, brainModule], scriptTickDivisor: 4,
@@ -70,7 +71,7 @@ describe('game numeric and custom brain composition', () => {
       for (let tick = 0; tick < 97; tick++) host.step();
       fresh = restoreSimHost(SIM_LEVEL, { rapier }, snapshotSimHost(host), sim => { install(sim); });
       for (let tick = 0; tick < 10000; tick++) { host.step(); fresh.step(); }
-      expect(snapshotSimHost(fresh)).toEqual(snapshotSimHost(host));
+      expectSameSimSnapshot(snapshotSimHost(fresh), snapshotSimHost(host));
       const before = original.snapshot();
       expect(() => original.restore(before.replace('"id":"numeric"', '"id":"forged"'))).toThrow();
       expect(original.snapshot()).toBe(before);

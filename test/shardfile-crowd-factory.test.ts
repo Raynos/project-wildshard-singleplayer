@@ -8,6 +8,7 @@ import { parseFlock } from '../src/game/shardfile/crowds';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/shardfile/simulation';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(await readFile('public/assets/physics/rapier.wasm')).buffer); });
@@ -59,8 +60,8 @@ it('uses the authoritative fixed clock and restores a complete host with an exac
     for (let tick = 0; tick < 301; tick++) original.host.step();
     const saved = snapshotSimHost(original.host), restoringTrace: string[] = [];
     restored = restoreSimHost(original.host.level, { rapier }, saved, host => { bindShardfileSim(host, s, new Map(), { rapier, restoring: true, crowds: recipes(restoringTrace) }); });
-    expect(restoringTrace).toEqual([]); expect(snapshotSimHost(restored)).toEqual(saved);
+    expect(restoringTrace).toEqual([]); expectSameSimSnapshot(snapshotSimHost(restored), saved);
     for (let tick = 0; tick < 10000; tick++) { original.host.step(); restored.step(); }
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original.host));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original.host));
   } finally { original.dispose(); restored?.dispose(); }
 });

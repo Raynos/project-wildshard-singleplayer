@@ -14,6 +14,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { scriptSource } from './script/fixture';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(await readFile('public/assets/physics/rapier.wasm')).buffer); });
@@ -63,9 +64,9 @@ it('restores one combined prop/mesh collider map without duplicate allocation an
     fresh = restoreSimHost(sim.host.level, { rapier }, saved, host => { rebound = bindShardfileSim(host, source, assets, { rapier, restoring: true }); });
     expect(fresh.physics.world.colliders.len()).toBe(sim.host.physics.world.colliders.len());
     expect(rebound?.colliders.get('door.collider')?.active()).toBe(true); expect(rebound?.colliders.get('crate')?.active()).toBe(false);
-    expect(snapshotSimHost(fresh)).toEqual(saved);
+    expectSameSimSnapshot(snapshotSimHost(fresh), saved);
     for (let tick = 0; tick < 1000; tick++) { sim.host.step(); fresh.step(); }
-    expect(snapshotSimHost(fresh)).toEqual(snapshotSimHost(sim.host));
+    expectSameSimSnapshot(snapshotSimHost(fresh), snapshotSimHost(sim.host));
   } finally { sim.dispose(); fresh?.dispose(); }
 });
 it('samples flying creatures from their own height under and above a bridge, including after native restoration', () => {
@@ -84,7 +85,7 @@ it('samples flying creatures from their own height under and above a bridge, inc
       bindShardfileSim(host, source, assets, { rapier, restoring: true });
     });
     for (let tick = 0; tick < 200; tick++) { sim.host.step(); restored.step(); }
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
     expect(restored.entities.get('blob.0')?.position.y).toBeCloseTo(-1);
     expect(restored.entities.get('blob.1')?.position.y).toBeCloseTo(5);
   } finally { sim.dispose(); restored?.dispose(); }

@@ -10,6 +10,7 @@ import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shar
 import { parseRamGrazer, parseChallengeGrazer } from '../src/game/shardfile/grazers';
 import { scoredStrikes } from '../src/game/shardfile/rows';
 import template from '../src/shards/_template/shard.config';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(await readFile('public/assets/physics/rapier.wasm')).buffer); });
@@ -116,6 +117,6 @@ it('restores mutable strike and policy clocks without observations and replays t
     });
     expect(suffix).toEqual([]); original.length = 0;
     for (let tick = 0; tick < 10000; tick++) { sim.host.step(); restored.step(); }
-    expect(suffix).toEqual(original); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+    expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { sim.dispose(); restored?.dispose(); }
 });

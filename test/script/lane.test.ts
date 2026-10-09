@@ -8,6 +8,7 @@ import { loadRapier } from '../../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 const declaration: ScriptStateDeclaration = {
   shared: [{ id: 101, name: 'door', type: 'bool', privacy: 'public', default: 0, min: 0, max: 1 }],
@@ -81,7 +82,7 @@ describe('local authoritative entity script lane', () => {
       const saved = snapshotSimHost(sim), fresh = lane(world(), 2), encoded = JSON.stringify(saved);
       restored = restoreSimHost(SIM_LEVEL, { rapier }, JSON.parse(encoded) as typeof saved, (host) => { installScriptLane(host, 'declared-scripts', fresh, commands); });
       for (let i = 0; i < 8; i++) { sim.step(); restored.step(); }
-      expect(fresh.snapshot()).toBe(scripts.snapshot()); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim));
+      expect(fresh.snapshot()).toBe(scripts.snapshot()); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim));
     } finally { sim.dispose(); restored?.dispose(); }
     expect(sim.adapters.size).toBe(0);
   });

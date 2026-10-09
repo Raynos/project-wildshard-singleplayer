@@ -23,6 +23,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { GRID_CONTINUATION_CACHE_BYTES } from '../src/game/grid/continuations';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(new Uint8Array(readFileSync('public/assets/physics/rapier.wasm')).buffer); });
@@ -105,7 +106,7 @@ describe('world-local grid residency', () => {
   });
   it('restores complete normal snapshots without changing their continuation contract', () => {
     const initial = resident(); initial.host.step(); const saved = snapshotSimHost(initial.host), restored = resident(saved);
-    try { expect(snapshotSimHost(restored.host)).toEqual(saved); } finally { initial.dispose(); restored.dispose(); }
+    try { expectSameSimSnapshot(snapshotSimHost(restored.host), saved); } finally { initial.dispose(); restored.dispose(); }
   });
   it('reserves the single allocator before allocation and aborts two-phase eviction without losing a world', async () => {
     const assembly = new GridAssembly({ developer: false, devserver: false }), id = assembly.cells[0]?.instance; if (id === undefined) throw new Error('Missing cell');

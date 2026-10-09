@@ -12,6 +12,7 @@ import { logicalStateFromLane } from '../src/game/shardfile/logicalState';
 import template from '../src/shards/_template/shard.config';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { scriptSource } from './script/fixture';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>, source: Shardfile, assets: ReadonlyMap<string, Uint8Array>;
 beforeAll(async () => {
@@ -112,6 +113,6 @@ it('restores both script roles and pending numeric events without executing obse
     });
     expect(restoredObservations).toEqual([]); observed.length = 0;
     for (let tick = 0; tick < 10000; tick++) { sim.host.step(); restored.step(); }
-    expect(restoredObservations).toEqual(observed); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+    expect(restoredObservations).toEqual(observed); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { sim.dispose(); restored?.dispose(); }
 });

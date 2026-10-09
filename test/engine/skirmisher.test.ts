@@ -12,6 +12,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { CRAB_BRAIN } from '../../src/shards/driftwood-isle/data/brains';
 import { creature } from '../fake/creature';
 import { declaredCreatureRows } from '../../src/shards/driftwood-isle/runtime/brains';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
 afterAll(restoreTerrain);
@@ -64,7 +65,7 @@ describe('data-selected circling melee archetype', () => {
         sim.step(); restored.step();
         expect(restored.entities.values().next().value?.snapshot()).toEqual(sim.entities.values().next().value?.snapshot());
       }
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim));
     } finally { sim.dispose(); restored?.dispose(); }
   });
   it('rejects nonfinite tuning and copies admitted parameters rather than keeping a mutable author object', () => {

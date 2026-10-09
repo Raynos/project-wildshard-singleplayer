@@ -9,6 +9,7 @@ import { scriptPhysicsQueries } from '../../src/engine/script/queries';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 import { scriptSource } from '../script/fixture';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let bytes: Uint8Array, rapier: Awaited<ReturnType<typeof loadRapier>>;
 const binding: ScriptBrainBinding = { module: 'policy', entity: 7, actorId: 'boar:1', maxSpeed: 3, maxStrafe: 1,
@@ -63,7 +64,7 @@ describe('trusted AssemblyScript creature intentions', () => {
       for (let tick = 0; tick < 97; tick++) host.step();
       restored = restoreSimHost(SIM_LEVEL, { rapier }, snapshotSimHost(host), fresh => { install(fresh); });
       for (let tick = 0; tick < 10000; tick++) { host.step(); restored.step(); }
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     } finally { host.dispose(); restored?.dispose(); }
   });
   it.each([

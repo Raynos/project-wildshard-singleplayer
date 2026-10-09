@@ -9,6 +9,7 @@ import { installDeclaredBrains, type DeclaredBrainPorts } from '../src/game/shar
 import { parseSkirmisher, parseGuardian, parsePerchHunter } from '../src/game/shardfile/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { const bytes = await readFile('public/assets/physics/rapier.wasm'); rapier = await loadRapier(Uint8Array.from(bytes).buffer); });
@@ -71,7 +72,7 @@ describe('mixed declared native brain dispatch', () => {
       restored = restoreSimHost(level, { rapier }, snapshotSimHost(host), fresh => { installDeclaredBrains(fresh, rows, policies, recipes(fresh, suffix)); });
       expect(suffix).toEqual([]); original.length = 0;
       for (let tick = 0; tick < 10000; tick++) { host.step(); restored.step(); }
-      expect(suffix).toEqual(original); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+      expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     } finally { host.dispose(); restored?.dispose(); }
   });
 });

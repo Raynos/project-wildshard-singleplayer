@@ -10,6 +10,7 @@ import { createQuestScriptPorts, DeclaredQuests } from '../../src/game/quest/dec
 import { parseQuestData } from '../../src/game/shardfile/quests';
 import { TEMPLATE_QUESTS } from '../../src/shards/_template/data/quests';
 import { SIM_LEVEL, fightCommand } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -58,7 +59,7 @@ it('restores dialogue and quest flags at a fight checkpoint and replays an exact
     for (let tick = 0; tick < 20; tick++) host.step(fightCommand(tick));
     restored = restoreSimHost(level, { rapier }, snapshotSimHost(host), (fresh) => { install(fresh); });
     for (let tick = 20; tick < 600; tick++) { host.step(fightCommand(tick)); restored.step(fightCommand(tick)); }
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     expect(host.flags.has('complete')).toBe(true);
   } finally { restored?.dispose(); host.dispose(); }
 });

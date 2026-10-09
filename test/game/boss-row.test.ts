@@ -10,6 +10,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { bossFlagRecord, installBossRow } from '../../src/game/shardfile/bossRow';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -70,9 +71,9 @@ it('restores the brain and the script\'s own state as one continuation, exactly'
     const saved = decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(original)));
     let twin: ReturnType<typeof install> | undefined;
     restored = restoreSimHost(level, { rapier }, saved, host => { twin = install(host); });
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     expect(twin?.fight.ticks).toBe(made.fight.ticks); expect(twin?.row.boss.state).toBe('fight');
     for (let tick = 0; tick < 60; tick++) { original.step(); restored.step(); }
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { restored?.dispose(); original.dispose(); }
 });

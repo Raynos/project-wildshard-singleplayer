@@ -12,6 +12,7 @@ import type { ScriptLimits } from '../../src/engine/script/host';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { scriptSource } from './fixture';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let brainBytes: Uint8Array, numericBytes: Uint8Array, eventBytes: Uint8Array, rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => {
@@ -181,7 +182,7 @@ describe('one authoritative host for independent script roles', () => {
       install(host); for (let tick = 0; tick < 97; tick++) host.step();
       restored = restoreSimHost(level, { rapier }, snapshotSimHost(host), sim => { install(sim); });
       for (let tick = 0; tick < 10000; tick++) { host.step(); restored.step(); }
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     } finally { host.dispose(); restored?.dispose(); }
   });
   it('rejects malformed role/host continuations atomically without running inputs or committed callbacks', () => {

@@ -13,6 +13,7 @@ import type { DeclaredGroupPorts } from '../src/game/shardfile/groupRuntime';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';
 import { CRAB_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import template from '../src/shards/_template/shard.config';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(await readFile('public/assets/physics/rapier.wasm')).buffer); });
@@ -109,6 +110,6 @@ it('rebinds all full-factory controllers without setup draws and matches a 10,00
     });
     expect(suffix).toEqual([]); original.length = 0;
     for (let tick = 0; tick < 10000; tick++) { sim.host.step(); restored.step(); }
-    expect(suffix).toEqual(original); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+    expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { sim.dispose(); restored?.dispose(); }
 });

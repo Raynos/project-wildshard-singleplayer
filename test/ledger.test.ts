@@ -13,6 +13,7 @@ import { TEMPLATE_LEDGER } from '../src/shards/_template/data/ledger';
 import { MemoryStorage } from './setup';
 import { resetNewGame } from '../src/game/newGame';
 import { SIM_LEVEL, fightCommand } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 const PROFILE = 'wildshard.save.v2.profile';
 const origin = { kind: 'engine' as const, source: 'quest.complete' };
@@ -161,7 +162,7 @@ it('records a real fixture quest fact and snapshot-restored suffix without a sec
     for (let tick = 20; tick < 600; tick++) { first.step(fightCommand(tick)); restored.step(fightCommand(tick)); }
     expect(first.flags.has('quest:arena')).toBe(true); expect(itemQuantity(ledger)).toBe(1);
     expect(Object.keys(ledger.state().facts)).toHaveLength(1);
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(first));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(first));
     expect(first.slots.ledgerDedupe).toHaveLength(1);
   } finally { restored?.dispose(); first.dispose(); }
 });

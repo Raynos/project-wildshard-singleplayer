@@ -9,6 +9,7 @@ import type { StrikeSpec } from '../src/engine/ai/strikes';
 import { installDeclaredBrains, type DeclaredBrainPorts } from '../src/game/shardfile/brainRuntime';
 import { parseRamGrazer, parseChallengeGrazer } from '../src/game/shardfile/grazers';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { const bytes = await readFile('public/assets/physics/rapier.wasm'); rapier = await loadRapier(Uint8Array.from(bytes).buffer); });
@@ -87,7 +88,7 @@ describe('mutable declared grazer dispatch', () => {
       restored = restoreSimHost(level, { rapier }, before, fresh => { installDeclaredBrains(fresh, rows, policies, ports(fresh, suffix)); });
       expect(suffix).toEqual([]); expect(restored.rng.snapshot()).toEqual(host.rng.snapshot()); original.length = 0;
       for (let tick = 0; tick < 10000; tick++) { host.step(); restored.step(); }
-      expect(suffix).toEqual(original); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+      expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
     } finally { host.dispose(); restored?.dispose(); }
   });
 });

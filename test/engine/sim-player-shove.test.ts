@@ -8,6 +8,7 @@ import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { FIXED_STEP } from '../../src/engine/core/fixedStep';
 import { hitShoveSpeed, SHOVE_HOP, SHOVE_TIME, shoveHop, startShove, stepShove, type ShoveState } from '../../src/engine/player/shove';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -68,7 +69,7 @@ it('keeps a running knockback in the strict snapshot, continues it exactly, and 
     restored = restoreSimHost(LEVEL, { rapier }, decodeSimSnapshot(saved));
     expect(restored.playerShove).toEqual(original.playerShove);
     for (let tick = 0; tick < 60; tick++) { original.step({ moveX: 0.4, moveZ: 0, yaw: 0 }); restored.step({ moveX: 0.4, moveZ: 0, yaw: 0 }); }
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     const stale = decodeSimSnapshot(saved); stale.player.shove = { t: 0, vx: 1, vz: 0 };
     expect(() => restoreSimHost(LEVEL, { rapier }, stale)).toThrow('Snapshot instance registrations do not match');
     expect(() => decodeSimSnapshot(saved.replace(/"shove":\{[^}]*\}/u, '"shove":{"t":0.1}'))).toThrow();

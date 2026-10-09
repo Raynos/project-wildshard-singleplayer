@@ -9,6 +9,7 @@ import { groups } from '../../src/engine/physics/groups';
 import { FIXED_STEP } from '../../src/engine/core/fixedStep';
 import { fallStep, groundedVelocity, HARD_FALL_DAMAGE, HARD_LANDING_SPEED, hardLanding, landingCushion, PLAYER_GRAVITY } from '../../src/engine/player/fall';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -89,7 +90,7 @@ it('keeps a live fall in the strict snapshot, continues it exactly, and refuses 
     expect(restored.playerFall).toEqual(falling.playerFall);
     for (let tick = 0; tick < 90; tick++) { falling.step(still); restored.step(still); }
     expect(falling.playerFall).toEqual({ vy: 0, grounded: true });
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(falling)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(falling));
     const rest = snapshotSimHost(falling); rest.player.fall = { vy: 0, grounded: true };
     expect(() => restoreSimHost(LEVEL, { rapier }, rest)).toThrow('Snapshot instance registrations do not match');
     expect(() => decodeSimSnapshot(saved.replace(/"fall":\{[^}]*\}/u, '"fall":{"vy":-1}'))).toThrow();

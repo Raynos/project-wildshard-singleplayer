@@ -13,6 +13,7 @@ import { scriptSource } from '../script/fixture';
 import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
 import { parseItems } from '../../src/game/shardfile/items';
 import { ITEMS } from '../../src/shards/_template/data/items';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -69,7 +70,7 @@ it('runs item-owned actor fields in the same admitted lane and refuses a forged 
     expect(sim.lane?.world.actor(1002)).toBe('actor.player');
     const saved = snapshotSimHost(sim.host);
     const restored = restoreSimHost(sim.host.level, { rapier }, saved, (host) => { bindShardfileSim(host, shard, new Map([[module, bytes]]), { ...ports, restoring: true }); });
-    try { sim.host.step(); restored.step(); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host)); } finally { restored.dispose(); }
+    try { sim.host.step(); restored.step(); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host)); } finally { restored.dispose(); }
   } finally { sim.dispose(); }
   expect(() => createShardfileSim(shard, new Map([[module, bytes]]), { rapier, scriptEntities: { entities, actors: new Map([[1002, 'forged.player']]) } })).toThrow('owned-entity actor');
 });
@@ -88,7 +89,7 @@ it('reconnects declared collider activation after whole-world restore without al
       expect(restored.physics.world.colliders.len()).toBe(sim.host.physics.world.colliders.len());
       expect(rebound?.colliders.get('door')?.active()).toBe(false);
       rebound?.colliders.get('door')?.setActive(true); port?.setActive(true);
-      sim.host.step(); restored.step(); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+      sim.host.step(); restored.step(); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
     } finally { restored.dispose(); }
   } finally { sim.dispose(); }
 });

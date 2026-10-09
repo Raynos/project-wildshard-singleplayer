@@ -13,6 +13,7 @@ import { installDeclaredEncounters } from '../../src/game/shard/declaredEncounte
 import { ENCOUNTERS } from '../../src/shards/_template/data/encounters';
 import { CREATURES } from '../../src/shards/_template/data/creatures';
 import { CreaturesSchema } from '../../src/game/shardfile/creatures';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 const authored = v.parse(EncountersSchema, ENCOUNTERS);
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
@@ -78,7 +79,7 @@ describe('data-driven elite and boss phase encounters', () => {
     try {
       ticks(sim, 62); damage(sim, spec.entity, 1000); ticks(sim, 20); const saved = snapshotSimHost(sim);
       fresh = restoreSimHost(level, { rapier }, structuredClone(saved), (host) => { installDeclaredEncounters(host, [spec], ports); });
-      ticks(sim, 100); ticks(fresh, 100); expect(snapshotSimHost(fresh)).toEqual(snapshotSimHost(sim));
+      ticks(sim, 100); ticks(fresh, 100); expectSameSimSnapshot(snapshotSimHost(fresh), snapshotSimHost(sim));
       expect(persist).not.toHaveBeenCalled(); expect(reward).not.toHaveBeenCalled();
     } finally { sim.dispose(); fresh?.dispose(); }
   });

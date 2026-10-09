@@ -8,6 +8,7 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 import { CreaturesSchema } from '../../src/game/shardfile/creatures';
 import { CREATURES } from '../../src/shards/_template/data/creatures';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 const brain: PlatformBrainSpec = { id: 'pursuit', kind: 'pursue', awareRadius: 12, leashRadius: 20, speed: 2, returnSpeed: 3, stopDistance: 1.7, turnRate: 6, thinkDivisor: 3, attackCooldownTicks: 60, wanderRadius: 4, wanderEveryTicks: 420 };
 const rows: PlatformSpawn[] = [{ id: 'boar:1', species: 'boar', variant: 'boar', brain: 'pursuit', strike: 'boar.charge', seed: 7, scale: 1, at: [0, 0, 5], yaw: Math.PI }];
@@ -61,7 +62,7 @@ describe('declared platform creature brain and spawner', () => {
       for (let i = 0; i < 91; i++) sim.step();
       const saved = snapshotSimHost(sim); fresh = restoreSimHost(level, { rapier }, structuredClone(saved), (host) => { installPlatformBrains(host, rows, [brain]); });
       for (let i = 0; i < 90; i++) { sim.step(); fresh.step(); }
-      expect(snapshotSimHost(fresh)).toEqual(snapshotSimHost(sim));
+      expectSameSimSnapshot(snapshotSimHost(fresh), snapshotSimHost(sim));
     } finally { sim.dispose(); fresh?.dispose(); }
   });
   it('validates the template spawn as pure data and refuses unresolved or duplicate references', () => {

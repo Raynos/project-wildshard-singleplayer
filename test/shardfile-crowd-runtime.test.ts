@@ -11,6 +11,7 @@ import { prepareDeclaredCrowds, installDeclaredCrowdFrames, type DeclaredCrowdPo
 import { parseFlock } from '../src/game/shardfile/crowds';
 import { ShippingFlock } from './fixtures/flock-oracle/flock';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(await readFile('public/assets/physics/rapier.wasm')).buffer); });
@@ -80,7 +81,7 @@ describe('declared crowd owner', () => {
       restored = restoreSimHost(SIM_LEVEL, { rapier }, snapshotSimHost(host), fresh => { install(fresh, b, true); });
       expect(draw).not.toHaveBeenCalled(); draw.mockRestore(); expect(b).toEqual([]); a.length = 0;
       for (let tick = 0; tick < 10000; tick++) { host.step(); restored.step(); }
-      expect(b).toEqual(a); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
+      expect(b).toEqual(a); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
       expect(original.policies.size).toBe(2);
     } finally { host.dispose(); restored?.dispose(); }
   });

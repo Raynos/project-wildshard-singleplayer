@@ -8,6 +8,7 @@ import { Scope } from '../../src/engine/app/scope';
 import { withOwner } from '../../src/engine/app/ownership';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 import { deferredRecipe, installDeferred } from '../fixtures/sim-level/deferred';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -21,10 +22,10 @@ it.each([6, 18])('restores native deferred identities, pending strikes and the r
     expect(saved.entities.map(actor => actor.id)).toEqual(checkpoint === 6 ? ['deferred:1'] : []);
     if (checkpoint === 6) expect(saved.strikes.find(strike => strike.id === 'deferred:1')?.state.phase).toBe('windup');
     restored = restoreSimHost(level, { rapier }, saved, fresh => { installDeferred(fresh, saved); });
-    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     for (let tick = checkpoint; tick < 100; tick++) {
       original.step(); restored.step();
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       if (tick === 22) expect([...restored.entities.keys()]).toEqual([]); // still waiting, no early respawn
       if (tick === 23) expect([...restored.entities.keys()]).toEqual(['deferred:2']);
     }

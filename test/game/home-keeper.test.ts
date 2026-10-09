@@ -9,6 +9,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { installHomeKeeper, type HomeKeeperSpec, type KeptHome } from '../../src/game/shardfile/homeKeeper';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -87,12 +88,12 @@ it('restores mid-wait with the boss spawned in play exactly, reinstalling the ro
       for (let tick = 0; tick < checkpoint; tick++) { if (tick === 15) kill(original, 'fixture.home:0'); original.step(); }
       const saved = decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(original)));
       restored = restoreSimHost(level, { rapier }, saved, host => { install(host, fresh(), saved); });
-      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
       for (let tick = 0; tick < 120; tick++) {
         if (tick === 30) { kill(original, 'fixture.home:2'); kill(restored, 'fixture.home:2'); }
         original.step(); restored.step();
       }
-      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     } finally { restored?.dispose(); original.dispose(); }
   }
 });

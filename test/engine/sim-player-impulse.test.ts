@@ -8,6 +8,7 @@ import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { FIXED_STEP } from '../../src/engine/core/fixedStep';
 import { addImpulse, decayImpulse, IMPULSE_DECAY_RATE, IMPULSE_REST_SQ } from '../../src/engine/player/impulse';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
+import { expectSameSimSnapshot } from '../fake/simSnapshot';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -64,7 +65,7 @@ it('keeps a live impulse in the strict snapshot and omits a resting one (unchang
     restored = restoreSimHost(SIM_LEVEL, { rapier }, decodeSimSnapshot(saved));
     expect(restored.playerImpulse.toArray()).toEqual(shoved.playerImpulse.toArray());
     for (let tick = 0; tick < 40; tick++) { shoved.step({ moveX: 0.3, moveZ: 1, yaw: 0 }); restored.step({ moveX: 0.3, moveZ: 1, yaw: 0 }); }
-    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(shoved)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(shoved));
     // an explicit zero is not canonical, and a malformed vector refuses
     const zero = snapshotSimHost(plain); zero.player.impulse = [0, 0, 0];
     expect(() => restoreSimHost(SIM_LEVEL, { rapier }, zero)).toThrow('Snapshot instance registrations do not match');
