@@ -94,7 +94,7 @@ export default defineConfig({
     emptyOutDir: true,
     target: 'es2022',
     sourcemap: false,
-    rollupOptions: { input: Object.fromEntries(PAGES.map((p) => [p.replace(/\/?index\.html$/u, '') || 'main', join(root, p)])) },
+    rolldownOptions: { input: Object.fromEntries(PAGES.map((p) => [p.replace(/\/?index\.html$/u, '') || 'main', join(root, p)])) },
   },
   plugins: [generated()],
 });

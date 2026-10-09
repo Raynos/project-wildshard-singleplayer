@@ -28,7 +28,7 @@ const header = JSON.parse(lines[0]);
 const all = lines.slice(1).map((l) => JSON.parse(l));
 const exitAt = all.findIndex((e) => typeof e[2] === 'string' && e[2].includes('/exit'));
 const events = exitAt > 0 ? all.slice(0, exitAt) : all;
-writeFileSync(`${TMP}/session.cast`, [lines[0], ...events.map((e) => JSON.stringify(e))].join('\n') + '\n');
+writeFileSync(`${TMP}/session.cast`, `${[lines[0], ...events.map((e) => JSON.stringify(e))].join('\n')}\n`);
 const v3 = header.version === 3;
 const length = v3 ? events.reduce((s, e) => s + e[0], 0) : events.at(-1)[0];
 const speed = length / (DUR - HOLD);
