@@ -18,8 +18,9 @@ export const FLOCK_STEP = 'far.flock';
 const GOAT_RAY_ABOVE = 2;
 /** The analytic placement floor of a structures-only world (game/shard/manifest `terrainFor`: y = -1000 m). */
 export const SKY_ANALYTIC_FLOOR = -1000;
-/** The browser's 'legacy' decision band for a self-thinking species: 10 Hz decisions, bodies every frame. */
-const THINK_EVERY = 6, THINK_DT = 0.1;
+/** The creature manager's tick rate for a self-thinking species (AnimalManager.tickRate): 'legacy', decisions at 10 Hz and
+ *  the body every frame at any distance, on the page scheduler's own clocks (SimHost.useBodyBands). */
+const SKY_TICK_RATE = 'legacy';
 /** The declared roster (data/spawns.ts): 13 finite bodies, so every keeper loop is bounded. */
 const BODY_COUNT = 13;
 
@@ -43,8 +44,10 @@ const Saved = v.strictObject({ version: v.literal(1), rng: Stream, goats: v.bool
  * order, at their flight altitude over their authored circle; the five goats spawn on the first fixed step (the shipping
  * deferred `far.goats` fixed.post spawn), each on the first WORLD floor under its island deck + 2 m. Every spawn takes
  * the manager's six draws from its private stream `Rng(level seed + 31)` (scale, rig seed, actor seed, timer, fleeUntil,
- * callT), and the goats' wander draws come from the same stream. Decisions run at 10 Hz, bodies every tick; a body under
- * the world's kill height dies by the fall pipeline. Nothing respawns (Sky's plugin never replaces a body).
+ * callT), and the goats' wander draws come from the same stream. The host runs on the page's distance bands (`useBodyBands`,
+ * before any spawn and before a restoring host restores its clocks): each body decides on the 'legacy' rate's clock (10 Hz,
+ * the step the time since its last decision), moves every tick at any distance, and holds the page's creature capsule
+ * only within 45 m of the player (released past 55 m). A body under the world's kill height dies by the fall pipeline. Nothing respawns (Sky's plugin never replaces a body).
  * Restore reinstalls exactly the saved roster from its recipes before the host restores, with no stream draw.
  */
 export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Readonly<SimSnapshot>): {
@@ -52,6 +55,7 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
   /** On restore, reinstall the landed goats after every other install-time registration (a no-op on a fresh boot). */
   land: () => void;
 } {
+  host.useBodyBands({ rate: () => SKY_TICK_RATE });
   const rng = new Rng(ports.seed + 31), rows = [...SKY_SPAWNS.actors, ...SKY_SPAWNS.bosses];
   const homes = new Map<string, Home>([
     ...RAY_HOMES.map((home, i) => [`far.ray.${String(i)}`, home] as const), ...ROOST_RAYS.map((home, i) => [`far.roost.${String(i)}`, home] as const),
@@ -93,7 +97,7 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
     materialize(body, body.recipe).levelGround = structure;
   };
   const world = { killY: SKY_KILL_Y };
-  host.onStep(FLOCK_STEP, dt => {
+  host.onStep(FLOCK_STEP, () => {
     // the body step that just ran: a body under the death plane dies by the fall pipeline (killBelowWorld)
     for (let i = 0; i < BODY_COUNT; i++) { const a = bodies[i]?.actor; if (a?.alive === true) killBelowWorld(a, world, host.combat); }
     if (goatsDue) {
@@ -103,13 +107,18 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
         arrive(goat, goat.home.y + GOAT_RAY_ABOVE);
       }
     }
-    if (host.state.tick % THINK_EVERY === 1) for (let i = 0; i < BODY_COUNT; i++) {
-      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined || !a.alive) continue;
+    // the page's think loop: every body takes its decision step from its clock, alive or not (AnimalManager.update)
+    for (let i = 0; i < BODY_COUNT; i++) {
+      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined) continue;
+      const think = host.brainDt(body.id); if (think <= 0 || !a.alive) continue;
       // a staggered self-thinking species holds (AnimalManager.think)
       if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(host.player.position); a.lookWeight = 1; continue; }
-      body.brain?.decide(THINK_DT);
+      body.brain?.decide(think);
     }
-    for (let i = 0; i < BODY_COUNT; i++) { const body = bodies[i]; if (body === undefined) continue; const a = body.actor; if (a !== null && a.alive && !a.stunned) body.brain?.move(dt); }
+    for (let i = 0; i < BODY_COUNT; i++) {
+      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined) continue;
+      const step = host.bodyDt(body.id); if (step > 0 && a.alive && !a.stunned) body.brain?.move(step);
+    }
   }, {
     snapshot: () => ({ version: 1, rng: { ...rng.snapshot() }, goats: !goatsDue,
       bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })) }),

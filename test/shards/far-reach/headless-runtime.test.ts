@@ -72,6 +72,27 @@ it('spawns the eight flyers at install and the five goats on the first fixed ste
   } finally { host.dispose(); }
 });
 
+it('runs on the page\'s distance bands: the creature manager\'s legacy rate and the page capsule only within 45 m', () => {
+  const host = boot();
+  try {
+    expect(host.bodyBands).toEqual({ physics: true });
+    for (let i = 0; i < 120; i++) step(host);
+    const bands = host.bodyBandState(), p = host.player.position;
+    if (bands === undefined) throw new Error('Sky runs on body bands');
+    expect(new Set(bands.rows.map(row => row.rate))).toEqual(new Set(['legacy']));
+    // every body moved this tick at any distance (the Roc's perch is ~190 m out, where the 'ai' rate pauses a body)
+    for (const row of bands.rows) expect([row.id, row.body.tickFrame]).toEqual([row.id, bands.frame]);
+    expect(Math.hypot(...['x', 'y', 'z'].map(k => (host.entities.get('far.roc')?.position[k as 'x'] ?? 0) - p[k as 'x']))).toBeGreaterThan(160);
+    // decisions at 10 Hz: each brain clock's last decision is at most six ticks old
+    for (const row of bands.rows) expect(bands.frame - row.brain.tickFrame).toBeLessThan(6);
+    for (const [id, actor] of host.entities) {
+      const d = Math.hypot(actor.position.x - p.x, actor.position.z - p.z);
+      if (actor.alive && d < 45) expect([id, actor.motor !== null]).toEqual([id, true]);
+      if (d > 55) expect([id, actor.motor]).toEqual([id, null]);
+    }
+  } finally { host.dispose(); }
+});
+
 it('runs 10k ticks of the shipping policies: real contacts hurt the player, a fall below the kill height kills', () => {
   const host = boot(), seen = new Set<string>();
   let lowest = host.player.health.attributes.health;
