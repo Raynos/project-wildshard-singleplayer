@@ -44,6 +44,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-pine-king-collision.mjs](./bake-pine-king-collision.mjs)
 - [bake-pine-physics.mjs](./bake-pine-physics.mjs)
 - [bake-pine-spots.mjs](./bake-pine-spots.mjs)
+- [bake-pine-undergrowth.mjs](./bake-pine-undergrowth.mjs)
 - [bake-signal-physics.mjs](./bake-signal-physics.mjs)
 - [bake-signal-rigs.mjs](./bake-signal-rigs.mjs)
 - [bake-signal-sand.mjs](./bake-signal-sand.mjs)
