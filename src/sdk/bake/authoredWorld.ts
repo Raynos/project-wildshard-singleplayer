@@ -130,10 +130,13 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       const file = baked.files.find(row => row.hash === hash); if (file === undefined) throw new Error('World panel dependency missing');
       closure.add(hash); pending.push(...file.dependencies); resident += file.decoded + file.gpu; compressed += file.compressed;
     }
+    const criticalFiles = baked.files.filter(row => row.critical), criticalResident = criticalFiles.reduce((sum, row) => sum + row.decoded + row.gpu, 0);
+    const server = record(data['serverBudget']);
     const shard = parseShardfile({ ...data, look: { ...look, materials }, files: [...oldFiles, ...baked.files], tiles: baked.tiles,
       budgets: { ...budgets, library: { resident: v.parse(v.number(), previous['resident']) + resident, compressed: v.parse(v.number(), previous['compressed']) + compressed },
-        sim: { resident: v.parse(v.number(), simBudget['resident']) + baked.files.filter(row => row.critical).reduce((sum, row) => sum + row.decoded + row.gpu, 0),
-          compressed: v.parse(v.number(), simBudget['compressed']) + baked.files.filter(row => row.critical).reduce((sum, row) => sum + row.compressed, 0) } },
+        sim: { resident: v.parse(v.number(), simBudget['resident']) + criticalResident,
+          compressed: v.parse(v.number(), simBudget['compressed']) + criticalFiles.reduce((sum, row) => sum + row.compressed, 0) } },
+      serverBudget: { ...server, memory: v.parse(v.number(), server['memory']) + criticalResident },
       props: { ...baked.props, panels, far: farFile.hash }, library: [...new Set([...oldLibrary, ...library])], critical: [...new Set([...oldCritical, ...baked.critical])],
       meshCollision: { version: 1, tiles: collision.tiles.map(({ x, z, file }) => ({ x, z, file })), panels: panelCollision },
       far: { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed, decoded: farFile.decoded, gpu: farFile.gpu, triangles: farFile.triangles, draws: farFile.draws }, edge: edges(world) });

@@ -24,6 +24,8 @@ it('bakes an ordinary Blender GLB with transformed bridge layers, two PNG textur
   const bytes = readFileSync(fixture), input = declaration(), a = await bakeAuthoredWorld(input, bytes), b = await bakeAuthoredWorld(input, bytes);
   expect(canonicalJson(a.shard)).toBe(canonicalJson(b.shard)); expect(a.assets).toEqual(b.assets);
   validateProject(a.shard, a.assets);
+  const collisionResident = a.shard.files.filter(row => row.critical).reduce((sum, row) => sum + row.decoded + row.gpu, 0);
+  expect(a.shard.serverBudget.memory).toBe(1_000_000 + collisionResident);
   expect(a.shard.terrain).toBeNull(); expect(a.shard.meshCollision?.tiles).toHaveLength(64);
   expect(a.shard.files.filter(row => row.kind === 'ktx2')).toHaveLength(2);
   expect(a.shard.props?.panels).toHaveLength(1); expect(a.shard.meshCollision?.panels[0]?.id).toBe('hall.door.collider');
