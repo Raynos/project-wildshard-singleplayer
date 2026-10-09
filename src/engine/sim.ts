@@ -477,6 +477,15 @@ export class SimHost {
     const fall = this.playerFall;
     if (fall.grounded) { fall.vy = shoveHop(fall.vy); fall.grounded = false; }
   }
+  /** Dash the owned player at (vx, vz) m/s for `time` s, whatever the input says: the client Player's `dash` (a shard's
+   * knock-down). The dash law's own rules hold (player/dash.ts: a wall ends it, a knockback cancels it, its last step
+   * brakes). False (nothing happens) on the board or for no time. */
+  dashPlayer(vx: number, vz: number, time: number): boolean {
+    if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its dash');
+    if (![vx, vz, time].every(Number.isFinite)) throw new RangeError('Invalid player dash');
+    if (this.playerBoard.on) return false;
+    return startDash(this.playerDash, vx, vz, time);
+  }
   /** Dash the owned player toward (x, z), stopping `stopAt` m short, over `time` s: the client Player's `dashTo`, a sword's
    * lunge (combat/sweptMeleeCore `sweptLunge` gives the numbers). The dash overrides the walk, a wall ends it, a knockback
    * cancels it. False (nothing happens) when already that close, or on the board. */

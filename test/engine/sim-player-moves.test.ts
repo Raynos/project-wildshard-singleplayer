@@ -185,6 +185,28 @@ it('ends a dash at a wall, on the board, and under a knockback', () => {
   } finally { host.dispose(); }
 });
 
+it('dashes at a velocity as the client Player\'s dash does (a knock-down): the same steps, refused on the board', () => {
+  const host = flat(), { player, physics, dispose } = client();
+  try {
+    for (let tick = 0; tick < 5; tick++) { physics.step(); player.step(DT, command(0, 0, false, false)); }
+    const h0 = { x: host.player.position.x, z: host.player.position.z }, c0 = { x: player.position.x, z: player.position.z };
+    expect(host.dashPlayer(7, 0, 0.28)).toBe(true); expect(player.dash(7, 0, 0.28)).toBe(true);
+    expect(host.playerDash).toEqual({ t: 0.28, vx: 7, vz: 0 });
+    // step for step while the dash carries (17 steps: 0.28 s, the last one braking); after it the client's walk eases out
+    // on its own inertia, the host's keeps none
+    for (let tick = 0; tick < 17; tick++) {
+      physics.step(); player.step(DT, command(0, 0, false, false)); host.step(still);
+      expect(host.player.position.x - h0.x).toBeCloseTo(player.position.x - c0.x, 6);
+      expect(host.player.position.z - h0.z).toBeCloseTo(player.position.z - c0.z, 6);
+    }
+    expect(host.playerDash.t).toBeLessThanOrEqual(0); expect(host.player.position.x - h0.x).toBeGreaterThan(1.5);
+    expect(host.dashPlayer(0, 0, 0)).toBe(false);
+    expect(() => host.dashPlayer(Number.NaN, 0, 0.2)).toThrow(RangeError);
+    host.step({ ...still, hover: true });
+    expect(host.dashPlayer(5, 0, 0.2)).toBe(false); expect(host.playerDash.t).toBe(0);
+  } finally { dispose(); host.dispose(); }
+});
+
 it('lunges with sweptLunge onto a target, stopping short of it; out of range there is no lunge', () => {
   const lunge = SWORD_WOOD.lunge;
   expect(sweptLunge(lunge, false, 0, -10, 0.5)).toBeNull();
