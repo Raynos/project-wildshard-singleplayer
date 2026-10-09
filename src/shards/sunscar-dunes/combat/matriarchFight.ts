@@ -59,9 +59,9 @@ export interface MatriarchFight<A extends AnimalSim> {
 /**
  * The Dune Matriarch's `BossScript`, free of any view (SF72): her body's reset per checkpoint (fresh body, health at the
  * checkpoint's share), the rise, the phase marks on her memory (`mem.fight` / `mem.rise` / `mem.phase`, read by
- * `MatriarchBrain`), the storm's goal and easing, her invulnerability through the beats, and the victory, line for line
- * the script inside combat/matriarch.ts's `DuneMatriarch`. The headless runtime (runtime/matriarch.ts) runs it on the
- * simulation host; the browser class adopts it in the next commit (a bake-input change).
+ * `MatriarchBrain`), the storm's goal and easing, her invulnerability through the beats, and the victory. One fight,
+ * two hosts: the browser's `DuneMatriarch` (combat/matriarch.ts) runs it under the fog, sand shells, boss bar and coin
+ * burst; the headless runtime (runtime/matriarch.ts) runs it on the simulation host.
  */
 export function matriarchFight<A extends AnimalSim>(ports: MatriarchFightPorts<A>): MatriarchFight<A> {
   const focus = new Vector3(), { spawn, retire } = ports.body, weather = { storm: 0 };
