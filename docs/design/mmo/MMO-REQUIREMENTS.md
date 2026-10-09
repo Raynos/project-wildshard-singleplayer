@@ -155,6 +155,7 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | U2 | The server validates (A3) and quarantines a revision, then activates it all-or-nothing. Every revision is kept | MUST | N |
 | U3 | **Live update with players inside, blue/green** (G17): players inside finish on the old revision (time-capped), new arrivals get the new one; only a shared-state schema change needs a coordinated cut-over. Schema changes are additive, or carry an author migration tested against real saves (G18) | MUST | V, J |
 | U4 | **Private shards never leak**, including through public asset URLs | MUST | V |
+| U5 | **The creator key** (Jake, E465 Q1): an author requests a key, which is their creator identity and signs their uploads; the upload itself is still the ritual (U1). The marketing site tells it in that order: key → build in Claude Code → ritual | MUST | J |
 
 ### 3.9 Ownership and the living grid
 
@@ -168,6 +169,8 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | O6 | Moderation, **AI first with Jake on appeal** (G28): an AI pass against a written policy checks every upload, asset, author string and reported chat; borderline cases queue for a human; players report anything; copyright takedowns | MUST | N, J |
 | O7 | **Public shards are always remixable** within Wildshard, with automatic attribution (G20); uploads carry their source (G19) | MUST | J |
 | O8 | **Player building** (placing and destroying persistent things) comes later, after three brand-new shards built around building stress-test it (G7) | LATER | J |
+| O9 | **Founding authors** (Jake, E465 idea 8): the first authors to upload get a permanent "Founding Author" title and a plaque on their shard. The marketing site promises it publicly, so the MMO keeps it | MUST | J |
+| O10 | **The author owns the shard** (Jake, E465): the author keeps the rights to what they build; uploading grants Wildshard a licence to host it and show it in the world; a renovated shard keeps its original author's name (O1, O4). Playing is free; building is free with the author's own Claude Code; uploads are never charged | MUST | J |
 
 ### 3.10 The transition: the six shards keep working
 

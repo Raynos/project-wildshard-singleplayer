@@ -4,6 +4,9 @@
 # project `wildshard-site` (no Git link). Public from the first deploy (Jake, Q4).
 #
 #   bash site/tools/deploy.sh          # commit first: it ships HEAD, not the working tree
+#
+# CI runs it too (.github/workflows/site-deploy.yml, MS10): on a push that changes site/ or a plan, and daily for new
+# `Devlog:` trailers. There VERCEL_BUILD_TOKEN is the credential; locally the CLI's own login is.
 set -euo pipefail
 
 repo="$(git rev-parse --show-toplevel)"
@@ -28,12 +31,17 @@ mkdir -p "$work/dist-site/.vercel"
 cp site/vercel-project.json "$work/dist-site/.vercel/project.json"
 
 echo "deploy-site: uploading"
-url="$(vercel deploy "$work/dist-site" --prod --yes --scope raynos-projects 2>/dev/null | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
+deploy=(vercel deploy "$work/dist-site" --prod --yes --scope raynos-projects)
+if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then deploy+=(--token "$VERCEL_BUILD_TOKEN"); fi
+url="$("${deploy[@]}" 2>/dev/null | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
 echo "deploy-site: $url"
 
 live="https://wildshard-site.vercel.app"
-build="$(curl -fsS "$live/version.json" | sed -E 's/.*"build":"([^"]+)".*/\1/')"
-case "$build" in
-  "$sha"*) echo "deploy-site: live at $live (build $build)" ;;
-  *) echo "deploy-site: $live reports build $build, not $sha" >&2; exit 1 ;;
-esac
+# The production alias can briefly serve the preceding deployment after Vercel reports Ready: retry, uncached.
+for _ in {1..12}; do
+  build="$(curl -fsS -H 'Cache-Control: no-cache' "$live/version.json" | sed -E 's/.*"build":"([^"]+)".*/\1/' || true)"
+  case "$build" in "$sha"*) echo "deploy-site: live at $live (build $build)"; exit 0 ;; esac
+  sleep 5
+done
+echo "deploy-site: $live reports build $build, not $sha" >&2
+exit 1

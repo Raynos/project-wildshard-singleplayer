@@ -1,0 +1,46 @@
+name: site-deploy
+
+# The marketing site (MARKETING-SITE MS10, E465) keeps itself true: its road strip and devlog are generated from the
+# plans and the commits at build time, so it redeploys when the site or a plan changes, and once a day for new
+# `Devlog:` trailers on any commit.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'docs/plans/**'
+      - '.github/workflows/site-deploy.yml'
+  schedule:
+    - cron: '7 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: site-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the devlog reads the commit history
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global vercel@59.11.2
+      - name: Deploy the site
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: |
+          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::Missing VERCEL_BUILD_TOKEN'; exit 1; }
+          bash site/tools/deploy.sh
