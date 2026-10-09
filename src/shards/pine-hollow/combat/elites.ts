@@ -75,6 +75,7 @@ function pageWorld(ctx: PineCtx, elites: Elites, puffs: Puffs): PineEliteWorld<A
     player: ctx.player, reach: ctx.reach, god: ctx.god, trauma: ctx.trauma, stun: ctx.stun, dusk: ctx.dusk, night: ctx.night, hurt: ctx.hurt,
     voice: (name, a) => { voice(ctx.animals, name, a.position); },
     spawn: (kind, x, z, yaw, variant) => ctx.animals.spawn(kind, x, z, yaw, variant),
+    find: (id) => ctx.animals.animals.find(a => a.entityId === id) ?? null,
     own, release, retire: (a) => { retire(ctx.animals, a); }, adopt: (a) => { elitesOwned.add(a); },
     lane: (row) => new LaneCharge(ctx.game.scene, TELL_RED, row, ctx.reach),
     ring: () => new GroundTell(ctx.game.scene, 'ring', TELL_RED),

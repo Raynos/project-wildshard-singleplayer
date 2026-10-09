@@ -19,7 +19,7 @@ import type { Lane, LaneBody } from './lane';
 
 /** An elite's body as the scripts drive it: the page's Animal and a renderer-free host's body alike. */
 export interface PineEliteBody extends LaneBody, EliteActor {
-  readonly alive: boolean; readonly position: Vector3;
+  readonly alive: boolean; readonly position: Vector3; readonly entityId: string;
   hidden: boolean; hp: number; readonly maxHp: number; readonly kind: string;
   place: (x: number, z: number, yaw: number, y?: number) => void;
 }
@@ -43,6 +43,8 @@ export interface PineEliteWorld<B extends PineEliteBody> {
   voice: (name: string, a: B) => void;
   /** the creature manager's spawn (the shared creature stream's draws) */
   spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => B;
+  /** the manager's live body under an entity id (a continuation's rivals; null when none) */
+  find: (entityId: string) => B | null;
   /** take a body under a fight's control (out of its herd, the manager's AI off) / hand it back / out of the world */
   own: (a: B) => void; release: (a: B) => void; retire: (a: B) => void;
   /** one of the named elites (the page: its skin comes from the orb) */
@@ -287,12 +289,26 @@ export class ImperialBull<B extends PineEliteBody> extends PineEliteScript<B> {
     this.rivals = this.rivals.filter((r) => r.a.alive || r.lane.busy);
   }
   protected fight(a: B, dt: number, t: number): void { imperialGoal(this, a, dt, t); }
+  /** each rival lane's bull as its creature number (`creature:<n>`) and its mode; null: that lane has none */
   protected override extra(): PineEliteFields {
-    // the rivals are live creature spawns, which a renderer-free continuation does not own yet (fail-closed)
-    if (this.rivals.length > 0) throw new Error('Pine headless does not yet save the Imperial Bull\'s rivals');
-    return { bugledPhase: this.bugledPhase };
+    const out: PineEliteFields = { bugledPhase: this.bugledPhase };
+    this.rivalLanes.forEach((lane, i) => {
+      const r = this.rivals.find(x => x.lane === lane), n = r === undefined ? null : Number(/^creature:(\d+)$/u.exec(r.a.entityId)?.[1]);
+      if (n !== null && !Number.isInteger(n)) throw new Error(`Unsaveable Imperial Bull rival ${r?.a.entityId ?? ''}`);
+      out[`rival${String(i)}`] = n; out[`rivalCharge${String(i)}`] = r?.mode === 'charge';
+    });
+    return out;
   }
-  protected override restoreExtra(num: (k: string) => number): void { this.bugledPhase = num('bugledPhase'); }
+  protected override restoreExtra(num: (k: string) => number, bool: (k: string) => boolean, raw: PineEliteFields): void {
+    this.bugledPhase = num('bugledPhase');
+    this.rivals = [];
+    this.rivalLanes.forEach((lane, i) => {
+      if (raw[`rival${String(i)}`] === null) return;
+      const id = `creature:${String(num(`rival${String(i)}`))}`, a = this.env.find(id);
+      if (a === null) throw new Error(`Incompatible Imperial Bull rival ${id}`);
+      this.rivals.push({ a, lane, mode: bool(`rivalCharge${String(i)}`) ? 'charge' : 'approach' });
+    });
+  }
   override lanes(): readonly Lane<B>[] { return [this.lane, ...this.rivalLanes]; }
 }
 

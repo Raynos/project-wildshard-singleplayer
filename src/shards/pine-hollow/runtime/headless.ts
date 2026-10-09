@@ -5,7 +5,7 @@ import { tagCollider } from '@wildshard/engine/physics/surface';
 import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake } from './baked';
-import { installPineRoster } from './roster';
+import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
@@ -46,8 +46,9 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * height query (the ground the herds read and walk), and the creature manager's 164 load-time bodies with their stream,
  * herds, decisions, hit reactions and charges (runtime/roster.ts), restored exactly by an identical install (the roster is
  * the stream's, the same every boot) before the host restores, and the four named elites' fights under the game's elite rules
- * (runtime/elites.ts: the page's own scripts). Not yet owned (fail-closed, see the SF72 handoff): the Imperial Bull's rivals and
- * an elite's respawn (live spawns), the Antler King, the player's weapons, the quest and its facts, and the entry proof; `finish` refuses.
+ * (runtime/elites.ts: the page's own scripts), with their live spawns (an elite's respawn, the Imperial Bull's rivals) and the
+ * roar's stun. Not yet owned (fail-closed, see the SF72 handoff): the day-night clock, the Antler King, the player's weapons,
+ * the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
@@ -60,13 +61,30 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never a crossbow: the weapons are declared items (data/items.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, install: host => {
-    // the roster's creature floor casts into this world at install, restoring too (the saved physics then replaces it)
-    addPineWorld(host, bake);
-    // the elites' step first (the page's elites tick before its creature manager), on the roster's lair bodies
-    let roster: ReturnType<typeof installPineRoster> | null = null;
-    const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? [], heightAt });
-    roster = installPineRoster(host, { bake, grid, nav });
-    elites.initialize();
-  } };
+  return { level, ports: { ground: false, heightAt }, install: (host, context) => { installPine(host, { bake, grid, nav, heightAt, spawnY: shard.spawn.y, saved: context.snapshot }); } };
 };
+
+export interface PineInstall {
+  readonly bake: PineBake; readonly grid: BakedGrid; readonly nav: NonNullable<PineRosterPorts['nav']>; readonly heightAt: (x: number, z: number) => number;
+  /** the level's authored spawn height (the manager's spawn ray) */
+  readonly spawnY: number;
+  /** a restoring host's decoded continuation (its live spawns are reinstalled at install) */
+  readonly saved?: PineRosterPorts['saved'];
+  /** PineDayNight's dusk / night (none headless yet: never dusk) */
+  readonly dusk?: () => number; readonly night?: () => number;
+}
+
+/** Install Pine's world, elites and roster on a host, in the page's order (the trusted runtime's `install`). */
+export function installPine(host: SimHost, parts: PineInstall): { roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites> } {
+  const { bake, grid, nav, heightAt } = parts;
+  // the roster's creature floor casts into this world at install, restoring too (the saved physics then replaces it)
+  addPineWorld(host, bake);
+  // the elites' step first (the page's elites tick before its creature manager), on the roster's lair bodies
+  let roster: ReturnType<typeof installPineRoster> | null = null;
+  const live = (): ReturnType<typeof installPineRoster> => { if (roster === null) throw new Error('Pine roster is not installed'); return roster; };
+  const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? [], heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
+    retire: a => { live().retire(a); }, ...(parts.dusk === undefined ? {} : { dusk: parts.dusk }), ...(parts.night === undefined ? {} : { night: parts.night }) });
+  roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
+  elites.initialize();
+  return { roster, elites };
+}

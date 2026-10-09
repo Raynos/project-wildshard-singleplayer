@@ -12,9 +12,11 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
-import { ROSTER_STEP } from '../../../src/shards/pine-hollow/runtime/roster';
+import { ROSTER_STEP, type PineHuntBody } from '../../../src/shards/pine-hollow/runtime/roster';
 import { ELITES_STEP } from '../../../src/shards/pine-hollow/runtime/elites';
-import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
+import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
+import { parseNavmesh } from '../../../src/engine/physics/navmesh';
+import type { ImperialBull } from '../../../src/shards/pine-hollow/combat/eliteScripts';
 import type { HuntBody } from '../../../src/engine/ai/hunt';
 import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
 import { PINE_LEVEL_SEED, pineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
@@ -242,3 +244,95 @@ it('imports the trusted headless runtime, the elites\' goals and the bare lane w
     "const m = await import('./src/shards/pine-hollow/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); const g = await import('./src/shards/pine-hollow/combat/EliteGoals.ts'), l = await import('./src/shards/pine-hollow/combat/lane.ts'); if (typeof g.ironhideGoal !== 'function' || typeof l.Lane !== 'function') throw new Error('no goals'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });
+
+/** Pine's install parts as the trusted runtime builds them, with a day-night clock the test holds (headless has none yet). */
+function pineParts(dusk?: number): PineInstall {
+  const bytes = readFileSync(PINE_NAVMESH_ASSET), nav = parseNavmesh(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  if (nav === null) throw new Error('navmesh');
+  nav.datum = () => 0;
+  return { bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y,
+    ...(dusk === undefined ? {} : { dusk: () => dusk, night: () => 0 }) };
+}
+function bootWith(parts: PineInstall): { host: SimHost } & ReturnType<typeof installPine> {
+  const host = createSimHost(plan.level, { ...plan.ports, rapier });
+  return { host, ...installPine(host, parts) };
+}
+function restoreWith(parts: PineInstall, saved: string): SimHost {
+  const decoded = decodeSimSnapshot(saved);
+  return restoreSimHost(plan.level, { ...plan.ports, rapier }, decoded, fresh => { fresh.setHeightQuery(heightAt); installPine(fresh, { ...parts, saved: decoded }); });
+}
+function exactAfter(parts: PineInstall, original: SimHost, ticks: number): void {
+  const restored = restoreWith(parts, serializeSimSnapshot(snapshotSimHost(original)));
+  try {
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < ticks; tick++) { original.step(still); restored.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { restored.dispose(); }
+}
+
+it('respawns a felled elite as a live spawn: the manager\'s next entity id (168), the stream\'s draws, scripted at its lair; restore reinstalls it', () => {
+  const parts = pineParts(), { host, elites, roster } = bootWith(parts);
+  try {
+    const boar = standByElite(host, 'ironhide', 40);
+    host.combat.hit({ source: host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: boar.combatActor(), amount: boar.maxHp * 10, point: boar.position.clone(), dir: new Vector3() });
+    host.step(still);
+    const entry = elites.core.entries[0];
+    expect(entry?.state).toBe('dead');
+    if (entry === undefined) throw new Error('no ironhide');
+    entry.timer = 0.05; // the 20 minutes, spent
+    for (let tick = 0; tick < 6; tick++) host.step(still);
+    const fresh = host.entities.get('creature:168'), lair = PINE_ELITE_DEFS['ironhide']?.lair;
+    // the load-time list and the prewarm took creature:0–167 (157 swapped out at boot): the next is 168; 40 m off, he is aware
+    expect(entry.state).toBe('aware'); expect(elites.scripts[0].animal?.entityId).toBe('creature:168');
+    expect([fresh?.kind, fresh?.variant, fresh?.scripted, fresh?.state, fresh?.alive]).toEqual(['boar', 'ironhide', true, 'sidestep', true]);
+    expect(Math.hypot((fresh?.position.x ?? 0) - (lair?.x ?? 0), (fresh?.position.z ?? 0) - (lair?.z ?? 0))).toBeLessThan(2);
+    expect(roster.bodies().length).toBe(165); expect(roster.bodies().at(-1)?.id).toBe('creature:168'); // the corpse stays in the list
+    expect(host.entities.get(boar.entityId)?.alive).toBe(false);
+    exactAfter(parts, host, 120);
+  } finally { host.dispose(); }
+}, 90_000);
+
+/** Boot with a held dusk, stand by the Imperial Bull and run until his bugle brings his rivals in (live spawns). */
+function bugled(): { parts: PineInstall; host: SimHost; bull: ImperialBull<PineHuntBody> } {
+  const parts = pineParts(1), { host, elites } = bootWith(parts), bull = elites.scripts[3];
+  standByElite(host, 'imperial', 30);
+  for (let tick = 0; tick < 900 && bull.rivals.length === 0; tick++) host.step(still);
+  return { parts, host, bull };
+}
+
+it('bugles at dusk: the Imperial Bull calls two rival bulls in as live spawns (the next entity ids), restored exactly on their way in', () => {
+  const { parts, host, bull } = bugled();
+  try {
+    expect(bull.rivals.map(r => [r.a.entityId, r.a.kind, r.a.variant, r.a.scripted, r.mode])).toEqual([['creature:168', 'elk', 'big-bull', true, 'approach'], ['creature:169', 'elk', 'bull', true, 'approach']]);
+    exactAfter(parts, host, 60);
+  } finally { host.dispose(); }
+}, 90_000);
+
+it('the rival bulls run in and charge the player down their lanes, restored exactly mid-charge', () => {
+  const { parts, host, bull } = bugled();
+  try {
+    let charging = false;
+    for (let i = 0; i < 1500 && !charging; i++) { host.step(still); charging = bull.rivals.some(r => r.mode === 'charge'); }
+    expect(charging).toBe(true);
+    exactAfter(parts, host, 60);
+  } finally { host.dispose(); }
+}, 90_000);
+
+it('roots the player where Old Blackpaw\'s roar catches them for 1.3 s (the page\'s effect.stun), and restores mid-stun', () => {
+  const parts = pineParts(), { host } = bootWith(parts);
+  try {
+    standByElite(host, 'black-old', 5);
+    const before = host.player.health.attributes.health, walkOn = { moveX: 1, moveZ: 0, yaw: 0 };
+    let tick = 0;
+    for (; tick < 300 && host.player.health.attributes.health === before; tick++) host.step(still);
+    expect(host.player.health.attributes.health).toBeLessThan(before);
+    host.step(walkOn);
+    const held = host.player.position.clone();
+    for (let i = 0; i < 30; i++) host.step(walkOn);
+    expect(host.player.position.distanceTo(held)).toBeLessThan(1e-6);
+    exactAfter(parts, host, 30);
+    // free again once the 1.3 s run out (the cave's rock stops the walk a little further on)
+    for (let i = 0; i < 90; i++) host.step(walkOn);
+    expect(host.player.position.distanceTo(held)).toBeGreaterThan(0.2);
+  } finally { host.dispose(); }
+}, 90_000);
