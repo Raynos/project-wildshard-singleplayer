@@ -4,7 +4,7 @@ import type { Rng } from '../core/rng';
 import type { FightRules } from '../level/spec';
 import type { HerdPlan } from '../level/data';
 import type { Navmesh } from '../physics/navmesh';
-import { creatureSoundDefaults, rollVariant, speciesDef, variantDef, type VariantDef } from '../entities/species/registry';
+import { creatureSoundDefaults, rollVariant, speciesDef, variantDef, type SpeciesDef, type VariantDef } from '../entities/species/registry';
 import { AggressionDirector } from './director';
 import { reengage, backoffPoint, aroundPoint, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from '../entities/fightRules';
 
@@ -201,7 +201,12 @@ export interface HuntConfig {
   fight: FightRules;
   /** the shard's per-kind overrides (ShardManifest.faunaTuning), read once per kind at its first use */
   faunaTuning: () => Partial<Record<string, Partial<HuntTuning>>> | undefined;
+  /** Each kind's species row, as the brain reads it. Omitted: the global registry (`speciesDef`), as the browser's
+   *  manager always resolved it. A renderer-free host passes its own data rows (ai/species SpeciesRow), no looks. */
+  species?: (kind: string) => HuntSpecies;
 }
+/** The species fields the hunting brain reads: a registered SpeciesDef and a renderer-free SpeciesRow both satisfy it. */
+export type HuntSpecies = Pick<SpeciesDef, 'aggressive' | 'tuning' | 'sounds' | 'think' | 'walkSpeed' | 'chargeSpeed' | 'chargeWindup' | 'ringRadius'>;
 
 /** A spawn's rolls on the shared stream, in order: the variant (when rolled), the scale, the rig seed and the body seed. */
 export interface SpawnRolls { variant: VariantDef; scale: number; rigSeed: number; seed: number }
@@ -231,6 +236,7 @@ export class HuntBrain<A extends HuntBody> {
   private readonly tuningCache = new Map<string, HuntTuning>();
   private readonly rng: Rng;
   private readonly faunaTuning: HuntConfig['faunaTuning'];
+  private readonly species: (kind: string) => HuntSpecies;
   private readonly ports: HuntPorts<A>;
   private readonly ground: HuntGround;
   /** where the player was at the last update (the hit reactions and the back-off read it) */
@@ -241,7 +247,7 @@ export class HuntBrain<A extends HuntBody> {
 
   constructor(config: HuntConfig, ports: HuntPorts<A>, player: Vector3) {
     this.rng = config.rng; this.ports = ports; this.ground = ports.ground; this.player = player;
-    this.faunaTuning = config.faunaTuning;
+    this.faunaTuning = config.faunaTuning; this.species = config.species ?? speciesDef;
     this.melee = config.fight.telegraphed === true;
     this.rules = config.fight.attackers === undefined || !Number.isFinite(config.fight.attackers) ? null : config.fight;
     this.tokens = new AggressionDirector<A>(this.rules?.attackers ?? Infinity);
@@ -276,7 +282,7 @@ export class HuntBrain<A extends HuntBody> {
   tuningFor(a: { readonly kind: string }): HuntTuning {
     const cached = this.tuningCache.get(a.kind);
     if (cached !== undefined) return cached;
-    const sp = speciesDef(a.kind);
+    const sp = this.species(a.kind);
     const base = sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
     const over = this.faunaTuning()?.[a.kind];
     let t = over !== undefined ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ShardManifest.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
@@ -385,7 +391,7 @@ export class HuntBrain<A extends HuntBody> {
     if (!a.alive) { a.lookWeight = 0; return; }   // the corpse is a ragdoll (PHYSICS P8) or the keyframed collapse: nothing to think
     if (a.stunned) { br.chargeCd = Math.max(0, br.chargeCd - dt); a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(player); a.lookWeight = 1; this.confine(a); return; }   // staggered by a sword blow: the AI holds (the charge cooldown still ticks)
     const rng = this.rng;
-    const sp = speciesDef(a.kind);
+    const sp = this.species(a.kind);
     const charger = a.aggressive;                 // charges instead of only fleeing
     const T = this.tuningFor(a);
     const M = a.mods;
@@ -517,7 +523,7 @@ export class HuntBrain<A extends HuntBody> {
   /** The body clock of a running charge: the melee wind-up, the steering (straight in the committed stretch), contact or timeout. */
   advanceCharge(a: A, dt: number, player: Vector3): void {
     const br = this.memories.get(a); if (!br) return;
-    const sp = speciesDef(a.kind), M = a.mods, T = this.tuningFor(a);
+    const sp = this.species(a.kind), M = a.mods, T = this.tuningFor(a);
     const dx = player.x - a.position.x, dz = player.z - a.position.z, dPlayer = Math.hypot(dx, dz);
     if (br.windup > 0) {
       // melee shard: the telegraph — stand, face the player, head down, paw (Animal.poseWindup); then run
@@ -546,7 +552,7 @@ export class HuntBrain<A extends HuntBody> {
 
   /** a charge reached the player: the damage, the grunt, the cooldown, and back to stalk (hunters) / flee (a boar wheels away) */
   private chargeHit(a: A, br: HuntMemory): void {
-    const T = this.tuningFor(a), sp = speciesDef(a.kind);
+    const T = this.tuningFor(a), sp = this.species(a.kind);
     this.ports.charge(a, a.mods.chargeDamage);
     this.ports.sound(sp.sounds?.call ?? fallbackSound(true, 'call'), a);
     br.chargeCd = this.rules !== null ? Math.max(RULES_CD_HIT, T.stalk?.rechargeCd ?? 0) : T.stalk !== undefined ? T.stalk.rechargeCd : a.mods.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
@@ -566,7 +572,7 @@ export class HuntBrain<A extends HuntBody> {
   }
 
   /** E297: the ring a charger circles on (m from the player): RING by kind, a little wider for a big one */
-  private ringFor(a: A): number { return (speciesDef(a.kind).ringRadius ?? RING_DEFAULT) * Math.max(1, a.scale * 0.6); }
+  private ringFor(a: A): number { return (this.species(a.kind).ringRadius ?? RING_DEFAULT) * Math.max(1, a.scale * 0.6); }
 
   /** E297: back off past the ring (fightRules.backoffPoint), arcing round you — the other way from last time */
   private startBackoff(a: A, br: HuntMemory): void {
@@ -621,7 +627,7 @@ export class HuntBrain<A extends HuntBody> {
   private enter(a: A, br: HuntMemory, s: AnimalState): void {
     const rng = this.rng, g = this.ground;
     const T = this.tuningFor(a);
-    const sp = speciesDef(a.kind);
+    const sp = this.species(a.kind);
     const from = a.state;
     if (this.rules !== null) {
       if (s === 'charge' && !this.tokens.take(a)) {
