@@ -873,7 +873,7 @@
         "context.app": 15,
         "context.scope": 13,
         "context.system": 2,
-        "context.debug": 1,
+        "context.debug": 2,
         "subclass.Tool": 1,
         "context.hud": 3,
         "context.progress": 2,
@@ -938,7 +938,8 @@
           "src/shards/nine-dragon-stack/world/install.ts:35:5"
         ],
         "context.debug": [
-          "src/shards/nine-dragon-stack/audio/ambience.ts:66:3"
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:216:3",
+          "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:78:3"
         ],
         "engineSubclasses": [
           "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:257:1"

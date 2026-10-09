@@ -1,10 +1,10 @@
 {
   "audit": {
-    "sourceRevision": "a0aa161283cab02e032e4f6f6d6b0e0feae81d39",
-    "candidate": "this commit (SF72 part 3: the portal ride renderer-free, world/portalVeil.ts the page's fade, runtime/portals.ts the play-time rides headless; the Jian's heavy on the HEAVY hold; the physics bake of 26eedfb00 unchanged)",
+    "sourceRevision": "29ab9aa5d84f830467d726d15018973acdad9ee4",
+    "candidate": "this commit (SF72 parts 4-5: the Fei Zhua's law renderer-free in grapple/sim.ts, driven by the page's FeiZhua.ts and the host's runtime/grapple.ts; the Well rail's see-past reads the host's string collider owners; the physics bake records the 31 dragon hooks, rebaked on candidate 001589c30; the tape adds the Jian's charged heavy and the Well crossing from the south rim)",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "compatible but transitional: the renderer-free trusted entry through the platform's trusted adapter runs the baked grid-cell colliders, the player walking the square's declared route by tick commands, two play-time portal rides on the page's own ride (square -> north deck -> square), the Jian's swing clock (row contacts with no target: Nine has no creature) and the format's portal-link entry proof (92 lanes, 8 transfers), with a byte-exact restore mid-swing and mid-ride; the Fei Zhua and gates / fragments are browser-only and listed under `open`; the ledger is not-declared because Nine declares no fact (README.md)",
+    "scope": "compatible but transitional: the renderer-free trusted entry through the platform's trusted adapter runs the baked grid-cell colliders, the player walking the square's declared route by tick commands, two play-time portal rides on the page's own ride (square -> north deck -> square), the Jian's swing clock (row contacts with no target: Nine has no creature) and its charged heavy on the HEAVY hold, a jump over the square's west balustrade onto the Well's south rim and the Fei Zhua's lifting crossing over the Well (fire, bite, lift, zip, vault, settle) with the safety cap open while it flies, and the format's portal-link entry proof (92 lanes, 8 transfers), with a byte-exact restore mid-swing and mid-ride whose suffix replays the heavy and the crossing; only Jian contacts on real targets are listed under `open`; the ledger is not-declared because Nine declares no fact (README.md)",
     "runs": "two independent native processes, identical output"
   },
   "slug": "nine-dragon-stack",
@@ -16,12 +16,13 @@
     "the player capsule walking those colliders from the declared spawn, by tick commands",
     "the Jian as its declared row on the shipping swept melee clock (combo, one-deep queue, combo gap, cooldown, active windows), exact continuation",
     "the portal-link entry proof: 23 lanes per deck and the format's checked transfer to the square and back (provePortalLinks)",
-    "portal rides during play on the page's own ride (world/portalRide.ts): walked into the square's ring and a deck's, held through the fade, the format's checked transfer under the dark, re-armed on stepping out, exact continuation mid-ride"
+    "portal rides during play on the page's own ride (world/portalRide.ts): walked into the square's ring and a deck's, held through the fade, the format's checked transfer under the dark, re-armed on stepping out, exact continuation mid-ride",
+    "the Jian's charged heavy on the tick protocol's HEAVY hold: a 40-tick charge from the square's arrival, released into one heavy swing on the same clock",
+    "the Fei Zhua on the page's own law (grapple/sim.ts over the 31 baked dragon hooks): aim as the phone's portrait camera, LOCK, JUMP; fire, bite, lift, zip, vault and settle on the player's capsule; the east tower's ledge from the arrival and exact continuation mid-zip in headless-runtime.test.ts",
+    "the Well crossing (gates / fragments): over the square's west balustrade onto the south rim, seen past the rim's rail and the safety cap, the lifting zip over the parapet onto a crossing's deck; the safety cap's baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)"
   ],
   "open": [
-    "Fei Zhua (targeting, rope pull, swing, climb): browser only; the headless world has no grapple",
-    "gates / fragments: the Well safety cap never opens (NdRuntime.guardOpen is the Fei Zhua's), crossings stand as baked",
-    "Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at nothing (the charged heavy runs on the HEAVY hold, not yet in this tape)"
+    "Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at nothing"
   ],
   "ledger": {
     "status": "not-declared",
@@ -30,14 +31,32 @@
   },
   "headless": {
     "status": "passed",
-    "ticksExecuted": 570,
-    "swings": 20,
-    "contacts": 20,
+    "ticksExecuted": 1084,
+    "swings": 22,
+    "contacts": 22,
     "effects": 0,
     "rides": [
       "portal.square.north>portal.north",
       "portal.north>portal.square.arrival"
     ],
+    "grapple": {
+      "phases": [
+        "idle",
+        "fire",
+        "bite",
+        "lift",
+        "zip",
+        "vault",
+        "settle",
+        "idle"
+      ],
+      "capOpenTicks": 151,
+      "landed": {
+        "x": -8.532971600736104,
+        "y": 119.08614685795567,
+        "z": -20.667154578675955
+      }
+    },
     "entries": {
       "lanes": 92,
       "steps": 15984,
@@ -53,9 +72,9 @@
       "swings": 14,
       "rideClock": 0.2333
     },
-    "suffixTicksExecuted": 170,
-    "hash": "2fdbf51ecca9f1cd63db9da109c55592431f858f8b4b8a15184a3489f9aa90ef",
-    "replayHash": "2fdbf51ecca9f1cd63db9da109c55592431f858f8b4b8a15184a3489f9aa90ef"
+    "suffixTicksExecuted": 684,
+    "hash": "18e852c0039bf0dcc00a2f5ba6a6977f5d3041b4394157dc48fcc2bd77262a0b",
+    "replayHash": "18e852c0039bf0dcc00a2f5ba6a6977f5d3041b4394157dc48fcc2bd77262a0b"
   },
   "declarations": {
     "sourceLoaded": true,

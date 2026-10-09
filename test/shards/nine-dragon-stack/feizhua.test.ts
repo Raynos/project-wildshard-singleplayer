@@ -46,7 +46,7 @@ function setup(hooks = [new Vector3(0, 1.6, -10)], enemy = false) {
   let labels: Partial<Record<DiscSpot, TouchRelabel>> = {};
   app.input.touchSink((next) => { labels = next; }, scope);
   const pins: HTMLElement[] = [];
-  const ctx = legacyDouble<ShardContext>({ app, scope, hud: legacyDouble<HudVerbs>({ relabel: () => () => undefined, pin: (_at, el) => { pins.push(el); document.body.append(el); scope.onDispose(() => el.remove()); } }) });
+  const ctx = legacyDouble<ShardContext>({ app, scope, debug: { expose: () => undefined }, hud: legacyDouble<HudVerbs>({ relabel: () => () => undefined, pin: (_at, el) => { pins.push(el); document.body.append(el); scope.onDispose(() => el.remove()); } }) });
   const tool = new FeiZhua(ctx, { name: 'test', hooks }); tool.install({ scope, events: app.events });
   physics.step();
   const phase = (name: 'input' | 'update' | 'fixed.post'): void => {

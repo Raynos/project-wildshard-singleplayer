@@ -18,7 +18,7 @@ The later [SF51-g admission proof](grid-admission.md) closes that descriptor/run
 
 Map: rebuilt after the Nine map-style commit `f9a2e7493`, using the official `scripts/bake-maps.mjs` command from the clean candidate. The stamp is `c9c32e3ef2792cfc2afee6d6bd73a15c25b56d33042115a03bf28c4ff9060d5c`, stylized ground, 1,000 px / 13,488 bytes. The browser proof pin predates this map-only rebake; the native world / layout inputs are unchanged.
 
-## SF72 witness (parts 2–3): what `compatible: true` covers, and what it does not
+## SF72 witness (parts 2–5): what `compatible: true` covers, and what it does not
 
 `run.mjs` runs the trusted renderer-free entry `runtime/headless.ts` through the platform's own trusted adapter
 (`createTrustedHeadlessAdapter`). The result is **compatible but transitional** (`transitional: true` in
@@ -41,15 +41,30 @@ as open, not proven.
   (feet kept at the ring's touch through the fade), the transfer is `createPortalTraversal` on the host's own physics,
   motor and feet; the ride's state and hold are continuation, and the replay checkpoint (tick 400) falls mid-swing AND
   held in the square's ring before the transfer. The same build's browser rides all four decks (north arrival
-  (0, 0.01, 236), the headless one (0, 0, 236)).
+  (0, 0.01, 236), the headless one (0, 0, 236));
+- the Jian's charged heavy (part 5) on the tick protocol's HEAVY hold: back at the arrival the tape holds HEAVY for 40
+  ticks and lets go, one heavy swing on the same clock (22 swings in all);
+- the Fei Zhua (parts 4–5) on the page's own law: `grapple/sim.ts` is renderer-free (targeting by the view's projection,
+  reach, sight past the Well's rail, the landing test, fire → bite → lift → zip → vault → settle, or a miss reeled back,
+  with snapshot / restore); the page's `grapple/FeiZhua.ts` drives it and draws the rope, markers and FX, and the host's
+  `runtime/grapple.ts` drives it from tick commands (a LOCK script press, the aim's pitch as a script value, the player
+  command's JUMP), on the 31 dragon hooks the physics bake records (`hooks`, `scripts/bake-nine-physics.mjs`). The aim is
+  the player's eye at the command's heading and pitch projected as the phone's portrait camera, so the hook nearest the
+  screen's centre is the one the claw takes, as on the page. `headless-runtime.test.ts` also zips onto the east tower's
+  ledge from the arrival and restores mid-zip byte-exactly;
+- the Well crossing (part 5, gates / fragments): after the heavy the tape walks 6 m south along the square's west
+  balustrade (x 0.2, 1.1 m high), jumps it onto the Well's south rim (z 11.2…16) and fires north across the Well at the
+  crossing's hook (−8.2, 121.37, −18.49), seen past the rim's rail and the safety cap. The zip lifts over the rim's
+  parapet with the cap's baked colliders (`nds-grapple-guard`) switched off exactly while the lifting crossing flies
+  (the page's `NdRuntime.guardOpen`; 151 ticks), lands on the crossing's deck at (−8.53, 119.09, −20.67) and the cap
+  closes behind it. `headless-runtime.test.ts` restores mid-crossing with the cap open (still open on the fresh host,
+  closed on both after the settle). The see-past rule reads the host's collider owners, which are piece ids (strings,
+  snapshot-safe) where the page's are the piece objects; before part 5 the host could never see a hook past the rail.
 
 **Still not headless (open):**
-- the Fei Zhua (targeting, rope pull, swing, climb): browser only; the headless world has no grapple;
-- gates / fragments: the Well safety cap never opens (`NdRuntime.guardOpen` is the Fei Zhua's), the crossings stand
-  as baked;
 - Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at
-  nothing. (The charged heavy now runs headless on the tick protocol's HEAVY hold, `runtime/jian.ts`, proven in
-  `test/shards/nine-dragon-stack/headless-runtime.test.ts`; the witness tape does not swing it yet.)
+  nothing. Nothing else renderer-bound decides an outcome in the fragment (the crowd, movers, lights and FX are
+  decorative); `transitional` stays declared until the plan's owner drops it.
 
 **Ledger `not-declared`** is the truth, not a skipped stage: Nine declares no quest, fact or ledger rule
 (`shard.config.ts`), so there is nothing to emit. The stage loads the real source in strict Node and reports the empty

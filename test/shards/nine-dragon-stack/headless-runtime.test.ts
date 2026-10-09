@@ -14,6 +14,7 @@ import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { prepareHeadlessRuntime } from '../../../src/shards/nine-dragon-stack/runtime/headless';
 import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
+import { GRAPPLE_AIM, GRAPPLE_LOCK, GRAPPLE_STEP } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
@@ -106,4 +107,79 @@ it('proves the four portal-link entries on the baked world: 92 deck lanes and ei
     expect(proof).toMatchObject({ lanes: 92, portalTransfers: 8 });
     expect(proof?.steps).toBeGreaterThan(0);
   } finally { host.dispose(); }
+});
+
+interface GrappleSaved { sim: { phase: string }; last: { x: number; y: number; z: number }; guard: readonly number[] }
+const grappleState = (host: SimHost): GrappleSaved => {
+  const adapter = snapshotSimHost(host).adapters.find(row => row.id === GRAPPLE_STEP);
+  if (typeof adapter?.state !== 'string') throw new Error('missing Fei Zhua continuation');
+  return JSON.parse(adapter.state) as GrappleSaved;
+};
+/** Whether the Well's safety cap stands: its baked colliders, enabled, on this host. */
+const capStands = (host: SimHost): boolean => {
+  const { guard } = grappleState(host);
+  expect(guard.length).toBeGreaterThan(0);
+  return guard.every(handle => host.physics.world.getCollider(handle).isEnabled());
+};
+/** One leg of tick commands: `ticks` at world move (x, z) facing `yaw`; the first tick may JUMP, or aim (pitch) and LOCK. */
+interface Leg { ticks: number; x?: number; z?: number; yaw: number; press?: 'jump' | { pitch: number } }
+function drive(host: SimHost, tape: Tape, legs: readonly Leg[]): void {
+  for (const { ticks, x = 0, z = 0, yaw, press } of legs) for (let i = 0; i < ticks; i++) {
+    const jump = i === 0 && press === 'jump' ? { jump: true as const } : {}, player: HeadlessCommand = { kind: 'player', moveX: x, moveZ: z, yaw, ...jump };
+    tape.commands = i === 0 && typeof press === 'object' ? [player, { kind: 'script', actorId: GRAPPLE_AIM, value: press.pitch }, { kind: 'script', actorId: GRAPPLE_LOCK, value: 1 }] : [player];
+    host.step({ moveX: x, moveZ: z, yaw, ...jump });
+  }
+}
+/** Step until the grapple reaches `phase`, then `more` ticks into it. */
+function into(host: SimHost, tape: Tape, yaw: number, phase: string, more: number): void {
+  for (let i = 0; i < 90 && grappleState(host).sim.phase !== phase; i++) drive(host, tape, [{ ticks: 1, yaw }]);
+  drive(host, tape, [{ ticks: more, yaw }]);
+  expect(grappleState(host).sim.phase).toBe(phase);
+}
+/** One checkpoint mid-flight: a string round trip into a fresh host, then both run on to the end, compared. */
+function restoresMidFlight(host: SimHost, tape: Tape, yaw: number, ticks: number, check: (restored: SimHost) => void = () => undefined): SimHost {
+  const copy: Tape = { commands: [] }, restored = restore(serializeSimSnapshot(snapshotSimHost(host)), copy);
+  expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
+  check(restored);
+  drive(host, tape, [{ ticks, yaw }]); drive(restored, copy, [{ ticks, yaw }]);
+  expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
+  return restored;
+}
+
+it('fires the Fei Zhua from tick commands (aim, LOCK, JUMP) onto the east tower\'s ledge from the spawn, restoring mid-zip byte-exactly', () => {
+  // the spawn is the square's arrival; the hook on the east tower front, 27.4 m off at heading -1.474, 0.26 up
+  const yaw = -1.474, tape: Tape = { commands: [] }, host = boot(tape);
+  let restored: SimHost | undefined;
+  try {
+    drive(host, tape, [{ ticks: 30, yaw }, { ticks: 1, yaw, press: { pitch: 0.26 } }, { ticks: 1, yaw, press: 'jump' }]);
+    expect(grappleState(host).sim.phase).toBe('fire');
+    into(host, tape, yaw, 'zip', 6);
+    // no lift: the ledge is no Well crossing, so the cap stands throughout
+    expect(capStands(host)).toBe(true);
+    restored = restoresMidFlight(host, tape, yaw, 150);
+    const end = grappleState(host);
+    expect(end.sim.phase).toBe('idle');
+    expect(end.last.y).toBeGreaterThan(source.spawn.y + 2);
+    expect(host.player.position.x).toBeGreaterThan(20);
+  } finally { host.dispose(); restored?.dispose(); }
+});
+
+it('crosses the Well from its south rim: the lifting zip opens the safety cap\'s colliders in flight, restores mid-crossing with the cap open, and closes it on the settle', () => {
+  // over the square's west balustrade onto the rim (the witness's route), then the crossing's hook at heading 0.1495, 0.1632 down
+  const yaw = 0.1495, tape: Tape = { commands: [] }, host = boot(tape);
+  let restored: SimHost | undefined;
+  try {
+    drive(host, tape, [{ ticks: 10, yaw }, { ticks: 72, z: 1, yaw }, { ticks: 20, x: -1, yaw }, { ticks: 60, x: -1, yaw, press: 'jump' }, { ticks: 30, yaw }]);
+    expect(host.player.position.z).toBeGreaterThan(11.2); expect(host.player.position.x).toBeLessThan(0);
+    expect(capStands(host)).toBe(true);
+    drive(host, tape, [{ ticks: 1, yaw, press: { pitch: -0.1632 } }, { ticks: 1, yaw, press: 'jump' }]);
+    into(host, tape, yaw, 'zip', 20);
+    expect(capStands(host)).toBe(false);
+    restored = restoresMidFlight(host, tape, yaw, 180, fresh => { expect(capStands(fresh)).toBe(false); });
+    expect(capStands(host)).toBe(true); expect(capStands(restored)).toBe(true);
+    expect(grappleState(host).sim.phase).toBe('idle');
+    // on a crossing's deck north over the Well, below the square's datum
+    const p = host.player.position;
+    expect(p.z).toBeLessThan(-15); expect(p.y).toBeLessThan(source.spawn.y - 3);
+  } finally { host.dispose(); restored?.dispose(); }
 });

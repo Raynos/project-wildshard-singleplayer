@@ -18,37 +18,24 @@ import { inState } from '@wildshard/engine/app/systems';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Tool } from '@wildshard/engine/combat/Tool';
 import type { EquipmentHost } from '@wildshard/engine/combat/view/EquipmentHost';
-import { castRay, castSegment, floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
 import type { TouchRelabel } from '@wildshard/engine/ui/hudSlots';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { FEI_ZHUA_ROW } from './row';
 import { GRAPPLE_CONTEXT } from './context';
-import { WELL, Y0 } from '../layout';
 import { ndRuntime } from '../runtime/state';
 import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';
-import type { GrappleCourse } from './course';
+import type { GrappleCourse, GrapplePorts } from './course';
+import { FIRE_TIME, GrappleSim, type GrappleTarget, type GrappleView, hookVisible, landingFor, MAX_RANGE, MIN_RANGE, NONE, REEL_TIME, targetFor, WIN_X, WIN_Y, wellCourse } from './sim';
 import { grappleCue } from '../runtime/audio/cues';
 
-const MIN_RANGE = 2.5;
-const MAX_RANGE = 38;
-const ZIP_SPEED = 22;
-const FIRE_TIME = 0.27;
-const BITE_TIME = 0.10;
-const REEL_TIME = 0.48;
-/** the centred window a hook must sit in to be the candidate (|ndc x|, |ndc y|) */
-const WIN_X = 0.52, WIN_Y = 0.68;
 /** hooks whose sight (and, when stale, landing) are re-tested per frame: a round robin over the registry */
 const SCAN_PER_FRAME = 2;
 /** a cached landing is re-found once the player has moved this far from where it was found */
 const LANDING_STALE = 1.2;
 /** the small in-reach markers on screen at once */
 const MARKS = 8;
-/** the player's capsule, feet to crown (Player.ts BODY_HEIGHT) plus a margin: the room a zip's approach point needs */
-const BODY = 1.95;
-/** the rim's solid stone parapet top (well.ts wellColliders), which a lifted Well crossing must clear */
-const RIM_WALL = Y0 + 3.2;
 
 const GOLD = '#ffcf70';
 /** the claw on LOCK (a three-talon grapple on its line) and ZIP on JUMP (an arrow along a line) */
@@ -61,135 +48,6 @@ const HINT_ZIP: TouchRelabel = { label: 'Zip', icon: ZIP_ICON, tone: 'active', a
 const HINT_ARMED: TouchRelabel = { label: 'Armed', icon: CLAW_ICON, tone: 'ready', accent: GOLD };
 const HINT_FIRE: TouchRelabel = { label: 'Fire', icon: ZIP_ICON, tone: 'ready', accent: GOLD };
 
-interface Target { hook: Vector3; landing: Vector3; approach: Vector3; lifts: boolean }
-
-const UP = { x: 0, y: 1, z: 0 };
-const vDir = new Vector3(), vPast = new Vector3(), vToward = new Vector3(), vSide = new Vector3(), vProbe = new Vector3();
-
-/** The claw sees a hook: a clear line of sight, or past what only the course knows (the fragment's Well rail). */
-function hookVisible(ctx: EquipmentHost, course: GrappleCourse, eye: Vector3, hook: Vector3): boolean {
-  if (lineOfSight(ctx.physics, eye, hook, 1.1, ctx.player.motor.collider)) return true;
-  return course.seePast?.(ctx, eye, hook) === true;
-}
-
-/** A hook beyond the Well rail is visible to the claw if the rail is the only obstruction (the line of sight is blocked). */
-function seePastWellRail(ctx: EquipmentHost, eye: Vector3, hook: Vector3): boolean {
-  const body = ctx.player.motor.collider;
-  const hit = castSegment(ctx.physics, eye, hook, ['WORLD'], body);
-  if (hit === null || Math.abs(hit.point.z - RIM.z0) > 0.45 || hit.point.x < WELL.x0 || hit.point.x > WELL.x1) return false;
-  const id: unknown = typeof hit.owner === 'object' && hit.owner !== null ? Reflect.get(hit.owner, 'id') : null;
-  if (id !== 'nds-floors' && id !== 'nds-grapple-guard') return false;
-  vDir.subVectors(hook, eye).normalize();
-  vPast.set(hit.point.x, hit.point.y, hit.point.z).addScaledVector(vDir, 1.1);
-  return lineOfSight(ctx.physics, vPast, hook, 1.1, body);
-}
-
-/**
- * The fragment's own course: its dragon hooks (read once, at install), the Well rail a hook may be seen past, and the
- * crossing north over the Well from the south rim — it lifts over the rim's stone parapet first, with the safety cap open.
- */
-function fragmentCourse(): GrappleCourse {
-  return {
-    name: 'Nine Dragon Stack',
-    hooks: ndRuntime().world.ctx.hooks,
-    seePast: seePastWellRail,
-    lifts: (p, landing) => p.z > RIM.z0 && landing.z < RIM.z0 && p.x >= WELL.x0 && p.x <= WELL.x1 && p.y >= Y0 - 1,
-    // lift high enough that the straight pull to the approach point clears the rim's stone parapet (its top + a
-    // margin, measured where the capsule has passed the stone), never less than the old 3.5 m, under the cap's top
-    liftTo: (p, a) => {
-      const past = RIM.z0 - 0.7;
-      const t = Math.min(0.9, Math.max(0, (p.z - past) / Math.max(0.01, p.z - a.z)));
-      return Math.min(Y0 + 11, Math.max(p.y + 3.5, (RIM_WALL + 0.35 - a.y * t) / (1 - t)));
-    },
-    guard: (open) => { ndRuntime().guardOpen = open; },
-  };
-}
-
-/** the capsule's footprint (Player.ts RADIUS 0.38 and a hair): four probes round the landing */
-const FOOT = [[0.4, 0], [-0.4, 0], [0, 0.4], [0, -0.4]] as const;
-/** a floor the capsule can stand on at (x, z): within a tread's rise across its whole width (a stair is; a rail's top, a
- *  balustrade's or the square's edge by the balustrade is not) */
-function standable(ctx: EquipmentHost, x: number, y: number, z: number): boolean {
-  const body = ctx.player.motor.collider;
-  for (const [dx, dz] of FOOT) {
-    const f = floorBelow(ctx.physics, x + dx, z + dz, y + 0.6, 1.2, body);
-    if (f === undefined || Math.abs(f - y) > 0.4) return false;
-  }
-  return true;
-}
-
-// back steps from the ring toward the player first; then past it (a ring on a lip: the pull carries you over onto the
-// floor behind it, E286's rim → square crossing)
-const BACKS = [1.2, 2, 2.8, 4, 6, -1.6, -2.4, -3.2, -4.2] as const;
-const SIDES = [0, -2, 2, -4, 4] as const;
-
-/** where a landing was found: none (no safe zip target), between the player and the ring, or past the ring */
-const NONE = 0, NEAR = 1, PAST = 2;
-type Side = typeof NONE | typeof NEAR | typeof PAST;
-
-/** The actual floor near a ring, approached from `from` (the player's feet), written to `out`. */
-function landingFor(ctx: EquipmentHost, from: Vector3, hook: Vector3, out: Vector3): Side {
-  vToward.subVectors(from, hook).setY(0);
-  if (vToward.lengthSq() < 0.01) return NONE;
-  vToward.normalize();
-  vSide.set(-vToward.z, 0, vToward.x);
-  const fromY = hook.y + 2;
-  const body = ctx.player.motor.collider;
-  for (const back of BACKS) {
-    for (const sideStep of SIDES) {
-      vProbe.copy(hook).addScaledVector(vToward, back).addScaledVector(vSide, sideStep);
-      const floor = floorBelow(ctx.physics, vProbe.x, vProbe.z, fromY, 12, body);
-      if (floor === undefined || floor < hook.y - 9 || floor > hook.y + 1.8) continue;
-      if (!standable(ctx, vProbe.x, floor, vProbe.z)) continue;
-      out.set(vProbe.x, floor + 0.12, vProbe.z);
-      return back > 0 ? NEAR : PAST;
-    }
-  }
-  return NONE;
-}
-
-/**
- * Where the zip flies to for a landing past the ring: over it at up to the ring's height (so it comes in over the lip the
- * ring hangs from, a rail or a balustrade, instead of through it) with room for the capsule under anything overhead,
- * then the player drops on. A landing on the player's side is flown to straight, as it always was.
- */
-function approachFor(ctx: EquipmentHost, hook: Vector3, landing: Vector3, out: Vector3): void {
-  let clear = Math.min(1.6, Math.max(0, hook.y - landing.y - 0.2));
-  if (clear > 0) {
-    const hit = castRay(ctx.physics, landing, UP, clear + BODY, ['WORLD'], ctx.player.motor.collider);
-    if (hit !== null) clear = Math.max(0, Math.min(clear, hit.distance - BODY));
-  }
-  out.copy(landing);
-  out.y += clear;
-}
-
-function targetFor(ctx: EquipmentHost, course: GrappleCourse, hook: Vector3, landing: Vector3, side: Side): Target {
-  const approach = landing.clone();
-  if (side === PAST) approachFor(ctx, hook, landing, approach);
-  return { hook, landing: landing.clone(), approach, lifts: course.lifts?.(ctx.player.position, landing) === true };
-}
-
-/** the full test of every hook, for the LOCK press when the round robin has no candidate yet (a one-off, not per frame) */
-function nearest(ctx: EquipmentHost, course: GrappleCourse): Target | null {
-  const camera = ctx.game.camera;
-  camera.updateMatrixWorld(true);
-  const eye = camera.position;
-  const landing = new Vector3(), p = new Vector3();
-  let chosen: Target | null = null, score = Infinity;
-  for (const hook of course.hooks) {
-    const d = eye.distanceTo(hook);
-    if (d < MIN_RANGE || d > MAX_RANGE) continue;
-    p.copy(hook).project(camera);
-    if (p.z < -1 || p.z > 1 || Math.abs(p.x) > WIN_X || Math.abs(p.y) > WIN_Y) continue;
-    const s = p.x * p.x + p.y * p.y * 0.55 + d * 0.0008;
-    if (s >= score || !hookVisible(ctx, course, eye, hook)) continue;
-    const side = landingFor(ctx, ctx.player.position, hook, landing);
-    if (side === NONE) continue;
-    chosen = targetFor(ctx, course, hook, landing, side);
-    score = s;
-  }
-  return chosen;
-}
 
 function makeTracer(ctx: EquipmentHost) {
   // Lab P9's fixed-step rope and screen-width ribbon replace the straight world-space cylinders.
@@ -275,9 +133,17 @@ export class FeiZhua extends Tool {
 }
 
 function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, toolEnabled: () => boolean, baseCourse?: GrappleCourse): (course: GrappleCourse | null) => void {
-  const fragment = baseCourse ?? fragmentCourse();
-  let course = fragment;
-  let hooks = course.hooks;
+  // the fragment's own course (grapple/sim.ts wellCourse): its dragon hooks, read once at install, and the Well's safety cap
+  const fragment = baseCourse ?? wellCourse(ndRuntime().world.ctx.hooks, RIM.z0, (open) => { ndRuntime().guardOpen = open; });
+  let hooks = fragment.hooks;
+  // the law's ports: the page's physics and Player, and the camera as the aim (read live, as the Tool always did)
+  const ports: GrapplePorts = { get physics() { return ctx.physics; }, get body() { return ctx.player; } };
+  const view: GrappleView = {
+    get eye() { return ctx.game.camera.position; },
+    update: () => { ctx.game.camera.updateMatrixWorld(true); },
+    project: (point, out) => out.copy(point).project(ctx.game.camera),
+    forward: (out) => ctx.game.camera.getWorldDirection(out),
+  };
   const tracer = makeTracer(ctx);
   const touchUi = document.getElementById('hud')?.classList.contains('touch') === true;
   const chip = new Pin({
@@ -309,15 +175,11 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   let candidate = -1;
   const ndc = new Vector3();
 
-  type Phase = 'idle' | 'fire' | 'bite' | 'lift' | 'zip' | 'vault' | 'settle' | 'miss' | 'reel' | 'dock';
-  let target: Target | null = null;
-  let armedMiss = false;
-  let phase: Phase = 'idle';
-  let clock = 0, blocked = 0, liftY = 0, time = 0;
+  let time = 0;
   let muzzleAge = Infinity, biteAge = Infinity, dockAge = Infinity;
   let hintShown: TouchRelabel | null | undefined; // the LOCK hint last handed to the touch layer (undefined: none yet)
-  const end = new Vector3(), want = new Vector3(), before = new Vector3();
-  const muzzle = new Vector3(), tip = new Vector3(), missEnd = new Vector3();
+  const up = new Vector3();
+  const muzzle = new Vector3(), tip = new Vector3();
   const screen = new Vector2();
   const muzzleFlash = new Flash(new Color(0xa8f5ff));
   const biteFlash = new Flash(new Color(0xffc76a));
@@ -334,33 +196,42 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   lockHalo.visible = false;
   ctx.game.scene.add(lockHalo);
   ctx.game.scene.add(muzzleFlash.mesh, biteFlash.mesh, dockFlash.mesh, sparks.mesh);
+  const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
+  // the law (grapple/sim.ts); the Tool draws, sounds and animates what it does
+  const sim = new GrappleSim(ports, fragment, {
+    fire: () => { muzzleAge = 0; grappleCue('grapple.fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
+    miss: () => { ctx.toast('FEI ZHUA MISSED · REELING'); },
+    bite: () => { biteAge = 0; grappleCue('grapple.bite'); ctx.arms?.playLeft?.('grapple_hold'); },
+    zip: () => { grappleCue('grapple.zip'); },
+    reel: () => { grappleCue('grapple.reel'); },
+    dock: () => { dockAge = 0; grappleCue('grapple.dock'); },
+    release: (active) => {
+      if (active) grappleCue('grapple.dock');
+      tracer.hide(); hideCues();
+      lockHalo.visible = muzzleFlash.mesh.visible = biteFlash.mesh.visible = dockFlash.mesh.visible = sparks.mesh.visible = false;
+      ctx.arms?.playLeft?.('idle'); ctx.arms?.setClawVisible?.(true);
+    },
+  });
+  // the course's hooks and the grapple's phase, for captures and the native bake (scripts/bake-nine-physics.mjs)
+  shard.debug.expose('nd.grapple', { hooks: () => sim.course.hooks.map(({ x, y, z }) => ({ x, y, z })), phase: () => sim.phase });
   const tipAt = (): void => {
     muzzle.set(-0.2, -0.23, -0.55).applyQuaternion(ctx.game.camera.quaternion).add(ctx.game.camera.position);
-    const goal = target?.hook ?? missEnd;
-    if (phase === 'fire') tip.copy(muzzle).lerp(goal, Math.min(1, clock / FIRE_TIME) ** 0.8);
-    else if (phase === 'reel') {
-      const u = Math.min(1, clock / REEL_TIME);
+    const goal = sim.target?.hook ?? sim.missEnd;
+    if (sim.phase === 'fire') tip.copy(muzzle).lerp(goal, Math.min(1, sim.clock / FIRE_TIME) ** 0.8);
+    else if (sim.phase === 'reel') {
+      const u = Math.min(1, sim.clock / REEL_TIME);
       const ease = u * u * (3 - 2 * u);
-      tip.copy(missEnd).lerp(muzzle, ease);
+      tip.copy(sim.missEnd).lerp(muzzle, ease);
       tip.y -= Math.sin(Math.PI * u) * 1.2;
-    } else if (phase === 'dock') tip.copy(muzzle);
+    } else if (sim.phase === 'dock') tip.copy(muzzle);
     else tip.copy(goal);
-  };
-  const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
-  const release = (): void => {
-    if (phase !== 'idle' && phase !== 'dock') grappleCue('grapple.dock');
-    phase = 'idle'; target = null; armedMiss = false; clock = blocked = 0;
-    tracer.hide(); hideCues();
-    lockHalo.visible = muzzleFlash.mesh.visible = biteFlash.mesh.visible = dockFlash.mesh.visible = sparks.mesh.visible = false;
-    course.guard?.(false);
-    ctx.arms?.playLeft?.('idle'); ctx.arms?.setClawVisible?.(true);
   };
   // E307: a playground opens / closes — let go of anything in flight on the old course, then its hooks and a fresh cache
   const setCourse = (value: GrappleCourse | null): void => {
     const next = value ?? fragment;
-    if (next === course) return;
-    if (phase !== 'idle' || target !== null || armedMiss) release();
-    course = next; hooks = next.hooks; n = hooks.length;
+    if (next === sim.course) return;
+    if (sim.phase !== 'idle' || sim.holding()) sim.release();
+    sim.course = next; hooks = next.hooks; n = hooks.length;
     ndcX = new Float32Array(n); ndcY = new Float32Array(n); dist = new Float32Array(n);
     inView = new Uint8Array(n); reach = new Uint8Array(n); hasLanding = new Uint8Array(n);
     landings = hooks.map(() => new Vector3()); landedFrom = hooks.map(() => new Vector3(Infinity, 0, 0));
@@ -383,13 +254,13 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   };
 
   /** the cached candidate, checked afresh (its sight and landing) at the moment LOCK is pressed */
-  const pickCandidate = (): Target | null => {
+  const pickCandidate = (): GrappleTarget | null => {
     if (candidate < 0) return null;
     const hook = hooks[candidate];
-    if (hook === undefined || !hookVisible(ctx, course, ctx.game.camera.position, hook)) return null;
+    if (hook === undefined || !hookVisible(ports, sim.course, ctx.game.camera.position, hook)) return null;
     const landing = new Vector3();
-    const side = landingFor(ctx, ctx.player.position, hook, landing);
-    return side === NONE ? null : targetFor(ctx, course, hook, landing, side);
+    const side = landingFor(ports, ctx.player.position, hook, landing);
+    return side === NONE ? null : targetFor(ports, sim.course, hook, landing, side);
   };
 
   // E298: the practice room hangs 900 m over the city: no hook is in it, so LOCK there is the plain lock-on (the nearest
@@ -398,42 +269,27 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   let inPractice = false;
   shard.app.events.on('practice.active', (on) => { inPractice = on; }, scope);
   const lockPress = (): boolean => {
-    if (!enabled() || (inPractice && course === fragment)) return false;
-    // Once a crossing starts the safety guard must stay open until a safe landing or bailout.
-    if (phase !== 'idle' && phase !== 'miss' && phase !== 'reel' && phase !== 'dock') return true;
-    if (target !== null || armedMiss) { release(); return true; }
-    const pick = pickCandidate() ?? nearest(ctx, course);
-    if (pick === null) {
-      if (ctx.lock.hasTarget()) return false;
-      armedMiss = true;
+    if (!enabled() || (inPractice && sim.course === fragment)) return false;
+    // Once a crossing starts the safety guard must stay open until a safe landing or bailout (sim.lock: 'busy').
+    const result = sim.lock(view, pickCandidate, () => ctx.lock.hasTarget());
+    if (result === 'pass') return false;
+    if (result === 'armed') {
       ctx.arms?.playLeft?.('grapple_aim');
       ctx.toast(touchUi ? 'FEI ZHUA READY · FIRE TO SHOOT' : 'FEI ZHUA READY · JUMP TO FIRE');
-      return true;
+    } else if (result === 'locked') {
+      ctx.lock.unlock();
+      ctx.arms?.playLeft?.('grapple_aim');
+      ctx.toast(touchUi ? 'DRAGON HOOK LOCKED · ZIP TO FLY' : 'DRAGON HOOK LOCKED · JUMP TO ZIP');
     }
-    ctx.lock.unlock();
-    target = pick;
-    ctx.arms?.playLeft?.('grapple_aim');
-    ctx.toast(touchUi ? 'DRAGON HOOK LOCKED · ZIP TO FLY' : 'DRAGON HOOK LOCKED · JUMP TO ZIP');
     return true;
   };
 
   const jumpPress = (): boolean => {
-    if (!enabled() || (target === null && !armedMiss)) return false;
-    if (phase !== 'idle') return true;
-    phase = 'fire'; clock = 0; muzzleAge = 0;
-    grappleCue('grapple.fire');
-    tipAt();
-    if (target === null) {
-      ctx.game.camera.getWorldDirection(want);
-      missEnd.copy(ctx.game.camera.position).addScaledVector(want, 19);
-      missEnd.y -= 1.2;
-    } else if (target.lifts) {
-      course.guard?.(true);
-      liftY = course.liftTo?.(ctx.player.position, target.approach) ?? ctx.player.position.y + 3.5;
-    }
-    tracer.reset(muzzle);
-    ctx.arms?.playLeft?.('grapple_fire');
-    ctx.arms?.setClawVisible?.(false);
+    if (!enabled()) return false;
+    const idle = sim.phase === 'idle';
+    if (!sim.fire(view)) return false;
+    // the claw leaves the muzzle: the line is laid out from there
+    if (idle) { tipAt(); tracer.reset(muzzle); }
     return true;
   };
 
@@ -443,72 +299,16 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   } }, scope);
   shard.app.events.answer('player.traversal', (dt) => {
     if (typeof dt !== 'number') return dt;
-    if (!enabled() || phase === 'idle') return false;
-    clock += dt;
-    const p = ctx.player;
-    if (phase === 'fire') {
-      p.velocity.set(0, 0, 0);
-      if (clock >= FIRE_TIME) {
-        clock = 0;
-        if (target === null) { phase = 'miss'; ctx.toast('FEI ZHUA MISSED · REELING'); }
-        else { phase = 'bite'; biteAge = 0; grappleCue('grapple.bite'); ctx.arms?.playLeft?.('grapple_hold'); }
-      }
-      return true;
-    }
-    if (phase === 'miss') { if (clock >= 0.16) { phase = 'reel'; clock = 0; grappleCue('grapple.reel'); } return false; }
-    if (phase === 'reel') { if (clock >= REEL_TIME) { phase = 'dock'; clock = 0; dockAge = 0; grappleCue('grapple.dock'); } return false; }
-    if (phase === 'dock') { if (clock >= 0.12) release(); return false; }
-    if (target === null) { release(); return false; }
-    if (phase === 'bite') {
-      p.velocity.set(0, 0, 0);
-      if (clock >= BITE_TIME) { phase = target.lifts ? 'lift' : 'zip'; clock = 0; p.onGround = false; grappleCue('grapple.zip'); }
-      return true;
-    }
-    if (phase === 'lift') {
-      const rise = Math.min(18 * dt, Math.max(0, liftY - p.position.y));
-      before.copy(p.position);
-      p.motor.move(p.position, want.set(0, rise, 0), true);
-      p.velocity.subVectors(p.position, before).divideScalar(dt);
-      p.onGround = false;
-      if (p.position.y >= liftY - 0.2) { phase = 'zip'; clock = 0; }
-      else if (clock > 0.6) { release(); }
-      return true;
-    }
-    if (phase === 'vault') {
-      // A short motor-driven pop clears the hook's lip; Rapier still owns collision.
-      before.copy(p.position);
-      p.motor.move(p.position, want.set(0, 0.7 * dt, 0), true);
-      p.velocity.subVectors(p.position, before).divideScalar(dt);
-      if (clock >= 0.14) { phase = 'settle'; clock = 0; }
-      return true;
-    }
-    if (phase === 'settle') {
-      p.velocity.set(0, -0.5, 0);
-      if (clock >= 0.10) { release(); return false; }
-      return true;
-    }
-    // the pull flies to the approach point over the landing; from there the player drops onto it
-    end.copy(target.approach);
-    want.subVectors(end, p.position);
-    const remaining = want.length();
-    if (remaining < 0.25) { phase = 'vault'; clock = 0; p.velocity.set(0, 0, 0); return true; }
-    want.multiplyScalar(Math.min(ZIP_SPEED * dt, remaining) / remaining);
-    before.copy(p.position);
-    p.motor.move(p.position, want, true);
-    const moved = p.position.distanceTo(before);
-    p.velocity.subVectors(p.position, before).divideScalar(dt);
-    p.onGround = false;
-    blocked = moved < want.length() * 0.15 ? blocked + dt : 0;
-    if (blocked > 0.22 || clock > 2.5) { p.velocity.set(0, -0.5, 0); release(); }
-    return true;
+    if (!enabled() || sim.phase === 'idle') return false;
+    return sim.traverse(dt);
   }, scope);
 
   shard.app.addSystem({ id: 'fei-zhua.rope', phase: 'fixed.post', run: (dt) => {
-    if (phase === 'idle') return;
+    if (sim.phase === 'idle') return;
     time += dt;
     muzzleAge += dt; biteAge += dt; dockAge += dt;
     tipAt();
-    const slack = phase === 'fire' ? 1.14 : phase === 'reel' ? 1.20 : 1.005;
+    const slack = sim.phase === 'fire' ? 1.14 : sim.phase === 'reel' ? 1.20 : 1.005;
     tracer.step(dt, muzzle, tip, slack);
   } }, scope);
 
@@ -543,10 +343,10 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
       const landing = landings[i], from = landedFrom[i];
       if (hook === undefined || landing === undefined || from === undefined || inView[i] === 0) continue;
       done++;
-      if (!hookVisible(ctx, course, eye, hook)) { reach[i] = 0; continue; }
+      if (!hookVisible(ports, sim.course, eye, hook)) { reach[i] = 0; continue; }
       if (landed === 0 && from.distanceToSquared(ctx.player.position) > LANDING_STALE * LANDING_STALE) {
         landed++;
-        hasLanding[i] = landingFor(ctx, ctx.player.position, hook, landing) === NONE ? 0 : 1;
+        hasLanding[i] = landingFor(ports, ctx.player.position, hook, landing) === NONE ? 0 : 1;
         from.copy(ctx.player.position);
       }
       reach[i] = hasLanding[i] ?? 0;
@@ -564,11 +364,12 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
 
   shard.app.addSystem({ id: 'fei-zhua', phase: 'update', after: ['training-arena'], before: ['hud.perf', 'engine.world.bounds', 'main.6', 'hud.combat', 'first hints', 'main.frame', 'engine.player.hud'], run: () => {
     if (!enabled()) {
-      if (target !== null || armedMiss || phase !== 'idle') release();
+      if (sim.holding() || sim.phase !== 'idle') sim.release();
       hideCues(); hint(null); candidate = -1;
       return;
     }
-    if (target === null && !armedMiss && phase === 'idle') {
+    const target = sim.target;
+    if (!sim.holding() && sim.phase === 'idle') {
       candidate = scan();
       // the small markers: every reachable hook on screen but the candidate (it wears the chip)
       let used = 0;
@@ -609,19 +410,19 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
       const flare = biteAge < 0.22 ? 0.5 * (1 - biteAge / 0.22) : 0;
       lockHalo.scale.setScalar(1 + Math.sin(time * 10) * 0.08 + flare);
     }
-    if (phase === 'idle') return;
+    if (sim.phase === 'idle') return;
     tipAt();
-    tracer.draw(tip, phase === 'fire' || phase === 'miss' || phase === 'reel', biteAge < 0.4 ? 1 - biteAge / 0.4 : -1, time);
+    tracer.draw(tip, sim.phase === 'fire' || sim.phase === 'miss' || sim.phase === 'reel', biteAge < 0.4 ? 1 - biteAge / 0.4 : -1, time);
     ctx.game.renderer.getDrawingBufferSize(screen);
     sparks.u.uRes.value.copy(screen);
     muzzleFlash.mesh.position.copy(muzzle);
     muzzleFlash.set(muzzleAge / 0.13, 0.34, 0);
-    biteFlash.mesh.position.copy(target?.hook ?? missEnd);
+    biteFlash.mesh.position.copy(target?.hook ?? sim.missEnd);
     biteFlash.set(biteAge / 0.24, 0.75, time * 5);
     dockFlash.mesh.position.copy(muzzle);
     dockFlash.set(dockAge / 0.12, 0.2, 0);
-    sparks.update(biteAge, target?.hook ?? missEnd, want.set(0, 1, 0), 0.55);
+    sparks.update(biteAge, target?.hook ?? sim.missEnd, up.set(0, 1, 0), 0.55);
   } }, scope);
-  scope.onDispose(() => { release(); input.pop('grapple'); });
+  scope.onDispose(() => { sim.release(); input.pop('grapple'); });
   return setCourse;
 }

@@ -2,8 +2,8 @@
 // Trusted SF72 metadata only (Nine Dragon Stack): the real native browser recipes remain the shipping source. Captures
 // every registered piece's colliders at load exactly as the page built them: the fragment's floors and fronts, the five
 // declared portal floors (deck.<edge> ×4, square), the Well's crossings, the Well safety cap with its `active` state, and
-// every placed model's own colliders (balustrade, gate posts, banyan planter, stalls, market). Nine has no creature, so no
-// actor is baked. Two independent same-page captures must match exactly.
+// every placed model's own colliders (balustrade, gate posts, banyan planter, stalls, market), and the Fei Zhua's dragon
+// hooks (the ring centres its course bites, `nd.grapple`). Nine has no creature, so no actor is baked. Two independent same-page captures must match exactly.
 // scripts/browser-lane.sh node scripts/bake-nine-physics.mjs --url=<clean candidate DEVSERVER preview> [--revision=<sha>]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -28,7 +28,7 @@ try {
   await page.goto(new URL('/?chunk=nine-dragon-stack&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => {
     const pieces = window.__wildshard?.world?.game?.app?.registry?.pieceList() ?? [];
-    return pieces.some(piece => piece.id === 'nds-crossings') && !document.querySelector('.ws-load');
+    return pieces.some(piece => piece.id === 'nds-crossings') && window.__wildshard?.shard?.['nd.grapple'] !== undefined && !document.querySelector('.ws-load');
   }, null, { timeout: 240000 });
   await page.waitForTimeout(1500);
   const capture = () => {
@@ -44,14 +44,15 @@ try {
       }
       return row;
     });
-    return { pieces };
+    const hooks = window.__wildshard.shard['nd.grapple'].hooks();
+    return { pieces, hooks };
   };
   const first = await page.evaluate(capture), second = await page.evaluate(capture);
   if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Native Nine metadata changed between independent captures');
-  if (errors.length > 0 || first.pieces.length === 0) throw new Error(`Invalid native Nine bake: ${JSON.stringify(errors)}`);
+  if (errors.length > 0 || first.pieces.length === 0 || first.hooks.length === 0) throw new Error(`Invalid native Nine bake: ${JSON.stringify(errors)}`);
   const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: ninePhysicsInputs(root), ...first };
   writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
   const colliders = first.pieces.reduce((sum, piece) => sum + piece.colliders.length, 0);
-  console.log(`bake-nine-physics: ${String(first.pieces.length)} collider pieces, ${String(colliders)} colliders, exact repeated browser equality`);
+  console.log(`bake-nine-physics: ${String(first.pieces.length)} collider pieces, ${String(colliders)} colliders, ${String(first.hooks.length)} hooks, exact repeated browser equality`);
   await context.close();
 } finally { await browser.close(); }

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { Vector3 } from 'three';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
 import { addPiece } from '@wildshard/engine/physics/pieces';
@@ -11,6 +12,7 @@ import { JIAN_ROW } from '../vm/jianRow';
 import { entryCapColliders } from '../world/floorRows';
 import { installNineJian, JIAN_ID } from './jian';
 import { installNinePortals } from './portals';
+import { GRAPPLE_AIM, GRAPPLE_LOCK, installNineGrapple } from './grapple';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -34,6 +36,10 @@ const Piece = v.strictObject({ id: v.string(), name: v.string(), category: v.str
   follows: v.optional(v.strictObject({ matrix: v.pipe(v.array(finite), v.check(m => m.length === 16 && m.every((x, i) => x === IDENTITY[i]), 'a baked followed piece rests at the world frame')), rotation: v.boolean() })) });
 /** The browser-baked native colliders (scripts/bake-nine-physics.mjs), strictly. */
 export const NINE_PIECES = v.parse(v.array(Piece), baked.pieces);
+/** The Fei Zhua's dragon hooks (the ring centres the claw bites) as the page's world placed them, from the same bake. */
+export const NINE_HOOKS: readonly Vector3[] = v.parse(v.array(Vec), baked.hooks).map(({ x, y, z }) => new Vector3(x, y, z));
+/** The Well safety cap's piece: the colliders the Fei Zhua's lifting crossing switches off (NdRuntime.guardOpen). */
+export const GUARD_PIECE = 'nds-grapple-guard';
 
 function desc(c: v.InferOutput<typeof Collider>): ColliderDesc {
   if (c.kind === 'hull') return { ...c, points: Float32Array.from(c.points) };
@@ -58,17 +64,20 @@ function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
   });
   return left;
 }
-/** Every piece of Nine's world the page had standing at load, each collider answering to its piece's id (or declared owner). */
-export function addNinePieces(physics: Physics): number {
+/** Every piece of Nine's world the page had standing at load, each collider answering to its piece's id (or declared owner);
+ *  returns the count and the safety cap's collider handles. */
+export function addNinePieces(physics: Physics): { added: number; guard: number[] } {
   let added = 0;
+  const guard: number[] = [];
   NINE_PIECES.forEach(piece => {
     if (!piece.active || piece.file.startsWith(PRACTICE)) return;
     const colliders = piece.colliders.map(desc);
-    addPiece(physics, { id: piece.id, name: piece.name, category: 'buildings', file: piece.file, colliders: piece.id === FLOORS ? withoutCaps(colliders) : colliders,
+    const made = addPiece(physics, { id: piece.id, name: piece.name, category: 'buildings', file: piece.file, colliders: piece.id === FLOORS ? withoutCaps(colliders) : colliders,
       ...(piece.surface === undefined ? {} : { surface: piece.surface }), colliderOwner: piece.colliderOwner ?? piece.id });
+    if (piece.id === GUARD_PIECE) guard.push(...made.colliders.map(collider => collider.handle));
     added++;
   });
-  return added;
+  return { added, guard };
 }
 /**
  * Nine Dragon Stack's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked
@@ -79,8 +88,8 @@ export function addNinePieces(physics: Physics): number {
  * creature, encounter or ledger rule, so none is installed. The entry proof is the format's own portal-link proof
  * (`provePortalLinks`): 23 capsule lanes across each deck's 8 m opening, then the bound ride to the square, the walked
  * route to its exit and the ride back, through the host's own collision world, so `finish` answers with real lanes,
- * steps and transfers. The Fei Zhua's rope sim stays the browser's (SF72 next step), so the Well's safety cap stands as
- * baked.
+ * steps and transfers. The Fei Zhua is the page's own law (runtime/grapple.ts over grapple/sim.ts): a LOCK script press, the
+ * JUMP that zips, the aim's pitch; its lifting crossing over the Well opens the safety cap's baked colliders while in flight.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const jian = shard.items.rows.find(row => row.id === JIAN_ID);
@@ -95,9 +104,15 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const proof = provePortalLinks(entries, shard, assets, { physics: host.physics });
     return { lanes: proof.lanes, steps: proof.steps, portalTransfers: proof.transfers };
   }, install: (host, context) => {
-    if (!context.restoring) addNinePieces(host.physics);
+    const guard = context.restoring ? [] : addNinePieces(host.physics).guard;
     installNineJian(host, jian, JIAN_ROW, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
       () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));
     installNinePortals(host);
+    installNineGrapple(host, NINE_HOOKS, guard, (tick) => {
+      const commands = context.commands();
+      tick.lock = commands.some(command => command.kind === 'script' && command.actorId === GRAPPLE_LOCK);
+      tick.jump = commands.some(command => command.kind === 'player' && command.jump === true);
+      tick.pitch = commands.reduce<number | undefined>((pitch, command) => command.kind === 'script' && command.actorId === GRAPPLE_AIM ? command.value : pitch, undefined);
+    });
   } };
 };

@@ -3,7 +3,9 @@ import process from 'node:process';
 import { expect, it } from 'vitest';
 import { ninePhysicsInputs } from '../../../scripts/nine-physics-inputs.mjs';
 import baked from '../../../src/shards/nine-dragon-stack/runtime/physics.baked.json';
-import { NINE_PIECES } from '../../../src/shards/nine-dragon-stack/runtime/headless';
+import { NINE_HOOKS, NINE_PIECES } from '../../../src/shards/nine-dragon-stack/runtime/headless';
+import { RIM_Z } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
+import { RIM } from '../../../src/shards/nine-dragon-stack/world/well-plan';
 import { portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 
 it('refuses stale source or model bytes before the trusted Nine physics bake is used', () => {
@@ -30,4 +32,13 @@ it('bakes the five declared portal floors as the very boxes the shardfile declar
     expect(piece?.id).toBe(`nds-${row.id}`);
     expect(piece?.colliders).toEqual(row.shapes);
   }
+});
+
+it('bakes the Fei Zhua\'s dragon hooks, and the headless grapple\'s Well rim is the world plan\'s', () => {
+  // the hooks the page's course bites (nd.grapple), one per placed dragon ring, all within the stack (the Well's shaft below the square's +125 m, the towers above)
+  expect(NINE_HOOKS.length).toBe(31);
+  expect(baked.hooks).toHaveLength(NINE_HOOKS.length);
+  for (const hook of NINE_HOOKS) { expect(hook.y).toBeGreaterThan(50); expect(hook.y).toBeLessThan(170); }
+  // runtime/grapple.ts keeps its own copy of the south rim line (world/well-plan.ts is renderer-bound)
+  expect(RIM_Z).toBe(RIM.z0);
 });
