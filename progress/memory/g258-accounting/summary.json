@@ -1,0 +1,816 @@
+{
+  "schema": "g258-runtime-accounting/2",
+  "rule": "maximum worst entered pose minus matched settled PRE-entry road across three valid cold runs; undo 1.11 calibration once",
+  "baseline": "persistent engine, platform, composer, highway and raw road remain independently charged; no post-target baseline",
+  "diagnostics": "Unreferenced force-compressed accounting builds only. Production probe and admission unchanged. Simulator readback-zero fallback remains honest.",
+  "modeFence": "b883abf1d1eae31a7a45387981c6d11d66eb77b4",
+  "ruler": "fixed WebContent PID kernel physical footprint + same-pose reconciled labelled GL; three fresh samples before each light GL read; identity ledger after ALL measurements, no heap/GC",
+  "shards": {
+    "pine-hollow": {
+      "revision": "9f0245c60e20b30ac6200fee6c233e48a5052ac1",
+      "runs": [
+        {
+          "artifact": "progress/memory/g258-accounting/forced-1.json.gz",
+          "version": {
+            "build": "9f0245c-mv174ans",
+            "time": "2026-10-09T16:44:50.319Z"
+          },
+          "gamePID": 13638,
+          "settings": {
+            "developer": false,
+            "memorySaver": "off",
+            "tex": "ktx2"
+          },
+          "roadPose": "public-road",
+          "poses": {
+            "home-settled": {
+              "wc": 540053080,
+              "gl": 201053431,
+              "combined": 741106511,
+              "sampleMin": 539381336,
+              "sampleMax": 540364376
+            },
+            "public-road": {
+              "wc": 556502664,
+              "gl": 114340450,
+              "combined": 670843114,
+              "sampleMin": 556387976,
+              "sampleMax": 558173832
+            },
+            "public-pine-entry": {
+              "wc": 533958808,
+              "gl": 316131094,
+              "combined": 850089902,
+              "sampleMin": 532402328,
+              "sampleMax": 536105112
+            },
+            "public-pine-centre": {
+              "wc": 527356056,
+              "gl": 317370372,
+              "combined": 844726428,
+              "sampleMin": 527356056,
+              "sampleMax": 527388824
+            },
+            "public-road-return": {
+              "wc": 545820848,
+              "gl": 143638174,
+              "combined": 689459022,
+              "sampleMin": 545181872,
+              "sampleMax": 545820848
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "public-pine-entry",
+              "incrementBytes": 179246788
+            },
+            {
+              "pose": "public-pine-centre",
+              "incrementBytes": 173883314
+            }
+          ],
+          "selected": {
+            "pose": "public-pine-entry",
+            "incrementBytes": 179246788
+          },
+          "closed": true,
+          "errors": [],
+          "run": 1
+        },
+        {
+          "artifact": "progress/memory/g258-accounting/forced-2.json.gz",
+          "version": {
+            "build": "9f0245c-mv174ans",
+            "time": "2026-10-09T16:44:50.319Z"
+          },
+          "gamePID": 39674,
+          "settings": {
+            "developer": false,
+            "memorySaver": "off",
+            "tex": "ktx2"
+          },
+          "roadPose": "public-road",
+          "poses": {
+            "home-settled": {
+              "wc": 584175216,
+              "gl": 201154663,
+              "combined": 785329879,
+              "sampleMin": 584011376,
+              "sampleMax": 614485664
+            },
+            "public-road": {
+              "wc": 603868832,
+              "gl": 114441682,
+              "combined": 718310514,
+              "sampleMin": 603754144,
+              "sampleMax": 612224672
+            },
+            "public-pine-entry": {
+              "wc": 554553400,
+              "gl": 316232326,
+              "combined": 870785726,
+              "sampleMin": 554504248,
+              "sampleMax": 554684472
+            },
+            "public-pine-centre": {
+              "wc": 567578728,
+              "gl": 317370372,
+              "combined": 884949100,
+              "sampleMin": 567562344,
+              "sampleMax": 567627880
+            },
+            "public-road-return": {
+              "wc": 584503400,
+              "gl": 143638174,
+              "combined": 728141574,
+              "sampleMin": 583831656,
+              "sampleMax": 584503400
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "public-pine-entry",
+              "incrementBytes": 152475212
+            },
+            {
+              "pose": "public-pine-centre",
+              "incrementBytes": 166638586
+            }
+          ],
+          "selected": {
+            "pose": "public-pine-centre",
+            "incrementBytes": 166638586
+          },
+          "closed": true,
+          "errors": [],
+          "run": 2
+        },
+        {
+          "artifact": "progress/memory/g258-accounting/forced-3.json.gz",
+          "version": {
+            "build": "9f0245c-mv174ans",
+            "time": "2026-10-09T16:44:50.319Z"
+          },
+          "gamePID": 73143,
+          "settings": {
+            "developer": false,
+            "memorySaver": "off",
+            "tex": "ktx2"
+          },
+          "roadPose": "public-road",
+          "poses": {
+            "home-settled": {
+              "wc": 608882240,
+              "gl": 201154663,
+              "combined": 810036903,
+              "sampleMin": 608636480,
+              "sampleMax": 609046080
+            },
+            "public-road": {
+              "wc": 631836296,
+              "gl": 114441682,
+              "combined": 746277978,
+              "sampleMin": 629575304,
+              "sampleMax": 632327816
+            },
+            "public-pine-entry": {
+              "wc": 600903664,
+              "gl": 316232326,
+              "combined": 917135990,
+              "sampleMin": 567513072,
+              "sampleMax": 608079856
+            },
+            "public-pine-centre": {
+              "wc": 574590984,
+              "gl": 317370372,
+              "combined": 891961356,
+              "sampleMin": 574328840,
+              "sampleMax": 575213576
+            },
+            "public-road-return": {
+              "wc": 594153528,
+              "gl": 143638174,
+              "combined": 737791702,
+              "sampleMin": 593662008,
+              "sampleMax": 594169912
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "public-pine-entry",
+              "incrementBytes": 170858012
+            },
+            {
+              "pose": "public-pine-centre",
+              "incrementBytes": 145683378
+            }
+          ],
+          "selected": {
+            "pose": "public-pine-entry",
+            "incrementBytes": 170858012
+          },
+          "closed": true,
+          "errors": [],
+          "run": 3
+        }
+      ],
+      "selected": {
+        "run": 1,
+        "pose": "public-pine-entry",
+        "targetBytes": 850089902,
+        "baselineBytes": 670843114,
+        "incrementBytes": 179246788,
+        "rawClaimBytes": 161483593,
+        "webContentMB": 533.958808,
+        "glMB": 316.131094,
+        "residentBaseMB": 670.843114
+      },
+      "attempts": 3,
+      "validRuns": 3,
+      "failures": 0,
+      "skyIncluded": "Pine exact sim-sky claim and drawn layer present in every target; Nalati native panorama owned by runtime; Sky full island native look in G257"
+    },
+    "nalati-grasslands": {
+      "revision": "f3a42924f51424d2a653597c945451f69505ed14",
+      "runs": [
+        {
+          "artifact": "progress/memory/g258-accounting/nalati-forced-1.json.gz",
+          "version": {
+            "build": "f3a4292-mv18mgey",
+            "time": "2026-10-09T17:26:57.458Z"
+          },
+          "gamePID": 90902,
+          "settings": {
+            "developer": false,
+            "memorySaver": "off",
+            "tex": "ktx2"
+          },
+          "roadPose": "public-road",
+          "poses": {
+            "home-settled": {
+              "wc": 559189688,
+              "gl": 201053431,
+              "combined": 760243119,
+              "sampleMin": 555077256,
+              "sampleMax": 608636600
+            },
+            "public-road": {
+              "wc": 572460728,
+              "gl": 114326974,
+              "combined": 686787702,
+              "sampleMin": 572444344,
+              "sampleMax": 574770872
+            },
+            "public-nalati-entry": {
+              "wc": 565481432,
+              "gl": 269180300,
+              "combined": 834661732,
+              "sampleMin": 565465048,
+              "sampleMax": 565612504
+            },
+            "public-nalati-centre": {
+              "wc": 546312152,
+              "gl": 269451152,
+              "combined": 815763304,
+              "sampleMin": 545771480,
+              "sampleMax": 546426840
+            },
+            "public-road-return": {
+              "wc": 561303536,
+              "gl": 117822226,
+              "combined": 679125762,
+              "sampleMin": 561303536,
+              "sampleMax": 562253808
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "public-nalati-entry",
+              "incrementBytes": 147874030
+            },
+            {
+              "pose": "public-nalati-centre",
+              "incrementBytes": 128975602
+            }
+          ],
+          "selected": {
+            "pose": "public-nalati-entry",
+            "incrementBytes": 147874030
+          },
+          "closed": true,
+          "errors": [],
+          "run": 1
+        },
+        {
+          "artifact": "progress/memory/g258-accounting/nalati-forced-2.json.gz",
+          "version": {
+            "build": "f3a4292-mv18mgey",
+            "time": "2026-10-09T17:26:57.458Z"
+          },
+          "gamePID": 18444,
+          "settings": {
+            "developer": false,
+            "memorySaver": "off",
+            "tex": "ktx2"
+          },
+          "roadPose": "public-road",
+          "poses": {
+            "home-settled": {
+              "wc": 587763312,
+              "gl": 201053431,
+              "combined": 788816743,
+              "sampleMin": 587566704,
+              "sampleMax": 588107376
+            },
+            "public-road": {
+              "wc": 606064336,
+              "gl": 114326974,
+              "combined": 720391310,
+              "sampleMin": 606031568,
+              "sampleMax": 609423056
+            },
+            "public-nalati-entry": {
+              "wc": 557191104,
+              "gl": 269180300,
+              "combined": 826371404,
+              "sampleMin": 557174720,
+              "sampleMax": 564629464
+            },
+            "public-nalati-centre": {
+              "wc": 540151768,
+              "gl": 269464976,
+              "combined": 809616744,
+              "sampleMin": 540086232,
+              "sampleMax": 540774360
+            },
+            "public-road-return": {
+              "wc": 575803400,
+              "gl": 117822226,
+              "combined": 693625626,
+              "sampleMin": 573706248,
+              "sampleMax": 575803400
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "public-nalati-entry",
+              "incrementBytes": 105980094
+            },
+            {
+              "pose": "public-nalati-centre",
+              "incrementBytes": 89225434
+            }
+          ],
+          "selected": {
+            "pose": "public-nalati-entry",
+            "incrementBytes": 105980094
+          },
+          "closed": true,
+          "errors": [],
+          "run": 2
+        },
+        {
+          "artifact": "progress/memory/g258-accounting/nalati-forced-3.json.gz",
+          "version": {
+            "build": "f3a4292-mv18mgey",
+            "time": "2026-10-09T17:26:57.458Z"
+          },
+          "gamePID": 43363,
+          "settings": {
+            "developer": false,
+            "memorySaver": "off",
+            "tex": "ktx2"
+          },
+          "roadPose": "public-road",
+          "poses": {
+            "home-settled": {
+              "wc": 555585160,
+              "gl": 201053431,
+              "combined": 756638591,
+              "sampleMin": 550194776,
+              "sampleMax": 610356872
+            },
+            "public-road": {
+              "wc": 571018888,
+              "gl": 114326974,
+              "combined": 685345862,
+              "sampleMin": 570986120,
+              "sampleMax": 573361800
+            },
+            "public-nalati-entry": {
+              "wc": 634916944,
+              "gl": 269180300,
+              "combined": 904097244,
+              "sampleMin": 634916944,
+              "sampleMax": 634916944
+            },
+            "public-nalati-centre": {
+              "wc": 607588456,
+              "gl": 269462672,
+              "combined": 877051128,
+              "sampleMin": 607260776,
+              "sampleMax": 608243816
+            },
+            "public-road-return": {
+              "wc": 657084544,
+              "gl": 117822226,
+              "combined": 774906770,
+              "sampleMin": 656576640,
+              "sampleMax": 657100928
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "public-nalati-entry",
+              "incrementBytes": 218751382
+            },
+            {
+              "pose": "public-nalati-centre",
+              "incrementBytes": 191705266
+            }
+          ],
+          "selected": {
+            "pose": "public-nalati-entry",
+            "incrementBytes": 218751382
+          },
+          "closed": true,
+          "errors": [],
+          "run": 3
+        }
+      ],
+      "selected": {
+        "run": 3,
+        "pose": "public-nalati-entry",
+        "targetBytes": 904097244,
+        "baselineBytes": 685345862,
+        "incrementBytes": 218751382,
+        "rawClaimBytes": 197073318,
+        "webContentMB": 634.916944,
+        "glMB": 269.1803,
+        "residentBaseMB": 685.345862
+      },
+      "attempts": 3,
+      "validRuns": 3,
+      "failures": 0,
+      "skyIncluded": "Pine exact sim-sky claim and drawn layer present in every target; Nalati native panorama owned by runtime; Sky full island native look in G257"
+    },
+    "far-reach": {
+      "revision": "b49135480be3997209baa933345d8b135c101951",
+      "runs": [
+        {
+          "artifact": "progress/memory/ruler/b491354/sky-v-1.json.gz",
+          "version": {
+            "build": "b491354-mv033tge",
+            "time": "2026-10-08T22:04:45.181Z"
+          },
+          "gamePID": 10600,
+          "settings": {
+            "developer": true,
+            "memorySaver": "on",
+            "tex": "auto"
+          },
+          "roadPose": "sky-road",
+          "poses": {
+            "home-settled": {
+              "wc": 554258008,
+              "gl": 180920235,
+              "combined": 735178243,
+              "sampleMin": 554077784,
+              "sampleMax": 571051632
+            },
+            "sky-road": {
+              "wc": 566595208,
+              "gl": 94096430,
+              "combined": 660691638,
+              "sampleMin": 566480520,
+              "sampleMax": 566660744
+            },
+            "sky-lip": {
+              "wc": 561778528,
+              "gl": 183841908,
+              "combined": 745620436,
+              "sampleMin": 561729376,
+              "sampleMax": 564907872
+            },
+            "sky-board": {
+              "wc": 564416400,
+              "gl": 183841908,
+              "combined": 748258308,
+              "sampleMin": 564334480,
+              "sampleMax": 569347984
+            },
+            "sky-gate": {
+              "wc": 589500376,
+              "gl": 183843204,
+              "combined": 773343580,
+              "sampleMin": 588320728,
+              "sampleMax": 592875480
+            },
+            "sky-island": {
+              "wc": 641552560,
+              "gl": 180347960,
+              "combined": 821900520,
+              "sampleMin": 641503408,
+              "sampleMax": 658215088
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "sky-lip",
+              "incrementBytes": 84928798
+            },
+            {
+              "pose": "sky-board",
+              "incrementBytes": 87566670
+            },
+            {
+              "pose": "sky-gate",
+              "incrementBytes": 112651942
+            },
+            {
+              "pose": "sky-island",
+              "incrementBytes": 161208882
+            }
+          ],
+          "selected": {
+            "pose": "sky-island",
+            "incrementBytes": 161208882
+          },
+          "closed": true,
+          "errors": [],
+          "run": 1
+        },
+        {
+          "artifact": "progress/memory/ruler/b491354/sky-v-2.json.gz",
+          "version": {
+            "build": "b491354-mv074goi",
+            "time": "2026-10-08T23:57:12.451Z"
+          },
+          "gamePID": 73226,
+          "settings": {
+            "developer": true,
+            "memorySaver": "on",
+            "tex": "auto"
+          },
+          "roadPose": "sky-road",
+          "poses": {
+            "home-settled": {
+              "wc": 552406712,
+              "gl": 180920235,
+              "combined": 733326947,
+              "sampleMin": 552373944,
+              "sampleMax": 568430288
+            },
+            "sky-road": {
+              "wc": 558485200,
+              "gl": 94096430,
+              "combined": 652581630,
+              "sampleMin": 558173904,
+              "sampleMax": 558616272
+            },
+            "sky-lip": {
+              "wc": 527519680,
+              "gl": 187337152,
+              "combined": 714856832,
+              "sampleMin": 524521408,
+              "sampleMax": 527585216
+            },
+            "sky-board": {
+              "wc": 519344064,
+              "gl": 187337152,
+              "combined": 706681216,
+              "sampleMin": 519311296,
+              "sampleMax": 519344064
+            },
+            "sky-gate": {
+              "wc": 519032816,
+              "gl": 187338448,
+              "combined": 706371264,
+              "sampleMin": 519016432,
+              "sampleMax": 519032816
+            },
+            "sky-island": {
+              "wc": 549539968,
+              "gl": 180347960,
+              "combined": 729887928,
+              "sampleMin": 549490816,
+              "sampleMax": 549671040
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "sky-lip",
+              "incrementBytes": 62275202
+            },
+            {
+              "pose": "sky-board",
+              "incrementBytes": 54099586
+            },
+            {
+              "pose": "sky-gate",
+              "incrementBytes": 53789634
+            },
+            {
+              "pose": "sky-island",
+              "incrementBytes": 77306298
+            }
+          ],
+          "selected": {
+            "pose": "sky-island",
+            "incrementBytes": 77306298
+          },
+          "closed": true,
+          "errors": [],
+          "run": 2
+        },
+        {
+          "artifact": "progress/memory/ruler/b491354/sky-v-3.json.gz",
+          "version": {
+            "build": "b491354-mv074goi",
+            "time": "2026-10-08T23:57:12.451Z"
+          },
+          "gamePID": 31697,
+          "settings": {
+            "developer": true,
+            "memorySaver": "on",
+            "tex": "auto"
+          },
+          "roadPose": "sky-road",
+          "poses": {
+            "home-settled": {
+              "wc": 528240288,
+              "gl": 180920235,
+              "combined": 709160523,
+              "sampleMin": 527945376,
+              "sampleMax": 528780960
+            },
+            "sky-road": {
+              "wc": 532319904,
+              "gl": 94096430,
+              "combined": 626416334,
+              "sampleMin": 532303520,
+              "sampleMax": 532385440
+            },
+            "sky-lip": {
+              "wc": 513626024,
+              "gl": 187337152,
+              "combined": 700963176,
+              "sampleMin": 510775208,
+              "sampleMax": 513773480
+            },
+            "sky-board": {
+              "wc": 506515392,
+              "gl": 187337152,
+              "combined": 693852544,
+              "sampleMin": 506449832,
+              "sampleMax": 506548160
+            },
+            "sky-gate": {
+              "wc": 515248064,
+              "gl": 187338448,
+              "combined": 702586512,
+              "sampleMin": 514183104,
+              "sampleMax": 515329984
+            },
+            "sky-island": {
+              "wc": 552423552,
+              "gl": 180347960,
+              "combined": 732771512,
+              "sampleMin": 552390784,
+              "sampleMax": 552702080
+            }
+          },
+          "pairedIncrements": [
+            {
+              "pose": "sky-lip",
+              "incrementBytes": 74546842
+            },
+            {
+              "pose": "sky-board",
+              "incrementBytes": 67436210
+            },
+            {
+              "pose": "sky-gate",
+              "incrementBytes": 76170178
+            },
+            {
+              "pose": "sky-island",
+              "incrementBytes": 106355178
+            }
+          ],
+          "selected": {
+            "pose": "sky-island",
+            "incrementBytes": 106355178
+          },
+          "closed": true,
+          "errors": [],
+          "run": 3
+        }
+      ],
+      "selected": {
+        "run": 1,
+        "pose": "sky-island",
+        "targetBytes": 821900520,
+        "baselineBytes": 660691638,
+        "incrementBytes": 161208882,
+        "rawClaimBytes": 145233228,
+        "webContentMB": 641.55256,
+        "glMB": 180.34796,
+        "residentBaseMB": 660.691638
+      },
+      "attempts": 3,
+      "validRuns": 3,
+      "failures": 0,
+      "skyIncluded": "Pine exact sim-sky claim and drawn layer present in every target; Nalati native panorama owned by runtime; Sky full island native look in G257"
+    }
+  },
+  "fallback": {
+    "artifact": "progress/memory/g258-accounting/run-1.json.gz",
+    "productionProbe": "sRGB ASTC/ETC2 readback zero; image fallback selected",
+    "roadBytes": 649669454,
+    "entryBytes": 1084431844,
+    "centreBytes": 1038403402,
+    "result": "over 1GB; strict production refusal retained, no public pass claimed"
+  },
+  "macFootnote": "Mac footprint does not proxy phone memory; retained for provenance only, excluded from claim calculation.",
+  "skySettings": "G257 Sky three matched cold runs: Developer ON, Memory saver ON, Auto compressed; Pine/Nalati private measurements: Developer OFF, Memory saver OFF, forced KTX2. Never imply identical cross-shard settings or physical-phone proof.",
+  "settledNotPeak": "Raw sampler intervals retained; do not infer the whole route/transient peak from settled pose medians.",
+  "publicStrictProof": "PASS: cold public Auto on the real ASTC-accepting GPU; see publicProof. Simulator fallback is over cap and refused.",
+  "artifacts": {
+    "progress/memory/g258-accounting/forced-1.json.gz": "851b5ff1d370bb4237633cdd4fff4a5cf4cb3e27ed97b594ade14f59e6908d92",
+    "progress/memory/g258-accounting/forced-1.json.native.jsonl.gz": "d3c0eefd847bd269d59ac611e6a64c60019b2ff79c6aef6ce2effbbcf9d2b565",
+    "progress/memory/g258-accounting/forced-1.log.gz": "5a780c1d52fbc9b8b089ccc1684ce1138e0dc337e291c2d021d271fb11b534c3",
+    "progress/memory/g258-accounting/forced-1.json.sampler.log.gz": "3813b9146341fadd6213849fbefe2f2d06633f80b9a791271b17ce69e5bcce1d",
+    "progress/memory/g258-accounting/forced-2.json.gz": "54d922bc4596db2c3e956628543af6f79728d7b43804deb3d958be7fe8ac99ee",
+    "progress/memory/g258-accounting/forced-2.json.native.jsonl.gz": "de87c87fefb2acb82539b29747179de3635f50546e3da1bd0c63136fbe5dbf5f",
+    "progress/memory/g258-accounting/forced-2.log.gz": "a7a30214815d16c22bf06103fe41305f04f151f8a445523273fa5aee88d63fe0",
+    "progress/memory/g258-accounting/forced-2.json.sampler.log.gz": "5f2a0e01fe90f631e1ca8e24ea9ea0614fd3f52c9f72c7b6d2acebec51df57b9",
+    "progress/memory/g258-accounting/forced-3.json.gz": "8906cb8511b02f440295ff421afd414555ac5dd1d8a14d7b424d1fdc639d5e8f",
+    "progress/memory/g258-accounting/forced-3.json.native.jsonl.gz": "c006f32684246a64b2c202a9aa0cfed695ed313e30a2177f09c5a186b2b59061",
+    "progress/memory/g258-accounting/forced-3.log.gz": "60d899301e7b282f2ad0950661952f25c27e3d4751c059a9346bb5ee894ca8e4",
+    "progress/memory/g258-accounting/forced-3.json.sampler.log.gz": "1d541e2497a823e7b4e748b9545c7ca0b797f62e90861fcaa737baea894db00d",
+    "progress/memory/g258-accounting/nalati-forced-1.json.gz": "179626e02275863d87268edbda39123dc7b30f71ee446f246fffff38e01dc352",
+    "progress/memory/g258-accounting/nalati-forced-1.json.native.jsonl.gz": "7a40776ec1f1d7edde3cc1a206d842d12e619c0731976fac80b7c21cbd486853",
+    "progress/memory/g258-accounting/nalati-forced-1.log.gz": "2b5655b716d96ed8ca6f1ceb1f02584f079ce77aaa36df13e69b53d8b83506de",
+    "progress/memory/g258-accounting/nalati-forced-1.json.sampler.log.gz": "61deebf5228e3ec740f2ddc4d0c3623d869c63c8fa9d0bf869958a21cf3b7362",
+    "progress/memory/g258-accounting/nalati-forced-2.json.gz": "462912f0803c83fd5ff26005d779b579c138134ed17c9f3ce5fcac0b63aacf13",
+    "progress/memory/g258-accounting/nalati-forced-2.json.native.jsonl.gz": "aca09140c8275977736e5eb37e9ff1782cd6247772c41285ab1a9fed9975f9e1",
+    "progress/memory/g258-accounting/nalati-forced-2.log.gz": "d22671ae39f10a3185bfb35a35444186b4bc1b7f7e773598648369ce6c5de409",
+    "progress/memory/g258-accounting/nalati-forced-2.json.sampler.log.gz": "1db268eecc98b3ccef99b07b460fd7d54699702d1d80838e5e36107e3ddb9ab7",
+    "progress/memory/g258-accounting/nalati-forced-3.json.gz": "dc547ed132cd6c231e32024ac12387067d6d2f5fc190dbc813bdea8fa8d05ef8",
+    "progress/memory/g258-accounting/nalati-forced-3.json.native.jsonl.gz": "ae75567418868c4da1d2f41bb91a947e8d91b565cec306dacb10d85b84b259c7",
+    "progress/memory/g258-accounting/nalati-forced-3.log.gz": "d3af0d7da9e534041a58eac10996a3fd22945073c6ee2273ab7b508c39d354ee",
+    "progress/memory/g258-accounting/nalati-forced-3.json.sampler.log.gz": "639d587f68ef2b28146eaa0ef671cdd2d9f895ba2cc974b3c422f8f25302ff9e",
+    "progress/memory/g258-accounting/run-1.json.gz": "a9ac61920bb7c2255ac6bbc35bea9576228c9f5d67147525badbba9f7c8cf887",
+    "progress/memory/g258-accounting/run-1.json.native.jsonl.gz": "22c3c430e983df9cec66f4bbf499fa0594ec4920fb27ef127eef038327cfb9c6",
+    "progress/memory/g258-accounting/mac-1.json.gz": "50bb459dca2a28746572e659c92d73577816f85df973d092484661662ae23f51",
+    "progress/memory/g258-accounting/mac-2.json.gz": "45769d1595a8c6d9ecc742e9c52becd27b372a15ae430348714221091e40c650",
+    "progress/memory/g258-accounting/mac-3.json.gz": "ba9184cbc192145ef6f475654e47688bab2ed4f60bf4a01cbb2ec1cda05a53f1",
+    "progress/memory/g258-accounting/native-increment.mjs.gz": "4073f9ab86859a53ce5bbc5cefbbcd32ca5a5f5f2188440018388a5628539cbe",
+    "progress/memory/g258-accounting/native-nalati-increment.mjs.gz": "77c6c8dc7282e692c6f2469d78d09616c76a0e75daa1df8c54d55c207e16f59f",
+    "progress/memory/g258-accounting/chromium-increment.mjs.gz": "103db55e0104eead4362d31027af64972ff37a0fc5190be0bca697c13b8ad269",
+    "progress/memory/g258-accounting/footprint.py.gz": "6882bd1c85cb2d805e9b79cd700c0178439e9a24ad68e51e8b24ed9e12919abc",
+    "progress/memory/g258-accounting/forced-compressed.patch.gz": "48f159339db08bfedf11578006a78478ad2d8437bc9557e1cd2a88639bab5192",
+    "progress/memory/g258-accounting/nalati-diagnostic.patch.gz": "e94cf3a35d5ec15fcf0801d159a1499bb086ac2648924a7077d815b2f60fd180"
+  },
+  "publicProof": {
+    "candidate": "adf6bc2928e231c13210a45e601daf7c9dea4e27",
+    "device": "iPhone 16 Pro Chromium / Mac Metal GPU (functional admission, NOT phone physical memory)",
+    "developer": false,
+    "memorySaver": "off",
+    "textureSetting": "auto",
+    "probe": "real accepted WEBGL_compressed_texture_astc",
+    "capsUnchanged": true,
+    "complete": true,
+    "errors": [],
+    "artifacts": [
+      "public-final-host-pine-nalati.json.gz",
+      "public-final-host-sky.json.gz"
+    ],
+    "enteredPlayingBytes": {
+      "pine-hollow": 711170474,
+      "nalati-grasslands": 751086861,
+      "far-reach": 692834667
+    },
+    "ownSkyDrawn": true,
+    "failedInitialAutoArtifact": "public-matched-pine-nalati.json.gz",
+    "failureCause": "Standalone image estimate fit but projected grid residents plus images exceeded the cap. Narrow grid Auto now passes live allocator input; standalone/explicit/probe unchanged.",
+    "base": "93b21e89b164b2bf2b04c2a235479ae1ebf6a9bf"
+  },
+  "bootSmoke": {
+    "artifactPrefix": "boot-smoke-",
+    "cases": 4,
+    "passed": 4,
+    "errors": 0
+  },
+  "validation": {
+    "focusedCosts": 30,
+    "focusedResolverPrecedenceSession": 48,
+    "postHostFocused": 25,
+    "strict": "passed",
+    "touchedRootConfigLint": "passed",
+    "ratchet": "no new debt",
+    "bootSmoke": "4/4 passed",
+    "fullSuite": "Serialized push gate only, per Jake speed rules. Own queued full1195 withdrawn. Earlier full6006 passed with one stale Sky assertion, now fixed and focused green."
+  }
+}

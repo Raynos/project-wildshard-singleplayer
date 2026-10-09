@@ -4,6 +4,8 @@ import type { ContentCostInput } from '@wildshard/engine/core/contentCost';
 /** A measured opaque runtime retains both rulers and the evidence used to derive its full claim. All bytes are decimal. */
 export interface AdmissionMeasurement {
   readonly webContentBytes: number; readonly glBytes: number; readonly engineBaseBytes: number;
+  /** Matched pre-entry resident set subtracted by the runtime claim; the dated engine base remains provenance. */
+  readonly residentBaseBytes?: number;
   readonly rev: string; readonly device: string; readonly evidence: string;
 }
 /** Trusted callers report only the total-memory envelope here. Parser, hash, script and content-understatement guards are separate. */

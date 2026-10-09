@@ -625,7 +625,7 @@ export class LiveGridSession {
       const loaded = await load(), resolve = loaded.resolveTrustedRuntime;
       if (resolve === undefined) throw new Error('Trusted plugin module does not resolve its declared entry');
       return { default: resolve(registered.entry) };
-    } }, textures = resolveRegionalRuntimeTextures(manifest), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
+    } }, textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
     const { slug: identity } = entry;
     if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);

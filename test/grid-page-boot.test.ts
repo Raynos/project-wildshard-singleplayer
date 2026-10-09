@@ -4,6 +4,7 @@ import * as boot from '../src/game/grid/boot';
 import { preparePageResidency } from '../src/game/grid/pageBoot';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
+import { Scope } from '../src/engine/app/scope';
 import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 
 afterEach(() => { vi.restoreAllMocks(); });
@@ -71,4 +72,20 @@ it('ignores the retired opt-out and always admits a grid home before hydration',
     expect(page.residency?.home().bytes).toBe(334_435_201);
     expect(page.residency?.allocator.cost().playing).toBe(751_223_074);
   } finally { page.residency?.dispose(); retired.reset(); }
+});
+
+it('keeps the persistent composer independent when the home claim subtracts a matched resident baseline', () => {
+  vi.spyOn(boot, 'bootPageMode').mockReturnValue('grid');
+  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  const row = { ...DRIFTWOOD_RUNTIME_COST, webContentMB: 800, glMB: 200, residentBaseMB: 700 };
+  const page = preparePageResidency({ ...manifest, runtimeCost: row }, undefined, new MemoryAdmission());
+  const owner = page.residency, renderer = new Scope('renderer');
+  if (owner === undefined) throw new Error('Missing matched home owner');
+  try {
+    owner.bindComposer({ observeComposerAllocation: read => { read(40_000_000); return () => undefined; } }, renderer, 'phone');
+    expect(owner.allocator.entries().find(entry => entry.id === 'page:composer')).toMatchObject({ bytes: 40_000_000, accountedBytes: 40_000_000 });
+    expect(owner.allocator.entries().find(entry => entry.id === 'page:composer')?.coveredBy).toBeUndefined();
+    expect(owner.home().bytes).toBe(270_270_271);
+  } finally { renderer.dispose(); owner.dispose(); }
+  expect(owner.allocator.entries()).toEqual([]);
 });

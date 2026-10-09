@@ -1,11 +1,13 @@
 import * as v from 'valibot';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { contentCost } from '@wildshard/engine/core/contentCost';
+import { contentCost, type ContentCostInput } from '@wildshard/engine/core/contentCost';
 
 const mb = v.pipe(v.number(), v.finite(), v.minValue(0));
 /** Reviewed trusted-runtime measurements, kept with their shard rather than presenting an empty data budget as its cost. */
 export const MemoryMeasurementSchema = v.strictObject({
   webContentMB: mb, glMB: mb, engineBaseMB: mb,
+  /** Matched settled pre-entry resident set. When present, subtract it instead of the dated engine-only calibration. */
+  residentBaseMB: v.exactOptional(mb),
   rev: v.pipe(v.string(), v.regex(/^[a-f0-9]{9,40}$/u)),
   device: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
   evidence: v.pipe(v.string(), v.regex(/^progress\/memory\/[a-zA-Z0-9/_-]+\.json$/u)),
@@ -16,25 +18,27 @@ export const RuntimeCostSchema = v.strictObject({ ...MemoryMeasurementSchema.ent
 export type RuntimeCost = v.InferOutput<typeof RuntimeCostSchema>;
 
 /**
- * SF22a / G144: remove the measured engine base and undo the allocator's calibration exactly once. The allocator adds
+ * SF22a / G144 / G258: remove the matched resident baseline (or legacy engine base) and undo the allocator's calibration exactly once. The allocator adds
  * its current engine base and applies residentFactor when this home claim joins libraries, neighbours and the platform.
  * Round upward to whole bytes; no computed cost is stored in the shardfile. Refuse measurements without content.
  */
 export function runtimeAccountedBytes(input: unknown): number {
   const row = v.parse(RuntimeCostSchema, input);
-  const measured = (row.webContentMB + row.glMB - row.engineBaseMB) * 1_000_000;
-  if (measured <= 0) throw new RangeError('Runtime measurement must exceed its engine base');
+  const baseline = row.residentBaseMB ?? row.engineBaseMB;
+  if (baseline < row.engineBaseMB) throw new RangeError('Runtime resident baseline must include its engine base');
+  const measured = (row.webContentMB + row.glMB - baseline) * 1_000_000;
+  if (measured <= 0) throw new RangeError('Runtime measurement must exceed its resident baseline');
   const bytes = Math.ceil(measured / CONTENT_CAPS.residentFactor);
   if (!Number.isSafeInteger(bytes)) throw new RangeError('Runtime measurement exceeds safe resident accounting');
   return bytes;
 }
 
-/** G188: the same playing model as residency admission, using the images-first measurement even after a KTX2 refresh. */
-export function imagesFirstPlayingBytes(input: RuntimeCost | undefined): number | undefined {
+/** G188: images-first playing envelope. Grid callers include their current residents; omitted residents retain standalone Auto. */
+export function imagesFirstPlayingBytes(input: RuntimeCost | undefined, residents?: Readonly<ContentCostInput>): number | undefined {
   if (input === undefined) return undefined;
   const row = v.parse(RuntimeCostSchema, input);
-  return contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, commons: 0,
-    sims: runtimeAccountedBytes(row.imagesFirst ?? row), overlap: CONTENT_CAPS.overlap }).playing;
+  const base = residents ?? { l0: 0, l1: 0, far: 0, libraries: 0, commons: 0, sims: 0, overlap: CONTENT_CAPS.overlap };
+  return contentCost({ ...base, sims: base.sims + runtimeAccountedBytes(row.imagesFirst ?? row) }).playing;
 }
 
 /**

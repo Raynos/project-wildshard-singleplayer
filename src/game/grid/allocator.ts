@@ -59,7 +59,7 @@ export class ResidencyAllocator {
   /** G216: the page's trusted Developer policy; omitted callers retain strict admission. */
   readonly memory: MemoryAdmission;
   private readonly entries_ = new Map<string, Entry>();
-  /** Sim claims whose bytes are a measured whole page (SF57), the only claims a page component may be covered by. */
+  /** Sim claims whose bytes are a measured whole page or matched runtime increment, the only claims a page component may be covered by. */
   private readonly measured = new Set<string>();
 
   private readonly playing: number;
@@ -132,8 +132,9 @@ export class ResidencyAllocator {
     return [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id)).map((e) => Object.freeze({ id: e.id, category: e.category, bytes: e.bytes, owner: e.owner, distance: e.distance, needed: e.needed, refs: e.refs, holds: e.holds, accountedBytes: this.effectiveBytes(e), ...(e.coveredBy === undefined ? {} : { coveredBy: e.coveredBy }) }));
   }
 
-  /** SF57: mark a live sim claim as a measured whole-page reading (its WebContent + GL minus the engine base), so page
-   * components it contains may be covered by it. An estimated or declared claim is never marked. */
+  /** SF57 / G258: mark a live sim claim as a reviewed measured whole-page reading or matched pre-entry runtime
+   * increment, so only page components actually inside that reading may be covered by it. Components subtracted as
+   * part of the resident baseline stay independently charged. An estimated or declared claim is never marked. */
   markMeasuredPage(id: string): void {
     const entry = this.entries_.get(id);
     if (entry?.category !== 'sim' || entry.coveredBy !== undefined) throw new Error('Only a live sim claim can be a measured whole page');

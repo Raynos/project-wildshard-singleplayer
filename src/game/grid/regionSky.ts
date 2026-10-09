@@ -8,7 +8,10 @@
  *
  * Memory, charged honestly: once built, the backdrop's ceiling (its resident key cap at the decoded size, the environment
  * equirect and PMREM's cube-UV targets: `SkyBackdrop.gpuCeiling`) is reserved through the page allocator under the
- * region's owner and category (`sim-sky:<instance>`, needed while resident); a refusal disposes it and the grid sky stays.
+ * region's owner (`sim-sky:<instance>`, needed while resident); a refusal disposes it and the grid sky stays.
+ * A reviewed matched runtime increment already contains its own sky: the exact child claim stays visible as a page
+ * component covered by that instance's measured sim lease, with no engine-base credit. If that parent ends first, the
+ * sky is independently charged again. Estimates and other instances cannot provide this coverage.
  * The build itself runs before the claim (the ceiling is only known once the first keys decode). Everything is freed with
  * the region's resident scope: the frame weight, the layer (its dome leaves the page scene, the rig puts every shared
  * value back), the backdrop's textures and targets (`SkyBackdrop.dispose`), then the claim.
@@ -17,7 +20,7 @@
  * LUT is the one the region hands it, and its clock's saturation drives the page's where the page carries it. Generic game code
  * (E405): no shard is named here; the regional world closes over the page sky, renderer and level (`regionalWorld.ts`).
  */
-import type { ResidencyAllocator } from './allocator';
+import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import type { FrameLookPort } from './frameLook';
 
 /** What the layer needs of a built backdrop: its dispose and its byte census (`SkyBackdrop`'s G223 members). */
@@ -39,7 +42,9 @@ export interface RegionSkyRequest<B extends RegionBackdrop> {
    */
   readonly layered: () => Promise<{ readonly layer: RegionSkyLayer<B>; readonly backdrop: B } | null>;
   readonly look: FrameLookPort | null;
-  readonly allocator: Pick<ResidencyAllocator, 'reserve'>;
+  readonly allocator: Pick<ResidencyAllocator, 'reserve' | 'entries'>;
+  /** Exact sky bytes already present in this instance's reviewed runtime increment; never another region or an estimate. */
+  readonly coveredBy?: string;
   /** the region's resident scope: the sky leaves with it */
   readonly scope: { readonly disposed: boolean; readonly onDispose: (fn: () => void) => void };
 }
@@ -53,6 +58,12 @@ export const regionSkyClaimId = (instance: string): string => `sim-sky:${instanc
 /** Build the region's own sky as a layer on the page's one sky, if its level has a backdrop. */
 export async function buildRegionSky<B extends RegionBackdrop>(request: RegionSkyRequest<B>): Promise<RegionSkyOutcome> {
   const { instance, scope } = request, left = (): boolean => scope.disposed;
+  if (request.coveredBy !== undefined) {
+    const parent = request.allocator.entries().find(row => row.id === request.coveredBy);
+    if (request.coveredBy !== `sim:${instance}` || parent?.owner !== instance || parent.category !== 'sim') {
+      throw new Error('Region sky coverage requires its own live runtime');
+    }
+  }
   const hang = request.look?.sky;
   if (hang === undefined) return 'no-frame';
   if (left()) return 'left';
@@ -67,7 +78,11 @@ export async function buildRegionSky<B extends RegionBackdrop>(request: RegionSk
   const { layer, backdrop } = built;
   if (left()) { backdrop.dispose?.(); layer.dispose(); return 'left'; }
   const reserved = Math.ceil(backdrop.gpuCeiling?.() ?? backdrop.gpuBytes?.() ?? 0);
-  const lease = request.allocator.reserve({ id: regionSkyClaimId(instance), category: 'sim', owner: instance, bytes: reserved, distance: 0, needed: true });
+  let lease: ResidencyLease | null;
+  try {
+    lease = request.allocator.reserve({ id: regionSkyClaimId(instance), category: request.coveredBy === undefined ? 'sim' : 'page', owner: instance, bytes: reserved, distance: 0, needed: true,
+      ...(request.coveredBy === undefined ? {} : { coveredBy: request.coveredBy }) });
+  } catch (error) { backdrop.dispose?.(); layer.dispose(); throw error; }
   if (lease === null) { backdrop.dispose?.(); layer.dispose(); return 'refused'; }
   layer.attach(backdrop);
   const release = hang(instance, {

@@ -41,8 +41,10 @@ export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'sha
       if (!memory.accept({ stage: 'runtime', owner: instance, id: `sim:${instance}`, claimedBytes: bytes,
         accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
         measured: { webContentBytes: Math.ceil(row.webContentMB * 1_000_000), glBytes: Math.ceil(row.glMB * 1_000_000), engineBaseBytes: Math.ceil(row.engineBaseMB * 1_000_000),
+          ...(row.residentBaseMB === undefined ? {} : { residentBaseBytes: Math.ceil(row.residentBaseMB * 1_000_000) }),
           rev: row.rev, device: row.device, evidence: row.evidence } })) throw new Error('Home residency admission deferred by the shared budget');
-      residency.admitHome(instance, bytes, true);
+      // A matched increment subtracts the persistent composer; it cannot cover that page component again.
+      residency.admitHome(instance, bytes, row.residentBaseMB === undefined);
     }
     const recovery = mode === 'grid' ? pageGridRecovery() : null;
     return { mode, instance, residency, memory, ...(recovery === null ? {} : { recovery }) };

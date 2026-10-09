@@ -42,17 +42,46 @@ it('retains a strict images-first reading independently of the lower compressed 
 
 it('admits the measured cold KTX2 Pine charge without changing its over-cap images-first phone policy', () => {
   const owner = new PageResidency(new ResidencyAllocator());
-  expect(PINE_RUNTIME_COST).toMatchObject({ webContentMB: 648.990416, glMB: 205.941312, engineBaseMB: 299,
-    rev: '8e82ae91f701f8990199fe92407e4f1c61f14b20', evidence: 'progress/memory/sf22a-pine-g187-8e82ae91f/summary.json' });
-  expect(NALATI_RUNTIME_COST).toMatchObject({ webContentMB: 606, glMB: 236.8, engineBaseMB: 299,
-    rev: '91f97bdfc', evidence: 'progress/memory/sf22a-2026-10-04.json' });
-  expect(owner.admitHome('pine-hollow', runtimeAccountedBytes(PINE_RUNTIME_COST)).bytes).toBe(500_839_395);
-  expect(owner.allocator.cost().playing).toBe(935_931_729);
+  expect(PINE_RUNTIME_COST).toMatchObject({ webContentMB: 533.958808, glMB: 316.131094, engineBaseMB: 299, residentBaseMB: 670.843114,
+    rev: '9f0245c60e20b30ac6200fee6c233e48a5052ac1', evidence: 'progress/memory/g258-accounting/summary.json' });
+  expect(NALATI_RUNTIME_COST.residentBaseMB).toBe(685.345862);
+  expect(owner.admitHome('pine-hollow', runtimeAccountedBytes(PINE_RUNTIME_COST)).bytes).toBe(161_483_593);
+  expect(owner.allocator.cost().playing).toBe(559_246_789);
   expect(PINE_RUNTIME_COST.imagesFirst).toBe(PINE_IMAGES_FIRST_COST);
   expect(imagesFirstPlayingBytes(PINE_RUNTIME_COST)).toBeGreaterThan(CONTENT_CAPS.playing);
   // Platform and neighbour claims still consume the remaining margin; they do not inherit a whole-world discount.
-  expect(owner.allocator.reserve({ id: 'road', category: 'commons', owner: 'platform', bytes: 60_000_000,
+  expect(owner.allocator.reserve({ id: 'road', category: 'commons', owner: 'platform', bytes: 400_000_000,
     distance: 0, needed: true })).toBeNull();
-  expect(runtimeAccountedBytes(NALATI_RUNTIME_COST)).toBe(489_909_910);
+  expect(runtimeAccountedBytes(NALATI_RUNTIME_COST)).toBe(197_073_318);
   owner.dispose();
+});
+
+it('subtracts only a matched resident baseline once and retains the legacy engine-only calculation', () => {
+  const row = { ...measured, webContentMB: 800, glMB: 200, engineBaseMB: 299, residentBaseMB: 700 };
+  expect(runtimeAccountedBytes(row)).toBe(Math.ceil(300_000_000 / CONTENT_CAPS.residentFactor));
+  const legacy = { ...measured, webContentMB: 800, glMB: 200, engineBaseMB: 299 };
+  expect(runtimeAccountedBytes(legacy)).toBe(Math.ceil(701_000_000 / CONTENT_CAPS.residentFactor));
+  for (const residentBaseMB of [Number.NaN, Number.POSITIVE_INFINITY, -1, 298, 1000, 1001]) {
+    expect(() => runtimeAccountedBytes({ ...row, residentBaseMB })).toThrow();
+  }
+});
+
+it('projects the grid residents before Auto chooses images while preserving the standalone estimate', () => {
+  const residents = { l0: 0, l1: 0, far: 0, libraries: 0, commons: 0, sims: 180_000_000, overlap: CONTENT_CAPS.overlap };
+  // Nalati's standalone image envelope fits, but those images plus the live road do not.
+  expect(imagesFirstPlayingBytes(NALATI_RUNTIME_COST)).toBeLessThan(CONTENT_CAPS.playing);
+  expect(imagesFirstPlayingBytes(NALATI_RUNTIME_COST, residents)).toBeGreaterThan(CONTENT_CAPS.playing);
+  expect(imagesFirstPlayingBytes(undefined, residents)).toBeUndefined();
+  const standalone = imagesFirstPlayingBytes(NALATI_RUNTIME_COST);
+  if (standalone === undefined) throw new Error('Expected Nalati measurement');
+  expect(imagesFirstPlayingBytes(NALATI_RUNTIME_COST, residents)).toBe(standalone + 199_800_000);
+  expect(residents.sims).toBe(180_000_000);
+  const allocator = new ResidencyAllocator();
+  const road = allocator.reserve({ id: 'sim:road', category: 'sim', owner: 'road', bytes: residents.sims, distance: 0, needed: true });
+  if (road === null) throw new Error('Expected the road to fit');
+  expect(allocator.reserve({ id: 'sim:target', category: 'sim', owner: 'target', bytes: runtimeAccountedBytes(NALATI_RUNTIME_COST.imagesFirst), distance: 0, needed: true })).toBeNull();
+  const compressed = allocator.reserve({ id: 'sim:target', category: 'sim', owner: 'target', bytes: runtimeAccountedBytes(NALATI_RUNTIME_COST), distance: 0, needed: true });
+  if (compressed === null) throw new Error('Expected the measured compressed increment to fit');
+  compressed.release(); road.release();
+  expect(allocator.entries()).toHaveLength(0);
 });

@@ -12,7 +12,7 @@ import nineSource from '../src/shards/nine-dragon-stack/shard.config';
 import { NINE_DRAGON_RUNTIME_COST } from '../src/shards/nine-dragon-stack/data/runtimeCost';
 
 it.each([
-  { manifest: SKY_REACH, source: skySource, measured: SKY_REACH_RUNTIME_COST, bytes: 215_953_384 },
+  { manifest: SKY_REACH, source: skySource, measured: SKY_REACH_RUNTIME_COST, bytes: 145_233_228 },
   { manifest: NINE_DRAGON_STACK, source: nineSource, measured: NINE_DRAGON_RUNTIME_COST, bytes: 340_966_245 },
 ])('admits $manifest.slug from matching reviewed full-runtime measurements rather than its empty data budget', ({ manifest, source, measured, bytes }) => {
   expect(manifest.runtimeCost).toBe(measured);

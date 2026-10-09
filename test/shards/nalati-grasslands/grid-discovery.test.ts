@@ -25,7 +25,7 @@ it('discovers Nalati grid data without changing its standalone descriptor or tru
     expect(product.options.firstParty).toBe(true);
     expect(product.admitted.source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: NALATI_RUNTIME_SPAWNS });
     expect(product.admitted.source.edge).toEqual(source.edge);
-    expect(regionalRuntimeAccountedBytes(product.admitted, NALATI_GRASSLANDS)).toBe(489_909_910);
+    expect(regionalRuntimeAccountedBytes(product.admitted, NALATI_GRASSLANDS)).toBe(197_073_318);
     product.release();
   } finally { scope.dispose(); }
   expect(allocator.entries()).toEqual([]);

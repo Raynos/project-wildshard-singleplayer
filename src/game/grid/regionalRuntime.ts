@@ -34,7 +34,7 @@ import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
 function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
-  return (['webContentMB', 'glMB', 'engineBaseMB', 'rev', 'device', 'evidence'] as const).every(key => a[key] === b[key]);
+  return (['webContentMB', 'glMB', 'engineBaseMB', 'residentBaseMB', 'rev', 'device', 'evidence'] as const).every(key => a[key] === b[key]);
 }
 
 /**
@@ -156,6 +156,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
     if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
     const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);
     try {
+      const measured = request.textures?.mode === 'img' ? declaration.cost?.imagesFirst ?? declaration.cost : declaration.cost;
+      if (measured?.residentBaseMB !== undefined) {
+        if (claim.id !== `sim:${request.cell.instance}`) throw new Error('Measured runtime coverage requires its own instance lease');
+        request.allocator.markMeasuredPage(claim.id);
+      }
       coverRuntimeAssets(request.allocator, scope, request.claim);
       const foundation = await prepare({ ...request, scope });
       if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }

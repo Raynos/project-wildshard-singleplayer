@@ -46,3 +46,13 @@ it('charges the probe-selected image fallback without changing compressed proven
   expect(() => regionalRuntimeAccountedBytes({ source }, { ...manifest,
     runtimeCost: { ...cost, imagesFirst: { ...imagesFirst, glMB: 1 } } }, 'img')).toThrow('differs');
 });
+
+it('fences the matched resident baseline against its admitted manifest in both texture arms', () => {
+  const matched = { ...cost, residentBaseMB: 700 };
+  const admitted = { source: { ...source, runtime: { entry: 'runtime/index.ts', cost: matched } } };
+  const reviewed = { ...manifest, runtimeCost: matched };
+  expect(regionalRuntimeAccountedBytes(admitted, reviewed, 'ktx2')).toBe(runtimeAccountedBytes(matched));
+  expect(regionalRuntimeAccountedBytes(admitted, reviewed, 'img')).toBe(runtimeAccountedBytes(imagesFirst));
+  expect(() => regionalRuntimeAccountedBytes(admitted, { ...reviewed, runtimeCost: { ...matched, residentBaseMB: 701 } })).toThrow('differs');
+  expect(() => regionalRuntimeAccountedBytes(admitted, manifest)).toThrow('differs');
+});

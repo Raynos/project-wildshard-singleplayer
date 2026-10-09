@@ -13,11 +13,25 @@ export const BUDGETS: LevelSpec['budgets'] = { ceilings: BUDGET_CEILINGS, phone:
  * The 299 MB engine base is the dated 91f97bdfc calibration, not remeasured. Whole opaque home render + sim;
  * the game helper applies calibration once. This Simulator + GL proxy is not physical-iPhone evidence.
  */
-export const SKY_REACH_RUNTIME_COST = {
+const SKY_REACH_IMAGES_FIRST_COST = {
   "webContentMB": 270.994576,
   "glMB": 267.71368,
   "engineBaseMB": 299,
   "rev": "5357804745121cdda8f9492b62d3266244f4ac1b",
   "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
   "evidence": "progress/memory/sf22a-runtime-homes-535780474/summary.json"
+} as const;
+
+/** G258: largest paired worst entered pose minus settled pre-entry road in G257's three cold runs.
+ * The existing platform, composer and highway remain separately charged. The dated engine base is provenance only.
+ * This is settled Simulator accounting, not a continuous peak or physical-phone proof. Keep the legacy image arm. */
+export const SKY_REACH_RUNTIME_COST = {
+  webContentMB: 641.55256,
+  glMB: 180.34796,
+  engineBaseMB: 299,
+  residentBaseMB: 660.691638,
+  rev: 'b49135480be3997209baa933345d8b135c101951',
+  device: 'iOS Simulator Safari G257 max worst-pose minus pre-entry road, three cold runs',
+  evidence: 'progress/memory/g258-accounting/summary.json',
+  imagesFirst: SKY_REACH_IMAGES_FIRST_COST,
 } as const;

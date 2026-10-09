@@ -13,7 +13,7 @@ import { buildProject, canonicalJson } from '../../../src/sdk/project';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
 import declaration from '../../../src/shards/far-reach/shard.config';
 
-it('discovers and admits the emitted Sky Reach product at its complete measured runtime cost', async () => {
+it('discovers and admits the emitted Sky Reach product at its matched measured runtime increment', async () => {
   const output = mkdtempSync(join(tmpdir(), 'sky-grid-product-'));
   const allocator = new ResidencyAllocator(), scope = new Scope('sky.grid.discovery');
   try {
@@ -36,7 +36,7 @@ it('discovers and admits the emitted Sky Reach product at its complete measured 
     expect(product.admitted.source).toEqual(source);
     expect(product.options.firstParty).toBe(true);
     expect(fetched).toEqual(['http://localhost:5173/shardfiles/far-reach/shard.json', ...source.files.map(file => `http://localhost:5173/shardfiles/far-reach/${file.hash}`)]);
-    expect(regionalRuntimeAccountedBytes(product.admitted, SKY_REACH)).toBe(215_953_384);
+    expect(regionalRuntimeAccountedBytes(product.admitted, SKY_REACH)).toBe(145_233_228);
     expect(source.entryways.map(entry => [entry.edge, entry.kind, entry.width])).toEqual(['north', 'east', 'south', 'west'].map(edge => [edge, 'socketLift', 8]));
     expect(source.accent).toBe('pink');
     product.release();

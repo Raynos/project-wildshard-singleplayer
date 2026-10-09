@@ -1,0 +1,89 @@
+{
+  "base": "93b21e89b164b2bf2b04c2a235479ae1ebf6a9bf",
+  "checkpoints": {
+    "pine-hollow": [
+      {
+        "path": "test/proof/pine-hollow/checkpoints/night.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/pine-hollow/checkpoints/king.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/pine-hollow/checkpoints/fallen.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/pine-hollow/checkpoints/ridge.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/pine-hollow/checkpoints/basis.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/pine-hollow/checkpoints/dam.snap.gz",
+        "payloadIdentical": true
+      }
+    ],
+    "far-reach": [
+      {
+        "path": "test/proof/far-reach/checkpoints/step.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/far-reach/checkpoints/storm.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/far-reach/checkpoints/gale.snap.gz",
+        "payloadIdentical": true
+      }
+    ],
+    "driftwood-isle": [
+      {
+        "path": "test/proof/driftwood-isle/checkpoints/spawn.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/driftwood-isle/checkpoints/tick-10000.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/driftwood-isle/checkpoints/captain.snap.gz",
+        "payloadIdentical": true
+      }
+    ],
+    "nine-dragon-stack": [
+      {
+        "path": "test/proof/nine-dragon-stack/checkpoints/ride.snap.gz",
+        "payloadIdentical": true
+      },
+      {
+        "path": "test/proof/nine-dragon-stack/checkpoints/crossing.snap.gz",
+        "payloadIdentical": true
+      }
+    ]
+  },
+  "pine-hollowGameplay": {
+    "identicalExceptInputs": true,
+    "inputs": "d6fbd5289e0c09bfb7354ee880aa2e41c1ef8459640bbe82b55e3b65c4cb2820"
+  },
+  "driftwood-isleGameplay": {
+    "identicalExceptInputs": true,
+    "inputs": "0fa4315e5f05ce34fb2bedd3f6fdd560547a0f88b3438cfbdd92a5f2db475c2c"
+  },
+  "pinePhysics": {
+    "payloadIdentical": true,
+    "inputChanges": [
+      "src/shards/pine-hollow/data/runtimeCost.ts"
+    ]
+  },
+  "kingCollision": {
+    "payloadIdentical": true,
+    "inputChanges": [
+      "src/shards/pine-hollow/runtime/physics.baked.json"
+    ]
+  }
+}

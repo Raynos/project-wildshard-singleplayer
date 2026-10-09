@@ -1941,7 +1941,6 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | Rule | What it refuses | Status |
 |---|---|---|
 | `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers | hard (`.oxlintrc.json`, E405 AG28) |
-| `wildshard/shard-game-imports` | shard game imports outside `runtime/`, including type/dynamic/re-export and relative forms; only exact SF73 inventory-registered frozen files are exempt. Engine imports remain G143/SF62 transition debt. | shrink-only ratchet seeded at 233 measured sites; promote to hard only at zero |
 | `wildshard/public-index` | a cross-layer import names a module the layer's package does not export (`@wildshard/engine/x/y` does not resolve at all; a relative path into another layer is refused too); a module the layer's `package.json` `exports` lists is public | ratchet (per file) |
 | `wildshard/no-reexport` | `export … from` (or `export *`, or exporting an imported binding) of our own modules: no barrels; a third-party re-export (a bundler shim) passes | hard (`.oxlintrc.json`, E434) |
 | `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items, the word "shard") in engine code; comments are not counted. A wire contract's field may keep the name `shard` (telemetry tags, reports, the harness probe, a model id) only as a property name or key, only in the files `lint/ratchet.json` `allow['wildshard/engine-words']` lists with the reason (E405, Jake). Engine copy says "level" and the game supplies its word (`s_level_word`) | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
@@ -2805,3 +2804,12 @@ The existing Developer MEMORY budget chip consumes this same scalar ledger when 
 ### Regional texture admission
 
 `@wildshard/engine/level/frame.LevelFrameOptions.textures` accepts the structural `enter()` port of a retained texture policy. The frame enters that same policy for each resident callback and leaves it afterward. Game regional admission resolves `TexturePolicyBinding` once before reserving the runtime: an accepted compressed path uses its primary measured claim, while an image fallback uses `runtime.cost.imagesFirst` when declared. Construction and entered frames reuse the resolved policy; the capability probe and total-memory caps remain unchanged. Measurements keep their source revision and evidence.
+
+### Matched runtime residency (G258)
+
+`runtimeAccountedBytes` subtracts an optional reviewed `residentBaseMB`, the matched settled pre-entry road resident set,
+instead of the dated `engineBaseMB`. The platform, composer and highway included in that baseline retain their independent
+claims. A regional runtime marks its own `sim:<instance>` lease as measured only after its exact source/manifest measurement
+and bytes have been admitted. Its sky keeps an exact visible `sim-sky:<instance>` page claim covered by that same live parent;
+it receives no engine-base credit, and becomes independently charged if the parent retires first. Estimated runtime rows and
+other instances cannot cover it. The claim uses the largest paired worst-entered-pose increment across three cold runs.

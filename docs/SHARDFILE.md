@@ -612,10 +612,18 @@ their admitted parts separately; only opaque trusted runtime homes use a measure
 Trusted runtime
 homes require that claim before their shell world runs; no empty budget or one-byte
 placeholder substitutes for the measurement. Optional `runtime.cost` contains
-`webContentMB`, `glMB`, `engineBaseMB`, `rev`, `device` and a `progress/memory/*.json`
+`webContentMB`, `glMB`, `engineBaseMB`, optional `residentBaseMB`, `rev`, `device` and a `progress/memory/*.json`
 evidence path. Accounted bytes are derived once as the upward-rounded
-`(webContentMB + glMB - engineBaseMB) * 1e6 / residentFactor`; the allocator applies
-its calibration and current engine base. Root activation requires reviewed metadata;
+`(webContentMB + glMB - (residentBaseMB ?? engineBaseMB)) * 1e6 / residentFactor`; the allocator applies
+its calibration and current engine base. `residentBaseMB` is the measured settled **pre-entry** resident set
+from the same cold run, texture path and settings. It includes the platform, composer and highway that stay
+resident and keep their independent claims. The dated `engineBaseMB` remains provenance when this paired
+baseline is supplied. The baseline must contain that engine base and be smaller than the target reading.
+Choose the largest worst-pose-minus-pre-entry-baseline across the valid cold runs; never subtract a post-target
+road reading that can retain shard memory. The evidence names both poses and preserves their physical samples
+and same-pose labelled GL. Omitted `residentBaseMB` keeps the existing engine-only formula. A runtime increment includes its own
+regional sky: its exact bytes remain a visible child claim covered only by that same live sim lease. Parent retirement
+makes the sky independently charged; platform, composer and highway claims remain independent throughout. Root activation requires reviewed metadata;
 missing metadata never acquires a placeholder claim. The live registry retains the same claim,
 while the composition root releases the boot reference after consumers dispose.
 Local instance checkpoints
@@ -1082,3 +1090,5 @@ Headless validation uses the normal authoritative simulation factory, with impli
 The game-layer `createPortalTraversal` uses the existing physics, capsule and feet. `teleport(fromId)` rechecks the bound source and destination with `canStandAt`, including named static floor and full capsule clearance, before any pose change; it returns the admitted destination yaw. Transfers are synchronous and never evaluate author code. `portalTransitioning(physics)` fences profile/coin/continuation writes and native snapshots from validation through completion. Refused transfers leave the feet unchanged; no checkpoint contains a mid-transfer pose. Render and interaction bindings remain with the normal client view owner.
 
 Native world-only hybrids retain the original `terrain.bin` as `nativeGround.file`, an independent critical binary root. Admission checks WSTR v1, the native 256² lattice over 500 m, the identity seed, finite cell-bounded heights, bounded placement metadata, exact full 256-sample boundary rows and every continuous 8×15 m entry footprint. The native runtime owns collision and interactive geometry. Render tiles do not replace its native physics, and a standalone flat declared simulation proxy is refused. The renderer-free native collision/worker adapter remains a follow-up; this byte witness is not a claim that arbitrary trusted gameplay has been headlessly replayed.
+
+G188 grid Auto evaluates the target images-first claim together with the page allocator’s current road and regional residents. If that projected playing envelope exceeds 1.0 GB it requests compressed textures; capability refusal still falls back to images and honest admission refusal. Explicit texture settings keep precedence, and standalone Auto keeps its standalone envelope.

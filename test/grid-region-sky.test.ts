@@ -244,3 +244,30 @@ it('keeps a layered level\'s gas giant on the camera after its dome, fades it by
   layer.weight = 0; layer.apply(0.016, camera); expect(planet.visible).toBe(false);
   layer.dispose(); expect(planet.parent).toBeNull();
 });
+
+it('keeps the exact sky claim visible inside its own measured increment and charges it again after parent retirement', async () => {
+  const allocator = new ResidencyAllocator(), scope = new Scope('resident'), sky = fakeSky(new Scene());
+  const parent = allocator.reserve({ id: 'sim:cell-a', owner: 'cell-a', category: 'sim', bytes: 50_000, distance: 0, needed: true });
+  if (parent === null) throw new Error('Missing measured parent');
+  const hung: FrameSkyLayer[] = [];
+  const look = { contribute: () => () => undefined, sky: (_: string, layer: FrameSkyLayer) => { hung.push(layer); return () => { hung.splice(hung.indexOf(layer), 1); }; } };
+  const before = allocator.cost().playing;
+  const layered = (): Promise<{ layer: BackdropLayer; backdrop: ReturnType<typeof regionBackdrop> }> => {
+    const layer = sky.layerBackdrop({}); return Promise.resolve({ layer, backdrop: regionBackdrop(layer.holder) });
+  };
+  await expect(buildRegionSky({ instance: 'other', allocator, scope, look, coveredBy: parent.id, layered })).rejects.toThrow('own live runtime');
+  expect(sky.layers.size).toBe(0);
+  await expect(buildRegionSky({ instance: 'cell-a', allocator, scope, look, coveredBy: parent.id, layered })).rejects.toThrow('measured whole-page');
+  expect(sky.layers.size).toBe(0); expect(allocator.entries()).toHaveLength(1);
+  allocator.markMeasuredPage(parent.id);
+  expect(await buildRegionSky({ instance: 'cell-a', allocator, scope, look, coveredBy: parent.id, layered })).toBe('drawn');
+  expect(allocator.entries().find(row => row.id === regionSkyClaimId('cell-a'))).toMatchObject({ bytes: 4000, accountedBytes: 0, coveredBy: parent.id, category: 'page', owner: 'cell-a' });
+  expect(allocator.cost().playing).toBe(before);
+  hung[0]?.weight(1);
+  for (const layer of sky.layers) layer.apply(1 / 60, new PerspectiveCamera());
+  expect(hung[0]?.state().drawn).toBe(true);
+  parent.release();
+  expect(allocator.entries().find(row => row.id === regionSkyClaimId('cell-a'))?.accountedBytes).toBe(4000);
+  expect(allocator.cost().input.page).toBe(4000);
+  scope.dispose(); expect(allocator.entries()).toEqual([]); expect(hung).toHaveLength(0); expect(sky.layers.size).toBe(0);
+});

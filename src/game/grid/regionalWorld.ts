@@ -126,9 +126,9 @@ function simLevel(level: LevelSpec): SimLevel {
 
 /** Resolve the existing texture policy once before memory admission. The resident enters this SAME policy for
  * asynchronous construction and each frame, so a capability-probe image fallback cannot retain a compressed claim. */
-export function resolveRegionalRuntimeTextures(manifest: Pick<ShardManifest, 'slug' | 'tiers' | 'runtimeCost'>): RegionalRuntimeTextures {
+export function resolveRegionalRuntimeTextures(manifest: Pick<ShardManifest, 'slug' | 'tiers' | 'runtimeCost'>, residents?: Parameters<typeof imagesFirstPlayingBytes>[1]): RegionalRuntimeTextures {
   const { slug: identity } = manifest;
-  const policy = new TexturePolicyBinding(manifest.tiers?.[TIER]?.textures, identity, imagesFirstPlayingBytes(manifest.runtimeCost));
+  const policy = new TexturePolicyBinding(manifest.tiers?.[TIER]?.textures, identity, imagesFirstPlayingBytes(manifest.runtimeCost, residents));
   const leave = policy.enter();
   try { return Object.freeze({ mode: texMode(), enter: () => policy.enter() }); }
   finally { leave(); }
@@ -215,7 +215,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           if (look !== null && sky instanceof SkyRig) void (async () => {
             try {
               const made: { backdrop: LayeredBackdrop | null } = { backdrop: null };
-              const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
+              const measured = textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
+              const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
+                ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
                 const make = levelLook?.backdrop;
                 const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false });
                 if (layered === null) return null;

@@ -5,16 +5,16 @@ import { PINE_RUNTIME_COST } from '../../../src/shards/pine-hollow/data/runtimeC
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import source from '../../../src/shards/pine-hollow/shard.config';
 
-it('uses the measured cold KTX2 grid cost on both boot paths and admits its exact whole-home claim', () => {
+it('uses the measured cold KTX2 grid cost on both boot paths and admits its exact matched increment claim', () => {
   expect(PINE_HOLLOW.runtimeCost).toBe(PINE_RUNTIME_COST);
   expect(source.runtime?.cost).toEqual(PINE_RUNTIME_COST);
-  expect(PINE_RUNTIME_COST.webContentMB + PINE_RUNTIME_COST.glMB).toBeCloseTo(854.931728, 6);
-  expect(PINE_RUNTIME_COST.rev).toBe('8e82ae91f701f8990199fe92407e4f1c61f14b20');
-  expect(PINE_RUNTIME_COST.evidence).toBe('progress/memory/sf22a-pine-g187-8e82ae91f/summary.json');
+  expect(PINE_RUNTIME_COST.webContentMB + PINE_RUNTIME_COST.glMB).toBeCloseTo(850.089902, 6);
+  expect(PINE_RUNTIME_COST.rev).toBe('9f0245c60e20b30ac6200fee6c233e48a5052ac1');
+  expect(PINE_RUNTIME_COST.evidence).toBe('progress/memory/g258-accounting/summary.json');
   const owner = new PageResidency();
   try {
-    expect(owner.admitHome('pine-hollow', runtimeAccountedBytes(PINE_RUNTIME_COST)).bytes).toBe(500_839_395);
-    expect(owner.allocator.cost().playing).toBe(935_931_729);
+    expect(owner.admitHome('pine-hollow', runtimeAccountedBytes(PINE_RUNTIME_COST)).bytes).toBe(161_483_593);
+    expect(owner.allocator.cost().playing).toBe(559_246_789);
   } finally { owner.dispose(); }
   expect(owner.allocator.entries()).toEqual([]);
 });

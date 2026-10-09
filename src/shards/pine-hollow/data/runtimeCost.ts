@@ -13,19 +13,19 @@ export const PINE_IMAGES_FIRST_COST = {
 } as const;
 
 /**
- * SF22a / G226: grid-default trim ON, cold Auto resolving to KTX2, G187 cuts 1–3 on 8e82ae91f.
- * Median of three cold-run settled play medians plus the same-pin, same-phase labelled GL census. Play native range
- * 629.231336–651.235 MB; Explorer GL reaches 246.332454 MB and the conservative combined playing transient is
- * 960.832454 MB in the linked receipt. This is a settled opaque-runtime charge, not a transient or grid-fit verdict.
- * Standalone's explicit trim-OFF variant was not measured by this study. Keep images-first separately for G188;
- * the 299 MB engine calibration remains dated to 91f97bdfc, rather than being measured again here.
+ * G258: largest paired entry/centre increment across three cold compressed Simulator runs on private 9f0245c.
+ * The matched settled pre-entry road includes the platform, composer and highway that stay separately charged.
+ * Subtract that complete resident set, not just the dated 299 MB engine base; runtimeAccountedBytes calibrates once.
+ * Readback-zero probe bypass exists only in the accounting diagnostic; production still selects its image fallback.
+ * No transient-peak or physical-phone admission proof is inferred from these settled samples.
  */
 export const PINE_RUNTIME_COST = {
-  webContentMB: 648.990416,
-  glMB: 205.941312,
+  webContentMB: 533.958808,
+  glMB: 316.131094,
   engineBaseMB: 299,
-  rev: '8e82ae91f701f8990199fe92407e4f1c61f14b20',
-  device: 'iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census',
-  evidence: 'progress/memory/sf22a-pine-g187-8e82ae91f/summary.json',
+  residentBaseMB: 670.843114,
+  rev: '9f0245c60e20b30ac6200fee6c233e48a5052ac1',
+  device: 'iOS Simulator Safari compressed matched pre-entry increment, three cold runs',
+  evidence: 'progress/memory/g258-accounting/summary.json',
   imagesFirst: PINE_IMAGES_FIRST_COST,
 } as const;
