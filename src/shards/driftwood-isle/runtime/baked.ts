@@ -18,7 +18,9 @@ const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(DRIFTWOOD_GROUND_RES - 1), cols: v.literal(DRIFTWOOD_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
   solids: v.array(Solid), actors: v.array(Actor), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })),
   habitat: v.object({ perches: v.array(xyz), perchBases: v.array(xyz), crabSites: v.array(xz), practice: v.string(),
-    hold: v.strictObject({ x: finite, z: finite, r: finite, guardR: finite, step: finite, floor: v.array(v.nullable(finite)) }) }) });
+    hold: v.strictObject({ x: finite, z: finite, r: finite, guardR: finite, step: finite, floor: v.array(v.nullable(finite)) }) }),
+  // the finale's captain after `used:altar`: his native spec, his pool (the spawn point and yaw) and his arena radius
+  captain: v.strictObject({ spec: BakedSpec, pool: v.strictObject({ x: finite, z: finite, yaw: finite }), arena: finite }) });
 
 /** One baked fixed WORLD collider: a cuboid (half extents), a capsule (half height, radius) or a convex hull (vertices). */
 export type DriftwoodSolid = v.InferOutput<typeof Solid> & { readonly points?: Float32Array };
@@ -31,6 +33,8 @@ export interface DriftwoodBake {
   readonly actors: readonly DriftwoodBakedActor[];
   readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
   readonly habitat: v.InferOutput<typeof Bake>['habitat'];
+  /** The Drowned Captain as the finale spawns him: his native spec, his pool (spawn point, spawn yaw) and arena radius (m). */
+  readonly captain: { readonly spec: AnimalSimSpec; readonly pool: { readonly x: number; readonly z: number; readonly yaw: number }; readonly arena: number };
   /** The baked floor anywhere, on Rapier's own triangle split (physics/terrain.ts). */
   readonly floorAt: (x: number, z: number) => number;
   /** The wreck hold's deck / hull floor (Wreck.floorHeightAt), the baked 0.5 m lattice's nearest vertex; undefined off it. */
@@ -61,14 +65,19 @@ export function driftwoodBake(): DriftwoodBake {
     if (ix < 0 || iz < 0 || ix >= side || iz >= side) return undefined;
     return hold.floor[iz * side + ix] ?? undefined;
   };
+  /** a baked spec without its absent optional fields */
+  const specOf = (spec: v.InferOutput<typeof BakedSpec>): AnimalSimSpec => {
+    const { lockable, dims: { capsuleAxis, ...dims }, ...rest } = spec;
+    return { ...rest, dims: { ...dims, ...(capsuleAxis === undefined ? {} : { capsuleAxis }) }, ...(lockable === undefined ? {} : { lockable }) };
+  };
   const actors = bake.actors.map((actor): DriftwoodBakedActor => {
-    const { lockable, dims: { capsuleAxis, ...dims }, ...rest } = actor.spec;
-    if (rest.kind !== actor.kind || rest.variant !== actor.variant) throw new Error(`Divergent baked Driftwood spec ${actor.id}`);
-    return { ...actor, spec: { ...rest, dims: { ...dims, ...(capsuleAxis === undefined ? {} : { capsuleAxis }) }, ...(lockable === undefined ? {} : { lockable }) } };
+    if (actor.spec.kind !== actor.kind || actor.spec.variant !== actor.variant) throw new Error(`Divergent baked Driftwood spec ${actor.id}`);
+    return { ...actor, spec: specOf(actor.spec) };
   });
+  if (bake.captain.spec.kind !== 'captain' || bake.captain.spec.variant !== 'captain') throw new Error('Divergent baked Driftwood captain spec');
   const solids = bake.solids.map((solid): DriftwoodSolid => solid.vertices === undefined ? solid : { ...solid, points: floats(solid.vertices) });
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at },
-    solids, actors, herds: bake.herds, habitat: bake.habitat, floorAt, holdFloorAt };
+    solids, actors, herds: bake.herds, habitat: bake.habitat, captain: { spec: specOf(bake.captain.spec), pool: bake.captain.pool, arena: bake.captain.arena }, floorAt, holdFloorAt };
   return parsed;
 }
 
@@ -80,5 +89,6 @@ export function driftwoodSpecs(bake: DriftwoodBake): ReadonlyMap<string, AnimalS
     if (known !== undefined && JSON.stringify(known) !== JSON.stringify(actor.spec)) throw new Error(`Divergent native Driftwood spec ${key}`);
     specs.set(key, actor.spec);
   });
+  specs.set('captain.captain', bake.captain.spec);
   return specs;
 }

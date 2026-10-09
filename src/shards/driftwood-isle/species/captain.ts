@@ -8,7 +8,7 @@ import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from '@wildshard/engine/entities/species/rigs';
 import * as THREE from 'three';
 import { captainMesh, type CaptainMesh } from './captainMesh';
-import { CaptainBrain, SWING_DMG, UNDER, type CaptainMem } from './captainPolicy';
+import { CaptainBrain, SWING_DMG, type CaptainMem } from './captainPolicy';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -170,14 +170,12 @@ function buildCaptain(v: VariantDef, rng: Rng, mesh: CaptainMesh = captainMesh):
 
 const R = (b: THREE.Bone, x: number, y: number, z: number) => b.rotation.set(x, y, z);
 const L = THREE.MathUtils.lerp;
-const RISE_T = 1.1, SINK_T = 0.9;
 
 function animateCaptain(c: RigAnimCtx): void {
-  const b = c.bones as CaptainBones, t = c.t, seed = c.seed, m = c.mem as CaptainMem, a = c.animal, dt = c.dt;
-  if (m.rising) { m.rise = Math.min(1, (m.rise || 0) + dt / RISE_T); if (m.rise >= 1) m.rising = 0; }
-  if (m.sinking) { m.rise = Math.max(0, (m.rise || 0) - dt / SINK_T); if (m.rise <= 0) m.sinking = 0; }
+  const b = c.bones as CaptainBones, t = c.t, seed = c.seed, m = c.mem as CaptainMem;
+  // the rise / sink clock and his feet under the pool run on the body step (captainPolicy.ts advanceCaptainRise); the
+  // pose only reads them
   const up = m.init ? smooth01(m.rise || 0) : 0;
-  a.yOffset = L(UNDER, 0, up);
   const rise = 1 - up;
   const dead = c.deathT >= 0 ? smooth01(c.deathT) : 0;
   const moving = clamp(c.speed / 0.9, 0, 1);

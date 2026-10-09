@@ -6,7 +6,8 @@
 // (model-derived simulation specs, seeds, scales, herds, spawn points) with the habitat the enemy policies read (palm
 // perches and bases in palm order, the troops' placement input; the wreck hold and its floor; the crab sites). The declared
 // movers (the moored boat, the rope bridge's chain) are bodies, not baked world. Two independent same-page captures must
-// match exactly.
+// match exactly. Then the altar is used (`used:altar`): the Drowned Captain's native spec and his pool (where the finale
+// spawns him, at his spawn yaw) are read off the body the finale spawned; his draws and id are the stream's at play time.
 // scripts/browser-lane.sh node scripts/bake-driftwood-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--inputs=<clean tree>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -103,6 +104,18 @@ try {
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
     const first = await page.evaluate(capture, false), second = await page.evaluate(capture, false);
+    // the finale's captain: set the altar's flag, read his body before any frame moves him, then his spec once more
+    const captain = await page.evaluate(() => {
+      const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;
+      adv.flags.set('used:altar');
+      const a = adv.finale.captain(); if (!a?.simSpec) throw new Error('Missing the captain after the altar');
+      return { spec: structuredClone(a.simSpec), pool: { x: a.mem.poolX, z: a.mem.poolZ, yaw: a.yaw }, arena: a.mem.arena };
+    });
+    const again = await page.evaluate(() => {
+      const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;
+      return structuredClone(adv.finale.captain()?.simSpec ?? null);
+    });
+    if (JSON.stringify(again) !== JSON.stringify(captain.spec)) throw new Error('Native Driftwood captain spec changed between captures');
     if (JSON.stringify(first) !== JSON.stringify(second)) {
       const moved = Object.keys(first).filter(key => JSON.stringify(first[key]) !== JSON.stringify(second[key]));
       const rows = moved.flatMap(key => Array.isArray(first[key]) ? first[key].flatMap((row, i) => JSON.stringify(row) === JSON.stringify(second[key][i]) ? [] : [{ key, i, a: JSON.stringify(row).slice(0, 300), b: JSON.stringify(second[key][i]).slice(0, 300) }]).slice(0, 4) : [{ key }]);
@@ -111,9 +124,9 @@ try {
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Driftwood bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
     const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: driftwoodPhysicsInputs(inputsRoot), ground, solids: first.solids,
-      actors: first.actors, herds: first.herds, habitat: first.habitat, pieces: first.pieces };
+      actors: first.actors, herds: first.herds, habitat: first.habitat, pieces: first.pieces, captain };
     writeFileSync(resolve(root, 'src/shards/driftwood-isle/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
-    console.log(`bake-driftwood-physics: ${first.actors.length} native bodies, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
+    console.log(`bake-driftwood-physics: ${first.actors.length} native bodies + the captain, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }
   await context.close();
 } finally { await browser.close(); }

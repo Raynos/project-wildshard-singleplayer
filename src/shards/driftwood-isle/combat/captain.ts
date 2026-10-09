@@ -1,4 +1,4 @@
-import { BossBrain, type BossPorts, type BossPresentation, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import { BossBrain, type BossContinuation, type BossPorts, type BossPresentation, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { BossDef } from '@wildshard/engine/ai/bossDefinition';
 import type { Events } from '@wildshard/engine/events/events';
 import { Vector3 } from 'three';
@@ -23,8 +23,11 @@ export interface CaptainPorts {
   ui: BossPresentation;
 }
 const NAME = 'The Drowned Captain';
+/** The encounter's continuation (SF72): BossBrain's beside this attempt's marks. */
+export interface CaptainEncounterState { boss: BossContinuation; attempt: boolean; waitForReturn: boolean }
 
-/** The authored fight owns its phases and rise/sink; the boss runtime owns encounter lifetime and UI. */
+/** The authored fight owns its phases and rise/sink; the boss runtime owns encounter lifetime and UI. Renderer-free: the
+ *  browser runs it under the boss bar, a headless host (runtime/captain.ts) with the silent presentation. */
 export class DrownedCaptain extends BossBrain {
   private readonly ports: CaptainPorts;
   private attempt = false;
@@ -47,6 +50,9 @@ export class DrownedCaptain extends BossBrain {
     script, host, ports.ui, { defeated: false, rewardTaken: false, kills: 0 });
     this.ports = ports;
   }
+  /** The encounter's continuation, without replaying a wake, an attempt event or the bar. */
+  encounterSnapshot(): CaptainEncounterState { return { boss: this.snapshot(), attempt: this.attempt, waitForReturn: this.waitForReturn }; }
+  encounterRestore(value: CaptainEncounterState): void { this.restore(value.boss); this.attempt = value.attempt; this.waitForReturn = value.waitForReturn; }
   wake(): void {
     const animal = this.ports.animal();
     if (animal === null || !animal.alive || this.waitForReturn) return;
