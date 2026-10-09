@@ -5,7 +5,8 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
 import { CROWN, DAIS, FALLEN_BRIDGE } from '../layout';
 import { STRINGS } from '../strings';
-import { rocBrain, type RocPhase } from '../species/stormRoc';
+import { rocBrain } from '../species/stormRoc';
+import type { RocPhase } from '../runtime/stormRocBrain';
 
 export const ROC_ID = 'far.roc';
 /** The HP fractions where phases 2 and 3 begin. */

@@ -3,7 +3,7 @@ import { DAIS, FALLEN_BRIDGE, ISLES, KNOLL_GLSL, MILL, NOTES, SPANS, UPDRAFT, VA
 import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';
 import { KEEPER_AT } from '../data/quests';
-import { crownStones } from './crown';
+import { crownStones } from '../runtime/crownLayout';
 import { NEST, SPIRES, spireAt } from './roost';
 import { WINCH_HOUSE } from './winchHouse';
 import { FOG, SKY } from '../look/sun';
