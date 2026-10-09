@@ -1,9 +1,31 @@
 name: script-conformance
+# SF74 W16 (2026-10-09): the local push gate runs this same check (scripts/vercel-tree-gate.sh, WebKit on the Mac) on
+# every push, so CI runs it only when its inputs change, nightly and by dispatch. Before: 120 push runs in 18 h, 0 red,
+# ~4.7 macOS min each (3.4 of them a full checkout of progress/ and art/), queueing ahead of boot-smoke on the 5 macOS slots.
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/engine/script/**'
+      - 'src/sdk/compileScript.ts'
+      - 'scripts/compile-script.mjs'
+      - 'scripts/script-conformance.mjs'
+      - 'test/fixtures/script-conformance/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/script-conformance.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'src/engine/script/**'
+      - 'src/sdk/compileScript.ts'
+      - 'scripts/compile-script.mjs'
+      - 'scripts/script-conformance.mjs'
+      - 'test/fixtures/script-conformance/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/script-conformance.yml'
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -14,6 +36,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10
