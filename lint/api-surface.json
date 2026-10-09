@@ -14214,6 +14214,18 @@
         "from": "@wildshard/game/combat/clipTiming"
       },
       {
+        "name": "CollisionJoint",
+        "kind": "interface",
+        "doc": "Ordered collision joints only: parent precedes child, -1 attaches to the supplied world frame.",
+        "from": "@wildshard/game/combat/collisionPose"
+      },
+      {
+        "name": "CollisionPose",
+        "kind": "class",
+        "doc": "Collision-only FK. It never constructs a scene node, skeleton, vertex buffer or skinned mesh.",
+        "from": "@wildshard/game/combat/collisionPose"
+      },
+      {
         "name": "CompendiumHost",
         "kind": "interface",
         "doc": "",
