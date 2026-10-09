@@ -10728,7 +10728,7 @@
       {
         "name": "IconMap",
         "kind": "interface",
-        "doc": "The icon ids: the engine's UI glyphs; a content library merges its own in (the kit's, src/kit/icons.ts: creatures, items,",
+        "doc": "The icon ids: the engine's UI glyphs; a content library merges its own in (the game's, src/game/icons.ts: creatures, items,",
         "from": "@wildshard/engine/ui/icons"
       },
       {
@@ -10740,7 +10740,7 @@
       {
         "name": "registerIcons",
         "kind": "function",
-        "doc": "a content library's icons, full SVGs by id (the kit's installKitIcons)",
+        "doc": "a content library's icons, full SVGs by id (the game's installKitIcons)",
         "from": "@wildshard/engine/ui/icons"
       },
       {
@@ -14640,6 +14640,18 @@
         "from": "@wildshard/game/grid/wallet"
       },
       {
+        "name": "BAG_ICONS",
+        "kind": "const",
+        "doc": "the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4)",
+        "from": "@wildshard/game/icons"
+      },
+      {
+        "name": "installKitIcons",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/icons"
+      },
+      {
         "name": "instanceSave",
         "kind": "function",
         "doc": "Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent.",
@@ -17814,10 +17826,28 @@
         "from": "@wildshard/game/systems/audio/weaponVoices"
       },
       {
+        "name": "installStarterEffects",
+        "kind": "function",
+        "doc": "An optional entered installer retires observers and icons while statuses remain player-owned.",
+        "from": "@wildshard/game/systems/effects/install"
+      },
+      {
         "name": "STARTER_EFFECTS",
         "kind": "const",
         "doc": "Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects.",
         "from": "@wildshard/game/systems/effects/starter"
+      },
+      {
+        "name": "declaredKitItemFamilies",
+        "kind": "function",
+        "doc": "Explicit built-in item family registry, injected into the full loader; importing does not install content.",
+        "from": "@wildshard/game/systems/items/declared"
+      },
+      {
+        "name": "ITEM_VIEW_LIFT",
+        "kind": "const",
+        "doc": "The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:",
+        "from": "@wildshard/game/systems/items/declared"
       },
       {
         "name": "fogGLSL",
@@ -17952,6 +17982,90 @@
         "from": "@wildshard/game/systems/looks/trample"
       },
       {
+        "name": "faceHead",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/faceHeads"
+      },
+      {
+        "name": "FaceHead",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/faceHeads"
+      },
+      {
+        "name": "loadFaceHead",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/faceHeads"
+      },
+      {
+        "name": "NpcFigureMotionProfile",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/figureMotion"
+      },
+      {
+        "name": "npcFigurePose",
+        "kind": "function",
+        "doc": "Matrices stay reusable; the caller chooses a skinned rig or procedural pieces.",
+        "from": "@wildshard/game/systems/npc/figureMotion"
+      },
+      {
+        "name": "NpcFigureState",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/figureMotion"
+      },
+      {
+        "name": "stepNpcFigure",
+        "kind": "function",
+        "doc": "A root/head/arm figure's idle, focus, talking and authored secondary motion.",
+        "from": "@wildshard/game/systems/npc/figureMotion"
+      },
+      {
+        "name": "fitNpcFigure",
+        "kind": "function",
+        "doc": "fit a loaded figure into its procedural frame and weight it (see the header)",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
+        "name": "mergeNpcFigures",
+        "kind": "function",
+        "doc": "Fit and merge authored figures on a shared root/head/arm skeleton.",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
+        "name": "NpcFigure",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
+        "name": "NpcFigureBones",
+        "kind": "interface",
+        "doc": "the rig of one figure: root (feet), head (neck), arm (right shoulder) — world matrices written by the runtime",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
+        "name": "NpcFigureFrame",
+        "kind": "interface",
+        "doc": "a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT)",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
+        "name": "NpcFigureRig",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
+        "name": "packNpcAtlases",
+        "kind": "function",
+        "doc": "the five atlases in one texture (3 × 2 cells, flipY off like glTF): each figure's uv moved into its cell",
+        "from": "@wildshard/game/systems/npc/figureRig"
+      },
+      {
         "name": "footPlan",
         "kind": "function",
         "doc": "a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle)",
@@ -18082,6 +18196,18 @@
         "kind": "const",
         "doc": "Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.",
         "from": "@wildshard/game/systems/species/view/boar"
+      },
+      {
+        "name": "Hoverboard",
+        "kind": "class",
+        "doc": "",
+        "from": "@wildshard/game/systems/tools/hoverboard"
+      },
+      {
+        "name": "HOVERBOARD_TOOL",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/tools/hoverboard"
       },
       {
         "name": "ARM_CLIPS",
@@ -18490,398 +18616,6 @@
         "kind": "type",
         "doc": "Compatibility options keep the starter profile and input-context defaults out of the engine.",
         "from": "@wildshard/game/weapons/Sword"
-      }
-    ],
-    "kit": [
-      {
-        "name": "installStarterEffects",
-        "kind": "function",
-        "doc": "An optional entered installer retires observers and icons while statuses remain player-owned.",
-        "from": "@wildshard/kit/effects/install"
-      },
-      {
-        "name": "BAG_ICONS",
-        "kind": "const",
-        "doc": "the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4)",
-        "from": "@wildshard/kit/icons"
-      },
-      {
-        "name": "installKitIcons",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/icons"
-      },
-      {
-        "name": "declaredKitItemFamilies",
-        "kind": "function",
-        "doc": "Explicit built-in item family registry, injected into the full loader; importing does not install content.",
-        "from": "@wildshard/kit/items/declared"
-      },
-      {
-        "name": "ITEM_VIEW_LIFT",
-        "kind": "const",
-        "doc": "The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item:",
-        "from": "@wildshard/kit/items/declared"
-      },
-      {
-        "name": "faceHead",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/npc/faceHeads"
-      },
-      {
-        "name": "FaceHead",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/faceHeads"
-      },
-      {
-        "name": "loadFaceHead",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/npc/faceHeads"
-      },
-      {
-        "name": "NpcFigureMotionProfile",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/figureMotion"
-      },
-      {
-        "name": "npcFigurePose",
-        "kind": "function",
-        "doc": "Matrices stay reusable; the caller chooses a skinned rig or procedural pieces.",
-        "from": "@wildshard/kit/npc/figureMotion"
-      },
-      {
-        "name": "NpcFigureState",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/figureMotion"
-      },
-      {
-        "name": "stepNpcFigure",
-        "kind": "function",
-        "doc": "A root/head/arm figure's idle, focus, talking and authored secondary motion.",
-        "from": "@wildshard/kit/npc/figureMotion"
-      },
-      {
-        "name": "fitNpcFigure",
-        "kind": "function",
-        "doc": "fit a loaded figure into its procedural frame and weight it (see the header)",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "mergeNpcFigures",
-        "kind": "function",
-        "doc": "Fit and merge authored figures on a shared root/head/arm skeleton.",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "NpcFigure",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "NpcFigureBones",
-        "kind": "interface",
-        "doc": "the rig of one figure: root (feet), head (neck), arm (right shoulder) — world matrices written by the runtime",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "NpcFigureFrame",
-        "kind": "interface",
-        "doc": "a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT)",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "NpcFigureRig",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "packNpcAtlases",
-        "kind": "function",
-        "doc": "the five atlases in one texture (3 × 2 cells, flipY off like glTF): each figure's uv moved into its cell",
-        "from": "@wildshard/kit/npc/figureRig"
-      },
-      {
-        "name": "Bow",
-        "kind": "type",
-        "doc": "Compatibility name for the original starter Bow binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/bow/family"
-      },
-      {
-        "name": "BowInstance",
-        "kind": "type",
-        "doc": "The one shared starter bow instance.",
-        "from": "@wildshard/kit/weapons/bow/family"
-      },
-      {
-        "name": "BowOptions",
-        "kind": "type",
-        "doc": "Options for the trusted starter bow constructor.",
-        "from": "@wildshard/kit/weapons/bow/family"
-      },
-      {
-        "name": "BowWorld",
-        "kind": "type",
-        "doc": "The starter bow host ports.",
-        "from": "@wildshard/kit/weapons/bow/family"
-      },
-      {
-        "name": "AIM_IN",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/index"
-      },
-      {
-        "name": "AIM_SPREAD",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/index"
-      },
-      {
-        "name": "AIM_SWAY",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/index"
-      },
-      {
-        "name": "AIM_VM_ZOOM",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/index"
-      },
-      {
-        "name": "AIM_ZOOM",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/index"
-      },
-      {
-        "name": "QUIVER_MAX",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/index"
-      },
-      {
-        "name": "BowProfile",
-        "kind": "type",
-        "doc": "Transitional kit name for the defining bow profile with today's style vocabulary.",
-        "from": "@wildshard/kit/weapons/bow/profile"
-      },
-      {
-        "name": "BowStyle",
-        "kind": "type",
-        "doc": "Transitional content's named view styles; the engine accepts its caller's vocabulary.",
-        "from": "@wildshard/kit/weapons/bow/profile"
-      },
-      {
-        "name": "BowView",
-        "kind": "type",
-        "doc": "Transitional kit name for the injected bow model strategy.",
-        "from": "@wildshard/kit/weapons/bow/profile"
-      },
-      {
-        "name": "GripPose",
-        "kind": "type",
-        "doc": "Transitional kit name for the authored view grip.",
-        "from": "@wildshard/kit/weapons/bow/profile"
-      },
-      {
-        "name": "BOW",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter BOW binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/bow/profiles"
-      },
-      {
-        "name": "BowProfile",
-        "kind": "type",
-        "doc": "Compatibility name for the original starter numeric bow profile with trusted injected view strategies.",
-        "from": "@wildshard/kit/weapons/bow/profiles"
-      },
-      {
-        "name": "BowStyle",
-        "kind": "type",
-        "doc": "The starter view recipes retain their closed repaint vocabulary.",
-        "from": "@wildshard/kit/weapons/bow/profiles"
-      },
-      {
-        "name": "IRON_SWORD",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter IRON_SWORD binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/equipment"
-      },
-      {
-        "name": "SWORD",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter SWORD binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/equipment"
-      },
-      {
-        "name": "WOODEN_SWORD",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter WOODEN_SWORD binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/equipment"
-      },
-      {
-        "name": "isMeleeProfile",
-        "kind": "const",
-        "doc": "The platform discriminant retains legacy row handling.",
-        "from": "@wildshard/kit/weapons/melee/Melee"
-      },
-      {
-        "name": "Melee",
-        "kind": "class",
-        "doc": "Compatibility constructor supplies the current combat pipeline; all family behavior lives in the engine.",
-        "from": "@wildshard/kit/weapons/melee/Melee"
-      },
-      {
-        "name": "meleeActor",
-        "kind": "const",
-        "doc": "All kit and SDK contact callers share the platform's one native/practice adapter cache.",
-        "from": "@wildshard/kit/weapons/melee/Melee"
-      },
-      {
-        "name": "MeleeProfile",
-        "kind": "type",
-        "doc": "Transitional kit name for the platform's authored contact profile.",
-        "from": "@wildshard/kit/weapons/melee/Melee"
-      },
-      {
-        "name": "ViewmodelFeel",
-        "kind": "type",
-        "doc": "Transitional kit name for the platform's numeric view tuning.",
-        "from": "@wildshard/kit/weapons/melee/Melee"
-      },
-      {
-        "name": "BACKHAND",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter BACKHAND binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "CHARGE",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter CHARGE binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "COMBO",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter COMBO binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "FINISHER",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter FINISHER binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "HEAVY",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter HEAVY binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "key",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter key binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "poseQuat",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter poseQuat binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "REST",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter REST binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "SLASH",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter SLASH binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "SPRINT",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter SPRINT binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/moves"
-      },
-      {
-        "name": "SWORD_IRON",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter SWORD_IRON binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/profiles"
-      },
-      {
-        "name": "SWORD_WOOD",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter SWORD_WOOD binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/profiles"
-      },
-      {
-        "name": "HEAVY_CHARGE",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter HEAVY_CHARGE binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
-        "name": "REACH",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter REACH binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
-        "name": "Sword",
-        "kind": "type",
-        "doc": "Compatibility name for the original starter Sword binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
-        "name": "swordEvents",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter swordEvents binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
-        "name": "SwordInstance",
-        "kind": "type",
-        "doc": "The one shared starter sword instance.",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
-        "name": "SwordOptions",
-        "kind": "type",
-        "doc": "Options for the trusted starter sword constructor.",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
-        "name": "Thrown",
-        "kind": "const",
-        "doc": "The kit uses the one platform constructor and ammunition implementation.",
-        "from": "@wildshard/kit/weapons/thrown/Thrown"
-      },
-      {
-        "name": "ThrownProfile",
-        "kind": "type",
-        "doc": "Transitional kit name for the platform's authored ammunition and flight profile.",
-        "from": "@wildshard/kit/weapons/thrown/Thrown"
-      },
-      {
-        "name": "SWAP_GLYPHS",
-        "kind": "const",
-        "doc": "Compatibility name for the original starter SWAP_GLYPHS binding; all trusted callers share its identity.",
-        "from": "@wildshard/kit/weapons/ui"
       }
     ],
     "sdk": [
@@ -19885,6 +19619,12 @@
         "name": "bindPlayerEffects",
         "kind": "const",
         "doc": "Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called.",
+        "from": "@wildshard/sdk/runtime/effects"
+      },
+      {
+        "name": "installStarterEffects",
+        "kind": "const",
+        "doc": "The status-icon row and the player-effect binding for a trusted runtime; installs only when called (SF54: out of the kit).",
         "from": "@wildshard/sdk/runtime/effects"
       },
       {

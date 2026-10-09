@@ -1792,9 +1792,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `respawnWhere` | function | @wildshard/engine/ui/HurtArc | where this shard puts you back (the death card's second line): `place` = the last named place you reached (E295, |
 | `icon` | function | @wildshard/engine/ui/icons | the icon's SVG; an id nothing registered draws an empty box |
 | `IconId` | type | @wildshard/engine/ui/icons | — |
-| `IconMap` | interface | @wildshard/engine/ui/icons | The icon ids: the engine's UI glyphs; a content library merges its own in (the kit's, src/kit/icons.ts: creatures, items, |
+| `IconMap` | interface | @wildshard/engine/ui/icons | The icon ids: the engine's UI glyphs; a content library merges its own in (the game's, src/game/icons.ts: creatures, items, |
 | `iconParts` | const | @wildshard/engine/ui/icons | the pieces a content icon is drawn from: the 64×64 SVG frame, the stroke attributes, legs and circles |
-| `registerIcons` | function | @wildshard/engine/ui/icons | a content library's icons, full SVGs by id (the kit's installKitIcons) |
+| `registerIcons` | function | @wildshard/engine/ui/icons | a content library's icons, full SVGs by id (the game's installKitIcons) |
 | `ItemCardPop` | class | @wildshard/engine/ui/ItemCard | The pickup / reward card: one big card under the top bar, the newest replacing the last. |
 | `ItemCardSpec` | interface | @wildshard/engine/ui/ItemCard | one item as the platform's card data (content hands this, never DOM) |
 | `ItemCardState` | type | @wildshard/engine/ui/ItemCard | what the tile's foot says: a price to pay, a price out of reach, owned, locked, sold out, or just shown (a pickup) |

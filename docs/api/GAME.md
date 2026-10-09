@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-806 members; 145 without a doc line (—).
+827 members; 155 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -172,6 +172,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `installGridLoadout` | function | @wildshard/game/grid/wallet | Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. |
 | `stowGridEquipment` | function | @wildshard/game/grid/wallet | At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard. |
 | `stowGridMount` | function | @wildshard/game/grid/wallet | Retire a shard-owned ride through its original owner; the platform hoverboard is a separate traveller mode. |
+| `BAG_ICONS` | const | @wildshard/game/icons | the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) |
+| `installKitIcons` | function | @wildshard/game/icons | — |
 | `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |
 | `instanceSaveIdentity` | function | @wildshard/game/instanceSaves | Resolve exactly the same durable namespace and legacy alias for reading, previewing and resetting either entry mode. |
 | `LocalSaveInstance` | interface | @wildshard/game/instanceSaves | Stable placement identity passed by the session, independent of cell or launch mode. |
@@ -701,7 +703,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `declaredWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. |
 | `sharedWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | The platform's default equipment voices; samples and synth blocks come from the level's mixer. |
 | `WeaponSynth` | interface | @wildshard/game/systems/audio/weaponVoices | Only the oscillator blocks and sample/cue ports that an equipment recipe reads. |
+| `installStarterEffects` | function | @wildshard/game/systems/effects/install | An optional entered installer retires observers and icons while statuses remain player-owned. |
 | `STARTER_EFFECTS` | const | @wildshard/game/systems/effects/starter | Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects. |
+| `declaredKitItemFamilies` | function | @wildshard/game/systems/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |
+| `ITEM_VIEW_LIFT` | const | @wildshard/game/systems/items/declared | The share of a held item's flat colour that glows (E460). A declared shard's look need not light a camera-held item: |
 | `fogGLSL` | const | @wildshard/game/systems/looks/fogProgram | — |
 | `configureGrassField` | function | @wildshard/game/systems/looks/grassField | — |
 | `flowerPatchAt` | function | @wildshard/game/systems/looks/grassField | 0..1 flower-drift strength |
@@ -724,6 +729,20 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RECOVER` | const | @wildshard/game/systems/looks/trample | seconds a fully flattened patch takes to stand back up (design: 20 s) |
 | `trample` | const | @wildshard/game/systems/looks/trample | the world's trample map (a singleton — movers anywhere push into it) |
 | `TRAMPLE_GLSL` | const | @wildshard/game/systems/looks/trample | GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) |
+| `faceHead` | function | @wildshard/game/systems/npc/faceHeads | — |
+| `FaceHead` | interface | @wildshard/game/systems/npc/faceHeads | — |
+| `loadFaceHead` | function | @wildshard/game/systems/npc/faceHeads | — |
+| `NpcFigureMotionProfile` | interface | @wildshard/game/systems/npc/figureMotion | — |
+| `npcFigurePose` | function | @wildshard/game/systems/npc/figureMotion | Matrices stay reusable; the caller chooses a skinned rig or procedural pieces. |
+| `NpcFigureState` | interface | @wildshard/game/systems/npc/figureMotion | — |
+| `stepNpcFigure` | function | @wildshard/game/systems/npc/figureMotion | A root/head/arm figure's idle, focus, talking and authored secondary motion. |
+| `fitNpcFigure` | function | @wildshard/game/systems/npc/figureRig | fit a loaded figure into its procedural frame and weight it (see the header) |
+| `mergeNpcFigures` | function | @wildshard/game/systems/npc/figureRig | Fit and merge authored figures on a shared root/head/arm skeleton. |
+| `NpcFigure` | interface | @wildshard/game/systems/npc/figureRig | — |
+| `NpcFigureBones` | interface | @wildshard/game/systems/npc/figureRig | the rig of one figure: root (feet), head (neck), arm (right shoulder) — world matrices written by the runtime |
+| `NpcFigureFrame` | interface | @wildshard/game/systems/npc/figureRig | a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) |
+| `NpcFigureRig` | interface | @wildshard/game/systems/npc/figureRig | — |
+| `packNpcAtlases` | function | @wildshard/game/systems/npc/figureRig | the five atlases in one texture (3 × 2 cells, flipY off like glTF): each figure's uv moved into its cell |
 | `footPlan` | function | @wildshard/game/systems/npc/npcRig | a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle) |
 | `LEG_BONE_NAMES` | const | @wildshard/game/systems/npc/npcRig | — |
 | `legBones` | function | @wildshard/game/systems/npc/npcRig | the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first |
@@ -746,6 +765,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `BEAR_PALETTE` | const | @wildshard/game/systems/species/view/bear | Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown / |
 | `BOAR_LOOK` | const | @wildshard/game/systems/species/view/boar | — |
 | `BOAR_PALETTE` | const | @wildshard/game/systems/species/view/boar | Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head. |
+| `Hoverboard` | class | @wildshard/game/systems/tools/hoverboard | — |
+| `HOVERBOARD_TOOL` | const | @wildshard/game/systems/tools/hoverboard | — |
 | `ARM_CLIPS` | const | @wildshard/game/systems/viewmodel/armClips | Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical. |
 | `armClipNames` | const | @wildshard/game/systems/viewmodel/armClips | — |
 | `SWIM_CLIPS` | const | @wildshard/game/systems/viewmodel/armClips | — |

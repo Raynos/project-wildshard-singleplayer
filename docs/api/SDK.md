@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-255 members; 0 without a doc line (—).
+256 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -175,6 +175,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `sharedWeaponVoices` | const | @wildshard/sdk/runtime/audio/weaponVoices | Preserve the existing sample-first recipes, random draw order and cue taps. |
 | `WeaponSynth` | type | @wildshard/sdk/runtime/audio/weaponVoices | Trusted sample and oscillator ports supplied by the owning mixer. |
 | `bindPlayerEffects` | const | @wildshard/sdk/runtime/effects | Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called. |
+| `installStarterEffects` | const | @wildshard/sdk/runtime/effects | The status-icon row and the player-effect binding for a trusted runtime; installs only when called (SF54: out of the kit). |
 | `STARTER_EFFECTS` | const | @wildshard/sdk/runtime/effects | Starter tuning derived from the build-only commons effects pack; no runtime commons dependency or automatic installation. |
 | `StatusMovement` | type | @wildshard/sdk/runtime/effects | Independent status-effect movement channels, separate from equipment and traversal multipliers. |
 | `ARM_CLIPS` | const | @wildshard/sdk/runtime/viewmodel/armClips | Engine clip names mapped to the authored arm rigs' track names (metadata only; source tracks stay byte-identical). |

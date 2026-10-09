@@ -2388,7 +2388,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-806 exports, grouped by the module to import them from.
+827 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2421,6 +2421,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
 - `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`, `stowGridMount`
+- `@wildshard/game/icons`: `BAG_ICONS`, `installKitIcons`
 - `@wildshard/game/instanceSaves`: `instanceSave`, `instanceSaveIdentity`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
 - `@wildshard/game/ledger`: `installLedgerEmitter`, `Ledger`, `LedgerCatalogueItem`, `LedgerEmitter`, `ledgerFactId`, `LedgerInstance`, `LedgerReceipt`, `LedgerRewardPolicy`
@@ -2517,17 +2518,23 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/systems/audio/forest`: `createForestAudio`, `installForestAmbience`
 - `@wildshard/game/systems/audio/silentScore`: `installSilentScore`
 - `@wildshard/game/systems/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
+- `@wildshard/game/systems/effects/install`: `installStarterEffects`
 - `@wildshard/game/systems/effects/starter`: `STARTER_EFFECTS`
+- `@wildshard/game/systems/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
 - `@wildshard/game/systems/looks/fogProgram`: `fogGLSL`
 - `@wildshard/game/systems/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassFieldLayout`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`
 - `@wildshard/game/systems/looks/particles`: `makeMistTexture`, `Particles`
 - `@wildshard/game/systems/looks/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
 - `@wildshard/game/systems/looks/trample`: `grassHeightAt`, `GrassTrample`, `MAX_MOVERS`, `RECOVER`, `trample`, `TRAMPLE_GLSL`
+- `@wildshard/game/systems/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`
+- `@wildshard/game/systems/npc/figureMotion`: `NpcFigureMotionProfile`, `npcFigurePose`, `NpcFigureState`, `stepNpcFigure`
+- `@wildshard/game/systems/npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigure`, `NpcFigureBones`, `NpcFigureFrame`, `NpcFigureRig`, `packNpcAtlases`
 - `@wildshard/game/systems/npc/npcRig`: `footPlan`, `LEG_BONE_NAMES`, `legBones`, `LegBuilt`, `legPose`, `LegPoseIn`, `legRigOf`, `NpcFace`, `NpcModel`, `NpcRig`, `NpcRigProfile`, `NpcRow`, `rigLegs`, `WALK`
 - `@wildshard/game/systems/species/bear`: `BEAR`, `BEAR_TUNING`
 - `@wildshard/game/systems/species/boar`: `BOAR`, `BOAR_TUNING`
 - `@wildshard/game/systems/species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
 - `@wildshard/game/systems/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
+- `@wildshard/game/systems/tools/hoverboard`: `Hoverboard`, `HOVERBOARD_TOOL`
 - `@wildshard/game/systems/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
 - `@wildshard/game/systems/viewmodel/armRig`: `armConst`, `ArmConst`, `ArmWorld`, `BONES`, `buildBones`, `frameYZ`, `GRIP`, `HandSpec`, `JointAngles`, `LEFT_HAND`, `LEFT_SCALE`, `LIMITS`, `measure`, `Pose`, `RIGHT_HAND`, `settleLeft`, `Side`, `signedAngle`, `softLimit`, `solveArm`, `TWISTS`, `twoBone`
 - `@wildshard/game/systems/viewmodel/rigArms`: `RigArms`, `RigMeta`, `RigState`, `swordArmsOf`, `VM_FOV`, `VmFrame`, `vmScale`
@@ -2540,31 +2547,9 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/weapons/starterMoves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
 - `@wildshard/game/weapons/Sword`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordOptions`
 
-### `@wildshard/kit` (`src/kit/package.json`)
-
-63 exports, grouped by the module to import them from.
-
-- `@wildshard/kit/effects/install`: `installStarterEffects`
-- `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
-- `@wildshard/kit/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
-- `@wildshard/kit/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`
-- `@wildshard/kit/npc/figureMotion`: `NpcFigureMotionProfile`, `npcFigurePose`, `NpcFigureState`, `stepNpcFigure`
-- `@wildshard/kit/npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigure`, `NpcFigureBones`, `NpcFigureFrame`, `NpcFigureRig`, `packNpcAtlases`
-- `@wildshard/kit/weapons/bow/family`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
-- `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
-- `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
-- `@wildshard/kit/weapons/bow/profiles`: `BOW`, `BowProfile`, `BowStyle`
-- `@wildshard/kit/weapons/equipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
-- `@wildshard/kit/weapons/melee/Melee`: `isMeleeProfile`, `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
-- `@wildshard/kit/weapons/melee/moves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
-- `@wildshard/kit/weapons/melee/profiles`: `SWORD_IRON`, `SWORD_WOOD`
-- `@wildshard/kit/weapons/melee/SweptMelee`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordInstance`, `SwordOptions`
-- `@wildshard/kit/weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
-- `@wildshard/kit/weapons/ui`: `SWAP_GLYPHS`
-
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-249 exports, grouped by the module to import them from.
+250 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2608,7 +2593,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/runtime/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
 - `@wildshard/sdk/runtime/audio/silentScore`: `installSilentScore`
 - `@wildshard/sdk/runtime/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
-- `@wildshard/sdk/runtime/effects`: `bindPlayerEffects`, `STARTER_EFFECTS`, `StatusMovement`
+- `@wildshard/sdk/runtime/effects`: `bindPlayerEffects`, `installStarterEffects`, `STARTER_EFFECTS`, `StatusMovement`
 - `@wildshard/sdk/runtime/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
 - `@wildshard/sdk/runtime/viewmodel/armRig`: `HandSpec`, `JointAngles`, `LEFT_HAND`, `measure`, `RIGHT_HAND`
 - `@wildshard/sdk/runtime/viewmodel/rigArms`: `RigArms`, `RigArmsInstance`, `RigMeta`, `RigState`, `swordArmsOf`, `VM_FOV`, `VmFrame`, `vmScale`
