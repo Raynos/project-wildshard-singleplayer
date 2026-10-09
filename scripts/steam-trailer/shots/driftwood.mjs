@@ -4,11 +4,11 @@ import { NO_VIEWMODEL, VIEWMODEL, keyDown, at, aimAt, PREY, js } from './lib.mjs
 const D = 'chunk=driftwood-isle';
 export const shots = [
   // open: over the sea, pushing in on the island, the gas giant high to the right
-  { name: 'd-open', shard: 'driftwood', url: D, secs: 4,
+  { name: 'd-open', shard: 'driftwood', url: D, secs: 5, // 5 s: the alpha trailer (E466) holds it 4.5 s under the first title
     setup: NO_VIEWMODEL,
     rig: { rel: true, ease: true, keys: [
       { t: 0, p: [-60, 34, -400], l: [30, 60, -60], fov: 52 },
-      { t: 4, p: [-24, 16, -300], l: [20, 30, -80], fov: 56 },
+      { t: 5, p: [-24, 16, -300], l: [20, 30, -80], fov: 56 },
     ] } },
   // the pier: a low tracking dolly along the planks, towards the island
   { name: 'd-pier', shard: 'driftwood', url: D, secs: 4,
