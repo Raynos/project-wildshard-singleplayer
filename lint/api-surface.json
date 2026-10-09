@@ -14196,6 +14196,24 @@
         "from": "@wildshard/game/Boss"
       },
       {
+        "name": "AuthoredClipTiming",
+        "kind": "interface",
+        "doc": "An authored clip's duration in seconds and the normalized phase of its gameplay contact.",
+        "from": "@wildshard/game/combat/clipTiming"
+      },
+      {
+        "name": "clipHitReached",
+        "kind": "function",
+        "doc": "The first caller tick at/after the authored contact. The caller owns its one-shot transition and saved clock.",
+        "from": "@wildshard/game/combat/clipTiming"
+      },
+      {
+        "name": "clipHitTime",
+        "kind": "function",
+        "doc": "Contact time in the caller's simulation clock; independent of rendering or a view's animation mixer.",
+        "from": "@wildshard/game/combat/clipTiming"
+      },
+      {
         "name": "CompendiumHost",
         "kind": "interface",
         "doc": "",

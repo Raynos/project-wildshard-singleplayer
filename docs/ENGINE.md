@@ -2442,7 +2442,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-895 exports, grouped by the module to import them from.
+898 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2450,6 +2450,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/bag/items`: `ItemRow`, `normalizeItemRow`, `RegisteredItemRow`
 - `@wildshard/game/bag/tabs`: `BagIcons`, `BagLoot`, `bagMenu`, `BagMenu`, `BagMenuOptions`
 - `@wildshard/game/Boss`: `Boss`, `BossDef`, `BossHost`, `BossPersistence`, `BossPhaseDef`, `BossReward`
+- `@wildshard/game/combat/clipTiming`: `AuthoredClipTiming`, `clipHitReached`, `clipHitTime`
 - `@wildshard/game/compendium/install`: `CompendiumHost`, `CompendiumWallPort`, `installCompendium`
 - `@wildshard/game/compendium/Journal`: `Journal`, `loadHandFont`, `silhouetteOf`
 - `@wildshard/game/compendium/state`: `COMPENDIUM_STORE`, `CompendiumState`
