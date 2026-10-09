@@ -2028,7 +2028,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2283 exports, grouped by the module to import them from.
+2285 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2132,7 +2132,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/Melee`: `Melee`, `meleeActor`
 - `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
-- `@wildshard/engine/combat/sweptMeleeCore`: `AttackQueue`, `SweptEvents`, `SweptMeleeCore`, `SweptMeleeState`, `sweptMoveDamage`, `SweptMoves`, `SweptStep`, `SweptTiming`, `SwingTiming`
+- `@wildshard/engine/combat/sweptMeleeCore`: `AttackQueue`, `SweptEvents`, `sweptLunge`, `SweptLungeTiming`, `SweptMeleeCore`, `SweptMeleeState`, `sweptMoveDamage`, `SweptMoves`, `SweptStep`, `SweptTiming`, `SwingTiming`
 - `@wildshard/engine/combat/targets`: `authoredTargets`, `RayTargets`
 - `@wildshard/engine/combat/Thrown`: `Thrown`
 - `@wildshard/engine/combat/thrownProfile`: `ThrownProfile`
@@ -2396,7 +2396,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/shadowFade`: `installShadowFadeChunk`, `ShadowFade`, `sunFadeUniform`
 - `@wildshard/engine/world/shadowFilter`: `installShadowFilter`, `SOFT_RADII`, `tentShadowFilterOn`
 - `@wildshard/engine/world/skyRig`: `shadowRig`, `ShadowRig`, `SkyRig`
-- `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`
+- `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`, `WindState`
 - `@wildshard/engine/world/Terrain`: `canopyChannel`, `SPLAT_ATTRIBUTES`, `SplatGround`, `SplatLayers`, `splatTerrainMaterial`, `Terrain`, `terrainChunkGeometry`
 - `@wildshard/engine/world/terrainField`: `buildTerrain`, `landscapeHash`
 - `@wildshard/engine/world/terrainHeight`: `setTerrainDatum`, `setTerrainHeight`, `setTerrainPlacement`, `terrainDatum`, `terrainHeight`, `terrainNormal`, `terrainWaterLevel`
@@ -2410,7 +2410,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/waterSurface`: `buildSkyline`, `createWaterMaterial`, `WaterMaterial`, `WaterMaterialOptions`, `waterTexture`, `waterTime`, `waterWeather`
 - `@wildshard/engine/world/waves`: `insideWaterExtent`, `seaDamp`, `WATER_UNBOUNDED`, `waterExtent`, `waveClock`, `waveDisplace`, `waveHeight`, `WAVES`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
 - `@wildshard/engine/world/weather`: `Weather`, `WeatherFrame`, `WeatherNumbers`, `WeatherProfile`
-- `@wildshard/engine/world/wind`: `FRONT_LEN`, `FRONT_SPEED`, `FRONT2_LEN`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `WIND_DIR`, `WIND_FIELD_GLSL`, `windBoost`, `windGustAt`, `windStrength`, `windUniforms`
+- `@wildshard/engine/world/wind`: `FRONT_LEN`, `FRONT_SPEED`, `FRONT2_LEN`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `WIND_DIR`, `WIND_FIELD_GLSL`, `windBoost`, `windGustAt`, `windUniforms`
 
 ### `@wildshard/game` (`src/game/package.json`)
 

@@ -15,6 +15,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-coats.mjs](./bake-coats.mjs)
 - [bake-driftwood-navmesh.mjs](./bake-driftwood-navmesh.mjs)
 - [bake-driftwood-physics.mjs](./bake-driftwood-physics.mjs)
+- [bake-driftwood-spots.mjs](./bake-driftwood-spots.mjs)
 - [bake-geometry.mjs](./bake-geometry.mjs)
 - [bake-hybrid-tiles.mjs](./bake-hybrid-tiles.mjs)
 - [bake-island-cover.mjs](./bake-island-cover.mjs)

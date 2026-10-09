@@ -3561,6 +3561,18 @@
         "from": "@wildshard/engine/combat/sweptMeleeCore"
       },
       {
+        "name": "sweptLunge",
+        "kind": "function",
+        "doc": "A swing's lunge onto a target `radius` m round, (dx, dz) from the feet (SF72): null past the move's range (the heavy",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptLungeTiming",
+        "kind": "interface",
+        "doc": "The profile's lunge numbers (meleeProfile.ts `lunge`) the dash reads.",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
         "name": "SweptMeleeCore",
         "kind": "class",
         "doc": "The swept melee family's swing / combo / heavy clock; see the module comment.",
@@ -13282,6 +13294,12 @@
         "from": "@wildshard/engine/world/steppeWind"
       },
       {
+        "name": "WindState",
+        "kind": "interface",
+        "doc": "A Wind's whole continuation as plain numbers (SF72: a renderer-free host saves its own wind in its snapshot): the",
+        "from": "@wildshard/engine/world/steppeWind"
+      },
+      {
         "name": "canopyChannel",
         "kind": "function",
         "doc": "The per-vertex canopy density the chunk draws with (`Terrain.applyCanopy`): the forest's N² canopy map (`Forest.canopyMap`,",
@@ -13807,12 +13825,6 @@
         "name": "windGustAt",
         "kind": "function",
         "doc": "CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust`",
-        "from": "@wildshard/engine/world/wind"
-      },
-      {
-        "name": "windStrength",
-        "kind": "const",
-        "doc": "",
         "from": "@wildshard/engine/world/wind"
       },
       {

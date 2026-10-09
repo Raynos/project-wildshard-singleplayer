@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2300 members; 841 without a doc line (—).
+2302 members; 840 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -600,6 +600,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `StringKey` | type | @wildshard/engine/combat/pipeline | — |
 | `AttackQueue` | interface | @wildshard/engine/combat/sweptMeleeCore | The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag). |
 | `SweptEvents` | interface | @wildshard/engine/combat/sweptMeleeCore | Reactions owned by the caller: a swing started (with whether it may lunge), the heavy's charge began (0) or released (1). |
+| `sweptLunge` | function | @wildshard/engine/combat/sweptMeleeCore | A swing's lunge onto a target `radius` m round, (dx, dz) from the feet (SF72): null past the move's range (the heavy |
+| `SweptLungeTiming` | interface | @wildshard/engine/combat/sweptMeleeCore | The profile's lunge numbers (meleeProfile.ts `lunge`) the dash reads. |
 | `SweptMeleeCore` | class | @wildshard/engine/combat/sweptMeleeCore | The swept melee family's swing / combo / heavy clock; see the module comment. |
 | `SweptMeleeState` | interface | @wildshard/engine/combat/sweptMeleeCore | The clock's exact continuation; `move` indexes `[...combo, heavy]` (null: idle). |
 | `sweptMoveDamage` | function | @wildshard/engine/combat/sweptMeleeCore | A move's damage: the base × the move's factor, the heavy × `heavyMult` (a perk). |
@@ -2218,6 +2220,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `wind` | const | @wildshard/engine/world/steppeWind | the world's wind (a singleton — every system reads the same one) |
 | `Wind` | class | @wildshard/engine/world/steppeWind | — |
 | `WIND_GLSL` | const | @wildshard/engine/world/steppeWind | — |
+| `WindState` | interface | @wildshard/engine/world/steppeWind | A Wind's whole continuation as plain numbers (SF72: a renderer-free host saves its own wind in its snapshot): the |
 | `canopyChannel` | function | @wildshard/engine/world/Terrain | The per-vertex canopy density the chunk draws with (`Terrain.applyCanopy`): the forest's N² canopy map (`Forest.canopyMap`, |
 | `SPLAT_ATTRIBUTES` | const | @wildshard/engine/world/Terrain | The splat / canopy vertex attributes the splat material reads, with their component counts. |
 | `SplatGround` | interface | @wildshard/engine/world/Terrain | What the splat material reads of a ground set (`groundSet`): the four layer tints and the boreal extras (null: the plain shader). |
@@ -2306,5 +2309,4 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `WIND_FIELD_GLSL` | const | @wildshard/engine/world/wind | GLSL: `uWindTime`, `uGust`, `windDirXZ()`, `windGustAt(worldXZ)`; `windGustAt` below is its CPU mirror |
 | `windBoost` | const | @wildshard/engine/world/wind | 0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/shards/pine-hollow/world/weather.ts); 0 = the wind exactly as before |
 | `windGustAt` | function | @wildshard/engine/world/wind | CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust` |
-| `windStrength` | const | @wildshard/engine/world/wind | — |
 | `windUniforms` | const | @wildshard/engine/world/wind | — |
