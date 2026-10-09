@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2308 members; 841 without a doc line (—).
+2309 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -515,6 +515,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `fovForAspect` | function | @wildshard/engine/combat/blocks/melee | — |
 | `melee` | function | @wildshard/engine/combat/blocks/melee | Public contact block: callers choose the move and target; combat owns cover and damage rules. |
 | `BowDraw` | class | @wildshard/engine/combat/bowDraw | Pure held-draw, full-release, let-down, fatigue and re-nock state machine. |
+| `BowDrawState` | interface | @wildshard/engine/combat/bowDraw | A draw's whole state, for a host that saves and restores it (a headless runtime's snapshot): the clocks and the |
 | `DRAW_TIME` | const | @wildshard/engine/combat/bowDraw | Seconds to full draw before the supplied rate multiplier. |
 | `DrawEvent` | type | @wildshard/engine/combat/bowDraw | Draw edges emitted by the one pure bow state machine. |
 | `HOLD_STEADY` | const | @wildshard/engine/combat/bowDraw | Seconds at full draw before aim fatigue begins. |

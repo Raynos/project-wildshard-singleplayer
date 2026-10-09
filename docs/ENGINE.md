@@ -2028,7 +2028,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2291 exports, grouped by the module to import them from.
+2292 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2118,7 +2118,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/ammo`: `AmmoId`, `AmmoRow`, `ProjectileModification`
 - `@wildshard/engine/combat/blocks/ads`: `ads`
 - `@wildshard/engine/combat/blocks/melee`: `aimRay`, `fovForAspect`, `melee`
-- `@wildshard/engine/combat/bowDraw`: `BowDraw`, `DRAW_TIME`, `DrawEvent`, `HOLD_STEADY`, `HOLD_TIRE`, `LETDOWN_TIME`, `RENOCK_TIME`, `RN_EARLY`, `TIRED_TIME`
+- `@wildshard/engine/combat/bowDraw`: `BowDraw`, `BowDrawState`, `DRAW_TIME`, `DrawEvent`, `HOLD_STEADY`, `HOLD_TIRE`, `LETDOWN_TIME`, `RENOCK_TIME`, `RN_EARLY`, `TIRED_TIME`
 - `@wildshard/engine/combat/cues`: `audioCueMap`, `CombatCueMap`, `CombatCueOpts`, `CombatCues`, `HitStopProfile`, `resolveHitStop`, `WeaponChargePhase`
 - `@wildshard/engine/combat/effects/EffectService`: `bindPlayerEffects`, `EffectService`
 - `@wildshard/engine/combat/effects/types`: `ActiveEffect`, `AttributeSet`, `CueId`, `EffectDef`, `EffectId`, `EffectTarget`, `harmfulEffect`, `matchesTag`, `SourceMulDef`, `sourceMultiplier`

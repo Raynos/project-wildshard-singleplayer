@@ -3051,6 +3051,12 @@
         "from": "@wildshard/engine/combat/bowDraw"
       },
       {
+        "name": "BowDrawState",
+        "kind": "interface",
+        "doc": "A draw's whole state, for a host that saves and restores it (a headless runtime's snapshot): the clocks and the",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
         "name": "DRAW_TIME",
         "kind": "const",
         "doc": "Seconds to full draw before the supplied rate multiplier.",
