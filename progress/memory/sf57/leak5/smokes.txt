@@ -1,0 +1,88 @@
+# against a9ef7d5 (http://127.0.0.1:4402, serve-build --rev a9ef7d58f; same change as main 4b2089fc8)
+## parity/boot-smoke.mjs
+standalone: gameplay PASS in 4501ms, frame=12, faults=0
+standalone: gameplay PASS in 11391ms, frame=11, faults=0
+grid: gameplay PASS in 10625ms, frame=21, faults=0
+## test-facade-instancing.mjs
+PASS desktop: {"multiDrawSupported":true,"batches":0,"instances":24710,"lanterns":true,"lost":false,"calls":104,"error":false,"navigations":1,"errors":[]}
+PASS phone-tier: {"multiDrawSupported":true,"batches":0,"instances":24710,"lanterns":true,"lost":false,"calls":86,"error":false,"navigations":1,"errors":[]}
+PASS iphone-desktop-quality: {"multiDrawSupported":true,"batches":0,"instances":24710,"lanterns":true,"lost":false,"calls":104,"error":false,"navigations":1,"errors":[]}
+## webkit-render-smoke.mjs
+  world: mean 150, 0% near-black, 273762 px sampled
+  weapon.template-whip: mean 89, 0% near-black, 31073 px sampled
+  weapon.sword-iron: mean 108, 0% near-black, 38915 px sampled
+  driftwood minimap spawn: mean 74, 26% near-black, 321 px sampled
+  driftwood minimap (200, 200): mean 54, 46% near-black, 321 px sampled
+{"gate":"webkit-render-smoke","pass":true,"seconds":11,"failures":[]}
+## physics-baseline.mjs --mode=walk
+> physics-baseline p0 build=a9ef7d5-mv09wysm modes=walk cpu=4× (walk 1×)
+> walk driftwood-isle (8 legs)
+  pier: 23.6s end y 0.531 (expect 1.325) stuck 0
+  hut: 10.2s end y 18.911 (expect 19.691) stuck 0
+  bridge: 12.2s end y 12.289 (expect 12.13) stuck 0
+  lookout: 4.1s end y 40.529 (expect 41.154) stuck 0
+  wreck: 4.3s end y 3.805 (expect 4.587) stuck 0
+  cave: 4.7s end y 0.42 (expect 1.2) stuck 0
+  shrine: 4.7s end y 10.218 (expect 10.998) stuck 0
+  boat: 2.2s end y 0.288 (expect 1.12) stuck 0
+> walk pine-hollow (7 legs)
+  cabin-porch: 44.3s end y 3.837 (expect 3.815) stuck 0
+  pond: 44.9s end y -2.006 (expect -2.01) stuck 0
+  lookout-climb: 11.9s end y 57.477 (expect 57.46) stuck 0
+  zip-landing: 2.2s end y 3.304 (expect 3.29) stuck 0
+  creek-bridge: 7.5s end y 1.488 (expect 1.42) stuck 0
+  lodge-porch: 1.5s end y -0.16 (expect -0.18) stuck 0
+  den-cave: 11.4s end y 8.036 (expect 8.01) stuck 0
+> walk nalati-grasslands (12 legs)
+  road-camp: 26.6s end y -4.337 (expect ?) stuck 0
+  bridge: 13.5s end y -7.037 (expect ?) stuck 0
+  eagle-rock: 38.7s end y 65.02 (expect 65.1) stuck 0
+  kurgan-crown: 2.5s end y 31.806 (expect ?) stuck 0
+  great-kurgan-crown: 6.7s end y 39.585 (expect ?) stuck 0
+  great-kurgan-door: 3.4s end y 34.935 (expect ?) stuck 0
+  dungeon: 4.9s end y 140.47 (expect 140.45) stuck 0
+  leopard-cave: 39.7s end y 54.116 (expect 54.12) stuck 0
+  summer-camp: 4.3s end y 28.361 (expect ?) stuck 0
+  cairn: 4.9s end y 33.54 (expect ?) stuck 0
+  watchtower: 9.5s end y 44.127 (expect 44) stuck 0
+  argymaq-pasture: 23.5s end y 51.846 (expect 52) stuck 0
+> walk nine-dragon-stack (19 legs)
+  square-to-street: 27.6s end y 125.017 (expect 125) stuck 0
+  balustrade-west-bay: 13.4s end y 125.02 (expect 125) stuck 0
+  stair-street: 18.6s end y 146.02 (expect 146) stuck 0
+  stair-down: 14.8s end y 125.022 (expect 125) stuck 0
+  crossing-gate-bridge: 3.2s end y 107.02 (expect 107) stuck 0
+  crossing-timber-hump: 2.6s end y 119.098 (expect 119.1) stuck 0
+  well-rim: 5.5s end y 125.02 (expect 125) stuck 0
+  escape-square-balustrade: 12.8s end y 126.14 (expect 125) stuck 0 · out 0 frames, min y 125
+  escape-street-balustrade: 12.9s end y 126.139 (expect 125) stuck 0 · out 0 frames, min y 125
+  escape-hawker-roof: 3s end y 125.02 (expect 125) stuck 0 · out 0 frames, min y 125.02
+  escape-south-front: 8.9s end y 125.019 (expect 125) stuck 0 · out 0 frames, min y 125
+  escape-street-end: 11.7s end y 125.02 (expect 125) stuck 0 · out 0 frames, min y 125
+  escape-stair-sides: 5.2s end y 132.54 (expect 132) stuck 0 · out 0 frames, min y 132
+  escape-stair-top: 5.7s end y 146.02 (expect 146) stuck 0 · out 0 frames, min y 146
+  escape-rim-into-well: 7.7s end y 127.838 (expect 125) stuck 0 · out 0 frames, min y 125
+  escape-rim-hop: 5.2s end y 125.016 (expect 125) stuck 0 · out 0 frames, min y 125
+  escape-hover-balustrade: 9s end y 126.619 (expect ?) stuck 0 · out 0 frames, min y 125.41
+  escape-hover-rim: 9.5s end y 125.047 (expect ?) stuck 0 · out 0 frames, min y 125
+  net-well-fall: 2.3s end y 125 (expect 125) stuck 0 · out 0 frames, min y 26.32
+> walk sunscar-dunes (7 legs)
+  spawn-caravan: 18.4s end y 14.55 (expect 14.83) stuck 0
+  caravan-well: 43.5s end y 15.605 (expect 15.99) stuck 0
+  well-waymark-east: 9.1s end y 25.02 (expect 25.3) stuck 0
+  waymark-east-west: 25.7s end y 17.832 (expect 18.11) stuck 0
+  waymark-west-tower: 21s end y 19.397 (expect 19.76) stuck 0
+  tower-waymark-north: 9.3s end y 9.161 (expect 9.4) stuck 0
+  waymark-north-basin: 21.4s end y 0.82 (expect ?) stuck 0
+> walk far-reach (10 legs)
+  windmill: 14.9s end y 30.02 (expect 30) stuck 0
+  grove: 24s end y 27.024 (expect 27) stuck 0
+  roost: 8.5s end y 34.436 (expect 34) stuck 0
+  keeper: 13s end y 32.957 (expect 32.5) stuck 0
+  keeper-to-roost: 13s end y 34.436 (expect 34) stuck 0
+  ruin: 12.9s end y 28.02 (expect 28) stuck 0
+  rising islet north in: 43.3s end y 30.02 (expect ?) stuck 0
+  rising islet east in: 34.4s end y 34.02 (expect ?) stuck 0
+  sky dock north: 2.2s end y 0.02 (expect 0) stuck 0
+  sky dock west: 2.2s end y 0.021 (expect 0) stuck 0
+| leg | s | end (x, y, z) | expect y | max y | ground speed p50 m/s | air / swim / slide frames | stuck |

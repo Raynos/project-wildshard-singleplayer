@@ -1,0 +1,123 @@
+UploadOwnership objects: 1
+live orphans in the snapshot: 91
+
+   1  [e PMREM.cubeUv]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 1867->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [ru ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2017->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->ru
+
+   1  [ru ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2019->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->ru
+
+   1  [ru ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2021->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->ru
+
+   1  [ru ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2023->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->ru
+
+   1  [ru ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2025->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->ru
+
+   1  [ru ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2027->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->ru
+
+   1  [No ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 1879->Object | run->fn anon@src/engine/render/precompile.ts:192  | context->system / Context / scope @2226407 | c->No
+
+   1  [Ir ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2059->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Ir
+
+   1  [e ]
+      1->(GC roots) | 10->(Global handles) | 1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | __painterly->Object | uPSunRef->Object | value->Y | __proto__->Object | constructor->fn Y@node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:14168  | context->system / Context / scope @858869 | xm->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2709->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2711->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [nu ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2713->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->nu
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2715->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [Zl ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2717->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Zl
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2719->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [Yl ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2721->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Yl
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2723->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [nu ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2725->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->nu
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2727->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [Zl ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2729->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Zl
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2731->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [nu ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2733->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->nu
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2809->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [nu ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2811->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->nu
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2827->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e PMREM.cubeUv]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2829->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [Vs ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2835->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Vs
+
+   1  [Zl family:pbr]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2841->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Zl
+
+   1  [Zl family:pbr]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2843->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Zl
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2853->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2855->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2857->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2859->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2863->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2865->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [Zl family:pbr]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2867->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Zl
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2871->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [e ]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2873->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->e
+
+   1  [Zl family:pbr]
+      1 / blink::ScriptStateProtectingContext::context_->system / NativeContext / http://127.0.0. | global_object->Window [JSGlobalObject] / http://127.0.0 | get __hf->fn get@src/engine/app/scopedProperty.ts:16  | context->system / Context / scope @1724021 | previous->system / Context / scope @1172823 | g->e | cleanups->Set | table-> | 2875->Object | run->fn anon@src/engine/render/uploadOwnership.ts:138  | context->system / Context / scope @267239 | e->Zl
+
