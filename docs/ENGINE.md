@@ -2028,7 +2028,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2285 exports, grouped by the module to import them from.
+2291 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2132,6 +2132,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/Melee`: `Melee`, `meleeActor`
 - `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
+- `@wildshard/engine/combat/projectileFlight`: `ProjectileFlight`, `projectileFlightStep`
 - `@wildshard/engine/combat/sweptMeleeCore`: `AttackQueue`, `SweptEvents`, `sweptLunge`, `SweptLungeTiming`, `SweptMeleeCore`, `SweptMeleeState`, `sweptMoveDamage`, `SweptMoves`, `SweptStep`, `SweptTiming`, `SwingTiming`
 - `@wildshard/engine/combat/targets`: `authoredTargets`, `RayTargets`
 - `@wildshard/engine/combat/Thrown`: `Thrown`
@@ -2146,7 +2147,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/view/firearmFx`: `HitLine`, `makeFlashTexture`
 - `@wildshard/engine/combat/view/hitscan`: `hitscan`, `HitscanProfile`, `HitscanResult`
 - `@wildshard/engine/combat/view/melee`: `Key`, `Move`, `SwordArms`, `SwordFraming`, `SwordMoveSet`, `SwordRig`, `SwordWorld`, `Trail`
-- `@wildshard/engine/combat/view/projectile`: `projectileFlightStep`, `ProjectileKind`, `Projectiles`, `ProjectileWorld`, `ShotOpts`, `WindField`
+- `@wildshard/engine/combat/view/projectile`: `ProjectileKind`, `Projectiles`, `ProjectileWorld`, `ShotOpts`, `WindField`
 - `@wildshard/engine/combat/view/ranged`: `box`, `CrossbowOptions`, `CrossbowWorld`, `cyl`, `dataTexture`, `edgeWear`, `fixIBL`, `FOV_ADS`, `FOV_HIP`, `fovForAspect`, `impactSurfaceOf`, `isMesh`, `makeBoltAtlas`, `makeCord`, `Puffs`, `RangedOptions`, `RangedWorld`, `remapUV`, `startViewmodelTextures`, `stripExtra`, `TexSet`, `TRACER_ORDER`, `TRACER_RED`, `VIEWMODEL_GROUP`, `viewmodelMaterial`, `viewmodelTexSet`, `viewmodelTexturesReady`, `whiteColors`, `worldHit`
 - `@wildshard/engine/combat/view/rangedFeel`: `installRangedFeel`
 - `@wildshard/engine/combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
@@ -2227,7 +2228,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/models/weld`: `flatPositions`, `mergeOrNull`, `nearProxy`, `shadowProxy`, `twoSidedPositions`, `UnitDrawn`, `UnitParts`, `weldAcross`, `WeldBatch`, `WeldBuild`, `WeldPart`, `WeldView`
 - `@wildshard/engine/physics/bodies`: `Bodies`, `Body`, `BODY_CAP`, `BodyShape`, `BodySpec`, `Drop`, `DROP_BODY`, `FixedClock`, `FloatSpec`, `overlapBox`
 - `@wildshard/engine/physics/box`: `boxInFrame`, `BoxSpec`
-- `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
+- `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `PLAYER_BODY`, `rideable`
 - `@wildshard/engine/physics/declaredProps`: `installDeclaredPropColliders`, `PropColliderPort`, `PropColliderState`
 - `@wildshard/engine/physics/edgeEntries`: `walkEdgeEntries`
 - `@wildshard/engine/physics/entrySockets`: `EntrySocket`, `EntrySocketMode`, `EntrySocketOrigin`, `entrySockets`, `installEntrySockets`
@@ -2384,8 +2385,9 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/Heightfield`: `_installBakedTerrain`, `bindHeightfield`, `CABIN_SITES`, `cabinMask`, `captureHeightfield`, `hasPond`, `heightAt`, `HeightfieldBinding`, `inChunk`, `normalAt`, `overrideTerrain`, `POND`, `pondMask`, `splatAt`, `streamAt`, `trailDistance`, `TRAILS`, `waterLevel`
 - `@wildshard/engine/world/Horizon`: `Horizon`, `horizonLight`
 - `@wildshard/engine/world/HorizonMatte`: `HORIZON_RADIUS`, `HorizonMatte`, `horizonStrips`, `HorizonStrips`, `levelHorizonStrips`, `PaintedHorizon`
+- `@wildshard/engine/world/interact/barrel`: `BARREL_BODY`, `BARREL_HALF`, `BARREL_LOST_T`, `BARREL_R`, `BARREL_SEA_DEPTH`, `BARREL_UNDER`, `BARREL_WEDGE_T`, `barrelAtPlate`, `BarrelEnv`, `BarrelWatch`, `BarrelWatchState`
 - `@wildshard/engine/world/interact/flags`: `FlagListener`, `Flags`, `test`
-- `@wildshard/engine/world/interact/Interactables`: `BARREL_BODY`, `BARREL_LOST_T`, `BARREL_SEA_DEPTH`, `BARREL_UNDER`, `BARREL_WEDGE_T`, `BarrelEnv`, `BarrelWatch`, `canSee`, `Interactables`, `InteractEvent`, `InteractHost`, `Live`, `pickInteractable`, `plateDown`, `setSight`, `Sight`, `SIGHT_SLACK`
+- `@wildshard/engine/world/interact/Interactables`: `canSee`, `Interactables`, `InteractEvent`, `InteractHost`, `Live`, `pickInteractable`, `plateDown`, `setSight`, `Sight`, `SIGHT_SLACK`
 - `@wildshard/engine/world/interact/kit`: `interactParts`
 - `@wildshard/engine/world/interact/types`: `AltarDef`, `autoFlag`, `BarrelDef`, `BeaconDef`, `BenchDef`, `ChestDef`, `ChestDims`, `ChestItem`, `ChestLook`, `Cond`, `DoorDef`, `DoorLook`, `flagsRaised`, `flagsRead`, `Interactable`, `InteractDef`, `InteractKind`, `interactProps`, `InteractProps`, `InteractTable`, `KeyDef`, `LeverDef`, `PickupDef`, `pickupLook`, `PickupLook`, `PickupPart`, `Place`, `PlateDef`, `PoiId`, `registerInteractProps`, `registerPickupLook`, `TRANSIENT_PREFIXES`
 - `@wildshard/engine/world/lowpolyKit`: `AddOpts`, `AOOptions`, `bakeAO`, `BakedLight`, `bakeLight`, `broadClump`, `ColorLike`, `fern`, `grassTuft`, `hibiscus`, `hibiscusBush`, `leaf`, `lilyPad`, `lotus`, `LowPolyKit`, `lowPolyMaterial`, `Part`, `PLANT`, `vineStrand`

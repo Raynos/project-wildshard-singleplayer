@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2302 members; 840 without a doc line (—).
+2308 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -598,6 +598,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `FallCause` | interface | @wildshard/engine/combat/pipeline | — |
 | `HealthAttributes` | interface | @wildshard/engine/combat/pipeline | — |
 | `StringKey` | type | @wildshard/engine/combat/pipeline | — |
+| `ProjectileFlight` | interface | @wildshard/engine/combat/projectileFlight | The flight numbers of a drawn projectile (an arrow, a thrown bolt): gravity (m/s²), speed-squared drag and the sideways |
+| `projectileFlightStep` | function | @wildshard/engine/combat/projectileFlight | Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. Renderer-free: |
 | `AttackQueue` | interface | @wildshard/engine/combat/sweptMeleeCore | The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag). |
 | `SweptEvents` | interface | @wildshard/engine/combat/sweptMeleeCore | Reactions owned by the caller: a swing started (with whether it may lunge), the heavy's charge began (0) or released (1). |
 | `sweptLunge` | function | @wildshard/engine/combat/sweptMeleeCore | A swing's lunge onto a target `radius` m round, (dx, dz) from the feet (SF72): null past the move's range (the heavy |
@@ -644,7 +646,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SwordRig` | interface | @wildshard/engine/combat/view/melee | — |
 | `SwordWorld` | interface | @wildshard/engine/combat/view/melee | — |
 | `Trail` | interface | @wildshard/engine/combat/view/melee | — |
-| `projectileFlightStep` | function | @wildshard/engine/combat/view/projectile | Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. |
 | `ProjectileKind` | interface | @wildshard/engine/combat/view/projectile | — |
 | `Projectiles` | class | @wildshard/engine/combat/view/projectile | — |
 | `ProjectileWorld` | interface | @wildshard/engine/combat/view/projectile | — |
@@ -1230,6 +1231,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `CharacterMotor` | class | @wildshard/engine/physics/CharacterMotor | — |
 | `MotorOptions` | interface | @wildshard/engine/physics/CharacterMotor | — |
 | `MoveResult` | interface | @wildshard/engine/physics/CharacterMotor | — |
+| `PLAYER_BODY` | const | @wildshard/engine/physics/CharacterMotor | The player's body law, one for the page's Player and the headless SimHost (SF72): a PLAYER capsule stopped by the |
 | `rideable` | function | @wildshard/engine/physics/CharacterMotor | — |
 | `installDeclaredPropColliders` | function | @wildshard/engine/physics/declaredProps | Install bounded box/stair descriptors with stable owner IDs. A physics getter reconnects ports after snapshot restore. |
 | `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
@@ -2108,16 +2110,20 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HorizonStrips` | interface | @wildshard/engine/world/HorizonMatte | A shard's painted horizon: its day / night strips and the elevation range their rows cover, bottom → top (degrees, |
 | `levelHorizonStrips` | function | @wildshard/engine/world/HorizonMatte | the level's painted horizon, or null when it has none |
 | `PaintedHorizon` | class | @wildshard/engine/world/HorizonMatte | The photoreal shard's painted horizon (Pine Hollow, PINE-HOLLOW-REMASTER PH-L5): far boreal country — rolling forested |
+| `BARREL_BODY` | const | @wildshard/engine/world/interact/barrel | The puzzle barrel's body (PHYSICS P7-L1): a free cylinder, ~110 kg, never culled. It starts upright; the player's 80 kg |
+| `BARREL_HALF` | const | @wildshard/engine/world/interact/barrel | — |
+| `BARREL_LOST_T` | const | @wildshard/engine/world/interact/barrel | …for this long (s) |
+| `BARREL_R` | const | @wildshard/engine/world/interact/barrel | The barrel's radius and half height (m). |
+| `BARREL_SEA_DEPTH` | const | @wildshard/engine/world/interact/barrel | lost: offshore (the ground under it this far under the water line), or this far under the floor (through the world) |
+| `BARREL_UNDER` | const | @wildshard/engine/world/interact/barrel | — |
+| `BARREL_WEDGE_T` | const | @wildshard/engine/world/interact/barrel | wedged: the player walks into it (within PUSH_R of its centre, asking ≥ PUSH_SPEED m/s at it) for this long (s) and |
+| `barrelAtPlate` | function | @wildshard/engine/world/interact/barrel | Is a barrel centred at `c` on or at a plate of `size` at `plate` (it is never sent home from there)? |
+| `BarrelEnv` | interface | @wildshard/engine/world/interact/barrel | — |
+| `BarrelWatch` | class | @wildshard/engine/world/interact/barrel | When the puzzle barrel has to go home (PHYSICS P7-L1: it rolls now, so it can end up somewhere the puzzle can't use |
+| `BarrelWatchState` | interface | @wildshard/engine/world/interact/barrel | A BarrelWatch's continuation (BarrelWatch.state). |
 | `FlagListener` | type | @wildshard/engine/world/interact/flags | — |
 | `Flags` | class | @wildshard/engine/world/interact/flags | — |
 | `test` | function | @wildshard/engine/world/interact/flags | a condition over the flags: every `all`, at least one `any` (when given), no `none`. An absent condition holds. |
-| `BARREL_BODY` | const | @wildshard/engine/world/interact/Interactables | The puzzle barrel's body (PHYSICS P7-L1): a free cylinder, ~110 kg, never culled. It starts upright; the player's 80 kg |
-| `BARREL_LOST_T` | const | @wildshard/engine/world/interact/Interactables | …for this long (s) |
-| `BARREL_SEA_DEPTH` | const | @wildshard/engine/world/interact/Interactables | lost: offshore (the ground under it this far under the water line), or this far under the floor (through the world) |
-| `BARREL_UNDER` | const | @wildshard/engine/world/interact/Interactables | — |
-| `BARREL_WEDGE_T` | const | @wildshard/engine/world/interact/Interactables | wedged: the player walks into it (within PUSH_R of its centre, asking ≥ PUSH_SPEED m/s at it) for this long (s) and |
-| `BarrelEnv` | interface | @wildshard/engine/world/interact/Interactables | — |
-| `BarrelWatch` | class | @wildshard/engine/world/interact/Interactables | When the puzzle barrel has to go home (PHYSICS P7-L1: it rolls now, so it can end up somewhere the puzzle can't use |
 | `canSee` | function | @wildshard/engine/world/interact/Interactables | Does `eye` see the prompt? — no world surface between them but its own body. No physics world (boot, node) → yes. |
 | `Interactables` | class | @wildshard/engine/world/interact/Interactables | — |
 | `InteractEvent` | interface | @wildshard/engine/world/interact/Interactables | — |

@@ -3549,6 +3549,18 @@
         "from": "@wildshard/engine/combat/pipeline"
       },
       {
+        "name": "ProjectileFlight",
+        "kind": "interface",
+        "doc": "The flight numbers of a drawn projectile (an arrow, a thrown bolt): gravity (m/s²), speed-squared drag and the sideways",
+        "from": "@wildshard/engine/combat/projectileFlight"
+      },
+      {
+        "name": "projectileFlightStep",
+        "kind": "function",
+        "doc": "Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. Renderer-free:",
+        "from": "@wildshard/engine/combat/projectileFlight"
+      },
+      {
         "name": "AttackQueue",
         "kind": "interface",
         "doc": "The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag).",
@@ -3823,12 +3835,6 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/engine/combat/view/melee"
-      },
-      {
-        "name": "projectileFlightStep",
-        "kind": "function",
-        "doc": "Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read.",
-        "from": "@wildshard/engine/combat/view/projectile"
       },
       {
         "name": "ProjectileKind",
@@ -7347,6 +7353,12 @@
         "name": "MoveResult",
         "kind": "interface",
         "doc": "",
+        "from": "@wildshard/engine/physics/CharacterMotor"
+      },
+      {
+        "name": "PLAYER_BODY",
+        "kind": "const",
+        "doc": "The player's body law, one for the page's Player and the headless SimHost (SF72): a PLAYER capsule stopped by the",
         "from": "@wildshard/engine/physics/CharacterMotor"
       },
       {
@@ -12622,6 +12634,72 @@
         "from": "@wildshard/engine/world/HorizonMatte"
       },
       {
+        "name": "BARREL_BODY",
+        "kind": "const",
+        "doc": "The puzzle barrel's body (PHYSICS P7-L1): a free cylinder, ~110 kg, never culled. It starts upright; the player's 80 kg",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BARREL_HALF",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BARREL_LOST_T",
+        "kind": "const",
+        "doc": "…for this long (s)",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BARREL_R",
+        "kind": "const",
+        "doc": "The barrel's radius and half height (m).",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BARREL_SEA_DEPTH",
+        "kind": "const",
+        "doc": "lost: offshore (the ground under it this far under the water line), or this far under the floor (through the world)",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BARREL_UNDER",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BARREL_WEDGE_T",
+        "kind": "const",
+        "doc": "wedged: the player walks into it (within PUSH_R of its centre, asking ≥ PUSH_SPEED m/s at it) for this long (s) and",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "barrelAtPlate",
+        "kind": "function",
+        "doc": "Is a barrel centred at `c` on or at a plate of `size` at `plate` (it is never sent home from there)?",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BarrelEnv",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BarrelWatch",
+        "kind": "class",
+        "doc": "When the puzzle barrel has to go home (PHYSICS P7-L1: it rolls now, so it can end up somewhere the puzzle can't use",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
+        "name": "BarrelWatchState",
+        "kind": "interface",
+        "doc": "A BarrelWatch's continuation (BarrelWatch.state).",
+        "from": "@wildshard/engine/world/interact/barrel"
+      },
+      {
         "name": "FlagListener",
         "kind": "type",
         "doc": "",
@@ -12638,48 +12716,6 @@
         "kind": "function",
         "doc": "a condition over the flags: every `all`, at least one `any` (when given), no `none`. An absent condition holds.",
         "from": "@wildshard/engine/world/interact/flags"
-      },
-      {
-        "name": "BARREL_BODY",
-        "kind": "const",
-        "doc": "The puzzle barrel's body (PHYSICS P7-L1): a free cylinder, ~110 kg, never culled. It starts upright; the player's 80 kg",
-        "from": "@wildshard/engine/world/interact/Interactables"
-      },
-      {
-        "name": "BARREL_LOST_T",
-        "kind": "const",
-        "doc": "…for this long (s)",
-        "from": "@wildshard/engine/world/interact/Interactables"
-      },
-      {
-        "name": "BARREL_SEA_DEPTH",
-        "kind": "const",
-        "doc": "lost: offshore (the ground under it this far under the water line), or this far under the floor (through the world)",
-        "from": "@wildshard/engine/world/interact/Interactables"
-      },
-      {
-        "name": "BARREL_UNDER",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/engine/world/interact/Interactables"
-      },
-      {
-        "name": "BARREL_WEDGE_T",
-        "kind": "const",
-        "doc": "wedged: the player walks into it (within PUSH_R of its centre, asking ≥ PUSH_SPEED m/s at it) for this long (s) and",
-        "from": "@wildshard/engine/world/interact/Interactables"
-      },
-      {
-        "name": "BarrelEnv",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/engine/world/interact/Interactables"
-      },
-      {
-        "name": "BarrelWatch",
-        "kind": "class",
-        "doc": "When the puzzle barrel has to go home (PHYSICS P7-L1: it rolls now, so it can end up somewhere the puzzle can't use",
-        "from": "@wildshard/engine/world/interact/Interactables"
       },
       {
         "name": "canSee",
