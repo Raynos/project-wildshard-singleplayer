@@ -1,4 +1,29 @@
-# GPU parity baselines — 2026-10-08 refresh
+# GPU parity baselines
+
+## 2026-10-08 evening re-record (parity triage, E435)
+
+Six shards re-recorded after every red field since `bfb9dc325` was traced to its commit
+([triage receipt](../../../progress/shard-platform/parity-triage/README.md)). M5 phone + desktop at `ca969df25`
+(three runs a pair, green and self-consistent); gh-macos15 phone from gpu-gate record run `37857687729` on `8664edaed`.
+Shards: `_template`, `driftwood-isle`, `far-reach`, `nalati-grasslands`, `nine-dragon-stack`, `pine-hollow`.
+
+| Cause | Fields |
+|---|---|
+| `1f84c55dc` (E451): Memory saver on in Developer, which parity boots with | shadow colour targets, half-resolution bloom luminance, no composer output depth: texture count −1 and bytes on every engine-chain shard; Driftwood renderbuffers |
+| `0690fca6a` (G227): the hidden kurgan interior builds on entry under the saver | Nalati mesh −1, `scene.named` |
+| `33a6568ce` / `edad5463d` / `d72df5e3b` (G246 / G247 / G252): baked, stylized minimap | every pose SSIM drop (only the minimap disc differs) |
+| `b49135480` (G253): Sky Reach KTX2 on the phone | Sky Reach phone texture bytes |
+| `8f1918525` (E459) / `c8edefe20` (E460): template hoverboard restored; held items lifted | template meshes +10, programs +1, keys; its current pose |
+| `53bf5acab` (G232): grass-v2 reads the camera in its own frame (zero offset standalone) | Nalati `programKeys` |
+| `d8bfef811` (SF46): the east jetty's landing ramp | Driftwood mesh / geometry +1, buffers, pose calls / tris; desktop `island.bird` timing |
+
+`sunscar-dunes` is **not** re-recorded: its pack horse is missing (an SF50 regression: HD loads refused by the runtime
+cache coverage check), so its gate stays red until that is fixed.
+
+The M5 records used `--url=<preview of the cached ca969df25 tree>` instead of `--export`: `serve.mjs`'s 30 s
+`vite preview` start deadline timed out three times at machine load 45–54.
+
+## 2026-10-08 refresh (SF62)
 
 Main content pin: `bfb9dc325d08792ddbe88bd08c78fcf288da8851`. Nine desktop uses pushed `8ecb6c70b60781dc33f88c0a54688227e5f6d19b`, which includes its reviewed G224 ceiling. Every accepted file comes from the official record CLI.
 

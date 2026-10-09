@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "gh-macos15",
-    "sha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
-    "build": "bfb9dc3-muz4tb4e",
+    "sha": "8664edaed3f139d99601a71332358eb5ea0e560f",
+    "build": "8664eda-mv05mkjx",
     "shard": "nine-dragon-stack",
     "tier": "phone",
     "viewport": {
@@ -1902,14 +1902,14 @@
       "programKeys": "69bf3bdc0dea7cf85fec82af85389b899ad204274bb4d8b3782a8a4e13e34375",
       "memory": {
         "geometries": 139,
-        "textures": 54
+        "textures": 53
       }
     },
     "gpuBytes": {
-      "textures": 130811123,
+      "textures": 121350259,
       "renderbuffers": 1572864,
       "buffers": 134226480,
-      "total": 266610467
+      "total": 257149603
     },
     "audio": {
       "requests": [
@@ -3251,26 +3251,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 73874.30000000005,
+    "playMs": 14244.099999999977,
     "stepMs": {
-      "renderer": 183,
-      "sky": 1736,
-      "terrain": 12,
+      "renderer": 84,
+      "sky": 487,
+      "terrain": 7,
       "cards": 2,
-      "forest": 170,
-      "physics": 16,
-      "edge": 183,
-      "grass": 7,
-      "cabins": 2,
-      "props": 16101,
-      "animals": 189,
-      "weapon": 710,
-      "menu": 3226,
-      "shaders": 28758,
-      "firstFrame": 2947,
-      "audio": 15
+      "forest": 33,
+      "physics": 11,
+      "edge": 37,
+      "grass": 0,
+      "cabins": 1,
+      "props": 5211,
+      "animals": 5,
+      "weapon": 106,
+      "menu": 148,
+      "shaders": 1763,
+      "firstFrame": 437,
+      "audio": 4
     },
-    "heapMB": 70.43222045898438,
+    "heapMB": 71.2146987915039,
     "facade": {
       "multiDraw": true,
       "batches": 0,
@@ -3287,10 +3287,10 @@
       ],
       "calls": 148,
       "tris": 1434678,
-      "fps": 12.243623455167112,
-      "frameP95Ms": 288.19999999995343,
-      "cpuP50Ms": 46.199999999953434,
-      "cpuP95Ms": 176.5,
+      "fps": 40.3914446040829,
+      "frameP95Ms": 78,
+      "cpuP50Ms": 17.599999999976717,
+      "cpuP95Ms": 29.599999999976717,
       "creatureBoxes": 0,
       "boxes": [],
       "shot": "/Users/runner/work/project-wildshard-singleplayer/project-wildshard-singleplayer/test/parity/baselines/gh-macos15/nine-dragon-stack.phone.spawn-rail.jpg",
@@ -3305,10 +3305,10 @@
       ],
       "calls": 132,
       "tris": 1280155,
-      "fps": 11.408620016385697,
-      "frameP95Ms": 181.10000000009313,
-      "cpuP50Ms": 67.69999999995343,
-      "cpuP95Ms": 172.5,
+      "fps": 40.113070399784625,
+      "frameP95Ms": 41.20000000001164,
+      "cpuP50Ms": 18,
+      "cpuP95Ms": 30.29999999998836,
       "creatureBoxes": 0,
       "boxes": [],
       "shot": "/Users/runner/work/project-wildshard-singleplayer/project-wildshard-singleplayer/test/parity/baselines/gh-macos15/nine-dragon-stack.phone.well-edge.jpg",
@@ -3323,10 +3323,10 @@
       ],
       "calls": 126,
       "tris": 1003058,
-      "fps": 19.084947228199155,
-      "frameP95Ms": 235.39999999990687,
-      "cpuP50Ms": 18.399999999906868,
-      "cpuP95Ms": 87.10000000009313,
+      "fps": 36.69950738916256,
+      "frameP95Ms": 93.90000000002328,
+      "cpuP50Ms": 17.900000000023283,
+      "cpuP95Ms": 30.599999999976717,
       "creatureBoxes": 0,
       "boxes": [],
       "shot": "/Users/runner/work/project-wildshard-singleplayer/project-wildshard-singleplayer/test/parity/baselines/gh-macos15/nine-dragon-stack.phone.stair-street.jpg",
@@ -3363,16 +3363,16 @@
             },
             "desktop": {
               "D": {
-                "gpuMB": 574.4839086532593
+                "gpuMB": 575.1385869979858
               },
               "spawn-rail": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "stair-street": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "well-edge": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               }
             }
           },
@@ -3483,16 +3483,16 @@
             },
             "desktop": {
               "D": {
-                "gpuMB": 574.4839086532593
+                "gpuMB": 575.1385869979858
               },
               "spawn-rail": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "stair-street": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "well-edge": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               }
             }
           },
@@ -3603,16 +3603,16 @@
             },
             "desktop": {
               "D": {
-                "gpuMB": 574.4839086532593
+                "gpuMB": 575.1385869979858
               },
               "spawn-rail": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "stair-street": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "well-edge": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               }
             }
           },
@@ -3723,16 +3723,16 @@
             },
             "desktop": {
               "D": {
-                "gpuMB": 574.4839086532593
+                "gpuMB": 575.1385869979858
               },
               "spawn-rail": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "stair-street": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               },
               "well-edge": {
-                "gpuMB": 574.168532371521
+                "gpuMB": 574.8232107162476
               }
             }
           },
@@ -3817,7 +3817,7 @@
         "draws": 113,
         "tris": 1046210,
         "programs": 69,
-        "gpuMB": 272.0932569503784
+        "gpuMB": 263.0706739425659
       }
     }
   },
@@ -3833,7 +3833,7 @@
         },
         "maxY": 146.021,
         "out": 0,
-        "seconds": 18.633333333330622,
+        "seconds": 18.63333333333469,
         "trace": [
           [
             0.033,
@@ -10543,7 +10543,7 @@
         },
         "maxY": 107.019,
         "out": 0,
-        "seconds": 3.1999999999995343,
+        "seconds": 3.200000000000233,
         "trace": [
           [
             0.033,
@@ -11697,7 +11697,7 @@
         },
         "maxY": 126.891,
         "out": 0,
-        "seconds": 13.466666666666177,
+        "seconds": 13.466666666665617,
         "trace": [
           [
             0.033,
@@ -16785,842 +16785,147 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:35:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:5163)\n    at O (http://127.0.0.1:4400/assets/bootTrace-CG15Nqmv.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:960)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:864",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:5163)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:1268)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:864",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:5163)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:1378)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:864"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4400/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:35:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4400/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:4209)\n    at O (http://127.0.0.1:4400/assets/bootTrace-BxBkpEdc.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:960)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:864",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:1268)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:864",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:1378)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:864"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:5866)\n    at e.stopSynth (http://127.0.0.1:4400/assets/session-B66W3VYV.js:256:61607)\n    at e.startDeck (http://127.0.0.1:4400/assets/session-B66W3VYV.js:256:63707)\n    at e.sync (http://127.0.0.1:4400/assets/session-B66W3VYV.js:256:62530)\n    at e.play (http://127.0.0.1:4400/assets/session-B66W3VYV.js:256:60739)\n    at EA.st (http://127.0.0.1:4400/assets/session-B66W3VYV.js:2107:18362)\n    at e.onClose (http://127.0.0.1:4400/assets/session-B66W3VYV.js:2083:51824)\n    at xP.close (http://127.0.0.1:4400/assets/session-B66W3VYV.js:2094:8352)\n    at http://127.0.0.1:4400/assets/session-B66W3VYV.js:2094:5217",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:6135)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:1236)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:3:864",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:6135)\n    at Pt (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:72:4045)\n    at G (http://127.0.0.1:4400/assets/pageServices-DFIPIqyT.js:1:270597)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:10:1507",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:6135)\n    at Pt (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:72:4145)\n    at G (http://127.0.0.1:4400/assets/pageServices-DFIPIqyT.js:1:270597)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:10:1507",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:1:6135)\n    at Pt (http://127.0.0.1:4400/assets/runtime-DO47Q5HR.js:72:4254)\n    at G (http://127.0.0.1:4400/assets/pageServices-DFIPIqyT.js:1:270597)\n    at http://127.0.0.1:4400/assets/main-TW6p3tVT.js:10:1507"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:4912)\n    at e.combat (http://127.0.0.1:4400/assets/session-o5BjdfrN.js:228:75196)\n    at HL.E.onHit (http://127.0.0.1:4400/assets/session-o5BjdfrN.js:2111:13862)\n    at e.onHit (http://127.0.0.1:4400/assets/session-o5BjdfrN.js:333:72189)\n    at Re.strike (http://127.0.0.1:4400/assets/SweptMelee-Kuz7lJ2V.js:32:4288)\n    at Re.sweepHit (http://127.0.0.1:4400/assets/SweptMelee-Kuz7lJ2V.js:32:2243)\n    at Re.update (http://127.0.0.1:4400/assets/SweptMelee-Kuz7lJ2V.js:32:8148)\n    at vv.update (http://127.0.0.1:4400/assets/session-o5BjdfrN.js:333:77083)\n    at Object.run (http://127.0.0.1:4400/assets/session-o5BjdfrN.js:2111:24536)",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:5181)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:1236)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:3:864",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:5181)\n    at Wt (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:74:4045)\n    at G (http://127.0.0.1:4400/assets/pageServices-BnDUIOch.js:1:273681)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:5181)\n    at Wt (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:74:4145)\n    at G (http://127.0.0.1:4400/assets/pageServices-BnDUIOch.js:1:273681)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:3:5181)\n    at Wt (http://127.0.0.1:4400/assets/runtime-r18Pv15n.js:74:4254)\n    at G (http://127.0.0.1:4400/assets/pageServices-BnDUIOch.js:1:273681)\n    at http://127.0.0.1:4400/assets/main-D6KIGlv3.js:10:1507"
       ]
     },
     "retained": [
-      {
-        "key": "scene:03092cd4-dbd9-4f80-9ee3-891177cc262f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:17b70d41-abd1-44f6-91cf-f1ab2747fa04",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6dff80ae-19ac-404f-b080-c6f8e29557ef",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4c1a084f-704f-49c2-b714-219363f981c7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3343f16a-b216-44c5-9f94-47087661eab6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f8b5f7c0-9c7c-4c39-a8e2-da5fe826af16",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2f9c1da6-9e62-4563-83e2-bd1be5bb47c9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2c695f93-cd12-42a2-a8c0-4ebd0fbfef57",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8b8a67e5-8054-40c2-bf66-cac3ec84a73a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9463f2b2-d96d-491e-a6ef-5f858ebec017",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:09801986-cee9-4d47-9362-ad29ce30d3a7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4058cce8-bf93-45ba-b103-d75ec8447890",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5e09bd3c-36ac-4c1f-8262-33cf59309ebb",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:159e8135-6d4f-4692-a1b3-2413957b7bf4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fc91f2c6-5af8-4a48-80bf-798b21319eba",
-        "refs": 0,
-        "retained": true
-      },
       {
         "key": "renderer:shadow:ab052f82-6f08-4d0b-a6d8-d21d8128a2c7",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:bb68ea7c-3bd5-4abb-ac95-7d42bb2a4a68",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:499f6c3f-2e83-4a72-8ca3-178ba096e0db",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:485bd17b-188f-4abf-a872-d60dbcff4280",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2870d3a3-a9d5-4c36-9714-2c4aea8f78b1",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4bf25aca-295b-456d-b9a4-58552f5e440b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d93b8404-36b8-4031-a9ba-2f391c51c34d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7be2d55c-679d-4908-910e-255511642bd9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ea79e48d-53ca-4c47-a2e4-56f6d4ee4034",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b481c464-0ff7-4062-8432-680bb0536c1b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0482442a-123f-4c72-b67a-53de9cd82b85",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3c80c233-eaa1-4e36-9787-7d3844cf76f9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:daa77c30-7514-46e8-8267-1b6b81a9879a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:552f32e1-8e9e-4c28-9093-ccbd232c6fcc",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8c24e938-61dc-4b62-b509-b86619497684",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6ee18c73-002b-4550-8d5e-439032a39946",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:37391235-49f9-436c-8170-d2596e5150be",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c335d789-2534-4f52-bb8b-2b611762b1fc",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2fe3d731-2118-49b7-a9e8-4744e8d1c361",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6d939d78-ce8e-48ea-a9cf-a7d68cc38673",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:93ed48cb-52e2-4812-b46a-5aaa04408fc6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:45daccd5-b32d-45f3-9ec7-2f0a4f7dcef7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8ed69d0d-c6b8-4389-b7dd-bb88af6f3532",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9a6d778b-846d-411e-96cb-97fc95560969",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:354646f2-e08a-41d4-b6dd-339ac98b4e4b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d1ab6a3f-a007-48a8-b2af-2f6da57f85d7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fd24dfcd-28d2-416e-b40e-17cbe006428d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:78a7929b-18f8-4465-9bba-872dc5138fcc",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d7f643bc-068a-41bb-af0a-4bc5f5404c03",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0dd051b6-3583-46b3-8385-0356c7be1dc5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fab92b10-dc08-4dcd-83d5-2474b1411df3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:863e89e7-5201-49f8-9873-08bd517438c3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:161777d4-6df1-49af-a327-d57b3ddd8cdc",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e065567b-27fc-4a0a-af03-ff8df1fa823c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8f37aaa8-569e-4259-a77e-cb33494ec563",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:374863e7-6e05-4bc0-8ad0-e739aea3885a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1187cf58-4e0e-43bf-843b-18f15703f164",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:eab4c4a7-d206-42ae-a363-9fc886f61270",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0ca12970-7eb1-4f8f-8d44-764a42fb49b6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5cae6f59-8dc4-4e09-9673-03fe6a26b237",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4f6ac14f-1fd0-44de-a648-8bb5625c41c6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3c7f861d-8b2a-4ad5-ba3b-fa17838b21ec",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b65e0b17-41f5-4330-83c9-23f5ebb7a2ec",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9e848564-74e7-44c9-9d14-618fe5b3f888",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:92770a4b-06b6-4e10-bd14-18a7adc73d63",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d84fa355-d5d0-4d7f-ab5c-24c4caebd30b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:81f7ed3e-8d88-47db-bd63-a4a5940ffb2b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5f8ec535-bbcb-4dae-ac9a-a3f80d93397e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:32e12ee5-626a-4c3b-b6ef-bdb8fe195279",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2bce6700-a11e-4547-bde0-0c297994345b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:84347aa8-1af8-483c-983d-cd92953ae088",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4d85a793-ce7c-4b3c-9b7b-83ada55f402c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2902523d-ba9b-48de-99e7-df884aa25b0f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:124fb2e8-57ab-4de6-b29a-6922e65fa551",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6bc86bed-2c68-4c7e-b8c3-005f7b54cacb",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:82896410-c9b1-44fe-9a3e-570c2acc38aa",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:efc28cb5-2f3b-4322-a5c6-05bbe1c8c3c0",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:88938796-17e6-4a27-8431-b22862b9d58a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:58f92280-729f-47b6-8473-d9547d04e413",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f9ef7c0a-4893-4b4d-81cd-1e01ee638997",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0790f994-c07f-4cf4-9c19-fe29ec201e4a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d82792b1-1ecd-47e5-8216-f39e2ca43169",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:94fd0f36-c677-4850-a32b-986d799abc4e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ee2ac012-1c1c-46cf-b5f7-c92622746107",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ca206f72-4ac5-4048-aee2-39e3c0f73479",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f2c2ea9f-c5d8-4305-9196-671fa13e19e9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:64e471e3-fe28-4bfd-b262-94493f5efa09",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0d2c1dac-2884-43b5-93e6-5f5ba92edd6c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:75eb249f-1e44-4bfd-a070-d23878abb173",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5df100a9-00d1-467b-b887-03370dd8f41b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5041e780-c74c-4bd8-82dc-2198ce0a1517",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5582d5e1-c2dc-4988-b1ca-866d0af10662",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:38274ca5-d974-4784-b981-1eb205d9e35f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c6433447-7e75-4850-9496-33b77c134b3b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1878dc6c-9055-489c-ae8e-ccdecb7552e7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f1d69621-3706-45a5-b85c-02267f07bc82",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f3e63442-d770-4388-b33f-a539158c664b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:03072f5e-05c9-4032-b2d0-58ea26505fb4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6cf21cd7-b84d-44aa-b0d6-9132fccb48b1",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:930338c6-e44c-4182-bbfe-22dd087ebf12",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c02c6ed3-4d88-40cb-910e-1043cb9cb9b9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:967c7720-d59f-4aad-b3e3-1ed0c3f5f675",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5721cb45-1dce-4b35-a8ee-0929a69843f9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:72fdf455-a44f-4e6d-8b85-a7cd36a4ba27",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:22b8a3c8-9eb0-4ca1-836a-d58daef08051",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8887328e-390e-4f66-80a8-1f3556ea34dd",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1d05314f-bf8e-4a6d-a933-edecd951feea",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9f9a0933-1182-4786-b84f-e82d05def011",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8d4ec71d-ae71-48ee-af62-93a2468fe48e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4040da3e-c330-49b7-b54e-89ae6e1ea0d4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f9e763b7-a723-4706-a5b5-d917b02b21f9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:980b699f-48e7-412e-8b0c-236a58563963",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:81742135-40a8-4a29-b105-219747dcc4c4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3dffa46d-33e8-404d-86fe-99f49f9a334f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:acc45c8f-aa8b-4c02-b77f-0577abd93302",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e11833db-aefd-4b7c-bcd5-e4a9d05a9daa",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:44146f7e-25f6-4893-815f-d0429b9c1aa2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:undefined",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:1",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:b0da1cfc-011c-452b-baa4-2a4dadfe6bc3",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:3a7bb917-8d70-417c-9315-27eb608235d2",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:2",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:24aae384-f58a-405f-82e8-00693149516a",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:ec5857eb-62bc-42fa-a634-5512d357573e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
-        "refs": 0,
-        "retained": true
+        "key": "scene:21a61fbe-0ef3-4245-849b-c0f5cb1f96f7",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:341c867c-7c98-4ea1-8570-2e56798507eb",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:3",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:04136d47-a211-4476-b223-1c601736f0aa",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:4",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:9c4d8b0f-f16b-478a-8721-571fdecbfa74",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:2971b6e9-87ad-4121-b3fc-0f0f7e807e26",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:46b9c057-f275-4b00-b43e-4c6598ecf835",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:d3842976-405b-4cf5-a8b3-894805d2449c",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:7465b673-8d12-4bbb-bdc6-a0a1086c5dd6",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:d60cf368-4680-4047-825d-83098147c626",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:5f12fccb-b4b0-4f1d-8cbf-cf0decf43a91",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:bc67645f-bb92-42dc-ab95-fcba18354465",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:b4cc69a2-43b7-42ee-b3c8-f905376be1b4",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:3357f126-0f6a-4d5f-bb43-72d780955d25",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:b62bc6c1-b3fb-4bcc-8e9e-34bd28d80e82",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0769fd77-fe0b-4da0-a6d2-73aa8039d378",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0be61922-09e1-4a74-971f-016a97d4d1f3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:cf28078c-67d4-40d0-8bd2-d1a8c2e782e6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:68c555b1-6bd6-4824-b59e-cdd2bd6ee8fe",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e79afac5-ce86-481d-a42a-8daecd7c965e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4fcea3c7-de66-467b-85a1-4aa102e020d8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:29cadb04-c23d-47ea-9633-a65e2001b09d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:874b9896-983e-48d7-83be-07ded0dcf818",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f9ea0105-9936-4f66-b394-997cef4dc5e6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:99743696-c1fb-4edb-9b53-08b3471b214c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a8a960bc-9074-454c-96ae-b760a7573b7b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9435cce3-49d3-4baa-a97f-c759697bd654",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:29569e36-6832-418d-b989-4d389a6ceb93",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:df8ff89e-c21a-4a3a-a719-a8694f1c9bd7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:354ad79c-a85f-46b0-b8b4-503f9ccc9194",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:32d7ee23-5595-49ae-9d5c-b4f534e0be0c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b4710a6e-de37-4f46-9f86-7fa3ccffa1f9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:988c1bd8-7939-4b16-8e63-c8900513488d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5d9c436e-32dc-4cac-88b9-10cd82379997",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:140dc7d1-928a-4c20-af51-c6ed2d0c1372",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:bcda4350-c3f2-4709-ae3d-4b89c3a941f3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:82e8e75c-ee22-4683-8f7e-a06852590945",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ad34fecf-ec3d-488a-bf4a-9ba368e3bfe4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:019c7834-3ea0-4b2b-b2f8-986a078ee487",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8a18e9c8-f733-47ac-9352-ceae9d16e1da",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       }
     ],
     "gpu": {
       "total": {
-        "geometries": 30,
-        "textures": 42,
-        "programs": 26
+        "geometries": 2,
+        "textures": 10,
+        "programs": 5
       },
       "retained": {
-        "geometries": 30,
-        "textures": 42,
-        "programs": 26
+        "geometries": 2,
+        "textures": 10,
+        "programs": 5
       },
       "resources": [
         {
-          "type": "No",
-          "uuid": "17b70d41-abd1-44f6-91cf-f1ab2747fa04",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "6fbe30fe-c77f-4d90-b8eb-3baf5428c8aa",
-          "image": {
-            "width": 512,
-            "height": 256
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "03092cd4-dbd9-4f80-9ee3-891177cc262f",
-          "name": "PMREM.cubeUv",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "cf9bbe9a-3b11-42b2-8a7e-1846d57c62c5",
-          "image": {
-            "width": 384,
-            "height": 512
-          }
-        },
-        {
           "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -17630,6 +16935,7 @@
           "type": "e",
           "uuid": "b0da1cfc-011c-452b-baa4-2a4dadfe6bc3",
           "name": "EffectComposer.Buffer",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -17643,6 +16949,7 @@
           "type": "qs",
           "uuid": "3a7bb917-8d70-417c-9315-27eb608235d2",
           "name": "EffectComposer.InputDepth",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -17653,462 +16960,10 @@
           }
         },
         {
-          "type": "oo",
-          "uuid": "4c1a084f-704f-49c2-b714-219363f981c7",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "499f6c3f-2e83-4a72-8ca3-178ba096e0db",
-          "name": "sword",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            4
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "4bf25aca-295b-456d-b9a4-58552f5e440b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "0482442a-123f-4c72-b67a-53de9cd82b85",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            6
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "daa77c30-7514-46e8-8267-1b6b81a9879a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            7
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "8c24e938-61dc-4b62-b509-b86619497684",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "2fe3d731-2118-49b7-a9e8-4744e8d1c361",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            6
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "93ed48cb-52e2-4812-b46a-5aaa04408fc6",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "d1ab6a3f-a007-48a8-b2af-2f6da57f85d7",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "d7f643bc-068a-41bb-af0a-4bc5f5404c03",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "e065567b-27fc-4a0a-af03-ff8df1fa823c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "374863e7-6e05-4bc0-8ad0-e739aea3885a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "0ca12970-7eb1-4f8f-8d44-764a42fb49b6",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "4f6ac14f-1fd0-44de-a648-8bb5625c41c6",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "9e848564-74e7-44c9-9d14-618fe5b3f888",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "81f7ed3e-8d88-47db-bd63-a4a5940ffb2b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "4d85a793-ce7c-4b3c-9b7b-83ada55f402c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "6bc86bed-2c68-4c7e-b8c3-005f7b54cacb",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            10
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "82896410-c9b1-44fe-9a3e-570c2acc38aa",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "88938796-17e6-4a27-8431-b22862b9d58a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            10
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "f9ef7c0a-4893-4b4d-81cd-1e01ee638997",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            11
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "94fd0f36-c677-4850-a32b-986d799abc4e",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            12
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "64e471e3-fe28-4bfd-b262-94493f5efa09",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            14
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "75eb249f-1e44-4bfd-a070-d23878abb173",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "5041e780-c74c-4bd8-82dc-2198ce0a1517",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "38274ca5-d974-4784-b981-1eb205d9e35f",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "f3e63442-d770-4388-b33f-a539158c664b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "6cf21cd7-b84d-44aa-b0d6-9132fccb48b1",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            16,
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "c02c6ed3-4d88-40cb-910e-1043cb9cb9b9",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ql",
-          "uuid": "5721cb45-1dce-4b35-a8ee-0929a69843f9",
-          "name": "hands-sleeve",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            17
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ql",
-          "uuid": "9f9a0933-1182-4786-b84f-e82d05def011",
-          "name": "hands-cuff",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            17
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ql",
-          "uuid": "4040da3e-c330-49b7-b54e-89ae6e1ea0d4",
-          "name": "hands-glove",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            17
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "44146f7e-25f6-4893-815f-d0429b9c1aa2",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "f8b5f7c0-9c7c-4c39-a8e2-da5fe826af16",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ia",
-          "uuid": "2c695f93-cd12-42a2-a8c0-4ebd0fbfef57",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            18
-          ],
-          "image": {}
-        },
-        {
-          "type": "nu",
-          "uuid": "09801986-cee9-4d47-9362-ad29ce30d3a7",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            19
-          ],
-          "image": {}
-        },
-        {
-          "type": "nu",
-          "uuid": "159e8135-6d4f-4692-a1b3-2413957b7bf4",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            20,
-            21
-          ],
-          "image": {}
-        },
-        {
-          "type": "nu",
-          "uuid": "4fcea3c7-de66-467b-85a1-4aa102e020d8",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            22
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "a8a960bc-9074-454c-96ae-b760a7573b7b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            25
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "9435cce3-49d3-4baa-a97f-c759697bd654",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            25
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "29569e36-6832-418d-b989-4d389a6ceb93",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            54
-          ],
-          "image": {}
-        },
-        {
           "type": "Yl",
           "uuid": "46b9c057-f275-4b00-b43e-4c6598ecf835",
           "name": "ViewmodelDepthMerge",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18120,6 +16975,7 @@
           "type": "ce",
           "uuid": "341c867c-7c98-4ea1-8570-2e56798507eb",
           "name": "CopyMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18131,6 +16987,7 @@
           "type": "Tt",
           "uuid": "7465b673-8d12-4bbb-bdc6-a0a1086c5dd6",
           "name": "EffectMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18142,6 +16999,7 @@
           "type": "Tt",
           "uuid": "b62bc6c1-b3fb-4bcc-8e9e-34bd28d80e82",
           "name": "EffectMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18151,263 +17009,9 @@
         },
         {
           "type": "No",
-          "uuid": "d93b8404-36b8-4031-a9ba-2f391c51c34d",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "bbff51a6-eb02-44d5-8c92-956c6738dec5",
-          "image": {
-            "width": 256,
-            "height": 256
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "7be2d55c-679d-4908-910e-255511642bd9",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "f063ead0-66dc-4a41-abdf-a2ac4d2edac0",
-          "image": {
-            "width": 1024,
-            "height": 512
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "ea79e48d-53ca-4c47-a2e4-56f6d4ee4034",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "669164ef-1b6c-46cd-9530-0e65535f1087",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "6ee18c73-002b-4550-8d5e-439032a39946",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "325ce20c-4664-40fd-affd-ea89f75977c5",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:4400/29eb9219-c6ba-4e82-ac18-adf8ce18ee89"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "37391235-49f9-436c-8170-d2596e5150be",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "7dc5f006-841b-4b2b-8ac5-c7e7515e73bf",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:4400/5edc20d6-62dc-4909-b381-875a990a4c50"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "45daccd5-b32d-45f3-9ec7-2f0a4f7dcef7",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "91e48ca5-aa9c-4697-92db-23c7df0ce271",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:4400/1e3f3215-c6d4-4113-869c-968ef6a125bf"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "8ed69d0d-c6b8-4389-b7dd-bb88af6f3532",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "a791648d-37e6-4a89-afdb-875fd9c6c26a",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:4400/74cd959b-752a-4e02-ab06-abc5ffe24157"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "0dd051b6-3583-46b3-8385-0356c7be1dc5",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "f7069d7e-9946-4bf0-b08f-6c7c14c9d1ec",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:4400/f1e91d62-6c0e-4dab-abc6-e410257bdcc0"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "fab92b10-dc08-4dcd-83d5-2474b1411df3",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "1c5cbf21-36e6-4dac-8fb9-3bdc89ba7063",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:4400/ff18ba8a-bdf5-432b-a05d-31c86ebe23ca"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "5f8ec535-bbcb-4dae-ac9a-a3f80d93397e",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "6bc997cd-4201-4b59-aae8-a6ff047b5715",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:4400/987cc357-db4e-46d0-ad9c-34fb5c3ea01c"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "32e12ee5-626a-4c3b-b6ef-bdb8fe195279",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "567399b7-273f-4852-ad0f-5fc7df224e57",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:4400/c5b14c2f-011e-4aea-a024-210752cc51d0"
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "72fdf455-a44f-4e6d-8b85-a7cd36a4ba27",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "22d1bb4d-8ade-4f55-8195-b27b9a678ff5",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "22b8a3c8-9eb0-4ca1-836a-d58daef08051",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "fb532dec-fd84-4784-9e71-0113c4292fdb",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "8887328e-390e-4f66-80a8-1f3556ea34dd",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "189a8ebe-40ec-41c0-9451-23071c7ac0ba",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "8b8a67e5-8054-40c2-bf66-cac3ec84a73a",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "b34a4f72-7f47-4038-b670-6fbf01c8160d",
-          "image": {
-            "width": 256,
-            "height": 256
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "4058cce8-bf93-45ba-b103-d75ec8447890",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "6aa86c0e-9519-4060-bc28-d2c82b1ad4fd",
-          "image": {
-            "width": 1024,
-            "height": 512
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "fc91f2c6-5af8-4a48-80bf-798b21319eba",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "777b1aab-de0f-4700-a3ab-a7fca597c4ab",
-          "image": {
-            "width": 1024,
-            "height": 4
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "68c555b1-6bd6-4824-b59e-cdd2bd6ee8fe",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "05c932e6-1efd-42c9-99cd-9018eab41fe9",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "e79afac5-ce86-481d-a42a-8daecd7c965e",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "5eb438cd-48e8-40cd-a435-4e64f5a3685c",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
           "uuid": "d60cf368-4680-4047-825d-83098147c626",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18421,6 +17025,7 @@
           "type": "Ir",
           "uuid": "bc67645f-bb92-42dc-ab95-fcba18354465",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18434,6 +17039,7 @@
           "type": "Rr",
           "uuid": "b4cc69a2-43b7-42ee-b3c8-f905376be1b4",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18447,6 +17053,7 @@
           "type": "Rr",
           "uuid": "3357f126-0f6a-4d5f-bb43-72d780955d25",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18457,9 +17064,24 @@
           }
         },
         {
+          "type": "qs",
+          "uuid": "2971b6e9-87ad-4121-b3fc-0f0f7e807e26",
+          "name": "EffectComposer.StableDepth",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "a8f74358-a2c4-4f39-a01b-d3c5471abcac",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
+        },
+        {
           "type": "Rr",
           "uuid": "5f12fccb-b4b0-4f1d-8cbf-cf0decf43a91",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18470,22 +17092,10 @@
           }
         },
         {
-          "type": "e",
-          "uuid": "0769fd77-fe0b-4da0-a6d2-73aa8039d378",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "5fc3842b-470a-4bcc-8e8e-6614e491a389",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
           "type": "ru",
           "uuid": "ab052f82-6f08-4d0b-a6d8-d21d8128a2c7",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18494,333 +17104,8 @@
           "image": {}
         },
         {
-          "type": "No",
-          "uuid": "cf28078c-67d4-40d0-8bd2-d1a8c2e782e6",
-          "name": "DFG_LUT",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "33345f96-5eed-48c4-a968-6757fc781a7e",
-          "image": {
-            "width": 16,
-            "height": 16
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "3343f16a-b216-44c5-9f94-47087661eab6",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "2f9c1da6-9e62-4563-83e2-bd1be5bb47c9",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "9463f2b2-d96d-491e-a6ef-5f858ebec017",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "5e09bd3c-36ac-4c1f-8262-33cf59309ebb",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "6dff80ae-19ac-404f-b080-c6f8e29557ef",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "b481c464-0ff7-4062-8432-680bb0536c1b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "c335d789-2534-4f52-bb8b-2b611762b1fc",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "354646f2-e08a-41d4-b6dd-339ac98b4e4b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "fd24dfcd-28d2-416e-b40e-17cbe006428d",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "2d3a7ec9-a177-477c-ade0-f969b4656482",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "84347aa8-1af8-483c-983d-cd92953ae088",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "2902523d-ba9b-48de-99e7-df884aa25b0f",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "26562b2c-8f40-459d-95b9-1c8639a0b22c",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "161777d4-6df1-49af-a327-d57b3ddd8cdc",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "863e89e7-5201-49f8-9873-08bd517438c3",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "3360a095-00f8-4d8a-9bdd-6c7cb8f0e795",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "b65e0b17-41f5-4330-83c9-23f5ebb7a2ec",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "92770a4b-06b6-4e10-bd14-18a7adc73d63",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "cdbb9056-74cf-4073-afe1-af07e08f4987",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "eab4c4a7-d206-42ae-a363-9fc886f61270",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "1187cf58-4e0e-43bf-843b-18f15703f164",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "51898c42-2f49-4271-b1d3-8d55a1f6ef7b",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "124fb2e8-57ab-4de6-b29a-6922e65fa551",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "efc28cb5-2f3b-4322-a5c6-05bbe1c8c3c0",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "58f92280-729f-47b6-8473-d9547d04e413",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "0790f994-c07f-4cf4-9c19-fe29ec201e4a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "2870d3a3-a9d5-4c36-9714-2c4aea8f78b1",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "552f32e1-8e9e-4c28-9093-ccbd232c6fcc",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "6d939d78-ce8e-48ea-a9cf-a7d68cc38673",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "9a6d778b-846d-411e-96cb-97fc95560969",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "c8fa7fc8-0141-4810-93fa-16c59f3dbefe",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "d84fa355-d5d0-4d7f-ab5c-24c4caebd30b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "2bce6700-a11e-4547-bde0-0c297994345b",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "80d2793a-5572-4645-b0cf-b9e04d3666d7",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "78a7929b-18f8-4465-9bba-872dc5138fcc",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "5cae6f59-8dc4-4e09-9673-03fe6a26b237",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "3c7f861d-8b2a-4ad5-ba3b-fa17838b21ec",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "ee8c4e10-1ef5-41ae-8ce2-db38d3d27fb4",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "8f37aaa8-569e-4259-a77e-cb33494ec563",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "3c80c233-eaa1-4e36-9787-7d3844cf76f9",
-          "name": "",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -18830,8 +17115,9 @@
           "type": "e",
           "uuid": "9c4d8b0f-f16b-478a-8721-571fdecbfa74",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "5e7714d5-a820-4b63-a324-f355397d6ed7",
           "image": {
@@ -18843,6 +17129,15 @@
           "type": "e",
           "uuid": "d3842976-405b-4cf5-a8b3-894805d2449c",
           "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -18852,8 +17147,9 @@
           "type": "e",
           "uuid": "24aae384-f58a-405f-82e8-00693149516a",
           "name": "EffectComposer.Buffer",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "97547eda-c933-47f7-b16b-e16314cc2603",
           "image": {
@@ -18863,8 +17159,9 @@
         },
         {
           "type": "e",
-          "uuid": "6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
+          "uuid": "21a61fbe-0ef3-4245-849b-c0f5cb1f96f7",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -18872,113 +17169,21 @@
         },
         {
           "type": "e",
-          "uuid": "32d7ee23-5595-49ae-9d5c-b4f534e0be0c",
-          "name": "Image_0",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "ccc72ecd-de3e-4764-8d5a-a1bf4579696c",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "b4710a6e-de37-4f46-9f86-7fa3ccffa1f9",
-          "name": "Image_1",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "b081b9e3-62d1-44a9-8751-c6ef190a5320",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "140dc7d1-928a-4c20-af51-c6ed2d0c1372",
-          "name": "Image_0",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "06ed918a-ccd3-47b9-8ac8-be97b244f49d",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "bcda4350-c3f2-4709-ae3d-4b89c3a941f3",
-          "name": "Image_1",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "b6f8ea8e-7c85-481a-955c-134332f2901f",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "019c7834-3ea0-4b2b-b2f8-986a078ee487",
-          "name": "Image_0",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "1004635e-936f-48b2-a089-19b109c530ec",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "8a18e9c8-f733-47ac-9352-ceae9d16e1da",
-          "name": "Image_1",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "f2ab49b8-eb24-4a86-9383-d653cd5c7dcb",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "df8ff89e-c21a-4a3a-a719-a8694f1c9bd7",
-          "name": "",
+          "uuid": "04136d47-a211-4476-b223-1c601736f0aa",
+          "name": "CopyPass.Target",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {}
+          "source": "3b2288bb-a287-45ae-966a-71b1a21f86db",
+          "image": {
+            "width": 1,
+            "height": 1
+          }
         },
         {
-          "type": "e",
-          "uuid": "988c1bd8-7939-4b16-8e63-c8900513488d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "82e8e75c-ee22-4683-8f7e-a06852590945",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "d82792b1-1ecd-47e5-8216-f39e2ca43169",
-          "name": "",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -19015,24 +17220,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 17945.59999999986,
-    "boot.stepMs.renderer": 125,
-    "boot.stepMs.sky": 491,
-    "boot.stepMs.terrain": 60,
-    "boot.stepMs.cards": 8,
-    "boot.stepMs.forest": 149,
-    "boot.stepMs.physics": 21,
-    "boot.stepMs.edge": 209,
-    "boot.stepMs.grass": 13,
-    "boot.stepMs.cabins": 9,
-    "boot.stepMs.props": 1854,
-    "boot.stepMs.animals": 200,
-    "boot.stepMs.weapon": 1764,
-    "boot.stepMs.menu": 3134,
-    "boot.stepMs.shaders": 6855,
-    "boot.stepMs.firstFrame": 776,
-    "boot.stepMs.audio": 14,
-    "boot.heapMB": 6.706577301025391,
+    "boot.playMs": 17807.400000000023,
+    "boot.stepMs.renderer": 22,
+    "boot.stepMs.sky": 428,
+    "boot.stepMs.terrain": 11,
+    "boot.stepMs.cards": 4,
+    "boot.stepMs.forest": 87,
+    "boot.stepMs.physics": 8,
+    "boot.stepMs.edge": 27,
+    "boot.stepMs.grass": 1,
+    "boot.stepMs.cabins": 6,
+    "boot.stepMs.props": 2915,
+    "boot.stepMs.animals": 2,
+    "boot.stepMs.weapon": 129,
+    "boot.stepMs.menu": 1330,
+    "boot.stepMs.shaders": 9058,
+    "boot.stepMs.firstFrame": 238,
+    "boot.stepMs.audio": 0,
+    "boot.heapMB": 54.30930709838867,
     "boot.facade.batches": 0,
     "boot.facade.instances": 0,
     "poses.spawn-rail.pos": [
@@ -19042,10 +17247,10 @@
     ],
     "poses.spawn-rail.calls": 0,
     "poses.spawn-rail.tris": 0,
-    "poses.spawn-rail.fps": 1.236923813579235,
-    "poses.spawn-rail.frameP95Ms": 37.39999999990687,
-    "poses.spawn-rail.cpuP50Ms": 13.099999999860302,
-    "poses.spawn-rail.cpuP95Ms": 50.3000000002794,
+    "poses.spawn-rail.fps": 6.158524372854721,
+    "poses.spawn-rail.frameP95Ms": 36.10000000000582,
+    "poses.spawn-rail.cpuP50Ms": 4.7999999999883585,
+    "poses.spawn-rail.cpuP95Ms": 11.600000000064028,
     "poses.spawn-rail.creatureBoxes": 0,
     "poses.spawn-rail.boxes": [],
     "poses.spawn-rail.ssim": 0,
@@ -19056,10 +17261,10 @@
     ],
     "poses.well-edge.calls": 0,
     "poses.well-edge.tris": 0,
-    "poses.well-edge.fps": 2.1156388459523363,
-    "poses.well-edge.frameP95Ms": 222.19999999995343,
-    "poses.well-edge.cpuP50Ms": 28.4000000001397,
-    "poses.well-edge.cpuP95Ms": 239.49999999976717,
+    "poses.well-edge.fps": 12.91462647479819,
+    "poses.well-edge.frameP95Ms": 48.40000000002328,
+    "poses.well-edge.cpuP50Ms": 4.300000000046566,
+    "poses.well-edge.cpuP95Ms": 9.399999999965075,
     "poses.well-edge.creatureBoxes": 0,
     "poses.well-edge.boxes": [],
     "poses.well-edge.ssim": 0,
@@ -19070,10 +17275,10 @@
     ],
     "poses.stair-street.calls": 0,
     "poses.stair-street.tris": 0,
-    "poses.stair-street.fps": 3.524298225503035,
-    "poses.stair-street.frameP95Ms": 2.0999999998603016,
-    "poses.stair-street.cpuP50Ms": 9.800000000046566,
-    "poses.stair-street.cpuP95Ms": 61.4000000001397,
+    "poses.stair-street.fps": 9.270960466914381,
+    "poses.stair-street.frameP95Ms": 57.40000000002328,
+    "poses.stair-street.cpuP50Ms": 3,
+    "poses.stair-street.cpuP95Ms": 29.599999999976717,
     "poses.stair-street.creatureBoxes": 0,
     "poses.stair-street.boxes": [],
     "poses.stair-street.ssim": 0,
@@ -19319,21 +17524,21 @@
     "walk.legs.stair-street.end.z": 0,
     "walk.legs.stair-street.maxY": 0,
     "walk.legs.stair-street.out": 0,
-    "walk.legs.stair-street.seconds": 4.796163466380676e-13,
+    "walk.legs.stair-street.seconds": 1.98596694644948e-12,
     "walk.legs.crossing-gate-bridge.stuck": [],
     "walk.legs.crossing-gate-bridge.end.x": 0,
     "walk.legs.crossing-gate-bridge.end.y": 0,
     "walk.legs.crossing-gate-bridge.end.z": 0,
     "walk.legs.crossing-gate-bridge.maxY": 0,
     "walk.legs.crossing-gate-bridge.out": 0,
-    "walk.legs.crossing-gate-bridge.seconds": 1.397104654188297e-12,
+    "walk.legs.crossing-gate-bridge.seconds": 6.985523270941485e-13,
     "walk.legs.escape-square-balustrade.stuck": [],
     "walk.legs.escape-square-balustrade.end.x": 0,
     "walk.legs.escape-square-balustrade.end.y": 0,
     "walk.legs.escape-square-balustrade.end.z": 0,
     "walk.legs.escape-square-balustrade.maxY": 0,
     "walk.legs.escape-square-balustrade.out": 0,
-    "walk.legs.escape-square-balustrade.seconds": 5.4853899200679734e-12,
+    "walk.legs.escape-square-balustrade.seconds": 9.681144774731365e-13,
     "walk.stuck": 0,
     "walk.sounds.event.nd.step.stone": 0,
     "walk.sounds.event.jump": 0,
@@ -19466,12 +17671,12 @@
     "leak.gpu.retained.programs": 0
   },
   "selfMin": {
-    "spawn-rail": 0.9999668363447924,
-    "well-edge": 0.9999683274606538,
-    "stair-street": 0.9996373284324235
+    "spawn-rail": 0.9999764149968928,
+    "well-edge": 0.9999709108821812,
+    "stair-street": 0.9990541489551388
   },
   "harness": 2,
-  "sha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
-  "recorded": "2026-10-08T06:10:19.354Z",
+  "sha": "8664edaed3f139d99601a71332358eb5ea0e560f",
+  "recorded": "2026-10-08T23:20:07.351Z",
   "browser": "153.0.8010.12"
 }

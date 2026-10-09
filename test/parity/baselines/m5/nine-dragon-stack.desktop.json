@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "8ecb6c70b60781dc33f88c0a54688227e5f6d19b",
-    "build": "8ecb6c7-muz6s0pa",
+    "sha": "ca969df25908be165a71648a2ecbbca8040477a1",
+    "build": "ca969df-mv057rza",
     "shard": "nine-dragon-stack",
     "tier": "desktop",
     "viewport": {
@@ -1897,14 +1897,14 @@
       "programKeys": "53f7cf4fc5df302e60c97e3fa5655feabbb7e684de39205b265fea4b05e4b915",
       "memory": {
         "geometries": 144,
-        "textures": 79
+        "textures": 78
       }
     },
     "gpuBytes": {
-      "textures": 440725395,
+      "textures": 384633747,
       "renderbuffers": 8772864,
       "buffers": 153247564,
-      "total": 602745823
+      "total": 546654175
     },
     "audio": {
       "requests": [
@@ -3171,26 +3171,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 3413.800000190735,
+    "playMs": 5444.599999904633,
     "stepMs": {
-      "renderer": 10,
-      "sky": 53,
+      "renderer": 17,
+      "sky": 81,
       "terrain": 0,
-      "cards": 1,
-      "forest": 2,
-      "physics": 1,
+      "cards": 2,
+      "forest": 3,
+      "physics": 2,
       "edge": 10,
       "grass": 0,
       "cabins": 0,
-      "props": 1856,
+      "props": 2598,
       "animals": 1,
-      "weapon": 25,
-      "menu": 6,
-      "shaders": 406,
-      "firstFrame": 131,
-      "audio": 138
+      "weapon": 37,
+      "menu": 12,
+      "shaders": 529,
+      "firstFrame": 180,
+      "audio": 151
     },
-    "heapMB": 449.1530113220215,
+    "heapMB": 537.5850982666016,
     "facade": {
       "multiDraw": true,
       "batches": 0,
@@ -3207,10 +3207,10 @@
       ],
       "calls": 175,
       "tris": 1660600,
-      "fps": 117.82381781688798,
-      "frameP95Ms": 9.199999809265137,
-      "cpuP50Ms": 8.300000190734863,
-      "cpuP95Ms": 9,
+      "fps": 67.67805231385486,
+      "frameP95Ms": 16.40000009536743,
+      "cpuP50Ms": 14.299999713897705,
+      "cpuP95Ms": 16,
       "creatureBoxes": 0,
       "boxes": [],
       "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/nine-dragon-stack.desktop.spawn-rail.jpg",
@@ -3225,10 +3225,10 @@
       ],
       "calls": 162,
       "tris": 1382184,
-      "fps": 122.32164847850382,
-      "frameP95Ms": 8.900000095367432,
-      "cpuP50Ms": 8,
-      "cpuP95Ms": 8.700000286102295,
+      "fps": 71.21009366909237,
+      "frameP95Ms": 16,
+      "cpuP50Ms": 13.5,
+      "cpuP95Ms": 15.599999904632568,
       "creatureBoxes": 0,
       "boxes": [],
       "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/nine-dragon-stack.desktop.well-edge.jpg",
@@ -3243,10 +3243,10 @@
       ],
       "calls": 148,
       "tris": 954522,
-      "fps": 127.96289933682283,
-      "frameP95Ms": 8.5,
-      "cpuP50Ms": 7.599999904632568,
-      "cpuP95Ms": 8.400000095367432,
+      "fps": 74.66800300676522,
+      "frameP95Ms": 15.099999904632568,
+      "cpuP50Ms": 12.900000095367432,
+      "cpuP95Ms": 14.699999809265137,
       "creatureBoxes": 0,
       "boxes": [],
       "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/nine-dragon-stack.desktop.stair-street.jpg",
@@ -3737,7 +3737,7 @@
         "draws": 127,
         "tris": 971722,
         "programs": 84,
-        "gpuMB": 575.1385869979858
+        "gpuMB": 521.6454229354858
       }
     }
   },
@@ -3753,7 +3753,7 @@
         },
         "maxY": 146.021,
         "out": 0,
-        "seconds": 9.316666666667247,
+        "seconds": 9.316666666667345,
         "trace": [
           [
             0.033,
@@ -11617,7 +11617,7 @@
         },
         "maxY": 126.891,
         "out": 0,
-        "seconds": 6.733333333333619,
+        "seconds": 6.733333333333175,
         "trace": [
           [
             0.033,
@@ -16697,997 +16697,427 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:56629/?chunk=nine-dragon-stack&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:35:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:56629/?chunk=nine-dragon-stack&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:36:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5163)\n    at O (http://127.0.0.1:56629/assets/bootTrace-BvcKM8k7.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:56629/assets/main-C0h6vpmO.js:3:960)\n    at http://127.0.0.1:56629/assets/main-C0h6vpmO.js:3:864",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5163)\n    at new <anonymous> (http://127.0.0.1:56629/assets/main-C0h6vpmO.js:3:1268)\n    at http://127.0.0.1:56629/assets/main-C0h6vpmO.js:3:864",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5163)\n    at new <anonymous> (http://127.0.0.1:56629/assets/main-C0h6vpmO.js:3:1378)\n    at http://127.0.0.1:56629/assets/main-C0h6vpmO.js:3:864"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=nine-dragon-stack&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:35:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=nine-dragon-stack&tier=desktop&skipintro=1&nolock=1&mute=1&weather=clear&sw=0:36:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at O (http://127.0.0.1:4688/assets/bootTrace-BemYI8W3.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:960)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1268)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1378)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5866)\n    at xf (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:11640)\n    at c (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13383)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13593\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:6420",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5866)\n    at xf (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:11640)\n    at c (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13383)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13593\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:6420",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5866)\n    at xf (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:11640)\n    at c (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13383)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13593\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:6420",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5866)\n    at xf (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:11640)\n    at c (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13383)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13593\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:6420",
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:56629/assets/runtime-NB-mv0HF.js:1:5866)\n    at xf (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:11640)\n    at c (http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13383)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:13593\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:56629/assets/session-CwddV4hu.js:233:6420"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420",
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at jf (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:11664)\n    at c (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13407)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:13617\n    at async Promise.all (index 0)\n    at async http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:6420"
       ]
     },
     "retained": [
-      {
-        "key": "scene:d57c62c5-0309-4cd4-9bd9-6f80dee38911",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f7b5cb75-17b7-4d41-abd1-54f651cff1ab",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:85d0ae17-6dff-40ae-99ac-404f3080c6f8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e29557ef-4c1a-484f-b04f-49c2f7142193",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:73b7b501-2f9c-4da6-9e62-7563c3e2bd1b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0fbfef57-32a9-401d-ae4c-2b8a7f003d7e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c8447890-6aa8-4c0e-9519-80607c28d2c8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ce30d3a7-217e-4542-b0bf-22406cc30b83",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2e0ad431-9463-42b2-996d-e91ee6ef5f85",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:21319eba-777b-4aab-9e0f-9700a3aba7fc",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a597c4ab-5e09-4d3c-b6ac-9c1f426233cf",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:957b7bf4-f460-40a7-a821-f19c37792b75",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7685eae4-bbe3-40f7-88fa-896b880d027c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1dd3e262-4fce-43c7-9e66-067bc5a14aa1",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ecf43a91-3f34-4a20-9837-4c263916e2c5",
-        "refs": 0,
-        "retained": true
-      },
       {
         "key": "renderer:shadow:7aded12d-ab05-4f82-af08-0d0b26d8d21d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1dba7f9a-dc21-42c7-bcbf-144abad957e2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a92edd6c-75eb-449f-9e44-8bfde070d238",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:408bf085-0d2c-4dac-a884-73b593e65f5b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:595084af-01e4-4ef7-a852-b001f9a48bde",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4213099e-ea22-424f-ba8b-26b07370a045",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:625c41c6-9e84-4564-b4e7-84c95d14618f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ee638997-8a7a-44a1-b33c-2a123fe3b089",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f6635d15-db6a-44be-9862-03a2f00a41ce",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:311afda7-c3b1-491f-9ecb-e7abe512beed",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:56345438-2377-427c-906a-bb179a716a65",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6fca5063-d262-4bc2-9f99-315a395f0971",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:70ce7399-ba9e-4189-95f8-c5c8ee33fb9f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f4f7dd0e-f88b-48ff-b065-23fac3cd1827",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4cbbeb01-3f5d-4ad0-a3c3-b7d81c3ece36",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a57f85d7-d7f6-43bc-868a-21bb6f0a4bc5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f1fa823c-3748-43e7-ae05-9bc00ad0e739",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ad03c9e1-bfcf-4951-a9b4-70b8e8fe0a2a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2f6e0781-22f0-469b-8760-01571e837533",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a811c8bd-9493-4b3a-8786-2464f0cfbca3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e887fb60-2fe6-4e37-afcf-30eefc5e3d3b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:799abc4e-55f2-446b-9de6-36f980ad5ace",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e1c8c3c0-58f9-4280-b29f-a7b64473d954",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:61b76a48-f0f6-4ec1-a5d3-67498928ddfc",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2f62b57c-2057-47fb-baee-e6eda35be01a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8f07e7e4-d32c-46b4-a1fb-b0fd74d80270",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0dda9905-89dd-4bd6-9d80-7dc9a83bb995",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:25941f56-ce09-4ecf-8ac1-90641bbb647e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4a0dc0e9-3c80-4233-aaa1-fe3697877d38",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ec201e4a-7be2-455c-a79d-2908910e2555",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4d2edac0-4bf2-4aca-a95b-856d79a45855",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7f542c69-3508-48c0-ba55-671330c0e1c8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7ef5de2c-e897-4916-91b6-48716f6f0833",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:44cf76f9-daa7-4c30-b514-a6e802671b6b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:259760f1-dc54-4079-984c-cd1d83370fd2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:81a9879a-747c-439b-b40d-f08528ac77f2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7e1b7cde-8c87-4e6c-8eb4-696eeaf8e9e4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e958901d-4fee-450d-b4a2-03e422a34a30",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0925434a-5ab1-4e65-82a8-faa1f4b3ed4f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:60312385-f47f-4641-b970-50c4b4280c0b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1f47f11e-f5f3-43f0-972e-5c6711e452d6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:34441e99-1195-46d9-8fd6-6522ba7aee32",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e12775f0-263f-445a-9ba5-096a05877de7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fc740b25-53fe-4879-b24d-1b688f0d43f0",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:70c7b313-cb95-4482-97ca-57064754753e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6270c8a2-1aab-4f48-805e-40baa714a5b9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1c7c5792-922e-402c-9ac6-4ab7873ec79b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9cd82b85-8c24-4938-a1dc-ab62f509b866",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e8d1c361-93ed-48cb-92e2-8812b46a5aaa",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f0ce5f68-0f95-4114-94de-618471f29120",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:21c8c732-c054-42f8-b33a-f57c5d9dfc95",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f62958db-892d-451e-8a92-dfa4aa690fb2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4eee549c-5e86-450d-ba98-58462c4dd0da",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1855bbbf-81ab-4603-9987-2e87925d751d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:42cc0639-34a2-4ce1-94b2-00f076ef822f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8bf404d7-3128-44a6-801a-f950449120c7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7b54cacb-8893-4796-97e6-4a278431b228",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:eee79f4b-9ebe-4dd4-a7a6-4b01c8df5011",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:62b9d58a-8289-4410-89b1-d4feda3e570c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5d6e1d3a-3902-4c28-9744-47f12fce0d77",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2acc38aa-f9ef-4c0a-8893-5b4d41cd1e01",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a55f402c-124f-42e8-97ab-cde6b29a6922",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e65fa551-15d6-4b00-b6d0-8eac2d3ad227",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7f07bc82-f3e6-4442-9770-e388f33fa539",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:158c664b-0307-4f5e-85c9-e032f2d058ea",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0af10662-3827-4ca5-9974-278479811eb2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fca771e6-5582-45e1-82dc-e98871ca866d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0c3870eb-b28b-4de1-9b5a-5052b2697fcb",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f358dac3-a3cf-4e29-ab84-1aec788e7723",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:cb9cb9b9-d7ea-4d3f-b920-6c2457d239fe",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c00dbcec-613f-445b-b984-687e8c2e5427",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:180dc8ee-0bfc-4b62-b67f-2307e2920599",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f723697a-06d6-4cfc-b949-e719138a3ea7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:79d20142-d0f4-45ae-892b-a408c0e10984",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:57538453-2dcc-406c-bbb5-ff4c846dd079",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8afcbfc9-3ff3-4f8d-acfc-75e8b95c6f0d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:53158e5b-6970-4b71-ba35-3247f022a158",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e2b6c7d8-8519-4857-a78b-c7825ca28eaf",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:dc382b6b-e1ed-4279-badd-a1261115db9c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9f516fe0-6555-4d83-bd69-a01415b1dfa8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:178d8c8b-6938-4ee0-bc1a-3b545964c332",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:249b93d0-6cdf-488b-ae6c-e39985349e36",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9b9c1aa2-45a8-407a-beba-ee20b0ef77c4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:47dcc4c4-2d16-422a-a428-eebef1b53f1b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9f9a334f-6548-4cd8-a304-23e9074038be",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:abd93302-4b6d-4c70-8f90-71d085aa0439",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c5810233-74e5-4888-a4b5-e6eb04045bb4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1b4f912d-456b-4a3e-9580-8270fd3cd904",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ae9170ff-cf2b-4db6-9c60-faec6202c3af",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d05a9daa-4414-4f7e-a5f6-e893415fd042",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e22ce845-bf2d-4cac-9a55-7395ed86666a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c993be09-ec8d-4c88-bcb7-e7b9b2e34aec",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:667b7823-6df5-4b7c-bc1d-cab4177aa4e5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4fad9c1f-c3c1-4f05-95c1-1ceb04c1407b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:16f20cdb-b829-4aa4-8d92-7f57e4c8d37f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a84ea1a8-1b9b-4a62-ae28-da9bc1f51d0a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1dc567bd-73c8-4f7e-b4fc-e4c78b6f7d4b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:undefined",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:1",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:17914819-9560-4810-8078-d7a3f3daac54",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:64590575-e529-4df4-938c-57bd849f199f",
-        "refs": 0,
-        "retained": true
+        "key": "scene:fc3a1d0e-0741-4be1-9f83-32ecdcaf4a3c",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:2",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:e61a7072-c219-4e77-8a0b-570042af60df",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b3a53d5f-2363-4ec9-95c2-edb9691dbc11",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:ee2525fe-44bc-4a0f-a304-fc30a1a0be3b",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:3",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:4b1cce63-c8f4-448d-aa7f-4f046b995f35",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:b10da5e6-8ca3-4952-b36e-52f3a07eae11",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:4",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:65534ec6-7df1-4f46-a548-167e2f3bc8a2",
-        "refs": 0,
-        "retained": true
+        "key": "scene:406f843c-e4bb-44fd-b26e-c6c8307cb669",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:e79d3f26-a12c-4f9f-aeb4-5d7e92807bc4",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:d341b456-b9c5-46d1-abc3-b32602a6ae30",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:8db48a30-b127-4076-80a6-f175dc73c4e4",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:f79bfafd-e44a-458f-8f17-2f3137059a67",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:f0958fab-9905-45d2-9c8f-7d1df0b61b04",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:0821f7bf-d626-4410-a907-5dc7b51fc4a4",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:696ec65b-e8a6-49fb-bd0e-f5c7058a8057",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:fbc84d23-b2d6-40b3-9dbf-6c561bf8084d",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:51add8a1-385b-450b-8b7f-96f6bc12c649",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:8ee07b7f-8d59-4acd-91d5-4f7574dcc741",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:0830be58-56d9-4f51-99cc-bf82261d1702",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:3d535ce3-029a-43ae-b8c9-d58dbcc0dd88",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:8fd74d3e-7dfb-4807-95fe-3787ac226508",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:e4af114e-2c39-4bd3-92f0-8ca5eea6b4b3",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:93a4188c-724d-4fdc-bca1-f20a9833c593",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:5",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:6",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:f1f6d752-1c73-4855-baa3-7ddb25413ad1",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:8d4c1932-7df4-4a97-a5be-a3b58acc39e2",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:d28de613-9860-4102-90eb-5955bb36d891",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:7",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:cbe81a8d-1def-452a-ab79-766fb060464b",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:8",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:9",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:10",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:8e715fd5-9bf6-4bf4-892d-ec9f656c136e",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:11",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:a88bb3e8-5b1b-47ec-be7c-970cf484684f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:74708617-4cf8-4ba7-99e2-852f19522bbd",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:62015c0e-d330-4d7c-b56b-d417c9a2f929",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:065c0ac9-11b0-49a9-aa28-1cebbf2ae4ac",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:005db260-d744-4bd9-8669-42a5f3404df6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:155ab0cd-9197-4421-af3d-068a4a498e24",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0c1a7399-e8d9-4ffb-8280-bd451d9d9c14",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:36680849-340b-4198-b2e5-3c1dbf9eff5e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:208bb4c8-9740-4db1-8a2a-00bec9609324",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:14c9cfff-6169-4c3f-a25c-57d9e542b1ff",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6996d72e-8840-4fcc-bd98-b63744f644d8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:25dc3660-fb01-4284-a821-55a5b2b104a5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1320e5ae-3f3c-4e0f-928e-a83cf6912a84",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e6baba54-2327-4faf-bba5-5b0e1353f4dd",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b6d67640-63be-435a-b470-d2d939b7c4b4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c1a4debd-e0e1-4b01-ac32-dcd3824af3a6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:bcdfc682-3bdc-4659-9249-ae83cd39a253",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a7b8d5a8-ff8d-4d3a-96ea-e33f3098d321",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a5a35ea5-46d9-4c94-858c-ebc1ff42d40e",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:97c47e88-c976-47d2-aea9-6123366c95da",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:07a7d432-54ee-424b-b03d-324bf7d08e52",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:12",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:13",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:772a5807-58ee-4b7d-80a0-4d4a19c81b40",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:a5a35ea5-46d9-4c94-858c-ebc1ff42d40e",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:6564f508-c4ad-4bf9-9c68-1ea308aa61b9",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:0c1a7399-e8d9-4ffb-8280-bd451d9d9c14",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:36680849-340b-4198-b2e5-3c1dbf9eff5e",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:208bb4c8-9740-4db1-8a2a-00bec9609324",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:14c9cfff-6169-4c3f-a25c-57d9e542b1ff",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:14",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:3d5203ae-12d6-4ca2-87d7-20be912b1bd2",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:43e686aa-195b-4c4d-a3ae-d817ba392b6d",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:e340991e-ba9f-420b-9fdb-0b710a50fdb2",
-        "refs": 0,
-        "retained": true
+        "key": "scene:4b15f2f0-d1db-44fb-967a-f47cb15c5542",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:93d3bd90-36ed-411e-9dd7-961f3bec6df8",
-        "refs": 0,
-        "retained": true
+        "key": "scene:c7924440-ca69-48f5-b8a3-8ea085e980a8",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:3144304a-6c63-4e3e-a989-62f60e9248c8",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:15",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:16",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:e63eba0d-8e64-49a8-82c6-4e0361d948c3",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:17",
+        "refs": 1,
+        "retained": false
       },
       {
         "key": "scene:59500ef7-4f21-4b4e-abe6-2f6b6ae15879",
-        "refs": 0,
-        "retained": true
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:6e1015c2-552f-4ceb-bc0e-f17081f064aa",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:18",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:77fb00a1-e15d-471a-a007-05db8cb43198",
-        "refs": 0,
-        "retained": true
+        "key": "scene:fa7d2e88-c33c-4838-afa9-799f07430242",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:da7c9354-6df2-4b49-9ba6-0f057929c097",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:19",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:2639cd8a-6a2c-4eec-a550-ad9f5b185f13",
-        "refs": 0,
-        "retained": true
+        "key": "scene:62015c0e-d330-4d7c-b56b-d417c9a2f929",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:e39944d8-22e8-41f3-a17e-a90442906b6f",
-        "refs": 0,
-        "retained": true
+        "key": "scene:74d57c04-0c21-4698-8ffe-69a9883c438b",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:91f98b83-b5db-4b11-a510-458cf075b6cd",
-        "refs": 0,
-        "retained": true
+        "key": "scene:6a2126c9-b7a8-4e8d-9d00-8d30bbb5ca11",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:56105723-6dcb-4dbf-86ef-ec5ca628dd5c",
-        "refs": 0,
-        "retained": true
+        "key": "scene:e340991e-ba9f-420b-9fdb-0b710a50fdb2",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:58c941b0-cbb2-450e-b9e6-63c9af51e4be",
-        "refs": 0,
-        "retained": true
+        "key": "scene:13126071-5317-4d28-948e-e4b9ea768ea6",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:bbd79874-31ab-41d9-b0b0-e2e192b0becd",
-        "refs": 0,
-        "retained": true
+        "key": "scene:ce68f718-0887-47f1-aa5c-da04bbd49b80",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:0d19e37b-2b4f-4f06-ba80-d9c69a7c5a3e",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:20",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:3b199ad7-c980-43c9-8a21-45457baa7a0d",
-        "refs": 0,
-        "retained": true
+        "key": "scene:f709b367-b4b3-4cba-bca8-136555e355aa",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:2644758e-8c8b-4c56-88bd-a2f7ebfde977",
-        "refs": 0,
-        "retained": true
+        "key": "scene:object:21",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:f5a3685c-268f-483f-9119-839c27dd791e",
-        "refs": 0,
-        "retained": true
+        "key": "scene:93d3bd90-36ed-411e-9dd7-961f3bec6df8",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:bf93827f-9f38-4595-9d66-ea96aff514b3",
-        "refs": 0,
-        "retained": true
+        "key": "scene:4de65c6b-d691-4cfa-ae12-e1a4a36a97a3",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:d0dcf818-f9ea-4105-9936-1f66b394997c",
-        "refs": 0,
-        "retained": true
+        "key": "scene:01d14e4c-a23d-4443-828a-eb494389b3da",
+        "refs": 1,
+        "retained": false
       },
       {
-        "key": "scene:471b214c-8bef-49b9-a758-13b693cc60da",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:678d67d0-5490-4c60-923f-c4acc52be026",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d52f8b9d-c0bb-40cc-ae09-84b82e721aec",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b8bb00c8-f78a-426d-9ed5-ee8274f1dfd2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e1badf8d-9570-4edf-9af3-2fe90389cf8c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c5066d10-4362-4aef-9e0e-aa3ea7b29730",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:857098e0-33a7-4072-bb6d-81a4633f5b2c",
-        "refs": 0,
-        "retained": true
+        "key": "scene:042ccdc1-63a2-4c22-97f4-f58619cfbb49",
+        "refs": 1,
+        "retained": false
       }
     ],
     "gpu": {
       "total": {
-        "geometries": 28,
-        "textures": 39,
-        "programs": 42
+        "geometries": 3,
+        "textures": 31,
+        "programs": 21
       },
       "retained": {
-        "geometries": 28,
-        "textures": 39,
-        "programs": 42
+        "geometries": 3,
+        "textures": 31,
+        "programs": 21
       },
       "resources": [
         {
-          "type": "No",
-          "uuid": "f7b5cb75-17b7-4d41-abd1-54f651cff1ab",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "2747fa04-6fbe-40fe-877f-bd90b8eb3baf",
-          "image": {
-            "width": 512,
-            "height": 256
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "d57c62c5-0309-4cd4-9bd9-6f80dee38911",
-          "name": "PMREM.cubeUv",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "60c4c982-cf9b-4e9a-bb11-e2b24a7e1846",
-          "image": {
-            "width": 384,
-            "height": 512
-          }
-        },
-        {
           "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -17697,6 +17127,7 @@
           "type": "e",
           "uuid": "17914819-9560-4810-8078-d7a3f3daac54",
           "name": "EffectComposer.Buffer",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -17708,474 +17139,23 @@
         },
         {
           "type": "qs",
-          "uuid": "64590575-e529-4df4-938c-57bd849f199f",
+          "uuid": "fc3a1d0e-0741-4be1-9f83-32ecdcaf4a3c",
           "name": "EffectComposer.InputDepth",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "59dbecfb-4657-46be-9666-e79bafb6e0d2",
+          "source": "e42c8801-b072-4885-91a9-8d8a988a2128",
           "image": {
             "width": 1600,
             "height": 900
           }
         },
         {
-          "type": "oo",
-          "uuid": "e29557ef-4c1a-484f-b04f-49c2f7142193",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "a92edd6c-75eb-449f-9e44-8bfde070d238",
-          "name": "sword",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            4
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "4213099e-ea22-424f-ba8b-26b07370a045",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "56345438-2377-427c-906a-bb179a716a65",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            6
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "70ce7399-ba9e-4189-95f8-c5c8ee33fb9f",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            7
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "4cbbeb01-3f5d-4ad0-a3c3-b7d81c3ece36",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "2f6e0781-22f0-469b-8760-01571e837533",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            6
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "e887fb60-2fe6-4e37-afcf-30eefc5e3d3b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "8f07e7e4-d32c-46b4-a1fb-b0fd74d80270",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "4a0dc0e9-3c80-4233-aaa1-fe3697877d38",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "44cf76f9-daa7-4c30-b514-a6e802671b6b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "81a9879a-747c-439b-b40d-f08528ac77f2",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "0925434a-5ab1-4e65-82a8-faa1f4b3ed4f",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "1f47f11e-f5f3-43f0-972e-5c6711e452d6",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "fc740b25-53fe-4879-b24d-1b688f0d43f0",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "1c7c5792-922e-402c-9ac6-4ab7873ec79b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "f62958db-892d-451e-8a92-dfa4aa690fb2",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            9
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "42cc0639-34a2-4ce1-94b2-00f076ef822f",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            10
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "8bf404d7-3128-44a6-801a-f950449120c7",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "eee79f4b-9ebe-4dd4-a7a6-4b01c8df5011",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            10
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "5d6e1d3a-3902-4c28-9744-47f12fce0d77",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            11
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "e65fa551-15d6-4b00-b6d0-8eac2d3ad227",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            12
-          ],
-          "image": {}
-        },
-        {
-          "type": "Yl",
-          "uuid": "fca771e6-5582-45e1-82dc-e98871ca866d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            14
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "f358dac3-a3cf-4e29-ab84-1aec788e7723",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "c00dbcec-613f-445b-b984-687e8c2e5427",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "f723697a-06d6-4cfc-b949-e719138a3ea7",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "53158e5b-6970-4b71-ba35-3247f022a158",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            15
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "dc382b6b-e1ed-4279-badd-a1261115db9c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            16,
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "178d8c8b-6938-4ee0-bc1a-3b545964c332",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ql",
-          "uuid": "9b9c1aa2-45a8-407a-beba-ee20b0ef77c4",
-          "name": "hands-sleeve",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            17
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ql",
-          "uuid": "1b4f912d-456b-4a3e-9580-8270fd3cd904",
-          "name": "hands-cuff",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            17
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ql",
-          "uuid": "d05a9daa-4414-4f7e-a5f6-e893415fd042",
-          "name": "hands-glove",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            17
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "1dc567bd-73c8-4f7e-b4fc-e4c78b6f7d4b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "0fbfef57-32a9-401d-ae4c-2b8a7f003d7e",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Ia",
-          "uuid": "ce30d3a7-217e-4542-b0bf-22406cc30b83",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            18
-          ],
-          "image": {}
-        },
-        {
-          "type": "nu",
-          "uuid": "a597c4ab-5e09-4d3c-b6ac-9c1f426233cf",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            19
-          ],
-          "image": {}
-        },
-        {
-          "type": "nu",
-          "uuid": "1dd3e262-4fce-43c7-9e66-067bc5a14aa1",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            20,
-            21
-          ],
-          "image": {}
-        },
-        {
-          "type": "nu",
-          "uuid": "d0dcf818-f9ea-4105-9936-1f66b394997c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            22
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "e1badf8d-9570-4edf-9af3-2fe90389cf8c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            25
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "c5066d10-4362-4aef-9e0e-aa3ea7b29730",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            25
-          ],
-          "image": {}
-        },
-        {
-          "type": "Zl",
-          "uuid": "857098e0-33a7-4072-bb6d-81a4633f5b2c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            53
-          ],
-          "image": {}
-        },
-        {
           "type": "Yl",
           "uuid": "d341b456-b9c5-46d1-abc3-b32602a6ae30",
           "name": "ViewmodelDepthMerge",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18187,6 +17167,7 @@
           "type": "ce",
           "uuid": "ee2525fe-44bc-4a0f-a304-fc30a1a0be3b",
           "name": "CopyMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18198,6 +17179,7 @@
           "type": "Yl",
           "uuid": "e4af114e-2c39-4bd3-92f0-8ca5eea6b4b3",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18207,8 +17189,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "005db260-d744-4bd9-8669-42a5f3404df6",
+          "uuid": "a5a35ea5-46d9-4c94-858c-ebc1ff42d40e",
           "name": "NdReflectTrace",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18218,8 +17201,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "74708617-4cf8-4ba7-99e2-852f19522bbd",
+          "uuid": "97c47e88-c976-47d2-aea9-6123366c95da",
           "name": "NdReflectStreak",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18229,8 +17213,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "155ab0cd-9197-4421-af3d-068a4a498e24",
+          "uuid": "6564f508-c4ad-4bf9-9c68-1ea308aa61b9",
           "name": "NdHazeMarch",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18240,8 +17225,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "25dc3660-fb01-4284-a821-55a5b2b104a5",
+          "uuid": "43e686aa-195b-4c4d-a3ae-d817ba392b6d",
           "name": "NdHazeAdd",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18251,8 +17237,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "a5a35ea5-46d9-4c94-858c-ebc1ff42d40e",
+          "uuid": "62015c0e-d330-4d7c-b56b-d417c9a2f929",
           "name": "NdBleedPre",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18262,8 +17249,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "97c47e88-c976-47d2-aea9-6123366c95da",
+          "uuid": "74d57c04-0c21-4698-8ffe-69a9883c438b",
           "name": "NdBleedDown",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18273,8 +17261,9 @@
         },
         {
           "type": "Yl",
-          "uuid": "1320e5ae-3f3c-4e0f-928e-a83cf6912a84",
+          "uuid": "4b15f2f0-d1db-44fb-967a-f47cb15c5542",
           "name": "NdBleedUp",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18284,8 +17273,9 @@
         },
         {
           "type": "Tt",
-          "uuid": "43e686aa-195b-4c4d-a3ae-d817ba392b6d",
+          "uuid": "6a2126c9-b7a8-4e8d-9d00-8d30bbb5ca11",
           "name": "EffectMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18295,8 +17285,9 @@
         },
         {
           "type": "Tt",
-          "uuid": "93d3bd90-36ed-411e-9dd7-961f3bec6df8",
+          "uuid": "13126071-5317-4d28-948e-e4b9ea768ea6",
           "name": "EffectMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18306,263 +17297,9 @@
         },
         {
           "type": "No",
-          "uuid": "625c41c6-9e84-4564-b4e7-84c95d14618f",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "e5b3f888-81f7-4d3e-8d88-a7db7d63a4a5",
-          "image": {
-            "width": 256,
-            "height": 256
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "ee638997-8a7a-44a1-b33c-2a123fe3b089",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "b053606d-db9d-4b73-ac0e-c1732bbbd0a3",
-          "image": {
-            "width": 2048,
-            "height": 1024
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "f6635d15-db6a-44be-9862-03a2f00a41ce",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "be396582-cefb-44d4-a9f0-169fa0102d9d",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "a57f85d7-d7f6-43bc-868a-21bb6f0a4bc5",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "f5404c03-e065-467b-a7fc-7a0a6f03ff8d",
-          "image": {
-            "width": 2048,
-            "height": 2048,
-            "src": "blob:http://127.0.0.1:56629/6719868d-b7be-479d-b3a1-173222e06eaf"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "f1fa823c-3748-43e7-ae05-9bc00ad0e739",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "aea3885a-0ca1-4970-beb1-cf8f4d44764a",
-          "image": {
-            "width": 2048,
-            "height": 2048,
-            "src": "blob:http://127.0.0.1:56629/17e4fef3-b73d-4bcc-a1f8-2cf2f6e5fe49"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "799abc4e-55f2-446b-9de6-36f980ad5ace",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "a1d12e4f-efc2-4cb5-af3b-c32225c605bb",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:56629/822f9e5b-8e25-474d-b9eb-cc7113b38884"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "e1c8c3c0-58f9-4280-b29f-a7b64473d954",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "7d04e413-0790-4994-807f-6cf49c19fe29",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:56629/c41f8ad3-d244-478f-84d2-5a07c9c45ca3"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "ec201e4a-7be2-455c-a79d-2908910e2555",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "11642bd9-f063-4ad0-a6dc-4a416bdfa2ac",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:56629/124e8ea3-3461-4e4f-b312-bd53cd8463bf"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "4d2edac0-4bf2-4aca-a95b-856d79a45855",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "2f5e440b-0482-442a-923f-1c72b67a53de",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:56629/aecad372-e9a7-45f1-8cf3-30c683662f08"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "9cd82b85-8c24-4938-a1dc-ab62f509b866",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "19497684-2fe3-4731-a118-69b769e84744",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:56629/860c468c-75a4-4d0c-8bfd-81337bb4130d"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "e8d1c361-93ed-48cb-92e2-8812b46a5aaa",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "04408fc6-d1ab-4a3f-a007-f8a832af2f6d",
-          "image": {
-            "width": 1024,
-            "height": 1024,
-            "src": "blob:http://127.0.0.1:56629/1d89301f-1205-4c06-a410-c47532751051"
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "47dcc4c4-2d16-422a-a428-eebef1b53f1b",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "a63e1ec0-3dff-446d-b3e8-404d06fe99f4",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "9f9a334f-6548-4cd8-a304-23e9074038be",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "ca336363-acc4-4c8f-aa8b-6c02b77f0577",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "abd93302-4b6d-4c70-8f90-71d085aa0439",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "b95b808e-e118-43db-aefd-8b7cbcd5e4a9",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "2e0ad431-9463-42b2-996d-e91ee6ef5f85",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "8ebec017-0980-4986-8ee9-dd479362ad29",
-          "image": {
-            "width": 256,
-            "height": 256
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "957b7bf4-f460-40a7-a821-f19c37792b75",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "0456991f-5f12-4ccb-b4b0-5f1d4cbfcf0d",
-          "image": {
-            "width": 1024,
-            "height": 512
-          }
-        },
-        {
-          "type": "Gs",
-          "uuid": "ecf43a91-3f34-4a20-9837-4c263916e2c5",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "f7457d41-2923-4f36-964a-5ba26d9ed047",
-          "image": {
-            "width": 1024,
-            "height": 4
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "f5a3685c-268f-483f-9119-839c27dd791e",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "6f206535-2b5c-4b5c-a8f7-c1f14501f1be",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "bf93827f-9f38-4595-9d66-ea96aff514b3",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "fe68d34d-451a-4af4-b1cc-a5bf73e84f7b",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "No",
           "uuid": "208bb4c8-9740-4db1-8a2a-00bec9609324",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18576,6 +17313,7 @@
           "type": "Ir",
           "uuid": "14c9cfff-6169-4c3f-a25c-57d9e542b1ff",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18589,6 +17327,7 @@
           "type": "Rr",
           "uuid": "0c1a7399-e8d9-4ffb-8280-bd451d9d9c14",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18602,6 +17341,7 @@
           "type": "Rr",
           "uuid": "36680849-340b-4198-b2e5-3c1dbf9eff5e",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18612,9 +17352,24 @@
           }
         },
         {
+          "type": "qs",
+          "uuid": "e79d3f26-a12c-4f9f-aeb4-5d7e92807bc4",
+          "name": "EffectComposer.StableDepth",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "b2dcf2d4-e4b6-45c5-8e49-109a47a631da",
+          "image": {
+            "width": 1600,
+            "height": 900
+          }
+        },
+        {
           "type": "Rr",
           "uuid": "e340991e-ba9f-420b-9fdb-0b710a50fdb2",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -18625,22 +17380,10 @@
           }
         },
         {
-          "type": "e",
-          "uuid": "91f98b83-b5db-4b11-a510-458cf075b6cd",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "8cd81cd8-f4f3-4c08-b8a4-30d41c94f7c1",
-          "image": {
-            "width": 2048,
-            "height": 2048
-          }
-        },
-        {
           "type": "ru",
           "uuid": "7aded12d-ab05-4f82-af08-0d0b26d8d21d",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -18649,372 +17392,22 @@
           "image": {}
         },
         {
-          "type": "e",
-          "uuid": "58c941b0-cbb2-450e-b9e6-63c9af51e4be",
-          "name": "",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "5c74618a-7fee-41dd-a0eb-42df490fc576",
-          "image": {
-            "width": 2048,
-            "height": 2048
-          }
+          "image": {}
         },
         {
           "type": "e",
-          "uuid": "0d19e37b-2b4f-4f06-ba80-d9c69a7c5a3e",
+          "uuid": "406f843c-e4bb-44fd-b26e-c6c8307cb669",
           "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "f1e21f31-5b8c-4c70-ba78-9048caf204a8",
-          "image": {
-            "width": 2048,
-            "height": 2048
-          }
-        },
-        {
-          "type": "No",
-          "uuid": "2644758e-8c8b-4c56-88bd-a2f7ebfde977",
-          "name": "DFG_LUT",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "b066a062-519d-4c28-8f97-d4d737f9cd4b",
-          "image": {
-            "width": 16,
-            "height": 16
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "73b7b501-2f9c-4da6-9e62-7563c3e2bd1b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "c8447890-6aa8-4c0e-9519-80607c28d2c8",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "21319eba-777b-4aab-9e0f-9700a3aba7fc",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "7685eae4-bbe3-40f7-88fa-896b880d027c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "85d0ae17-6dff-40ae-99ac-404f3080c6f8",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "311afda7-c3b1-491f-9ecb-e7abe512beed",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "ad03c9e1-bfcf-4951-a9b4-70b8e8fe0a2a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "2f62b57c-2057-47fb-baee-e6eda35be01a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "0dda9905-89dd-4bd6-9d80-7dc9a83bb995",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "29e2a1d5-b3db-420e-b6ad-52fd6a346ddf",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "21c8c732-c054-42f8-b33a-f57c5d9dfc95",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "4eee549c-5e86-450d-ba98-58462c4dd0da",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "69805ba7-880f-4a82-ba45-f8059b49d969",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "7ef5de2c-e897-4916-91b6-48716f6f0833",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "7f542c69-3508-48c0-ba55-671330c0e1c8",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "1d3b5221-4cc2-441d-a3b2-4c0ae1152ccb",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "e12775f0-263f-445a-9ba5-096a05877de7",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "70c7b313-cb95-4482-97ca-57064754753e",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "6c1ebf81-a78e-46dd-b48e-c2464d84f2c5",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "e958901d-4fee-450d-b4a2-03e422a34a30",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "7e1b7cde-8c87-4e6c-8eb4-696eeaf8e9e4",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "6f865fce-cf2f-4b65-8a5d-e318145a381e",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "1855bbbf-81ab-4603-9987-2e87925d751d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "7b54cacb-8893-4796-97e6-4a278431b228",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "62b9d58a-8289-4410-89b1-d4feda3e570c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "2acc38aa-f9ef-4c0a-8893-5b4d41cd1e01",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "595084af-01e4-4ef7-a852-b001f9a48bde",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "f4f7dd0e-f88b-48ff-b065-23fac3cd1827",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "a811c8bd-9493-4b3a-8786-2464f0cfbca3",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "61b76a48-f0f6-4ec1-a5d3-67498928ddfc",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "1aa18a32-ac06-4eb0-a9a2-366afb3cc399",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "6270c8a2-1aab-4f48-805e-40baa714a5b9",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "f0ce5f68-0f95-4114-94de-618471f29120",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "0e2d3313-13ae-493e-922c-d223afb515b6",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "25941f56-ce09-4ecf-8ac1-90641bbb647e",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "60312385-f47f-4641-b970-50c4b4280c0b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "No",
-          "uuid": "34441e99-1195-46d9-8fd6-6522ba7aee32",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "3aad3287-5737-4daf-abb2-e2dd76599e8d",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "259760f1-dc54-4079-984c-cd1d83370fd2",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "6fca5063-d262-4bc2-9f99-315a395f0971",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "b10da5e6-8ca3-4952-b36e-52f3a07eae11",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "1d176510-9417-488b-bc1f-ef161d586bf5",
+          "source": "15f3e5e0-04de-4acc-847c-77ef86654c81",
           "image": {
             "width": 1600,
             "height": 900
@@ -19024,6 +17417,15 @@
           "type": "e",
           "uuid": "8db48a30-b127-4076-80a6-f175dc73c4e4",
           "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -19033,8 +17435,9 @@
           "type": "e",
           "uuid": "696ec65b-e8a6-49fb-bd0e-f5c7058a8057",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "e8c147e4-13c4-4ab1-91eb-8bdf979790c6",
           "image": {
@@ -19046,6 +17449,7 @@
           "type": "",
           "uuid": "f79bfafd-e44a-458f-8f17-2f3137059a67",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -19055,6 +17459,7 @@
           "type": "Yl",
           "uuid": "f1f6d752-1c73-4855-baa3-7ddb25413ad1",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19063,11 +17468,20 @@
           "image": {}
         },
         {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "fbc84d23-b2d6-40b3-9dbf-6c561bf8084d",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "a85f34d5-bd45-497c-aadb-3e94baee7692",
           "image": {
@@ -19076,11 +17490,34 @@
           }
         },
         {
+          "type": "qs",
+          "uuid": "51add8a1-385b-450b-8b7f-96f6bc12c649",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "cb102c8e-6df9-4466-82b5-f110ba8ba279",
+          "image": {
+            "width": 1600,
+            "height": 900
+          }
+        },
+        {
+          "type": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "0830be58-56d9-4f51-99cc-bf82261d1702",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "c7763ff7-271a-45f3-ba45-f7f754a5815d",
           "image": {
@@ -19092,8 +17529,9 @@
           "type": "e",
           "uuid": "8fd74d3e-7dfb-4807-95fe-3787ac226508",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "c7763ff7-271a-45f3-ba45-f7f754a5815d",
           "image": {
@@ -19105,6 +17543,7 @@
           "type": "Yl",
           "uuid": "a88bb3e8-5b1b-47ec-be7c-970cf484684f",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19113,11 +17552,20 @@
           "image": {}
         },
         {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "cbe81a8d-1def-452a-ab79-766fb060464b",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "b8ac92c8-7abd-468c-bff3-c01fbe8ae751",
           "image": {
@@ -19129,6 +17577,7 @@
           "type": "Yl",
           "uuid": "3d535ce3-029a-43ae-b8c9-d58dbcc0dd88",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19140,6 +17589,7 @@
           "type": "No",
           "uuid": "8ee07b7f-8d59-4acd-91d5-4f7574dcc741",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
@@ -19150,11 +17600,20 @@
           }
         },
         {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "93a4188c-724d-4fdc-bca1-f20a9833c593",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "f96e126c-7cb6-492b-a08d-b1f0cec84270",
           "image": {
@@ -19163,11 +17622,20 @@
           }
         },
         {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "0821f7bf-d626-4410-a907-5dc7b51fc4a4",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "eb90f4fc-606c-4db0-a383-c39ceb84c50e",
           "image": {
@@ -19179,6 +17647,7 @@
           "type": "Yl",
           "uuid": "8e715fd5-9bf6-4bf4-892d-ec9f656c136e",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19187,11 +17656,20 @@
           "image": {}
         },
         {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "d28de613-9860-4102-90eb-5955bb36d891",
           "name": "",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "c54dbd6c-18fd-41d0-8ce3-eae52ecd49cb",
           "image": {
@@ -19203,6 +17681,7 @@
           "type": "Yl",
           "uuid": "f0958fab-9905-45d2-9c8f-7d1df0b61b04",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19211,11 +17690,20 @@
           "image": {}
         },
         {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "e",
           "uuid": "e61a7072-c219-4e77-8a0b-570042af60df",
           "name": "EffectComposer.Buffer",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
           "source": "bc076d91-7346-479a-a415-aea5e1ac6923",
           "image": {
@@ -19227,6 +17715,7 @@
           "type": "Yl",
           "uuid": "8d4c1932-7df4-4a97-a5be-a3b58acc39e2",
           "name": "",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19235,13 +17724,22 @@
           "image": {}
         },
         {
-          "type": "e",
-          "uuid": "62015c0e-d330-4d7c-b56b-d417c9a2f929",
-          "name": "NdReflect.trace",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "0612b3f7-8e7d-4d75-85de-cb8c64a8ebee",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "07a7d432-54ee-424b-b03d-324bf7d08e52",
+          "name": "NdReflect.trace",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "27c10503-2d99-49ea-b3fe-aebca451b221",
           "image": {
             "width": 800,
             "height": 450
@@ -19251,6 +17749,15 @@
           "type": "e",
           "uuid": "6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
           "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -19258,77 +17765,123 @@
         },
         {
           "type": "e",
-          "uuid": "065c0ac9-11b0-49a9-aa28-1cebbf2ae4ac",
+          "uuid": "772a5807-58ee-4b7d-80a0-4d4a19c81b40",
           "name": "NdReflect.b",
+          "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
-          "source": "1a193f1a-fc20-4186-95b4-0587fc636b30",
+          "source": "4bc93ebf-b152-4584-b42a-9e2f1a8f62f3",
           "image": {
             "width": 800,
             "height": 450
           }
         },
         {
-          "type": "e",
-          "uuid": "b6d67640-63be-435a-b470-d2d939b7c4b4",
-          "name": "NdBleed.mip0",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "f1a8889e-7fa0-497a-80ce-b2bb41d6f14f",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "3144304a-6c63-4e3e-a989-62f60e9248c8",
+          "name": "NdBleed.mip0",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "cf634481-f39f-44fa-86f2-50d581987471",
           "image": {
             "width": 400,
             "height": 225
           }
         },
         {
-          "type": "e",
-          "uuid": "c1a4debd-e0e1-4b01-ac32-dcd3824af3a6",
-          "name": "NdBleed.mip1",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "2dad2bcc-f187-4f53-a797-f36fe4e6fb6d",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "e63eba0d-8e64-49a8-82c6-4e0361d948c3",
+          "name": "NdBleed.mip1",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "9c272e9c-61f1-428b-ae14-6285816ea5dc",
           "image": {
             "width": 200,
             "height": 113
           }
         },
         {
-          "type": "e",
-          "uuid": "bcdfc682-3bdc-4659-9249-ae83cd39a253",
-          "name": "NdBleed.mip2",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "e7191e54-77a0-42fe-b2c9-a80a29683601",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "59500ef7-4f21-4b4e-abe6-2f6b6ae15879",
+          "name": "NdBleed.mip2",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "2f26ace6-94ae-4434-a92e-2c7ceea2974f",
           "image": {
             "width": 100,
             "height": 57
           }
         },
         {
-          "type": "e",
-          "uuid": "e6baba54-2327-4faf-bba5-5b0e1353f4dd",
-          "name": "NdBleed.up1",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "91c72537-7449-4906-9dc9-c6547d3bfdd2",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "c7924440-ca69-48f5-b8a3-8ea085e980a8",
+          "name": "NdBleed.up1",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "92d2068b-85a7-45f8-9175-e632a13155b3",
           "image": {
             "width": 200,
             "height": 113
           }
         },
         {
-          "type": "e",
-          "uuid": "a7b8d5a8-ff8d-4d3a-96ea-e33f3098d321",
-          "name": "NdBleed.up0",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "3de4d28c-898c-48b7-9697-0b2d4357dca4",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "fa7d2e88-c33c-4838-afa9-799f07430242",
+          "name": "NdBleed.up0",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "b31e5b9b-47cb-421f-af7a-c87919a8482b",
           "image": {
             "width": 400,
             "height": 225
@@ -19336,25 +17889,35 @@
         },
         {
           "type": "e",
-          "uuid": "6996d72e-8840-4fcc-bd98-b63744f644d8",
+          "uuid": "3d5203ae-12d6-4ca2-87d7-20be912b1bd2",
           "name": "NdHaze",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "30a8f3d4-0108-449b-85bf-2d48bf241678",
+          "source": "41b0cbb6-7337-4bda-b3f9-e4eadab0a3a3",
           "image": {
             "width": 800,
             "height": 450
           }
         },
         {
-          "type": "e",
-          "uuid": "6e1015c2-552f-4ceb-bc0e-f17081f064aa",
-          "name": "SMAA.Edges",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "6b67545c-1c36-43a1-821e-ea2064c4147a",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "f709b367-b4b3-4cba-bca8-136555e355aa",
+          "name": "SMAA.Edges",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "77fb00a1-e15d-471a-a007-05db8cb43198",
           "image": {
             "width": 1600,
             "height": 900
@@ -19362,8 +17925,9 @@
         },
         {
           "type": "st",
-          "uuid": "77fb00a1-e15d-471a-a007-05db8cb43198",
+          "uuid": "93d3bd90-36ed-411e-9dd7-961f3bec6df8",
           "name": "EdgeDetectionMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19372,13 +17936,22 @@
           "image": {}
         },
         {
-          "type": "e",
-          "uuid": "59500ef7-4f21-4b4e-abe6-2f6b6ae15879",
-          "name": "SMAA.Weights",
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "a425dfd9-30fa-4123-9ed5-3fed4466d3a1",
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "ce68f718-0887-47f1-aa5c-da04bbd49b80",
+          "name": "SMAA.Weights",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "f54e45f3-3cd2-4c6e-acc2-2cfb9da54673",
           "image": {
             "width": 1600,
             "height": 900
@@ -19386,8 +17959,9 @@
         },
         {
           "type": "ut",
-          "uuid": "da7c9354-6df2-4b49-9ba6-0f057929c097",
+          "uuid": "4de65c6b-d691-4cfa-ae12-e1a4a36a97a3",
           "name": "SMAAWeightsMaterial",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
@@ -19397,12 +17971,13 @@
         },
         {
           "type": "e",
-          "uuid": "e39944d8-22e8-41f3-a17e-a90442906b6f",
+          "uuid": "042ccdc1-63a2-4c22-97f4-f58619cfbb49",
           "name": "SMAA.Area",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "10d36018-7004-4027-86be-b03966e2c138",
+          "source": "c8abc479-64ca-4f8e-8e02-72ca1aa4c7b0",
           "image": {
             "width": 160,
             "height": 560,
@@ -19411,12 +17986,13 @@
         },
         {
           "type": "e",
-          "uuid": "2639cd8a-6a2c-4eec-a550-ad9f5b185f13",
+          "uuid": "01d14e4c-a23d-4443-828a-eb494389b3da",
           "name": "SMAA.Search",
+          "owner": null,
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "469681e9-70e7-425f-890c-2b65e6392100",
+          "source": "0b40b23e-4d5a-4d3f-9744-08aa0ae6dd23",
           "image": {
             "width": 64,
             "height": 16,
@@ -19427,6 +18003,7 @@
           "type": "e",
           "uuid": "4b1cce63-c8f4-448d-aa7f-4f046b995f35",
           "name": "CopyPass.Target",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -19437,9 +18014,16 @@
           }
         },
         {
-          "type": "e",
-          "uuid": "a55f402c-124f-42e8-97ab-cde6b29a6922",
-          "name": "",
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Fr",
+          "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
@@ -19476,24 +18060,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 105.90000009536743,
-    "boot.stepMs.renderer": 1,
-    "boot.stepMs.sky": 7,
+    "boot.playMs": 774.5999999046326,
+    "boot.stepMs.renderer": 7,
+    "boot.stepMs.sky": 56,
     "boot.stepMs.terrain": 0,
-    "boot.stepMs.cards": 2,
-    "boot.stepMs.forest": 1,
-    "boot.stepMs.physics": 1,
-    "boot.stepMs.edge": 0,
+    "boot.stepMs.cards": 1,
+    "boot.stepMs.forest": 0,
+    "boot.stepMs.physics": 0,
+    "boot.stepMs.edge": 5,
     "boot.stepMs.grass": 0,
     "boot.stepMs.cabins": 0,
-    "boot.stepMs.props": 49,
-    "boot.stepMs.animals": 0,
-    "boot.stepMs.weapon": 0,
-    "boot.stepMs.menu": 1,
-    "boot.stepMs.shaders": 23,
-    "boot.stepMs.firstFrame": 25,
-    "boot.stepMs.audio": 3,
-    "boot.heapMB": 20.245742797851562,
+    "boot.stepMs.props": 96,
+    "boot.stepMs.animals": 1,
+    "boot.stepMs.weapon": 26,
+    "boot.stepMs.menu": 3,
+    "boot.stepMs.shaders": 38,
+    "boot.stepMs.firstFrame": 9,
+    "boot.stepMs.audio": 15,
+    "boot.heapMB": 15.389087677001953,
     "boot.facade.batches": 0,
     "boot.facade.instances": 0,
     "poses.spawn-rail.pos": [
@@ -19503,10 +18087,10 @@
     ],
     "poses.spawn-rail.calls": 0,
     "poses.spawn-rail.tris": 0,
-    "poses.spawn-rail.fps": 2.687917468478531,
-    "poses.spawn-rail.frameP95Ms": 0.10000038146972656,
-    "poses.spawn-rail.cpuP50Ms": 0.10000038146972656,
-    "poses.spawn-rail.cpuP95Ms": 0.19999980926513672,
+    "poses.spawn-rail.fps": 6.724515365154886,
+    "poses.spawn-rail.frameP95Ms": 1,
+    "poses.spawn-rail.cpuP50Ms": 1.700000286102295,
+    "poses.spawn-rail.cpuP95Ms": 1,
     "poses.spawn-rail.creatureBoxes": 0,
     "poses.spawn-rail.boxes": [],
     "poses.spawn-rail.ssim": 0,
@@ -19517,10 +18101,10 @@
     ],
     "poses.well-edge.calls": 0,
     "poses.well-edge.tris": 0,
-    "poses.well-edge.fps": 2.1622715961372023,
-    "poses.well-edge.frameP95Ms": 0.2999997138977051,
-    "poses.well-edge.cpuP50Ms": 0.19999980926513672,
-    "poses.well-edge.cpuP95Ms": 0.19999980926513672,
+    "poses.well-edge.fps": 6.704487559791616,
+    "poses.well-edge.frameP95Ms": 1,
+    "poses.well-edge.cpuP50Ms": 1.9000000953674316,
+    "poses.well-edge.cpuP95Ms": 0.9000000953674316,
     "poses.well-edge.creatureBoxes": 0,
     "poses.well-edge.boxes": [],
     "poses.well-edge.ssim": 0,
@@ -19531,10 +18115,10 @@
     ],
     "poses.stair-street.calls": 0,
     "poses.stair-street.tris": 0,
-    "poses.stair-street.fps": 4.2396618016184675,
-    "poses.stair-street.frameP95Ms": 0.6000003814697266,
-    "poses.stair-street.cpuP50Ms": 0.10000038146972656,
-    "poses.stair-street.cpuP95Ms": 0.6999998092651367,
+    "poses.stair-street.fps": 1.3165966767111854,
+    "poses.stair-street.frameP95Ms": 0.09999990463256836,
+    "poses.stair-street.cpuP50Ms": 0.19999980926513672,
+    "poses.stair-street.cpuP95Ms": 0.10000038146972656,
     "poses.stair-street.creatureBoxes": 0,
     "poses.stair-street.boxes": [],
     "poses.stair-street.ssim": 0,
@@ -19780,7 +18364,7 @@
     "walk.legs.stair-street.end.z": 0,
     "walk.legs.stair-street.maxY": 0,
     "walk.legs.stair-street.out": 0,
-    "walk.legs.stair-street.seconds": 1.5987211554602254e-14,
+    "walk.legs.stair-street.seconds": 0,
     "walk.legs.crossing-gate-bridge.stuck": [],
     "walk.legs.crossing-gate-bridge.end.x": 0,
     "walk.legs.crossing-gate-bridge.end.y": 0,
@@ -19794,7 +18378,7 @@
     "walk.legs.escape-square-balustrade.end.z": 0,
     "walk.legs.escape-square-balustrade.maxY": 0,
     "walk.legs.escape-square-balustrade.out": 0,
-    "walk.legs.escape-square-balustrade.seconds": 2.4868995751603507e-14,
+    "walk.legs.escape-square-balustrade.seconds": 1.6697754290362354e-13,
     "walk.stuck": 0,
     "walk.sounds.event.nd.step.stone": 0,
     "walk.sounds.event.jump": 0,
@@ -19928,7 +18512,7 @@
     "stair-street": 1
   },
   "harness": 2,
-  "sha": "8ecb6c70b60781dc33f88c0a54688227e5f6d19b",
-  "recorded": "2026-10-08T07:01:01.133Z",
+  "sha": "ca969df25908be165a71648a2ecbbca8040477a1",
+  "recorded": "2026-10-08T23:43:38.307Z",
   "browser": "153.0.8010.12"
 }

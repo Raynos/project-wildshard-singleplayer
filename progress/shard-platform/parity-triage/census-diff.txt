@@ -1,0 +1,223 @@
+## far-reach phone (bfb9dc325 -> 5b86b0eb8)
+texture 1->1 -7.53 MB engine/render-target | LuminancePass.Target/color/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/fan/hand-hd.glb/hand-gloveraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/crown/crown-dais.glb/crown-daisraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/crown/crown-stone-b.glb/crown-stone-braw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/crown/crown-stone.glb/crown-stoneraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/isle-canopy-hd/isle-canopy-hd.glb/isle-canopy-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/isle-falls-hd/isle-falls-hd.glb/isle-falls-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/isle-mass-hd/isle-mass-hd.glb/isle-mass-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/isle-shelf-hd/isle-shelf-hd.glb/isle-shelf-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/isle-spire-hd/isle-spire-hd.glb/isle-spire-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/isle-twin-hd/isle-twin-hd.glb/isle-twin-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/keeper-hd/keeper-hd.glb/keeper-b-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/lectern-hd/lectern-hd.glb/lectern-hdraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/mill/mill-foot.glb/mill-footraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/mill/mill-tower.glb/mill-towerraw/map/atlas/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/post-hd/post-hd.glb/tmpkjivv5f0ply/map/Texture
+texture 1->1 -4.00 MB engine/loadRigFile | /assets/far-reach/models/roc-hd/roc-hd.glb/roc-eagleraw/map/atlas/Texture
+texture 1->0 -5.33 MB engine/texture | generated/texture/far.meadow/Texture
+texture 1->0 -5.33 MB engine/texture | generated/texture/far.rock/Texture
+texture 2->1 -5.02 MB engine/render-target | EffectComposer.Buffer/depth/Texture
+texture 1->0 -4.00 MB engine/render-target | generated/render-target/1024x1024/color/Texture
+texture 1->1 -1.00 MB engine/loadRigFile | /assets/far-reach/models/lantern-hd/lantern-hd.glb/lantern-hdraw/map/atlas/Texture
+texture 1->1 -1.00 MB engine/loadRigFile | /assets/far-reach/models/trees/tree-bush.glb/tree-bushraw/map/atlas/Texture
+texture 1->1 -1.00 MB engine/loadRigFile | /assets/far-reach/models/trees/tree-oak.glb/tree-oakraw/map/atlas/Texture
+texture 1->1 -1.00 MB engine/loadRigFile | /assets/far-reach/models/trees/tree-pine-tall.glb/tree-pine-tallraw/map/atlas/Texture
+texture 1->1 -1.00 MB engine/loadRigFile | /assets/far-reach/models/trees/tree-pine-wide.glb/tree-pine-wideraw/map/atlas/Texture
+texture 1->1 -1.00 MB engine/loadRigFile | /assets/far-reach/models/trees/tree-pine-young.glb/tree-pine-youngraw/map/atlas/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 0->1 5.33 MB unattributed | generated/texture/far.meadow/Texture
+texture 0->1 5.33 MB unattributed | generated/texture/far.rock/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture total delta MB -86.56
+renderbuffer total delta MB 0.00
+memory {"geometries":233,"textures":79} -> {"geometries":233,"textures":78}
+boot mem {"geometries":233,"textures":79} -> {"geometries":233,"textures":78} programs 107 -> 107
+
+## _template phone (bfb9dc325 -> 5b86b0eb8)
+texture 1->1 -7.53 MB engine/render-target | LuminancePass.Target/color/Texture
+texture 2->1 -5.02 MB engine/render-target | EffectComposer.Buffer/depth/Texture
+texture 1->0 -4.00 MB engine/render-target | generated/render-target/1024x1024/color/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture total delta MB -16.56
+renderbuffer total delta MB 0.00
+mesh 2 -> 3 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|BoxGeometry|MeshBasicMaterial|v=24|at=0.0,1.4,0.0|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|BoxGeometry|MeshStandardMaterial|v=24|at=0.0,1.4,-0.4|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|BoxGeometry|MeshStandardMaterial|v=24|at=0.0,1.4,0.0|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|CircleGeometry|MeshBasicMaterial|v=26|at=0.0,1.3,-0.3|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|CircleGeometry|MeshBasicMaterial|v=26|at=0.0,1.3,0.3|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|CylinderGeometry|MeshStandardMaterial|v=148|at=0.0,1.3,-0.3|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|CylinderGeometry|MeshStandardMaterial|v=148|at=0.0,1.3,0.3|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|ExtrudeGeometry|MeshStandardMaterial|v=1056|at=0.0,1.4,0.0|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|ExtrudeGeometry|MeshStandardMaterial|v=1572|at=0.0,1.4,0.0|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<PerspectiveCamera<Scene|ExtrudeGeometry|MeshStandardMaterial|v=420|at=0.0,1.4,0.0|cast=false
+memory {"geometries":121,"textures":31} -> {"geometries":121,"textures":30}
+boot mem {"geometries":121,"textures":31} -> {"geometries":121,"textures":30} programs 34 -> 35
+prog 4 -> 5 |basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,f
+
+## driftwood-isle phone (bfb9dc325 -> 5b86b0eb8)
+texture 1->0 -10.67 MB engine/scene | /assets/horizon/driftwood-isle-day.webp/Texture
+texture 1->0 -10.67 MB engine/scene | /assets/horizon/driftwood-isle-night.webp/Texture
+texture 1->1 -7.53 MB engine/render-target | LuminancePass.Target/color/Texture
+texture 1->0 -5.33 MB engine/scene | /assets/models/driftwood-blender/lm-ao.phone.webp/Texture
+texture 1->0 -1.33 MB engine/scene | /assets/models/driftwood-blender/lm-bounce.phone.webp/Texture
+texture 2->0 -1.02 MB engine/texture | generated/texture/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 1->0 -0.00 MB engine/scene | generated/Group/Mesh[3]/map/Texture
+texture 0->1 10.67 MB engine/scene | /assets/horizon/driftwood-isle-day.webp/Texture
+texture 0->1 10.67 MB engine/scene | /assets/horizon/driftwood-isle-night.webp/Texture
+texture 0->1 5.33 MB engine/scene | /assets/models/driftwood-blender/lm-ao.phone.webp/Texture
+texture 0->1 1.33 MB engine/scene | /assets/models/driftwood-blender/lm-bounce.phone.webp/Texture
+texture 0->2 1.02 MB unattributed | generated/texture/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture 0->1 0.00 MB engine/scene | generated/Group/Mesh[4]/map/Texture
+texture total delta MB -7.53
+renderbuffer 2->1 -5.02 MB engine/render-target | EffectComposer.Buffer/Depthbuffer
+renderbuffer total delta MB -5.02
+mesh 1 -> 0 /driftwood-isle/pier|Mesh|vis=true|Scene|BufferGeometry|MeshStandardMaterial|v=24468|at=0.0,0.0,0.0|cast=true
+mesh 1 -> 0 /|Mesh|vis=true|Group<Group<Group<Scene|BufferGeometry|MeshStandardMaterial|v=1236|at=153.1,1.4,3.1|cast=true
+mesh 1 -> 0 /|Mesh|vis=true|Group<Group<Group<Scene|BufferGeometry|MeshStandardMaterial|v=510|at=153.1,1.4,3.1|cast=true
+mesh 2 -> 3 driftwood-isle/pier/driftwood-isle/pier|Mesh|vis=true|driftwood-isle/pier<Scene|BufferGeometry|MeshStandardMaterial|v=216|at=0.0,0.0,0.0|cast=true
+mesh 0 -> 1 /|Mesh|vis=true|Group<Group<Group<Scene|BufferGeometry|MeshStandardMaterial|v=1236|at=153.1,1.3,3.1|cast=true
+mesh 0 -> 1 /|Mesh|vis=true|Group<Group<Group<Scene|BufferGeometry|MeshStandardMaterial|v=510|at=153.1,1.3,3.1|cast=true
+mesh 0 -> 1 driftwood-isle/pier/driftwood-isle/pier|Mesh|vis=true|driftwood-isle/pier<Scene|BufferGeometry|MeshStandardMaterial|v=24492|at=0.0,0.0,0.0|cast=true
+memory {"geometries":437,"textures":85} -> {"geometries":438,"textures":85}
+boot mem {"geometries":437,"textures":83} -> {"geometries":438,"textures":83} programs 96 -> 96
+
+## driftwood-isle desktop (bfb9dc325 -> 5b86b0eb8)
+texture 1->0 -21.33 MB engine/scene | /assets/models/driftwood-blender/lm-ao.webp/Texture
+texture 5->0 -80.00 MB engine/render-target | generated/render-target/2048x2048/color/Texture
+texture 1->1 -8.24 MB engine/render-target | LuminancePass.Target/color/Texture
+texture 1->0 -10.67 MB engine/scene | /assets/horizon/driftwood-isle-day.webp/Texture
+texture 1->0 -10.67 MB engine/scene | /assets/horizon/driftwood-isle-night.webp/Texture
+texture 2->1 -5.49 MB engine/render-target | EffectComposer.Buffer/depth/Texture
+texture 1->0 -5.33 MB engine/scene | /assets/models/driftwood-blender/lm-bounce.webp/Texture
+texture 2->0 -1.02 MB engine/texture | generated/texture/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 1->0 -0.00 MB engine/scene | generated/Group/Mesh[3]/map/Texture
+texture 0->1 21.33 MB engine/scene | /assets/models/driftwood-blender/lm-ao.webp/Texture
+texture 0->1 10.67 MB engine/scene | /assets/horizon/driftwood-isle-day.webp/Texture
+texture 0->1 10.67 MB engine/scene | /assets/horizon/driftwood-isle-night.webp/Texture
+texture 0->1 5.33 MB engine/scene | /assets/models/driftwood-blender/lm-bounce.webp/Texture
+texture 0->2 1.02 MB unattributed | generated/texture/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture 0->1 0.00 MB engine/scene | generated/Group/Mesh[4]/map/Texture
+texture total delta MB -93.73
+renderbuffer total delta MB 0.00
+mesh 2 -> 1 /driftwood-isle/pier|Mesh|vis=true
+mesh 4 -> 6 driftwood-isle/pier/driftwood-isle/pier|Mesh|vis=true
+memory {"geometries":496,"textures":117} -> {"geometries":497,"textures":116}
+boot mem {"geometries":496,"textures":115} -> {"geometries":497,"textures":114} programs 109 -> 109
+
+## nalati-grasslands phone (bfb9dc325 -> 5b86b0eb8)
+texture 1->0 -1.00 MB engine/render-target | generated/render-target/512x512/color/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture total delta MB -1.00
+renderbuffer total delta MB 0.00
+mesh 1 -> 0 kurgan-dungeon/kurgan-interior|Mesh|vis=true|kurgan-dungeon<Scene|BufferGeometry|MeshBasicMaterial|v=333948|at=-40.0,140.0,-95.0|cast=false
+memory {"geometries":120,"textures":125} -> {"geometries":120,"textures":125}
+boot mem {"geometries":120,"textures":125} -> {"geometries":120,"textures":125} programs 98 -> 98
+
+## nalati-grasslands desktop (bfb9dc325 -> 5b86b0eb8)
+texture 4->1 -48.00 MB engine/render-target | generated/render-target/2048x2048/color/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture total delta MB -48.00
+renderbuffer total delta MB 0.00
+mesh 1 -> 0 kurgan-dungeon/kurgan-interior|Mesh|vis=true
+memory {"geometries":393,"textures":159} -> {"geometries":393,"textures":159}
+boot mem {"geometries":393,"textures":159} -> {"geometries":393,"textures":159} programs 115 -> 115
+
+## pine-hollow phone (bfb9dc325 -> 5b86b0eb8)
+texture 1->0 -16.00 MB engine/texture | generated/texture/hdri/qwantani_late_afternoon_puresky_2k.key.jpg + gain.png/Texture
+texture 1->1 -7.53 MB engine/render-target | LuminancePass.Target/color/Texture
+texture 2->1 -5.02 MB engine/render-target | EffectComposer.Buffer/depth/Texture
+texture 1->0 -4.00 MB engine/render-target | generated/render-target/1024x1024/color/Texture
+texture 2->1 -1.33 MB engine/ktx2Texture | /assets/gpu/tex/rock_ground/diffuse-#.ktx2/Texture
+texture 2->1 -1.33 MB engine/ktx2Texture | /assets/gpu/tex/rock_ground/nor_gl-#.ktx2/Texture
+texture 1->0 -1.33 MB engine/texture | generated/texture/atlas.phone.b/Texture
+texture 7->0 -0.96 MB engine/texture | generated/texture/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 0->1 16.00 MB unattributed | generated/texture/hdri/qwantani_late_afternoon_puresky_2k.key.jpg + gain.png/Texture
+texture 0->1 1.33 MB unattributed | generated/texture/atlas.phone.b/Texture
+texture 0->1 0.33 MB unattributed | generated/texture/bear-black-albedo/Texture
+texture 0->1 0.33 MB unattributed | generated/texture/bear-brown-albedo/Texture
+texture 0->7 0.96 MB unattributed | generated/texture/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture total delta MB -18.56
+renderbuffer total delta MB 0.00
+mesh 1 -> 0 /|Mesh|vis=true|Group<skin-knife<PerspectiveCamera<Scene|BufferGeometry|MeshPhysicalMaterial|v=1813|at=-0.0,1.7,-235.0|cast=false
+mesh 0 -> 1 /|Mesh|vis=true|Group<skin-knife<PerspectiveCamera<Scene|BufferGeometry|MeshPhysicalMaterial|v=2040|at=-0.0,1.7,-235.0|cast=false
+memory {"geometries":225,"textures":413} -> {"geometries":225,"textures":412}
+boot mem {"geometries":225,"textures":407} -> {"geometries":225,"textures":406} programs 109 -> 109
+
+## sunscar-dunes phone (bfb9dc325 -> 5b86b0eb8)
+texture 1->1 -7.53 MB engine/render-target | LuminancePass.Target/color/Texture
+texture 1->0 -9.42 MB engine/texture | generated/texture/sunscar.sky.early/Texture
+texture 1->0 -9.42 MB engine/texture | generated/texture/sunscar.sky.late/Texture
+texture 1->0 -5.33 MB engine/loadRigFile | /assets/sunscar-dunes/models/horse-hd/horse-hd.glb/tmp_e2b6_q5ply/map/Texture
+texture 2->1 -5.02 MB engine/render-target | EffectComposer.Buffer/depth/Texture
+texture 1->0 -4.00 MB engine/render-target | generated/render-target/1024x1024/color/Texture
+texture 3->0 -1.86 MB engine/texture | generated/texture/Texture
+texture 1->0 -0.01 MB engine/scene | generated/Group/Points[0]/map/Texture
+texture 2->1 -0.00 MB engine/scene | generated/Group/SkinnedMesh[1]/skeleton/bones/Texture
+texture 1->10 0.01 MB engine/scene | generated/Group/SkinnedMesh[2]/skeleton/bones/Texture
+texture 10->0 -0.01 MB engine/scene | generated/Group/SkinnedMesh[3]/skeleton/bones/Texture
+texture 1->0 -0.00 MB engine/texture | generated/texture/DFG_LUT/Texture
+texture 1->0 -0.00 MB engine/scene | generated/Group/Mesh[1]/map/Texture
+texture 1->0 -0.00 MB engine/scene | generated/Group/Mesh[1]/normalMap/Texture
+texture 0->1 9.42 MB unattributed | generated/texture/sunscar.sky.early/Texture
+texture 0->1 9.42 MB unattributed | generated/texture/sunscar.sky.late/Texture
+texture 0->3 1.86 MB unattributed | generated/texture/Texture
+texture 0->1 0.01 MB engine/scene | generated/Group/Points[5]/map/Texture
+texture 0->2 0.00 MB engine/scene | generated/Group/SkinnedMesh[0]/skeleton/bones/Texture
+texture 0->1 0.00 MB unattributed | generated/texture/DFG_LUT/Texture
+texture 0->1 0.00 MB engine/scene | generated/Group/Mesh[0]/map/Texture
+texture 0->1 0.00 MB engine/scene | generated/Group/Mesh[0]/normalMap/Texture
+texture total delta MB -21.89
+renderbuffer total delta MB 0.00
+mesh 1 -> 0 /tmp_e2b6_q5ply|Mesh|vis=true|Group<Group<Group<Group|BufferGeometry|MeshStandardMaterial|v=10714|at=-74.6,15.7,24.0|cast=false
+memory {"geometries":237,"textures":59} -> {"geometries":236,"textures":57}
+boot mem {"geometries":237,"textures":59} -> {"geometries":236,"textures":57} programs 55 -> 54
+prog 4 -> 3 |physical,STANDARD,,highp,srgb-linear,false,,uv,false,false,false,false,false,fal
+
+## nalati-grasslands phone program sources that differ (bfb9dc325 -> 5b86b0eb8)
+165a166
+>   vec3 camL = cameraPosition - modelMatrix[3].xyz; // the camera in the grass's own frame (a grid cell's offset; zero standalone)
+183c184
+<   float dist = length(xz - cameraPosition.xz);
+---
+>   float dist = length(xz - camL.xz);
+192c193
+<   vec2 toCam = normalize(cameraPosition.xz - xz + 1e-4);
+---
+>   vec2 toCam = normalize(camL.xz - xz + 1e-4);
+227c228
+<   vFogWorldPos = p;
+---
+>   vFogWorldPos = p + modelMatrix[3].xyz;
+230c231
+<   vec4 mv = viewMatrix * vec4(p, 1.);
+---
+>   vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
+493a495
+>   vec3 camL = cameraPosition - modelMatrix[3].xyz; // the camera in the grass's own frame (a grid cell's offset; zero standalone)
+512c514
+<   float dist = length(xz - cameraPosition.xz);
+---
+>   float dist = length(xz - camL.xz);
+520c522
+<   vec2 toCam = normalize(cameraPosition.xz - xz); vec2 right = vec2(toCam.y, -toCam.x);
+---
+>   vec2 toCam = normalize(camL.xz - xz); vec2 right = vec2(toCam.y, -toCam.x);
+523c525
+<   vUv = position.xy + vec2(.5, 0.); vType = type; vFogWorldPos = p; vSeed = r;
+
+## sunscar-dunes phone console warnings at ca969df25 (none at bfb9dc325 beyond three.js deprecations)
+warning: [sunscar-dunes] brazier-hd not loaded, the flat model stands in: Error: Runtime cache coverage exceeds its measured bytes
+    at i.validateCoverage (http://127.0.0.1:4688/assets/allocator-C6ids28t.js:1:5259)
+    at i.reserveClaim (http://127.0.0.1:4688/assets/allocator-C6ids28t.js:1:3463)
+    at i.r
