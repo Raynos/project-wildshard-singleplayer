@@ -9,6 +9,8 @@ import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/te
 import { SCOUT_FLAG } from '../data/flags';
 import { installSignalHomes } from './homes';
 import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
+import { installSignalQuest, type SignalSpots } from './quest';
+import { BRAZIERS } from '../layout';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */
@@ -21,6 +23,10 @@ const BakedSpec = v.strictObject({ kind: v.string(), label: v.string(), variant:
   dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite }),
   mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }),
   flight: v.optional(v.strictObject({ altitude: finite, above: v.optional(v.picklist(['ground', 'world'])), climbRate: finite, diveRate: finite, lockRange: v.optional(finite), bank: v.optional(finite) })) });
+
+const Spot = v.strictObject({ id: v.string(), x: finite, y: finite, z: finite, radius: v.pipe(finite, v.minValue(0)) });
+/** The built world's prompt spots and crack targets (baked from the browser, world/build.ts order), strictly. */
+export function signalSpots(): SignalSpots { return v.parse(v.strictObject({ interact: v.array(Spot), crack: v.array(Spot) }), baked.spots); }
 
 /** The baked native specs by kind (scripts/bake-signal-physics.mjs); every home of a kind shares one recipe. */
 export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
@@ -41,9 +47,9 @@ export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
 /**
  * Signal Dunes' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the admitted terrain
  * collider and heights, the browser-baked native colliders, and the 13 declared homes with their shipping policies,
- * creature stream, attack tokens and respawn clocks, and the whip as its declared item row (a player command's attack is
- * its light crack). Not yet owned (fail-closed, see the SF72 handoff): the signal quest's interactions, the Matriarch
- * encounter and the entry proof; `finish` refuses.
+ * creature stream, attack tokens and respawn clocks, the whip as its declared item row (a player command's attack is
+ * its light crack), and the signal quest with its interactions (`script` commands on `sunscar.interact`, runtime/quest.ts).
+ * Not yet owned (fail-closed, see the SF72 handoff): the Matriarch encounter and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   if (shard.terrain === null) throw new Error('Signal Dunes declares its admitted terrain collider');
@@ -62,12 +68,16 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
         colliders: piece.colliders.map(c => ({ kind: 'box' as const, x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...('yaw' in c ? { yaw: c.yaw } : {}), ...('surface' in c ? { surface: surface(c.surface) } : {}) })), colliderOwner: piece.id });
     });
   };
-  const whip = shard.items.rows.find(row => row.id === WHIP_ID);
-  if (whip === undefined) throw new Error('Signal Dunes declares its whip row');
+  const whip = shard.items.rows.find(row => row.id === WHIP_ID), spots = signalSpots();
+  if (whip?.kind !== 'weapon') throw new Error('Signal Dunes declares its whip row');
+  const reach = { light: whip.light.range, heavy: whip.heavy.range };
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     if (!context.restoring) colliders(host);
     installSignalHomes(host, { specs, attackers: SIGNAL_ATTACKERS, held: () => !host.flags.has(SCOUT_FLAG) }, context.snapshot);
     installSignalWhip(host, whip, () => context.commands().flatMap((command): WhipCommand[] => command.kind === 'player' && command.attack !== undefined ? [{ targetId: command.attack.targetId }] : []));
+    installSignalQuest(host, { quests: shard.quests, spots, braziers: BRAZIERS.length, reach,
+      commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
+      fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); }, coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
   } };
 };
 const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];

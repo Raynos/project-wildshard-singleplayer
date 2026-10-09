@@ -2,7 +2,8 @@
 // Trusted SF72 metadata only (Signal Dunes): the real native browser recipes remain the shipping source. Captures the
 // 13 declared homes' model-derived simulation specs (the strider's height comes from its fitted GLB), seeds and scales,
 // the Matriarch's spec once play summons her (the quest's own actions, then the player walks into her basin), and every
-// native collider piece. Two independent same-page captures must match exactly.
+// native collider piece, and the quest's interaction spots and crack targets. Two independent same-page captures must
+// match exactly.
 // scripts/browser-lane.sh node scripts/bake-signal-physics.mjs --url=<clean candidate preview> [--revision=<sha>]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -47,7 +48,13 @@ try {
       }
       return row;
     });
-    return { actors, pieces };
+    // The quest's interaction spots and crack targets, as the built world placed them (world/build.ts order).
+    const places = window.__wildshard.world.game.app.debug.snapshot().sunscar.places;
+    const spot = (id, p, radius) => ({ id, x: p.x, y: p.y, z: p.z, radius });
+    const spots = { interact: [spot('logbook', places.logbook.position, places.logbook.radius), spot('well', places.well.spot.position, places.well.spot.radius),
+      ...places.braziers.map((b, i) => spot(`brazier.${i}`, b.spot.position, b.spot.radius)), spot('fire', places.fire.brazier.position, places.fire.brazier.radius)],
+    crack: places.crackables.map((c, i) => spot(i === 0 ? 'well.crank' : `brazier.${i - 1}`, c.at, c.radius)) };
+    return { actors, pieces, spots };
   };
   const first = await page.evaluate(capture), second = await page.evaluate(capture);
   if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Native Signal metadata changed between independent captures');
