@@ -13,7 +13,7 @@ export function signalPhysicsInputs(root) {
       else if (accept(path)) paths.push(relative(root, join(root, path)));
     }
   };
-  for (const dir of ['data', 'world', 'models', 'species', 'runtime/species']) walk(`src/shards/sunscar-dunes/${dir}`, path => /\.(?:ts|json)$/u.test(path));
+  for (const dir of ['data', 'generators', 'world', 'models', 'species', 'runtime/species']) walk(`src/shards/sunscar-dunes/${dir}`, path => /\.(?:ts|json)$/u.test(path));
   walk('public/assets/sunscar-dunes', path => path.endsWith('.glb'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));
 }

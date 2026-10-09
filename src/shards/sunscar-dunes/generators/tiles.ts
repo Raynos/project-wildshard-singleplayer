@@ -9,6 +9,9 @@ const STEP = 500 / 256;
 const linear = (c: number): number => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 const unit = (c: number): number => Math.max(0, Math.min(1, Number.isFinite(c) ? c : 0));
 
+/** The manifest's own dune field (entry roads and graded trails included): the ground every Signal bake reads. */
+export const signalDunesField = (): ReturnType<typeof buildTerrain> => buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
+
 /**
  * SHARD-PLATFORM M3 (G227, "the shardfile is the bake"): Signal Dunes' code-built heightfield compiled into the shardfile's
  * 62.5 m terrain tiles (64 L0 + 16 L1 and the 257² critical collider; `@wildshard/sdk/bake/terrain`). The heights are the
@@ -19,7 +22,7 @@ const unit = (c: number): number => Math.max(0, Math.min(1, Number.isFinite(c) ?
  * runtime binds the tiles (`runtime.binds: ['terrain']`) and draws them in its own sand; the data client draws none of them. Run by `scripts/bake-hybrid-tiles.mjs`.
  */
 export function signalDunesTiles(): BakedTerrain {
-  const field = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
+  const field = signalDunesField();
   const rgb: [number, number, number] = [0, 0, 0];
   const baked = bakeTerrain({ heightAt: field.heightAt, family: 'pbr', colourAt: (x, z, h) => {
     const slope = Math.min(1, Math.hypot(field.heightAt(x + STEP, z) - field.heightAt(x - STEP, z), field.heightAt(x, z + STEP) - field.heightAt(x, z - STEP)) / (2 * STEP) / 2);

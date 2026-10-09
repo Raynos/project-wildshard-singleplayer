@@ -8,9 +8,8 @@ import { STRINGS } from '../data/strings';
 import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
-import { buildRocks } from './rocks';
+import { bakedRocks, type BakedWorld } from './baked';
 import { buildDressing } from './dressing';
-import { buildButtes } from './buttes';
 import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
@@ -42,7 +41,7 @@ const WAY_LIGHT = 9;
 /** The caravan lantern's share of the same light: a lantern, not a fire. */
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
-export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
+export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
   const trailDistance = (x: number, z: number): number => terrain?.trailDistance(x, z) ?? 99;
   const file = (name: string): string => `src/shards/sunscar-dunes/world/${name}.ts`;
@@ -53,13 +52,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   ctx.piece({ id: 'sunscar.caravan', name: STRINGS.caravan, category: 'props', file: file('places'), object: caravan.root, colliders: caravan.colliders, surface: 'wood' });
   const wellParts = buildWell(groundAt); ctx.root.add(wellParts.root);
   ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: file('places'), object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });
-  const rocks = buildRocks(groundAt, trailDistance); ctx.root.add(rocks.root);
-  ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: file('rocks'), object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
+  // SF72: the rock field is baked offline (generators/rocks.ts); the client draws the bake and registers its colliders
+  const rocks = bakedRocks(baked); ctx.root.add(rocks.root);
+  ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: 'src/shards/sunscar-dunes/generators/rocks.ts', object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
   const dressing = buildDressing(groundAt, trailDistance, ctx.scope); ctx.root.add(dressing.root);
   ctx.piece({ id: 'sunscar.dressing', name: STRINGS.dressing, category: 'nature', file: file('dressing'), object: dressing.root, colliders: dressing.colliders, surface: 'sand' });
-  // E399: the mockups show low hazy dune ranges at the horizon, no mesas: the buttes stay built only for the Model
-  // Explorer's sake when a debug row asks; the world shows none
-  void buildButtes;
   const interactables = ctx.game.runtime?.interactables, interactions = new SignalInteractions(flags, BRAZIERS.length);
 
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.

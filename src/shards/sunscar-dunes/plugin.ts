@@ -17,6 +17,7 @@ import { lastLightAll } from './look/light';
 import { setDusk, stepDusk } from './look/dusk';
 import { fitSkirtToCube } from './look/cube';
 import { preloadDuneMeshes } from './world/meshes';
+import { loadBakedWorld } from './world/baked';
 import { DUNE_RAY } from './runtime/species/duneRay';
 import { DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
@@ -78,8 +79,8 @@ export class SignalDunesPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
-    await preloadDuneMeshes();
-    this.places = buildWorld(ctx, new Flags(ctx.manifest.slug)); this.fire = this.places.fire;
+    const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
+    this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked); this.fire = this.places.fire;
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
     if (ctx.cube !== null) fitSkirtToCube(ctx.cube.half);
   }
