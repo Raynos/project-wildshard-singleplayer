@@ -445,6 +445,8 @@ export type ShardEntryMode = 'legacy' | 'shardfile';
 export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean; readonly public: ShardEntryMode }
 
 export interface ShardManifest {
+  /** Frozen standalone copy. It is paired with the same slug without -legacy, hidden from ordinary cards and never admitted to the grid. */
+  legacy?: true;
   /** Reviewed opaque-runtime home measurements, available before world bootstrap; the declaration shares this data. */
   runtimeCost?: RuntimeCost;
   /** SF57: a reviewed per-sim resident reading for this shard's regional shardfile sims; the allocator charges it instead of the declared ceiling. */

@@ -236,6 +236,29 @@ export class SaveStore {
     return { instanceId: id, peek: () => slot.peek(id), read: () => { migrate(); return slot.read(id); },
       write: (value) => { migrate(); return slot.write(value, id); }, reset: () => { migrate(); slot.reset(id); } };
   }
+  /** Durably merge one retired shard namespace into another. Destination entries and explicit resets win; a refused write changes neither namespace. Source remains available for retry. */
+  mergeShardEntries(sourceId: string, targetId: string): boolean {
+    const sourceName = this.name('shard', sourceId), targetName = this.name('shard', targetId);
+    this.initialize();
+    if (sourceName === targetName) return true;
+    const read = (name: string): Document => {
+      const raw = this.get('shard', name);
+      if (raw === null) return { keys: {} };
+      const parsed: unknown = JSON.parse(raw);
+      if (!doc(parsed)) throw new Error('Invalid shard save document');
+      return parsed;
+    };
+    const source = read(sourceName), target = read(targetName);
+    if (target.reset !== undefined || Object.keys(source.keys).length === 0) return true;
+    const raw = JSON.stringify({ keys: { ...source.keys, ...target.keys } });
+    try {
+      const storage = this.storage('shard');
+      if (storage === null) return false;
+      storage.setItem(targetName, raw);
+    } catch { return false; }
+    this.memory.set(targetName, raw); this.failedWrites.delete(targetName);
+    return true;
+  }
   /** Detached local entries for a preview, without creating, repairing or migrating a document. */
   inspectShard(identity: SaveInstance): Readonly<Record<string, unknown>> {
     this.name('shard', identity.id);

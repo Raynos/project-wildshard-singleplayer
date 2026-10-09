@@ -1,0 +1,38 @@
+{
+  "driftwood-isle": {
+    "payloadsIdentical": true,
+    "files": {
+      "spawn.snap.gz": "831a8bc0b4286e37675590a15af06262b6768107d0bbfa70cfee1e377f20cd4c",
+      "tick-20000.snap.gz": "f3d925465bf387d9f2c5aa266e2c090555babd66b366c1dd78e1dc2b40d08df7",
+      "commands.json.gz": "c10f826f681d7acdef18324337440a5e4f1672d0b2a64c5dcc1c26d9838d8026",
+      "tick-10000.snap.gz": "bc01b3afdad48fa636ed61271a3ac861f2f86409cd77e172615fb65b66931ea7",
+      "captain.snap.gz": "e96d0a9881f9b06b61b274ef1b79314be690cf9df0cf5c7d8a6537784ecaca1a"
+    }
+  },
+  "pine-hollow": {
+    "payloadsIdentical": true,
+    "files": {
+      "night.snap.gz": "47a7e6bb658e84209232ae18d948d675a6cbe21df242f1f7a3beb016a4c4fb89",
+      "king.snap.gz": "95fb038d57bd00e31d0b02b99d3d881af0fe4cae2d01436626a2764e749a6270",
+      "fallen.snap.gz": "dd17c0421f4eae6f0b6f31cfb84c969452716f42e5798da17a65ee5132b0657e",
+      "ridge.snap.gz": "d35cc9a2303e7505a3452162251678e80cc755d7cad82b8a61ea645fffeabe4a",
+      "basis.snap.gz": "a7f8adb13116cfc0289ee43cb890ea14143ad5e2796281cd224b8d518d776d6e",
+      "dam.snap.gz": "6f4b446fe887a4fe5b800d7106c19ce39979cd6d7a6a32c8aa9540d4ddfe7b84"
+    }
+  },
+  "far-reach": {
+    "payloadsIdentical": true,
+    "files": {
+      "step.snap.gz": "cf30b3a07d64c6aa161d1487781bde52d363141c4ada65dadd9044efbacc3d51",
+      "storm.snap.gz": "c31db5913bfc694d22260722fe07c799666b522ae74bbc2e9a545ff1a5a9850e",
+      "gale.snap.gz": "da2973a2d300ebcdabf6d613663a688c38f2768fcbbbf8fa730ae596c29594b9"
+    }
+  },
+  "nine-dragon-stack": {
+    "payloadsIdentical": true,
+    "files": {
+      "ride.snap.gz": "685f6bbb8694ce7b79c2a9cb704f33a279009592c1d4ece63320b7b9f9fd1aab",
+      "crossing.snap.gz": "2a45f08dbcca1654d27931c23a1fff8af90d15eb5feb0652770ca35a17661c1b"
+    }
+  }
+}

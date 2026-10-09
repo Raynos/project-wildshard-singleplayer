@@ -1,9 +1,9 @@
-# sp-x3 handoff — SF57 qualifying receipt, 2026-10-09
+# Handoff (sp-x3)
 
-Native-byte checkpoint capture95ea6414d is pushed, with input-manifest forward065173746. No pool ships; wire/native witness payloads identical. Source proof: progress/memory/sf57/checkpoint-native-bytes-2026-10-09/README.md; rejected pool3a4172c09.
+SF57 qualifying shipped cells+road soak PASS on065173746; receipt ee8c0bcfd, pushed/recorded851253fce. No native dictionary pool ships.
 
-One qualifying shipped cells+road invocation on065173746: BOTH RECORDED PASS, light/rawOFF/footprint-only/no heaps or vmmap. Exact numbers, settled growth, control spread, load and raw evidence: progress/memory/sf57/public-065173746/README.md. Receipt defining SHA is this landing; coordinator alone pushes. No regrade.
+SF73 in flight: independent entry metadata/pair lookup and durable retirement namespace merge landed in this commit; focused10/10, clean full1080files5922pass14skip, real checkpoint payloads identical. SaveStore foreign New-game/save-cards hunks excluded/preserved.
 
-Next: send receipt SHA + recorded verdict to wildshard-new and await its serialized push; no further run required by this brief. Keep any future plan work with coordinator, never wildshard-v.
+Exact next step: finish private sf73/guard.patch + scripts/legacy-shards.mjs/.d.mts + test/legacy-shard-guard.test.ts + lint/legacy-shards.json. Shared runners match HEAD until atomic landing. Inventory approved by wildshard-new; only registered copies excluded from primary SF2/debt/metrics, hard rules stay live, crash fixes require Legacy-Crash-Fix trailer. Then snapshot all six folders from CURRENT HEAD after owner notice, route LEGACY to copies, never grid; full boot and unchanged metrics. Rebase on sp-x4 shared sim seam when it lands.
 
-All owned Safari/Inspector/proxy/sampler closed; qualifying preview stopped by parent. Device sf57-sp-x3-shipped-94263 /351C6525-AFEB-4702-8620-CF366F813C4C shutdown (delete only this owned device after proof). Scratch /private/tmp/claude-501/sp-builders/sp-x3/sf57-qualifying-065173746-20261009 raw archived; delete stopped serve export by literal path. /private/tmp/claude-501/sp-builders/sp-x3/checkpoint-save-2026-10-09 keeps preparation/landing scripts, all selected proofs in repo; completed exports deleted. Shared liveSession New game WIP preserved. Land only own receipt paths from current HEAD with hooks/CAS/subject/stat/ancestor; no generated/plan edits.
+Kit dissolution moved to sp-x2. After SF73: public owned-shell re-soak, pin from coordinator. No own previews/browser/Simulator. Scratch /private/tmp/claude-501/sp-builders/sp-x3/sf73 contains foundation-export, logs/byte proof, guard.patch, candidate scripts. Delete literal exports after evidence is archived. Coordinator pushes; never wildshard-v.
