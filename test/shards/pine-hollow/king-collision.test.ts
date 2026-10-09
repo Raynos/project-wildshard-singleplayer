@@ -11,21 +11,24 @@ import { advanceKingPose, applyKingPose, clipPose, newPose, type KingPoseInput }
 import { KingCollision } from '../../../src/shards/pine-hollow/runtime/kingCollision';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
 import raw from '../../../src/shards/pine-hollow/runtime/kingCollision.baked.json';
+import { withPortableMath } from '../../fake/portableMath';
 
 const root = resolve(import.meta.dirname, '../../..');
 const EPSILON = 1e-10; // World metres; below 0.0000001 mm, only double-precision matrix evaluation noise.
 
 describe('the real King rig collision-only law', () => {
   it('has byte-identical deterministic bake output and exact input hashes', () => {
+    const sin = Math.sin, cos = Math.cos;
     const bake = readKingCollisionBake(raw);
     expect(bakeKingCollision(root)).toEqual(bake);
     expect(bakeKingCollision(root)).toEqual(bake);
+    expect(Math.sin).toBe(sin); expect(Math.cos).toBe(cos);
     for (const [path, hash] of Object.entries(bake.inputs)) {
       expect(createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex'), path).toBe(hash);
     }
   });
 
-  it('matches the old live-bone anchors at every authored fixed-step clip sample', () => {
+  it('matches the old live-bone anchors at every authored fixed-step clip sample', () => withPortableMath(() => {
     const bake = readKingCollisionBake(raw), collision = new KingCollision(bake.joints, bake.volumes);
     const { group, rest } = readKingRig(root), pose = newPose();
     const got = new Vector3(), expected = new Vector3();
@@ -45,7 +48,7 @@ describe('the real King rig collision-only law', () => {
       expected.set(...bake.volumes.head).applyMatrix4(head.matrixWorld);
       expect(got.distanceTo(expected)).toBeLessThanOrEqual(EPSILON);
     }
-  });
+  }));
 
   it('matches live volumes throughout blended gait, attack/held fade, recoil, brace and target look', () => {
     const bake = readKingCollisionBake(raw), collision = new KingCollision(bake.joints, bake.volumes);

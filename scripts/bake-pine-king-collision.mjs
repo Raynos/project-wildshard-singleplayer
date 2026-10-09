@@ -8,6 +8,7 @@ import { Bone, Group } from 'three';
 import { kingRest, newPose, clipPose, applyKingPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
 import { KING_ATTACK_TIMING } from '../src/shards/pine-hollow/combat/kingTiming.ts';
 import { readKingCollisionBake } from '../src/shards/pine-hollow/runtime/kingCollisionBake.ts';
+import { withPortableMath } from '../test/fake/portableMath.ts';
 
 const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
 const index = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -23,7 +24,7 @@ export const KING_COLLISION_INPUTS = [
   'src/shards/pine-hollow/combat/kingRig.ts', 'src/shards/pine-hollow/combat/kingTiming.ts',
   'src/shards/pine-hollow/runtime/physics.baked.json', 'src/shards/pine-hollow/runtime/kingCollision.ts',
   'src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'src/game/combat/collisionPose.ts',
-  'scripts/bake-pine-king-collision.mjs',
+  'scripts/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts',
 ];
 
 /** Real rig joints only; no vertex attributes or runtime renderer are loaded. @param {string} root */
@@ -60,6 +61,13 @@ export function readKingRig(root) {
 
 /** Deterministic trusted bake. @param {string} root */
 export function bakeKingCollision(root) {
+  // Recorded matrices pin exact bits; native transcendental functions differ on arm64 and x64.
+  // Keep this confined to the build-time oracle, restoring the caller's Math on every exit.
+  return withPortableMath(() => bakePortableKingCollision(root));
+}
+
+/** @param {string} root */
+function bakePortableKingCollision(root) {
   const { bones, group, rest } = readKingRig(root), pose = newPose();
   const names = ['body', 'chest', 'neck', 'head'];
   const selected = names.map(name => {
