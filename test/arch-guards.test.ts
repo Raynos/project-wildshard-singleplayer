@@ -133,13 +133,14 @@ describe('AG9 shard layout', () => {
 describe('AG20 staged content isolation', () => {
   function repo(): { root: string; git: (...args: string[]) => void; run: () => ReturnType<typeof spawnSync> } {
     const root = temp();
-    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/authored-html.mjs', 'lint/commons-closure.mjs', 'lint/runtime-performance.mjs', 'lint/runtime-performance.json', ...['lint/sim-closure.mjs', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'scripts/shard-coupling.mjs', 'lint/shard-coupling.json', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
+    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/authored-html.mjs', 'lint/commons-closure.mjs', 'lint/runtime-performance.mjs', 'lint/runtime-performance.json', ...['lint/sim-closure.mjs', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'scripts/shard-coupling.mjs', 'lint/shard-coupling.json', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
     if (existsSync('lint/weapon-subclasses.json')) files.push('lint/weapon-subclasses.json');
     for (const file of files) { mkdirSync(dirname(join(root, file)), { recursive: true }); copyFileSync(file, join(root, file)); }
     put(root, 'lint/ratchet.json', '{}'); put(root, 'src/engine/example.ts', 'export const value = 1;');
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
     const git = (...args: string[]): void => { const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' }); expect(result.status, result.stderr).toBe(0); };
     git('init', '-q'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.com');
+    put(root, 'lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: false, shards: {} }));
     git('add', '--', ...files, 'lint/ratchet.json', 'src/engine/example.ts'); git('commit', '-qm', 'fixture');
     return { root, git, run: () => spawnSync(execPath, ['scripts/precommit-guards.mjs'], { cwd: root, encoding: 'utf8', env: { ...env, SKIP_ARCH_GUARDS: '0' } }) };
   }

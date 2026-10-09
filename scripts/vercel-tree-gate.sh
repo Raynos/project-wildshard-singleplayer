@@ -73,6 +73,7 @@ mkdir -p "$work/predecessor"
 predecessor_lists=(lint/row-functions.json lint/edge-exemptions.json lint/shard-platform.json lint/sim-closure.json lint/shard-coupling.json)
 if git cat-file -e "$sha^:lint/sim-schema-leaves.json" 2>/dev/null; then predecessor_lists+=(lint/sim-schema-leaves.json); fi
 if git cat-file -e "$sha^:lint/weapon-subclasses.json" 2>/dev/null; then predecessor_lists+=(lint/weapon-subclasses.json); fi
+if git cat-file -e "$sha^:lint/legacy-shards.json" 2>/dev/null; then predecessor_lists+=(lint/legacy-shards.json); fi
 git archive "$sha^" -- "${predecessor_lists[@]}" | tar -xf - -C "$work/predecessor" || fail "predecessor lists"
 
 # ── 3. the CI gates, in the Vercel tree: gen first, then every independent step at once (E454) ──

@@ -4,17 +4,21 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import { shardfileDescriptor } from './gen-shards.mjs';
+import { legacyInventory } from './legacy-shards.mjs';
+
+const EMPTY_FROZEN = { shards: {} };
 
 /** entries: slug -> top-level names (directories carry a trailing slash). */
-export function checkShardLayout(entries, config, readManifest, runtimeBaseline = {}) {
+export function checkShardLayout(entries, config, readManifest, runtimeBaseline = {}, frozen = EMPTY_FROZEN) {
   const failures = [];
   const files = new Set(config.requiredFiles.concat(config.allowedFiles));
   const folders = new Set(config.folders.map((name) => `${name}/`));
   for (const [slug, names] of Object.entries(entries)) {
-    if (names.includes('runtime/') && !Object.hasOwn(runtimeBaseline, slug)) failures.push(`${slug}/runtime/: custom runtime is reserved for transition shards in lint/shard-platform.json`);
+    const primary = frozen.shards[slug]?.primary ?? slug;
+    if (names.includes('runtime/') && !Object.hasOwn(runtimeBaseline, primary)) failures.push(`${slug}/runtime/: custom runtime is reserved for transition shards in lint/shard-platform.json`);
     if (slug.startsWith('_')) continue;
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
-    const legacy = config.legacy[slug] ?? { entries: [], missing: [] };
+    const legacy = config.legacy[primary] ?? { entries: [], missing: [] };
     for (const name of names) if (!files.has(name) && !folders.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
     const manifest = names.includes('manifest.ts') && readManifest ? readManifest(`src/shards/${slug}/manifest.ts`) : null;
     const descriptor = manifest === null ? null : shardfileDescriptor(manifest);
@@ -62,7 +66,7 @@ export function checkShards(root, selected) {
     if (!dir.isDirectory() || (selected && !selected.has(dir.name))) continue;
     entries[dir.name] = readdirSync(resolve(root, 'src/shards', dir.name), { withFileTypes: true }).map((entry) => entry.name + (entry.isDirectory() ? '/' : ''));
   }
-  return checkShardLayout(entries, config, (file) => readFileSync(resolve(root, file), 'utf8'), JSON.parse(readFileSync(resolve(root, 'lint/shard-platform.json'), 'utf8')).baseline);
+  return checkShardLayout(entries, config, (file) => readFileSync(resolve(root, file), 'utf8'), JSON.parse(readFileSync(resolve(root, 'lint/shard-platform.json'), 'utf8')).baseline, legacyInventory(root));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const root = resolve(import.meta.dirname, '..');

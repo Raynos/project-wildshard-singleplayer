@@ -4,6 +4,7 @@ import { existsSync, globSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
+import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-coupling.json';
@@ -31,7 +32,8 @@ export function shardCoupling(root = ROOT) {
   const transfers = existsSync(transferPath) ? JSON.parse(readFileSync(transferPath, 'utf8')).transfers : {};
   const invalid = compareWeaponTransfers(WEAPON_TRANSFER_BOOTSTRAP, transfers);
   if (invalid.length > 0) throw new Error(invalid.join('\n'));
-  const files = globSync('src/shards/**/*.{ts,tsx}', { cwd: root }).filter((file) => !file.endsWith('.d.ts') && !file.includes('.generated.'));
+  const frozen = legacyInventory(root);
+  const files = globSync('src/shards/**/*.{ts,tsx}', { cwd: root }).filter((file) => !file.endsWith('.d.ts') && !file.includes('.generated.') && !registeredLegacyFile(frozen, file));
   const configPath = resolve(root, 'tsconfig.json');
   const config = ts.readConfigFile(configPath, (file) => ts.sys.readFile(file));
   const parsed = ts.parseJsonConfigFileContent(config.config ?? {}, ts.sys, root);

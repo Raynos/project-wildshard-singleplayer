@@ -1,9 +1,7 @@
 # Handoff (sp-x3)
 
-SF57 qualifying shipped cells+road soak PASS on065173746; receipt ee8c0bcfd, pushed/recorded851253fce. No native dictionary pool ships.
+SF57 shipped cells+road PASS on065173746, receipt ee8c0bcfd. SF73 foundation2f765d83b and witness-forward25661521c landed. Exact frozen inventory/guard slice lands with this handoff; no live boot switch yet. Hard rules stay active, historical exclusions only exact inventoried files, sealed list shrink-only; named crash-fix trailer required.
 
-SF73 in flight: independent entry metadata/pair lookup and durable retirement namespace merge landed in this commit; focused10/10, clean full1080files5922pass14skip, real checkpoint payloads identical. SaveStore foreign New-game/save-cards hunks excluded/preserved.
+NEXT: snapshot six CURRENT HEAD folders after owner notice, set copy slug/legacy-only manifest + independent shard.config identity, route existing LEGACY button to copy and SHARDFILE to primary, exclude copies from grid and measured edges while retaining hard reach/cycle/public checks. Private next-source under /private/tmp/claude-501/sp-builders/sp-x3/sf73 is prepared, not landed. Test all12 real standalone entries via muted phone browser; save isolation/retirement helper already proven. Document retirement in SHARDS.md, report unchanged primary metrics.
 
-Exact next step: finish private sf73/guard.patch + scripts/legacy-shards.mjs/.d.mts + test/legacy-shard-guard.test.ts + lint/legacy-shards.json. Shared runners match HEAD until atomic landing. Inventory approved by wildshard-new; only registered copies excluded from primary SF2/debt/metrics, hard rules stay live, crash fixes require Legacy-Crash-Fix trailer. Then snapshot all six folders from CURRENT HEAD after owner notice, route LEGACY to copies, never grid; full boot and unchanged metrics. Rebase on sp-x4 shared sim seam when it lands.
-
-Kit dissolution moved to sp-x2. After SF73: public owned-shell re-soak, pin from coordinator. No own previews/browser/Simulator. Scratch /private/tmp/claude-501/sp-builders/sp-x3/sf73 contains foundation-export, logs/byte proof, guard.patch, candidate scripts. Delete literal exports after evidence is archived. Coordinator pushes; never wildshard-v.
+Kit dissolution belongs sp-x2; notify it lint/legacy-shards.json + legacySourcePath once guard SHA lands. After SF73 public owned-shell re-soak on coordinator pin. No owned previews/browser/Simulator. Delete literal completed exports after evidence archived. Coordinator pushes; never wildshard-v.

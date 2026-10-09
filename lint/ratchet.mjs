@@ -7,6 +7,7 @@ import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TIME_ALLOW } from './wildshard-plugin.js';
 import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
+import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const NON_FILE = new Set(['allow', 'budgets', 'debugRows']);
@@ -32,6 +33,7 @@ function validate(baseline) {
 }
 
 function counts(root, baselineFile) {
+  const frozen = legacyInventory(root), hard = hardRules(resolve(REPO, '.oxlintrc.json')); 
   if (!existsSync(resolve(root, 'src'))) throw new Error(`Missing source directory: ${root}/src`);
   const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', 'src'], {
     cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
@@ -47,6 +49,7 @@ function counts(root, baselineFile) {
     const key = match ? `wildshard/${match[1]}` : null;
     if (!key || !ruleNames.has(key) || typeof diagnostic.filename !== 'string') throw new Error(`Unexpected lint diagnostic: ${JSON.stringify(diagnostic)}`);
     const file = relative(root, resolve(root, diagnostic.filename)).replaceAll('\\', '/');
+    if (!hard.has(key) && registeredLegacyFile(frozen, file)) continue;
     current[key] ??= {};
     current[key][file] = (current[key][file] ?? 0) + 1;
   }
@@ -54,7 +57,10 @@ function counts(root, baselineFile) {
   return current;
 }
 
-function debugCount(root) { return debugFlags(root).filter((row) => row.purpose !== 'developer').length; }
+function debugCount(root) {
+  const frozen = legacyInventory(root);
+  return debugFlags(root).filter((row) => row.purpose !== 'developer' && !registeredLegacyFile(frozen, relative(root, row.file).replaceAll('\\', '/'))).length;
+}
 
 function main() {
   let root = REPO, baselineFile = resolve(REPO, 'lint/ratchet.json'), mode = 'check', addRule = null;

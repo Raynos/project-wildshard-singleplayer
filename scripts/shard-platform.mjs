@@ -6,6 +6,7 @@ import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import { resolveSpecifier } from './check-graph.mjs';
+import { legacyInventory } from './legacy-shards.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -104,8 +105,9 @@ export function shardLines(root = ROOT) {
     }));
     return graphs.get(path);
   };
+  const frozen = legacyInventory(root);
   const shardFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
+    .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name)).sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
   const classify = (slug, path) => {
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path], generator = path.startsWith(`${prefix}generators/`);

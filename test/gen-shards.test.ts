@@ -18,7 +18,7 @@ describe('shard generation', () => {
     try {
       mkdirSync(join(root, 'scripts'));
       mkdirSync(join(root, 'src/shards/cold'), { recursive: true });
-      for (const file of ['gen-shards.mjs', 'gen-shard-words.mjs', 'gen-budget-derivations.mjs']) writeFileSync(join(root, 'scripts', file), readFileSync(resolve('scripts', file)));
+      for (const file of ['gen-shards.mjs', 'gen-shard-words.mjs', 'gen-budget-derivations.mjs', 'legacy-shards.mjs']) writeFileSync(join(root, 'scripts', file), readFileSync(resolve('scripts', file)));
       symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
       writeFileSync(join(root, 'src/shards/cold/manifest.ts'), "import { bytes } from './bytes.generated'; export default { slug: 'cold', name: 'Cold', bytes }; ");
       // Nothing *.generated exists yet, and budget inputs must not be loaded during discovery.

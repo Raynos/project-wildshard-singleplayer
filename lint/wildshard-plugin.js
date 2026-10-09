@@ -412,11 +412,20 @@ const runtimeCommons = rule('Runtime cannot import build-time commons code (G143
 });
 // SF62: only the reviewed exact predecessor sites remain during the first-party conversions.
 const runtimeDebt = JSON.parse(readFileSync(new URL('runtime-performance.json', import.meta.url), 'utf8')).sites;
+const frozenFile = new URL('legacy-shards.json', import.meta.url);
+const frozenShards = existsSync(frozenFile) ? JSON.parse(readFileSync(frozenFile, 'utf8')).shards : {};
+/** Historical source identity only for a reviewed frozen file. It grants no new import or runtime-site allowance. */
+export function legacySourcePath(filename) {
+  const match = /^src\/shards\/([^/]+)\/(.+)$/u.exec(filename);
+  const row = match === null ? undefined : frozenShards[match[1]];
+  return row !== undefined && Object.hasOwn(row.files, match[2]) ? `src/shards/${row.primary}/${match[2]}` : null;
+}
+
 const runtimePerformance = rule('Custom runtime has bounded work and no frame allocations, raw rendering, DOM, timers or fetch', context => {
   const filename = pathOf(context);
   if (!/^src\/shards\/[^/]+\/runtime\/.*\.[jt]s$/u.test(filename)) return {};
   return { Program() {
-    for (const site of runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt)) {
+    for (const site of runtimePerformanceViolations(context.sourceCode.text, legacySourcePath(filename) ?? filename, runtimeDebt)) {
       context.report({ loc: { line: site.line, column: 0 }, message: `${site.kind}: ${site.message}` });
     }
   } };

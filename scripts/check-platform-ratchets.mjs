@@ -4,11 +4,18 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { compareLegacyInventory, LEGACY_INVENTORY } from './legacy-shards.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, 'lint/runtime-performance.json'];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
 
 /** Explicit file inputs work in an index export and in a post-commit export with no .git. */
 export function comparePlatformList(list, baselineFile, candidateFile) {
+  if (list === LEGACY_INVENTORY) {
+    if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: frozen policy removed; retire its rows instead`] : [];
+    const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : { version: 1, sealed: false, shards: {} };
+    return compareLegacyInventory(before, JSON.parse(readFileSync(candidateFile, 'utf8')), [], 'Legacy-Crash-Fix: hash updates are checked by commit-msg');
+  }
+
   if (list === WEAPON_TRANSFER_LIST) {
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: transfer policy was removed; retire its entries instead`] : [];
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).transfers : WEAPON_TRANSFER_BOOTSTRAP;

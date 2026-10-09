@@ -22,7 +22,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   return (async () => {
     try {
       cpSync('lint', resolve(root, 'lint'), { recursive: true });
-      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
+      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
         mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));

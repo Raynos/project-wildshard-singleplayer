@@ -9,6 +9,7 @@ import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
 import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
 import { guardSnapshot } from './guard-snapshot.mjs';
+import { checkLegacyInventory, legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
 const run = (cwd, command, args, options = {}) => {
   const result = spawnSync(command, args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...options });
@@ -36,12 +37,12 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
     const predecessor = join(scratch, 'predecessor');
     mkdirSync(predecessor);
-    const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/runtime-performance.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
+    const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/runtime-performance.json', 'lint/legacy-shards.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
     const lists = run(root, 'git', ['archive', 'HEAD', '--', ...predecessorLists], { encoding: 'buffer' });
     run(root, 'tar', ['-xf', '-', '-C', predecessor], { input: lists });
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // SF2 observes every shard, including inherited context/class types outside changed files.
-    const coupling = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/shard-coupling.mjs'], { encoding: 'buffer' });
+    const coupling = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json'], { encoding: 'buffer' });
     run(root, 'tar', ['-xf', '-', '-C', scratch], { input: coupling });
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
@@ -56,7 +57,8 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     writeFileSync(guardConfig, JSON.stringify(config));
     const existing = new Set(snapshot.paths);
     const lintPaths = paths.filter((p) => existing.has(p));
-    const counts = {}, failures = checkPlatformRatchets(predecessor, scratch);
+    const frozen = legacyInventory(scratch);
+    const counts = {}, failures = [...checkPlatformRatchets(predecessor, scratch), ...checkLegacyInventory(scratch, frozen)];
     run(scratch, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
     if (lintPaths.length > 0) {
       const result = spawnSync(process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths], { cwd: scratch, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
@@ -69,6 +71,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
         const key = match ? `wildshard/${match[1]}` : null;
         if (!key || hard.has(key)) { failures.push(`${diagnostic.filename}: ${diagnostic.code}: ${diagnostic.message}`); continue; }
         if (!Object.hasOwn(ratchet.rules, key)) throw new Error(`Unexpected custom diagnostic: ${diagnostic.code}`);
+        if (registeredLegacyFile(frozen, diagnostic.filename)) continue;
         counts[key] ??= {};
         counts[key][diagnostic.filename] = (counts[key][diagnostic.filename] ?? 0) + 1;
       }
@@ -77,7 +80,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const compared = compareCounts(baseline, counts, hard, paths, false, true);
     failures.push(...compared.failures);
     for (const warning of compared.warnings) console.warn(warning);
-    if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline));
+    if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline, frozen));
     if (manifest) {
       // Generator checks belong to the staged tree too; export only their small scripts, never public assets.
       const scripts = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'], { encoding: 'buffer' });
