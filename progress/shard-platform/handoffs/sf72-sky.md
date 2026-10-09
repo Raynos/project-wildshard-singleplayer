@@ -27,10 +27,26 @@ encounter, the War Fan, the quest and the movers (islets, road gates, winch brid
    engine/SDK seam, the coordinator's call. The quest test stages the player onto each deck (`stand`) and says so.
 2. **The Roc's gale wall holds still 27 s** (browser too): `GALE_WALL` is a `lane` strike with no `motion`, and
    `StrikeRunner` treats every lane as a charge, so `active` lasts length 26 / max(1, speed 0) + 1.2 = 27.2 s. Phase 2 by
-   pure fan play takes ~20k ticks because of it. Not changed (behaviour change, Jake's call).
+   pure fan play takes ~20k ticks because of it. The coordinator ruled it a bug (it declares `active: 0.6`): next step 0.
+   The board-mode seam is the coordinator's new engine lane; its SHA will be relayed.
 
 ## Exact next steps
 
+0. **The strike fix, its own commit before the witness** (coordinator's ruling, 2026-10-09). Motionless lane StrikeSpecs
+   across all shards are exactly two, both Sky: `GALE_WALL` (runtime/stormRocBrain.ts) and the goat `RAM`
+   (runtime/strikes.ts: lane 4 m, active 0.5, no motion). Every other lane has a motion (Signal's strider `CHARGE`, Pine's
+   `PINE_LANES` and combat/lane.ts), so Signal's witness and Pine's strike tables must stay byte-identical.
+   - `src/engine/ai/strikes.ts` `update`, the `active` branch: the charge end rule (`along >= 1 || elapsed > length /
+     max(1, speed * mul) + 1.2`) only when `spec.motion !== undefined`; a motionless lane ends at its declared `active`.
+     Keep `this.length = shape.length` for a motionless lane: `containsShape` builds the lane's contact strip from
+     x0..x1, so a zero length would shrink the gale wall to a 3.4 m disc.
+   - RAM is a charge in practice (RamGrazerBrain drives the goat at `ramSpeed`, ramped by `rampRate`, while
+     `strikes.busy`; today its active ends when it has run the 4 m): give RAM an explicit `motion` (no `track`, speed
+     matching what the brain drives) so its active window still ends at the 4 m. Prove the goats byte-identical with an
+     oracle over recorded goat rams before / after (positions, strike phases, contacts per tick).
+   - Strike unit tests (test/ai/strike-runner.test.ts: a motionless lane recovers at `active`; the Pine snapshot file
+     unchanged), test/fixtures/far-reach/rocBrainOracle.ts copies GALE_WALL (check it), and a muted Chromium iPhone 16 Pro
+     run of the Roc's gale wall (the Roc hovers 0.6 s, not 27 s).
 1. Board mode in the host (above), then the witness tape: spawn → keeper (talk) → windmill / grove rope bridges → board to
    the roost (fan the three rays) → vanes (gust each, `far.fan.aim`) → updraft to the step → winch → walk the raised
    bridge → crown fight (copy `crownFight` from headless-runtime.test.ts). Copy Signal's `test/proof/sunscar-dunes/witness.ts`
