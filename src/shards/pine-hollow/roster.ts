@@ -9,7 +9,7 @@
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
-import { bear, boar, deer } from '@wildshard/kit/models/creatures'; // the creature rows build from registered species: the roster's own entry
+import { bear, boar, deer } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
 import { elk } from './models/creatures';
 import { antlerKing } from './models/antlerKing';
 import { owl, raven, woodpecker } from './models/birds';

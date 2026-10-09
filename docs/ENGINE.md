@@ -24,6 +24,13 @@ palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg r
 Both moved unchanged from the kit (SF54); shard files outside `runtime/` import them directly. They stay runtime
 builders until their baked commons entries (SF54 step 4) replace the procedural path.
 
+`@wildshard/game/systems/species/{boar,bear,deer,elk}` hold the shared species rows (`BOAR`, `BEAR` and their tunings; the
+lofted `DEER` / `ELK` with `DEER_PALETTE` / `ELK_PALETTE`), and `@wildshard/game/systems/species/install.installKitSpecies`
+registers the four plus the default creature calls; the composition root calls it, nothing installs on import.
+`@wildshard/game/models/creatures` defines the shared `shared/deer`, `shared/boar` and `shared/bear` models, and
+`@wildshard/game/systems/audio/forest` the asset-free forest profile and its synth wind bed (`createForestAudio`,
+`installForestAmbience`). All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and model ids are kept.
+
 `@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
@@ -1620,7 +1627,7 @@ ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true
 **Ports for the legacy creature manager:** `AnimalManager`, `Animal`, `HuntTuning`, `registerSpecies`, `speciesDef`,
 `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`. A species carries its own fight numbers
 (`chargeWindup`, `ringRadius`, `trampleRadius`); `setCreatureSoundDefaults` (`CreatureSoundDefaults`) installs the calls a
-species with no `sounds` falls back on, by temperament (the kit's `installKitSpecies` does; E405). `runtime.play.animals.spawn(kind,
+species with no `sounds` falls back on, by temperament (the game's `installKitSpecies` does; E405). `runtime.play.animals.spawn(kind,
 x, z, yaw, variant?, placement?)` and `.retire(animal)` are how the template spawns today. `variant` is an id
 or a weighted list of ids. Optional `placement` has shape `{ y?: number; fromY?: number }`, in world metres.
 Without `y`, spawn queries the first non-sensor **WORLD** floor below `(x, fromY, z)`; creature bodies are ignored.
@@ -1734,7 +1741,7 @@ The kit holds content that 2+ shards use (the rule of two). Content one shard us
 | `weapons/thrown` | `Thrown`, `ThrownProfile` |
 | `weapons/ui` | `SWAP_GLYPHS` |
 | `viewmodel` | `WeaponHands`, `HandHold`, `BUCKSKIN`, `HANDS_MATERIAL`, `coatMaterialParams`, `holdDef`, `withHunterPalette`, `blendGrip`, `gripPose`, `ARM_CLIPS`, `SWIM_CLIPS`, `armClipNames` |
-| `species` | `BOAR`, `BOAR_TUNING`, `BOAR_LOOK`, `BOAR_PALETTE`, `BEAR`, `BEAR_TUNING`, `BEAR_LOOK`, `BEAR_PALETTE`, `installKitSpecies`; `installKitIcons` (the creature, item and weapon icons, moved from the engine, E405); `installKitProps` (the interactables' props and models, `INTERACT_PROPS`, moved from the engine, E417); `installKitPickups` (the pickup looks a pickup row names: flint, coin, sea glass, resin, token, glyph shard; moved from the engine's interactables, E405) |
+| `species` | the species rows, lofts and `installKitSpecies` moved to `@wildshard/game/systems/species/*` (SF54); `installKitIcons` (the creature, item and weapon icons, moved from the engine, E405); `installKitProps` (the interactables' props and models, `INTERACT_PROPS`, moved from the engine, E417); `installKitPickups` (the pickup looks a pickup row names: flint, coin, sea glass, resin, token, glyph shard; moved from the engine's interactables, E405) |
 | `effects` | `STARTER_EFFECTS`, `STARTER_CHOICES`, `StarterChoice`, `starterId`, `installStarterEffects` |
 | `npc` | `NpcRig`, `NpcRow`, `NpcModel`, `NpcFace`, `rigLegs`, `legRigOf`, `legBones`, `legPose`, `footPlan`, `LEG_BONE_NAMES`, `WALK`, `LegBuilt`, `NpcRigProfile`, `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`, `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`, `faceHead`, `loadFaceHead`, `FaceHead` |
 | `tools` | `Hoverboard`, `HOVERBOARD_TOOL` (all four shards; its `board` movement mode stays engine) |

@@ -1,4 +1,4 @@
-// The elk, a kit creature (moved from the engine's species folder, E405 LAYER-PURITY); installKitSpecies registers it.
+// The elk, a shared creature (moved from the engine's species folder, E405 LAYER-PURITY; out of the kit, SF54); installKitSpecies registers it.
 // A level adds its own spawn-only variants (Pine Hollow's thrall: src/shards/pine-hollow/species/rows.ts).
 import * as THREE from 'three';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';

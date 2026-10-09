@@ -5,7 +5,7 @@
  * the island keeps spawning and drawing every copy as before.
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
-import { bear, boar } from '@wildshard/kit/models/creatures'; // the creature rows build from registered species: the roster's own entry
+import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './models/creatures';
 import { castaway } from './models/people';
 import { GEAR } from './models/gear';

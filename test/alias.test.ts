@@ -7,7 +7,7 @@ import { execPath } from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { PACK_SLOTS } from '@wildshard/game/Inventory';
-import { createForestAudio } from '@wildshard/kit/audio/forest';
+import { createForestAudio } from '@wildshard/game/systems/audio/forest';
 import { ALIAS_FIXTURE_PARAM } from '../src/engine/aliasFixture';
 import aliasArt from '../src/engine/aliasFixture.webp';
 import { importedConst } from '../lint/wildshard-plugin.js';

@@ -4,7 +4,7 @@ import { registeredSpecies, registerSpecies } from '../../src/engine/entities/sp
 import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '../../src/engine/entities/AnimalFactory';
 import { Scope } from '../../src/engine/app/scope';
 import { app } from '../../src/engine/app/runtime';
-import { BOAR } from '../../src/kit/species/boar';
+import { BOAR } from '../../src/game/systems/species/boar';
 import { fakeWorld } from '../fake/world';
 
 const look = (): SpeciesLook => ({ ...registeredSpecies('boar'), id: 'test.look.ray', species: 'test.ray', kind: 'boar', variants: {}, rig: 'custom', preload: () => Promise.resolve() });

@@ -1,7 +1,7 @@
 // E297 (DRIFTWOOD-TOP10 row 1): one set of fight rules for every enemy on Driftwood — at most 2 attack at once (attack
 // tokens), engaged boars circle back and charge again instead of fleeing (reengage). Each shard may declare its own cap.
-import { BOAR } from '../src/kit/species/boar';
-import { BEAR } from '../src/kit/species/bear';
+import { BOAR } from '../src/game/systems/species/boar';
+import { BEAR } from '../src/game/systems/species/bear';
 import { describe, expect, it } from 'vitest';
 import { reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '../src/engine/entities/fightRules';
 import { AttackTokens, AggressionDirector } from '../src/engine/ai/director';

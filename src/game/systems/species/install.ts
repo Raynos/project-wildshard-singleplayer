@@ -4,8 +4,8 @@ import { BOAR } from './boar';
 import { DEER } from './deer';
 import { ELK } from './elk';
 import { BEAR } from './bear';
-import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
-import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
+import { BOAR_LOOK } from './view/boar';
+import { BEAR_LOOK } from './view/bear';
 
 /** Composition root defaults for legacy shards and standalone model tools. Plugins add scoped child rows. */
 export function installKitSpecies(): void {

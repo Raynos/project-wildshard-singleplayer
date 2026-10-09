@@ -770,11 +770,6 @@
     "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
   },
   {
-    "path": "src/kit/models/",
-    "file": "scripts/check-models.mjs",
-    "why": "Model-folder rule also permits future rule-of-two kit models; no kit model has moved yet at F6."
-  },
-  {
     "path": "src/models/glb.ts",
     "file": "scripts/normalize/classify.mjs",
     "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."

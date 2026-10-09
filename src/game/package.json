@@ -13,9 +13,12 @@
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
     "./models/pickups": "./models/pickups.ts",
+    "./models/creatures": "./models/creatures.ts",
     "./systems/npc/npcRig": "./systems/npc/npcRig.ts",
     "./systems/species/view/bear": "./systems/species/view/bear.ts",
     "./systems/species/view/boar": "./systems/species/view/boar.ts",
+    "./systems/species/bear": "./systems/species/bear.ts",
+    "./systems/species/boar": "./systems/species/boar.ts",
     "./shardfile/reportCard": "./shardfile/reportCard.ts",
     "./grid/memoryAdmission": "./grid/memoryAdmission.ts",
     "./grid/regionalRuntime": "./grid/regionalRuntime.ts",
@@ -148,6 +151,7 @@
     "./shardfile/validationReceipt": "./shardfile/validationReceipt.ts",
     "./systems/audio/weaponVoices": "./systems/audio/weaponVoices.ts",
     "./systems/audio/silentScore": "./systems/audio/silentScore.ts",
+    "./systems/audio/forest": "./systems/audio/forest.ts",
     "./systems/effects/starter": "./systems/effects/starter.ts"
   }
 }

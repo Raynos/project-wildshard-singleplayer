@@ -29,7 +29,7 @@ describe("Pine Hollow's roster (E315 M5)", () => {
     for (const id of ids) {
       const m = defined.get(id);
       expect(m, id).toBeDefined();
-      expect(id.startsWith('shared/') ? /^src\/(engine|kit)\/models\//u.test(m?.file ?? '') : m?.file.startsWith('src/shards/pine-hollow/models/'), `${id} file`).toBe(true);
+      expect(id.startsWith('shared/') ? /^src\/(engine|game)\/models\//u.test(m?.file ?? '') : m?.file.startsWith('src/shards/pine-hollow/models/'), `${id} file`).toBe(true);
       expect(m?.category, id).toBe(['pine-hollow/ranger-hale', 'pine-hollow/miller-brandt', 'pine-hollow/trader-mott'].includes(id) ? 'people' : gear.has(id) ? 'gear' : 'creatures');
     }
     expect(ids).toEqual([

@@ -39,8 +39,8 @@ describe('shard rosters (E315 M5)', () => {
         expect(m, id).toBeDefined();
         expect(TABS.has(m?.category ?? ''), `${id} tab`).toBe(true);
         // Include hidden and experimental rosters. Definitions live in models/, but their build source may be weapons/ or world/.
-        // a shared model is the engine's (the swim hands) or the kit's (the creatures, E405); a level's own lives in its folder
-        expect(id.startsWith('shared/') ? /^src\/(engine|kit)\/models\//u.test(m?.file ?? '') : m?.file.startsWith(`src/shards/${def.slug}/`), `${id} file ownership`).toBe(true);
+        // a shared model is the engine's (the swim hands) or the game's (the creatures, E405 / SF54); a level's own lives in its folder
+        expect(id.startsWith('shared/') ? /^src\/(engine|game)\/models\//u.test(m?.file ?? '') : m?.file.startsWith(`src/shards/${def.slug}/`), `${id} file ownership`).toBe(true);
         if (m === undefined) throw new Error(`${id}: no defined model`);
         expect(m.file.split('/'), `${id} source stays within its owner`).not.toContain('..');
         expect((TRACKED?.has(m.file) ?? true) && existsSync(new URL(m.file, ROOT)), `${id}: tracked source ${m.file}`).toBe(true);

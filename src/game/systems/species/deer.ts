@@ -1,4 +1,4 @@
-// The red deer, a kit creature (moved from the engine's species folder, E405 LAYER-PURITY); installKitSpecies registers it.
+// The red deer, a shared creature (moved from the engine's species folder, E405 LAYER-PURITY; out of the kit, SF54); installKitSpecies registers it.
 import * as THREE from 'three';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';

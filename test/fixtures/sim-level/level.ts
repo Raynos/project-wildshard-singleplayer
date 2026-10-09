@@ -1,4 +1,4 @@
-import { BOAR } from '@wildshard/kit/species/boar';
+import { BOAR } from '@wildshard/game/systems/species/boar';
 import { IRON_SWORD } from '@wildshard/kit/weapons/equipment';
 import type { SimCommand, SimLevel } from '@wildshard/engine/sim';
 

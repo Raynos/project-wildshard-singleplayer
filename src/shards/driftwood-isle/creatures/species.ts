@@ -1,6 +1,6 @@
 import { deriveSpecies } from '@wildshard/engine/ai/species';
-import { BEAR } from '@wildshard/kit/species/bear';
-import { BOAR, BOAR_TUNING } from '@wildshard/kit/species/boar';
+import { BEAR } from '@wildshard/game/systems/species/bear';
+import { BOAR, BOAR_TUNING } from '@wildshard/game/systems/species/boar';
 
 /** The beach's long sight lines and variant pool, kept out of the shared hunting family. */
 export const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];

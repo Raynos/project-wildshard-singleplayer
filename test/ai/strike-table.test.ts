@@ -1,6 +1,6 @@
 import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
-import { BOAR } from '../../src/kit/species/boar';
-import { BEAR } from '../../src/kit/species/bear';
+import { BOAR } from '../../src/game/systems/species/boar';
+import { BEAR } from '../../src/game/systems/species/bear';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';

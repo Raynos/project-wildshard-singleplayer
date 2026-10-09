@@ -11,7 +11,7 @@ import { setLowPoly, isLowPoly } from '../../../../src/engine/entities/species/l
 import { mergeAnimalGeometry } from '../../../../src/engine/models/animalGeometry';
 import { facetGeometry, lowPolyMaterials, oneMaterial } from '../../../../src/engine/entities/lowpoly';
 import { Rng } from '../../../../src/engine/core/rng';
-import { BOAR } from '../../../../src/kit/species/boar';
+import { BOAR } from '../../../../src/game/systems/species/boar';
 import { BOAR_LOOK } from '../../../../src/game/systems/species/view/boar';
 import { GREY_BLOB_SOURCE, GREY_BLOB_SOURCE_LOOK } from './greyBlobSource';
 import { rigLegs } from '../../../../src/shards/pine-hollow/quest/npcRig';

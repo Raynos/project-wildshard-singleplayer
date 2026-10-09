@@ -196,7 +196,7 @@ export function areaOf(file) {
   const m = SHARD_FILE.exec(file);
   if (m) return m[1];
   if (PINE_WORLD.test(file)) return 'pine-hollow';
-  if ((file.startsWith('src/engine/models/') || file.startsWith('src/game/models/') || file.startsWith('src/kit/models/'))) return 'models (contract)';
+  if ((file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'))) return 'models (contract)';
   return 'shared (src/world, src/player, src/entities, …)';
 }
 
@@ -294,13 +294,13 @@ export function checkModels(files) {
     const code = strip(text), own = constsIn(code);
     const value = (lit, name) => lit ?? own.get(name) ?? globalConsts.get(name);
     for (const m of code.matchAll(/\bregisterSpecies\(\{[^}]*?\bkind:\s*(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) speciesKinds.set(k, file); }
-    if (SHARD_MODELS.test(file) || (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/') || file.startsWith('src/kit/models/'))) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
+    if (SHARD_MODELS.test(file) || (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'))) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
   }
   for (const [kind, file] of speciesKinds) if (!modelled.has(kind)) violations.push(`${file}: the species '${kind}' is no model — define it in a models folder with creature('${kind}') (src/engine/models/creature.ts) and list it in its shard's roster`);
   const bump = (area, key, n) => { if (n === 0) return; const r = report.get(area) ?? {}; r[key] = (r[key] ?? 0) + n; report.set(area, r); };
   for (const [file, text] of Object.entries(texts)) {
     const code = text.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''); // comments don't count
-    const inShardModels = SHARD_MODELS.exec(file), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/') || file.startsWith('src/kit/models/'));
+    const inShardModels = SHARD_MODELS.exec(file), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'));
     const defines = [...code.matchAll(/defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
     const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0);
     if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
