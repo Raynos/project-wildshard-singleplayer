@@ -7,6 +7,9 @@ import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/eng
 import { PINE_GROUND_RES, pineBake, type PineBake } from './baked';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
+import { installPineKing } from './king';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { PINE_DAY } from '../look/dayKeys';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
  *  brain's ground, the bodies' ground follow) and the navmesh (the brain's paths). Pine's shardfile admits no assets. */
@@ -47,8 +50,9 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * herds, decisions, hit reactions and charges (runtime/roster.ts), restored exactly by an identical install (the roster is
  * the stream's, the same every boot) before the host restores, and the four named elites' fights under the game's elite rules
  * (runtime/elites.ts: the page's own scripts), with their live spawns (an elite's respawn, the Imperial Bull's rivals) and the
- * roar's stun. Not yet owned (fail-closed, see the SF72 handoff): the day-night clock, the Antler King, the player's weapons,
- * the quest and its facts, and the entry proof; `finish` refuses.
+ * roar's stun, and the Antler King on the boss row (runtime/king.ts: the page's own fight, combat/kingFight.ts, his prewarm
+ * body, his thralls as live spawns). The page's day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the player's
+ * weapons, the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
@@ -70,21 +74,29 @@ export interface PineInstall {
   readonly spawnY: number;
   /** a restoring host's decoded continuation (its live spawns are reinstalled at install) */
   readonly saved?: PineRosterPorts['saved'];
-  /** PineDayNight's dusk / night (none headless yet: never dusk) */
+  /** PineDayNight's dusk / night, held by a test (absent: the host's day clock, the page's own) */
   readonly dusk?: () => number; readonly night?: () => number;
 }
 
-/** Install Pine's world, elites and roster on a host, in the page's order (the trusted runtime's `install`). */
-export function installPine(host: SimHost, parts: PineInstall): { roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites> } {
+/** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
+export function installPine(host: SimHost, parts: PineInstall): { roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing> } {
   const { bake, grid, nav, heightAt } = parts;
+  // the page's own day clock (look/dayKeys.ts PINE_DAY, as PineDayNight builds it), stepped by the host before every step and
+  // restored from the snapshot's `day` (a restoring install installs it again); `SimLevel.day.start` starts a witness near dusk
+  const day = host.useDayClock(new DayCycle(PINE_DAY));
+  const dusk = parts.dusk ?? ((): number => day.dusk), night = parts.night ?? ((): number => day.night);
   // the roster's creature floor casts into this world at install, restoring too (the saved physics then replaces it)
   addPineWorld(host, bake);
   // the elites' step first (the page's elites tick before its creature manager), on the roster's lair bodies
   let roster: ReturnType<typeof installPineRoster> | null = null;
   const live = (): ReturnType<typeof installPineRoster> => { if (roster === null) throw new Error('Pine roster is not installed'); return roster; };
   const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? [], heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
-    retire: a => { live().retire(a); }, ...(parts.dusk === undefined ? {} : { dusk: parts.dusk }), ...(parts.night === undefined ? {} : { night: parts.night }) });
+    retire: a => { live().retire(a); }, dusk, night });
+  // the King's steps next (the page ticks him after the elites, before its creature manager), before any live spawn
+  const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
+    spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), retire: a => { live().retire(a); }, find: id => live().actor(id),
+    night });
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
-  return { roster, elites };
+  return { roster, elites, king };
 }

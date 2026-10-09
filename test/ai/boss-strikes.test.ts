@@ -106,7 +106,7 @@ describe('boss contacts executed through original production methods', () => {
   it('S39 fallen lanterns deliver9 per .8s only inside the3m fire zone', () => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop), flame = visual();
     const fight = legacyActor(AntlerKingFight.prototype, { ctx: { reach: () => true, player: { position: new THREE.Vector3() }, hurt },
-      fallen: [{ fallT: 1, x: 0, y: 0, z: 0, flame, ring: tell(), acc: 0 }], darkK: 0, won: false, king: f.animal });
+      lanterns: [{ fallT: 1, x: 0, y: 0, z: 0, acc: 0 }], fallen: [{ flame, ring: tell() }], darkK: 0, won: false, king: f.animal });
     invokeLegacy(fight, 'hazards', 0.79, 0, true); expect(hurt).not.toHaveBeenCalled();
     invokeLegacy(fight, 'hazards', 0.02, 0.81, true); expect(hurt).toHaveBeenCalledWith(f.animal, 9, true);
   });

@@ -41,8 +41,8 @@ export interface PineRosterPorts {
   readonly nav: HuntNav | null;
   /** the level's authored spawn height (shard.config.ts `spawn.y`): the manager's spawn ray starts a metre over it or the ground */
   readonly spawnY: number;
-  /** a restoring host's decoded continuation (SimSnapshot's adapters): its live spawns are reinstalled, in order, after the roster's step */
-  readonly saved?: { readonly adapters: readonly { readonly id: string; readonly state: unknown }[] } | undefined;
+  /** a restoring host's decoded continuation (SimSnapshot's adapters and entities): its live spawns are reinstalled, in the host's order, after the roster's step */
+  readonly saved?: { readonly adapters: readonly { readonly id: string; readonly state: unknown }[]; readonly entities: readonly { readonly id: string }[] } | undefined;
 }
 
 const finite = v.pipe(v.number(), v.finite());
@@ -54,7 +54,7 @@ const Saved = v.strictObject({ version: v.literal(3), rng: Stream, clock: finite
   herds: v.array(v.tuple([finite, finite])) });
 const Point = v.strictObject({ x: finite, y: finite, z: finite });
 /** The host's own recipe of a live spawn (SimHost.spawn's `runtime.actor.<id>` contract), checked before it is reinstalled. */
-const Recipe = v.looseObject({ id: v.string(), spec: v.looseObject({ variant: v.string() }), seed: finite, scale: finite, at: Point, yaw: finite });
+const Recipe = v.looseObject({ id: v.string(), spec: v.looseObject({ kind: v.string(), variant: v.string() }), seed: finite, scale: finite, at: Point, yaw: finite });
 type SavedMemory = v.InferOutput<typeof Memory>;
 const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Pine hunting path'); return [p.x, p.y, p.z]; };
 /** A body's hunting memory as plain values (its path's points as triples). */
@@ -100,8 +100,10 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * the recipe the bake read for that kind and variant, the creature floor a metre over the spawn height or the ground, its
  * memory (three more draws); it joins the end of the list and the host's dynamic roster. A restoring install reinstalls
  * every saved live spawn from the host's own recipe, in the saved order, after this step (the host snapshots in registration
- * order). The four elites' fights run beside it (runtime/elites.ts), on these bodies. Not yet owned (fail-closed,
- * progress/shard-platform/handoffs/sf72-pine.md): the Antler King and the rain's wander goals.
+ * order). The four elites' fights run beside it (runtime/elites.ts), on these bodies, and the Antler King's (runtime/king.ts:
+ * his parked prewarm body made real out of the list, `adoptParked`; his thralls are live spawns). A restoring install
+ * reinstalls every saved body the boot did not make in the host's own order, listed or not. Not yet owned (fail-closed,
+ * progress/shard-platform/handoffs/sf72-pine.md): the rain's wander goals.
  */
 export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: HuntBrain<HuntBody>;
@@ -109,6 +111,10 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
   /** AnimalManager.retire: out of the list, the brain and the host */
   retire: (a: HuntBody) => void;
+  /** a parked prewarm body (the Antler King's) as a host body at (x, z), kept out of the list */
+  adoptParked: (id: string, x: number, z: number, yaw: number) => PineHuntBody;
+  /** a body this roster made (listed or not) by entity id */
+  actor: (id: string) => PineHuntBody | null;
 } {
   const { bake, grid } = ports, rng = new Rng(PINE_HERD_STREAM), player = host.player.position;
   // the page's distance bands (engine/sim/bands.ts, Pine overrides no tier ticks): the scheduler's 'ai' rate for the herds
@@ -134,7 +140,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   let next = 0, booted = false;
   /** the bake's recipe for a kind and variant (every body of one kind and variant reads the same row) */
   const recipeOf = (kind: string, variant: string): AnimalSimSpec => {
-    const row = bake.actors.find(a => a.kind === kind && a.variant === variant);
+    // the King's prewarm rows carry his own recipe and the thralls' (the page parks them; a live thrall or King reads them)
+    const row = bake.actors.find(a => a.kind === kind && a.variant === variant) ?? bake.parked.find(a => a.kind === kind && a.variant === variant);
     if (row === undefined) throw new Error(`Pine bake has no ${kind} '${variant}' to spawn live`);
     return row.spec;
   };
@@ -165,14 +172,18 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     return { id, spec: row.spec, seed: r.seed, scale: r.scale, variant: r.variant.id };
   };
   const seen: boolean[] = [];
+  /** every body this roster made, listed or kept out of the list by a fight, by entity id */
+  const made = new Map<string, PineHuntBody>();
   /** the host body of a recipe on the creature floor a metre over the spawn height or the ground, out of any herd */
-  const materialize = (recipe: SimSpawn, kind: string): PineHuntBody => {
+  const materialize = (recipe: SimSpawn, kind: string, listed = true): PineHuntBody => {
     const { x, z } = recipe.at, at = creatureFloor(x, z, Math.max(ports.spawnY, heightAt(x, z)) + 1);
     recipe.at.y = at.y;
     const a: PineHuntBody = Object.assign(host.spawn(recipe), { ...HUNT_BODY });
     a.levelGround = at.structure;
     if (at.structure) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
     a.herd = -1;
+    made.set(recipe.id, a);
+    if (!listed) return a;
     if (list.length >= LIVE_MAX) throw new Error('Pine roster is full');
     list.push({ id: recipe.id, kind, actor: a, scripted: false }); seen.push(false);
     return a;
@@ -185,7 +196,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   };
   const retire = (a: HuntBody): void => {
     const i = list.findIndex(b => b.actor === a); if (i !== -1) { list.splice(i, 1); seen.splice(i, 1); }
-    hunt.forget(a); host.retire(a.entityId);
+    hunt.forget(a); host.retire(a.entityId); made.delete(a.entityId);
   };
   Array.from(hunt.placeHerds(PINE_FAUNA, SPAWN, spawn)); // every herd in one go
   swapRolledElites({ bodies: list.map(b => b.actor), herds: hunt.herds, retire, spawn });
@@ -267,18 +278,27 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   // a restoring install: the saved list's live spawns from the host's own recipes, in order (a body retired in play leaves it)
   const saved = ports.saved, keeper = saved === undefined ? undefined : v.parse(Saved, saved.adapters.find(adapter => adapter.id === ROSTER_STEP)?.state);
   if (saved !== undefined && keeper !== undefined) {
-    const kept = new Set(keeper.bodies.map(b => b.id));
+    const kept = new Map(keeper.bodies.map(b => [b.id, b] as const));
     [...list].forEach(b => { if (!kept.has(b.id)) retire(b.actor); });
-    keeper.bodies.forEach(b => {
-      if (list.some(x => x.id === b.id)) return;
-      const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${b.id}`)?.state;
-      if (typeof contract !== 'string') throw new Error(`Missing saved Pine body ${b.id}`);
-      const checked = v.parse(Recipe, JSON.parse(contract));
-      if (checked.id !== b.id) throw new Error(`Incompatible saved Pine body ${b.id}`);
-      const a = materialize({ id: b.id, spec: recipeOf(b.kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, b.kind);
-      hunt.adopt(a, checked.at.x, checked.at.z); // its memory: the continuation overwrites it and the stream it drew from
+    // every saved body the boot did not make, in the host's own order: the live spawns in the list, and the bodies a fight
+    // keeps out of it (the Antler King's: his species thinks nothing, the fight drives him)
+    saved.entities.forEach(({ id }) => {
+      if (host.entities.has(id)) return;
+      const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${id}`)?.state;
+      if (typeof contract !== 'string') throw new Error(`Missing saved Pine body ${id}`);
+      const checked = v.parse(Recipe, JSON.parse(contract)), b = kept.get(id), kind = b?.kind ?? checked.spec.kind;
+      if (checked.id !== id) throw new Error(`Incompatible saved Pine body ${id}`);
+      const a = materialize({ id, spec: recipeOf(kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, kind, b !== undefined);
+      if (b !== undefined) hunt.adopt(a, checked.at.x, checked.at.z); // its memory: the continuation overwrites it and the stream it drew from
     });
     if (keeper.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible Pine roster continuation');
   }
-  return { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant), retire };
+  /** a parked prewarm body made real where the page spawned it, out of the list (the King when he first comes): no draws */
+  const adoptParked = (id: string, x: number, z: number, yaw: number): PineHuntBody => {
+    const row = parked.find(p => p.id === id);
+    if (row === undefined) throw new Error(`Pine has no parked body ${id}`);
+    return materialize({ id, spec: row.spec, seed: row.seed, scale: row.scale, at: { x, y: 0, z }, yaw }, row.kind, false);
+  };
+  return { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant), retire, adoptParked,
+    actor: id => made.get(id) ?? null };
 }

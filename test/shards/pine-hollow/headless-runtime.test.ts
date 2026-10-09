@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { execPath } from 'node:process';
 import { Vector3 } from 'three';
 import { beforeAll, expect, it } from 'vitest';
-import { createSimHost, type SimHost } from '../../../src/engine/sim';
+import { createSimHost, type SimHost, type SimLevel } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
@@ -22,7 +22,8 @@ import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRos
 import { PINE_LEVEL_SEED, pineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
-import { BEAR_CAVE } from '../../../src/shards/pine-hollow/layout';
+import { BEAR_CAVE, KINGS_CLEARING } from '../../../src/shards/pine-hollow/layout';
+import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan, basis: Uint8Array;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
@@ -253,23 +254,23 @@ it('imports the trusted headless runtime, the elites\' goals and the bare lane w
 });
 
 /** Pine's install parts as the trusted runtime builds them, with a day-night clock the test holds (headless has none yet). */
-function pineParts(dusk?: number): PineInstall {
+function pineParts(dusk?: number, night = 0): PineInstall {
   const bytes = readFileSync(PINE_NAVMESH_ASSET), nav = parseNavmesh(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   if (nav === null) throw new Error('navmesh');
   nav.datum = () => 0;
   return { bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y,
-    ...(dusk === undefined ? {} : { dusk: () => dusk, night: () => 0 }) };
+    ...(dusk === undefined && night === 0 ? {} : { dusk: () => dusk ?? 0, night: () => night }) };
 }
-function bootWith(parts: PineInstall): { host: SimHost } & ReturnType<typeof installPine> {
-  const host = createSimHost(plan.level, { ...plan.ports, rapier });
+function bootWith(parts: PineInstall, level: SimLevel = plan.level): { host: SimHost } & ReturnType<typeof installPine> {
+  const host = createSimHost(level, { ...plan.ports, rapier });
   return { host, ...installPine(host, parts) };
 }
-function restoreWith(parts: PineInstall, saved: SimSnapshot): SimHost {
+function restoreWith(parts: PineInstall, saved: SimSnapshot, level: SimLevel = plan.level): SimHost {
   const decoded = roundTrip(saved);
-  return restoreSimHost(plan.level, { ...plan.ports, rapier }, decoded, fresh => { fresh.setHeightQuery(heightAt); installPine(fresh, { ...parts, saved: decoded }); });
+  return restoreSimHost(level, { ...plan.ports, rapier }, decoded, fresh => { fresh.setHeightQuery(heightAt); installPine(fresh, { ...parts, saved: decoded }); });
 }
-function exactAfter(parts: PineInstall, original: SimHost, ticks: number): void {
-  const saved = snapshotSimHost(original), restored = restoreWith(parts, saved);
+function exactAfter(parts: PineInstall, original: SimHost, ticks: number, level: SimLevel = plan.level): void {
+  const saved = snapshotSimHost(original), restored = restoreWith(parts, saved, level);
   try {
     expectSameSimSnapshot(snapshotSimHost(restored), saved);
     for (let tick = 0; tick < ticks; tick++) { original.step(still); restored.step(still); }
@@ -338,3 +339,38 @@ it('roots the player where Old Blackpaw\'s roar catches them for 1.3 s (the page
     expect(host.player.position.distanceTo(held)).toBeGreaterThan(0.2);
   } finally { host.dispose(); }
 }, 30_000);
+
+it('the Antler King comes at night on the boss row: his prewarm body (creature:161), the intro, phase II\'s thralls as live spawns, restored exactly mid-fight', () => {
+  const parts = pineParts(undefined, 1), { host, king } = bootWith(parts);
+  try {
+    // the player walks in through the stones' south gap: inside them (22 m) the fog closes and the intro runs
+    const at = new Vector3(KINGS_CLEARING.x, heightAt(KINGS_CLEARING.x, KINGS_CLEARING.z + 12) + 0.3, KINGS_CLEARING.z + 12);
+    host.player.motor.resetAt(at); host.player.position.copy(at);
+    const states = new Set<string>();
+    for (let tick = 0; tick < 600 && king.boss.state !== 'fight'; tick++) { host.step(still); states.add(king.boss.state); }
+    expect([...states]).toEqual(['intro', 'fight']); // armed and in the stones on the same tick
+    const body = king.fight.king;
+    expect([body?.entityId, body?.kind, body?.scripted]).toEqual(['creature:161', 'antler-king', true]);
+    expect(king.fight.hpFrac).toBe(1);
+    // past 60 %: the beat, then the lanterns fall and he rings his bells for two thralls (the next entity ids)
+    if (body === null) throw new Error('no King');
+    body.hp = Math.round(body.maxHp * 0.55);
+    for (let tick = 0; tick < 900 && !host.entities.has('creature:169'); tick++) host.step(still);
+    expect(king.boss.phase).toBe(1);
+    expect(['creature:168', 'creature:169'].map(id => { const a = host.entities.get(id); return [a?.kind, a?.variant, a?.scripted]; })).toEqual([['elk', 'thrall', true], ['boar', 'thrall', true]]);
+    exactAfter(parts, host, 60);
+  } finally { host.dispose(); }
+}, 30_000);
+
+it('steps the page\'s own day clock: a witness started just before dusk (SimLevel.day) hears the Imperial Bull bugle on his own; the clock restores exactly', () => {
+  const level: SimLevel = { ...plan.level, day: { start: PINE_PHASES.dusk - 0.002 } }, parts = pineParts(), { host, elites } = bootWith(parts, level), bull = elites.scripts[3];
+  try {
+    expect(host.dayClock?.dusk ?? 0).toBeGreaterThan(0.5);
+    standByElite(host, 'imperial', 30);
+    for (let tick = 0; tick < 900 && bull.rivals.length === 0; tick++) host.step(still);
+    expect(bull.rivals.map(r => r.a.entityId)).toEqual(['creature:168', 'creature:169']);
+    expect(snapshotSimHost(host).day).toBeDefined();
+    exactAfter(parts, host, 60, level);
+  } finally { host.dispose(); }
+}, 30_000);
+

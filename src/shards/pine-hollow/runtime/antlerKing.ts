@@ -1,8 +1,8 @@
 import { pineScore } from '../runtime/audio/score';
 import { installEnteredKingBindings } from './kingLifetime';
-import { AntlerKingGoals } from './KingGoals';
+import { AntlerKingCore, KING_FOG_R, kingTick, type KingLantern } from '../combat/kingFight';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { PINE_LANES, PINE_STRIKES, pineContact } from '../combat/strikes';
+import { PINE_LANES } from '../combat/strikes';
 import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
@@ -19,7 +19,6 @@ import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 import * as THREE from 'three';
-import type { BossScript, BossState } from '@wildshard/engine/ai/BossBrain';
 import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 import { PINE_PHASES } from '../look/dayKeys';
@@ -29,7 +28,6 @@ import { FogWall, Puffs, flameCard } from '../combat/fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
-import { KING_PHASE_AT, burnTick, headingTo, wallPush } from '../combat/combatMath';
 import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 
 /**
@@ -71,25 +69,6 @@ import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 
 export const KING_KIND = 'antler-king';
 const C = KINGS_CLEARING;
-const ARENA_IN = 22, WALL_R = 27.5, FOG_R = 31, KING_R = 24;
-/**
- * His reach, measured on his own hull (E350 F-X2: scripts/e350-king-measure.mjs poses kingRig.ts's clips on the GLB; world
- * m from his origin, the point between his hooves). The fight was tuned on the elk-rig King (a 10 m sweep, a 3.5 m stomp, a
- * 4.2 m lane); these put every hit where his body visibly is. Timings and damage are unchanged. The player is 0.38 m wide.
- */
-/** the sweep: he dives and scythes the rack through a standing player's height (kingRig.ts clipSweep). His mesh touches a
- *  standing player (scripts/e350-king-measure.mjs --sweepmap: the skinned hull over the swing, both tiers) everywhere
- *  within 4 m and ±75° of his heading (his forelegs, chest and face come down on you), and out to 7.1 m from 45° to his
- *  right to 15° to his left (the rack's scythe): the blow is those two regions (7 % of the map's cells disagree, all on
- *  their edges; the old single arc disagreed on 19 %). The ring tells the scythe's reach; he stops walking in at 0.9 of it
- *  (the old 9 of 10 m) */
-
-/** the rearing strike's slam: the forehooves land 4.0 m ahead, ±1.7 m off his line (4.4 m out): the root ring bursts from there */
-const STOMP_R = 4.4;
-/** the lane charge: galloping past, his mesh touches a standing player up to 3.0 m off his line (his forelegs and the
- *  shoulders over them; --lanemap, every gait phase), so the lane is 5.2 m wide (LaneCharge catches you within half of it
- *  + 0.4 = 3.0 m; the elk-rig King's caught at 2.5); the contact reach 2.0 × his 2.6 scale = 5.2 m, his front (4.8 m) + the
- *  player */
 const AMBER_TELL = new THREE.Color(1.5, 0.62, 0.12), EMBER = new THREE.Color(2.6, 1.1, 0.3);
 
 let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
@@ -125,8 +104,7 @@ function tintThrall(a: Animal): void {
   if (m instanceof THREE.MeshStandardMaterial) m.color.multiply(MOSS);
 }
 
-interface Fallen { group: THREE.Group; flame: { mesh: THREE.Mesh; mat: FxMaterial }; ring: GroundTell; x: number; z: number; y: number; from: THREE.Vector3; fallT: number; acc: number }
-interface Thrall { a: Animal; lane: LaneCharge; mode: 'approach' | 'charge' }
+interface LanternView { group: THREE.Group; flame: { mesh: THREE.Mesh; mat: FxMaterial }; ring: GroundTell; from: THREE.Vector3 }
 
 /** a number some other system rewrites every frame (or never): scaled on top of whatever it holds this frame */
 class Dim {
@@ -136,25 +114,23 @@ class Dim {
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color();
 
-export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScript {
-  king: Animal | null = null;
+/**
+ * The page's King: the shared renderer-free fight (combat/kingFight.ts, AntlerKingCore: the BossScript, his moves, the root
+ * rings, the lanterns, the thralls, every roll from the level seed's King streams) plus its views: his model and its look
+ * (glow, ribcage, lanterns on the rack), the tells, the fog wall and the thick air, the fight's one light, the puffs, the
+ * impacts, and the declared body / thrall spawner of the page's creature manager.
+ */
+export class AntlerKingFight extends AntlerKingCore<Animal> {
   look: KingLook | null = null;
-  private invuln = false; private lockHp = 0;
   private readonly kit: KingKit;
   protected override readonly tellRing: GroundTell;
   protected override readonly waves: { g: GroundTell; r: number; on: boolean; hit: boolean; delay: number }[];
   protected override readonly lane: LaneCharge;
-  private readonly fallen: Fallen[] = [];
-  private thralls: Thrall[] = [];
-  private readonly thrallLanes: LaneCharge[];
+  protected override readonly thrallLanes: LaneCharge[];
+  private readonly fallen: LanternView[] = [];
   private readonly wall: FogWall;
   private readonly puffs: Puffs;
   private light: THREE.PointLight | null = null;
-  private sealK = 0; private sealed = false;
-  get weatherHold(): number { return this.sealK; }
-  private darkK = 0; private glow = 0; 
-  private present = false;
-  private won = false;
   // the dimmers (the sky rewrites these every frame; the fight scales them after it)
   private readonly dimFog = new Dim(); private readonly dimHemi = new Dim(); private readonly dimEnv = new Dim();
   private readonly dimLights: Dim[] = [];
@@ -177,12 +153,12 @@ export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScri
     this.waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
     this.lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, this.ctx.reach);
     this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, this.ctx.reach));
-    this.wall = new FogWall(scene, C.x, heightAt(C.x, C.z) - 2.5, C.z, FOG_R, 22);
+    this.wall = new FogWall(scene, C.x, heightAt(C.x, C.z) - 2.5, C.z, KING_FOG_R, 22);
     this.puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
     for (let i = 0; i < 3; i++) {
       const group = new THREE.Group(); group.visible = false; scene.add(group);
       const flame = flameCard(EMBER, 1.3, 1.9); scene.add(flame.mesh);
-      this.fallen.push({ group, flame, ring: new GroundTell(scene, 'ring', EMBER), x: 0, z: 0, y: 0, from: new THREE.Vector3(), fallT: -1, acc: 0 });
+      this.fallen.push({ group, flame, ring: new GroundTell(scene, 'ring', EMBER), from: new THREE.Vector3() });
     }
     // the fight's one light: taken from the scene's LightPool at boot (a constant light count — no recompile), dark
     // until the fight; released between fights so an elite's orb can borrow it
@@ -211,7 +187,7 @@ export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScri
       try {
         const a = this.ctx.animals.spawn(kind, C.x, C.z, 0, v.variant);
         if (v.tinted) tintThrall(a);
-        this.park(a); this.parked.push(a);
+        this.parkKing(a); this.parked.push(a);
       } catch (e) { console.warn('[antler-king] a thrall did not build', e); }
     }
   }
@@ -223,22 +199,20 @@ export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScri
     return g;
   }
 
+  // ── the page's bodies ──
+  protected override groundAt(x: number, z: number): number { return heightAt(x, z); }
   /** out of every list (AI, minimap, aim, hitboxes), hidden, but still in the scene */
-  private park(a: Animal): void {
+  protected override parkKing(a: Animal): void {
     a.hidden = true; a.mesh.visible = false;
     const i = this.ctx.animals.animals.indexOf(a); if (i !== -1) this.ctx.animals.animals.splice(i, 1);
   }
-  private unpark(a: Animal): void {
+  protected override unparkKing(a: Animal): void {
     a.hidden = false; a.mesh.visible = true;
     if (!this.ctx.animals.animals.includes(a)) this.ctx.animals.animals.push(a);
   }
-
-  private spawnKing(): Animal {
-    const old = this.king;
-    if (old) { this.look?.dispose(); retire(this.ctx.animals, old); }
+  protected override retireKing(k: Animal): void { this.look?.dispose(); this.look = null; retire(this.ctx.animals, k); }
+  protected override makeKing(): Animal {
     const a = this.body === undefined ? this.ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden') : this.body();
-    a.herd = -1;
-    this.king = a;
     pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 60, pinned: true }));
     this.look = dressAntlerKing(a, this.kit);
     // bark, not blood: splinters and embers where a bolt lands
@@ -254,260 +228,72 @@ export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScri
     else this.ctx.onDamage(onDamage);
     return a;
   }
-
-  private onRibs(p: THREE.Vector3): boolean { const l = this.look; return l !== null && p.distanceTo(l.ribcageWorld(_v)) < l.ribcageRadius; }
-
-  private damageMul(a: Animal, p: THREE.Vector3): number {
-    if (a !== this.king) return 1;
-    if (this.invuln || this.mode === 'dormant') return 0.01;
-    if (this.onRibs(p)) return this.open > 0.5 ? 3 : 0.6;
-    return 0.25;
+  protected override spawnThrall(kind: 'elk' | 'boar', x: number, z: number, yaw: number): Animal {
+    const a = spawnThrallFrom(this.spawner, kind, x, z, yaw, () => {
+      const v = thrallVariant(kind), actor = this.ctx.animals.spawn(kind, x, z, yaw, v.variant);
+      if (v.tinted) tintThrall(actor);
+      return actor;
+    });
+    own(a);
+    return a;
   }
-
-  // ── BossScript ──
-  get hpFrac(): number { const k = this.king; return k ? Math.max(0, k.hp / k.maxHp) : 0; }
-  get shielded(): boolean { return this.invuln; }
-  get dead(): boolean { return this.king !== null && !this.king.alive; }
-  inArena(p: THREE.Vector3): boolean { return this.present && Math.hypot(p.x - C.x, p.z - C.z) < ARENA_IN; }
-  seal(on: boolean): void { this.sealed = on; }
-  clampHp(frac: number): void { const k = this.king; if (k) { k.hp = Math.max(1, Math.round(k.maxHp * frac)); this.lockHp = k.hp; } }
-  setInvulnerable(on: boolean): void { this.invuln = on; if (on && this.king) this.lockHp = this.king.hp; }
-  rewardPoint(): THREE.Vector3 { return new THREE.Vector3(C.x, heightAt(C.x, C.z + 4) + 0.2, C.z + 4); }
-  respawnPoint(): { pos: THREE.Vector3; yaw: number } { return { pos: new THREE.Vector3(C.x, heightAt(C.x, C.z + 26), C.z + 26), yaw: 0 }; }
-
-  /** in the world tonight (true) or not at all */
-  setPresent(on: boolean): void {
-    if (on === this.present) return;
-    this.present = on;
-    const k = this.king;
-    if (on) { if (k === null || !k.alive) this.spawnKing(); else this.unpark(k); }
-    else {
-      if (k) { if (k.alive) this.park(k); else { this.look?.dispose(); retire(this.ctx.animals, k); this.king = null; this.look = null; } }
-      this.clearAdds(); this.hideTells(); this.setHazards(false);
-      this.sealed = false; this.mode = 'dormant';
-      if (this.light) { LightPool.for(this.ctx.game.scene).release(this.light); this.light = null; }
-    }
+  protected override retireThrall(actor: Animal): void {
+    if (this.spawner === null) retire(this.ctx.animals, actor);
+    else this.spawner.retire(actor);
   }
+  protected override onRibs(p: THREE.Vector3): boolean { const l = this.look; return l !== null && p.distanceTo(l.ribcageWorld(_v)) < l.ribcageRadius; }
 
-  reset(phase: number): void {
-    this.phase = phase; this.won = false;
-    if (!this.present) this.setPresent(true);
-    let k = this.king;
-    if (k === null || !k.alive) k = this.spawnKing();
-    k.place(C.x, C.z, 0);
-    k.hp = Math.max(1, Math.round(k.maxHp * (KING_PHASE_AT[phase] ?? 1)));
-    k.setMotion(0, 0, 1); k.lookWeight = 0; k.cancelAttack();
-    this.clearAdds(); this.hideTells();
-    this.look?.setLanternsHung(phase < 1);
-    this.setHazards(phase >= 1);
-    this.glow = 0.15; this.look?.setGlow(this.glow); this.open = 0;
-    this.darkK = 0;
-    this.mode = 'dormant';
-    this.sweepCd = 2; this.stompCd = 3; this.callCd = 0;
-  }
-
-  intro(t: number, short: boolean): THREE.Vector3 {
-    const k = this.king, look = this.look;
-    if (!k || !look) return _v.set(C.x, heightAt(C.x, C.z) + 4, C.z);
-    const len = short ? 1.4 : 4.2;
-    if (this.mode !== 'intro') { this.mode = 'intro'; this.modeT = 0; this.ctx.shot('king_bells', k.position); }
-    this.modeT = t;
-    this.glow = Math.max(0.15, THREE.MathUtils.smoothstep(t, 0.2, len * 0.75));
-    look.setGlow(this.glow);
-    k.lookTarget.copy(this.ctx.player.position); k.lookWeight = Math.min(1, t / (len * 0.5));
-    if (t > len * 0.6 && t - 1 / 30 <= len * 0.6) { this.ctx.shot('king_roar', k.position); voice(this.ctx.animals, 'bear_roar', k.position); }
-    this.acquireLight();
-    return look.ribcageWorld(_v);
-  }
-
-  begin(phase: number): void {
-    this.phase = phase; this.glow = 1; this.look?.setGlow(1);
-    this.setMode(phase === 2 ? 'stalk3' : 'stalk');
-    this.acquireLight();
-    if (phase >= 1 && this.thralls.length === 0) this.callCd = 1.5;
-  }
-
-  enterPhase(phase: number): void {
-    this.phase = phase;
-    this.hideTells(); this.lane.cancel();
-    if (phase === 1) { this.dropLanterns(); this.callCd = 1.2; this.setMode('stalk'); }
-    if (phase === 2) { this.setMode('stalk3'); this.laneN = 0; this.ctx.shot('king_roar', this.king?.position ?? _v.set(C.x, 0, C.z)); }
-  }
-
-  victory(): void {
-    this.won = true; this.mode = 'dead';
-    this.hideTells(); this.lane.cancel();
-    for (const th of this.thralls) { if (th.a.alive) { this.puffs.burst(_v.copy(th.a.position).setY(th.a.position.y + 1), 0.5, 2.5, 0.6, 0.7); this.retireThrall(th.a); } th.lane.cancel(); }
-    this.thralls = [];
-    this.setHazards(false);
-    this.glow = 0.25; this.look?.setGlow(this.glow); this.look?.setOpen(0, 0);
-    if (this.light) { LightPool.for(this.ctx.game.scene).release(this.light); this.light = null; }
-  }
-
-  update(dt: number, t: number, fighting: boolean): void {
-    const k = this.king, look = this.look;
-    // the seal: the fog wall + the thick air come in over ~2 s, and go the same way
-    this.sealK = THREE.MathUtils.clamp(this.sealK + (this.sealed ? dt / 2 : -dt / 2.5), 0, 1);
-    this.wall.alpha = 0.92 * this.sealK;
-    this.darkK = THREE.MathUtils.clamp(this.darkK + ((this.phase === 2 && !this.won && this.sealed) ? dt / 2.5 : -dt / 2), 0, 1);
-    this.wall.update(t, this.ctx.game.scene.fog instanceof THREE.Fog ? this.ctx.game.scene.fog.color : null);
-    this.puffs.update(dt, t);
-    this.hazards(dt, t, fighting);
-    if (!k || !look) return;
-    if (this.invuln && k.hp < this.lockHp) k.hp = this.lockHp;
-    if (this.sealed) this.softWall();
-    look.setOpen(Math.max(this.open, 0.35 * this.darkK), t);
-    this.updateLight();
-    if (!fighting || !k.alive) { this.open = Math.max(0, this.open - dt * 2); return; }
-    this.modeT += dt;
-    this.fight(k, dt, t);
-    this.tickThralls(dt, t);
-    // he never leaves the stones
-    const kd = Math.hypot(k.position.x - C.x, k.position.z - C.z);
-    if (kd > KING_R) {
-      k.position.x = C.x + (k.position.x - C.x) / kd * KING_R; k.position.z = C.z + (k.position.z - C.z) / kd * KING_R;
-      this.lane.recoverNow();
-    }
-  }
-
+  // ── the views ──
+  protected override glowTo(v: number): void { this.look?.setGlow(v); }
+  protected override lanternsHung(on: boolean): void { this.look?.setLanternsHung(on); }
+  protected override introFocus(k: Animal, out: THREE.Vector3): THREE.Vector3 { return this.look === null ? out.copy(k.position) : this.look.ribcageWorld(out); }
   protected override action(k: Animal, move: 'roar' | 'sweep' | 'strike' | 'brace'): void {
     act(k, { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE }[move]);
   }
   protected override roar(k: Animal): void { voice(this.ctx.animals, 'bear_roar', k.position); }
-
-
-  /** the stomp lands: dust, a shake, the root ring(s) race out */
-  protected override stompNow(k: Animal): void {
+  protected override stompFx(k: Animal): void {
     _v.set(k.position.x, k.position.y + 0.3, k.position.z);
     Impacts.for(this.ctx.game).burst('dirt', _v, _w.set(0, 1, 0), 24);
-    this.ctx.shot('king_stomp', k.position);
-    this.ctx.trauma(0.3);
-    const n = this.phase >= 1 ? 2 : 1;
-    this.waves.forEach((w, i) => { w.on = i < n; w.r = STOMP_R; w.hit = false; w.delay = i * 0.8; });
   }
-  protected override tickWaves(k: Animal, dt: number, t: number): void {
-    const p = this.ctx.player.position;
-    const pd = Math.hypot(p.x - C.x, p.z - C.z) < FOG_R ? Math.hypot(p.x - k.position.x, p.z - k.position.z) : Infinity;
-    for (const w of this.waves) {
-      if (!w.on) { w.g.hide(); continue; }
-      if (w.delay > 0) { w.delay -= dt; continue; }
-      w.r += dt * 10.5;
-      w.g.setTime(t);
-      w.g.ring(k.position.x, k.position.z, w.r, 0.95, 0.25);
-      if (!w.hit && pd !== Infinity) w.hit = pineContact(k, p, PINE_STRIKES.roots, (damage) => { this.ctx.hurt(k, damage, true); this.ctx.trauma(0.4); }, () => this.ctx.reach(k, p), { ringRadius: w.r, airborne: !this.ctx.player.onGround });
-      if (w.r > FOG_R) { w.on = false; w.g.hide(); }
-    }
+  protected override waveView(i: number, t: number, at: THREE.Vector3 | null): void {
+    const w = this.waves[i]; if (w === undefined) return;
+    if (at === null) { w.g.hide(); return; }
+    w.g.setTime(t); w.g.ring(at.x, at.z, w.r, 0.95, 0.25);
   }
-
-  // ── thralls ──
-  protected override aliveThralls(): number { return this.thralls.filter((th) => th.a.alive).length; }
-  protected override callThralls(n: number): void {
-    const p = this.ctx.player.position;
-    for (let i = 0; i < n; i++) {
-      const lane = this.thrallLanes.find((l) => !this.thralls.some((th) => th.lane === l && th.a.alive));
-      if (!lane) break;
-      const ang = Math.random() * Math.PI * 2, x = C.x + Math.sin(ang) * 27, z = C.z + Math.cos(ang) * 27;
-      const kind = i % 2 === 0 ? 'elk' : 'boar';
-      const a = spawnThrallFrom(this.spawner, kind, x, z, headingTo(x, z, p.x, p.z), () => {
-        const v = thrallVariant(kind), actor = this.ctx.animals.spawn(kind, x, z, headingTo(x, z, p.x, p.z), v.variant);
-        if (v.tinted) tintThrall(actor);
-        return actor;
-      });
-      own(a);
-      this.thralls = this.thralls.filter((th) => th.lane !== lane);
-      this.thralls.push({ a, lane, mode: 'approach' });
-      this.puffs.burst(_v.set(x, heightAt(x, z) + 1, z), 2.5, 0.6, 0.6, 0.6);
-      this.ctx.shot('thrall_call', a.position);
-    }
+  protected override thrallView(a: Animal, event: 'in' | 'out'): void {
+    if (event === 'in') this.puffs.burst(_v.set(a.position.x, heightAt(a.position.x, a.position.z) + 1, a.position.z), 2.5, 0.6, 0.6, 0.6);
+    else this.puffs.burst(_v.copy(a.position).setY(a.position.y + 1), 0.5, 2.5, 0.6, 0.7);
   }
-  private tickThralls(dt: number, t: number): void {
-    const p = this.ctx.player.position;
-    for (const th of this.thralls) {
-      const a = th.a;
-      if (!a.alive) { th.lane.cancel(); continue; }
-      a.lookTarget.copy(p); a.lookWeight = 1;
-      if (th.mode === 'charge') { th.lane.update(a, dt, t, p, (dmg) => { this.ctx.hurt(a, dmg); this.ctx.trauma(0.3); }); if (!th.lane.busy) th.mode = 'approach'; }
-      else {
-        const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-        a.setMotion(headingTo(a.position.x, a.position.z, p.x, p.z), d > 8 ? 4.8 : d > 4.5 ? 0.8 : 0, 2.5);
-        if (d < 11 && Math.random() < dt * 0.9) { th.lane.start(a, p.x, p.z, 0.7); th.mode = 'charge'; this.ctx.shot('thrall_groan', a.position); }
-      }
-      const ad = Math.hypot(a.position.x - C.x, a.position.z - C.z);
-      if (ad > WALL_R + 1) { a.position.x = C.x + (a.position.x - C.x) / ad * (WALL_R + 1); a.position.z = C.z + (a.position.z - C.z) / ad * (WALL_R + 1); }
-    }
-  }
-  private retireThrall(actor: Animal): void {
-    if (this.spawner === null) retire(this.ctx.animals, actor);
-    else this.spawner.retire(actor);
-  }
-  private clearAdds(): void {
-    for (const th of this.thralls) { th.lane.cancel(); this.retireThrall(th.a); }
-    this.thralls = [];
-  }
-
-  // ── the lanterns fall ──
-  private dropLanterns(): void {
-    const k = this.king, look = this.look;
-    if (!k || !look) return;
-    this.fallen.forEach((f, i) => {
-      look.lanternWorld(i, f.from);
-      const ang = k.yaw + (i - 1) * 2.1 + 0.35, r = 10 + i * 2.5;
-      f.x = C.x + Math.sin(ang) * r; f.z = C.z + Math.cos(ang) * r; f.y = heightAt(f.x, f.z);
-      f.fallT = 0; f.acc = 0;
-      f.group.visible = true; f.group.position.copy(f.from);
-    });
-    look.setLanternsHung(false);
-  }
-  /** on (placed where they burn, no fall — a checkpoint at phase II / III) or all out */
-  private setHazards(on: boolean): void {
-    this.fallen.forEach((f, i) => {
-      if (on) {
-        const ang = (i - 1) * 2.1 + 0.35, r = 10 + i * 2.5;
-        f.x = C.x + Math.sin(ang) * r; f.z = C.z + Math.cos(ang) * r; f.y = heightAt(f.x, f.z);
-        f.fallT = 1; f.group.visible = true; f.group.position.set(f.x, f.y + 0.3, f.z); f.group.rotation.set(1.3, i, 0.4);
-      } else { f.fallT = -1; f.group.visible = false; f.flame.mesh.visible = false; f.ring.hide(); }
-    });
-  }
-  private hazards(dt: number, t: number, fighting: boolean): void {
-    const p = this.ctx.player.position;
-    for (const f of this.fallen) {
-      if (f.fallT < 0) continue;
-      if (f.fallT < 1) {
-        f.fallT = Math.min(1, f.fallT + dt / 0.75);
-        const u = f.fallT;
-        f.group.position.set(f.from.x + (f.x - f.from.x) * u, f.from.y + (f.y + 0.3 - f.from.y) * u * u + Math.sin(u * Math.PI) * 2, f.from.z + (f.z - f.from.z) * u);
-        f.group.rotation.set(u * 1.3, u * 2, u * 0.4);
-        if (f.fallT >= 1) { this.ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); Impacts.for(this.ctx.game).burst('sparks', _v.set(f.x, f.y + 0.3, f.z), _w.set(0, 1, 0), 16); }
-        continue;
-      }
+  protected override lanternView(i: number, f: KingLantern, t: number, event: 'drop' | 'fall' | 'land' | 'burn' | 'out' | 'placed'): void {
+    const view = this.fallen[i]; if (view === undefined) return;
+    if (event === 'drop') { this.look?.lanternWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
+    else if (event === 'fall' || event === 'land') {
+      const u = f.fallT, from = view.from;
+      view.group.position.set(from.x + (f.x - from.x) * u, from.y + (f.y + 0.3 - from.y) * u * u + Math.sin(u * Math.PI) * 2, from.z + (f.z - from.z) * u);
+      view.group.rotation.set(u * 1.3, u * 2, u * 0.4);
+      if (event === 'land') { this.ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); Impacts.for(this.ctx.game).burst('sparks', _v.set(f.x, f.y + 0.3, f.z), _w.set(0, 1, 0), 16); }
+    } else if (event === 'burn') {
       const ember = this.darkK > 0 ? 1 - 0.5 * this.darkK : 1;
-      f.flame.mesh.visible = true; f.flame.mesh.position.set(f.x, f.y, f.z);
-      f.flame.mat.uniforms.uAlpha.value = 0.95 * ember; f.flame.mat.uniforms.uTime.value = t;
-      f.ring.setTime(t);
-      f.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
-      if (fighting && !this.won) {
-        let inside = false;
-        const actor = this.king;
-        if (actor) pineContact(actor, p, PINE_STRIKES.lantern, () => { inside = true; }, () => this.ctx.reach(actor, p), { origin: { x: f.x, y: f.y, z: f.z } });
-        const r = burnTick(f.acc, dt, inside, 0.8);
-        f.acc = r.acc;
-        const k = this.king;
-        if (r.bites > 0 && k) { this.ctx.hurt(k, PINE_STRIKES.lantern.damage * r.bites, true); }
-      }
-    }
+      view.flame.mesh.visible = true; view.flame.mesh.position.set(f.x, f.y, f.z);
+      view.flame.mat.uniforms.uAlpha.value = 0.95 * ember; view.flame.mat.uniforms.uTime.value = t;
+      view.ring.setTime(t);
+      view.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
+    } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + 0.3, f.z); view.group.rotation.set(1.3, i, 0.4); }
+    else { view.group.visible = false; view.flame.mesh.visible = false; view.ring.hide(); }
   }
-
-  // ── the room ──
-  private hideTells(): void { this.tellRing.hide(); for (const w of this.waves) { w.on = false; w.g.hide(); } this.lane.cancel(); }
-
-  /** the soft wall: past WALL_R you are shoved back in; never out past the fog */
-  private softWall(): void {
-    const pl = this.ctx.player, p = pl.position;
-    const dx = p.x - C.x, dz = p.z - C.z, d = Math.hypot(dx, dz);
-    const push = wallPush(d, WALL_R);
-    if (push > 0 && d > 1e-3) pl.shove(C.x + dx / d * (d + 2), C.z + dz / d * (d + 2), push);
-    if (d > FOG_R - 1) { p.x = C.x + dx / d * (FOG_R - 1.2); p.z = C.z + dz / d * (FOG_R - 1.2); }
+  /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame */
+  protected override room(dt: number, t: number): void {
+    this.wall.alpha = 0.92 * this.sealK;
+    this.wall.update(t, this.ctx.game.scene.fog instanceof THREE.Fog ? this.ctx.game.scene.fog.color : null);
+    this.puffs.update(dt, t);
+    const look = this.look;
+    if (this.king === null || look === null) return;
+    look.setOpen(Math.max(this.open, 0.35 * this.darkK), t);
+    this.updateLight();
   }
+  protected override lightOn(): void { this.light ??= LightPool.for(this.ctx.game.scene).acquire(0xffa040, 0, 18, 1.6); }
+  protected override lightOff(): void { if (this.light) { LightPool.for(this.ctx.game.scene).release(this.light); this.light = null; } }
+  override victory(): void { super.victory(); this.look?.setOpen(0, 0); }
 
   /** the fog closing (the seal) and the Last Light's dark, scaled on top of what the sky set this frame */
   private atmosphere(): void {
@@ -539,7 +325,6 @@ export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScri
     });
   }
 
-  private acquireLight(): void { this.light ??= LightPool.for(this.ctx.game.scene).acquire(0xffa040, 0, 18, 1.6); }
   /** I–II: the ribcage's amber on the stones; III: your lantern */
   private updateLight(): void {
     const l = this.light, look = this.look;
@@ -629,13 +414,7 @@ export class AntlerKing {
 
   /** every frame: the King comes at night when you are near, goes by day / when you are far; the fight runs */
   update(dt: number, t: number): void {
-    const p = this.host.ctx.player.position, d = Math.hypot(p.x - C.x, p.z - C.z);
-    const s: BossState = this.boss.state;
-    const night = this.night();
-    if (s === 'dormant') { if (night && d < 80) { this.fight.setPresent(true); this.boss.arm(); } }
-    else if ((s === 'armed' || s === 'victory') && (d > 110 || !night)) { this.boss.disarm(); this.fight.setPresent(false); }
-    this.boss.update(dt, t);
-    if (this.boss.state === 'dormant') this.fight.update(dt, t, false); // Boss.update ticks the script in every other state
+    kingTick(this.boss, this.fight, this.host.ctx.player.position, this.night(), dt, t);
   }
 
   onPlayerDeath(): boolean { return this.boss.onPlayerDeath(); }

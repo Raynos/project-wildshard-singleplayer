@@ -38,7 +38,7 @@ const tuning = [
   ['S25 Titan wind charge', `${nalati}stormTitan.ts`, { CHARGE_DMG: 30, LANE_T: 1.2, FLANK_T: 2, STUN_T: 4 }],
   ['S26 Titan chain', `${nalati}stormTitan.ts`, { CHAIN_DMG: 18, CHAIN_R: 3, CHAIN_LAND: 0.6 }],
   ['S27 Titan fire', `${nalati}stormTitan.ts`, { CELL: 4, BURN_T: 7, FIRE_DPS: 8 }],
-  ['S36 Antler King stomp', 'src/shards/pine-hollow/runtime/antlerKing.ts', { STOMP_R: 4.4 }],
+  ['S36 Antler King stomp', 'src/shards/pine-hollow/combat/kingFight.ts', { STOMP_R: 4.4 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
   it('S10/S18 read the live declared pack lunge and guarded-herd charge tuning', () => {
