@@ -14,6 +14,13 @@ import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { ROSTER_STEP } from '../../../src/shards/pine-hollow/runtime/roster';
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
+import { canReach } from '../../../src/engine/ai/reach';
+import type { HuntBody } from '../../../src/engine/ai/hunt';
+import { ironhideGoal } from '../../../src/shards/pine-hollow/combat/EliteGoals';
+import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
+import { PINE_LEVEL_SEED, pineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
+import { Lane } from '../../../src/shards/pine-hollow/combat/lane';
+import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
@@ -65,6 +72,42 @@ it('spawns the page\'s 164 load-time bodies in its list order, every kind, varia
     for (const id of ['creature:157', 'creature:161', 'creature:162', 'creature:163']) expect(host.entities.has(id)).toBe(false);
     const elites = bake.actors.filter(a => a.scripted).map(a => host.entities.get(a.id));
     expect(elites.map(a => a?.state)).toEqual(['sidestep', 'sidestep', 'sidestep', 'sidestep']);
+  } finally { host.dispose(); }
+});
+
+it('turns the four lair elites by the level seed\'s own streams, as the page does (no page salt, no Math.random)', () => {
+  expect(PINE_LEVEL_SEED).toBe(source.identity.seed);
+  const host = boot();
+  try {
+    const elites = bake.actors.filter(a => a.scripted).map(a => host.entities.get(a.id));
+    expect(elites.map(a => a?.yaw)).toEqual(Object.keys(PINE_ELITE_DEFS).map(id => pineEliteStreams(id).spawn.next() * Math.PI * 2));
+    // two boots of a seed draw the same fight; another seed draws another
+    const a = pineEliteStreams('ironhide'), b = pineEliteStreams('ironhide'), c = pineEliteStreams('ironhide', 7);
+    const rolls = (r: typeof a): number[] => Array.from({ length: 4 }, () => r.fight.next());
+    expect(rolls(a)).toEqual(rolls(b)); expect(rolls(c)).not.toEqual(rolls(pineEliteStreams('ironhide')));
+  } finally { host.dispose(); }
+});
+
+it('runs Old Ironhide\'s gore charge renderer-free: the goal over the bare lane on his roster body, one blow through the host', () => {
+  const host = boot();
+  try {
+    const def = PINE_ELITE_DEFS['ironhide'], body = [...host.entities.values()].find(a => a.kind === 'boar' && a.variant === 'ironhide');
+    if (def === undefined || body === undefined) throw new Error('no Old Ironhide');
+    const boar: HuntBody = Object.assign(body, { hidden: false, sampleTerrain: (): void => undefined });
+    const at = new Vector3(boar.position.x + 12, heightAt(boar.position.x + 12, boar.position.z) + 0.3, boar.position.z);
+    host.player.motor.resetAt(at); host.player.position.copy(at);
+    const streams = pineEliteStreams('ironhide'), hits: number[] = [], states = new Set<string>();
+    const reach = (a: HuntBody, p: { x: number; y: number; z: number }): boolean => canReach(a, p, host.physics);
+    const h = { env: { reach, player: host.player, trauma: (): void => undefined, god: false, dusk: () => 0, night: () => 0, stun: (): void => undefined },
+      def, mode: 'idle', modeT: 0, p2: false, again: false, lane: new Lane<HuntBody>(PINE_LANES.ironhide, reach),
+      toPlayer: (a: HuntBody) => { const p = host.player.position; return { d: Math.hypot(p.x - a.position.x, p.z - a.position.z), yaw: Math.atan2(p.x - a.position.x, p.z - a.position.z) }; },
+      setMode: (mode: string): void => { h.mode = mode; h.modeT = 0; }, sig: (): void => undefined, voice: (): void => undefined, next: () => streams.fight.next(),
+      hurt: (a: HuntBody, amount: number): void => { hits.push(amount); host.combat.hit({ source: 'env', sourceTags: ['creature.boar', 'feel.blow', 'cover.checked'], target: host.player.health, amount, point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } }); } };
+    host.onStep('test.ironhide', dt => { h.modeT += dt; ironhideGoal(h, boar, dt, host.clock.now); states.add(`${h.mode}.${h.lane.state}`); });
+    const before = host.player.health.attributes.health;
+    for (let tick = 0; tick < 600 && hits.length === 0; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(states).toContain('circle.none'); expect(states).toContain('charge.tell'); expect(states).toContain('charge.run');
+    expect(hits).toEqual([PINE_LANES.ironhide.damage]); expect(host.player.health.attributes.health).toBeLessThan(before);
   } finally { host.dispose(); }
 });
 
@@ -125,8 +168,8 @@ console.log(JSON.stringify({ refused, snapped: nav.closestWalkable({ x: 0, y: 0,
   expect(out.refused).toContain('No level has been configured'); expect(out.snapped).toBe(true);
 });
 
-it('imports the trusted headless runtime without DOM or renderer modules', () => {
+it('imports the trusted headless runtime, the elites\' goals and the bare lane without DOM or renderer modules', () => {
   const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
-    "const m = await import('./src/shards/pine-hollow/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
+    "const m = await import('./src/shards/pine-hollow/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); const g = await import('./src/shards/pine-hollow/combat/EliteGoals.ts'), l = await import('./src/shards/pine-hollow/combat/lane.ts'); if (typeof g.ironhideGoal !== 'function' || typeof l.Lane !== 'function') throw new Error('no goals'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });

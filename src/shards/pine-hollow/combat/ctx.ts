@@ -3,8 +3,8 @@ import { GroundTell } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { SkinId } from '../loadout/skins';
 import type { PhShot } from '../runtime/audio/sfx';
-import { inspectBrain } from '@wildshard/engine/ai/inspect';
-import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
+import { Lane, type LaneOptions } from './lane';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -71,65 +71,28 @@ export function retire(animals: AnimalManager, a: Animal): void {
 export function voice(animals: AnimalManager, name: string, at: THREE.Vector3): void { animals.onSound?.(name, at); }
 
 /**
- * A telegraphed LANE CHARGE (Old Ironhide's gore charge, the Imperial Bull's and his rivals', the thralls', the King's
- * Last Light): the lane is locked from the animal through where you stand (+ an overshoot) and painted on the ground for
- * `tell` s while it paws (Animal.startAttack's wind-up pose); then it runs the lane flat out and hits you once if you are
- * still in it when it arrives; then it skids to a stop (the shot window).
+ * A telegraphed LANE CHARGE as the page draws it (Old Ironhide's gore charge, the Imperial Bull's and his rivals', the
+ * thralls', the King's Last Light): the renderer-free lane (lane.ts: the tell, the run, the one hit, the skid) plus its
+ * painted ground decal, which keeps the frame's pre-transition drawing.
  */
-interface LaneOptions { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number }
-export class LaneCharge {
-  private readonly runner = new StrikeRunner();
-  private readonly o: LaneOptions;
-  private readonly spec: StrikeSpec;
-  private tellT = 1;
+export class LaneCharge extends Lane<Animal> {
   readonly tellDecal: GroundTell;
-  private readonly reach: PineCtx['reach'];
   constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: LaneOptions | StrikeSpec, reach: PineCtx['reach'] = () => true) {
-    this.reach = reach;
-    if ('shape' in row) {
-      if (row.shape.kind !== 'lane') throw new Error('Lane view requires a lane strike');
-      this.spec = row; this.o = { width: row.shape.width, speed: row.motion?.speed ?? 0, overshoot: row.motion?.overshoot ?? 0,
-        dmg: row.damage, skid: row.recover, reach: row.range };
-    } else {
-      this.o = row;
-      this.spec = { id: 'strike.lane', shape: { kind: 'lane', length: 0, width: row.width },
-        windup: 1, active: 0, recover: row.skid, cooldown: 0, range: row.reach, damage: row.dmg,
-        tags: ['creature.charge'], weight: () => 1,
-        motion: { speed: row.speed, track: 'lead', overshoot: row.overshoot, skid: row.skid } };
-    }
+    super(row, reach);
     this.tellDecal = new GroundTell(scene, 'lane', color);
   }
-  get state(): 'none' | 'tell' | 'run' | 'skid' {
-    return this.runner.state === 'windup' ? 'tell' : this.runner.state === 'active' ? 'run' : this.runner.state === 'recover' ? 'skid' : 'none';
-  }
-  get t(): number { return this.runner.time; }
-  get x0(): number { return this.runner.x0; }
-  get z0(): number { return this.runner.z0; }
-  get x1(): number { return this.runner.x1; }
-  get z1(): number { return this.runner.z1; }
-  get yaw(): number { return this.runner.yaw; }
-  get len(): number { return this.runner.length; }
-  get busy(): boolean { return this.runner.busy; }
-  idle(): boolean { return !this.busy; }
-  start(a: Animal, px: number, pz: number, tell: number, speedMul = 1): void {
-    this.tellT = tell;
-    const spec: StrikeSpec = { ...this.spec, windup: tell };
-    this.runner.start(spec, a, { x: px, y: a.position.y, z: pz }, speedMul);
-    inspectBrain(a, () => ({ state: this.runner.busy ? `charge.${this.runner.state}` : a.state, picks: [{ id: spec.id, score: 1 }], brainHz: 60, pinned: false }));
-  }
-  cancel(): void { this.runner.cancel(); this.tellDecal.hide(); }
-  recoverNow(): void { this.runner.recoverNow(); }
+  override cancel(): void { super.cancel(); this.tellDecal.hide(); }
   /** The simulation has one body clock; the decal retains the old pre-transition drawing frame. */
-  update(a: Animal, dt: number, t: number, player: THREE.Vector3, hurt: (dmg: number) => void): void {
+  override update(a: Animal, dt: number, t: number, player: THREE.Vector3, hurt: (dmg: number) => void): void {
     const state = this.state; if (state === 'none') return;
     const elapsed = this.t + dt;
-    this.runner.update(dt, { actor: a, target: player, canReach: () => this.reach(a, player), hit: (spec) => { hurt(spec.damage); } });
+    super.update(a, dt, t, player, hurt);
     this.tellDecal.setTime(t);
     if (state === 'tell') {
       const k = Math.min(1, elapsed / this.tellT);
-      this.tellDecal.lane(this.x0, this.z0, this.x1, this.z1, this.o.width, 0.35 + 0.55 * k * (0.75 + 0.25 * Math.sin(t * 22)));
+      this.tellDecal.lane(this.x0, this.z0, this.x1, this.z1, this.width, 0.35 + 0.55 * k * (0.75 + 0.25 * Math.sin(t * 22)));
     } else if (state === 'run') {
-      this.tellDecal.lane(this.x0, this.z0, this.x1, this.z1, this.o.width, Math.max(0, 0.6 - elapsed * 1.2));
+      this.tellDecal.lane(this.x0, this.z0, this.x1, this.z1, this.width, Math.max(0, 0.6 - elapsed * 1.2));
     } else this.tellDecal.hide();
   }
 }

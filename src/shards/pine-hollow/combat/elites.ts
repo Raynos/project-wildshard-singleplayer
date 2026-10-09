@@ -3,7 +3,6 @@ import { PINE_LANES } from './strikes';
 import { EliteBrain } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
@@ -17,6 +16,7 @@ import type { SkinId } from '../loadout/skins';
 import { Puffs } from './fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { behindPlayer, fadeCooldown, headingTo } from './combatMath';
+import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
 
 /**
  * Pine Hollow's four NAMED ELITES (PINE-HOLLOW-REMASTER PH-C3; Jake's PH-U13). Each is an `EliteScript` over the engine's
@@ -81,20 +81,22 @@ abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
   override setMode(mode: string): void { super.setMode(mode); }
   override toPlayer(a: Animal): { d: number; yaw: number } { return super.toPlayer(a); }
   voice(name: string, a: Animal): void { voice(this.env.animals, name, a.position); }
-  next(): number { return Math.random(); }
+  next(): number { return this.streams.fight.next(); }
   protected readonly who: (typeof PINE_ELITE_ANIMALS)[string];
-  private readonly spawnRng: Rng;
+  private readonly streams: PineEliteStreams;
   override readonly def: EliteDef;
   constructor(def: EliteDef, readonly env: Env) {
-    super(def, { player: env.player, random: () => Math.random() }); this.def = def;
-    this.spawnRng = app.rng.stream('cosmetic').fork(`pine.elite.spawn.${def.id}`);
+    // the level seed's own streams (eliteStreams.ts), never Math.random or the page's salted ones: the same elite every boot
+    const streams = pineEliteStreams(def.id);
+    super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def;
+    this.streams = streams;
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
     this.who = who;
   }
   override spawn(): void {
     const L = this.def.lair;
-    const a = this.env.animals.spawn(this.who.kind, L.x, L.z, this.spawnRng.next() * Math.PI * 2, this.who.variant);
+    const a = this.env.animals.spawn(this.who.kind, L.x, L.z, this.streams.spawn.next() * Math.PI * 2, this.who.variant);
     own(a); elitesOwned.add(a);
     this.animal = a; this.p2 = false; this.setMode('idle'); this.wx = L.x; this.wz = L.z; this.wanderT = 0;
     pinBrain(a); inspectBrain(a, () => ({ state: this.brainState, picks: [], brainHz: 60, pinned: true }));
@@ -150,7 +152,7 @@ class GhostStag extends PineElite {
   comeBack(a: Animal): void {
     const p = this.env.player.position, L = this.def.lair;
     for (const side of [0, 0.6, -0.6, 1.2, -1.2, 1.8, -1.8, Math.PI]) {
-      const q = behindPlayer(p.x, p.z, this.env.player.yaw, 14 + Math.random() * 4, side);
+      const q = behindPlayer(p.x, p.z, this.env.player.yaw, 14 + this.next() * 4, side);
       if (!inChunk(q.x, q.z, 24) || Math.hypot(q.x - L.x, q.z - L.z) > this.def.leashR - 12) continue;
       if (Math.abs(heightAt(q.x, q.z) - heightAt(p.x, p.z)) > 6) continue;
       this.reappear(a, q.x, q.z); return;
@@ -257,7 +259,7 @@ class ImperialBull extends PineElite {
       r.a.lookTarget.copy(p); r.a.lookWeight = 1;
       if (r.mode === 'charge') { r.lane.update(r.a, dt, t, p, (dmg) => { this.hurt(r.a, dmg); this.env.trauma(0.35); }); if (!r.lane.busy) r.mode = 'approach'; continue; }
       r.a.setMotion(headingTo(r.a.position.x, r.a.position.z, p.x, p.z), d > 16 ? 7 : 1.5, 2.5);
-      if (d < 20 && Math.random() < dt * 0.6) { r.lane.start(r.a, p.x, p.z, 0.9); r.mode = 'charge'; }
+      if (d < 20 && this.next() < dt * 0.6) { r.lane.start(r.a, p.x, p.z, 0.9); r.mode = 'charge'; }
     }
     this.rivals = this.rivals.filter((r) => r.a.alive || r.lane.busy);
   }

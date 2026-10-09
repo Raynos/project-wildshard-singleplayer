@@ -99,12 +99,11 @@ describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
     expect(f.hits).toEqual([22]);
   });
   it.each([false, true])('S40 Ghost Stag phase2%s fades without attacking, then reappears14–18m behind', (p2) => {
-    const f = pine('GhostStag', { p2 }); const draw = vi.spyOn(Math, 'random').mockReturnValue(0.5);
-    try {
-      invokeLegacy(f.actor, 'fade', f.animal); expect(f.animal.hidden).toBe(true);
-      expect(Reflect.get(f.actor, 'fadeT')).toBe(2); expect(Reflect.get(f.actor, 'cd')).toBe(p2 ? 2.4 : 4.5);
-      invokeLegacy(f.actor, 'comeBack', f.animal); expect(f.animal.hidden).toBe(false); expect(f.hits).toEqual([]);
-      expect(f.animal.position.distanceTo(f.ctx.player)).toBeCloseTo(16); expect(Reflect.get(f.actor, 'mode')).toBe('stare');
-    } finally { draw.mockRestore(); }
+    // the stag's rolls are its own seeded stream (combat/eliteStreams.ts): a mid draw puts it 16 m behind
+    const f = pine('GhostStag', { p2, streams: { fight: { next: () => 0.5 } } });
+    invokeLegacy(f.actor, 'fade', f.animal); expect(f.animal.hidden).toBe(true);
+    expect(Reflect.get(f.actor, 'fadeT')).toBe(2); expect(Reflect.get(f.actor, 'cd')).toBe(p2 ? 2.4 : 4.5);
+    invokeLegacy(f.actor, 'comeBack', f.animal); expect(f.animal.hidden).toBe(false); expect(f.hits).toEqual([]);
+    expect(f.animal.position.distanceTo(f.ctx.player)).toBeCloseTo(16); expect(Reflect.get(f.actor, 'mode')).toBe('stare');
   });
 });

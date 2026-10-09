@@ -8,6 +8,7 @@ import { castRay } from '@wildshard/engine/physics/query';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost } from '@wildshard/engine/sim';
 import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites } from '../combat/eliteRoster';
+import { pineEliteStreams } from '../combat/eliteStreams';
 import { SPAWN } from '../layout';
 import { PINE_FAUNA } from './fauna';
 import { PINE_HERD_STREAM, PINE_KING_KIND, pineHuntGround, pineSpawnSpecies } from './herds';
@@ -73,7 +74,7 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * checked against the trusted bake: the herds (`HuntBrain.placeHerds` over the baked ground and the shard's fauna plan), the
  * boot swap of a rolled elite variant (combat/eliteRoster.ts), the Antler King's prewarm (his body and two thralls: their
  * draws and ids only, parked out of the manager's list with no body, as the page parks them hidden and bodiless), then the
- * four lair elites at their lairs (each spawn yaw from the `cosmetic` fork `pine.elite.spawn.<id>`, taken under a fight's
+ * four lair elites at their lairs (each spawn yaw from the level seed's `pine.elite.spawn.<id>`, taken under a fight's
  * control: out of its herd, scripted). Every body stands on the manager's creature floor (the first WORLD hit under its
  * spawn ray; the terrain when that is the ground's heightfield) and is adopted by the hunting brain (three more draws).
  *
@@ -157,7 +158,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   Object.keys(PINE_ELITE_DEFS).forEach(id => {
     const def = PINE_ELITE_DEFS[id], who = PINE_ELITE_ANIMALS[id];
     if (def === undefined || who === undefined) throw new Error(`Pine elite ${id} has no animal`);
-    const yaw = host.rng.stream('cosmetic').fork(`pine.elite.spawn.${id}`).next() * Math.PI * 2;
+    const yaw = pineEliteStreams(id, host.level.seed).spawn.next() * Math.PI * 2;
     const a = spawn(who.kind, def.lair.x, def.lair.z, yaw, who.variant);
     a.herd = -1; a.state = SCRIPTED; a.scripted = true;
     const i = list.findIndex(b => b.actor === a), body = list[i];

@@ -1,35 +1,42 @@
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { PineCtx, LaneCharge } from './ctx';
+import type { Vector3 } from 'three';
+import type { BrainPoint } from '@wildshard/engine/ai/strikes';
+import type { Lane, LaneBody } from './lane';
 import { bugleHour, fleeHeading } from './combatMath';
 import { PINE_STRIKES, pineContact } from './strikes';
 
-interface GoalHost {
-  env: Pick<PineCtx, 'reach' | 'player' | 'trauma' | 'god' | 'dusk' | 'night' | 'stun'>;
+/** What a goal reads of the world, renderer-free (the page's PineCtx satisfies it over its Animal). */
+interface GoalEnv<B extends LaneBody> {
+  reach: (actor: B, target: BrainPoint) => boolean;
+  player: { readonly position: Vector3 };
+  trauma: (k: number) => void; god: boolean; dusk: () => number; night: () => number; stun: (s: number) => void;
+}
+interface GoalHost<B extends LaneBody> {
+  env: GoalEnv<B>;
   def: { lair: { x: number; z: number }; leashR: number };
   mode: string; modeT: number; p2: boolean;
-  toPlayer: (a: Animal) => { d: number; yaw: number };
+  toPlayer: (a: B) => { d: number; yaw: number };
   setMode: (mode: string) => void; sig: () => void;
-  hurt: (a: Animal, damage: number, exempt?: boolean) => void;
-  voice: (name: string, a: Animal) => void;
+  hurt: (a: B, damage: number, exempt?: boolean) => void;
+  voice: (name: string, a: B) => void;
   next: () => number;
 }
-interface IronhideGoal extends GoalHost { lane: LaneCharge; again: boolean }
-interface GhostGoal extends GoalHost {
+interface IronhideGoal<B extends LaneBody> extends GoalHost<B> { lane: Lane<B>; again: boolean }
+interface GhostGoal<B extends LaneBody> extends GoalHost<B> {
   cd: number; lastHit: number; fadeT: number; autoT: number;
-  fade: (a: Animal) => void; comeBack: (a: Animal) => void;
+  fade: (a: B) => void; comeBack: (a: B) => void;
 }
-interface BlackpawGoal extends GoalHost {
-  lane: LaneCharge; roarCd: number; swipeT: number; readonly ringR: number;
+interface BlackpawGoal<B extends LaneBody> extends GoalHost<B> {
+  lane: Lane<B>; roarCd: number; swipeT: number; readonly ringR: number;
   ring: { setTime: (t: number) => void; ring: (x: number, z: number, radius: number, alpha: number) => void; hide: () => void };
-  burstOut: (a: Animal) => void; roarFx: (a: Animal) => void;
+  burstOut: (a: B) => void; roarFx: (a: B) => void;
 }
-interface ImperialGoal extends GoalHost {
-  lane: LaneCharge; bugledPhase: number; rivals: readonly unknown[];
-  tickRivals: (dt: number, t: number) => void; callRivals: (a: Animal) => void;
+interface ImperialGoal<B extends LaneBody> extends GoalHost<B> {
+  lane: Lane<B>; bugledPhase: number; rivals: readonly unknown[];
+  tickRivals: (dt: number, t: number) => void; callRivals: (a: B) => void;
 }
 
-/** Complete move selectors and clocks; the resident adapters own geometry, tells and effects. */
-export function ironhideGoal(h: IronhideGoal, a: Animal, dt: number, t: number): void {
+/** Complete move selectors and clocks, renderer-free over any lane body (SF72); the resident adapters own geometry, tells and effects. */
+export function ironhideGoal<B extends LaneBody>(h: IronhideGoal<B>, a: B, dt: number, t: number): void {
     const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
     a.lookTarget.copy(p); a.lookWeight = 1;
     if (h.mode === 'charge') {
@@ -55,7 +62,7 @@ export function ironhideGoal(h: IronhideGoal, a: Animal, dt: number, t: number):
   
 }
 
-export function ghostGoal(h: GhostGoal, a: Animal, dt: number, t: number): void {
+export function ghostGoal<B extends LaneBody>(h: GhostGoal<B>, a: B, dt: number, t: number): void {
     void t;
     const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
     h.cd -= dt;
@@ -80,7 +87,7 @@ export function ghostGoal(h: GhostGoal, a: Animal, dt: number, t: number): void 
   
 }
 
-export function blackpawGoal(h: BlackpawGoal, a: Animal, dt: number, t: number): void {
+export function blackpawGoal<B extends LaneBody>(h: BlackpawGoal<B>, a: B, dt: number, t: number): void {
     const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
     h.roarCd -= dt;
     h.ring.setTime(t);
@@ -122,7 +129,7 @@ export function blackpawGoal(h: BlackpawGoal, a: Animal, dt: number, t: number):
   
 }
 
-export function imperialGoal(h: ImperialGoal, a: Animal, dt: number, t: number): void {
+export function imperialGoal<B extends LaneBody>(h: ImperialGoal<B>, a: B, dt: number, t: number): void {
     const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
     h.tickRivals(dt, t);
     a.lookTarget.copy(p); a.lookWeight = 1;

@@ -1,5 +1,4 @@
-import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { StrikeRunner, type StrikeActor, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 
 interface BrainPoint { x: number; y: number; z: number }
 
@@ -34,7 +33,7 @@ export const PINE_STRIKES = {
   lantern: nonlane('strike.antler-king.lantern', { kind: 'point', radius: 3, exclusive: true }, 0.75, 0, 0.8, 9, true),
 };
 const contact = new StrikeRunner();
-export function pineContact(actor: Animal, target: BrainPoint, spec: StrikeSpec, hit: (damage: number) => void,
+export function pineContact(actor: StrikeActor, target: BrainPoint, spec: StrikeSpec, hit: (damage: number) => void,
   reach: () => boolean, options: { origin?: BrainPoint; ringRadius?: number; airborne?: boolean } = {}): boolean {
   return contact.contact(spec, { actor, target, ...options, canReach: reach, hit: (row) => { hit(row.damage); } });
 }
