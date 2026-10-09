@@ -1,0 +1,26 @@
+deploy-admin: building 5f37ac4d9
+heavy-lane: queued build ticket 1036
+heavy-lane: acquired build after 321.85s queue
+heavy-lane: finished build in 2.12s
+deploy-admin: uploading
+Vercel CLI 59.11.2 (Node.js 24.18.1)
+Deploying wildshard-admin
+Uploading [--------------------] (0.0B/2.9MB)
+Uploading [=====---------------] (735.5KB/2.9MB)
+Uploading [==========----------] (1.4MB/2.9MB)
+Uploading [===============-----] (2.1MB/2.9MB)
+Uploading [====================] (2.9MB/2.9MB)
+  Inspect         https://vercel.com/raynos-projects/wildshard-admin/4NCgjvoyVsubNpNaR1GScLNbbksS
+  Production      https://wildshard-admin-flze08olv-raynos-projects.vercel.app
+Building…
+Building…
+Running build in Washington, D.C., USA (East) – iad1
+Build machine configuration: 4 cores, 8 GB
+Retrieving list of deployment files...
+Previous build caches not available.
+Downloading 195 deployment files...
+[2K[1A[2K[G  Production      https://wildshard-admin-flze08olv-raynos-projects.vercel.app
+Completing…
+▲ Aliased         https://wildshard-admin.vercel.app
+deploy-admin: https://wildshard-admin-flze08olv-raynos-projects.vercel.app
+deploy-admin: live at https://wildshard-admin.vercel.app (build 5f37ac4d9)

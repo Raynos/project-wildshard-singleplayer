@@ -1,0 +1,666 @@
+- generic
+  - banner
+    - StaticText "Wildshard Admin"
+    - StaticText "5f37ac4d9 · 10-09 13:30"
+    - button "Reload" [ref=e2]
+  - main
+    - heading "SHARD-PLATFORM" [level=1, ref=e3]
+    - paragraph
+      - StaticText "MMO-compatible shardfiles in the singleplayer game (E431, E435)"
+    - region "Shards at 80/20" [ref=e4]
+      - heading "Shards at 80/20" [level=2, ref=e17]
+      - paragraph
+        - StaticText "1 of 7"
+      - paragraph
+        - StaticText "The plan State’s hard count, not effort or lines ported."
+    - heading "Ready to share" [level=2, ref=e5]
+    - paragraph
+      - StaticText "no known P0 — the grid spawn under Driftwood's pier (E463) is fixed "
+      - code
+        - StaticText "ebf0b79c3"
+      - StaticText "; 30 fps on the Simulator — met (2026-10-09 re-measure, sp-x3: 20 / 20 standalone rows 30.30 fps, public grid 7 / 7 incl. template travel p95 35 ms on a quiet repeat; desktop 60 fps on every shard at low load, Pine cabin's 33 ms misses were machine load, the public-template's were the diagnostic GL_INIT hooks: 7 / 7 at 59.88 with them off); three phone runs with no tab kill — not yet (Jake's; the Simulator's qualifying public soak passes every SF57 item, peak 852.7 MB, "
+      - code
+        - StaticText "6ef20a1ba"
+      - StaticText "); every enterable shard fits 1.0 GB — met on the honest ruler (G257 done, "
+      - code
+        - StaticText "8a98f8ef9"
+      - StaticText "; "
+      - code
+        - StaticText "vmmap"
+      - StaticText " was the inflator, not the census): Pine centre 750.5 MB [737–765], Nalati centre 775.2 [753–806] (worst pose, entry, 843.5), Sky Reach worst entered 732.8 [730–822], public grid home 788.7 / template centre 771.1; grid = standalone (no grid overhead). Needs pick (2026-10-08): G233 reopens: Pine, Nalati and Sky Reach fit with ≥ 157 MB margin, so they can join the public grid (recommendation: yes once the real-iPhone KTX2 verdict is in, because if the phone shares the Simulator's KTX2 zero-read bug the image fallback adds ≈ 300 MB GPU to Pine). Earlier numbers (Pine 1,116 / Nalati ≈ 1,101 / Sky Reach ≈ 998) were vmmap-inflated (G257: the native ruler's own in-page census adds 50–300 MB WebContent that WebKit keeps, "
+      - code
+        - StaticText "c2d910073"
+      - StaticText "; real grid-only retention over standalone Pine ≈ 90 MB); the ruler is fixed ("
+      - code
+        - StaticText "04556bc45"
+      - StaticText ", "
+      - code
+        - StaticText "--census=final"
+      - StaticText ") and the three are being re-read, 3 cold runs each, before any SF47-g pick; the 18-run re-read batch (Pine every / final, Nalati, public, standalone, Sky) is queued in sim-lane behind the plan agent's "
+      - code
+        - StaticText "pt3-iphone"
+      - StaticText " playtest lease (renewed 17:30, ~53 min) and starts automatically when that lease is released; working maps — met (G252 stylized, Nine Dragon rebake left); loading progress — met, sub-100 ms target open."
+    - heading "Effort" [level=2, ref=e6]
+    - generic
+      - image "by effort 57 %"
+        - StaticText "57%"
+        - StaticText "BY EFFORT"
+      - StaticText "Part A"
+      - StaticText "74 %"
+      - StaticText "M1 the package"
+      - StaticText "99 %"
+      - StaticText "M2 the grid"
+      - StaticText "92 %"
+      - StaticText "M3 the seven"
+      - StaticText "51 %"
+      - paragraph
+        - StaticText "The plan State's own reported percentages."
+    - heading "M3: effort toward 80/20" [level=2, ref=e7]
+    - StaticText "Template"
+    - StaticText "95 %"
+    - StaticText "Signal Dunes"
+    - StaticText "55 %"
+    - StaticText "Sky Reach"
+    - StaticText "50 %"
+    - StaticText "Driftwood"
+    - StaticText "45 %"
+    - StaticText "Pine"
+    - StaticText "35 %"
+    - StaticText "Nalati"
+    - StaticText "35 %"
+    - StaticText "Nine Dragon"
+    - StaticText "15 %"
+    - heading "Waiting for Jake (1)" [level=2, ref=e8]
+    - list
+      - listitem [level=1]
+        - ListMarker "• "
+        - StaticText "G148 When INFINITE WILDSHARD goes public · After Jake's yes on the looks (Jake): SF22's gates run unattended (prepared looks ON, one frame ON and OFF, zero refusals) but passing them does not flip visibility; the grid goes public only after his yes on the SF46 /…"
+        - LineBreak "\n"
+        - StaticText "docs/plans/SHARD-PLATFORM.md:876"
+    - heading "State" [level=2, ref=e9]
+    - generic
+      - group
+        - DisclosureTriangle "in progress 2026-10-08 — every council is closed (four councils; registers under… ›" [expanded=false]
+          - StaticText "in progress 2026-10-08 — every council is closed (four councils; registers under…"
+          - StaticText "›"
+      - group
+        - DisclosureTriangle "Done when ›" [expanded=false]
+          - StaticText "Done when"
+          - StaticText "›"
+    - heading "Rows (53 of 110 done)" [level=2, ref=e10]
+    - group "Row filter"
+      - button "Open · 56" [ref=e18]
+      - button "Closed · 54" [ref=e19]
+      - button "All · 110" [ref=e20]
+    - generic
+      - StaticText "Done"
+      - StaticText "53/110"
+      - group
+        - DisclosureTriangle "SF0a Driftwood's desktop frame floor OPEN" [expanded=false]
+          - StaticText "SF0a"
+          - StaticText "Driftwood's desktop frame floor"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF0b Nalati's desktop frame floor OPEN" [expanded=false]
+          - StaticText "SF0b"
+          - StaticText "Nalati's desktop frame floor"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF0c Nine Dragon's desktop frame floor OPEN" [expanded=false]
+          - StaticText "SF0c"
+          - StaticText "Nine Dragon's desktop frame floor"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF22c The phone reading without a chore (R4-S10, rewritten by G71): the reading is Jake's normal INFINITE WILDSHARD playtest on his iPhone: three runs through a crossroads with no tab kill. iPhone Safari exposes no memory number, so the caps are set on the Simulator calibration (§3.2, 1.0 GB). The crossroads rig stays a Simulator tool; its production \"Memory check\" Debug row is deleted (G115) OPEN" [expanded=false]
+          - StaticText "SF22c"
+          - StaticText "The phone reading without a chore (R4-S10, rewritten by G71): the reading is Jake's normal INFINITE WILDSHARD playtest on his iPhone: three runs through a crossroads with no tab kill. iPhone Safari exposes no memory number, so the caps are set on the Simulator calibration (§3.2, 1.0 GB). The crossroads rig stays a Simulator tool; its production \"Memory check\" Debug row is deleted (G115)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF22d Engine memory cuts (from the breakdown 4ec64f071, docs/design/mmo/research/e435/memory-pine-driftwood.md): free three.js's CPU copies after GPU upload (textures; geometry except positions and indices: dropping those stalled Driftwood's walk), load the practice dummies only at the practice ring, delete the shadow map's unused colour texture, a half-resolution luminance pass and one composer depth buffer. A risky memory change, so default-off behind a Debug row (\"Memory saver\"; it keeps its half-resolution bloom pass, G108 C4, G114) until Jake's grid playtest runs with it ON and survives (G71) (RENDERING.md) OPEN" [expanded=false]
+          - StaticText "SF22d"
+          - StaticText "Engine memory cuts (from the breakdown "
+          - code
+            - StaticText "4ec64f071"
+          - StaticText ", "
+          - code
+            - StaticText "docs/design/mmo/research/e435/memory-pine-driftwood.md"
+          - StaticText "): free three.js's CPU copies after GPU upload (textures; geometry except positions and indices: dropping those stalled Driftwood's walk), load the practice dummies only at the practice ring, delete the shadow map's unused colour texture, a half-resolution luminance pass and one composer depth buffer. A risky memory change, so default-off behind a Debug row (\"Memory saver\"; it keeps its half-resolution bloom pass, G108 C4, G114) until Jake's grid playtest runs with it ON and survives (G71) (RENDERING.md)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF8c wildshard dev + validate's sim checks + DEVSERVER plumbing (R4-D5): the __DEVSERVER__ define in vite.config.ts with its TypeScript declaration, scripts/serve-build.sh --devserver, and wildshard dev setting it; rebuild-and-serve in the real client on the floating cube; validate steps the sim headless (SF4a) and walks every edge entry through the colliders (C8) OPEN" [expanded=false]
+          - StaticText "SF8c"
+          - code
+            - StaticText "wildshard dev"
+          - StaticText " + validate's sim checks + DEVSERVER plumbing (R4-D5): the "
+          - code
+            - StaticText "__DEVSERVER__"
+          - StaticText " define in "
+          - code
+            - StaticText "vite.config.ts"
+          - StaticText " with its TypeScript declaration, "
+          - code
+            - StaticText "scripts/serve-build.sh --devserver"
+          - StaticText ", and "
+          - code
+            - StaticText "wildshard dev"
+          - StaticText " setting it; rebuild-and-serve in the real client on the floating cube; validate steps the sim headless (SF4a) and walks every edge entry through the colliders (C8)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF10a Material families v1: toon, PBR, painterly and emissive, renderer-neutral parameters, precompiled before first use; the acceptance set is the three grid shards' looks (C22) and Signal Dunes' sky and sand (A10): a runtime adapter may feed family parameters, but the look must pass the family / one-frame gate OPEN" [expanded=false]
+          - StaticText "SF10a"
+          - StaticText "Material families v1: toon, PBR, painterly and emissive, renderer-neutral parameters, precompiled before first use; the acceptance set is the three grid shards' looks (C22) and Signal Dunes' sky and sand (A10): a runtime adapter may feed family parameters, but the look must pass the family / one-frame gate"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF15a The shardfile loader, minimal first (R3-C2): SF15a-min right after SF8a boots a shardfile with an empty world, scope-owned, with the leak test; the full loader then binds tiles, colliders, scripts, quests and UI from a shardfile; the current SHARDFILE_VERSION and an offline-cached N−1 (the only N−1 case in Part A: first-party shardfiles rebuild every build, R3-C25); offline boot of a visited shardfile (B26) OPEN" [expanded=false]
+          - StaticText "SF15a"
+          - StaticText "The shardfile loader, minimal first (R3-C2): SF15a-min right after SF8a boots a shardfile with an empty world, scope-owned, with the leak test; the full loader then binds tiles, colliders, scripts, quests and UI from a shardfile; the current "
+          - code
+            - StaticText "SHARDFILE_VERSION"
+          - StaticText " and an offline-cached N−1 (the only N−1 case in Part A: first-party shardfiles rebuild every build, R3-C25); offline boot of a visited shardfile (B26)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF15b The hybrid loader, moved to the conversion prerequisites (A2, D1, R2-C2) OPEN" [expanded=false]
+          - StaticText "SF15b"
+          - StaticText "The hybrid loader, moved to the conversion prerequisites (A2, D1, R2-C2)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF16 M1 proof. The template (per §4.1, every line owned) boots from its shardfile with no template chunk (check-chunks); its pool swims, its door opens, closes and restores, its whip, lantern, quest, creatures, elite and boss work from the shardfile; its sim steps 10,000 ticks headless in Node and the template's SF3a sites are at 0; SF16a: the full suffix test, snapshotted during the Big Blob fight with script memory, quest state and the ledger dedupe record, replays to the same hash in Node; Opus judges the look against today's on a board. (The outside-author trial is S19) OPEN" [expanded=false]
+          - StaticText "SF16"
+          - StaticText "M1 proof. The template (per §4.1, every line owned) boots from its shardfile with no template chunk ("
+          - code
+            - StaticText "check-chunks"
+          - StaticText "); its pool swims, its door opens, closes and restores, its whip, lantern, quest, creatures, elite and boss work from the shardfile; its sim steps 10,000 ticks headless in Node and the template's SF3a sites are at 0; SF16a: the full suffix test, snapshotted during the Big Blob fight with script memory, quest state and the ledger dedupe record, replays to the same hash in Node; Opus judges the look against today's on a board. (The outside-author trial is S19)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF17b Highway deck and seams: the engine-owned deck; no-man's land generated from both neighbours' edge profiles, four-way at crossroads (G37). The strip generator is a pure function under @wildshard/engine/sim (three maths types only), so a server can run it; Opus owns its look (R3-C18) OPEN" [expanded=false]
+          - StaticText "SF17b"
+          - StaticText "Highway deck and seams: the engine-owned deck; no-man's land generated from both neighbours' edge profiles, four-way at crossroads (G37). The strip generator is a pure function under "
+          - code
+            - StaticText "@wildshard/engine/sim"
+          - StaticText " (three maths types only), so a server can run it; Opus owns its look (R3-C18)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF18a Sim residency per shard: a shard's whole sim loads in a fixed order when the player nears it, in its own local frame with a physics world per active shard; collider metadata becomes world-scoped (physics/surface.ts keys tags by handle, which is unique only per world: A6); the highway and no-man's land are their own world; the capsule and character controller live only in the world of the player's current frame; at assembly the highway deck and the strip inside the hysteresis band are also instantiated as platform-owned static colliders in each adjacent shard world (local frame, world-scoped tags, excluded from the shard's state hash), so one controller call always has ground on both sides of the re-frame; the hysteresis band lies inside the strip (R4-D3): with N = 20 m, highway → shard re-frames when the player's feet pass 6 m from the cell edge and shard → highway when they pass 10 m from it, both on strip geometry present in both worlds, checked once per fixed step (R3-C3: a motor is bound to one world at construction; the re-frame rebuilds it in the other, a ridden horse's motor included: SF18a owns the re-frame, SF20a owns \"no hitch, nothing lost\"; R4-S5, R4-N6); surface.ts:17's false comment is corrected (R3-C23); neighbours stay frozen and visible (C4, C5, C14, A14). Runs only inside INFINITE WILDSHARD until SF22c (Jake's playtest, G71) and SF22's gates (R2-C16, R3-A4) OPEN" [expanded=false]
+          - StaticText "SF18a"
+          - StaticText "Sim residency per shard: a shard's whole sim loads in a fixed order when the player nears it, in its own local frame with a physics world per active shard; collider metadata becomes world-scoped ("
+          - code
+            - StaticText "physics/surface.ts"
+          - StaticText " keys tags by handle, which is unique only per world: A6); the highway and no-man's land are their own world; the capsule and character controller live only in the world of the player's current frame; at assembly the highway deck and the strip inside the hysteresis band are also instantiated as platform-owned static colliders in each adjacent shard world (local frame, world-scoped tags, excluded from the shard's state hash), so one controller call always has ground on both sides of the re-frame; the hysteresis band lies inside the strip (R4-D3): with N = 20 m, highway → shard re-frames when the player's feet pass 6 m from the cell edge and shard → highway when they pass 10 m from it, both on strip geometry present in both worlds, checked once per fixed step (R3-C3: a motor is bound to one world at construction; the re-frame rebuilds it in the other, a ridden horse's motor included: SF18a owns the re-frame, SF20a owns \"no hitch, nothing lost\"; R4-S5, R4-N6); "
+          - code
+            - StaticText "surface.ts:17"
+          - StaticText "'s false comment is corrected (R3-C23); neighbours stay frozen and visible (C4, C5, C14, A14). Runs only inside INFINITE WILDSHARD until SF22c (Jake's playtest, G71) and SF22's gates (R2-C16, R3-A4)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF18b Render streaming: rings (L0 to 150 m + a lookahead, L1 to 400 m, far proxies in bounded rings), parent-first refinement, decoding in workers, one residency allocator (A18) OPEN" [expanded=false]
+          - StaticText "SF18b"
+          - StaticText "Render streaming: rings (L0 to 150 m + a lookahead, L1 to 400 m, far proxies in bounded rings), parent-first refinement, decoding in workers, one residency allocator (A18)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF18d Traversal safety: the highway and seams are always solid; readiness distance = speed × (request latency + transfer time of the critical bundle at the link rate + max stall + decode), with the critical bundle (a shard's colliders + sim) ≤ 2 MB on the wire (§3.2; ≈ 435 m at 30 m/s, 5 Mbit/s and a 10 s stall, under the 555 m pitch; R3-D3, R3-C13), plus a hybrid bundle line: a neighbour's runtime/ chunk is fetched and parsed from readiness distance on (R4-S6); while a shard's sim isn't ready its edge holds as a soft wall, never open air; past the bound proxies show, never a fall (A13) OPEN" [expanded=false]
+          - StaticText "SF18d"
+          - StaticText "Traversal safety: the highway and seams are always solid; readiness distance = speed × (request latency + transfer time of the critical bundle at the link rate + max stall + decode), with the critical bundle (a shard's colliders + sim) ≤ 2 MB on the wire (§3.2; ≈ 435 m at 30 m/s, 5 Mbit/s and a 10 s stall, under the 555 m pitch; R3-D3, R3-C13), plus a hybrid bundle line: a neighbour's "
+          - code
+            - StaticText "runtime/"
+          - StaticText " chunk is fetched and parsed from readiness distance on (R4-S6); while a shard's sim isn't ready its edge holds as a soft wall, never open air; past the bound proxies show, never a fall (A13)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF19a One frame: the camera owns sun, sky, fog and exposure under one world clock; per-shard time overrides blend across edge bands; a shard-id buffer picks each pixel's grade; a neutral highway look OPEN" [expanded=false]
+          - StaticText "SF19a"
+          - StaticText "One frame: the camera owns sun, sky, fog and exposure under one world clock; per-shard time overrides blend across edge bands; a shard-id buffer picks each pixel's grade; a neutral highway look"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF19b Each shard's look under one frame: build Jake's picks (G94 Signal Dunes haze band, G95 Nine Dragon dusk + border fog, G96 Nalati unchanged); the old full-screen look stays live in explore mode OPEN" [expanded=false]
+          - StaticText "SF19b"
+          - StaticText "Each shard's look under one frame: build Jake's picks (G94 Signal Dunes haze band, G95 Nine Dragon dusk + border fog, G96 Nalati unchanged); the old full-screen look stays live in explore mode"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF20a Seamless crossing inside the grid: no page reload between grid cells, ever (G171; the engine's recovery reloads stay and resume in the grid, G185, C4-R1-C1); platform things travel, shard items stay in their shard's save, a held shard weapon is stowed at the border (G25, B23). travel.ts stays for Select a shard and explore: its fresh-document switch releases WebKit's heap and carries the inventory durably (R2-C3, D8) OPEN" [expanded=false]
+          - StaticText "SF20a"
+          - StaticText "Seamless crossing inside the grid: no page reload between grid cells, ever (G171; the engine's recovery reloads stay and resume in the grid, G185, C4-R1-C1); platform things travel, shard items stay in their shard's save, a held shard weapon is stowed at the border (G25, B23). "
+          - code
+            - StaticText "travel.ts"
+          - StaticText " stays for Select a shard and explore: its fresh-document switch releases WebKit's heap and carries the inventory durably (R2-C3, D8)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF21a The main menu (G58, G79, G88), per §3.3's table: the SHARD SELECT card (today's one-shard flow, its carousel restyled, G106) and the INFINITE WILDSHARD card (the 3 × 3 grid), shown only with Settings ▸ Developer on until SF22's gates pass (G63), then to everyone. The grid boots only from a one-shot tap intent (session and device storage like setTitleArrival, consumed at boot, 60 s TTL); a reload without one lands on the menu with SHARD SELECT focused until SF22's gates pass, then resumes into the grid (G115); lastEnd's unexpected end only adds a one-line note; AliveInfo gains mode: 'grid' | 'shard' (R3-C5). It reads __DEVSERVER__ (built by SF8c / SF8d); Nine Dragon's DEVSERVER toggle in Settings ▸ Debug OPEN" [expanded=false]
+          - StaticText "SF21a"
+          - StaticText "The main menu (G58, G79, G88), per §3.3's table: the SHARD SELECT card (today's one-shard flow, its carousel restyled, G106) and the INFINITE WILDSHARD card (the 3 × 3 grid), shown only with Settings ▸ Developer on until SF22's gates pass (G63), then to everyone. The grid boots only from a one-shot tap intent (session and device storage like "
+          - code
+            - StaticText "setTitleArrival"
+          - StaticText ", consumed at boot, 60 s TTL); a reload without one lands on the menu with SHARD SELECT focused until SF22's gates pass, then resumes into the grid (G115); "
+          - code
+            - StaticText "lastEnd"
+          - StaticText "'s "
+          - code
+            - StaticText "unexpected"
+          - StaticText " end only adds a one-line note; "
+          - code
+            - StaticText "AliveInfo"
+          - StaticText " gains "
+          - code
+            - StaticText "mode: 'grid' | 'shard'"
+          - StaticText " (R3-C5). It reads "
+          - code
+            - StaticText "__DEVSERVER__"
+          - StaticText " (built by SF8c / SF8d); Nine Dragon's DEVSERVER toggle in Settings ▸ Debug"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF22 The crossroads gates: the SF22a rig plus the grid's real crossroads at 2× render scale, the hoverboard at 30 m/s on the highway (a scripted test mover) through 5 Mbit/s with 3–10 s stalls, on the Simulator using §3.2's calibration (the raw Simulator reading, G71; E264's ×1.4 is printed beside it, never gated; C2-R1-B5, C5), with the 30 m/s speed look on (G97); the grid stays Developer-only until these gates pass, then INFINITE WILDSHARD shows to everyone (G63, SF21a; the visibility flag and its tests change in the gate-closing commit; C2-R1-B4) OPEN" [expanded=false]
+          - StaticText "SF22"
+          - StaticText "The crossroads gates: the SF22a rig plus the grid's real crossroads at 2× render scale, the hoverboard at 30 m/s on the highway (a scripted test mover) through 5 Mbit/s with 3–10 s stalls, on the Simulator using §3.2's calibration (the raw Simulator reading, G71; E264's ×1.4 is printed beside it, never gated; C2-R1-B5, C5), with the 30 m/s speed look on (G97); the grid stays Developer-only until these gates pass, then INFINITE WILDSHARD shows to everyone (G63, SF21a; the visibility flag and its tests change in the gate-closing commit; C2-R1-B4)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF57 The memory soak test (G154, G171; E445): Safari exposes no memory number and kills the tab without warning, so runtime eviction is budget accounting, never sensing: every tile, model, texture and sim carries the cost assetCost computes from its bytes (declared, checked by validate: §3.2's one cost model), with SF22a's Simulator calibration applied as residentFactor 1.11 (C3-R1-C6); the allocator (SF18b) keeps the running sum and evicts or refuses before a load would pass the envelope. The soak proves that eviction really frees memory: on the iOS Simulator, one scripted 30-minute drive per layout (shipped, dev) loops every cell and crossroads (hoverboard on the road, walks into each shard), sampling every second the game's WebContent footprint plus the labelled live GL census, summed by §3.2 / SF22a's method (WebContent + GL), the allocator's accounted sum, and the GPU process separately as retention evidence, never a substitute for the sum (C3-R1-A4, B3, C4). When it counts (C3-R1-C5): the shipped leg after SF46-g, SF47-g and SF48-g are prepared and resident through their shardfiles; the dev leg after SF49-g / SF50-g. The two gate layouts (C3-R2-A2, B2): a production build with __DEVSERVER__ false; shipped = Developer off; dev = Settings ▸ Developer on, exactly §3.3's Developer catalogue (five shards and four Template 1 copies; the harness merges grid.cells and grid.developer only and asserts all nine instance ids; a fixture refuses a dev witness containing Nine Dragon or the Blender Template). A DEVSERVER soak (Nine Dragon, later the Blender Template) is separate evidence after its own -g rows and never gates M2. What gates what (lead call, C3-R2-C11): M2-ready needs the shipped leg; the dev leg closes SF57 after SF49-g / SF50-g, under M3. A road-only 30-minute leg (boulevard laps through every crossroads, no shard entered) runs with each leg (C3-R2-C7) An earlier run (the harness exists: d9a8860a2 … 83cf6eaf0; it must add the GL census to its WebContent grading) is a rehearsal that does not pass the gate NEEDS PICK" [expanded=false]
+          - StaticText "SF57"
+          - StaticText "The memory soak test (G154, G171; E445): Safari exposes no memory number and kills the tab without warning, so runtime eviction is budget accounting, never sensing: every tile, model, texture and sim carries the cost "
+          - code
+            - StaticText "assetCost"
+          - StaticText " computes from its bytes (declared, checked by "
+          - code
+            - StaticText "validate"
+          - StaticText ": §3.2's one cost model), with SF22a's Simulator calibration applied as "
+          - code
+            - StaticText "residentFactor"
+          - StaticText " 1.11 (C3-R1-C6); the allocator (SF18b) keeps the running sum and evicts or refuses before a load would pass the envelope. The soak proves that eviction really frees memory: on the iOS Simulator, one scripted 30-minute drive per layout (shipped, dev) loops every cell and crossroads (hoverboard on the road, walks into each shard), sampling every second the game's WebContent footprint plus the labelled live GL census, summed by §3.2 / SF22a's method (WebContent + GL), the allocator's accounted sum, and the GPU process separately as retention evidence, never a substitute for the sum (C3-R1-A4, B3, C4). When it counts (C3-R1-C5): the shipped leg after SF46-g, SF47-g and SF48-g are prepared and resident through their shardfiles; the dev leg after SF49-g / SF50-g. The two gate layouts (C3-R2-A2, B2): a production build with "
+          - code
+            - StaticText "__DEVSERVER__"
+          - StaticText " false; shipped = Developer off; dev = Settings ▸ Developer on, exactly §3.3's Developer catalogue (five shards and four Template 1 copies; the harness merges "
+          - code
+            - StaticText "grid.cells"
+          - StaticText " and "
+          - code
+            - StaticText "grid.developer"
+          - StaticText " only and asserts all nine instance ids; a fixture refuses a dev witness containing Nine Dragon or the Blender Template). A DEVSERVER soak (Nine Dragon, later the Blender Template) is separate evidence after its own -g rows and never gates M2. What gates what (lead call, C3-R2-C11): M2-ready needs the shipped leg; the dev leg closes SF57 after SF49-g / SF50-g, under M3. A road-only 30-minute leg (boulevard laps through every crossroads, no shard entered) runs with each leg (C3-R2-C7) An earlier run (the harness exists: "
+          - code
+            - StaticText "d9a8860a2"
+          - StaticText " … "
+          - code
+            - StaticText "83cf6eaf0"
+          - StaticText "; it must add the GL census to its WebContent grading) is a rehearsal that does not pass the gate"
+          - StaticText "NEEDS PICK"
+      - group
+        - DisclosureTriangle "SF57b Dropped (G171, 2026-10-04): Jake: \"when do we do this reload? Do we do it always? That's not the seamless traversal goal like it's a fail right\", then \"C, never; cut content instead\". The grid never reloads the page; any planned-resume / fade-reload code already landed (cf115030a, 34bd76bc2 …) is deleted in one commit. Its board (art/grid/round-16-fade-reload/) stays as a record OPEN" [expanded=false]
+          - StaticText "SF57b"
+          - StaticText "Dropped (G171, 2026-10-04): Jake: \"when do we do this reload? Do we do it always? That's not the seamless traversal goal like it's a fail right\", then \"C, never; cut content instead\". The grid never reloads the page; any planned-resume / fade-reload code already landed ("
+          - code
+            - StaticText "cf115030a"
+          - StaticText ", "
+          - code
+            - StaticText "34bd76bc2"
+          - StaticText " …) is deleted in one commit. Its board ("
+          - code
+            - StaticText "art/grid/round-16-fade-reload/"
+          - StaticText ") stays as a record"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF58 Untrusted-shardfile hardening (the gaps found by the template deep dive, E446; page https://claude.ai/artifact/WE8oc9CTCPSiArHSRReeN5). Order (C3-R1-A8, C8): after SF8a's reopened admission; item (1′) before any non-first-party product is fetched; the whole row before S19 or any non-first-party load OPEN" [expanded=false]
+          - StaticText "SF58"
+          - StaticText "Untrusted-shardfile hardening (the gaps found by the template deep dive, E446; page https://claude.ai/artifact/WE8oc9CTCPSiArHSRReeN5). Order (C3-R1-A8, C8): after SF8a's reopened admission; item (1′) before any non-first-party product is fetched; the whole row before S19 or any non-first-party load"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF59 Material graphs and per-shard post effects, in Part A (no format freeze, G195) (G155–G157; research docs/design/mmo/research/art-style-expressiveness.md) OPEN" [expanded=false]
+          - StaticText "SF59"
+          - StaticText "Material graphs and per-shard post effects, in Part A (no format freeze, G195) (G155–G157; research "
+          - code
+            - StaticText "docs/design/mmo/research/art-style-expressiveness.md"
+          - StaticText ")"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF60 Playtest and steering (G196, G201, G202; Jake: \"we need ungodly playtesting and steering of this mega plan as is\"): (1) a daily playtest build: the coordinator pins one build a day (.github/deploy-pin.json or a playtest pin) with Developer on and every current candidate row switched on, and the title shows a short \"WHAT'S NEW · WHAT TO TRY\" card listing the day's changes in a few lines (its look goes to Jake as a board first; an E332 HUD/menu change); (2) footage: every milestone or big visible change ships with a 20–60 s real-capture iPhone-portrait video (muted capture, ~2–4 MB, 540 px) next to its boards; (3) Jake's in-game FEEDBACK notes feed the plan as rows, never asks OPEN" [expanded=false]
+          - StaticText "SF60"
+          - StaticText "Playtest and steering (G196, G201, G202; Jake: \"we need ungodly playtesting and steering of this mega plan as is\"): (1) a daily playtest build: the coordinator pins one build a day ("
+          - code
+            - StaticText ".github/deploy-pin.json"
+          - StaticText " or a playtest pin) with Developer on and every current candidate row switched on, and the title shows a short \"WHAT'S NEW · WHAT TO TRY\" card listing the day's changes in a few lines (its look goes to Jake as a board first; an E332 HUD/menu change); (2) footage: every milestone or big visible change ships with a 20–60 s real-capture iPhone-portrait video (muted capture, ~2–4 MB, 540 px) next to its boards; (3) Jake's in-game FEEDBACK notes feed the plan as rows, never asks"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF61 The Debug-row purge (G204, E451; DEBUG-TOGGLES \"as few Debug rows as humanly possible\"): list every Debug row (engine registry and shard ctx.debugRow, ~36 today, lint/ratchet.json debugRows.max) with its ask, its pick status and what it gates; delete every row whose winner Jake already picked together with its losing code; move rows that are really unfinished work behind Settings ▸ Developer; send only the rows with a real pending A / B / C to Jake as one board batch (images, then the question tool); lower debugRows.max to the new count OPEN" [expanded=false]
+          - StaticText "SF61"
+          - StaticText "The Debug-row purge (G204, E451; DEBUG-TOGGLES \"as few Debug rows as humanly possible\"): list every Debug row (engine registry and shard "
+          - code
+            - StaticText "ctx.debugRow"
+          - StaticText ", ~36 today, "
+          - code
+            - StaticText "lint/ratchet.json"
+          - StaticText " "
+          - code
+            - StaticText "debugRows.max"
+          - StaticText ") with its ask, its pick status and what it gates; delete every row whose winner Jake already picked together with its losing code; move rows that are really unfinished work behind Settings ▸ Developer; send only the rows with a real pending A / B / C to Jake as one board batch (images, then the question tool); lower "
+          - code
+            - StaticText "debugRows.max"
+          - StaticText " to the new count"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF62 Performance guardrails (G229–G231; Jake: \"whatever skills or guidelines we have for making shards, I think they should take all performance angles into consideration and make it super hard to create a shitty slop shard and crash various players\"): (1) the report card: wildshard build / validate print every performance number for a shard: memory near the player and at its worst grid location (the 1.0 GB / 1.8 GB totals stay the only hard memory caps, G228), draws and triangles per view, shader / graph cost (SF59 budget v1), script CPU per tick and fuel, download sizes (critical bundle, tiles, library), estimated time to playable; over budget refuses a new or outside shard and warns for the six old shards while they port; (2) custom-runtime rules (the trusted 20 %, runtime/): lint refuses allocation inside per-frame update code, raw renderer / scene / WebGL access (everything through the engine's tiles and registry), setInterval / setTimeout, unbounded loops, fetch and DOM; a runtime meter records each shard's CPU ms per frame in the frame-floor bench (scripts/frame-floor.mjs) and a shard over its share fails the gate; (3) the guide: SHARDS.md, docs/SHARDFILE.md and the /wildshard-quickstart skill lead with the budgets; every step names its budget and how to check it; a perf checklist passes before a shard is done; the guide shows a good and a bad report card OPEN" [expanded=false]
+          - StaticText "SF62"
+          - StaticText "Performance guardrails (G229–G231; Jake: \"whatever skills or guidelines we have for making shards, I think they should take all performance angles into consideration and make it super hard to create a shitty slop shard and crash various players\"): (1) the report card: "
+          - code
+            - StaticText "wildshard build"
+          - StaticText " / "
+          - code
+            - StaticText "validate"
+          - StaticText " print every performance number for a shard: memory near the player and at its worst grid location (the 1.0 GB / 1.8 GB totals stay the only hard memory caps, G228), draws and triangles per view, shader / graph cost (SF59 budget v1), script CPU per tick and fuel, download sizes (critical bundle, tiles, library), estimated time to playable; over budget refuses a new or outside shard and warns for the six old shards while they port; (2) custom-runtime rules (the trusted 20 %, "
+          - code
+            - StaticText "runtime/"
+          - StaticText "): lint refuses allocation inside per-frame update code, raw renderer / scene / WebGL access (everything through the engine's tiles and registry), "
+          - code
+            - StaticText "setInterval"
+          - StaticText " / "
+          - code
+            - StaticText "setTimeout"
+          - StaticText ", unbounded loops, "
+          - code
+            - StaticText "fetch"
+          - StaticText " and DOM; a runtime meter records each shard's CPU ms per frame in the frame-floor bench ("
+          - code
+            - StaticText "scripts/frame-floor.mjs"
+          - StaticText ") and a shard over its share fails the gate; (3) the guide: SHARDS.md, "
+          - code
+            - StaticText "docs/SHARDFILE.md"
+          - StaticText " and the "
+          - code
+            - StaticText "/wildshard-quickstart"
+          - StaticText " skill lead with the budgets; every step names its budget and how to check it; a perf checklist passes before a shard is done; the guide shows a good and a bad report card"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF64 The memory debugger (E456; Jake: \"I can't do anything about it without a memory debugger … where are those 18 chunks going? Who's using that? What type of memory is this? Is this GPU memory? … RAM memory? … someone has to build a full memory debugger … then I need reports … infographic images of the reports\"): (1) attribution in the engine: every GPU allocation (texture, buffer, render target, shadow / environment map) and every large CPU allocation (JS geometry / image arrays, audio buffers, canvases, WebAssembly memory) is tagged with its owner (engine system, platform / road, shard + system, asset id) through the engine's allocation paths, so the totals add up with an explicit unattributed remainder; (2) an in-game Developer panel: live GPU vs RAM totals and a drill-down by owner and asset (sortable, ≥ 1 MB rows), the 1.0 GB cap line, and the Simulator-calibrated footprint beside the accounted sum; (3) a report command: one run produces a JSON report and portrait infographics (GPU vs RAM stacked by owner in ≤ 50 MB blocks, the cap line, a one-line takeaway) for the road, each shard's centre and the worst crossing, on the Simulator ruler (WebContent + labelled GL, vmmap regions for the native side); (4) reports go to Jake with each memory pick OPEN" [expanded=false]
+          - StaticText "SF64"
+          - StaticText "The memory debugger (E456; Jake: \"I can't do anything about it without a memory debugger … where are those 18 chunks going? Who's using that? What type of memory is this? Is this GPU memory? … RAM memory? … someone has to build a full memory debugger … then I need reports … infographic images of the reports\"): (1) attribution in the engine: every GPU allocation (texture, buffer, render target, shadow / environment map) and every large CPU allocation (JS geometry / image arrays, audio buffers, canvases, WebAssembly memory) is tagged with its owner (engine system, platform / road, shard + system, asset id) through the engine's allocation paths, so the totals add up with an explicit unattributed remainder; (2) an in-game Developer panel: live GPU vs RAM totals and a drill-down by owner and asset (sortable, ≥ 1 MB rows), the 1.0 GB cap line, and the Simulator-calibrated footprint beside the accounted sum; (3) a report command: one run produces a JSON report and portrait infographics (GPU vs RAM stacked by owner in ≤ 50 MB blocks, the cap line, a one-line takeaway) for the road, each shard's centre and the worst crossing, on the Simulator ruler (WebContent + labelled GL, vmmap regions for the native side); (4) reports go to Jake with each memory pick"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF65 Legacy vs shardfile entry in SHARD SELECT (G237–G240): with Developer on, each SHARD SELECT card (the six shards, the template, the Blender Template when it exists) shows two entry buttons, LEGACY (the original TypeScript shard) and SHARDFILE (its current port state: the shardfile plus any not-yet-ported TypeScript) with a port badge (the public share from scripts/shard-platform.mjs); SHARDFILE reads \"NOT YET\" and is disabled without a shardfile path; the public build keeps one ENTER (the best current version); the per-shard hybrid Debug rows go; in-game feedback is tagged with shard + mode and lands as plan rows; an E332 menu change (board first) OPEN" [expanded=false]
+          - StaticText "SF65"
+          - StaticText "Legacy vs shardfile entry in SHARD SELECT (G237–G240): with Developer on, each SHARD SELECT card (the six shards, the template, the Blender Template when it exists) shows two entry buttons, LEGACY (the original TypeScript shard) and SHARDFILE (its current port state: the shardfile plus any not-yet-ported TypeScript) with a port badge (the public share from "
+          - code
+            - StaticText "scripts/shard-platform.mjs"
+          - StaticText "); SHARDFILE reads \"NOT YET\" and is disabled without a shardfile path; the public build keeps one ENTER (the best current version); the per-shard hybrid Debug rows go; in-game feedback is tagged with shard + mode and lands as plan rows; an E332 menu change (board first)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF66 Maps that can't go stale (E457; Jake, 2026-10-08, from Sky Reach on his iPhone: \"The mini map and world map has not been updated … update the mini map and world map for all the shards with all the new content … make a lint and a test checking for stale maps … fail the test if the map is stale. I don't want to deploy it with a broken map\"): the minimap and the full map draw only the registered pieces a shard's ShardManifest.map names (src/engine/ui/mapShapes.ts), so new content (Sky Reach's Rising Islets and gate isles, Driftwood's drop and decks, template districts, open plots, Nine Dragon's portals, POIs) is invisible when nobody adds its ids. (1) Update every shard's map spec and POIs for its current world, in both SHARD SELECT and the grid (the grid minimap shows the shard you are in, G107); (2) a coverage test: boot each shard headless, list every registered static / walkable piece (colliders) and every POI-bearing entity, and fail when one is matched by neither the map spec nor an explicit, reviewed mapIgnore list (with a reason per entry); also fail on a map id pattern that matches nothing (a dead entry); (3) the test runs in the pre-push gate and CI, so a stale map never deploys OPEN" [expanded=false]
+          - StaticText "SF66"
+          - StaticText "Maps that can't go stale (E457; Jake, 2026-10-08, from Sky Reach on his iPhone: \"The mini map and world map has not been updated … update the mini map and world map for all the shards with all the new content … make a lint and a test checking for stale maps … fail the test if the map is stale. I don't want to deploy it with a broken map\"): the minimap and the full map draw only the registered pieces a shard's "
+          - code
+            - StaticText "ShardManifest.map"
+          - StaticText " names ("
+          - code
+            - StaticText "src/engine/ui/mapShapes.ts"
+          - StaticText "), so new content (Sky Reach's Rising Islets and gate isles, Driftwood's drop and decks, template districts, open plots, Nine Dragon's portals, POIs) is invisible when nobody adds its ids. (1) Update every shard's map spec and POIs for its current world, in both SHARD SELECT and the grid (the grid minimap shows the shard you are in, G107); (2) a coverage test: boot each shard headless, list every registered static / walkable piece (colliders) and every POI-bearing entity, and fail when one is matched by neither the map spec nor an explicit, reviewed "
+          - code
+            - StaticText "mapIgnore"
+          - StaticText " list (with a reason per entry); also fail on a map id pattern that matches nothing (a dead entry); (3) the test runs in the pre-push gate and CI, so a stale map never deploys"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF67 The loading sprint (E461; Jake, 2026-10-08: \"that whole loading flow needs to not freeze, be super responsive. I've definitely seen Driftwood freeze for 10 seconds because it's loading something … pre-computation … it just freezes the UI for 10 seconds because single threaded JavaScript … all of that needs a dedicated sprint\"): (1) an audit of download → load → setup for every shard and the grid: every step, where it runs (main thread, worker), how long, what it decodes / generates / compiles at boot, and every trade-off made to shrink downloads (procedural generation at load, images-first, transcoding, packing) with whether its assumption still holds; (2) a loading benchmark, separate from the frame floor: time-to-playable per phase and per shard, cold and warm, in the iOS Simulator's Safari and desktop, plus every main-thread long task over 50 ms with its owner; (3) the target: the UI and loading screen never freeze (no main-thread task over ~100 ms during loading; the loading screen animates and shows real progress from the first frame), and loading gets much faster: heavy work moves into the bake (precomputed in wildshard build), into workers, or into time-sliced chunks; shaders compile asynchronously; the 10 s Driftwood freeze is gone OPEN" [expanded=false]
+          - StaticText "SF67"
+          - StaticText "The loading sprint (E461; Jake, 2026-10-08: \"that whole loading flow needs to not freeze, be super responsive. I've definitely seen Driftwood freeze for 10 seconds because it's loading something … pre-computation … it just freezes the UI for 10 seconds because single threaded JavaScript … all of that needs a dedicated sprint\"): (1) an audit of download → load → setup for every shard and the grid: every step, where it runs (main thread, worker), how long, what it decodes / generates / compiles at boot, and every trade-off made to shrink downloads (procedural generation at load, images-first, transcoding, packing) with whether its assumption still holds; (2) a loading benchmark, separate from the frame floor: time-to-playable per phase and per shard, cold and warm, in the iOS Simulator's Safari and desktop, plus every main-thread long task over 50 ms with its owner; (3) the target: the UI and loading screen never freeze (no main-thread task over ~100 ms during loading; the loading screen animates and shows real progress from the first frame), and loading gets much faster: heavy work moves into the bake (precomputed in "
+          - code
+            - StaticText "wildshard build"
+          - StaticText "), into workers, or into time-sliced chunks; shaders compile asynchronously; the 10 s Driftwood freeze is gone"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF68 wildshard-admin, the admin and analytics site (G248–G251, E462): a new Vercel project (name it wildshard-admin before the first deploy, from its own folder per the global Vercel notes) with no game in it, public and unlisted, rebuilt from committed reports on each deploy, portrait-first for Safari on iOS (tap targets, no hover-only UI, works one-handed). Tools: (1) memory explorer: every itemized / SF64 report by situation and build, GPU vs RAM by owner and asset as interactive stacked bars and drill-down lists, the 1.0 GB cap line, measured vs estimated vs unattributed, build-to-build comparison; (2) loading explorer: SF67's time-to-playable per shard and phase, cold vs warm, long tasks with owners; (3) playtest reports: each G222 agent playtest's top 10, clips, stills and status; (4) plan dashboard: effort %, milestones, decisions G1–G257, what's waiting for Jake. Reports carry their build id; a schema per report type is checked at build OPEN" [expanded=false]
+          - StaticText "SF68"
+          - StaticText "wildshard-admin, the admin and analytics site (G248–G251, E462): a new Vercel project (name it "
+          - code
+            - StaticText "wildshard-admin"
+          - StaticText " before the first deploy, from its own folder per the global Vercel notes) with no game in it, public and unlisted, rebuilt from committed reports on each deploy, portrait-first for Safari on iOS (tap targets, no hover-only UI, works one-handed). Tools: (1) memory explorer: every itemized / SF64 report by situation and build, GPU vs RAM by owner and asset as interactive stacked bars and drill-down lists, the 1.0 GB cap line, measured vs estimated vs unattributed, build-to-build comparison; (2) loading explorer: SF67's time-to-playable per shard and phase, cold vs warm, long tasks with owners; (3) playtest reports: each G222 agent playtest's top 10, clips, stills and status; (4) plan dashboard: effort %, milestones, decisions G1–G257, what's waiting for Jake. Reports carry their build id; a schema per report type is checked at build"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF70 Ranged and thrown items as declared rows (coordinator, 2026-10-08, from the M3 hybrid adoption: sp-x3 Nalati, sp-x4 Pine): ItemsSchema declares only weapon.melee contexts / touch / contacts, so a hybrid shard's bow, thrown spear, practice rifle, crossbow and lever rifle stay trusted runtime families. Extend the item rows with ranged / thrown contexts, runtime-only references to existing input contexts and an equipment-presentation override in the trusted family (format: sp-x5 owns schema.ts), then move Nalati's and Pine's ranged weapons onto rows OPEN" [expanded=false]
+          - StaticText "SF70"
+          - StaticText "Ranged and thrown items as declared rows (coordinator, 2026-10-08, from the M3 hybrid adoption: sp-x3 Nalati, sp-x4 Pine): "
+          - code
+            - StaticText "ItemsSchema"
+          - StaticText " declares only "
+          - code
+            - StaticText "weapon.melee"
+          - StaticText " contexts / touch / contacts, so a hybrid shard's bow, thrown spear, practice rifle, crossbow and lever rifle stay trusted runtime families. Extend the item rows with ranged / thrown contexts, runtime-only references to existing input contexts and an equipment-presentation override in the trusted family (format: sp-x5 owns "
+          - code
+            - StaticText "schema.ts"
+          - StaticText "), then move Nalati's and Pine's ranged weapons onto rows"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF71 Agent playtest round 3, the first in iOS Simulator Safari (plan agent 745fc9de6, art/playtest/round-3-2026-10-08/README.md, builds ab39c40 + 9ee6df47). Lanes in flight: (1) template cells freeze 1.0–1.6 s every ≈ 6.2 s, so the public grid is hit (rt3-freeze); (2) crossings wait 6–14 s on a blank world with 0.5–2.2 s freezes, (4) the camera sits inside the cell's loading card for 7–15 s, (7) the grid cold start parks 12 s at 'Weapons · HUD 61 %' (rt3-crossing); (6) minimaps blank in Safari, (9) the grid MAP puts you in Driftwood's cell while in a template copy, the template's held item is a dark slab and the lantern shows nothing (rt3-maps). Open, Developer-only: (5) Nalati's LEGACY entry renders wrong in Safari (floating sky panels, black rocks, dark ground); (8) driving into Sky Reach from the north drops you off the edge after ≈ 50 m; (10) Pine's near trees are bare black branches in Safari; (3) Pine / Nalati memory is census-inflated (G257). Also SF0d: another agent's Simulator run took over the shared device mid-run OPEN" [expanded=false]
+          - StaticText "SF71"
+          - StaticText "Agent playtest round 3, the first in iOS Simulator Safari (plan agent "
+          - code
+            - StaticText "745fc9de6"
+          - StaticText ", "
+          - code
+            - StaticText "art/playtest/round-3-2026-10-08/README.md"
+          - StaticText ", builds "
+          - code
+            - StaticText "ab39c40"
+          - StaticText " + "
+          - code
+            - StaticText "9ee6df47"
+          - StaticText "). Lanes in flight: (1) template cells freeze 1.0–1.6 s every ≈ 6.2 s, so the public grid is hit (rt3-freeze); (2) crossings wait 6–14 s on a blank world with 0.5–2.2 s freezes, (4) the camera sits inside the cell's loading card for 7–15 s, (7) the grid cold start parks 12 s at 'Weapons · HUD 61 %' (rt3-crossing); (6) minimaps blank in Safari, (9) the grid MAP puts you in Driftwood's cell while in a template copy, the template's held item is a dark slab and the lantern shows nothing (rt3-maps). Open, Developer-only: (5) Nalati's LEGACY entry renders wrong in Safari (floating sky panels, black rocks, dark ground); (8) driving into Sky Reach from the north drops you off the edge after ≈ 50 m; (10) Pine's near trees are bare black branches in Safari; (3) Pine / Nalati memory is census-inflated (G257). Also SF0d: another agent's Simulator run took over the shared device mid-run"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF72 Renderer-free runtime installers: the road from bound rows to 80/20 (coordinator, 2026-10-08, from sp-x1's checklist 4c07eef41 + sp-x4's witness audit): every hybrid shard now binds its quests / feats / items / bosses / actors / state as rows (runtime.binds) and enters the grid as a shardfile cell (Nine Dragon last, aeb76ea81), but its public SDK share is 0.2–3.3 % and none can run headless: the canonical witness (headless + replay + ledger fixtures in test/proof/<slug>/) fails closed because shard code imports the renderer at module load (first chains: Signal runtime, plugin, world/meshes, engine/anim/rig; Sky shard.config, world/risingIslet, engine/world/registry, engine/app/runtime; Nine shard.config, world/entries, look/paint, engine/boot/bytes, core/tier, render/tiers) and the native runtimes own the real actors (creatures.spawns is empty). Cut those load-time renderer edges (data and sim modules that load without the engine renderer), move each shard's compatible behaviour onto public SDK systems (G135 / SF54), and grow the witnesses from fail-closed to passing, shard by shard OPEN" [expanded=false]
+          - StaticText "SF72"
+          - StaticText "Renderer-free runtime installers: the road from bound rows to 80/20 (coordinator, 2026-10-08, from sp-x1's checklist "
+          - code
+            - StaticText "4c07eef41"
+          - StaticText " + sp-x4's witness audit): every hybrid shard now binds its quests / feats / items / bosses / actors / state as rows ("
+          - code
+            - StaticText "runtime.binds"
+          - StaticText ") and enters the grid as a shardfile cell (Nine Dragon last, "
+          - code
+            - StaticText "aeb76ea81"
+          - StaticText "), but its public SDK share is 0.2–3.3 % and none can run headless: the canonical witness (headless + replay + ledger fixtures in "
+          - code
+            - StaticText "test/proof/<slug>/"
+          - StaticText ") fails closed because shard code imports the renderer at module load (first chains: Signal runtime, plugin, world/meshes, "
+          - code
+            - StaticText "engine/anim/rig"
+          - StaticText "; Sky "
+          - code
+            - StaticText "shard.config"
+          - StaticText ", world/risingIslet, "
+          - code
+            - StaticText "engine/world/registry"
+          - StaticText ", "
+          - code
+            - StaticText "engine/app/runtime"
+          - StaticText "; Nine "
+          - code
+            - StaticText "shard.config"
+          - StaticText ", world/entries, look/paint, "
+          - code
+            - StaticText "engine/boot/bytes"
+          - StaticText ", "
+          - code
+            - StaticText "core/tier"
+          - StaticText ", "
+          - code
+            - StaticText "render/tiers"
+          - StaticText ") and the native runtimes own the real actors ("
+          - code
+            - StaticText "creatures.spawns"
+          - StaticText " is empty). Cut those load-time renderer edges (data and sim modules that load without the engine renderer), move each shard's compatible behaviour onto public SDK systems (G135 / SF54), and grow the witnesses from fail-closed to passing, shard by shard"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF63 Each shard looks like itself inside the grid (G226 follow-up; playtest round 2): under the owned neutral page shell a region's materials compile (a07382147: ownUniforms declares the look uniforms a material reads) but render under the shell's plain lighting, sky and fog, because a look's lighting / fog are global ShaderChunk rewrites the program cache can't scope per region. Scope a look per material / region (a region-keyed program variant or per-material chunk overrides): Driftwood keeps its toon bands and ramp fog, Nalati its painterly grade, Pine its PBR, all inside the one grid frame (G158); grid Nalati's yellow steppe and black horizon band are checked against this row first. Diagnosed (drive-in lane, c9aaa62ab): (1) grid Nalati's yellow steppe and grass on its entry road have one cause: the page look has no LookStrategy.grass, so Grass.build() falls back to the engine carpet, which reads Nalati's splat [grass, road, rock, snow] as [forest, grass, rock, trail]; (2) Pine's black forest is a PBR shard with no environment / fill under the shared sky (G223 B, its own sky, mostly fixes it for ≈ +32 MB); (3) Nalati's black band no longer reproduces (SF23 d2263ea11) OPEN" [expanded=false]
+          - StaticText "SF63"
+          - StaticText "Each shard looks like itself inside the grid (G226 follow-up; playtest round 2): under the owned neutral page shell a region's materials compile ("
+          - code
+            - StaticText "a07382147"
+          - StaticText ": "
+          - code
+            - StaticText "ownUniforms"
+          - StaticText " declares the look uniforms a material reads) but render under the shell's plain lighting, sky and fog, because a look's lighting / fog are global "
+          - code
+            - StaticText "ShaderChunk"
+          - StaticText " rewrites the program cache can't scope per region. Scope a look per material / region (a region-keyed program variant or per-material chunk overrides): Driftwood keeps its toon bands and ramp fog, Nalati its painterly grade, Pine its PBR, all inside the one grid frame (G158); grid Nalati's yellow steppe and black horizon band are checked against this row first. Diagnosed (drive-in lane, "
+          - code
+            - StaticText "c9aaa62ab"
+          - StaticText "): (1) grid Nalati's yellow steppe and grass on its entry road have one cause: the page look has no "
+          - code
+            - StaticText "LookStrategy.grass"
+          - StaticText ", so "
+          - code
+            - StaticText "Grass.build()"
+          - StaticText " falls back to the engine carpet, which reads Nalati's splat [grass, road, rock, snow] as [forest, grass, rock, trail]; (2) Pine's black forest is a PBR shard with no environment / fill under the shared sky (G223 B, its own sky, mostly fixes it for ≈ +32 MB); (3) Nalati's black band no longer reproduces (SF23 "
+          - code
+            - StaticText "d2263ea11"
+          - StaticText ")"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF24 The shard director and typed events (G9); grid-event subscriptions reserved in the API (G36) OPEN" [expanded=false]
+          - StaticText "SF24"
+          - StaticText "The shard director and typed events (G9); grid-event subscriptions reserved in the API (G36)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF25 Client scripts: presentation only, a read-only view of declared state (G10) OPEN" [expanded=false]
+          - StaticText "SF25"
+          - StaticText "Client scripts: presentation only, a read-only view of declared state (G10)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF26 The commons v0 (a package, G137; it receives the dissolved kit's assets and shared rows, SF54): the kit species and sounds the shards share today, shipped once and cached across shards, referenced with commons: (G6) OPEN" [expanded=false]
+          - StaticText "SF26"
+          - StaticText "The commons v0 (a package, G137; it receives the dissolved kit's assets and shared rows, SF54): the kit species and sounds the shards share today, shipped once and cached across shards, referenced with "
+          - code
+            - StaticText "commons:"
+          - StaticText " (G6)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF27 Brains: the archetypes the shards use today, boss phase tables, custom AssemblyScript brains over the host queries (G12, R2-C10) OPEN" [expanded=false]
+          - StaticText "SF27"
+          - StaticText "Brains: the archetypes the shards use today, boss phase tables, custom AssemblyScript brains over the host queries (G12, R2-C10)"
+          - StaticText "OPEN"
+      - group
+        - DisclosureTriangle "SF28 The UI kit for what shards show today (markers, toasts, quest panels, the trader and shop panels, counters) in platform slots; HUD changes over herdr (E332) (G22) OPEN" [expanded=false]
+          - StaticText "SF28"
+          - StaticText "The UI kit for what shards show today (markers, toasts, quest panels, the trader and shop panels, counters) in platform slots; HUD changes over herdr (E332) (G22)"
+          - StaticText "OPEN"
+      - button "Show more (16 left)" [ref=e21]
+    - heading "Decisions (257)" [level=2, ref=e11]
+    - searchbox "Search decisions" [ref=e12]
+    - generic
+      - StaticText "G257"
+      - StaticText "Pine's memory pick"
+      - paragraph
+        - StaticText "Re-measure first; no Pine pick yet (Jake, 2026-10-08, after "
+        - code
+          - StaticText "c2d910073"
+        - StaticText " found that most of the ~425 MB grid overhead is the native ruler's own GL census, real grid-only retention ≈ 90 MB): re-measure Pine, Nalati and Sky Reach in the grid with the census only at the final pose, three cold runs each, and redo the memory report on that ruler; every earlier native memory number carries a \"census-inflated\" note until re-read; SF47-g's needs-pick waits for the re-read (SF47, SF64, SF57)"
+      - StaticText "G256"
+      - StaticText "Progress reporting"
+      - paragraph
+        - StaticText "Both, hard count first (Jake, 2026-10-08): lead with shards at 80/20 and the \"ready to share\" checklist (G244), then the effort percentage"
+      - StaticText "G255"
+      - StaticText "The budget"
+      - paragraph
+        - StaticText "Spend faster (Jake, 2026-10-08: \"Spend faster, we have resets and two Claude accounts\"): lift the throttle; run more lanes now and accept pausing before a reset (the G109 / G145 wind-down still applies at the very end)"
+      - StaticText "G254"
+      - StaticText "Grid parity"
+      - paragraph
+        - StaticText "Keep closing Driftwood's gap (Jake, 2026-10-08, "
+        - code
+          - StaticText "progress/shard-platform/sf63-parity/"
+        - StaticText "): Pine and Nalati accepted; Driftwood's interior must match SHARD SELECT (SF63)"
+      - StaticText "G253"
+      - StaticText "Sky Reach's textures"
+      - paragraph
+        - StaticText "B, compressed KTX2 (ASTC) (Jake, 2026-10-08, "
+        - code
+          - StaticText "progress/memory/sky-reach/board-ktx2-ab.jpg"
+        - StaticText "): −72 MB GL, look within animation noise; Sky Reach's HD models ship KTX2 on the phone and the images path for them goes (SF49, G188)"
+      - StaticText "G252"
+      - StaticText "The baked map's look"
+      - paragraph
+        - StaticText "B, stylized (Jake, 2026-10-08, "
+        - code
+          - StaticText "art/maps/round-1-baked-map-style/board.jpg"
+        - StaticText "): flat colours by ground type plus height shading, paths / decks / bridges picked out, from the top-down render and its height pass; a small colour table per shard keeps each shard's style; movers baked at rest (SF66)"
+      - StaticText "G251"
+      - StaticText "Admin site tools"
+      - paragraph
+        - StaticText "Memory explorer, loading explorer, playtest reports, plan dashboard (Jake, 2026-10-08) (SF68)"
+      - StaticText "G250"
+      - StaticText "Admin site data"
+      - paragraph
+        - StaticText "Committed reports, rebuilt each deploy (Jake, 2026-10-08): no live game connection (SF68)"
+      - StaticText "G249"
+      - StaticText "Admin site access"
+      - paragraph
+        - StaticText "Public, unlisted (Jake, 2026-10-08) (SF68)"
+      - StaticText "G248"
+      - StaticText "The admin site"
+      - paragraph
+        - StaticText "A new site, wildshard-admin (Jake, 2026-10-08: \"a third website that's admin and analytics … it doesn't contain the game … all kinds of admin, analytics, debugging tools, including this memory explorer … a full JavaScript website that works on Safari iOS in portrait mode\"): its own Vercel project from this repo, separate from the game and the drafts site (SF68)"
+      - StaticText "G247"
+      - StaticText "When the map bakes"
+      - paragraph
+        - StaticText "Every build, cached by a hash of the shard's tiles (Jake, 2026-10-08): only changed shards rebake; a gate test fails when a shipped map's hash doesn't match its tiles, so a stale map can't deploy (SF66)"
+      - StaticText "G246"
+      - StaticText "How the map is made"
+      - paragraph
+        - StaticText "Baked from the world (Jake, 2026-10-08: \"why can't the map just be made from the world? … when you're in the World Explorer, you can fly up in God mode and capture what the map looks like from the sky, and that can be the map … the icons, the points of interest … have to be listed and enumerated … but the physical map itself … turn the world into an image in a standardized way that you can check for staleness or regenerate on every push\"): "
+        - code
+          - StaticText "wildshard build"
+        - StaticText " renders each shard straight down into a map image stored in its shardfile, replacing the registered-pieces map ("
+        - code
+          - StaticText "mapShapes"
+        - StaticText "); icons and points of interest stay listed data; the style comes from a board first (photo vs stylized) (SF66)"
+      - StaticText "G245"
+      - StaticText "The memory debugger's first target"
+      - paragraph
+        - StaticText "The 340–460 MB of unowned RAM (Jake, 2026-10-08, "
+        - code
+          - StaticText "progress/memory/itemized-2026-10-08/"
+        - StaticText ") (SF64)"
+      - StaticText "G244"
+      - StaticText "\"Ready to share with friends and family\""
+      - paragraph
+        - StaticText "The checklist (Jake, 2026-10-08): no known P0 bugs (hover, black materials, crashes); 30 fps on the phone; three grid runs on Jake's phone with no tab kill; every enterable shard fits the 1.0 GB cap; working maps (SF66); a loading screen that shows progress; the coordinator reports against it and Jake gives the final yes (G210, SF22)"
+      - StaticText "G243"
+      - StaticText "Where agent playtests run"
+      - paragraph
+        - StaticText "The iOS Simulator's Safari (WebKit) first, Chromium only as backup (Jake, 2026-10-08, after his phone found hover, black materials and the stuck loading screen that Chromium playtests missed) (SF60, G222)"
+      - StaticText "G242"
+      - StaticText "The generic road sky"
+      - paragraph
+        - StaticText "B, grid dawn (Jake, 2026-10-08, E455, "
+        - code
+          - StaticText "art/grid/round-26-road-sky/board.jpg"
+        - StaticText "): on the road network a dawn gradient with a thin cyan horizon line and a faint grid echoing the HUD and the VR void, one shader dome (no textures), with its own road key light blended over the 16 m cell-edge band; each shard's own sky inside its cell (G232) (SF19a). Built "
+        - code
+          - StaticText "bad14e614"
+        - StaticText " (the floor 'hitch' was the shared crossroads pose, no worse than the parent)"
+      - StaticText "G241"
+      - StaticText "Shardfile-only shards"
+      - paragraph
+        - StaticText "LEGACY disabled, labelled shardfile only (Jake, 2026-10-08: \"if something is fully ported to the shard file, you can disable all the TypeScript and disable the legacy … if it was built as a shard file from the ground up and there's no legacy TypeScript … just disable that card and say that it's a shard file only\"): the template, the Blender Template and any fully ported shard show LEGACY disabled with \"SHARDFILE ONLY · NO LEGACY\"; a fully ported shard's legacy TypeScript is deleted (SF65)"
+      - StaticText "G240"
+      - StaticText "Feedback during the port"
+      - paragraph
+        - StaticText "Tag shard + mode (Jake, 2026-10-08): in-game feedback records the shard and LEGACY / SHARDFILE; each note becomes a plan row (SF65, SF60)"
+      - StaticText "G239"
+      - StaticText "The hybrid Debug rows"
+      - paragraph
+        - StaticText "The buttons replace them (Jake, 2026-10-08): "
+        - code
+          - StaticText "pineHybrid"
+        - StaticText ", "
+        - code
+          - StaticText "nalatiHybrid"
+        - StaticText " and the like are deleted with their rows (SF65, SF61)"
+      - StaticText "G238"
+      - StaticText "What SHARDFILE loads"
+      - paragraph
+        - StaticText "The shard's current port state + a % badge (Jake, 2026-10-08): its shardfile plus whatever TypeScript isn't ported yet, badged with the port share ("
+        - code
+          - StaticText "scripts/shard-platform.mjs"
+        - StaticText ", e.g. \"1% PORTED\", \"87%\"); disabled with \"NOT YET\" when no shardfile path exists (SF65)"
+      - button "Show more (237 left)" [ref=e22]
+    - paragraph
+      - StaticText "Source "
+      - code
+        - StaticText "docs/plans/SHARD-PLATFORM.md"
+  - navigation "Tools" [ref=e1]
+    - link "Memory" [ref=e13]
+    - link "Loading" [ref=e14]
+    - link "Playtests" [ref=e15]
+    - link "Plan" [ref=e16]

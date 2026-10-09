@@ -1,0 +1,4 @@
+
+> wildshard-admin@ typecheck /Users/raynos/projects/games/wildshard-singleplayer/admin
+> node ../node_modules/typescript/bin/tsc --noEmit -p . && node ../node_modules/typescript/bin/tsc --noEmit -p tools
+

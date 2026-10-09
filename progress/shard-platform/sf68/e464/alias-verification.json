@@ -1,0 +1,16 @@
+[
+  {
+    "case": "propagate",
+    "exit": 0,
+    "reads": 2,
+    "stdout": "deploy-admin: live at https://wildshard-admin.vercel.app (build abcdef123)\n",
+    "stderr": ""
+  },
+  {
+    "case": "wrong",
+    "exit": 1,
+    "reads": 12,
+    "stdout": "",
+    "stderr": "deploy-admin: https://wildshard-admin.vercel.app reports build older, not abcdef123\n"
+  }
+]
