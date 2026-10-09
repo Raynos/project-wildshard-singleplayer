@@ -2025,6 +2025,8 @@ cap (`debugRows`) are human-reviewed source policy and never regenerate. Histori
 Trusted transition code in `runtime/` keeps legacy public engine/game/kit access; build-time generators never ship.
 The SDK cannot import shard content. Each module owns its exports; there is no barrel.
 
+`@wildshard/sdk/assets.assetBytes(base64)` decodes a JSON-safe authored payload without fetching or installing a service. The resulting bytes still pass through `assetCost(kind, bytes)` and normal library admission; decoding alone makes no residency claim.
+
 `@wildshard/sdk/modelGeometry.modelGeometry(url, channels?)` loads a single identity-space offline GLB before synchronous model placement. `load(bytes?)` deduplicates the intake and permits explicit bytes in Node; `copy()` returns independent geometry attributes for merging, scaling, collectible slots or release after upload. Custom GLB attributes map back to authored shader channels without quantization or recomputing normals; identity triangle indices restore an original triangle soup. Materials, colliders and animation stay with the runtime owner. Nothing loads or installs on import.
 
 `@wildshard/game/shardfile/loader` admits a browser product with `shardfileSource` or selects it with

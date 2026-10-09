@@ -1,13 +1,13 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { assetCost } from '@wildshard/sdk/assets';
+import { assetBytes, assetCost } from '@wildshard/sdk/assets';
 import { SOURCE } from './data/source';
-import { CARD_HASH } from './data/card';
-import { CARD_BYTES } from './boot/card';
+import { CARD_BASE64, CARD_HASH } from './data/card';
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import { ROWS } from './data/rows';
 import { HALL_QUEST } from './quests/hall';
 
 const base = emptyShardfile(SOURCE.identity);
+const CARD_BYTES = assetBytes(CARD_BASE64);
 const cost = assetCost('image', CARD_BYTES);
 /** Build-only source: the SDK compiles and meters this, and admits its critical bytes. */
 export const behaviour = [{ id: 'door', source: 'behaviour/door.as', maximumPages: 2 }];

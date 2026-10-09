@@ -2,6 +2,10 @@ import { assetCost as cost, assetOverdraw as raster, parseAudio as audio, parseG
 
 /** Actual parsed residency and draw costs, independent of author declarations. */
 export type AssetCost = Cost;
+/** Decode a JSON-safe authored payload before admission. Call assetCost to validate its kind and charge residency. */
+export function assetBytes(base64: string): Uint8Array {
+  return Uint8Array.from(atob(base64), character => character.codePointAt(0) ?? 0);
+}
 /** Admit a self-contained GLB and derive its geometry and instance costs. */
 export function parseGlb(bytes: Uint8Array): Cost { return glb(bytes); }
 /** Admit bounded KTX2 mip ranges and conservative transcode residency. */
