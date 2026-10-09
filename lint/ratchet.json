@@ -183,7 +183,7 @@
     "src/shards/nalati-grasslands/ride/RideHUD.ts": 1,
     "src/shards/nalati-grasslands/ride/saves.ts": 1,
     "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts": 1,
-    "src/shards/nalati-grasslands/runtime/groupPorts.ts": 1,
+    "src/shards/nalati-grasslands/runtime/groupHost.ts": 1,
     "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts": 1,
     "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts": 1,
     "src/shards/nalati-grasslands/runtime/weapons/Sabre.ts": 1,
