@@ -254,14 +254,14 @@ let refused = '';
 try { nav.closestWalkable({ x: 0, y: 0, z: -200 }); } catch (error) { refused = String(error); }
 nav.datum = () => 0;
 console.log(JSON.stringify({ refused, snapped: nav.closestWalkable({ x: 0, y: 0, z: -200 }) !== null }));`;
-  const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', script], { encoding: 'utf8', timeout: 20000 });
+  const result = spawnSync(execPath, ['--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', script], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   const out = JSON.parse(result.stdout) as { refused: string; snapped: boolean };
   expect(out.refused).toContain('No level has been configured'); expect(out.snapped).toBe(true);
 });
 
 it('imports the trusted headless runtime, the elites\' goals and the bare lane without DOM or renderer modules', () => {
-  const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
+  const result = spawnSync(execPath, ['--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
     "const m = await import('./src/shards/pine-hollow/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); const g = await import('./src/shards/pine-hollow/combat/EliteGoals.ts'), l = await import('./src/shards/pine-hollow/combat/lane.ts'); if (typeof g.ironhideGoal !== 'function' || typeof l.Lane !== 'function') throw new Error('no goals'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });

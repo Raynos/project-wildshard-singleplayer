@@ -43,7 +43,9 @@ function boardFrom(value: unknown): Board {
 export class PineLodge {
   private board: Board = newBoard();
   private opened = false;
-  constructor(private readonly ports: PineLodgePorts) {
+  private readonly ports: PineLodgePorts;
+  constructor(ports: PineLodgePorts) {
+    this.ports = ports;
     if (CONTRACT_ROWS.some(row => row.reward.items.length > 2)) throw new RangeError('Pine lodge reward allowance changed');
     if (![ports.prompt.x, ports.prompt.y, ports.prompt.z, ports.radius].every(Number.isFinite) || ports.radius <= 0) {
       throw new RangeError('Invalid Pine lodge prompt');

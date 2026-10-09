@@ -18,7 +18,9 @@ export interface PinePersonSpot {
 export class PinePeople {
   private readonly readings: Record<PinePersonKind, PineDialogue>;
   private current: PinePersonKind | null = null;
-  constructor(flags: DialogueFlags, spots: readonly PinePersonSpot[], private readonly completed: (kind: PinePersonKind) => void) {
+  private readonly completed: (kind: PinePersonKind) => void;
+  constructor(flags: DialogueFlags, spots: readonly PinePersonSpot[], completed: (kind: PinePersonKind) => void) {
+    this.completed = completed;
     if (spots.length !== 3) throw new RangeError('Pine has exactly three captured speakers');
     const reading = (kind: PinePersonKind, npc: typeof RANGER): PineDialogue => {
       const matches = spots.filter(spot => spot.kind === kind), spot = matches[0];
