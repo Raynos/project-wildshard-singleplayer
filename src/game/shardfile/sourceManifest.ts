@@ -2,15 +2,12 @@ import type { ShardManifest } from '../shard/manifest';
 import type { ShardContext } from '../shard/context';
 import { parseShardSlug } from '../shard/slug';
 import type { Shardfile } from './schema';
-import { emptyLook } from './emptyLook';
-import { shardfileLook } from './look';
-import { EmptyEquipment } from './emptyEquipment';
 import { presentationCard } from './presentation';
 
 /** Pure catalogue/level mapping from parsed data and already admitted immutable image bytes.
  * No fetch, browser decode, world allocation or service installation occurs here. Absent presentation keeps the empty card.
  * The caller owns asset admission and the library lease; the returned hooks enter the ordinary session later. */
-export function sourceManifest(source: Shardfile, assets: ReadonlyMap<string, Uint8Array> = new Map()): ShardManifest {
+export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | 'spawn' | 'look' | 'presentation'>, assets: ReadonlyMap<string, Uint8Array> = new Map()): ShardManifest {
   const presentation = source.presentation;
   const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
   return {
@@ -23,17 +20,16 @@ export function sourceManifest(source: Shardfile, assets: ReadonlyMap<string, Ui
     atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
     grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
     budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: {},
-    render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look)), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
+    render: async () => source.look.keys.length === 0 ? (await import('./emptyLook')).emptyLook(source.look.dayOverride) : (await import('./look')).shardfileLook(source.look), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
     audio: { ambience: 'none', score: 'none' },
     boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
     // A plugin source enters the ordinary staged LevelLoader, even with no authored hooks.
-    load: () => Promise.resolve({ default: class {
+    load: async () => { const { EmptyEquipment } = await import('./emptyEquipment'); return { default: class {
       kit(ctx: ShardContext): void {
         const runtime = ctx.game.runtime;
         if (runtime === undefined) throw new Error('Shardfile source requires the session host');
         runtime.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), secondary: null, rifle: null });
       }
-    } }),
+    } }; },
   };
 }
-

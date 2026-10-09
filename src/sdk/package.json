@@ -74,7 +74,8 @@
     "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
     "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts",
     "./interactions": "./interactions.ts",
-    "./compileScript": "./compileScript.ts"
+    "./compileScript": "./compileScript.ts",
+    "./sourceManifest": "./sourceManifest.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -382,6 +383,10 @@
       "./compileScript": {
         "types": "./dist/types/sdk/compileScript.d.ts",
         "default": "./dist/compileScript.js"
+      },
+      "./sourceManifest": {
+        "types": "./dist/types/sdk/sourceManifest.d.ts",
+        "default": "./dist/sourceManifest.js"
       }
     }
   }
