@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { generatedFiles } from '../scripts/generated-files.mjs';
 import { writeApiDocs } from '../scripts/gen-api.mjs';
 import { checkShardfileReference } from '../scripts/docs/gen-shardfile-reference.mjs';
-import { checkCommitted, regenerateCommitted, verifiedStamp } from '../scripts/regenerate-committed.mjs';
+import { approvedIncreases, checkCommitted, regenerateCommitted, verifiedStamp } from '../scripts/regenerate-committed.mjs';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { precommitGenerated } from '../scripts/precommit-generated.mjs';
 import { manifestOutcome, refreshWitnesses, withInputs } from '../scripts/witness-manifests.mjs';
@@ -66,6 +66,14 @@ describe('SF6b clean committed regeneration', () => {
       expect(() => checkShardfileReference(root)).toThrow('Stale generated shardfile reference');
     });
   }, 30_000);
+  it('covers a moving count with a standing rule, and still refuses what no rule or exact row covers (SF74 W14)', () => {
+    const down = { kind: 'graph' as const, key: 'shards/alpha → engine', before: 811, after: 816 };
+    const up = { kind: 'graph' as const, key: 'engine → game', before: 0, after: 1 };
+    const standing = { approver: 'wildshard-new', increases: [], standing: [{ kind: 'graph', key: '^shards/[^ ]+ → (engine|game|sdk|commons)$' }] };
+    expect(approvedIncreases(standing, [down, up])).toEqual([down]);
+    expect(approvedIncreases({ approver: 'wildshard-new', increases: [{ ...down, after: 813 }] }, [down, up])).toEqual([]);
+    expect(approvedIncreases({ approver: 'wildshard-new', increases: [up] }, [down, up])).toEqual([up]);
+  });
   it('warns about source-only graph increases but keeps shard reach and cross-layer cycles fatal', async () => {
     await fixture((root, put, git) => {
       put('src/game/clock.ts', "import { tick } from '@wildshard/engine/clock';\nexport const gameTick = tick;\n");

@@ -124,7 +124,7 @@ while [ -e "$pending" ]; do
     continue
   fi
   if grep -q 'vercel-gate: FAILED' "$out"; then why="the push gate went red"
-  elif grep -q 'Coordinator approval required' "$out"; then why="a generated measurement rose and needs the coordinator's receipt (.git/generated-approval.json)"
+  elif grep -qE 'Coordinator approval required|Unlisted or stale generated increases|has no coordinator approver' "$out"; then why="a generated measurement rose and needs the coordinator's receipt (.git/generated-approval.json)"
   elif grep -qiE 'regenerat|approval|witness' "$out"; then why="the push-time regeneration failed"
   else
     # Likely the uplink: one retry after a minute before calling it red.

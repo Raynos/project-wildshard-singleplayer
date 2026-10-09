@@ -34,6 +34,18 @@ const measurement = (root, sha) => ({
   edges: JSON.parse(text(root, ['show', `${sha}:lint/layer-edges.json`])).edges,
   ratchet: JSON.parse(text(root, ['show', `${sha}:lint/ratchet.json`])),
 });
+/**
+ * The rows of `increases` the coordinator's approval covers: each exactly listed row, plus every row a standing rule
+ * covers (`standing: [{ kind: 'graph', key: '<RegExp source>' }]`, e.g. a shard's downward imports; wildshard-new,
+ * SF74 W14). A standing rule saves re-writing an exact receipt each time a lane's count moves again (811 → 813 → 816
+ * on 2026-10-09). Rows it does not cover stay out, so verifyIncreaseTrailers still refuses them and names them; the
+ * commit's trailers always list the exact measured rows.
+ */
+export function approvedIncreases(approval, increases) {
+  const exact = new Set((Array.isArray(approval.increases) ? approval.increases : []).map((row) => JSON.stringify(row, Object.keys(row).sort())));
+  const standing = (Array.isArray(approval.standing) ? approval.standing : []).map((rule) => ({ kind: rule.kind, key: new RegExp(rule.key, 'u') }));
+  return increases.filter((row) => exact.has(JSON.stringify(row, Object.keys(row).sort())) || standing.some((rule) => rule.kind === row.kind && rule.key.test(row.key)));
+}
 /** Retry a moved source tip without merging generated blobs or claiming any shared WIP. */
 /** A generated output's committed text at `sha`, or null when the output is new (not in that commit yet). */
 function committedText(root, sha, file) {
@@ -70,7 +82,7 @@ export async function regenerateCommitted(root, approvalFile) {
       if (increases.length > 0) {
         if (!approvalFile) throw new Error(`Coordinator approval required; save this exact receipt to an approval file and use GENERATED_APPROVAL_FILE:\n${JSON.stringify({ approver: 'wildshard-new', increases }, null, 2)}`);
         const approval = JSON.parse(readFileSync(resolve(approvalFile), 'utf8'));
-        trailers = increaseTrailers(approval.increases, approval.approver);
+        trailers = increaseTrailers(approvedIncreases(approval, increases), approval.approver);
         verifyIncreaseTrailers(increases, trailers);
       }
       let witnessOutputs;

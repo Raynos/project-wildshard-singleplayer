@@ -63,7 +63,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   receipt at push: `GENERATED_APPROVAL_FILE=<absolute-json-file> scripts/push-main.sh`. The JSON contains
   `approver: "wildshard-new"` and the exact `increases` list printed by the runner; it refuses absent, duplicate,
   extra or stale entries. The generated commit records `Generated-Source`, `Generated-Approver` and each
-  canonical `Generated-Increase` trailer. Hard rules, zero-debt promotion and ambient checks stay fatal.
+  canonical `Generated-Increase` trailer. The receipt may also carry standing rules,
+  `"standing": [{ "kind": "graph", "key": "<RegExp source>" }]` (e.g. a shard's downward imports): a measured row a rule
+  covers needs no exact entry, so a count that keeps moving (811 → 813 → 816) does not stall the push; the trailers
+  still list the exact rows. The auto-pusher passes the coordinator's `.git/generated-approval.json`. Hard rules,
+  zero-debt promotion and ambient checks stay fatal.
 - **No tree-wide destructive git, no escape:** `git restore .` / `checkout .`, a bare `git stash`, `git reset --hard`
   and `git clean -f` without paths are blocked. Name the paths you authored.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
