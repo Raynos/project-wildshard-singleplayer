@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050a12">
+<title>{{Press page · title}}</title>
+<meta name="description" content="{{@Page · description}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://wildshard.io/press/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{@Page · title}}">
+<meta property="og:title" content="{{@Page · title}}">
+<meta property="og:description" content="{{@Page · description}}">
+<meta property="og:url" content="https://wildshard.io/press/">
+<meta property="og:image" content="https://wildshard.io/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{@Page · title}}">
+<meta name="twitter:description" content="{{@Page · description}}">
+<meta name="twitter:image" content="https://wildshard.io/og.jpg">
+<link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="page-top">
+  <a href="/"><img src="/favicon.svg" width="22" height="22" alt="">{{Press page · home link}}</a>
+  <a class="play" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Press page · play link}}</a>
+</header>
+<main class="wrap">
+  <section id="press">
+    <div class="side">
+      <div class="q"><p class="ask">{{Press · question}}</p></div>
+      <h2>{{Press · title}}</h2>
+      <p class="lede">{{Press · intro}}</p>
+    </div>
+    <div class="body">
+      <div class="press bk">
+        <img class="press-logo" src="/press/logo.svg" alt="{{@Press · logo description}}" loading="lazy" decoding="async">
+        <p class="blurb">{{Press · one-line blurb}}</p>
+        <p class="blurb">{{Press · paragraph blurb}}</p>
+        <div class="press-links">
+          <a href="/press/wildshard-press-kit.zip" download>{{Press · download kit}}</a>
+          <a href="/press/logo.svg" download>{{Press · download logo svg}}</a>
+          <a href="/press/logo.png" download>{{Press · download logo png}}</a>
+          <a href="/press/mark.svg" download>{{Press · download mark svg}}</a>
+        </div>
+        <p class="mail">{{Press · contact label}} <a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer><span style="display:inline-flex;align-items:center;gap:8px"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><a href="/press/">{{Footer · press link}}</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+</body>
+</html>

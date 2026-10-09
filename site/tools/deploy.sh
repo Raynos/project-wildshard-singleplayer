@@ -5,8 +5,8 @@
 #
 #   bash site/tools/deploy.sh          # commit first: it ships HEAD, not the working tree
 #
-# CI runs it too (.github/workflows/site-deploy.yml, MS10): on a push that changes site/ or a plan, and daily for new
-# `Devlog:` trailers. There VERCEL_BUILD_TOKEN is the credential; locally the CLI's own login is.
+# CI runs it too (.github/workflows/site-deploy.yml, MS10) on every push that changes site/. There VERCEL_BUILD_TOKEN is
+# the credential; locally the CLI's own login is.
 set -euo pipefail
 
 repo="$(git rev-parse --show-toplevel)"
@@ -24,7 +24,7 @@ git archive HEAD site tsconfig.json package.json | tar -x -C "$work"
 node "$repo/scripts/link-node-modules.mjs" "$repo" "$work" # E432: no whole-folder node_modules symlink
 
 echo "deploy-site: building $sha"
-(cd "$work" && SITE_REPO="$repo" SITE_BUILD_SHA="$sha" "$repo/node_modules/.bin/vite" build --config site/vite.config.ts --logLevel warn)
+(cd "$work" && SITE_BUILD_SHA="$sha" "$repo/node_modules/.bin/vite" build --config site/vite.config.ts --logLevel warn)
 
 # Link the output folder to the project (ids are not secrets; the CLI's own login is the credential).
 mkdir -p "$work/dist-site/.vercel"

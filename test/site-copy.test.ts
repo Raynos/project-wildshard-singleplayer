@@ -5,6 +5,9 @@ import { readFileSync } from 'node:fs';
 import { fillCopy, inline, parseCopy, plain, unusedCopy } from '../site/tools/copy';
 import { describe, expect, it } from 'vitest';
 
+/** every page of the site (site/vite.config.ts PAGES) */
+const PAGES = ['site/index.html', 'site/press/index.html'];
+
 describe('parseCopy', () => {
   it('reads `## Name` entries, skips notes and `# Section` lines', () => {
     const copy = parseCopy('# Hero\n\n<!-- a note -->\n## Hero · title\n\nWildshard\n\n## Hero · tagline\nOne world.\nEvery shard.\n# Next\n');
@@ -31,17 +34,18 @@ describe('fillCopy', () => {
   });
 });
 
-describe('site/COPY.md and site/index.html', () => {
-  it('every slot has an entry and every entry has a slot (the road\'s entries are filled by the build)', () => {
+describe('site/COPY.md and the pages', () => {
+  it('every slot on every page has an entry, and every entry has a slot on some page', () => {
     const copy = parseCopy(readFileSync('site/COPY.md', 'utf8'));
-    const { used } = fillCopy(readFileSync('site/index.html', 'utf8'), copy);
-    expect(unusedCopy(copy, used).filter((k) => !k.startsWith('Road · ') || k === 'Road · question' || k === 'Road · title' || k === 'Road · devlog title')).toEqual([]);
+    const used = new Set<string>();
+    for (const page of PAGES) for (const k of fillCopy(readFileSync(page, 'utf8'), copy).used) used.add(k);
+    expect(unusedCopy(copy, used)).toEqual([]);
   });
 });
 
-describe('site/index.html', () => {
+describe('the pages', () => {
   it('every link to the game opens in a new tab (Jake: "All the play icons should always open a new tab")', () => {
-    const links = readFileSync('site/index.html', 'utf8').match(/<a [^>]*href="https:\/\/wildshard-singleplayer\.vercel\.app[^"]*"[^>]*>/gu) ?? [];
+    const links = PAGES.flatMap((page) => readFileSync(page, 'utf8').match(/<a [^>]*href="https:\/\/wildshard-singleplayer\.vercel\.app[^"]*"[^>]*>/gu) ?? []);
     expect(links.length).toBeGreaterThan(0);
     for (const a of links) expect(a).toContain('target="_blank"');
   });

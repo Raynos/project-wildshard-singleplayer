@@ -546,55 +546,137 @@ A sunken library, explored underwater.
 
 Ideas · not built · concept art
 
-# The road
+# The journey
 
-## Road · question
+<!-- The biggest milestones so far, newest last. Each has a date, a title and a line; the pictures are fixed per row. -->
 
-where are you now?
+## Journey · question
 
-## Road · title
+how did we get here?
 
-Where we are.
+## Journey · title
 
-## Road · seven shards
+The journey so far.
 
-Seven single-player shards on one engine
+## Journey · intro
 
-## Road · shard package
+Twenty-one days, one engine, seven shards, built by two humans and a fleet of agents.
 
-The shard package
+## Journey · 1 date
 
-## Road · the grid
+16 Sep 2026
 
-The grid: seamless travel between shards
+## Journey · 1 title
 
-## Road · every shard as data
+Day one: a single shard
 
-Every shard as data
+## Journey · 1 text
 
-## Road · data progress
+Pine Hollow: a pine forest, a crossbow and a herd of deer, built in a day by Claude Code agents.
 
-{ready} of {total} shards
+## Journey · 1 image description
 
-## Road · multiplayer
+Pine Hollow, the first shard
 
-Multiplayer
+## Journey · 2 date
 
-## Road · upload
+18 Sep 2026
 
-Upload
+## Journey · 2 title
 
-## Road · the 25-shard world
+The second shard
 
-The 25-shard world
+## Journey · 2 text
 
-## Road · planned
+Driftwood Isle, a bright low-poly island with a sword, and a title screen to choose between worlds.
 
-planned
+## Journey · 2 image description
 
-## Road · devlog title
+Driftwood Isle, the second shard
 
-devlog · generated from the build
+## Journey · 3 date
+
+22 Sep 2026
+
+## Journey · 3 title
+
+On horseback
+
+## Journey · 3 text
+
+Nalati Grasslands: a painted steppe you cross on a horse you tamed.
+
+## Journey · 3 image description
+
+Nalati Grasslands
+
+## Journey · 4 date
+
+25 Sep 2026
+
+## Journey · 4 title
+
+A city 500 metres tall
+
+## Journey · 4 text
+
+Nine Dragon Stack: a neon city stacked into the sky, Lantern Square halfway up.
+
+## Journey · 4 image description
+
+Nine Dragon Stack
+
+## Journey · 5 date
+
+1 Oct 2026
+
+## Journey · 5 title
+
+One engine
+
+## Journey · 5 text
+
+Every shard became a module of one game, and agents built two new shards on it in a day: Signal Dunes and Sky Reach.
+
+## Journey · 5 image description
+
+Sky Reach, built on the one engine
+
+## Journey · 6 date
+
+1 Oct 2026
+
+## Journey · 6 title
+
+One sentence to a shard
+
+## Journey · 6 text
+
+The Thin Ice dry run: a single line, "a frozen fjord where you are the last ferryman", to a playable plan.
+
+## Journey · 6 image description
+
+Thin Ice, from one sentence
+
+## Journey · 7 date
+
+9 Oct 2026
+
+## Journey · 7 title
+
+The grid goes public
+
+## Journey · 7 text
+
+Walk from one shard into the next with no loading screen.
+
+## Journey · 7 image description
+
+Driftwood Isle from the air, on the grid
+
+## Journey · next
+
+Next: multiplayer, uploads, and the infinite world.
 
 # Who's building it
 
@@ -646,15 +728,15 @@ Is it free?
 
 ## FAQ · 2 answer
 
-Playing is free, in your browser. Building is free too, and we never charge for uploading a shard.
+Playing is free, in your browser. Building is free too: bring your own coding agent. We never charge for uploading a shard.
 
 ## FAQ · 3 question
 
-Do I need a Claude subscription to build?
+Which agent can build a shard?
 
 ## FAQ · 3 answer
 
-Yes: you build with your own Claude Code, on any plan that includes it. Playing needs nothing.
+Any of them: Claude Code, Codex, Cursor, OpenCode, whatever you use. In our experience Claude Opus 5.5 makes the best shards today.
 
 ## FAQ · 4 question
 
@@ -676,11 +758,23 @@ Run code that can touch your browser, go over its budgets, block the roads into 
 
 ## Install · question
 
-can I keep it on my phone?
+can I play it on my phone?
 
 ## Install · title
 
-Install it.
+Play it now.
+
+## Install · play button
+
+Play now ↗
+
+## Install · play button note
+
+in your browser, nothing to install
+
+## Install · home screen intro
+
+Want it on your phone like an app? Add it to your Home Screen:
 
 ## Install · steps
 
@@ -691,52 +785,6 @@ Install it.
 ## Install · apps note
 
 iOS and Android apps: coming
-
-# Press kit
-
-## Press · question
-
-I'm writing about it
-
-## Press · title
-
-Press kit.
-
-## Press · intro
-
-The logo, screenshots from the game and two blurbs, free to use when you write about Project Wildshard.
-
-## Press · logo description
-
-The Project Wildshard logo: a 3 by 3 lattice with a lit violet centre, and the wordmark
-
-## Press · one-line blurb
-
-**One line.** Project Wildshard is a browser MMO where every shard of the world is built by a player in Claude Code.
-
-## Press · paragraph blurb
-
-**A paragraph.** Project Wildshard is a first-person sandbox MMO that runs in the browser on desktop and phone. Its world is a grid of 500-metre shards, and every shard is built by a player: authors describe a world to their own Claude Code, which builds it with the Wildshard SDK, and upload it to the shared grid in an in-game ritual. Seven single-player shards already run on the engine, each in its own look, from a toon island to a painterly steppe and a neon city stacked 500 metres high.
-
-## Press · download kit
-
-Download the kit (zip)
-
-## Press · download logo svg
-
-Logo (SVG)
-
-## Press · download logo png
-
-Logo (PNG)
-
-## Press · download mark svg
-
-Mark (SVG)
-
-## Press · contact label
-
-Contact:
 
 # Become an author
 
@@ -808,6 +856,18 @@ Play now ↗
 
 or write to
 
+## Author · error no email
+
+Add your email, so we can tell you when keys open.
+
+## Author · error bad email
+
+That doesn't look like an email address.
+
+## Author · error no build
+
+Tell us what you would build: one line is enough.
+
 ## Author · sending
 
 Sending…
@@ -861,6 +921,64 @@ Centre
 ## Map · your wish
 
 Your wish
+
+# Press kit page (wildshard.io/press/)
+
+## Press page · title
+
+Press kit · Project Wildshard
+
+## Press page · home link
+
+Project Wildshard
+
+## Press page · play link
+
+Play now ↗
+
+## Press · question
+
+I'm writing about it
+
+## Press · title
+
+Press kit.
+
+## Press · intro
+
+The logo, screenshots from the game and two blurbs, free to use when you write about Project Wildshard.
+
+## Press · logo description
+
+The Project Wildshard logo: a 3 by 3 lattice with a lit violet centre, and the wordmark
+
+## Press · one-line blurb
+
+**One line.** Project Wildshard is a browser MMO where every shard of the world is built by a player in Claude Code.
+
+## Press · paragraph blurb
+
+**A paragraph.** Project Wildshard is a first-person sandbox MMO that runs in the browser on desktop and phone. Its world is a grid of 500-metre shards, and every shard is built by a player: authors describe a world to their own Claude Code, which builds it with the Wildshard SDK, and upload it to the shared grid in an in-game ritual. Seven single-player shards already run on the engine, each in its own look, from a toon island to a painterly steppe and a neon city stacked 500 metres high.
+
+## Press · download kit
+
+Download the kit (zip)
+
+## Press · download logo svg
+
+Logo (SVG)
+
+## Press · download logo png
+
+Logo (PNG)
+
+## Press · download mark svg
+
+Mark (SVG)
+
+## Press · contact label
+
+Contact:
 
 # Footer
 
