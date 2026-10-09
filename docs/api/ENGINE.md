@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2300 members; 842 without a doc line (—).
+2300 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1996,8 +1996,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `DayPhase` | type | @wildshard/engine/world/dayCycle | — |
 | `LightPreset` | type | @wildshard/engine/world/dayCycle | — |
 | `PhaseListener` | type | @wildshard/engine/world/dayCycle | — |
-| `phaseOfHour` | function | @wildshard/engine/world/dayCycle | — |
-| `ScheduleSeg` | interface | @wildshard/engine/world/dayCycle | — |
+| `phaseOfHour` | function | @wildshard/engine/world/dayCycle | The fixed hour table a phase clock names its phase by (sim/dayClock.ts). |
+| `ScheduleSeg` | type | @wildshard/engine/world/dayCycle | — |
 | `smooth` | function | @wildshard/engine/world/dayCycle | — |
 | `TimePick` | type | @wildshard/engine/world/dayCycle | — |
 | `adoptChannels` | function | @wildshard/engine/world/declaredProps | Rename a mesh's GLB application channels to the attributes its surface reads; throws for a missing or malformed one. |

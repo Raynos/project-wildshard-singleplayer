@@ -11952,12 +11952,12 @@
       {
         "name": "phaseOfHour",
         "kind": "function",
-        "doc": "",
+        "doc": "The fixed hour table a phase clock names its phase by (sim/dayClock.ts).",
         "from": "@wildshard/engine/world/dayCycle"
       },
       {
         "name": "ScheduleSeg",
-        "kind": "interface",
+        "kind": "type",
         "doc": "",
         "from": "@wildshard/engine/world/dayCycle"
       },
