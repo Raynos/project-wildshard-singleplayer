@@ -24,7 +24,7 @@ import { installStarterEffects } from '@wildshard/kit/effects/install';
 import { STARTER_EFFECTS } from '@wildshard/kit/effects/starter';
 import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
-import { Bow } from '@wildshard/kit/weapons/bow/family';
+import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow } from './weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { Cabins } from '../world/homestead';

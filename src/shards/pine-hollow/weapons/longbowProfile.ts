@@ -1,5 +1,5 @@
 import type { BowProfile } from '@wildshard/sdk/weapons/bowProfile';
-import { BOW } from '@wildshard/kit/weapons/bow/profiles';
+import { BOW } from '@wildshard/game/weapons/starterBowProfile';
 
 import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import { POSE, buildLongbow, arrowKind, ARROW_LEN } from './longbowView';
