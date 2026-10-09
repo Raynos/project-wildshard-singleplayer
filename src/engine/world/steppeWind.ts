@@ -88,10 +88,11 @@ export class Wind {
   /** the unwandered base heading / speed the smoothing converges on */
   private baseSpeed = 5;
   private baseDir = 1.95;
-  /** the legacy sway strength this wind bridges (the world's `windStrength`; a renderer-free host passes a box of its own) */
-  private readonly strength: { value: number };
+  /** the legacy sway strength this wind bridges (the world's `windStrength`; a renderer-free host passes a box of its own). A
+   *  true private field: the wind's own data (what a weapon recipe serializes of the world's wind) stays exactly its fields. */
+  readonly #strength: { value: number };
 
-  constructor(strength: { value: number } = windStrength) { this.strength = strength; }
+  constructor(strength: { value: number } = windStrength) { this.#strength = strength; }
 
   /** The wind's continuation (WindState), exact. */
   snapshot(): WindState {
@@ -111,7 +112,7 @@ export class Wind {
     this.syncDir();
     const u = this.uniforms;
     u.uWindSpeed.value = this.speed; u.uWindGustiness.value = this.gustiness; u.uWindTravel.value = this.travel; u.uWindTime.value = this.time;
-    this.strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
+    this.#strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
   }
 
   /** Ease toward a new wind over ~`seconds` (weather, storms, a dev switch). */
@@ -155,7 +156,7 @@ export class Wind {
     u.uWindTravel.value = this.travel;
     u.uWindTime.value = this.time;
     // bridge: trees / undergrowth / Pine-Hollow-style grass sway with the same strength
-    this.strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
+    this.#strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
   }
 
   /** gust field 0..1 at (x, z) — identical to WIND_GLSL `windGust` */
@@ -190,10 +191,10 @@ export class Wind {
    */
   hold(): () => void {
     const speed = this.speed, dir = this.dir, gustiness = this.gustiness, wander = this.wander, target = { ...this.target };
-    const baseSpeed = this.baseSpeed, baseDir = this.baseDir, strength = this.strength.value;
+    const baseSpeed = this.baseSpeed, baseDir = this.baseDir, strength = this.#strength.value;
     return () => {
       this.speed = speed; this.dir = dir; this.gustiness = gustiness; this.wander = wander; Object.assign(this.target, target);
-      this.baseSpeed = baseSpeed; this.baseDir = baseDir; this.strength.value = strength;
+      this.baseSpeed = baseSpeed; this.baseDir = baseDir; this.#strength.value = strength;
       this.uniforms.uWindSpeed.value = speed; this.uniforms.uWindGustiness.value = gustiness;
       this.syncDir();
     };
