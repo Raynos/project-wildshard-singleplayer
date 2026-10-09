@@ -7,4 +7,4 @@ import { expect, it } from 'vitest';
 it('boots the actual authored product with the guardian and a door that stops, opens and re-closes native collision', () => {
   const output = execFileSync(execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', 'test/proof/blender-template/boot.mjs'], { encoding: 'utf8', timeout: 45_000 });
   expect(JSON.parse(output)).toMatchObject({ native: true, meshCollision: true, creature: 'guardian.1', opened: true, reclosed: true });
-});
+}, 50_000); // compiles the whole authored cell in a child process; its own deadline is 45 s

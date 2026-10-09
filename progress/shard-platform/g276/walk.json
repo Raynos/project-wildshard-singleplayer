@@ -1,0 +1,182 @@
+{
+ "label": "g276-walk",
+ "build": "c4db7802e-mv1iac2p",
+ "tier": "phone",
+ "date": "2026-10-09T21:59:12.661Z",
+ "route": "progress/shard-platform/g276/walk-route.json",
+ "colliders": {
+  "blender-template": {
+   "colliders": 91
+  }
+ },
+ "legs": [
+  {
+   "name": "north rise entry to hub",
+   "seconds": 65,
+   "end": {
+    "x": -0.75,
+    "y": 0.02,
+    "z": 0.018
+   },
+   "expectY": 0,
+   "maxY": 0.02,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "west stoa entry to hub (+x)",
+   "seconds": 56.9,
+   "end": {
+    "x": 0.714,
+    "y": 0.02,
+    "z": 0
+   },
+   "expectY": 0,
+   "maxY": 0.02,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "east amphitheatre entry to hub (-x)",
+   "seconds": 56.9,
+   "end": {
+    "x": -0.713,
+    "y": 0.02,
+    "z": 0
+   },
+   "expectY": 0,
+   "maxY": 0.03,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "south aqueduct entry to hub",
+   "seconds": 59.3,
+   "end": {
+    "x": 0.538,
+    "y": 0.02,
+    "z": -0.382
+   },
+   "expectY": 0,
+   "maxY": 0.03,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "north bridge ascent and crossing",
+   "seconds": 34.1,
+   "end": {
+    "x": -19.262,
+    "y": 19.221,
+    "z": 204.181
+   },
+   "expectY": 19.2,
+   "maxY": 19.23,
+   "groundSpeedP50": 4.33,
+   "airFrames": 527,
+   "stuck": []
+  },
+  {
+   "name": "hall roof ascent and overhang",
+   "seconds": 8.1,
+   "end": {
+    "x": -3.209,
+    "y": 5.62,
+    "z": 28
+   },
+   "expectY": 5.6,
+   "maxY": 5.63,
+   "groundSpeedP50": 4.33,
+   "airFrames": 147,
+   "stuck": []
+  },
+  {
+   "name": "watchtower stair",
+   "seconds": 9.5,
+   "end": {
+    "x": -42.211,
+    "y": 28.22,
+    "z": 204.502
+   },
+   "expectY": 28.2,
+   "maxY": 28.22,
+   "groundSpeedP50": 4,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "market stoa roof stair and footbridge",
+   "seconds": 17.1,
+   "end": {
+    "x": 157,
+    "y": 7.52,
+    "z": -19.27
+   },
+   "expectY": 7.5,
+   "maxY": 7.53,
+   "groundSpeedP50": 4.27,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "amphitheatre aisle to the top tier",
+   "seconds": 19.6,
+   "end": {
+    "x": -200.003,
+    "y": 4.769,
+    "z": -69.712
+   },
+   "expectY": 4.8,
+   "maxY": 4.77,
+   "groundSpeedP50": 4.22,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "aqueduct ramp, deck and cistern stair",
+   "seconds": 39.4,
+   "end": {
+    "x": -96.208,
+    "y": 14.221,
+    "z": -209.501
+   },
+   "expectY": 14.2,
+   "maxY": 14.22,
+   "groundSpeedP50": 4.33,
+   "airFrames": 364,
+   "stuck": []
+  },
+  {
+   "name": "hub obelisk dais",
+   "seconds": 4.7,
+   "end": {
+    "x": 0,
+    "y": 0.92,
+    "z": -20.649
+   },
+   "expectY": 0.9,
+   "maxY": 0.92,
+   "groundSpeedP50": 4.27,
+   "airFrames": 0,
+   "stuck": []
+  },
+  {
+   "name": "ring road loop on the hoverboard",
+   "seconds": 67.3,
+   "end": {
+    "x": -6.53,
+    "y": 0.45,
+    "z": 114.015
+   },
+   "expectY": 0,
+   "maxY": 0.46,
+   "groundSpeedP50": 14.12,
+   "airFrames": 0,
+   "stuck": []
+  }
+ ]
+}

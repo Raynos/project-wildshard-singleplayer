@@ -12,11 +12,12 @@ export const DISCOVERY = {
   budgets: BUDGETS,
   assetGlobs: ['public/assets/blender-template/map/**'],
   minimap: { image: '/assets/blender-template/map/top.webp' },
-  // the full map's places (SF66, sp-x6's list; test/map-coverage.test.ts holds the door and the guardian on the hall)
+  // the full map's places (SF66; G276 fills the cell: a set piece at each entry, the hub, the ring road). The map's east is -x.
   pois: [
-    { id: 'hall', name: 'The hall', x: 0, z: 32, r: 14 }, { id: 'bridge', name: 'North bridge', x: 0, z: 209, r: 14 },
-    { id: 'east', name: 'East canopy', x: 205, z: 0, r: 20 }, { id: 'west', name: 'West steps', x: -210, z: 0, r: 20 },
-    { id: 'south', name: 'South arch', x: 0, z: -211, r: 18 },
+    { id: 'hall', name: 'The hall', x: 0, z: 32, r: 14 }, { id: 'plaza', name: 'Hub plaza', x: 0, z: -18, r: 18 },
+    { id: 'bridge', name: 'North bridge', x: 0, z: 209, r: 14 }, { id: 'watchtower', name: 'Watchtower', x: -44, z: 205, r: 8 },
+    { id: 'stoa', name: 'Market stoa', x: 187, z: 0, r: 40 }, { id: 'amphitheatre', name: 'Amphitheatre', x: -200, z: -48, r: 32 },
+    { id: 'aqueduct', name: 'Aqueduct', x: -40, z: -211, r: 50 }, { id: 'cistern', name: 'Cistern tower', x: -102, z: -211, r: 8 },
   ],
   tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
 };
