@@ -1,0 +1,319 @@
+// Wet-ground streaks, merged from the neon lab (the dev labs (deleted in E357 F7), "cards"): one instanced additive
+// card per emitter, lying where optics puts its reflection — between the mirror points of the emitter's top and bottom,
+// c / (c + h) of the way from the eye — stretched along the view ray by the gloss, broken on the same flagstone joints
+// as the ground (STONES_GLSL, shared with the Jiehua ground), with a jagged two-octave ripple edge, striation, dashes and
+// grain. It replaces the quarter-res mirror pass. The reflecting plane is the square's floor at `uGroundY` (the square and
+// its street), or (round 14, dome C1's stair-street) a stair flight's slope: `stairStreaks` lays a card set on each flight's
+// plane half a rise under its nosing line, so the depth test shows each card on the back half of every tread only — the
+// per-step broken reflection — and a flat set on each landing.
+import {
+  Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, ShaderMaterial,
+  Uint16BufferAttribute, Vector3, Vector4,
+} from 'three';
+import type { Emitter } from './emitters';
+import { FLAG_GLSL } from './paint'; // (the flag layout: flagCell)
+import { ADD_KEEP_ALPHA, FOG_GLSL, NOISE_GLSL, STONES_GLSL, type Shared } from './style';
+
+/** (render) the derivative-free part of NOISE_GLSL — what silkFog needs — for the vertex stage */
+const NOISE_VS = /* glsl */ `
+float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(h12(i), h12(i + vec2(1.0, 0.0)), f.x), mix(h12(i + vec2(0.0, 1.0)), h12(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+`;
+
+const VS_CARD = /* glsl */ `
+attribute vec2 aCorner;
+attribute vec3 aE;
+attribute vec3 aCol;
+attribute vec3 aSize;
+${NOISE_VS}
+${FOG_GLSL}
+varying float vFogT;
+// (render) the reflecting plane (the square's floor, or a stair flight's slope): a point on it, its axis along x (tilted
+// with a slope) and its normal. The optics below run in the plane's own frame, where it is the horizontal y = 0
+uniform vec3 uPlaneO;
+uniform vec3 uPlaneU;
+uniform vec3 uPlaneN;
+uniform vec4 uSpread; // x: tail toward the eye, y: tail away, z: width scale, w: min distance
+uniform vec4 uCardK; // x: card gain, also used by the vertex-stage visibility gate
+uniform float uCardOn;
+uniform float uLift;
+uniform float uCardWarm;
+uniform vec4 uClip; // (render) the plane's extent (x0, z0, x1, z1); −1e5 … 1e5 = none
+uniform vec4 uPerf; // (E283) x: the tail-by-brightness reference (0 = off), y: a brightness floor (0 = off), w: −1 = no reject (the A / B harness)
+varying vec2 vC;
+varying vec3 vWorld;
+varying vec3 vCol;
+varying float vS;
+varying vec4 vSeg;
+varying vec2 vDir;
+varying float vDown;
+vec3 toPlane(vec3 p) { vec3 q = p - uPlaneO; return vec3(dot(q, uPlaneU), dot(q, uPlaneN), dot(q, cross(uPlaneU, uPlaneN))); }
+vec3 fromPlane(vec3 l) { return uPlaneO + uPlaneU * l.x + uPlaneN * l.y + cross(uPlaneU, uPlaneN) * l.z; }
+void main() {
+  vec3 camL = toPlane(uCam), eL = toPlane(aE);
+  // (E283, Jake's pick) one card per light: round 2's split of a wide warm light into 2–6 narrow sub-cards is gone
+  vec3 sizeE = aSize;
+  float c = max(camL.y, 0.05);
+  float hB = max(eL.y - sizeE.y * 0.5, 0.05);
+  float hT = max(eL.y + sizeE.y * 0.5, hB + 0.05);
+  vec2 d = eL.xz - camL.xz;
+  float D = max(length(d), 0.1);
+  vec2 dir = d / D;
+  vec2 side = vec2(-dir.y, dir.x);
+  float sN = D * c / (c + hT), sF = D * c / (c + hB);
+  // (render, dome C2) looking DOWN, the streaks fanned out radially from under the camera: the card turns about its
+  // mirror point toward the view's own heading on the plane as the view steepens, so the runs lie parallel down the
+  // screen like the targets' (at eye height nothing changes: the axis stays the radial)
+  vec3 fwW = -vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+  vec3 fwL = vec3(dot(fwW, uPlaneU), dot(fwW, uPlaneN), dot(fwW, cross(uPlaneU, uPlaneN)));
+  float down = smoothstep(0.45, 0.85, -fwL.y);
+  // seen steeply from above (the aerials) a rough wet floor gives a glossy pool round the mirror point, not a long
+  // streak: the tails shrink and the card widens as the view leaves grazing (eye-height views keep their streaks)
+  float steep = smoothstep(0.25, 0.9, c / D);
+  // (dome C1) looking down, the tails draw in toward each mirror point: a few short runs where the lights really
+  // reflect, not a starburst of every card reaching the camera's feet
+  float tail = (1.0 - 0.4 * steep) * (1.0 - 0.75 * down);
+  // below the ground's height (a lantern in the Well, the camera under the square): no streak
+  vCol = aCol * aSize.z * step(-0.5, camL.y) * step(0.2, eL.y);
+  // (render, E281) the warm lights' runs brighter: the neon's power is ~8× a lantern's or a shop's, so the wet stone
+  // carried magenta and cyan only, where the targets' runs are amber and lantern-red as much as neon
+  vCol *= 1.0 + uCardWarm * clamp((aCol.r - aCol.b) / max(aCol.r, 1e-3), 0.0, 1.0);
+  // (render) an emitter on screen is mirrored by the screen-space reflection (render/reflect.ts): its card fades to
+  // uCardOn; the cards stay for what is above or beside the frame (the signs over the street)
+  vec4 ce = projectionMatrix * viewMatrix * vec4(aE, 1.0);
+  vec2 en = ce.xy / max(ce.w, 1e-4);
+  float onScreen = step(0.0, ce.w) * (1.0 - smoothstep(0.8, 1.0, max(abs(en.x), abs(en.y))));
+  vCol *= mix(1.0, uCardOn, onScreen);
+  // (E283) the card's brightest possible pixel before the fog: every fragment term but prof and the fog is ≤ 1 × this
+  float gm = max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x;
+  // (E283, Jake's pick) a dim card's tail toward the eye is short: a far window or lantern lays a
+  // short run round its mirror point, the bright neon and shop runs keep theirs (the tails converging at the bottom of
+  // the screen were ~45 % of mockup A's frame)
+  float tailK = uPerf.x > 0.0 ? clamp(gm / uPerf.x, 0.15, 1.0) : 1.0;
+  float s0 = mix(sN, uSpread.w, clamp(uSpread.x * tail * tailK, 0.0, 1.0));
+  float s1 = mix(sF, D, clamp(uSpread.y * tail, 0.0, 1.0));
+  float sM = D * c / (c + 0.5 * (hB + hT));
+  vec2 fwXZ = length(fwL.xz) > 1e-3 ? normalize(fwL.xz) : dir;
+  vec2 axis = normalize(mix(dir, fwXZ * sign(dot(fwXZ, dir) + 1e-3), down));
+  vec2 sideA = vec2(-axis.y, axis.x);
+  vec2 base = camL.xz + dir * sM;
+  float wK = 0.5 * sizeE.x / D * uSpread.z, wS = 1.0 + 0.5 * steep;
+  // (E283) where the fragment stage can keep a pixel of this card: (1) not in the tails' faded ends, which its early
+  // discard (prof × brightness × fog < 0.004, fog ≤ 1) throws away anyway; (2) on a clipped plane (a stair flight, a
+  // landing) only the stretch inside the plane's extent, grown by the card's widest half-width and its lift.
+  //  - A card with no such stretch is not drawn at all: pixel-identical (every one of its pixels was discarded; on
+  //    frozen frames at the four mockup cameras at most 3 pixels of 1.3 M differ, by 1 / 255).
+  //  - The drawn quad is NOT trimmed to the stretch: the card's across-coordinate (vC.x) and fog are interpolated over its
+  //    two triangles, and a shorter quad moves their diagonal (mean ΔRGB 0.4 / 255 at mockup A, the stair's thin dashed
+  //    runs up to 180 / 255), and trimming saved nothing measurable over the reject.
+  //  - uPerf.w = −1: no reject (the A / B harness)
+  float tq = clamp(0.004 / max(gm, 1e-6), 0.0, 1.0);
+  float lo = s0 + max(sN - s0, 0.0) * pow(tq, 0.7142857);
+  float hi = sF + max(s1 - sF, 0.0) * (1.0 - sqrt(tq));
+  bool keep = hi > lo && gm >= 0.004;
+  if (keep && uClip.x > -1e4) {
+    float e = max((wK * max(lo, hi) + 0.01) * wS, 0.0) + 0.1 + (0.004 + uLift * down) * length(uPlaneN.xz);
+    vec3 wa = fromPlane(vec3(base + axis * (lo - sM), 0.0).xzy);
+    vec3 wb = fromPlane(vec3(base + axis * (hi - sM), 0.0).xzy);
+    vec2 a2 = wa.xz, dv = wb.xz - wa.xz;
+    float t0 = 0.0, t1 = 1.0;
+    for (int k = 0; k < 2; k++) {
+      float mn = (k == 0 ? uClip.x : uClip.y) - e, mx = (k == 0 ? uClip.z : uClip.w) + e;
+      float p = k == 0 ? a2.x : a2.y, q = k == 0 ? dv.x : dv.y;
+      if (abs(q) < 1e-6) { if (p < mn || p > mx) keep = false; }
+      else { float ta = (mn - p) / q, tb = (mx - p) / q; t0 = max(t0, min(ta, tb)); t1 = min(t1, max(ta, tb)); }
+    }
+    if (t1 <= t0) keep = false;
+    float l2 = mix(lo, hi, t0), h2 = mix(lo, hi, t1);
+    lo = l2; hi = h2;
+  }
+  lo = s0; hi = s1;
+  if (uPerf.w < -0.5) keep = true;
+  float s = mix(lo, hi, aCorner.y);
+  // (render, round 14: the spawn frame's dearest pass — 2.25 of 6.8 ms on the M5) the tail's width floor is 1 cm, not
+  // 2 cm: every tail was a wide band across the bottom of the screen, shaded under hundreds of overlapping cards (a
+  // pure constant-angle width, 0.54 ms, thinned the near streaks too far — the mockups' run broad to the feet)
+  float halfW = (wK * s + 0.01) * wS;
+  vec2 xz = base + axis * (s - sM) + sideA * aCorner.x * halfW;
+  vec2 radial = dir;
+  dir = axis;
+  // (a stair flight's cards rise toward the nosing line as the view steepens: seen from above, a tread's whole top
+  // carries the run, not only its back half)
+  vWorld = fromPlane(vec3(xz.x, 0.004 + uLift * down, xz.y));
+  vC = aCorner;
+  vS = s;
+  vSeg = vec4(s0, sN, sF, s1);
+  vDir = dir;
+  vDown = down;
+  // (render) the silk fog's transmittance per corner (it varies slowly along a card; per pixel it was the cards' dearest
+  // term under their overdraw)
+  vFogT = silkFog(vWorld, 1.0).a;
+  gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.0);
+  // (render, the spawn's dearest pass) a card too dim to see — a far lit window through the silk — is not drawn at all:
+  // judged once per card at its mirror point (every corner agrees), it collapses outside the clip volume
+  float fogM = silkFog(fromPlane(vec3(camL.x + radial.x * sM, 0.0, camL.z + radial.y * sM)), 1.0).a;
+  if (max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x * fogM < 0.03) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+  // (E283) nothing of it survives the fragment stage, a dropped sub-card, or (Debug ▸ Performance) under the floor
+  if (!keep || gm < uPerf.y) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+}
+`;
+const FS_CARD = /* glsl */ `
+${NOISE_GLSL}
+uniform vec3 uCam;
+uniform vec3 uPlaneN;
+uniform vec4 uClip; // (render) the plane's extent (x0, z0, x1, z1): a stair flight's cards end with the flight
+varying float vFogT;
+${FLAG_GLSL}
+${STONES_GLSL}
+uniform float uTime;
+uniform vec4 uCardK; // x: gain, y: dash contrast, z: jog, w: saturation keep
+uniform float uFine;
+uniform vec4 uHole; // the Well's open shaft at the square's level (x0, z0, x1, z1): no floor to reflect in
+varying vec2 vC;
+varying vec3 vWorld;
+varying vec3 vCol;
+varying float vS;
+varying vec4 vSeg;
+varying vec2 vDir;
+varying float vDown;
+void main() {
+  if (max(vCol.r, max(vCol.g, vCol.b)) <= 0.0) discard;
+  vec2 p = vWorld.xz;
+  if (p.x > uHole.x && p.x < uHole.z && p.y > uHole.y && p.y < uHole.w) discard;
+  if (p.x < uClip.x || p.x > uClip.z || p.y < uClip.y || p.y > uClip.w) discard;
+  float vBody = vS < vSeg.y ? (vS - vSeg.y) / max(vSeg.y - vSeg.x, 1e-3)
+    : (vS < vSeg.z ? (vS - vSeg.y) / max(vSeg.z - vSeg.y, 1e-3) : 1.0 + (vS - vSeg.z) / max(vSeg.w - vSeg.z, 1e-3));
+  // the jog, striation and dashes follow stones of the old size (1–1.6 m): on the small slabs they broke every
+  // streak into a staircase (round 9); the joints and the puddles are the real ones
+  // the old-size stone's jog / seed: a coarse cell hash (it was a second full stone(): flagCell + two noises)
+  vec2 cb = floor((p * 0.7 + 37.0) / vec2(1.1, 0.62));
+  vec4 sb = vec4(0.0, h12(cb + 17.0), 0.0, h12(cb) * 2.0 - 1.0);
+  float prof = vBody < 0.0 ? pow(clamp(1.0 + vBody, 0.0, 1.0), 1.4) : (vBody > 1.0 ? pow(clamp(2.0 - vBody, 0.0, 1.0), 2.0) : 1.0);
+  float along = dot(p - uCam.xz, vDir);
+  float fa = max(fwidth(along), 1e-5);
+  vec2 fwp = fwidth(p);
+  // (render) the faded tail ends are most of a card's area: skip their noise work (derivatives taken above)
+  if (prof * max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x * vFogT < 0.004) discard;
+  vec4 st = stoneFw(p, 1.1, fwp);
+  float fine = (vnoise(vec2(along * 38.0, vC.x * 0.7 + uTime * 0.9)) - 0.5) * 2.0 * (1.0 - smoothstep(0.009, 0.022, fa))
+             + (vnoise(vec2(along * 95.0, vC.x * 1.3 - uTime * 1.3)) - 0.5) * 1.4 * (1.0 - smoothstep(0.0035, 0.009, fa))
+             + (vnoise(vec2(along * 14.0, vC.x * 0.5 + uTime * 0.6)) - 0.5) * 1.2 * smoothstep(0.012, 0.03, fa);
+  // (looking down: the comb softens — less jitter, a softer edge, fewer dashes)
+  float x = vC.x + sb.w * uCardK.z * 0.5 + (vnoise(vec2(along * 2.5, uTime * 0.5)) - 0.5) * 0.3 + fine * uFine * (1.0 - 0.8 * vDown);
+  float across = 1.0 - smoothstep(mix(0.5, 0.15, vDown), 1.0, abs(x));
+  float stria = 0.7 + 0.3 * vnoise(vec2(vC.x * 11.0 + sb.y * 5.0, along * 1.5));
+  float dash = mix(1.0, smoothstep(0.15, 0.75, vnoise(vec2(along * 17.0, x * 2.5 + sb.y * 9.0))), uCardK.y * (1.0 - 0.7 * vDown)) * stria;
+  float grain = 0.72 + 0.28 * vnoise(p * 97.0);
+  dash *= grain;
+  float gloss = mix(0.45, 1.0, st.z) * (0.65 + 0.7 * sb.y);
+  vec3 V = normalize(uCam - vWorld);
+  float fres = 0.3 + 0.7 * pow(clamp(1.0 - dot(V, uPlaneN), 0.0, 1.0), 3.0);
+  vec3 col = vCol * prof * across * dash * gloss * fres * (1.0 - st.x * 0.8) * uCardK.x;
+  float m = max(col.r, max(col.g, col.b));
+  col = mix(col, col / max(m, 1e-4) * min(m, 1.0), uCardK.w * step(1.0, m));
+  col *= vFogT;
+  gl_FragColor = vec4(col, 0.0);
+}
+`;
+
+// (render, E281) width 0.4 → 0.3 and dash 0.45 → 0.6: the square's runs smeared into one sheet of colour; the targets'
+// are separate broken stripes with the stone between them
+export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.6, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.3, fine: 0.4, warm: 1.5 } as const;
+
+/** (E283, Jake's pick after the before / after stills in art/nine-dragon-stack/round-24-mockup-pass/render/e283-streaks/)
+ *  the tail-by-brightness reference and the brightness floor: the square's cards at mockup A 1.6–2.0 → 0.11 ms on the
+ *  M5 ruler (scripts/nine-dragon-gpu.mjs), C1·4 1.53 → 0.20, the stair at C 0.23 → 0.12 */
+export const STREAK_CUT = { tails: 2.5, floor: 0.3 } as const;
+/** the cards' perf knobs, shared by every card set (one object): x the tail-by-brightness reference (0 = off), y a
+ *  brightness floor (0 = off), w −1 = no whole-card reject (the A / B harness) */
+export const STREAK_PERF = new Vector4(STREAK_CUT.tails, STREAK_CUT.floor, 0, 0);
+
+/** a reflecting plane: a point on it, its axis along x (tilted with a slope), its normal, and its extent (x0, z0, x1, z1) */
+export interface StreakPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4 }
+
+const NO_CLIP = new Vector4(-1e5, -1e5, 1e5, 1e5);
+
+export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4, plane?: StreakPlane, gain = 1, lift = 0, width: number = STREAK_LOOK.cardWidth, dash: number = STREAK_LOOK.cardDash): Mesh {
+  const L = STREAK_LOOK;
+  const P = plane ?? { o: new Vector3(0, shared.u.uGroundY.value, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: NO_CLIP };
+  const mat = new ShaderMaterial({
+    uniforms: {
+      ...shared.u,
+      uPlaneO: { value: P.o.clone() }, uPlaneU: { value: P.u.clone().normalize() }, uPlaneN: { value: P.n.clone().normalize() }, uClip: { value: P.clip.clone() },
+      uSpread: { value: new Vector4(L.tailNear, L.tailFar, width, 0.6) },
+      uCardK: { value: new Vector4(L.cardGain * gain, dash, L.cardJog, 1) },
+      uFine: { value: L.fine },
+      uCardOn: { value: 1 },
+      uLift: { value: lift },
+      uCardWarm: { value: STREAK_LOOK.warm },
+      uPerf: { value: STREAK_PERF },
+      uHole: { value: hole },
+    },
+    vertexShader: VS_CARD, fragmentShader: FS_CARD,
+    transparent: true, depthWrite: false,
+    ...ADD_KEEP_ALPHA,
+  });
+  const g = new InstancedBufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 3));
+  g.setAttribute('aCorner', new Float32BufferAttribute([-1, 0, 1, 0, 1, 1, -1, 1], 2));
+  g.setIndex(new Uint16BufferAttribute([0, 1, 2, 0, 2, 3], 1));
+  const e = new Float32Array(emitters.length * 3), col = new Float32Array(emitters.length * 3), size = new Float32Array(emitters.length * 3);
+  emitters.forEach((m, i) => {
+    e.set([m.at.x, m.at.y, m.at.z], i * 3);
+    col.set([m.color.r, m.color.g, m.color.b], i * 3);
+    size.set([m.w, m.h, m.power], i * 3);
+  });
+  g.setAttribute('aE', new InstancedBufferAttribute(e, 3));
+  g.setAttribute('aCol', new InstancedBufferAttribute(col, 3));
+  g.setAttribute('aSize', new InstancedBufferAttribute(size, 3));
+  g.instanceCount = emitters.length;
+  const m = new Mesh(g, mat);
+  m.frustumCulled = false;
+  m.renderOrder = 4;
+  return m;
+}
+
+/** (dome C1: the tread runs read faint against the targets' continuous lines) the stair's cards are brighter: each
+ *  shows on half a tread only */
+// (render, E281) 2 → 1.3: mockup C's treads carry thin runs, not a curtain (the phone's cards also run at full strength now)
+const STAIR_GAIN = 1.3;
+/** (render, E281: the stair lane's eye-check — full-saturation bands the whole flight wide drowned the treads) the stair's
+ *  runs are thin and broken: mockup C's three or four narrow stripes up the flight, every tread edge readable */
+const STAIR_WIDTH = 0.12, STAIR_DASH = 0.8;
+
+/** the stair-street's flights and landings, as world/stairstreet.ts exports them */
+export interface StairPlan {
+  flights: readonly { x0: number; x1: number; y0: number }[];
+  landings: readonly { x0: number; x1: number; y: number }[];
+  rise: number;
+  run: number;
+  z0: number;
+  z1: number;
+}
+
+/**
+ * (render, round 14, dome C1) the wet stair-street's streaks: per flight, a card set on the plane half a rise under the
+ * nosing line (y = y0 + rise / 2 + (x − x0) · rise / run) — the treads' backs show through the depth test, the fronts
+ * hide under their nosings — and a flat set on each landing. One draw per flight / landing.
+ */
+export function stairStreaks(shared: Shared, emitters: readonly Emitter[], plan: StairPlan): Mesh[] {
+  const slope = plan.rise / plan.run;
+  const out: Mesh[] = [];
+  const none = new Vector4(0, 0, 0, 0);
+  for (const f of plan.flights) {
+    out.push(buildStreaks(shared, emitters, none, {
+      o: new Vector3(f.x0, f.y0 + plan.rise * 0.5, 0), u: new Vector3(1, slope, 0), n: new Vector3(-slope, 1, 0),
+      clip: new Vector4(f.x0, plan.z0, f.x1, plan.z1),
+    }, STAIR_GAIN, plan.rise * 0.42, STAIR_WIDTH, STAIR_DASH));
+  }
+  for (const l of plan.landings) {
+    out.push(buildStreaks(shared, emitters, none, {
+      o: new Vector3(l.x0, l.y, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: new Vector4(l.x0, plan.z0, l.x1, plan.z1),
+    }, STAIR_GAIN, 0, STAIR_WIDTH, STAIR_DASH));
+  }
+  return out;
+}

@@ -30,10 +30,18 @@
  * test/shards/driftwood-isle/models-contract.test.ts runs the rules in vitest, so CI and the pre-push gate enforce them.
  */
 import { shardFolders } from './gen-shards.mjs';
+import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
+const FROZEN = legacyInventory(ROOT);
+const primaryFolders = () => shardFolders(ROOT).filter(slug => !Object.hasOwn(FROZEN.shards, slug));
+const policyPath = file => {
+  if (!registeredLegacyFile(FROZEN, file)) return file;
+  const slug = file.split('/')[2];
+  return file.replace(`src/shards/${slug}/`, `src/shards/${FROZEN.shards[slug].primary}/`);
+};
 
 /** every .ts under src/, repo-relative with forward slashes */
 function sources(dir = join(ROOT, 'src')) {
@@ -227,14 +235,14 @@ function importsOf(file, text) {
  *    a declared list is still fully checked, and the original shards' required lists cannot disappear.
  */
 export const NAMED_PLACES = {
-  ...Object.fromEntries(shardFolders(ROOT).map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
+  ...Object.fromEntries(primaryFolders().map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
   'driftwood-isle': [{ file: 'src/shards/driftwood-isle/quest/Places.ts', list: 'DRIFTWOOD_PLACES' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/quest.ts)
   'pine-hollow': [{ file: 'src/shards/pine-hollow/layout.ts', list: 'PINE_HOLLOW_POIS' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
   'nine-dragon-stack': [{ file: 'src/shards/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],
 };
 /** the shards whose every named place must have its set (the rest are reported) */
-export const PLACES_ENFORCED = shardFolders(ROOT);
+export const PLACES_ENFORCED = primaryFolders();
 
 /** the text of the array `name` (`name = [` or `name: [`), brackets matched; null when absent */
 function arrayText(code, name) {
@@ -310,7 +318,8 @@ export function checkModels(files) {
   const bump = (area, key, n) => { if (n === 0) return; const r = report.get(area) ?? {}; r[key] = (r[key] ?? 0) + n; report.set(area, r); };
   for (const [file, text] of Object.entries(texts)) {
     const code = text.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''); // comments don't count
-    const inShardModels = SHARD_MODELS.exec(file), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'));
+    const policy = policyPath(file);
+    const inShardModels = SHARD_MODELS.exec(policy), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'));
     const defines = [...code.matchAll(/defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
     const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0);
     if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
@@ -326,15 +335,15 @@ export function checkModels(files) {
       if (inShared && /(?:^#?|\/)shards\//.test(spec)) violations.push(`${file}: src/engine/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
-    if (ON_CONTRACT.includes(file) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
+    if (ON_CONTRACT.includes(policy) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }
-    const area = areaOf(file);
+    const area = areaOf(policy);
     const counts = countsOf(code);
     for (const [key, n] of Object.entries(counts)) bump(area, key, n);
     const done = DONE[area];
     if (done !== undefined) {
-      const declared = done[file]?.counts ?? {};
+      const declared = done[policy]?.counts ?? {};
       for (const [key, n] of Object.entries(counts)) {
         if (n > (declared[key] ?? 0)) violations.push(`${file}: ${area} is on the model contract (DONE) — ${n} × ${key} here; draw and register things through defineModel / place, or declare the file world in DONE with its reason`);
       }
@@ -342,6 +351,13 @@ export function checkModels(files) {
   }
   const { places, problems } = namedPlaceSets(texts, files === undefined, (t) => t.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''));
   for (const p of problems) if (PLACES_ENFORCED.includes(p.shard)) violations.push(p.msg);
+  // Check each frozen named-place copy independently: a primary's current sets cannot mask a missing frozen set.
+  for (const slug of Object.keys(FROZEN.shards)) {
+    const subset = Object.fromEntries(Object.entries(texts).filter(([file]) => file.startsWith(`src/shards/${slug}/`)).map(([file, text]) => [policyPath(file), text]));
+    if (Object.keys(subset).length === 0) continue;
+    const frozenPlaces = namedPlaceSets(subset, false, strip);
+    for (const p of frozenPlaces.problems) if (PLACES_ENFORCED.includes(p.shard)) violations.push(`${slug}: ${p.msg}`);
+  }
   return { violations, report: Object.fromEntries([...report].sort(([a], [b]) => a.localeCompare(b))), places, placeProblems: problems.map((p) => p.msg) };
 }
 

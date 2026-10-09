@@ -1,0 +1,263 @@
+/**
+ * Trader — Driftwood Isle's travelling trader (E314, Jake's pick on board 9: "a trader at Wendell's hut"): the second
+ * NPC, who keeps the shop at the hut while Wendell (./Castaway.ts) stays the quest giver. Built exactly as Wendell is —
+ * the low-poly kit (src/engine/world/lowpolyKit.ts: LowPolyKit + the shared lowPolyMaterial), flat-shaded vertex colour, his
+ * proportions and scale — a sea-weathered woman in a teal headscarf knotted at the nape (gold trim, two tails that lift
+ * in the wind), gold hoop earrings, a sleeveless orange tunic over a cream shirt with short puffed sleeves, a red sash knotted at the hip, a
+ * leather satchel on a strap across her chest, brown trousers tucked into travel boots, one fist on her hip.
+ *
+ *   const t = new Trader(sky).build();   // own space: feet at the origin, facing +Z
+ *   t.group.position / rotation          // where she stands (the model is placed: src/shards/driftwood-isle/models/trader.ts)
+ *   game.onUpdate((dt, t) => trader.update(dt, t, player.position));
+ *
+ * Her idle (the whole figure, one pivot at her feet, then head, shoulder and elbow pivots):
+ *   - she breathes and shifts her weight from foot to foot;
+ *   - her head glances about (the goods, the path, the sea) and dips to the counter;
+ *   - every ~8–12 s with nobody close she reaches down and straightens the goods on the counter;
+ *   - the first time you come up the path (inside GREET_R) she beckons you over, once per approach;
+ *   - she turns to face you (E129) inside FACE_R: the figure eases round at no more than TURN_MAX rad/s, the head
+ *     leading it, and eases back to her counter when you walk off; while you stand there she opens a hand toward her
+ *     goods now and then ("take a look").
+ * Her shop (E314 stage 2) is src/shards/driftwood-isle/quest/TraderStall.ts's prompt + src/shards/driftwood-isle/loot/ShopPanel.ts; `offer()` plays the "take a
+ * look" gesture on demand (the shop opening, a sale).
+ *
+ * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
+ */
+import * as THREE from 'three';
+import { log, rope } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+
+const C = {
+  skin: '#a86e48', skinDark: '#8a5636', hair: '#2b1f19', eye: '#1d1a18', lips: '#8f4538',
+  scarf: '#2f9490', scarfDark: '#23706d', scarfTrim: '#e2bf62', gold: '#d8a93c',
+  tunic: '#dd7a2e', tunicB: '#cf6f27', trim: '#9e4a22', shirt: '#eee6d6', shirtB: '#d9ceb8', sash: '#7a3a34',
+  trousers: '#6f5a45', boot: '#5a3d27', bootDark: '#46301f', leather: '#7a5234', leatherDark: '#5e3f27',
+};
+
+const M = new THREE.Matrix4();
+const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0, s: [number, number, number] = [1, 1, 1]): THREE.Matrix4 =>
+  M.compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(...s));
+const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+
+const NECK = 1.48, SHOULDER = V(-0.19, 1.4, 0);   // right shoulder (the model faces +Z; her right is −X)
+const ELBOW_Y = -0.27;                             // the elbow below the shoulder pivot
+export const TRADER_NEAR_R = 85;   // past this she (and her counter) are not drawn: a few pixels at that range
+const FACE_R = 6;          // m (feet to feet): inside this she turns to face you
+const GREET_R = 11;        // m: coming inside this she beckons you over (once, until you go past REARM_R)
+const REARM_R = 18;
+const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
+const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s): Wendell's rates (E129)
+const HEAD_MAX = 0.9;      // rad: the head's turn on top of the body's (her scarf tails clear her shoulders to here)
+
+type Gesture = 'none' | 'beckon' | 'tidy' | 'offer';
+const GESTURE_S: Record<Gesture, number> = { none: 0, beckon: 2.4, tidy: 2.6, offer: 1.8 };
+
+export class Trader {
+  readonly group = new THREE.Group();
+  /** body + head + arm: turns about her feet to face you (E129) */
+  private readonly figure = new THREE.Group();
+  private body = new THREE.Mesh();
+  private head = new THREE.Mesh();
+  private upper = new THREE.Mesh();
+  private fore = new THREE.Mesh();
+  private turn = 0;
+  private headYaw = 0; private headPitch = 0;
+  private glanceT = 0; private glanceYaw = 0; private glancePitch = 0.1;
+  private gesture: Gesture = 'none'; private gT = 0;
+  private idleT = 6;        // seconds to the next idle tidy
+  private offerT = 3;       // seconds to the next "take a look" while you stand at the counter
+  private greeted = false;
+  /** extra culling: things drawn with her (her counter) hide with her past TRADER_NEAR_R */
+  readonly companions: THREE.Object3D[] = [];
+
+  constructor(private sky: Sky) {}
+
+  build(): this {
+    const mat = lowPolyMaterial(this.sky);
+    this.group.name = 'trader';
+
+    // ── body (turns with the figure) ──
+    const k = new LowPolyKit(0x7ade1);
+    for (const sx of [-1, 1]) {
+      // travel boots with a turned-down cuff, then the trousers down to them
+      k.add(new THREE.BoxGeometry(0.1, 0.08, 0.23), C.boot, { matrix: at(sx * 0.09, 0.04, 0.035), wobble: 0.008 });
+      k.add(log(V(sx * 0.09, 0.06, 0), V(sx * 0.09, 0.31, 0.005), 0.06, 0.058, 6), C.boot);
+      k.add(log(V(sx * 0.09, 0.29, 0.005), V(sx * 0.09, 0.35, 0.005), 0.069, 0.069, 7), C.bootDark);
+      k.add(log(V(sx * 0.09, 0.33, 0.005), V(sx * 0.095, 0.68, 0), 0.07, 0.08, 7), C.trousers);
+    }
+    // the tunic's skirt, flared to the knee, a darker hem band
+    k.add(log(V(0, 0.56, 0), V(0, 0.62, 0), 0.258, 0.252, 9), C.trim, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]), jitter: 0.05 });
+    k.add(log(V(0, 0.6, 0), V(0, 1.0, 0), 0.25, 0.19, 9), C.tunic, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]), jitter: 0.05 });
+    // the sash, knotted at her left hip, its two tails lifting in the wind
+    k.add(log(V(0, 0.96, 0), V(0, 1.07, 0), 0.2, 0.195, 8), C.sash, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]) });
+    k.add(new THREE.IcosahedronGeometry(0.045, 0), C.sash, { matrix: at(0.17, 1.0, 0.08) });
+    k.add(log(V(0.17, 0.99, 0.09), V(0.2, 0.78, 0.11), 0.03, 0.018, 4), C.sash, { sway: { w: 0.35, hang: true } });
+    k.add(log(V(0.15, 0.99, 0.1), V(0.155, 0.8, 0.14), 0.028, 0.016, 4), C.sash, { sway: { w: 0.35, hang: true } });
+    // the torso: stacked bands like Wendell's shirt, a little narrower at the shoulders; plain orange, two shades
+    for (let i = 0; i < 6; i++) {
+      const y0 = 1.06 + i * 0.068, r0 = 0.178 + Math.sin((i / 6) * Math.PI) * 0.028, r1 = 0.178 + Math.sin(((i + 1) / 6) * Math.PI) * 0.028;
+      k.add(log(V(0, y0, 0), V(0, y0 + 0.068, 0), r0, i === 5 ? 0.14 : r1, 8), i % 2 ? C.tunicB : C.tunic, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.74]), jitter: 0.04 });
+    }
+    // the collar: a rust band and the cream shirt's V at the throat
+    k.add(log(V(0, 1.43, 0), V(0, 1.47, 0), 0.148, 0.12, 8), C.trim, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]) });
+    k.add(new THREE.BoxGeometry(0.12, 0.12, 0.02), C.shirt, { matrix: at(0, 1.4, 0.108, 0, -0.25, Math.PI / 4) });
+    k.add(log(V(0, 1.45, 0), V(0, 1.53, 0.01), 0.058, 0.053, 6), C.skin);   // the neck
+    // the satchel riding on her right hip, behind the hanging arm, its strap over her left shoulder
+    k.add(new THREE.BoxGeometry(0.2, 0.17, 0.08), C.leather, { matrix: at(-0.18, 0.92, -0.15, -0.55), wobble: 0.006 });
+    k.add(new THREE.BoxGeometry(0.21, 0.07, 0.09), C.leatherDark, { matrix: at(-0.18, 0.99, -0.148, -0.55) });
+    k.add(new THREE.BoxGeometry(0.03, 0.03, 0.02), C.gold, { matrix: at(-0.2, 0.96, -0.2, -0.55) });
+    k.add(rope([V(-0.14, 1.02, -0.17), V(-0.24, 1.03, -0.04), V(-0.2, 1.05, 0.1), V(-0.1, 1.15, 0.157), V(0.02, 1.28, 0.158), V(0.12, 1.4, 0.12), V(0.15, 1.47, 0.02)], 0.017), C.leatherDark);
+    k.add(rope([V(0.15, 1.47, 0.02), V(0.12, 1.4, -0.12), V(0.02, 1.28, -0.158), V(-0.08, 1.14, -0.17), V(-0.14, 1.02, -0.17)], 0.017), C.leatherDark);
+    // the left arm: fist on her hip, elbow out — the shirt's short sleeve, a gold bangle
+    const S = V(0.19, 1.4, 0), E = V(0.31, 1.17, -0.05), H = V(0.215, 1.0, 0.035);
+    const along = (a: THREE.Vector3, b: THREE.Vector3, t: number) => new THREE.Vector3().lerpVectors(a, b, t);
+    k.add(log(S, along(S, E, 0.5), 0.066, 0.06, 6), C.shirt);   // the shirt's short puffed sleeve
+    k.add(log(along(S, E, 0.44), along(S, E, 0.54), 0.064, 0.058, 6), C.shirtB);
+    k.add(log(along(S, E, 0.5), E, 0.047, 0.044, 6), C.skin);
+    k.add(log(E, H, 0.044, 0.038, 6), C.skin);
+    k.add(new THREE.TorusGeometry(0.045, 0.011, 4, 8), C.gold, { matrix: lookAlong(along(E, H, 0.78), E, H) });
+    k.add(new THREE.IcosahedronGeometry(0.048, 0), C.skin, { matrix: at(H.x, H.y, H.z, 0, 0, 0, [0.85, 1.05, 1]) });
+    this.body = new THREE.Mesh(k.finish({ ao: { floorY: 0, strength: 0.45 } }), mat);
+    this.body.castShadow = true; this.body.receiveShadow = true;
+
+    // ── head (pivot at the neck): face, the teal headscarf, hoops ──
+    const h = new LowPolyKit(0x7ade2);
+    h.add(new THREE.IcosahedronGeometry(0.11, 1), C.skin, { matrix: at(0, 0.11, 0, 0, 0, 0, [0.9, 1.05, 0.95]), wobble: 0.005 });
+    h.add(new THREE.ConeGeometry(0.026, 0.06, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.112) });
+    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.026, 0.02, 0.01), C.eye, { matrix: at(sx * 0.04, 0.132, 0.1) });
+    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.046, 0.011, 0.02), C.hair, { matrix: at(sx * 0.041, 0.158, 0.098, 0, 0, sx * 0.12) });   // arched brows
+    h.add(new THREE.BoxGeometry(0.05, 0.014, 0.012), C.lips, { matrix: at(0, 0.058, 0.098) });
+    h.add(new THREE.BoxGeometry(0.13, 0.022, 0.03), C.hair, { matrix: at(0, 0.172, 0.088) });   // the fringe under the scarf
+    for (const sx of [-1, 1]) {
+      h.add(new THREE.BoxGeometry(0.02, 0.06, 0.04), C.hair, { matrix: at(sx * 0.093, 0.13, 0.035) });   // hair at the temples
+      h.add(new THREE.TorusGeometry(0.03, 0.006, 4, 9).rotateY(Math.PI / 2), C.gold, { matrix: at(sx * 0.1, 0.045, 0.012) });   // big gold hoops
+    }
+    // the scarf: a dome over the crown tipped back (brow clear, nape covered), a trim band round its rim, the knot and tails
+    const SCARF = at(0, 0.12, -0.012, 0, -0.6, 0, [1, 0.95, 1.08]).clone();
+    h.add(new THREE.SphereGeometry(0.128, 10, 5, 0, Math.PI * 2, 0, Math.PI * 0.56), C.scarf, { matrix: SCARF, wobble: 0.004 });
+    h.add(new THREE.TorusGeometry(0.128, 0.017, 4, 12).rotateX(Math.PI / 2).translate(0, -0.022, 0), C.scarfTrim, { matrix: SCARF });
+    h.add(new THREE.IcosahedronGeometry(0.046, 0), C.scarfDark, { matrix: at(0, 0.06, -0.13, 0, 0, 0, [1.1, 0.85, 0.9]) });
+    for (const sx of [-1, 1]) {
+      h.add(new THREE.ConeGeometry(0.042, 0.19, 4), sx < 0 ? C.scarf : C.scarfDark,
+        { matrix: at(sx * 0.03, -0.04, -0.165, sx * 0.25, 0.4, sx * 0.12, [1, 1, 0.35]), sway: { w: 0.6, hang: true } });
+    }
+    this.head = new THREE.Mesh(h.finish({ ao: false }), mat);
+    this.head.position.set(0, NECK, 0.01);
+
+    // ── the right arm: upper arm (pivot at the shoulder, hanging along −Y), forearm (pivot at the elbow) ──
+    const u = new LowPolyKit(0x7ade3);
+    u.add(log(V(0, 0, 0), V(-0.015, -0.13, 0.01), 0.066, 0.06, 6), C.shirt);   // the short puffed sleeve
+    u.add(log(V(-0.012, -0.115, 0.01), V(-0.016, -0.15, 0.011), 0.064, 0.058, 6), C.shirtB);   // its hem
+    u.add(log(V(-0.015, -0.14, 0.011), V(-0.03, ELBOW_Y, 0.02), 0.047, 0.044, 6), C.skin);
+    this.upper = new THREE.Mesh(u.finish({ ao: false }), mat);
+    this.upper.position.copy(SHOULDER);
+    const f = new LowPolyKit(0x7ade4);
+    f.add(log(V(0, 0.01, 0), V(-0.01, -0.23, 0.02), 0.044, 0.038, 6), C.skin);
+    f.add(new THREE.TorusGeometry(0.045, 0.011, 4, 8).rotateX(Math.PI / 2), C.gold, { matrix: at(-0.008, -0.185, 0.016) });
+    f.add(new THREE.BoxGeometry(0.075, 0.1, 0.035), C.skin, { matrix: at(-0.012, -0.28, 0.024), wobble: 0.006 });   // an open hand
+    f.add(new THREE.BoxGeometry(0.022, 0.05, 0.024), C.skin, { matrix: at(0.03, -0.26, 0.04, 0, 0.3, 0.4) });        // the thumb
+    this.fore = new THREE.Mesh(f.finish({ ao: false }), mat);
+    this.fore.position.set(-0.03, ELBOW_Y, 0.02);
+    this.upper.add(this.fore);
+
+    this.figure.add(this.body, this.head, this.upper);
+    this.group.add(this.figure);
+    return this;
+  }
+
+  /** the head's world position (a future prompt / name tag) */
+  headWorld(out: THREE.Vector3): THREE.Vector3 { return out.set(0, NECK + 0.15, 0).applyMatrix4(this.group.matrixWorld); }
+  get position(): THREE.Vector3 { return this.group.position; }
+
+  private start(g: Gesture): void { this.gesture = g; this.gT = 0; }
+  /** open a hand toward her goods now (the shop opened, a sale: E314 stage 2) */
+  offer(): void { this.start('offer'); this.offerT = 5; }
+
+  setNear(near: boolean): void {
+    if (near !== this.figure.visible) { this.figure.visible = near; for (const c of this.companions) c.visible = near; }
+  }
+
+  update(dt: number, t: number, player: THREE.Vector3): void {
+    const gp = this.group.position;
+    const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);
+    // her facing from the placed pose (a placement's matrix decomposes to Euler (π, a, π) past ±90°: rotation.y alone is not the yaw)
+    const e = this.group.matrixWorld.elements, bodyYaw = Math.atan2(e[8], e[10]);
+
+    // ── what she's doing: beckon you over as you come up, straighten the goods when alone, offer them while you're there ──
+    if (d > REARM_R) this.greeted = false;
+    if (this.gesture !== 'none') { this.gT += dt; if (this.gT > GESTURE_S[this.gesture]) this.gesture = 'none'; }
+    if (this.gesture === 'none') {
+      if (!this.greeted && d < GREET_R && d > FACE_R * 0.6) { this.greeted = true; this.start('beckon'); }
+      else if (d >= GREET_R) { this.idleT -= dt; if (this.idleT <= 0) { this.idleT = 8 + (Math.sin(t * 0.83) + 1) * 2; this.start('tidy'); } }
+      else if (d < FACE_R) { this.offerT -= dt; if (this.offerT <= 0) { this.offerT = 5 + (Math.sin(t * 1.31) + 1) * 1.5; this.start('offer'); } }
+    }
+
+    // ── the figure turns to face you when you come close, and eases back to her counter after (E129) ──
+    const toYou = Math.atan2(dx, dz);
+    const wantTurn = d < FACE_R && this.gesture !== 'tidy' ? wrap(toYou - bodyYaw) : 0;
+    const dTurn = wrap(wantTurn - this.turn) * (1 - Math.exp(-TURN_K * dt));
+    this.turn = wrap(this.turn + THREE.MathUtils.clamp(dTurn, -TURN_MAX * dt, TURN_MAX * dt));
+    // weight from foot to foot: a slow sway and a small roll at her feet
+    const shift = Math.sin(t * 0.42);
+    this.figure.rotation.set(0, this.turn, shift * 0.018);
+    this.figure.position.x = shift * 0.012;
+
+    // ── the head leads: at you when you're near, else a glance about; down at the goods while she tidies them ──
+    let wantYaw: number, wantPitch: number;
+    const g = this.gesture, gu = g === 'none' ? 0 : ease(this.gT / GESTURE_S[g]);
+    if (g === 'tidy') { wantYaw = -0.25; wantPitch = 0.45; }
+    else if (d < GREET_R) {
+      wantYaw = THREE.MathUtils.clamp(wrap(toYou - bodyYaw - this.turn), -HEAD_MAX, HEAD_MAX);
+      wantPitch = THREE.MathUtils.clamp(-Math.atan2(player.y + 1.6 - (gp.y + NECK + 0.1), Math.max(0.5, d)), -0.4, 0.4);
+      if (g === 'offer') { wantYaw += -0.35 * gu; wantPitch += 0.3 * gu; }   // a look down at what she offers
+    } else {
+      this.glanceT -= dt;
+      if (this.glanceT <= 0) {
+        this.glanceT = 2 + (Math.sin(t * 1.9) + 1) * 1.8;
+        this.glanceYaw = Math.sin(t * 0.41) * 0.75;
+        this.glancePitch = Math.sin(t * 0.7) > 0.4 ? 0.35 : 0.05;   // now and then down at the counter
+      }
+      wantYaw = this.glanceYaw; wantPitch = this.glancePitch;
+    }
+    wantYaw = THREE.MathUtils.clamp(wantYaw, -HEAD_MAX, HEAD_MAX);
+    this.headYaw += (wantYaw - this.headYaw) * Math.min(1, dt * 5);
+    this.headPitch += (wantPitch - this.headPitch) * Math.min(1, dt * 5);
+    const breathe = Math.sin(t * 1.5 + 0.7);
+    this.head.rotation.set(this.headPitch + breathe * 0.02, this.headYaw, Math.sin(t * 0.55) * 0.05 - shift * 0.03);
+    this.head.position.y = NECK + breathe * 0.006;
+    this.body.scale.set(1, 1 + breathe * 0.006, 1);
+
+    // ── the right arm ──
+    // (shoulder: x < 0 swings it forward, z < 0 lifts it out to her right; elbow: x < 0 bends the forearm forward / up)
+    let sx = Math.sin(t * 1.1) * 0.05, sz = -0.1, sy = 0, ex = -0.12, lean = 0;
+    if (g === 'beckon') {
+      // arm up and out, forearm raised, the hand waving her in: "over here"
+      sx = -0.55 * gu; sz = -0.1 - 0.65 * gu; sy = 0.5 * gu;
+      ex = -0.12 - (1.5 + Math.sin(this.gT * 11) * 0.35) * gu;
+    } else if (g === 'tidy') {
+      // reach down and forward to the counter, set a thing straight, back
+      sx = -0.5 * gu; sz = -0.1 + 0.18 * gu; ex = -0.12 - 0.28 * gu + Math.sin(this.gT * 5) * 0.08 * gu; lean = 0.07 * gu;
+    } else if (g === 'offer') {
+      // an open hand toward her goods: "take a look"
+      sx = -0.7 * gu; sz = -0.1 - 0.25 * gu; sy = 0.3 * gu; ex = -0.12 - 0.35 * gu;
+    }
+    this.upper.rotation.set(sx, sy, sz);
+    this.fore.rotation.set(ex, 0, 0);
+    this.figure.rotation.x = lean;   // she leans over the counter to reach it
+  }
+}
+
+/** 0 → 1 → 0 over a gesture: eased in over its first quarter, out over its last */
+function ease(u: number): number {
+  const a = Math.min(1, u / 0.25), b = Math.min(1, (1 - u) / 0.25), s = Math.max(0, Math.min(a, b));
+  return s * s * (3 - 2 * s);
+}
+
+function wrap(a: number): number { return Math.atan2(Math.sin(a), Math.cos(a)); }
+
+/** a matrix putting a ring (a torus in the XY plane) at p, square to the segment a → b */
+function lookAlong(p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): THREE.Matrix4 {
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3().subVectors(b, a).normalize());
+  return new THREE.Matrix4().compose(p, q, new THREE.Vector3(1, 1, 1));
+}

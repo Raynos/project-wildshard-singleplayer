@@ -1,0 +1,282 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Template shard",
+      "badge": "91% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Driftwood Isle",
+      "mode": "legacy",
+      "entered": true,
+      "mapSubstitution": false,
+      "console": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+        }
+      ],
+      "networkFailures": [
+        {
+          "url": "http://127.0.0.1:4400/api/telemetry",
+          "failure": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "slug": "driftwood-isle",
+      "saveKeys": [
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle"
+      ],
+      "seconds": 8,
+      "slot": {
+        "driftwood-isle": "legacy"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "legacy",
+      "entered": true,
+      "mapSubstitution": false,
+      "console": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+        }
+      ],
+      "networkFailures": [
+        {
+          "url": "http://127.0.0.1:4400/api/telemetry",
+          "failure": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "slug": "pine-hollow",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.pine-hollow",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 15,
+      "slot": {
+        "pine-hollow": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardpine-hollow | Entrylegacy",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

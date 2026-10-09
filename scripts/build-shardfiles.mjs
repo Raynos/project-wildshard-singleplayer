@@ -6,15 +6,17 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { runWildshard } from './wildshard.mjs';
+import { legacyInventory } from './legacy-shards.mjs';
 import { mapTilesHash } from './map-hash.mjs';
 
 const root = resolve(import.meta.dirname, '..'), projects = resolve(root, 'src/shards');
 const strict = [process.env.CI, process.env.VERCEL].some((flag) => flag !== undefined && flag !== '' && flag !== 'false');
+const frozen = legacyInventory(root);
 let count = 0;
 const stale = [];
 for (const entry of readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
   const project = resolve(projects, entry.name);
-  if (!entry.isDirectory() || !existsSync(resolve(project, 'shard.config.ts'))) continue;
+  if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) continue;
   const stamp = resolve(project, 'look/map.baked.json');
   if (!existsSync(stamp) || JSON.parse(readFileSync(stamp, 'utf8')).tilesHash !== mapTilesHash(project)) stale.push(entry.name);
   await runWildshard(['build', project, resolve(root, 'public/shardfiles', entry.name), '--product-only']); count++;

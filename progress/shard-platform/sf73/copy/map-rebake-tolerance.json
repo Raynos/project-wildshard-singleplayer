@@ -1,0 +1,305 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Template shard",
+      "badge": "91% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Driftwood Isle",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "map": {
+        "original": "65fd59cd622ce556cb867b3bdf1d2abbf1c13f7ee6b139d2a2eb05dc67b57535",
+        "replacement": "b649931c17618382f3dfb39d306e53611f9903b056eea348d4546acb96001997",
+        "other": "nalati-grasslands"
+      },
+      "sharedMapReplaced": true,
+      "slug": "driftwood-isle-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.driftwood-isle-legacy"
+      ],
+      "seconds": 13,
+      "slot": {
+        "driftwood-isle": "legacy"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "map": {
+        "original": "514c2f05e79dd2d5c36875d219244e2c6b2c1dbcf5f94f314bab1b242413306d",
+        "replacement": "b649931c17618382f3dfb39d306e53611f9903b056eea348d4546acb96001997",
+        "other": "nalati-grasslands"
+      },
+      "sharedMapReplaced": true,
+      "slug": "pine-hollow-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.pine-hollow",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.pine-hollow-legacy"
+      ],
+      "seconds": 20,
+      "slot": {
+        "pine-hollow": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardpine-hollow-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "map": {
+        "original": "b649931c17618382f3dfb39d306e53611f9903b056eea348d4546acb96001997",
+        "replacement": "514c2f05e79dd2d5c36875d219244e2c6b2c1dbcf5f94f314bab1b242413306d",
+        "other": "pine-hollow"
+      },
+      "sharedMapReplaced": true,
+      "slug": "nalati-grasslands-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.nalati-grasslands-legacy",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 19,
+      "slot": {
+        "nalati-grasslands": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardnalati-grasslands-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "map": {
+        "original": "ab5eb517eec0db1eb8e37f0adb0baaf781ffcfbada812dd607d27ed9801d5e9c",
+        "replacement": "b649931c17618382f3dfb39d306e53611f9903b056eea348d4546acb96001997",
+        "other": "nalati-grasslands"
+      },
+      "sharedMapReplaced": true,
+      "slug": "nine-dragon-stack-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle"
+      ],
+      "seconds": 11,
+      "slot": {
+        "nine-dragon-stack": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardnine-dragon-stack-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "map": {
+        "original": "34221d07d4ac6c796f7d1c647837a239d6b7340ee4c3695628f1f06518f944b1",
+        "replacement": "b649931c17618382f3dfb39d306e53611f9903b056eea348d4546acb96001997",
+        "other": "nalati-grasslands"
+      },
+      "sharedMapReplaced": true,
+      "slug": "sunscar-dunes-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.sunscar-dunes-legacy",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 10,
+      "slot": {
+        "sunscar-dunes": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardsunscar-dunes-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Sky Reach",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "map": {
+        "original": "293c90ed7cb53381324fee3adee89379e6eca62d0c266ab379a0720db924e5fb",
+        "replacement": "b649931c17618382f3dfb39d306e53611f9903b056eea348d4546acb96001997",
+        "other": "nalati-grasslands"
+      },
+      "sharedMapReplaced": true,
+      "slug": "far-reach-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.far-reach-legacy",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 10,
+      "slot": {
+        "far-reach": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardfar-reach-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Template shard",
+      "mode": "legacy",
+      "entered": false,
+      "disabled": "SHARDFILE ONLY · NO LEGACY"
+    }
+  ],
+  "errors": []
+}

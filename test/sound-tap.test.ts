@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exact frozen identities reuse unchanged owner metadata, with every tap checked.
+import { resolve, relative } from 'node:path';
+import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
 import { API } from 'typescript/unstable/sync';
 import { isArrowFunction, isBlock, isCallExpression, isExpressionStatement, isIfStatement, isMethodDeclaration, type Node } from 'typescript/unstable/ast';
 
+const frozen = legacyInventory(resolve('.'));
 const sources = import.meta.glob<string>('../src/**/*.ts', { eager: true, query: '?raw', import: 'default' });
 const schedulers: Readonly<Record<string, readonly string[]>> = {
   'src/shards/driftwood-isle/runtime/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
@@ -29,7 +33,7 @@ describe('every sound source is observed', () => {
       const owner = owners[file];
       expect(owner === undefined ? text : sources[owner], file).toContain('tap.sound?.(');
     }
-    expect(files.map(([file]) => file).sort()).toEqual([
+    expect(files.filter(([file]) => !registeredLegacyFile(frozen, relative(resolve('.'), resolve(file.slice(3))))).map(([file]) => file).sort()).toEqual([
       '../src/engine/audio/AmbienceBeds.ts', '../src/engine/audio/Audio.ts', '../src/engine/audio/Music.ts',
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
       '../src/engine/audio/aacSource.ts',

@@ -4,9 +4,10 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { parseSync } from 'vite';
 
 export const LEGACY_INVENTORY = 'lint/legacy-shards.json';
-/** @typedef {{primary:string, source:string, files:Record<string,string>}} LegacyRow */
+/** @typedef {{primary:string, source:string, files:Record<string,string>, compatibility?:Record<string,{original:string,current:string,reason:string}>}} LegacyRow */
 /** @typedef {{version:1, sealed:boolean, shards:Record<string,LegacyRow>}} LegacyInventory */
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -20,6 +21,12 @@ export function legacyInventory(root) {
     if (!object(row) || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(row.primary) || slug !== `${row.primary}-legacy` || !/^[a-f0-9]{40}$/u.test(row.source) || !object(row.files) || Object.keys(row.files).length === 0 || Object.keys(row.files).length > 10000) throw new Error('Invalid legacy pair');
     for (const [file, digest] of Object.entries(row.files)) if (file.startsWith('/') || file.split('/').some(part => part === '..' || part === '.' || part === '') || !/^[a-f0-9]{64}$/u.test(digest)) throw new Error('Invalid legacy file identity');
     if (!Object.hasOwn(row.files, 'manifest.ts') || !Object.hasOwn(row.files, 'plugin.ts')) throw new Error('Incomplete legacy pair');
+    if (row.compatibility !== undefined) {
+      if (!object(row.compatibility) || Object.keys(row.compatibility).length > 100) throw new Error('Invalid legacy compatibility record');
+      for (const [file, fix] of Object.entries(row.compatibility)) {
+        if (!Object.hasOwn(row.files, file) || !object(fix) || !/^[a-f0-9]{64}$/u.test(fix.original) || fix.current !== row.files[file] || typeof fix.reason !== 'string' || fix.reason.length === 0 || fix.reason.length > 1024) throw new Error('Invalid legacy compatibility record');
+      }
+    }
   }
   return /** @type {LegacyInventory} */ (data);
 }
@@ -29,6 +36,37 @@ export function legacyPrimary(root, slug) { return legacyInventory(root).shards[
 export function registeredLegacyFile(inventory, file) {
   const match = /^src\/shards\/([^/]+)\/(.+)$/u.exec(file);
   return match !== null && Object.hasOwn(inventory.shards[match[1]]?.files ?? {}, match[2]);
+}
+/** Frozen entries are explicit standalone-only objects, never a second grid or shardfile manifest. */
+export function legacyManifestRules(text, slug) {
+  const parsed = parseSync(`${slug}/manifest.ts`, text), bindings = new Map();
+  if (parsed.errors.length > 0) return [`${slug}: legacy manifest does not parse`];
+  let selected;
+  for (const statement of parsed.program.body) {
+    const declaration = statement.declaration ?? statement;
+    if (declaration.type === 'VariableDeclaration') for (const row of declaration.declarations) if (row.id.type === 'Identifier') bindings.set(row.id.name, row.init);
+    if (statement.type === 'ExportDefaultDeclaration') selected = statement.declaration;
+  }
+  const unwrap = (raw) => {
+    let node = raw;
+    for (let depth = 0; depth < 8; depth++) {
+      if (node?.type === 'Identifier') node = bindings.get(node.name);
+      else if (['TSAsExpression', 'TSSatisfiesExpression'].includes(node?.type)) node = node.expression;
+      else break;
+    }
+    return node;
+  };
+  const fields = (raw) => {
+    const node = unwrap(raw);
+    return node?.type === 'ObjectExpression' ? new Map(node.properties.filter(row => row.type === 'Property' && !row.computed).map(row => [row.key.name ?? row.key.value, row.value])) : new Map();
+  };
+  const manifest = fields(selected), entries = fields(manifest.get('entries'));
+  const literal = (rows, key) => { const node = unwrap(rows.get(key)); return node?.type === 'Literal' ? node.value : undefined; };
+  const failures = [];
+  if (literal(manifest, 'slug') !== slug || literal(manifest, 'legacy') !== true) failures.push(`${slug}: legacy identity must be literal and flagged`);
+  if (literal(entries, 'legacy') !== true || literal(entries, 'shardfile') !== false || literal(entries, 'public') !== 'legacy') failures.push(`${slug}: frozen copy must be legacy-only`);
+  if (['gridShardfile', 'trustedRuntime', 'shardfile'].some(key => manifest.has(key))) failures.push(`${slug}: frozen copy cannot join the grid or expose a shardfile entry`);
+  return failures;
 }
 /** Verify every file, including binary assets, before a frozen copy can gain policy privileges. */
 export function checkLegacyInventory(root, inventory = legacyInventory(root)) {
@@ -41,6 +79,8 @@ export function checkLegacyInventory(root, inventory = legacyInventory(root)) {
     } };
     if (!existsSync(resolve(root, `src/shards/${slug}`))) { failures.push(`${slug}: legacy folder missing`); continue; }
     scan('');
+    const manifestFile = resolve(root, `src/shards/${slug}/manifest.ts`);
+    if (existsSync(manifestFile)) failures.push(...legacyManifestRules(readFileSync(manifestFile, 'utf8'), slug));
     if (found.length !== Object.keys(row.files).length || found.some(file => !Object.hasOwn(row.files, file))) failures.push(`${slug}: frozen file set changed`);
     for (const [file, digest] of Object.entries(row.files)) {
       const path = resolve(root, `src/shards/${slug}/${file}`);
@@ -60,7 +100,7 @@ export function compareLegacyInventory(before, after, changed, message) {
     if (next !== undefined && (next.primary !== row.primary || next.source !== row.source)) failures.push(`${slug}: immutable legacy provenance changed`);
     const touched = changed.filter(file => file.startsWith(`src/shards/${slug}/`));
     if (next === undefined) continue;
-    if (!fix && (touched.length > 0 || JSON.stringify(row.files) !== JSON.stringify(next.files))) failures.push(`${slug}: frozen feature edit refused; crash fixes require Legacy-Crash-Fix: <reason>`);
+    if (!fix && (touched.length > 0 || JSON.stringify(row.files) !== JSON.stringify(next.files) || JSON.stringify(row.compatibility) !== JSON.stringify(next.compatibility))) failures.push(`${slug}: frozen feature edit refused; crash fixes require Legacy-Crash-Fix: <reason>`);
   }
   return failures;
 }

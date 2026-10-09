@@ -1,0 +1,74 @@
+import { NALATI_STRIKES, sampleStrike } from './strikes';
+import type { TargetHit } from '@wildshard/engine/combat/types';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { encounterHit } from './damage';
+import type * as THREE from 'three';
+
+
+
+
+
+import type { Balbals } from '../world/Balbals';
+
+
+import type { NalatiLoadout } from '../weapons/loadout';
+import { wildEnv } from '../creatures/env';
+import { BalbalWarriors } from './balbalWarriors';
+import { GhostRiders } from './ghostRiders';
+
+/**
+ * The dusk + night enemies (row B11 of project/archive/2026-09-23-nalati.md) as one piece for the shard wiring (src/shards/nalati-grasslands/index.ts):
+ * the balbal warriors (src/shards/nalati-grasslands/combat/balbalWarriors.ts — they wake at dusk) and the ghost riders (src/shards/nalati-grasslands/combat/ghostRiders.ts —
+ * they ride at night). Both run off the weather row's clock (`weather.clock`); both are ordinary AnimalManager animals, so
+ * the health bars, the damage numbers, the kill feed, the minimap, the aim assist and the achievements (Stonebreaker:
+ * `progress.recordKill('balbal', …)`) all come for free.
+ *
+ *   const night = wireNightEnemies({ game, sky, player, forest, balbals: pois.balbals, clock: weather.clock });
+ *   updates.push((dt, t) => night.update(dt, t));
+ *   night.attach(animals)                       // in attachAnimals (their models are built now, not at dusk)
+ *   night.bindKit(play.kit)                     // in bindPlay (the sabre / spear in hand feeds the balbals' damage model)
+ *   hit = night.target(origin, dir, max, hit)   // in the Targets chain (sheepTarget): the ghost riders' torso + hood
+ *
+ * Damage to the player goes through `combat.hit` — main.ts's health, flash and sound — for the
+ * balbals' slam (the species' `hurt`) and the riders' arrows alike. Dev: `?time=dusk` / `?time=night` (the weather row),
+ * Debug ▸ Creatures & NPCs ▸ Balbal warriors / Ghost riders (wake now · never); `window.__balbals`, `window.__ghosts`.
+ */
+
+export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayCycleClock }
+export interface NightEnemies {
+  balbals: BalbalWarriors;
+  riders: GhostRiders;
+  update: (dt: number, t: number) => void;
+  attach: (animals: AnimalManager) => void;
+  bindKit: (kit: NalatiLoadout | null) => void;
+  target: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
+}
+
+export function wireNightEnemies(ctx: NightEnemiesCtx): NightEnemies {
+  const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope });
+  const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock });
+  return {
+    balbals, riders,
+    update(dt, t) {
+      balbals.update(dt, t, ctx.game.camera, ctx.game.renderer, wildEnv.light);
+      riders.update(dt, t);
+    },
+    attach(animals) {
+      // never let a night enemy stop the shard's boot (the shared tree is everyone's): a failed build logs and switches it off
+      try { balbals.attach(animals); } catch (e) { console.error('[B11] balbal warriors off:', e); }
+      try { riders.attach(animals); } catch (e) { console.error('[B11] ghost riders off:', e); }
+      // a ghost arrow hurts like any creature's blow (the pipeline: health, the red flash, the sound)
+      riders.hurt = (damage, from) => {
+        const a = from ?? riders.riders[0]?.a;
+        if (a !== undefined) sampleStrike(NALATI_STRIKES.arrow, a, ctx.player.position, () => { encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position); }, { origin: ctx.player.position });
+      };
+    },
+    bindKit(kit) { balbals.bindKit(kit); },
+    target(origin, dir, maxDist, hit) { return riders.riderTarget(origin, dir, maxDist, hit); },
+  };
+}

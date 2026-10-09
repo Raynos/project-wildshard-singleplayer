@@ -1,0 +1,65 @@
+{
+  "why": "Nalati's map in its painterly palette as flat colours (G252, Jake's pick B): the green and gold steppe, the river's stone bed and blue water with an edge, the snowfields in two whites, the trails picked out with an edge; yurts, trees and rocks raised with an edge and a shadow",
+  "style": {
+    "kind": "ground",
+    "smooth": 9,
+    "shade": 0.5,
+    "classes": [
+      {
+        "match": "#7d8c61",
+        "fill": "#8fb26a"
+      },
+      {
+        "match": "#9d9b67",
+        "fill": "#c4c07a"
+      },
+      {
+        "match": "#baac68",
+        "fill": "#e0c87a"
+      },
+      {
+        "match": "#9b958f",
+        "fill": "#b8ad9c"
+      },
+      {
+        "match": "#c7cfef",
+        "fill": "#eef2fb"
+      },
+      {
+        "match": "#a6aecd",
+        "fill": "#cdd6ee"
+      },
+      {
+        "match": "#687fb7",
+        "fill": "#c3cdea"
+      },
+      {
+        "match": "#4d6276",
+        "fill": "#4f86b8",
+        "edge": "#2f5274",
+        "min": 400
+      },
+      {
+        "match": "#b18d72",
+        "fill": "#c99a66",
+        "edge": "#6e4a2c",
+        "min": 200
+      }
+    ],
+    "raised": {
+      "bump": 2.0,
+      "classes": [
+        {
+          "match": "#e8e4dc",
+          "fill": "#f6f1e6",
+          "edge": "#6a5a48"
+        },
+        {
+          "match": "#4a5040",
+          "fill": "#5d6b4a",
+          "edge": "#2e3626"
+        }
+      ]
+    }
+  }
+}

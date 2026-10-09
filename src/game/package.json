@@ -170,6 +170,7 @@
     "./systems/items/lash": "./systems/items/lash.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",
-    "./quest/interactionRows": "./quest/interactionRows.ts"
+    "./quest/interactionRows": "./quest/interactionRows.ts",
+    "./shard/list": "./shard/list.ts"
   }
 }

@@ -11,6 +11,7 @@ import { DEVSERVER, gridEntryShown, gridMode, selectEnters, selectExplores, type
 import { GridCellEvents, gridHome } from '../src/game/grid/boot';
 import { devserverCellOn, installGridDebug } from '../src/game/grid/debug';
 import { levelDebugRows } from '../src/engine/ui/debugOptions';
+import { ordinaryShardManifests } from '../src/game/shard/legacy';
 import { shards } from '../src/game/shard/list';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
 import { buildTitleMenu } from '../src/game/mainMenu';
@@ -55,10 +56,10 @@ describe('§3.3 table: the assembly per mode and both switches together', () => 
   });
   it('Select a shard enters the table\'s column in each mode', () => {
     const restricted = (slug: string): boolean => { const m = shards().find((entry) => entry.slug === slug); return m === undefined || m.status === 'experimental' || m.status === 'hidden' || slug.startsWith('_'); };
-    const enters = (mode: MenuMode): string[] => shards().map((m) => m.slug).filter((slug) => selectEnters(slug, restricted(slug), mode)).sort();
+    const enters = (mode: MenuMode): string[] => ordinaryShardManifests(shards()).map((m) => m.slug).filter((slug) => selectEnters(slug, restricted(slug), mode)).sort();
     expect(enters(MODES.shipped)).toEqual(['driftwood-isle', 'nalati-grasslands', 'pine-hollow']);
-    expect(enters(MODES.developer)).toEqual(shards().map((m) => m.slug).sort()); // today's switch: every card (G58)
-    expect(enters(MODES.devserver)).toEqual(shards().map((m) => m.slug).sort());
+    expect(enters(MODES.developer)).toEqual(ordinaryShardManifests(shards()).map((m) => m.slug).sort()); // today's switch: every card (G58)
+    expect(enters(MODES.devserver)).toEqual(ordinaryShardManifests(shards()).map((m) => m.slug).sort());
     expect(selectExplores('driftwood-isle', false, MODES.shipped)).toBe(false);
     expect(selectExplores('driftwood-isle', false, MODES.developer)).toBe(true);
     expect(selectExplores('_template', true, MODES.devserver)).toBe(true);

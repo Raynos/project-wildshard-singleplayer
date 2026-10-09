@@ -1,0 +1,53 @@
+import { defineModel } from '@wildshard/engine/models/model';
+import { Group, Mesh, MeshStandardMaterial } from 'three';
+import { buildWhipModel } from '../weapons/whipModel';
+import { buildTower } from '../world/tower';
+import { lastBakedWorld } from '../world/baked';
+import { buildBrazier, buildCaravan, buildWell } from '../world/places';
+import { skittererBody } from '../species/skitterer';
+import { striderSpecimen } from '../species/strider';
+import { rayGeometry } from '../species/duneRay';
+import { matriarchBody } from '../species/matriarch';
+import { scoutModelGroup } from '../quest/scout';
+import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
+import caravanRows from '../data/caravan.json' with { type: 'json' };
+import wellRows from '../data/well.json' with { type: 'json' };
+import brazierRows from '../data/braziers.json' with { type: 'json' };
+import { STRINGS } from '../data/strings';
+
+const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
+/** C6: the caravan, the well, the brazier and the strider are Hunyuan3D-2 models (`art/sunscar-dunes/round-7-models/`), each with its code model as the stand-in. */
+export const whipModel = defineModel({ id: 'sunscar-dunes/bullwhip', name: STRINGS.whip, category: 'gear', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => { const parts = buildWhipModel(); parts.coil.visible = true; return parts.root; } });
+/** The world's own tower from its bake (SF72, `generators/tower.ts`), its deck's ground at the origin. */
+export const towerModel = defineModel({ id: 'sunscar-dunes/signal-tower', name: STRINGS.tower, category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
+  build: () => {
+    const parts = buildTower(lastBakedWorld() ?? new Map()), group = new Group();
+    parts.root.position.set(-TOWER.x, TOWER.deck - parts.deckY, -TOWER.z); parts.fire.visible = true; group.add(parts.root); return group;
+  } });
+export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRINGS.ray, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
+  build: () => new Mesh(rayGeometry(), new MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true })) });
+const creature = (geometry: ReturnType<typeof rayGeometry>, scale = 1): Mesh => {
+  const mesh = new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true })); mesh.scale.setScalar(scale); return mesh;
+};
+/** A world place from its bake moved to the origin, its ground there (flat under its live parts). */
+const centred = (root: Group, x: number, y: number, z: number): Group => { const group = new Group(); root.position.set(-x, -y, -z); group.add(root); return group; };
+const caravanY = caravanRows.anchors.y, wellY = wellRows.anchors.y, brazierY = brazierRows.braziers[0]?.y ?? 0;
+export const caravanModel = defineModel({ id: 'sunscar-dunes/caravan', name: STRINGS.caravan, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => centred(buildCaravan(lastBakedWorld() ?? new Map(), () => caravanY).root, CARAVAN.x, caravanY, CARAVAN.z) });
+export const wellModel = defineModel({ id: 'sunscar-dunes/dry-well', name: STRINGS.well, category: 'buildings', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => centred(buildWell(lastBakedWorld() ?? new Map()).root, WELL.x, wellY, WELL.z) });
+export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', name: STRINGS.waymark, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => {
+    const parts = buildBrazier(0, () => brazierY); parts.fire.visible = true; parts.oil.visible = true;
+    return centred(parts.root, BRAZIERS[0]?.x ?? 0, brazierY, BRAZIERS[0]?.z ?? 0);
+  } });
+export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
+  build: () => creature(skittererBody()) });
+export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => creature(striderSpecimen()) });
+export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => creature(matriarchBody() ?? rayGeometry(), 3.6) });
+/** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
+export const scoutModel = defineModel({ id: 'sunscar-dunes/caravan-scout', name: STRINGS.scoutName, category: 'people', pipeline: ['hunyuan'], file: FILE, defaults: {},
+  build: () => scoutModelGroup() });

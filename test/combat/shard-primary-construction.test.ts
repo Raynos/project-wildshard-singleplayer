@@ -9,6 +9,7 @@ import { withOwner } from '../../src/engine/app/ownership';
 import { Weapon } from '../../src/engine/combat/Weapon';
 import type { SwordArms } from '../../src/engine/combat/view/melee';
 import type { Actor } from '../../src/engine/combat/pipeline';
+import { ordinaryShardManifests, primaryShardManifest } from '../../src/game/shard/legacy';
 import { shards } from '../../src/game/shard/list';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import { installDeclaredItems } from '../../src/game/shardfile/items';
@@ -123,10 +124,10 @@ describe('every discovered shard primary equipment constructs', () => {
     } finally { actual.sword.dispose(); actual.arms.dispose(); original.sword.dispose(); original.arms.dispose(); }
   });
   it('covers the unfiltered shard list, including hidden and DEVSERVER entries', () => {
-    expect(Object.keys(constructors).sort()).toEqual(shards().map((manifest) => manifest.slug).sort());
+    expect(Object.keys(constructors).sort()).toEqual(ordinaryShardManifests(shards()).map((manifest) => manifest.slug).sort());
   });
   it.each(shards())('$slug primary and local sword variants construct without a GPU', (manifest) => {
-    const construct = constructors[manifest.slug];
+    const construct = constructors[primaryShardManifest(shards(), manifest).slug];
     if (construct === undefined) throw new Error(`Missing primary equipment fixture for ${manifest.slug}`);
     const scope = new Scope(`primary:${manifest.slug}`), services = new App(), world = fakeWorld(), rng = app.rng.snapshot();
     const game = world.game.asGame(); Reflect.set(game, 'level', toLevelSpec(manifest));

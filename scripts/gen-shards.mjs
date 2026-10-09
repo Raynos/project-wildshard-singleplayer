@@ -79,6 +79,7 @@ ${slugs.map((slug, i) => `import m${i} from './shards/${slug}/manifest';`).join(
 const placed: (ShardManifest${metadata})[] = [${placed.join(', ')}];
 export const SHARDS = placed.sort((a, b) => a.order - b.order);
 export const LEGACY_SHARDS: ShardManifest[] = [${standalone.join(', ')}];
+export const LEGACY_CONTENT_IDENTITIES: Readonly<Record<string, string>> = ${JSON.stringify(Object.fromEntries(Object.entries(frozen.shards).map(([copy, row]) => [copy, row.primary])))};
 `;
 }
 /** the slugs as a type, for the game (no import: the game knows that shards exist, not which) */

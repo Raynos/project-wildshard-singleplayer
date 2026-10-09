@@ -1,0 +1,366 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Template shard",
+      "badge": "91% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Driftwood Isle",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "slug": "driftwood-isle-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.driftwood-isle-legacy"
+      ],
+      "seconds": 13,
+      "slot": {
+        "driftwood-isle": "legacy"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Driftwood Isle",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "driftwood-isle",
+      "saveKeys": [
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle"
+      ],
+      "seconds": 7,
+      "slot": {
+        "driftwood-isle": "shardfile"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "slug": "pine-hollow-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.pine-hollow",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.pine-hollow-legacy"
+      ],
+      "seconds": 20,
+      "slot": {
+        "pine-hollow": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardpine-hollow-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "pine-hollow",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.pine-hollow",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 17,
+      "slot": {
+        "pine-hollow": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardpine-hollow | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "slug": "nalati-grasslands-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.nalati-grasslands-legacy",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 19,
+      "slot": {
+        "nalati-grasslands": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardnalati-grasslands-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "nalati-grasslands",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.nalati-grasslands"
+      ],
+      "seconds": 11,
+      "slot": {
+        "nalati-grasslands": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardnalati-grasslands | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "slug": "nine-dragon-stack-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle"
+      ],
+      "seconds": 11,
+      "slot": {
+        "nine-dragon-stack": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardnine-dragon-stack-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "slug": "sunscar-dunes-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.sunscar-dunes-legacy",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 10,
+      "slot": {
+        "sunscar-dunes": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardsunscar-dunes-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Sky Reach",
+      "mode": "legacy",
+      "entered": true,
+      "reports": [],
+      "slug": "far-reach-legacy",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.far-reach-legacy",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 10,
+      "slot": {
+        "far-reach": "legacy"
+      },
+      "fps": 30,
+      "level": "Shardfar-reach-legacy | Entrylegacy",
+      "errors": []
+    },
+    {
+      "card": "Sky Reach",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Template shard",
+      "mode": "legacy",
+      "entered": false,
+      "disabled": "SHARDFILE ONLY · NO LEGACY"
+    },
+    {
+      "card": "Template shard",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "_template",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2._template",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 8,
+      "slot": {
+        "_template": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shard_template | Entryshardfile",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,73 @@
+{
+  "id": "nalati.raid",
+  "entity": 9080,
+  "module": "bd63ceed22276962945fb02af7cd63ee5dab9e954c2ded723c2f3f650a25ed98",
+  "inputs": [
+    {
+      "key": "raiding",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "present",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "tracking",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "broken",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "prey-alive",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "cracked",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "delay",
+      "min": 0,
+      "max": 540
+    }
+  ],
+  "parameters": [
+    30,
+    2
+  ],
+  "events": [
+    {
+      "id": 9081,
+      "key": "raid.try",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9082,
+      "key": "raid.finish",
+      "direction": "output",
+      "type": "number",
+      "min": 0,
+      "max": 2
+    },
+    {
+      "id": 9083,
+      "key": "raid.abandon",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    }
+  ],
+  "subscriptions": []
+}

@@ -5,6 +5,8 @@ import { setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
 import { chunkUrl, findShard } from '../shard/registry';
 import { shards } from '../shard/list';
+import { shardEntry } from '../shard/entryMode';
+import { shardEntryManifest } from '../shard/legacy';
 import type { ShardSlug } from '../shard/slugs.generated';
 import type { SpawnPose } from '../shard/manifest';
 import type { Inventory, ItemId } from '../Inventory';
@@ -69,7 +71,12 @@ const service = travelService({ source: () => running, slot: travelSlot(), now: 
   markUnload(`shard switch to ${request.to} (fresh page)`);
   location.replace(url.toString());
 } });
-export function travel(request: TravelRequest): void { if (findShard(request.to) !== undefined) service.travel(request); }
+export function travel(request: TravelRequest): void {
+  const manifest = findShard(request.to);
+  if (manifest === undefined) return;
+  const target = request.mode === 'enter' ? shardEntryManifest(shards(), request.to, shardEntry(manifest)) : manifest;
+  if (target !== undefined) service.travel({ ...request, to: target.slug });
+}
 export function consumeTravelHandoff(to: ShardSlug): TravelHandoff | null { return service.consume(to); }
 /** Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. */
 export function applyTravelCarry(handoff: TravelHandoff | null, inventory: Inventory): void {

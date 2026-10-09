@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import { progressSave } from './saves';
+import { ordinaryShardManifests } from './shard/legacy';
 import { shards as installedShards } from './shard/list';
 import type { ShardSlug } from './shard/slugs.generated';
 
@@ -36,7 +37,7 @@ export function summaryStore(store: SaveStore, read: (slug: string) => SummaryPr
   const current = (): WildshardSummary => {
     const saved = slot.peek();
     if (saved !== null) return saved;
-    const rebuilt = buildSummary(installedShards().filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
+    const rebuilt = buildSummary(ordinaryShardManifests(installedShards()).filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
   };
   return {
     read: current,

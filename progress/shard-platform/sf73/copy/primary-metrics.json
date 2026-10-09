@@ -1,0 +1,90 @@
+{
+  "baseline": "d6795a17013814b442ca2a1b9798c138233a9d65",
+  "unchanged": true,
+  "shards": {
+    "_template": {
+      "publicLines": 1215,
+      "customLines": 124,
+      "runtimeLines": 0,
+      "trustedRuntimeLines": 0,
+      "publicShare": 0.90739357729649,
+      "legacy": {
+        "generators": 631,
+        "data": 713,
+        "runtime": 129
+      }
+    },
+    "driftwood-isle": {
+      "publicLines": 165,
+      "customLines": 17014,
+      "runtimeLines": 5733,
+      "trustedRuntimeLines": 3579,
+      "publicShare": 0.009604749985447348,
+      "legacy": {
+        "generators": 22,
+        "data": 584,
+        "runtime": 22640
+      }
+    },
+    "far-reach": {
+      "publicLines": 659,
+      "customLines": 6141,
+      "runtimeLines": 1249,
+      "trustedRuntimeLines": 386,
+      "publicShare": 0.09691176470588235,
+      "legacy": {
+        "generators": 634,
+        "data": 3161,
+        "runtime": 8327
+      }
+    },
+    "nalati-grasslands": {
+      "publicLines": 113,
+      "customLines": 28283,
+      "runtimeLines": 9272,
+      "trustedRuntimeLines": 7377,
+      "publicShare": 0.003979433723059586,
+      "legacy": {
+        "generators": 0,
+        "data": 164,
+        "runtime": 36758
+      }
+    },
+    "nine-dragon-stack": {
+      "publicLines": 51,
+      "customLines": 21060,
+      "runtimeLines": 469,
+      "trustedRuntimeLines": 0,
+      "publicShare": 0.0024158021884325706,
+      "legacy": {
+        "generators": 0,
+        "data": 65,
+        "runtime": 26685
+      }
+    },
+    "pine-hollow": {
+      "publicLines": 665,
+      "customLines": 20816,
+      "runtimeLines": 5317,
+      "trustedRuntimeLines": 2201,
+      "publicShare": 0.03095759042875099,
+      "legacy": {
+        "generators": 0,
+        "data": 700,
+        "runtime": 27504
+      }
+    },
+    "sunscar-dunes": {
+      "publicLines": 853,
+      "customLines": 3243,
+      "runtimeLines": 769,
+      "trustedRuntimeLines": 217,
+      "publicShare": 0.208251953125,
+      "legacy": {
+        "generators": 878,
+        "data": 345,
+        "runtime": 4518
+      }
+    }
+  }
+}

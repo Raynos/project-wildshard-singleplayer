@@ -24,6 +24,7 @@ import { listenDom } from '@wildshard/engine/input/dom';
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { shards } from './shard/list';
+import { ordinaryShardManifests } from './shard/legacy';
 import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardEntries, ShardEntryMode, ShardManifest } from './shard/manifest';
 import { chooseShardEntry, hasEntry, shardEntries } from './shard/entryMode';
@@ -71,8 +72,9 @@ const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 /** Developer mode reveals hidden levels after every player-facing card. */
 export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
   const hidden = (m: ShardManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
-  const visible = shards().filter((m) => !hidden(m));
-  const manifests = showHidden ? [...visible, ...shards().filter(hidden)] : visible;
+  const ordinary = ordinaryShardManifests(shards());
+  const visible = ordinary.filter((m) => !hidden(m));
+  const manifests = showHidden ? [...visible, ...ordinary.filter(hidden)] : visible;
   return manifests.map((m): TitleCard => {
     const card: TitleCard = {
     slug: m.slug, name: m.name, label: m.biome,

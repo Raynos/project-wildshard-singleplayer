@@ -1,0 +1,162 @@
+{
+  "glb": "6f4b06b585daedec9344c4c13ce51e9178e8bf1080ed6192c6840f60c81d60a7",
+  "kinds": [
+    {
+      "name": "0-CylinderGeometry",
+      "count": 1,
+      "color": 8280638,
+      "roughness": 0.92,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 2890252,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false,
+      "warm": true
+    },
+    {
+      "name": "1-CylinderGeometry",
+      "count": 1,
+      "color": 8280638,
+      "roughness": 0.92,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 2890252,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false,
+      "warm": true
+    },
+    {
+      "name": "2-TorusGeometry",
+      "count": 2,
+      "color": 7233110,
+      "roughness": 0.92,
+      "metalness": 0.4,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "3-BoxGeometry",
+      "count": 1,
+      "color": 3808786,
+      "roughness": 0.92,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "4-BoxGeometry",
+      "count": 7,
+      "color": 7233110,
+      "roughness": 0.92,
+      "metalness": 0.4,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "5-BoxGeometry",
+      "count": 2,
+      "color": 3812904,
+      "roughness": 0.92,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": true
+    },
+    {
+      "name": "6-BoxGeometry",
+      "count": 2,
+      "color": 8806463,
+      "roughness": 0.92,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "7-BoxGeometry",
+      "count": 6,
+      "color": 6965818,
+      "roughness": 0.92,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    }
+  ],
+  "colliders": [
+    {
+      "kind": "box",
+      "x": -78,
+      "y": 15.33003837781969,
+      "z": 28,
+      "hx": 1.1,
+      "hy": 1.4500000000000002,
+      "hz": 2.3,
+      "yaw": 3.691592653589793,
+      "surface": "wood"
+    },
+    {
+      "kind": "box",
+      "x": -74.57367695599153,
+      "y": 15.540038377819688,
+      "z": 24.022524620051495,
+      "hx": 0.35,
+      "hy": 0.96,
+      "hz": 1.1,
+      "yaw": 3.691592653589793,
+      "surface": "flesh"
+    },
+    {
+      "kind": "box",
+      "x": -72.36828571433176,
+      "y": 15.58003837781969,
+      "z": 21.49740096541388,
+      "hx": 1.3,
+      "hy": 1.2000000000000002,
+      "hz": 1.5,
+      "yaw": 4.041592653589793,
+      "surface": "felt"
+    },
+    {
+      "kind": "box",
+      "x": -78.857576962135,
+      "y": 15.31003837781969,
+      "z": 31.575550552574427,
+      "hx": 0.42,
+      "hy": 0.9300000000000006,
+      "hz": 0.42,
+      "yaw": 3.691592653589793,
+      "surface": "wood"
+    }
+  ],
+  "anchors": {
+    "y": 14.88003837781969,
+    "logbook": [
+      -76.96553114894765,
+      16.00003837781969,
+      30.356878061377472
+    ],
+    "lamp": [
+      -76.02216791683472,
+      16.880038377819687,
+      30.364990539262696
+    ]
+  }
+}

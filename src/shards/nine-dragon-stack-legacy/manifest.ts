@@ -1,0 +1,160 @@
+import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
+import { ND_SAMPLES } from './data/audioSamples';
+import { bootSources } from './boot/files';
+import exploreGrapple from './explore/playground-grapple.webp';
+import { JIAN_ROW } from './vm/jianRow';
+import exploreWorld from './explore/world-nine-dragon-stack.webp';
+import exploreModels from './explore/models-nine-dragon-stack.webp';
+import exploreSets from './explore/sets-nine-dragon-stack.webp';
+import explorePractice from './explore/practice-nine-dragon-stack.webp';
+/**
+ * Nine Dragon Stack — the in-engine PARTIAL shard (NINE-DRAGON-STACK P0-5c; Jake 2026-09-26: "implement a partial shard,
+ * not a full shard"). Only the fragment around the spawn: Lantern Square at +125 m, the Yamen Well's rim and its upper
+ * galleries, the stair-street stub and the towers round them, in 界画霓虹 Jiehua Neon. No strata, lifts, cable cars,
+ * quest or enemies; the full shard (a 500 m cube, ±250 on every axis) is P1+ and not approved.
+ *
+ * A structure-first shard (`structures`): its world is built floors on colliders (world/), not a landscape; the terrain
+ * functions are a flat datum at y = 0, 125 m under the square, that nothing draws or collides with. Node-safe data:
+ * the world's code is a lazy import (./index). A prototype: listed in EXPERIMENTAL_SHARDS (src/game/shard/registry.ts), not PLAYABLE_SHARDS —
+ * the deck shows it only when Debug ▸ Developer tools ▸ Prototype shards is on; `?chunk=nine-dragon-stack` boots it.
+ *
+ * Coordinates are the clean room's (layout.ts: x east, z south, the square's datum at Y0 = 125). The engine's compass
+ * calls +Z north, so the minimap's north is the clean room's south (cosmetic; the fragment has no map yet).
+ */
+import { TERRAIN } from './terrain';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { ND_BUDGET_INPUTS } from './budgets';
+import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
+import thumbnail from './thumbs/nine-dragon-stack.jpg';
+import heroPortrait from './thumbs/nine-dragon-stack-portrait.jpg';
+import heroLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
+
+import compareGateLive from './explore/nine-gate-live.jpg';
+import compareGateTarget from './explore/nine-gate-target.jpg';
+import compareStairLive from './explore/nine-stair-live.jpg';
+import compareStairTarget from './explore/nine-stair-target.jpg';
+
+const SEED = 0x9d2a;
+
+/** the world's files, declared so the loading bar counts them and the offline cache holds them */
+const TEX = ['concrete', 'flag', 'flag-a', 'flag2', 'flag2-a', 'lacquer', 'panel', 'poster', 'poster-a', 'stone', 'tiles', 'wood'];
+const FILES = [
+  ...TEX.map((t) => `/assets/nine-dragon/paint/${t}.jpg`),
+  '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
+  '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
+  ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),
+  '/assets/nine-dragon/lab/organic/leaf-atlas.webp', '/assets/nine-dragon/lab/organic/scroll.webp',
+  '/assets/nine-dragon/grade-lut-cleanroom.bin',
+  // the first-person arms (lab P8's rig: vm/arms.ts ARMS_FILES)
+  '/assets/nine-dragon/viewmodel/fp-rig.glb',
+  ...['hand-r', 'arm-r', 'fist-l', 'gauntlet'].flatMap((n) => [`/assets/nine-dragon/viewmodel/${n}-maps.webp`, `/assets/nine-dragon/viewmodel/${n}-nrm.webp`]),
+];
+
+const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
+    { id: 'gate', label: 'Lantern gate', model: 'nine-gate', target: 'art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg', live: compareGateLive, image: compareGateTarget },
+    { id: 'stair', label: 'Stair street', model: 'nine-stair', target: 'art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg', live: compareStairLive, image: compareStairTarget },
+  ] } satisfies NonNullable<ShardManifest['explore']>;
+
+export const NINE_DRAGON_STACK: ShardManifest = {
+  legacy: true,
+  entries: { legacy: true, shardfile: false, public: 'legacy' },
+  api: 1,
+  runtimeCost: NINE_DRAGON_RUNTIME_COST,
+  kitLook: 'pbr',
+  creatures: { lowPoly: false, waitForModels: false, furRim: false, tintRange: 0.2, oneMaterial: false },
+  debugOptions: [],
+  budgets: ND_BUDGET_INPUTS,
+  uses: ['hover', 'explore', 'practice'],
+  fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true, attackers: Infinity },
+  loadout: { weapons: ['weapon.jian'], tools: ['tool.fei-zhua', 'tool.hoverboard'], start: ['weapon.jian', 'tool.hoverboard'], pickups: [] },
+  bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },
+  species: [],
+  encounters: [],
+  dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },
+  load: () => import('./plugin'),
+  boot: { steps: {}, files: () => FILES, sources: (tier, tex) => bootSources(tier, tex, FILES), audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image]), exploreGrapple] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
+  audio: { bed: ND_SAMPLES.bed, samples: { omitLoops: ND_SAMPLES.omitLoops, omitShots: ND_SAMPLES.omitShots, loopGains: ND_SAMPLES.loopGains }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./runtime/audio/files')).createNdAudio() },
+  tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
+  assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg', 'public/assets/nine-dragon-stack/map/**'],
+  ktx2: () => import('./ktx2.generated'),
+  order: 4,
+  status: 'experimental',
+  
+  slug: 'nine-dragon-stack-legacy',
+  name: 'Nine Dragon Stack',
+  label: '(−2, +1)',
+  seed: SEED,
+  treeCount: 0,
+  accent: 'iris', // G104: the HUD accent inside its grid cell
+  biome: 'Vertical neon city',
+  blurb: 'Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar gate, neon calligraphy and the Yamen Well dropping away into silk fog. A prototype fragment — the square, the Well\'s rim and the stair-street — rough edges everywhere.',
+
+  card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
+
+  // a flat datum far under the build: the fundamentals' four entry roads at y = 0 hold trivially; nothing draws it
+  ground: { terrain: TERRAIN, structures: true },
+  // unused (no terrain is drawn, `structures`): the engine's defaults, never downloaded
+  assets: {
+    groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
+    groundTints: [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    slabRock: 'rock_ground',
+  },
+  trees: { factory: 'none', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees' },
+  forest: {
+    spacing: 9, densityFreq: 0.01, clearings: [-0.3, 0.4], maxSlope: 0.7,
+    tintHue: 0.28, tintHueJitter: [-0.03, 0.03], tintSat: [0.5, 0.7], tintLight: [0.5, 0.62], largeVariantChance: 0,
+    density: () => 0,
+  },
+  spawns: [],
+  // blue hour: a painted sky (nothing downloaded), a low cool key; the fragment's own look is look/'s (the render agent)
+  sky: {
+    hdri: 'kloofendal_48d_partly_cloudy_puresky', // unused: the sky is painted
+    painted: { zenith: [0.09, 0.14, 0.26], horizon: [0.36, 0.44, 0.58], ground: [0.16, 0.18, 0.22], glow: [0.2, 0.2, 0.3] },
+    sun: { azimuth: 250, elevation: 8 },
+    sunColor: [0.55, 0.62, 0.85], sunIntensity: 0.6, envIntensity: 0.5, bgIntensity: 1.0,
+    fogSunColor: [0.6, 0.66, 0.8], cloudSunColor: [0.6, 0.66, 0.8],
+    hemiSky: 0x6f86a8, hemiGround: 0x2a2c34, hemiIntensity: 0.5,
+  },
+  atmosphere: {
+    fogHeight: Y0 - 40, fogHeightFalloff: 0.05, fogHeightDensity: 0.004, fogDistDensity: 0.004,
+    volumetricSunColor: [0.55, 0.62, 0.85],
+    volumetric: { height: Y0 - 30, falloff: 0.05, density: 0.003, strength: 0.3 },
+  },
+  grade: {
+    saturation: 0.1, brightness: 0, contrast: 0.1,
+    bloomIntensity: 0.6, bloomThreshold: 0.9,
+    shadowTint: [0.92, 0.96, 1.08], highTint: [1.06, 1.0, 0.92],
+    lift: [0, 0, 0.01], gain: [1, 1, 1], gamma: 1,
+  },
+  // the clean room's spawn frame (round-6 style-A-jiehua-neon.jpg): by the balustrade, looking along it at the paifang.
+  // The clean room's yaw turned toward +x; the engine's toward −x: yaw 12° there is −12° here
+  spawn: { x: 0.95, z: 7.5, yaw: -12 * (Math.PI / 180), y: Y0 },
+  weapon: 'sword',
+  // the mockups' framing (dome B, round 9): ~58° across a 9:19.5 portrait (~100° vertical), so the paifang fills about a
+  // third of the width as in style-A; the engine's 72° base gives ~52° across
+  camera: { portraitFov: 78 },
+  // the Neon Jian and the Fei Zhua on lab P8's skinned arms, swung by the engine's own moves (vm/arms.ts); the static
+  // model (world/jian.ts) if the rig does not load
+  sword: JIAN_ROW.viewmodel,
+  horizon: { rings: [], cloudSea: false },
+  // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
+  // Explorer's free camera over the fragment — no model catalog is registered
+  explore: EXPLORE,
+  // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
+  roster: async () => (await import('./roster')).ROSTER,
+  minimap: { image: '/assets/nine-dragon-stack/map/top.webp' }, // the map baked from the world (SF66)
+  // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
+  // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain
+  // The look culls its instanced batches right before drawing, with the camera final.
+  render: async () => (await import('./look/render')).shardRender(),
+  // the fragment's limits: its footprint (the Well and its run north west of the square, the street north to its end
+  // wall, the stair-street east to its top landing) and a floor under the Well's lowest crossing (Y0 − 93, well-plan.ts).
+  // The walls and parapets keep the player in; past these (a grapple gone wrong, a fall into the shaft) they are put
+  // back on the last floor they stood on. The entry Debug row selects its lower floor through the session hook.
+  bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, floor: Y0 - 100 },
+
+  style: 'jiehua',
+};
+
+// oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
+export default NINE_DRAGON_STACK;

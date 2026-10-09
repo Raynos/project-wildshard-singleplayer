@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { legacyShardFor, ordinaryShardManifests, shardEntryManifest } from '../src/game/shard/legacy';
+import { legacyShardFor, ordinaryShardManifests, primaryShardManifest, shardEntryManifest } from '../src/game/shard/legacy';
 import { parseShardSlug } from '../src/game/shard/slug';
 
 it('resolves a frozen copy only for LEGACY and preserves the primary entry', () => {
@@ -11,6 +11,8 @@ it('resolves a frozen copy only for LEGACY and preserves the primary entry', () 
   expect(shardEntryManifest(manifests, 'coast', 'shardfile')).toBe(primary);
   expect(shardEntryManifest(manifests, 'coast-legacy', 'shardfile')).toBeUndefined();
   expect(ordinaryShardManifests(manifests)).toEqual([primary]);
+  expect(primaryShardManifest(manifests, legacy)).toBe(primary);
+  expect(primaryShardManifest(manifests, primary)).toBe(primary);
 });
 
 it('does not treat an arbitrary suffix or orphan manifest as a frozen pair', () => {
@@ -19,6 +21,7 @@ it('does not treat an arbitrary suffix or orphan manifest as a frozen pair', () 
   const orphan = { slug: parseShardSlug('hill-legacy'), legacy: true as const };
   expect(legacyShardFor([primary, suffix, orphan], 'coast')).toBeUndefined();
   expect(legacyShardFor([primary, suffix, orphan], 'hill')).toBeUndefined();
+  expect(primaryShardManifest([primary, suffix, orphan], orphan)).toBe(orphan);
   expect(shardEntryManifest([primary, suffix, orphan], 'coast', 'legacy')).toBe(primary);
   expect(shardEntryManifest([primary], 'missing', 'legacy')).toBeUndefined();
 });

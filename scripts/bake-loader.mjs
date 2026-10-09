@@ -80,7 +80,7 @@ const [{ installAppIdentity }, { WILDSHARD_IDENTITY }, { installAssetTables }, {
 installAppIdentity(WILDSHARD_IDENTITY);
 // the shard list (AG4) once it is generated: a manifest's imports are node-safe, the game's registry reads it
 const list = await optional('../src/shards.generated.ts');
-if (Array.isArray(list.SHARDS)) installShards(list.SHARDS);
+if (Array.isArray(list.SHARDS)) installShards([...list.SHARDS, ...(Array.isArray(list.LEGACY_SHARDS) ? list.LEGACY_SHARDS : [])], list.LEGACY_CONTENT_IDENTITIES ?? {});
 installAssetTables({
   bytes: bytes.PUBLIC_BYTES ?? {}, versions: versions.ASSET_VERSIONS ?? {},
   music: audio.MUSIC_MANIFESTS ?? {}, sfx: audio.SFX_MANIFESTS ?? {}, packs: packs.PACKS ?? {},

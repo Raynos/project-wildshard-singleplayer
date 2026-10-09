@@ -20,6 +20,13 @@ export function shardEntryManifest<T extends EntryIdentity>(manifests: readonly 
   return mode === 'legacy' ? legacyShardFor(manifests, slug) ?? manifest : manifest;
 }
 
+/** The existing primary picker card represents its frozen copy too; only a registered, flagged pair can resume it. */
+export function primaryShardManifest<T extends EntryIdentity>(manifests: readonly T[], manifest: T): T {
+  if (manifest.legacy !== true) return manifest;
+  const primary = new Map<string, T>(manifests.map(row => [row.slug, row])).get(manifest.slug.slice(0, -'-legacy'.length));
+  return primary !== undefined && legacyShardFor(manifests, primary.slug) === manifest ? primary : manifest;
+}
+
 /** A frozen copy is discoverable for an explicit LEGACY entry, while the ordinary picker and grid use the primary manifest. */
 export function ordinaryShardManifests<T extends EntryIdentity>(manifests: readonly T[]): readonly T[] {
   return manifests.filter(manifest => manifest.legacy !== true);

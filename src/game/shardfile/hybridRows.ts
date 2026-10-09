@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { shardContentIdentity, legacyContentIdentity } from '../shard/list';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
@@ -82,7 +83,10 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
 export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, key: string,
   legacyRead: () => RuntimeStateValue | null, instance = source.identity.slug): RuntimeState {
   requireBound(source, 'state');
-  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, legacyRead);
+  // Frozen copies never existed under the primary save namespace; fresh fields start from declared defaults.
+  const content = legacyContentIdentity(source.identity.slug);
+  const migrate = content === undefined ? legacyRead : () => null;
+  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, migrate);
 }
 
 /** Emit one declared fact for an entity; the platform ledger decides the grant. */
@@ -178,7 +182,7 @@ export function bindRuntimeItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game
   const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
   const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
   return installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: ports.kit ?? new Map(), icon: ports.icon,
-    shardFamilies: { slug: source.identity.slug, families: ports.families }, contexts: 'runtime',
+    shardFamilies: { slug: shardContentIdentity(source.identity.slug), families: ports.families }, contexts: 'runtime',
     aim: () => ({ origin: camera().getWorldPosition(new Vector3()), direction: camera().getWorldDirection(new Vector3()) }),
     runtime: () => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play', targets: () => [], hook: null,
       effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },

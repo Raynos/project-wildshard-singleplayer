@@ -1,0 +1,262 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Template shard",
+      "badge": "91% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Driftwood Isle",
+      "mode": "legacy",
+      "entered": false,
+      "reports": [
+        "{\"system\":\"shard-load\",\"message\":\"Error: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\",\"stack\":\"Error: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\\n    at t.buildEquipment (http://127.0.0.1:4400/assets/plugin-BsAO7hZA.js:349:164319)\\n    at async oP (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2201:57869)\\n    at async GB (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21342)\\n    at async a (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2060)\\n    at async http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37271\\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\\n    at async ze.load (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37170)\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":4183,\"context\":{\"kind\":\"shard-load\",\"shard\":\"driftwood-isle-legacy\",\"build\":\"31dc801-mv195s70\",\"stage\":\"level.kit\"}}"
+      ],
+      "failure": "Driftwood Isle could not loadBUILD 31dc801-mv195s70 · STAGE level.kitShard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>Error: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>",
+      "screen": "31DC801 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nDRIFTWOOD ISLE\n00:04.1\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n18.9 MB / 18.9 MB · 137 / 137 files\n99\nSETUP\nstep 13 / 16 · Weapons · HUD\n57\n▸ Renderer\n12 ms\n▸ Sky · lighting\n90 ms\n▸ Terrain · heightfield\n256² heightfield\n506 ms\n▸ Tree cards\n2 ms\n▸ Trees\n0 trees\n1 ms\n▸ Physics · Rapier · navmesh\n5 colliders\n94 ms\n▸ Chunk edge · water · horizon\n17 ms\n▸ Grass · ground cover\n0 ms\n▸ Buildings\n0 ms\n▸ Props\nBaked island\n2.9 s\n▸ Animals\n13 animals\n21 ms\n▸ Weapons · HUD\n16 ms\nLoad 1 · JS heap 12 MiB\nLongest page pause 1.6s at Props: Cove\nLast reload: shard switch to driftwood-isle-legacy (fresh page) · 4 s ago · resident driftwood-isle (playing) ~9 MB · build 31dc801 · nav navigate\nTotal RAM / CPU unavailable in page\nDriftwood Isle could not load\n\nBUILD 31dc801-mv195s70 · STAGE level.kit\n\nShard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\n\nError: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\n    at t.buildEquipment (http://127.0.0.1:4400/assets/plugin-BsAO7hZA.js:349:164319)\n    at async oP (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2201:57869)\n    at async GB (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21342)\n    at async a (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2060)\n    at async http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37271\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\n    at async ze.load (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37170)\nRELOAD",
+      "errors": []
+    },
+    {
+      "card": "Driftwood Isle",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "driftwood-isle",
+      "saveKeys": [
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle"
+      ],
+      "seconds": 7,
+      "slot": {
+        "driftwood-isle": "shardfile"
+      },
+      "fps": 30,
+      "level": "Sharddriftwood-isle | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "legacy",
+      "entered": false,
+      "reports": [
+        "{\"system\":\"shard-load\",\"message\":\"Error: Shard item family pine-hollow.crossbow must be named pine-hollow-legacy.<name>\",\"stack\":\"Error: Shard item family pine-hollow.crossbow must be named pine-hollow-legacy.<name>\\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\\n    at ja (http://127.0.0.1:4400/assets/plugin-DcPRWtvC.js:2:10506)\\n    at n.buildEquipment (http://127.0.0.1:4400/assets/plugin-DcPRWtvC.js:454:12764)\\n    at async oP (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2201:57869)\\n    at async GB (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21342)\\n    at async a (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2060)\\n    at async http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37271\\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":7683,\"context\":{\"kind\":\"shard-load\",\"shard\":\"pine-hollow-legacy\",\"build\":\"31dc801-mv195s70\",\"stage\":\"level.kit\"}}"
+      ],
+      "failure": "Pine Hollow could not loadBUILD 31dc801-mv195s70 · STAGE level.kitShard item family pine-hollow.crossbow must be named pine-hollow-legacy.<name>Error: Shard item family pine-hollow.crossbow must be named pine-hollow-legacy.<name>",
+      "screen": "31DC801 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nPINE HOLLOW\n00:07.6\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n106.1 MB / 106.1 MB · 307 / 307 files\n99\nSETUP\nstep 13 / 16 · Crossbow · lever-action · longbow\n61\n▸ Renderer\n15 ms\n▸ Sky · dawn to moonlight\n176 ms\n▸ Terrain · boreal ground\n256² heightfield · 4 splat layers\n931 ms\n▸ Tree species · pine · fir · birch\n281 ms\n▸ Forest · pines · old-growth giants\n962 trees\n18 ms\n▸ Physics · Rapier · navmesh\n5 colliders\n90 ms\n▸ Pond · creek · waterfall · far country\n243 ms\n▸ Grass · ferns · bilberry\n907 ms\n▸ Cabins · hamlet · lookout · crags · cave\n3.1 s\n▸ Rocks · logs\n326 ms\n▸ Herds · deer · boar · elk · bears\n160 animals\n626 ms\n▸ Crossbow · lever-action · longbow\n0 ms\nLoad 1 · JS heap 11 MiB\nLongest page pause 0.6s at Terrain · boreal ground\nLast reload: shard switch to pine-hollow-legacy (fresh page) · 8 s ago · resident driftwood-isle (playing) ~9 MB · build 31dc801 · nav navigate\nTotal RAM / CPU unavailable in page\nPine Hollow could not load\n\nBUILD 31dc801-mv195s70 · STAGE level.kit\n\nShard item family pine-hollow.crossbow must be named pine-hollow-legacy.<name>\n\nError: Shard item family pine-hollow.crossbow must be named pine-hollow-legacy.<name>\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\n    at ja (http://127.0.0.1:4400/assets/plugin-DcPRWtvC.js:2:10506)\n    at n.buildEquipment (http://127.0.0.1:4400/assets/plugin-DcPRWtvC.js:454:12764)\n    at async oP (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2201:57869)\n    at async GB (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21342)\n    at async a (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2060)\n    at async http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37271\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\nRELOAD",
+      "errors": []
+    },
+    {
+      "card": "Pine Hollow",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "pine-hollow",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.pine-hollow",
+        "wildshard.save.v2.device"
+      ],
+      "seconds": 16,
+      "slot": {
+        "pine-hollow": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardpine-hollow | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "legacy",
+      "entered": false,
+      "reports": [
+        "{\"system\":\"shard-load\",\"message\":\"Error: Shard item family nalati-grasslands.bow must be named nalati-grasslands-legacy.<name>\",\"stack\":\"Error: Shard item family nalati-grasslands.bow must be named nalati-grasslands-legacy.<name>\\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\\n    at Xg (http://127.0.0.1:4400/assets/plugin-BPp6myTG.js:546:77111)\\n    at t.buildEquipment (http://127.0.0.1:4400/assets/plugin-BPp6myTG.js:546:80432)\\n    at oP (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2201:57901)\\n    at async GB (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21342)\\n    at async a (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2060)\\n    at async http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37271\\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":7155,\"context\":{\"kind\":\"shard-load\",\"shard\":\"nalati-grasslands-legacy\",\"build\":\"31dc801-mv195s70\",\"stage\":\"level.kit\"}}"
+      ],
+      "failure": "Nalati Grasslands could not loadBUILD 31dc801-mv195s70 · STAGE level.kitShard item family nalati-grasslands.bow must be named nalati-grasslands-legacy.<name>Error: Shard item family nalati-grasslands.bow must be named nalati-grasslands-legacy.<name>",
+      "screen": "31DC801 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nNALATI GRASSLANDS\n00:07.1\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n35.1 MB / 35.1 MB · 267 / 267 files\n99\nSETUP\nstep 13 / 16 · Recurve bow · HUD\n69\n▸ Renderer\n9 ms\n▸ Sky · the painted panorama\n116 ms\n▸ Steppe · the bowl · the snow ring\n256² heightfield · 4 splat layers\n272 ms\n▸ Spruce cards\n17 ms\n▸ Lone spruces\n144 spruces\n31 ms\n▸ Physics · Rapier · navmesh\n5 colliders\n89 ms\n▸ Kunes river · cloud sea · horizon\n20 ms\n▸ Grass rings · painted clumps\n980 ms\n▸ Yurts\n0 ms\n▸ Camp · kurgans · herds · the Storm Titan\nWorld services\n4.9 s\n▸ Wolves · horses · sheep\n0 animals\n33 ms\n▸ Recurve bow · HUD\n0 ms\nLoad 1 · JS heap 22 MiB\nLongest page pause 1.1s at Camp · kurgans · herds · the Storm Titan: Outcrops\nLast reload: shard switch to nalati-grasslands-legacy (fresh page) · 7 s ago · resident driftwood-isle (playing) ~9 MB · build 31dc801 · nav navigate\nTotal RAM / CPU unavailable in page\nNalati Grasslands could not load\n\nBUILD 31dc801-mv195s70 · STAGE level.kit\n\nShard item family nalati-grasslands.bow must be named nalati-grasslands-legacy.<name>\n\nError: Shard item family nalati-grasslands.bow must be named nalati-grasslands-legacy.<name>\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\n    at Xg (http://127.0.0.1:4400/assets/plugin-BPp6myTG.js:546:77111)\n    at t.buildEquipment (http://127.0.0.1:4400/assets/plugin-BPp6myTG.js:546:80432)\n    at oP (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2201:57901)\n    at async GB (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21342)\n    at async a (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2060)\n    at async http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37271\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\nRELOAD",
+      "errors": []
+    },
+    {
+      "card": "Nalati Grasslands",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "nalati-grasslands",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.nalati-grasslands"
+      ],
+      "seconds": 9,
+      "slot": {
+        "nalati-grasslands": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardnalati-grasslands | Entryshardfile",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "legacy",
+      "entered": false,
+      "reports": [
+        "{\"system\":\"shard-load\",\"message\":\"Error: Shard item family nine-dragon-stack.jian must be named nine-dragon-stack-legacy.<name>\",\"stack\":\"Error: Shard item family nine-dragon-stack.jian must be named nine-dragon-stack-legacy.<name>\\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\\n    at Cy (http://127.0.0.1:4400/assets/plugin-pwwHj6vK.js:1112:51024)\\n    at My.play (http://127.0.0.1:4400/assets/plugin-pwwHj6vK.js:1112:54040)\\n    at Object.play (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21186)\\n    at http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37357\\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\\n    at async ze.load (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37294)\\n    at async up (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2711)\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":1997,\"context\":{\"kind\":\"shard-load\",\"shard\":\"nine-dragon-stack-legacy\",\"build\":\"31dc801-mv195s70\",\"stage\":\"level.play\"}}"
+      ],
+      "failure": "Nine Dragon Stack could not loadBUILD 31dc801-mv195s70 · STAGE level.playShard item family nine-dragon-stack.jian must be named nine-dragon-stack-legacy.<name>Error: Shard item family nine-dragon-stack.jian must be named nine-dragon-stack-legacy.<name>",
+      "screen": "CHUNK BOUNDARY\nNO-MAN'S LAND BEYOND · NOTHING HAS BEEN GENERATED HERE\n31DC801 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nNINE DRAGON STACK\n00:02.0\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n19.4 MB / 19.4 MB · 70 / 70 files\n99\nSETUP\nstep 14 / 16 · Title art · explore · 24 / 24 pictures · UI\n65\n▸ Renderer\n10 ms\n▸ Sky · lighting\n39 ms\n▸ Terrain · heightfield\n256² heightfield · 4 splat layers\n1 ms\n▸ Tree cards\n0 ms\n▸ Trees\n0 trees\n0 ms\n▸ Physics · Rapier · navmesh\n4 colliders\n0 ms\n▸ Chunk edge · water · horizon\n6 ms\n▸ Grass · ground cover\n0 ms\n▸ Buildings\n0 ms\n▸ Props\nworld ready\n1.5 s\n▸ Animals\n0 animals\n1 ms\n▸ Weapons · HUD\n28 ms\n▸ Title art · explore\n24 / 24 pictures · UI\n44 ms\nLoad 1 · JS heap 20 MiB\nLongest page pause 0.2s at Props: paint + fonts\nLast reload: shard switch to nine-dragon-stack-legacy (fresh page) · 2 s ago · resident driftwood-isle (playing) ~9 MB · build 31dc801 · nav navigate\nTotal RAM / CPU unavailable in page\nNine Dragon Stack could not load\n\nBUILD 31dc801-mv195s70 · STAGE level.play\n\nShard item family nine-dragon-stack.jian must be named nine-dragon-stack-legacy.<name>\n\nError: Shard item family nine-dragon-stack.jian must be named nine-dragon-stack-legacy.<name>\n    at kc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:115958)\n    at Mc (http://127.0.0.1:4400/assets/revision-CRT6d7hX.js:1:116680)\n    at _e (http://127.0.0.1:4400/assets/hybridRows-BNE87yE7.js:1:23984)\n    at Cy (http://127.0.0.1:4400/assets/plugin-pwwHj6vK.js:1112:51024)\n    at My.play (http://127.0.0.1:4400/assets/plugin-pwwHj6vK.js:1112:54040)\n    at Object.play (http://127.0.0.1:4400/assets/session-9zig6lwz.js:2227:21186)\n    at http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37357\n    at async l (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:36910)\n    at async ze.load (http://127.0.0.1:4400/assets/runtime-C1MQhqbA.js:1:37294)\n    at async up (http://127.0.0.1:4400/assets/session-9zig6lwz.js:342:2711)\nRELOAD",
+      "errors": []
+    },
+    {
+      "card": "Nine Dragon Stack",
+      "mode": "shardfile",
+      "entered": false,
+      "disabled": "NOT YET"
+    },
+    {
+      "card": "Signal Dunes",
+      "mode": "legacy",
+      "entered": false,
+      "reports": [],
+      "failure": "locator.click: Target page, context or browser has been closed",
+      "screen": null,
+      "errors": []
+    }
+  ],
+  "errors": [],
+  "failure": "browserContext.close: Target page, context or browser has been closed\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/sf73/copy/capture.mjs:97:5"
+}

@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { legacyInventory } from './legacy-shards.mjs';
 
 /** what places a shard's world, relative to its folder; a shard may name its own in look/map.json ("inputs") */
 export const DEFAULT_MAP_INPUTS = ['shard.config.ts', 'layout.ts', 'world', 'generators', 'models'];
@@ -66,9 +67,9 @@ export function mapTilesHash(shardDir) {
 
 /** Every shard folder with a shardfile project. @param {string} repoRoot @returns {{slug: string, dir: string}[]} */
 export function mapShards(repoRoot) {
-  const shards = resolve(repoRoot, 'src/shards');
+  const shards = resolve(repoRoot, 'src/shards'), frozen = legacyInventory(repoRoot);
   return readdirSync(shards, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(join(shards, entry.name, 'shard.config.ts')))
+    .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(join(shards, entry.name, 'shard.config.ts')))
     .map((entry) => ({ slug: entry.name, dir: join(shards, entry.name) }))
     .sort((a, b) => a.slug.localeCompare(b.slug));
 }

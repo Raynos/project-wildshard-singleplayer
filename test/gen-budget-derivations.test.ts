@@ -24,11 +24,16 @@ describe('budget derivation generator', () => {
         mkdirSync(join(root, 'src/shards', slug), { recursive: true });
         writeFileSync(join(root, 'src/shards', slug, 'manifest.ts'), 'export default { budgets: {} };');
       }
+      mkdirSync(join(root, 'src/shards/mine-legacy'));
+      writeFileSync(join(root, 'src/shards/mine-legacy/manifest.ts'), 'frozen copy is not a new measured budget');
+      mkdirSync(join(root, 'lint'));
+      writeFileSync(join(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: { 'mine-legacy': { primary: 'mine', source: 'a'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'c'.repeat(64) } } } }));
       const measured = { reRecords: [{ approval: 'lead', gpuMB: 7 }], baselines: ['captured'], source: 'measured' };
       writeFileSync(file, `${JSON.stringify({ ...measured, derived: {} })}\n`);
       run();
       const fresh = readFileSync(file, 'utf8');
       expect(JSON.parse(fresh) as unknown).toMatchObject({ ...measured, calibration: calibration.measuredAt, derived: { mine: { phone: null, desktop: null }, other: { phone: null, desktop: null } } });
+      expect(Object.keys((JSON.parse(fresh) as { derived: Record<string, unknown> }).derived)).toEqual(['mine', 'other']);
       run('--check');
       writeFileSync(join(root, 'src/shards/other/manifest.ts'), 'unfinished other shard WIP');
       const stale = fresh.replace('"mine": {', '"mine": { "stale": true,');

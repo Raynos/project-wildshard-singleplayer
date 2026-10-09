@@ -10,6 +10,8 @@ import { buildTitleMenu } from '../mainMenu';
 import { shardEntry } from '../shard/entryMode';
 import { enterGrid, pageMode } from '../grid/boot';
 import { travel } from '../travel/travel';
+import { shards } from '../shard/list';
+import { primaryShardManifest } from '../shard/legacy';
 import type { worldStage } from './world';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
@@ -85,9 +87,10 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   // the title deck (E318): this level's card enters or explores here, another's opens in a fresh page (travel)
   const booted = shardEntry(chunk); // SF65: the way this page entered the shard (LEGACY / SHARDFILE)
   hud.titleDeck = (here) => {
-    const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(chunk.slug)];
+    const primary = primaryShardManifest(shards(), chunk);
+    const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(primary.slug)];
     return buildTitleMenu({
-      cards, active: chunk.slug,
+      cards, active: primary.slug,
       // SF65: this card in the mode this page booted with enters here; the other mode (or another card) is a fresh page
       onEnter: (c, entry) => { if (c === own && entry === booted) here.enter(); else travel({ to: c.slug, mode: 'enter' }); },
       onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } here.explore(); },

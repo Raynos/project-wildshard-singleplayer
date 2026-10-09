@@ -1,9 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This Node fixture inventories authored files and writes the required overdue cache.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-side repository inventory resolves fixture paths.
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { askExists, debugFlags, declaredDebugRows, validateFlags } from '../lint/debug-flags.mjs';
+import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
 import { parseSync } from 'vite';
 
 interface Ceiling { debugRows: { max: number; raisedBy: string[] } }
@@ -45,7 +46,8 @@ describe('Debug flag ownership and review dates', () => {
     expect(validateFlags([row, tool], options).errors).toEqual([]);
     expect(validateFlags([row, { ...tool, ask: 'E999999' }], options).errors).toHaveLength(1);
     expect(validateFlags([{ ...tool, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
-    const scanned = scannedFlags();
+    const frozen = legacyInventory(resolve('.'));
+    const scanned = scannedFlags().filter(flag => flag.file === undefined || !registeredLegacyFile(frozen, relative(resolve('.'), flag.file))); 
     expect(scanned.filter(value => value.purpose === 'developer').map(value => value.id).sort()).toEqual([
       'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'groundTiles', 'shardDirectors', 'storage', 'time', 'weather',
     ]);

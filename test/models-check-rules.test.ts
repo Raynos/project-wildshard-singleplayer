@@ -66,3 +66,11 @@ describe('check-models after M6: every area is held (E315)', () => {
     expect(bad.some((v) => v.includes('addBuilt'))).toBe(true);
   });
 });
+
+it('retains model identity and contract checks on exact frozen copies', () => {
+  const model = 'src/shards/driftwood-isle-legacy/models/boat.ts';
+  expect(checkModels({ [model]: "defineModel({ id: 'driftwood-isle/boat' });" }).violations).toEqual([]);
+  expect(checkModels({ [model]: "defineModel({ id: 'another/boat' });" }).violations.some(v => v.includes('must start'))).toBe(true);
+  expect(checkModels({ 'src/shards/driftwood-isle-unregistered-legacy/models/boat.ts': "defineModel({ id: 'driftwood-isle/boat' });" }).violations.some(v => v.includes('must start'))).toBe(true);
+  expect(checkModels({ 'src/shards/nalati-grasslands-legacy/world/Crags.ts': 'registerSolid({});' }).violations.some(v => v.includes('never registers'))).toBe(true);
+});

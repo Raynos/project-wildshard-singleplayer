@@ -1,0 +1,527 @@
+/**
+ * The Ring Shrine (E306 / E315 M1: a model on the contract, src/engine/models/model.ts; it was src/shards/driftwood-isle/world/Shrine.ts) — Driftwood
+ * Isle's shrine in the north-west jungle (remaster M2): a three-tier stepped platform of mossy masonry with a broad stair
+ * up its front, and on the top terrace a vine-hung stone MONOLITH crowned by a ring whose opening frames the ringed
+ * planet from the top of the stair (the world turns the shrine's back at the planet's azimuth; the ring's centre sits at
+ * the planet's elevation seen from the terrace). Two pedestals flank the stair head with stone GULL STATUES; glowing
+ * cyan glyphs on the monolith, the pedestals, four glyph pillars round the spring pool and a broken arc of standing
+ * stones. In front: the spring POOL (lily pads, lotus, a stepping-slab causeway across). Around it: broad-leaf jungle,
+ * ferns, hibiscus, vines.
+ *
+ * Draws: the stone + jungle (one LowPolyKit mesh on lowPolyMaterial, AO baked), the pool water, the glyphs (unlit; the
+ * world pulses them, `shrineMaterials`). The fireflies are an effect, not the model: src/shards/driftwood-isle/world/Shrine.ts.
+ *
+ * Its own space: the origin is the shrine's centre on the ground, +Y up, its front (the stair and the pool, local +z)
+ * turned by the site's `rot`. Its platform, pool and jungle read the ground, so the builder runs where the shrine stands
+ * — its `site` and the site's `ground(x, z)` — exactly as it always did, then hands everything over in its own space
+ * (the site's origin subtracted: the baked AO is the old one, bit for bit). The Explorer's specimen stands on flat ground
+ * at the origin. `shrineLayout(params)` is a placement's layout (colliders, floors, anchors), shared with its build.
+ *
+ * Anchors (own space, yaw = facing, 0 = +Z): altar (the top terrace in front of the monolith, y = terrace, facing the
+ * stair), pool (the pool's middle, y = the water surface), stairFoot (y = ground), ring (the ring's centre — the reward
+ * view looks through it; y = its centre).
+ */
+import * as THREE from 'three';
+import { SEED } from '@wildshard/engine/core/config';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { rock, tris } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from '@wildshard/engine/world/lowpolyKit';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+
+/** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
+export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }
+export interface ShrineAnchor { x: number; y: number; z: number; yaw: number }
+
+export interface ShrineParams {
+  readonly site: ShrineSite;
+  /** the ground under a world (x, z) at the site: its y */
+  readonly ground: (x: number, z: number) => number;
+}
+
+/** the site's origin: its centre on the ground (a float32 value, so moving the geometry to own space and back is exact) */
+export function shrineOrigin(p: ShrineParams): { x: number; y: number; z: number } {
+  return { x: p.site.x, y: Math.fround(p.ground(p.site.x, p.site.z)), z: p.site.z };
+}
+
+export const SHRINE_RUNE = new THREE.Color('#7fd9ff');
+
+const C = {
+  stone: '#aeb0b2', stoneB: '#a0a2a5', stoneDark: '#83868b', stoneLight: '#c4c5c4', statue: '#d6d4cc', statueB: '#c2c0b8',
+  moss: '#5f9c3e', mossB: '#73ad48', rune: SHRINE_RUNE, beak: '#c9a45a', water: '#2aa7b0',
+};
+
+// layout (local metres; +z = front)
+const TIERS = [
+  { hw: 6.5, z0: -7.5, z1: 4.0, top: 1.0 },
+  { hw: 5.5, z0: -6.5, z1: 3.0, top: 2.0 },
+  { hw: 4.5, z0: -5.5, z1: 2.0, top: 3.0 },
+] as const;
+const STAIR = { hw: 1.6, z0: 2.0, z1: 7.0 };          // top edge at z0 (terrace height), foot at z1 (ground)
+const MONO = { z: -3.2, w: 2.3, d: 0.85, shaft: 4.2 };
+const RING = { ro: 1.95, ri: 1.2, depth: 0.8, seg: 14 };
+const POOL = { z: 11, rx: 7, rz: 3.2, causeway: 1.2 };
+
+/** the builder: where the shrine stands, then its own space */
+class ShrineBuilder {
+  /** the kit, the pool's water and the glyphs (handed to the model's build once, then dropped) */
+  geometry: { kit: THREE.BufferGeometry; water: THREE.BufferGeometry; glyphs: THREE.BufferGeometry } | null = null;
+  colliders: Collider[] = [];
+  anchors: Record<string, ShrineAnchor> = {};
+  /** the three tier boxes in `colliders` (their tops sit 6 cm under the terrace for the old step-up); `colliderDescs` swaps them for exact ones */
+  private readonly tierBoxes = new Set<Collider>();
+  /** the platform's base, the pool's water, the top terrace (own y once built) */
+  baseY = 0;
+  waterY = 0;
+  terrace = 0;
+  private cs: number;
+  private sn: number;
+  private glyphV: number[] = [];
+  private readonly spec: ShrineSite;
+  private readonly ground: (x: number, z: number) => number;
+  /** the site's origin (own space = world − origin) */
+  private readonly o: { x: number; y: number; z: number };
+  /** where it stands while it builds; own space (the origin at 0) after */
+  private at = { x: 0, z: 0 };
+
+  constructor(p: ShrineParams) {
+    this.spec = p.site; this.ground = p.ground; this.o = shrineOrigin(p);
+    this.at = { x: p.site.x, z: p.site.z };
+    this.cs = Math.cos(p.site.rot); this.sn = Math.sin(p.site.rot);
+  }
+
+  /** local (lx, lz) → world (x, z) */
+  private W(lx: number, lz: number): [number, number] { return [this.at.x + lx * this.cs + lz * this.sn, this.at.z - lx * this.sn + lz * this.cs]; }
+  private L(x: number, z: number): [number, number] { const dx = x - this.at.x, dz = z - this.at.z; return [dx * this.cs - dz * this.sn, dx * this.sn + dz * this.cs]; }
+  /** local point (y absolute) → a world matrix, `yaw` local */
+  private M(lx: number, y: number, lz: number, yaw = 0, rx = 0, rz = 0, s = 1): THREE.Matrix4 {
+    const [x, z] = this.W(lx, lz);
+    return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, this.spec.rot + yaw, rz, 'YXZ')), new THREE.Vector3(s, s, s));
+  }
+
+  build(): this {
+    const kit = new LowPolyKit(SEED ^ 0x5417), rng = kit.rng;
+    const base = this.ground(this.spec.x, this.spec.z) + 0.02; this.baseY = base;
+    const stone = (): string => { const r = rng.next(); return r < 0.45 ? C.stone : r < 0.75 ? C.stoneB : r < 0.9 ? C.stoneLight : C.stoneDark; };
+    const block = (lx: number, y: number, lz: number, w: number, h: number, d: number, yaw = 0, col = stone(), mossy = true): void => {
+      kit.addTopped(new THREE.BoxGeometry(w, h, d), col, mossy && rng.next() < 0.7 ? (rng.next() < 0.5 ? C.moss : C.mossB) : col, { matrix: this.M(lx, y, lz, yaw), wobble: 0.025, minY: 0.6, jitter: 0.06 });
+    };
+
+    // ── the three tiers: a core box each, dressed with a course of proud masonry blocks round the faces, flagstone caps ──
+    TIERS.forEach((t, i) => {
+      const y0 = i === 0 ? base - 1.2 : base + TIERS[i - 1 as 0 | 1].top - 0.05, h = base + t.top - y0;
+      const zc = (t.z0 + t.z1) / 2, hd = (t.z1 - t.z0) / 2;
+      kit.add(new THREE.BoxGeometry(t.hw * 2 - 0.1, h, hd * 2 - 0.1), C.stoneDark, { matrix: this.M(0, y0 + h / 2, zc) });
+      const courses = 2, ch = 1.0 / courses;
+      for (let c = 0; c < courses; c++) {
+        const yc = base + t.top - ch * (c + 0.5);
+        // front + back faces (the front leaves the stair's slot open)
+        for (const [fz, face] of [[t.z1, 1], [t.z0, -1]] as const) {
+          for (let x = -t.hw; x < t.hw - 0.2;) {
+            const len = Math.min(rng.range(0.8, 1.5), t.hw - x);
+            const cx = x + len / 2;
+            x += len;
+            if (face > 0 && Math.abs(cx) < STAIR.hw + len / 2) continue;
+            block(cx, yc, fz + face * 0.02, len - 0.05, ch - 0.04, 0.5, 0, stone(), c === 0);
+          }
+        }
+        for (const side of [-1, 1]) for (let z = t.z0; z < t.z1 - 0.2;) {
+          const len = Math.min(rng.range(0.8, 1.5), t.z1 - z);
+          block(side * (t.hw + 0.02), yc, z + len / 2, 0.5, ch - 0.04, len - 0.05, 0, stone(), c === 0);
+          z += len;
+        }
+      }
+      // flagstones on the ledge / terrace
+      for (let x = -t.hw + 0.5; x < t.hw; x += 1.0) for (let z = t.z0 + 0.5; z < t.z1; z += 1.0) {
+        const inner = i < 2 ? TIERS[i + 1 as 1 | 2] : null;
+        if (inner && Math.abs(x) < inner.hw - 0.4 && z > inner.z0 + 0.4 && z < inner.z1 - 0.4) continue;
+        if (Math.abs(x) < STAIR.hw && z > STAIR.z0 - 0.2) continue;
+        kit.add(new THREE.BoxGeometry(0.94, 0.08, 0.94), rng.next() < 0.5 ? C.stoneLight : C.stone, { matrix: this.M(x + rng.range(-0.04, 0.04), base + t.top + 0.01, z, rng.range(-0.05, 0.05)), wobble: 0.02, jitter: 0.05 });
+      }
+    });
+    // ── the stair: ten steps up the front, cheek walls of stacked blocks either side ──
+    {
+      const n = 10, rise = TIERS[2].top / n, run = (STAIR.z1 - STAIR.z0) / n;
+      for (let k = 0; k < n; k++) {
+        const zf = STAIR.z1 - k * run, top = base + rise * (k + 1), y0 = base - 0.6;
+        kit.addTopped(new THREE.BoxGeometry(STAIR.hw * 2, top - y0, run + 0.04), C.stoneB, rng.next() < 0.3 ? C.mossB : C.stoneLight, { matrix: this.M(0, (top + y0) / 2, zf - run / 2), wobble: 0.02, minY: 0.7, jitter: 0.05 });
+      }
+      for (const side of [-1, 1]) for (let k = 0; k < 5; k++) {
+        const z = STAIR.z1 - 0.5 - k * 1.0, top = base + TIERS[2].top * ((STAIR.z1 - z) / (STAIR.z1 - STAIR.z0)) + 0.55;
+        const h = top - base + 0.3;
+        block(side * (STAIR.hw + 0.28), base - 0.3 + h / 2, z, 0.56, h, 1.02, 0, stone(), true);
+      }
+    }
+    // ── the monolith: plinth, a three-block shaft, the ring of fourteen voussoirs, vines ──
+    const terrace = base + TIERS[2].top;
+    const ringY = terrace + MONO.shaft + RING.ro - 0.2;
+    {
+      block(0, terrace + 0.3, MONO.z, MONO.w + 0.9, 0.6, MONO.d + 0.8, 0, C.stoneDark, true);
+      const hs = MONO.shaft / 3;
+      for (let k = 0; k < 3; k++) block(rng.range(-0.04, 0.04), terrace + 0.6 + hs * (k + 0.5) - 0.3, MONO.z, MONO.w - k * 0.12, hs - 0.04, MONO.d, rng.range(-0.02, 0.02), k === 1 ? C.stoneB : C.stone, true);
+      for (let s = 0; s < RING.seg; s++) {
+        const a0 = (s / RING.seg) * Math.PI * 2 + 0.02, a1 = ((s + 1) / RING.seg) * Math.PI * 2 - 0.02;
+        const wo = rng.range(-0.06, 0.06), ro = RING.ro + wo, ri = RING.ri + rng.range(-0.03, 0.03), d = RING.depth / 2;
+        const P = (a: number, r: number, z: number) => [Math.cos(a) * r, Math.sin(a) * r, z];
+        const q = (p0: number[], p1: number[], p2: number[], p3: number[]) => [...p0, ...p1, ...p2, ...p0, ...p2, ...p3];
+        const v = [
+          ...q(P(a0, ri, d), P(a0, ro, d), P(a1, ro, d), P(a1, ri, d)), ...q(P(a0, ri, -d), P(a1, ri, -d), P(a1, ro, -d), P(a0, ro, -d)),
+          ...q(P(a0, ro, d), P(a0, ro, -d), P(a1, ro, -d), P(a1, ro, d)), ...q(P(a0, ri, d), P(a1, ri, d), P(a1, ri, -d), P(a0, ri, -d)),
+          ...q(P(a0, ri, d), P(a0, ri, -d), P(a0, ro, -d), P(a0, ro, d)), ...q(P(a1, ri, d), P(a1, ro, d), P(a1, ro, -d), P(a1, ri, -d)),
+        ];
+        const mid = (a0 + a1) / 2;
+        kit.addTopped(tris(v), s % 3 === 0 ? C.stoneB : C.stone, Math.sin(mid) > 0.2 ? C.moss : C.stoneLight, { matrix: this.M(0, ringY, MONO.z), minY: 0.55, jitter: 0.06 });
+      }
+      // vines down the ring and the shaft's edges
+      const across = new THREE.Vector3(this.cs, 0, -this.sn);
+      for (let k = 0; k < 18; k++) {
+        const a = rng.range(0.15, Math.PI - 0.15), side = k % 2 ? 1 : -1;
+        const onRing = k < 12;
+        const lx = onRing ? Math.cos(a) * RING.ro * 0.95 : side * (MONO.w / 2 - 0.05), y = onRing ? ringY + Math.sin(a) * RING.ro * 0.9 : terrace + MONO.shaft * rng.range(0.5, 0.95);
+        const [x, z] = this.W(lx, MONO.z + MONO.d / 2 + 0.06);
+        kit.addParts(vineStrand(new THREE.Vector3(x, y, z), rng.range(1.2, onRing ? 3.2 : 2.6), across, rng));
+      }
+    }
+    // ── the pedestals at the stair head with their gull statues ──
+    for (const side of [-1, 1]) {
+      const px = side * 2.75, pz = 0.9;
+      block(px, terrace + 0.8, pz, 1.0, 1.6, 1.0, 0, C.stoneB, false);
+      block(px, terrace + 1.68, pz, 1.2, 0.16, 1.2, 0, C.stoneLight, true);
+      this.gull(kit, rng, px, terrace + 1.76, pz, side * -0.35);
+      this.glyphDiamond(px, terrace + 0.9, pz + 0.515, 0, 0.26);
+      this.colliders.push(this.box(px, pz, 0.55, 0.55, terrace - 3, terrace + 2.7));
+    }
+    // monolith glyphs: a diamond, a line, a circle, three dots
+    {
+      const fz = MONO.z + MONO.d / 2 + 0.005, y = terrace + 3.1;
+      this.glyphDiamond(0, y, fz, 0, 0.36);
+      this.glyphSeg(0, fz, 0, 0, y - 0.62, 0, y - 1.25, 0.05);
+      this.glyphCircle(0, y - 1.45, fz, 0.2);
+      for (let k = 0; k < 3; k++) this.glyphSeg(0, fz, 0, 0, y - 1.8 - k * 0.2, 0, y - 1.88 - k * 0.2, 0.07);
+      this.colliders.push(this.box(0, MONO.z, MONO.w / 2 + 0.45, MONO.d / 2 + 0.4, terrace - 3, ringY + RING.ro));
+    }
+
+    // ── the spring pool: a stone rim, lily pads, lotus, a causeway of slabs across the middle ──
+    const [pcx, pcz] = this.W(0, POOL.z);
+    // the water stands a hand over the highest ground inside the basin (the knoll slopes away under the front rim; a
+    // kerb of blocks round the rim hides the drop there)
+    let highest = -Infinity;
+    for (let u = -1; u <= 1.001; u += 0.2) for (let v = -1; v <= 1.001; v += 0.25) {
+      if (u * u + v * v > 1) continue;
+      const [x, z] = this.W(u * POOL.rx, POOL.z + v * POOL.rz); highest = Math.max(highest, this.ground(x, z));
+    }
+    this.waterY = highest + 0.1;
+    const wy = this.waterY;
+    const waterGeo = (() => {
+      const v: number[] = [];
+      for (let k = 0; k < 20; k++) {
+        const a0 = (k / 20) * Math.PI * 2, a1 = ((k + 1) / 20) * Math.PI * 2;
+        const p = (a: number) => { const [x, z] = this.W(Math.cos(a) * (POOL.rx + 0.3), POOL.z + Math.sin(a) * (POOL.rz + 0.3)); return [x, wy, z]; };
+        v.push(pcx, wy, pcz, ...p(a1), ...p(a0));
+      }
+      return tris(v);
+    })();
+    // the basin under the water: a dark bed so the terrain's grass doesn't read through
+    {
+      const v: number[] = [];
+      for (let k = 0; k < 20; k++) {
+        const a0 = (k / 20) * Math.PI * 2, a1 = ((k + 1) / 20) * Math.PI * 2;
+        const p = (a: number) => { const [x, z] = this.W(Math.cos(a) * (POOL.rx + 0.2), POOL.z + Math.sin(a) * (POOL.rz + 0.2)); return [x, Math.max(this.ground(x, z), wy - 0.35) + 0.01, z]; };
+        v.push(pcx, wy - 0.3, pcz, ...p(a1), ...p(a0));
+      }
+      kit.add(tris(v), '#2d5b52', { jitter: 0.08 });
+    }
+    for (let k = 0; k < 44; k++) {                                                              // the kerb
+      const a0 = (k / 44) * Math.PI * 2, a1 = ((k + 1) / 44) * Math.PI * 2;
+      const p0 = [Math.cos(a0) * (POOL.rx + 0.25), POOL.z + Math.sin(a0) * (POOL.rz + 0.25)] as const, p1 = [Math.cos(a1) * (POOL.rx + 0.25), POOL.z + Math.sin(a1) * (POOL.rz + 0.25)] as const;
+      const mx = (p0[0] + p1[0]) / 2, mz = (p0[1] + p1[1]) / 2;
+      if (Math.abs(mx) < POOL.causeway + 0.1) continue;
+      const [x, z] = this.W(mx, mz), gy = this.ground(x, z), top = wy + 0.14, h = Math.max(0.3, top - gy + 0.3);
+      const len = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) + 0.08, yaw = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]);
+      kit.addTopped(new THREE.BoxGeometry(0.42, h, len), k % 3 ? C.stone : C.stoneB, rng.next() < 0.4 ? C.moss : C.stoneLight, { matrix: this.M(mx, top - h / 2, mz, yaw), wobble: 0.02, minY: 0.6, jitter: 0.06 });
+    }
+    for (let k = 0; k < 30; k++) {
+      const a = (k / 30) * Math.PI * 2 + rng.range(-0.05, 0.05), r = rng.range(0.28, 0.55);
+      const lx = Math.cos(a) * (POOL.rx + 0.75), lz = POOL.z + Math.sin(a) * (POOL.rz + 0.75);
+      if (Math.abs(lx) < POOL.causeway + 0.2) continue;
+      const [x, z] = this.W(lx, lz);
+      kit.addTopped(rock(r, 1, rng, 0.6, 0.25), rng.next() < 0.5 ? C.stone : C.stoneB, C.moss, { matrix: new THREE.Matrix4().makeTranslation(x, Math.max(this.ground(x, z), wy) + r * 0.1, z), minY: 0.6, jitter: 0.08 });
+    }
+    for (let lz = POOL.z - POOL.rz - 0.5; lz < POOL.z + POOL.rz + 0.6; lz += 0.85) {
+      const [x, z] = this.W(rng.range(-0.08, 0.08), lz);
+      kit.add(new THREE.CylinderGeometry(0.62, 0.66, 0.3, 7), rng.next() < 0.5 ? C.stoneLight : C.stone, { matrix: new THREE.Matrix4().compose(new THREE.Vector3(x, wy - 0.05, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rng.range(0, 6), 0)), new THREE.Vector3(1.6, 1, 1)), wobble: 0.03, jitter: 0.06 });
+    }
+    for (let k = 0; k < 16; k++) {
+      const side = k % 2 ? 1 : -1, lx = side * rng.range(POOL.causeway + 0.8, POOL.rx - 0.6), lz = POOL.z + rng.range(-POOL.rz + 0.6, POOL.rz - 0.6);
+      if ((lx / POOL.rx) ** 2 + ((lz - POOL.z) / POOL.rz) ** 2 > 0.8) continue;
+      const [x, z] = this.W(lx, lz), r = rng.range(0.22, 0.42);
+      kit.add(lilyPad(r, rng.range(0, 6)), rng.next() < 0.5 ? PLANT.lily : PLANT.lilyB, { matrix: new THREE.Matrix4().makeTranslation(x, wy + 0.012, z), jitter: 0.05 });
+      if (k % 4 === 0) kit.addParts(lotus(0.15), { matrix: new THREE.Matrix4().makeTranslation(x + 0.08, wy + 0.02, z + 0.05), jitter: 0.04 });
+    }
+    // ── the four glyph pillars round the pool ──
+    for (const [lx, lz] of [[-7.9, 8.2], [7.9, 8.2], [-7.2, 14.4], [7.2, 14.4]] as const) {
+      const [x, z] = this.W(lx, lz), gy = this.ground(x, z);
+      block(lx, gy + 1.2, lz, 0.8, 2.8, 0.8, 0, C.stoneB, true);
+      block(lx, gy + 2.7, lz, 1.0, 0.25, 1.0, 0, C.stoneLight, true);
+      // the glyph on the face toward the pool's middle
+      const face = Math.abs(lx) > 0 ? -Math.sign(lx) : 1;
+      this.glyphDiamond(lx + face * 0.405, gy + 1.7, lz, Math.PI / 2 * face, 0.2);
+      this.glyphCircle(lx + face * 0.405, gy + 1.05, lz, 0.1, Math.PI / 2 * face);
+      this.colliders.push(this.box(lx, lz, 0.45, 0.45, gy - 1, gy + 3));
+    }
+    // ── the broken arc of standing stones behind and beside the platform (runes on their inner faces) ──
+    for (let i = 0; i < 7; i++) {
+      const a = Math.PI * (0.05 + (i / 6) * 0.9) + Math.PI, r = 10.2 + rng.range(-0.5, 0.8);
+      const lx = Math.cos(a) * r, lz = -1.5 + Math.sin(a) * r * 0.85;
+      if (i === 3) continue;
+      const [x, z] = this.W(lx, lz), gy = this.ground(x, z), h = rng.range(1.8, 3.2), w = rng.range(0.7, 1.1);
+      const yaw = -a + Math.PI / 2;
+      kit.addTopped(new THREE.BoxGeometry(w, h, w * 0.6).translate(0, h / 2, 0), rng.next() < 0.5 ? C.stone : C.stoneDark, C.moss, { matrix: this.M(lx, gy - 0.3, lz, yaw, 0, rng.range(-0.07, 0.07)), wobble: 0.08, minY: 0.6 });
+      const n = new THREE.Vector3(Math.sin(this.spec.rot + yaw), 0, Math.cos(this.spec.rot + yaw));
+      if (n.x * (this.at.x - x) + n.z * (this.at.z - z) < 0) n.negate();
+      this.rune(rng, new THREE.Vector3(x + n.x * (w * 0.3 + 0.01), gy - 0.3 + h * 0.5, z + n.z * (w * 0.3 + 0.01)), new THREE.Vector3(-n.z, 0, n.x), n, h * 0.4);
+      this.colliders.push({ x, z, hw: w / 2, hd: w * 0.3, rot: -(this.spec.rot + yaw), yTop: gy + h, yBottom: gy - 1 });
+    }
+    // ── the jungle: broad-leaf clumps, ferns and hibiscus round the platform; ferns + flowers on the ledges ──
+    for (let i = 0; i < 170; i++) {
+      const a = rng.range(0, Math.PI * 2), r = 8.2 + rng.next() ** 1.6 * 9;
+      const lx = Math.cos(a) * r * 1.05, lz = -1 + Math.sin(a) * r;
+      if (lz > 6 && Math.abs(lx) < 3.2) continue;                                              // the approach
+      if ((lx / (POOL.rx + 1)) ** 2 + ((lz - POOL.z) / (POOL.rz + 1)) ** 2 < 1) continue;      // the pool
+      const [x, z] = this.W(lx, lz), m = new THREE.Matrix4().compose(new THREE.Vector3(x, this.ground(x, z) - 0.05, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rng.range(0, 6), 0)), new THREE.Vector3(1, 1, 1));
+      const kind = i % 3, s = rng.range(1.1, 2.4) * (r > 13 ? 1.3 : 1);
+      kit.addParts(kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8), { matrix: m, jitter: 0.1 });
+    }
+    TIERS.forEach((t, i) => {
+      if (i === 2) return;
+      for (let k = 0; k < 7; k++) {
+        const side = k % 2 ? 1 : -1, lz = rng.range(t.z0 + 0.4, t.z1 - 0.3), lx = side * (TIERS[i + 1 as 1 | 2].hw + rng.range(0.25, 0.7));
+        kit.addParts(k % 3 === 0 ? hibiscusBush(rng, 0.7) : fern(rng, 0.7), { matrix: this.M(lx, base + t.top, lz, rng.range(0, 6)), jitter: 0.1 });
+      }
+    });
+    for (const side of [-1, 1]) for (let k = 0; k < 3; k++) {
+      const lz = STAIR.z1 - 0.8 - k * 1.6, y = base + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0)) + 0.85;
+      for (const [g, c] of hibiscus(0.13)) kit.add(g, c, { matrix: this.M(side * (STAIR.hw + 0.28) + rng.range(-0.15, 0.15), y, lz, 0, rng.range(-0.4, 0.4)), jitter: 0.05 });
+    }
+
+    // ── meshes ──
+    const geo = kit.finish({ ao: { ground: (x, z) => this.ground(x, z), cell: 0.3, strength: 0.62 } });
+    // the sun sits behind the ring (it has to: the ring frames the planet, which hangs near the sun), so its face would
+    // stay in the toon shade band; a broad, soft bounce baked from the approach lifts the stair face like the mockup
+    { const [x, z] = this.W(0, 26); bakeLight(geo, [{ x, y: base + 7, z, color: '#fff1dc', range: 42, intensity: 0.32 }]); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.glyphV, 3));
+    g.computeBoundingSphere();
+    this.geometry = { kit: geo, water: waterGeo, glyphs: g };
+    this.terrace = terrace;
+
+    // ── colliders: the three tiers (each lets you stand on it), the stair's cheek walls ──
+    for (const t of TIERS) { const c = this.box(0, (t.z0 + t.z1) / 2, t.hw, (t.z1 - t.z0) / 2, base - 2, base + t.top - 0.06); this.tierBoxes.add(c); this.colliders.push(c); }
+    for (const side of [-1, 1]) this.colliders.push(this.box(side * (STAIR.hw + 0.28), (STAIR.z0 + STAIR.z1) / 2 + 0.3, 0.26, (STAIR.z1 - STAIR.z0) / 2 + 0.3, base - 2, base + TIERS[2].top + 0.5));
+
+    // ── anchors ──
+    const A = (lx: number, lz: number, y: number, yaw: number): ShrineAnchor => { const [x, z] = this.W(lx, lz); return { x, y, z, yaw: this.spec.rot + yaw }; };
+    this.anchors['altar'] = A(0, MONO.z + 1.55, terrace, 0);
+    this.anchors['pool'] = A(0, POOL.z, wy, Math.PI);
+    this.anchors['stairFoot'] = A(0, STAIR.z1 + 0.6, this.ground(...this.W(0, STAIR.z1 + 0.6)), Math.PI);
+    this.anchors['ring'] = A(0, MONO.z, ringY, 0);
+
+    // ── into own space: the site's origin subtracted from everything built where it stands ──
+    const o = this.o;
+    for (const gg of [geo, waterGeo, g]) { gg.translate(-o.x, -o.y, -o.z); gg.computeBoundingSphere(); }
+    this.descs = this.worldColliderDescs();
+    for (const d of this.descs) {
+      if (d.kind === 'treads') { for (const e of [d.from, d.to]) { e.x -= o.x; e.y -= o.y; e.z -= o.z; } } else { d.x -= o.x; d.y -= o.y; d.z -= o.z; }
+    }
+    for (const c of this.colliders) { c.x -= o.x; c.z -= o.z; c.yTop -= o.y; c.yBottom -= o.y; }
+    for (const a of Object.values(this.anchors)) { a.x -= o.x; a.y -= o.y; a.z -= o.z; }
+    this.baseY -= o.y; this.waterY -= o.y; this.terrace -= o.y;
+    this.at = { x: 0, z: 0 };
+    return this;
+  }
+
+  /** own-space colliders (see worldColliderDescs) */
+  private descs: ColliderDesc[] = [];
+  colliderDescs(): ColliderDesc[] { return this.descs; }
+
+  /** a stone gull on a pedestal top, looking out along local +z (turned `yaw`) */
+  private gull(kit: LowPolyKit, rng: Rng, lx: number, y: number, lz: number, yaw: number): void {
+    const m = this.M(lx, y, lz, yaw);
+    const body = new THREE.IcosahedronGeometry(1, 1).scale(0.26, 0.24, 0.46).translate(0, 0.42, -0.02);
+    kit.add(body, C.statue, { matrix: m, jitter: 0.06 });
+    kit.add(new THREE.IcosahedronGeometry(0.17, 1).translate(0, 0.78, 0.3), C.statue, { matrix: m, jitter: 0.06 });
+    kit.add(new THREE.ConeGeometry(0.05, 0.22, 4).rotateX(Math.PI / 2).translate(0, 0.76, 0.52), C.beak, { matrix: m });
+    for (const s of [-1, 1]) {
+      const wing = new THREE.BoxGeometry(0.08, 0.24, 0.66).rotateX(-0.25).rotateZ(s * 0.18).translate(s * 0.24, 0.5, -0.12);
+      kit.add(wing, C.statueB, { matrix: m, wobble: 0.02, jitter: 0.05 });
+    }
+    kit.add(new THREE.BoxGeometry(0.2, 0.06, 0.34).rotateX(0.35).translate(0, 0.38, -0.55), C.statueB, { matrix: m });
+    kit.add(new THREE.BoxGeometry(0.34, 0.14, 0.4).translate(0, 0.07, 0), C.statueB, { matrix: m, jitter: 0.05 });
+    if (rng.next() < 0.8) kit.add(new THREE.IcosahedronGeometry(0.12, 0).scale(1.4, 0.4, 1.2).translate(0.1, 0.62, -0.1), C.moss, { matrix: m });
+  }
+
+  // ── glyph strokes (all into one unlit mesh) ──
+  /** a stroke between two points given in face coordinates (u across, y up) */
+  private glyphSeg(lx: number, lz: number, yaw: number, u0: number, y0: number, u1: number, y1: number, th = 0.05): void {
+    const n = new THREE.Vector3(Math.sin(this.spec.rot + yaw), 0, Math.cos(this.spec.rot + yaw)), u = new THREE.Vector3(n.z, 0, -n.x);
+    const [x, z] = this.W(lx, lz), o = new THREE.Vector3(x, 0, z).addScaledVector(n, 0.012);
+    const a = new THREE.Vector3(o.x, y0, o.z).addScaledVector(u, u0), b = new THREE.Vector3(o.x, y1, o.z).addScaledVector(u, u1);
+    const across = new THREE.Vector3().crossVectors(b.clone().sub(a), n).normalize().multiplyScalar(th / 2);
+    const p0 = a.clone().add(across), p1 = a.clone().sub(across), p2 = b.clone().sub(across), p3 = b.clone().add(across);
+    this.glyphV.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p0.x, p0.y, p0.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+  }
+  private glyphDiamond(lx: number, y: number, lz: number, yaw: number, s: number): void {
+    const pts: [number, number][] = [[0, s * 1.5], [s, 0], [0, -s * 1.5], [-s, 0]];
+    for (let k = 0; k < 4; k++) { const a = pts[k], b = pts[(k + 1) % 4]; if (a && b) this.glyphSeg(lx, lz, yaw, a[0], y + a[1], b[0], y + b[1], s * 0.16); }
+    const inner = 0.45;
+    for (let k = 0; k < 4; k++) { const a = pts[k], b = pts[(k + 1) % 4]; if (a && b) this.glyphSeg(lx, lz, yaw, a[0] * inner, y + a[1] * inner, b[0] * inner, y + b[1] * inner, s * 0.1); }
+  }
+  private glyphCircle(lx: number, y: number, lz: number, r: number, yaw = 0): void {
+    const n = 12;
+    for (let k = 0; k < n; k++) {
+      const a0 = (k / n) * Math.PI * 2, a1 = ((k + 1) / n) * Math.PI * 2;
+      this.glyphSeg(lx, lz, yaw, Math.cos(a0) * r, y + Math.sin(a0) * r, Math.cos(a1) * r, y + Math.sin(a1) * r, r * 0.3);
+    }
+  }
+  /** an angular rune (3–5 zig-zag strokes, a bar) on a stone face: origin o, across u, face normal n (world) */
+  private rune(rng: Rng, o: THREE.Vector3, u: THREE.Vector3, n: THREE.Vector3, h: number): void {
+    const stroke = (x0: number, y0: number, x1: number, y1: number, th = 0.035) => {
+      const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1, px = -dy / len * th, py = dx / len * th;
+      const P = (x: number, y: number) => [o.x + u.x * x + n.x * 0.012, o.y + y, o.z + u.z * x + n.z * 0.012];
+      const a = P(x0 + px, y0 + py), b = P(x0 - px, y0 - py), c = P(x1 - px, y1 - py), d = P(x1 + px, y1 + py);
+      this.glyphV.push(...a, ...b, ...c, ...a, ...c, ...d);
+    };
+    const pts: [number, number][] = [];
+    const k = rng.int(3, 5);
+    for (let i = 0; i < k; i++) pts.push([rng.range(-0.16, 0.16), -h / 2 + (i / (k - 1)) * h]);
+    for (let i = 0; i < k - 1; i++) { const p = pts[i], q = pts[i + 1]; if (p && q) stroke(p[0], p[1], q[0], q[1]); }
+    if (rng.next() < 0.6) { const y = rng.range(-h * 0.3, h * 0.3); stroke(-0.14, y, 0.14, y + rng.range(-0.1, 0.1)); }
+  }
+
+  private box(lx: number, lz: number, hw: number, hd: number, y0: number, y1: number): Collider {
+    const [x, z] = this.W(lx, lz);
+    return { x, z, hw, hd, rot: -this.spec.rot, yTop: y1, yBottom: y0 };
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   * `floorHeightAt` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
+   *
+   * The pedestals, monolith, glyph pillars, standing stones and the stair's cheek walls are the legacy boxes; the three
+   * tiers are boxes topped exactly at their terraces (1 / 2 / 3 m); the stair is the ten treads the mesh draws (0.3 m
+   * rise); the causeway is a slab at the slabs' tops (water + 0.1) with, at its FRONT end (local lz ≈ 14.7, the
+   * approach), treads down to the ground — its edge stands ~0.6 m over the terrain, past the 0.35 m autostep, and the
+   * old 0.5 m step-up plus walking under the slab used to hide it. Its inner end drops ~0.55 m onto the stair foot.
+   */
+  private worldColliderDescs(): ColliderDesc[] {
+    const b = this.baseY, yaw = this.spec.rot, out: ColliderDesc[] = [];
+    for (const c of this.colliders) if (!this.tierBoxes.has(c)) out.push(boxDesc(c, 'stone'));
+    const slab = (lx0: number, lx1: number, lz0: number, lz1: number, top: number, bottom: number): ColliderDesc => {
+      const [x, z] = this.W((lx0 + lx1) / 2, (lz0 + lz1) / 2);
+      return { kind: 'box', x, y: (top + bottom) / 2, z, hx: (lx1 - lx0) / 2, hy: (top - bottom) / 2, hz: (lz1 - lz0) / 2, yaw, surface: 'stone' };
+    };
+    // the terraces: nested boxes, each topped at its floor (the one under the stair is buried inside the treads)
+    for (const t of TIERS) out.push(slab(-t.hw, t.hw, t.z0, t.z1, b + t.top, b - 2));
+    // the stair: ten treads from the foot (lz STAIR.z1, the ground) to the top terrace's edge (lz STAIR.z0)
+    const at = (lx: number, y: number, lz: number) => { const [x, z] = this.W(lx, lz); return { x, y, z }; };
+    out.push({ kind: 'treads', from: at(0, b, STAIR.z1), to: at(0, b + TIERS[2].top, STAIR.z0), width: STAIR.hw * 2, count: 10, surface: 'stone' });
+    // the causeway: lz from the stair foot to the pool's far rim + 0.5, |lx| < POOL.causeway
+    const cw = this.waterY + 0.1, front = POOL.z + POOL.rz + 0.5, hw = POOL.causeway;
+    const groundUnder = (lz0: number, lz1: number, pick: (a: number, b: number) => number, from: number): number => {
+      let g = from;
+      for (let lz = lz0; lz <= lz1 + 1e-6; lz += 0.25) for (let lx = -hw; lx <= hw + 1e-6; lx += 0.3) g = pick(g, this.ground(...this.W(lx, lz)));
+      return g;
+    };
+    out.push(slab(-hw, hw, STAIR.z1, front, cw, Math.min(cw - 0.3, groundUnder(STAIR.z1, front, Math.min, Infinity) - 0.3)));
+    // its front edge: treads (0.35 m run each, ≤ 0.3 m rise) from the ground out front up to the slab's top. The
+    // highest of them is flush with the slab — an extension of it; with a lip ≤ 0.3 m there is none to add.
+    for (let n = 2; n <= 5; n++) {
+      const run = 0.35, foot = front + n * run;
+      const g = groundUnder(foot - 0.1, foot, Math.min, Infinity);
+      if (cw - groundUnder(front, front, Math.max, -Infinity) <= 0.3) break;
+      if ((cw - g) / n > 0.3 && n < 5) continue;
+      out.push({ kind: 'treads', from: at(0, g, foot), to: at(0, cw, front), width: hw * 2, count: n, surface: 'stone' });
+      break;
+    }
+    return out;
+  }
+
+  /** the walkable stone under own (x, z) (once built): the stair (a ramp), the three terraces, the causeway across the pool */
+  floorHeightAt(x: number, z: number): number | undefined {
+    const [lx, lz] = this.L(x, z), b = this.baseY;
+    if (Math.abs(lx) < STAIR.hw && lz >= STAIR.z0 && lz <= STAIR.z1) return b + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0));
+    for (let i = TIERS.length - 1; i >= 0; i--) {
+      const t = TIERS[i as 0 | 1 | 2];
+      if (Math.abs(lx) <= t.hw && lz >= t.z0 && lz <= t.z1) return b + t.top;
+    }
+    if (Math.abs(lx) < POOL.causeway && Math.abs(lz - POOL.z) < POOL.rz + 0.5) return this.waterY + 0.1;
+    return undefined;
+  }
+}
+
+/** the pool's material: soft ripple rings and a caustic shimmer, brighter at the edges (its clock: `uniforms.uTime`) */
+function poolMaterial(ctx: ModelContext, uniforms: { uTime: THREE.IUniform<number> }): THREE.MeshStandardMaterial {
+  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(C.water), roughness: 0.25, metalness: 0, transparent: true, opacity: 0.82, flatShading: true });
+  patchShader(mat, 'driftwood.shrine-pool', PATCH_ORDER.material, (shader) => {
+    attachFogUniforms(shader);
+    shader.uniforms['uTime'] = uniforms.uTime;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWp;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uTime; varying vec3 vWp;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+          {
+            float w = sin(vWp.x * 2.3 + uTime * 1.1) * sin(vWp.z * 2.9 - uTime * 0.9) + sin((vWp.x + vWp.z) * 4.1 + uTime * 1.7) * 0.5;
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.55, 0.95, 0.95), smoothstep(0.9, 1.4, w) * 0.45);
+          }`);
+  }, { mode: 'replace', key: 'shrine-pool' });
+  ctx.sky.setupMaterial(mat);
+  return mat;
+}
+
+/** the shrine's own materials on a shard — the pool (and its clock) and the glyphs — which the world animates */
+export function shrineMaterials(ctx: ModelContext): { water: THREE.MeshStandardMaterial; glyphs: THREE.MeshBasicMaterial; uniforms: { uTime: THREE.IUniform<number> } } {
+  return ctx.once('driftwood-isle/shrine:materials', () => {
+    const uniforms = { uTime: { value: 0 } };
+    return { water: poolMaterial(ctx, uniforms), glyphs: new THREE.MeshBasicMaterial({ color: C.rune, side: THREE.DoubleSide }), uniforms };
+  });
+}
+
+/** a specimen's site: at the origin, on flat ground */
+const ORIGIN: ShrineSite = { x: 0, z: 0, rot: 0 };
+const FLAT = (): number => 0;
+/** each placement's builder, by its site — the geometry is handed out once and dropped */
+const built = new WeakMap<ShrineSite, ShrineBuilder>();
+
+function builderOf(p: ShrineParams, fresh: boolean): ShrineBuilder {
+  let b = built.get(p.site);
+  if (!b || (fresh && !b.geometry)) { b = new ShrineBuilder(p).build(); if (p.site !== ORIGIN) built.set(p.site, b); }
+  return b;
+}
+
+/** the shrine's layout on a site: colliders, floors, anchors, heights (own space) */
+export function shrineLayout(p: ShrineParams): Pick<ShrineBuilder, 'colliders' | 'anchors' | 'baseY' | 'waterY' | 'terrace' | 'colliderDescs' | 'floorHeightAt'> {
+  return builderOf(p, false);
+}
+
+export const shrine = defineModel<ShrineParams>({
+  id: 'driftwood-isle/shrine', name: 'Ring shrine', category: 'buildings', pipeline: 'code',
+  file: 'src/shards/driftwood-isle/models/shrine.ts', surface: 'stone',
+  defaults: { site: ORIGIN, ground: FLAT },
+  build: (ctx, p) => {
+    const b = builderOf(p, true), g = b.geometry;
+    b.geometry = null;
+    if (!g) return [];
+    const m = shrineMaterials(ctx);
+    return [
+      { geometry: g.kit, material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true },
+      { geometry: g.water, material: m.water, receiveShadow: true, renderOrder: 1 },
+      { geometry: g.glyphs, material: m.glyphs, renderOrder: 1 },
+    ];
+  },
+  colliders: (p) => shrineLayout(p).colliderDescs(),
+});

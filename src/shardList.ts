@@ -2,8 +2,8 @@
 // (src/shards.generated.ts), so the game layer never does. entry.ts loads this before the game or the title deck.
 import { installShards } from './game/shard/list';
 import { game } from './game/shard/registry';
-import { SHARDS, LEGACY_SHARDS } from './shards.generated';
+import { SHARDS, LEGACY_SHARDS, LEGACY_CONTENT_IDENTITIES } from './shards.generated';
 
-installShards([...SHARDS, ...LEGACY_SHARDS]);
+installShards([...SHARDS, ...LEGACY_SHARDS], LEGACY_CONTENT_IDENTITIES);
 // the running shard resolves now, as it did when the registry built it at import: the level is configured early
 void game.shard;

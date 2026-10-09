@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { apiSurface, pages, undocumented } from './gen-api.mjs';
 import { SHARDFILE_REFERENCE, shardfileReference } from './docs/gen-shardfile-reference.mjs';
 import { compareEdges, graph } from './check-graph.mjs';
+import { legacyInventory } from './legacy-shards.mjs';
 import { appendixRange, engineAppendix, generatedIncreases, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
 
 const sorted = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -31,7 +32,7 @@ export function generatedFiles(root) {
     }
   };
   scan('src');
-  const { edges, violations } = graph(files.sort((a, b) => a.localeCompare(b)), (file) => read(root, file), (file) => existsSync(resolve(root, file)));
+  const { edges, violations } = graph(files.sort((a, b) => a.localeCompare(b)), (file) => read(root, file), (file) => existsSync(resolve(root, file)), legacyInventory(root));
   const failures = [...violations, ...compareEdges(edges, edges).failures];
   const surface = apiSurface(root), ceiling = data(root, 'lint/api-undocumented.json').max;
   if (undocumented(surface) > ceiling) failures.push(`Undocumented API ${undocumented(surface)} exceeds ${ceiling}`);

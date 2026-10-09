@@ -905,3 +905,36 @@ A reload Debug row that changes the playable footprint or fall floor selects
 it once before installing normal bounds recovery. Keep the manifest's shipping
 bounds unchanged; the hook belongs to that session and never mutates a global
 floor shared by another level.
+
+### Frozen standalone legacy copies (SF73, G263–G265)
+
+The six transitioned primary folders remain the SHARDFILE/grid authoring source. Their exact registered `-legacy`
+copy is frozen, standalone only, with its own slug and local save namespace. The existing LEGACY button resolves to
+that copy; SHARDFILE resolves to the primary. Only the primary card is shown. Copies never enter the grid catalogue.
+
+`lint/legacy-shards.json` is the reviewed inventory: primary/copy, immutable source SHA, and every file hash. Only
+those exact files leave primary SF2, soft-debt, platform-share and measured layer-edge counts. Every hard layer,
+public-index, cycle and lint rule still runs. No suffix-based exemption exists. The sealed inventory can only shrink.
+Feature edits refuse; a necessary crash fix updates the affected hashes and carries `Legacy-Crash-Fix: <reason>`.
+
+The composition root installs the inventory's exact content-identity table. Frozen content keeps its original
+item-family namespace, while its manifest/source identity, instance, feedback, flags, state and ledger keys retain
+the copy slug. A fresh runtime-bound field in a registered copy uses its declared default and never invokes the
+primary's historical migration callback; ordinary shard migration is unchanged. Initialized copy fields restore
+only their copy-owned values. The reviewed Nalati adventure and Driftwood effects guards compare content identity;
+their original/current hashes and reasons are inventoried individually, with no broader rewrite permission.
+
+Frozen Pine `debug/options.ts` and `runtime/audio/score.ts`, and frozen Signal `look/groundTiles.ts`, retain their
+original primary device-tuning reads by review. They share tuning, never primary gameplay progress. Removing the
+primary Signal row leaves its frozen reader at its default.
+
+Copies share existing public asset paths and Git blob identities: no new GLB/texture payloads are emitted. Map/build
+discovery skips only the registered copies. Frozen map metadata is provenance, not a new primary freshness claim;
+the shared public map raster may update with the primary and must remain loadable by the legacy entry. Primary map
+freshness checks and authoring builds are unchanged.
+
+At 80/20, remove the entire legacy folder and its inventory row together. Before entering the surviving primary,
+call `migrateRetiredLegacySave(store, primarySlug)` from the game retirement installer. It durably copies missing
+local entries; newer primary values and a primary reset barrier win. Failure leaves the durable destination intact
+and the source available for retry. It does not touch the profile or other shards. Do not merge while both entries
+coexist; retain the source until the retirement migration succeeds.

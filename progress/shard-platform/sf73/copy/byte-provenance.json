@@ -1,0 +1,92 @@
+{
+  "shards": {
+    "driftwood-isle-legacy": {
+      "primary": "driftwood-isle",
+      "source": "8e297137b940f50da7f1949106d5576f80f238ca",
+      "files": 192,
+      "bytes": 5411684,
+      "unchangedBlobs": 189,
+      "modifiedOnly": [
+        "loot/effects.ts",
+        "manifest.ts",
+        "shard.config.ts"
+      ],
+      "reviewedCompatibility": {
+        "loot/effects.ts": {
+          "original": "c5226bb08f619337e19af12d10a7869a80b9d630a1828d6a29c0301af03d930e",
+          "current": "98e3dc099fcca114d4a9f5416bcbe939ba54b7f1495d0f89e5977d61a5001f05",
+          "reason": "Reviewed frozen compatibility: preserve Driftwood effects selection under the inventoried content identity without changing its save slug."
+        }
+      }
+    },
+    "pine-hollow-legacy": {
+      "primary": "pine-hollow",
+      "source": "8e297137b940f50da7f1949106d5576f80f238ca",
+      "files": 236,
+      "bytes": 5440267,
+      "unchangedBlobs": 234,
+      "modifiedOnly": [
+        "manifest.ts",
+        "shard.config.ts"
+      ],
+      "reviewedCompatibility": {}
+    },
+    "nalati-grasslands-legacy": {
+      "primary": "nalati-grasslands",
+      "source": "8e297137b940f50da7f1949106d5576f80f238ca",
+      "files": 251,
+      "bytes": 7159886,
+      "unchangedBlobs": 248,
+      "modifiedOnly": [
+        "adventure.ts",
+        "manifest.ts",
+        "shard.config.ts"
+      ],
+      "reviewedCompatibility": {
+        "adventure.ts": {
+          "original": "762809142db47b159c7e7442f769f8863050e80fdc242fe583444066dae18cf4",
+          "current": "61c31c2e4a1b34b0773c478a9e78652b3d3eb919379d4d81610997d9aa2c1c21",
+          "reason": "Reviewed frozen compatibility: preserve Nalati adventure selection under the inventoried content identity without changing its save slug."
+        }
+      }
+    },
+    "far-reach-legacy": {
+      "primary": "far-reach",
+      "source": "8e297137b940f50da7f1949106d5576f80f238ca",
+      "files": 125,
+      "bytes": 1824159,
+      "unchangedBlobs": 123,
+      "modifiedOnly": [
+        "manifest.ts",
+        "shard.config.ts"
+      ],
+      "reviewedCompatibility": {}
+    },
+    "sunscar-dunes-legacy": {
+      "primary": "sunscar-dunes",
+      "source": "8e297137b940f50da7f1949106d5576f80f238ca",
+      "files": 181,
+      "bytes": 2489189,
+      "unchangedBlobs": 179,
+      "modifiedOnly": [
+        "manifest.ts",
+        "shard.config.ts"
+      ],
+      "reviewedCompatibility": {}
+    },
+    "nine-dragon-stack-legacy": {
+      "primary": "nine-dragon-stack",
+      "source": "8e297137b940f50da7f1949106d5576f80f238ca",
+      "files": 158,
+      "bytes": 4256784,
+      "unchangedBlobs": 156,
+      "modifiedOnly": [
+        "manifest.ts",
+        "shard.config.ts"
+      ],
+      "reviewedCompatibility": {}
+    }
+  },
+  "sameBinaryBlobBytes": 11970224,
+  "changedSourceBytes": 110658
+}

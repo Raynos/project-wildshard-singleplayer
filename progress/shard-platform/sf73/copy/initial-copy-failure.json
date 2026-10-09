@@ -1,0 +1,326 @@
+{
+  "base": "http://127.0.0.1:4401",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": true,
+        "label": "SHARDFILE",
+        "line": "NOT YET"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Template shard",
+      "badge": "91% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Driftwood Isle",
+      "mode": "legacy",
+      "entered": false,
+      "mapSubstitution": false,
+      "console": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        }
+      ],
+      "networkFailures": [
+        {
+          "url": "http://127.0.0.1:4401/api/telemetry",
+          "failure": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:4401/api/errors",
+          "failure": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "reports": [
+        "{\"system\":\"shard-load\",\"message\":\"Error: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\",\"stack\":\"Error: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\\n    at kc (http://127.0.0.1:4401/assets/revision-DaFuOUF1.js:1:115958)\\n    at Mc (http://127.0.0.1:4401/assets/revision-DaFuOUF1.js:1:116680)\\n    at he (http://127.0.0.1:4401/assets/hybridRows-CoPFeoDQ.js:1:23886)\\n    at O_.t.buildEquipment (http://127.0.0.1:4401/assets/plugin-BRh52PCa.js:349:164312)\\n    at async oP (http://127.0.0.1:4401/assets/session-XqsvL3I7.js:2071:57869)\\n    at async GB (http://127.0.0.1:4401/assets/session-XqsvL3I7.js:2097:21342)\\n    at async a (http://127.0.0.1:4401/assets/session-XqsvL3I7.js:212:2060)\\n    at async http://127.0.0.1:4401/assets/runtime-it5lgMUF.js:1:37271\\n    at async l (http://127.0.0.1:4401/assets/runtime-it5lgMUF.js:1:36910)\\n    at async ze.load (http://127.0.0.1:4401/assets/runtime-it5lgMUF.js:1:37170)\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":3083,\"context\":{\"kind\":\"shard-load\",\"shard\":\"driftwood-isle-legacy\",\"build\":\"f9f5fd3-mv17hc2q\",\"stage\":\"level.kit\"}}"
+      ],
+      "pending": {
+        "textureReady": "resolved",
+        "scope": {
+          "name": "engine",
+          "disposed": false
+        },
+        "resources": [
+          {
+            "name": "http://127.0.0.1:4401/assets/nine-dragon-stack-F4N2uvlS.jpg",
+            "duration": 3.3999996185302734
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/nine-dragon-stack-portrait-CTG5PDPS.jpg",
+            "duration": 4.799999713897705
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/sunscar-dunes-B81dM8Mw.jpg",
+            "duration": 3.0999999046325684
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/sunscar-dunes-portrait-CPb7DZ2F.jpg",
+            "duration": 4.099999904632568
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/far-reach-BfU-ZmIc.jpg",
+            "duration": 3.1999998092651367
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/far-reach-portrait-7xTM47v2.jpg",
+            "duration": 4.099999904632568
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-isle-landscape-D57Z8kOe.jpg",
+            "duration": 4.300000190734863
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/world-driftwood-isle-BSVK6wCJ.webp",
+            "duration": 3.0999999046325684
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/models-driftwood-isle-Bq7WGtPe.webp",
+            "duration": 3.0999999046325684
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/sets-driftwood-isle-DsZc-qdI.webp",
+            "duration": 3.3000001907348633
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/viewmodelTextures.worker-DhwSDdGg.js",
+            "duration": 0
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/physics/rapier.wasm?v=2935a533",
+            "duration": 21.200000286102295
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/render-CMM9KK_3.js",
+            "duration": 2.5
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/practice-driftwood-isle-CY0vGxR0.webp",
+            "duration": 0.8999996185302734
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-spawn-live-C4vYc2We.jpg",
+            "duration": 0.5999999046325684
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-spawn-target-CIGaGG-o.jpg",
+            "duration": 0.9000000953674316
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-right-live-BFLM86MU.jpg",
+            "duration": 0.7999997138977051
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-right-target-DCPusEqc.jpg",
+            "duration": 0.8000001907348633
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-overlook-live-CrbjAT5l.jpg",
+            "duration": 0.5999999046325684
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/driftwood-overlook-target-CFFCacaF.jpg",
+            "duration": 0.7999997138977051
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/world-driftwood-isle-BSVK6wCJ.webp",
+            "duration": 0.40000009536743164
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/models-driftwood-isle-Bq7WGtPe.webp",
+            "duration": 0.39999961853027344
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/sets-driftwood-isle-DsZc-qdI.webp",
+            "duration": 0.39999961853027344
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/music/piano/pine-calm-923e0056.m4a",
+            "duration": 1.8000001907348633
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/music/piano/pine-tension-cc014e5b.m4a",
+            "duration": 1.6000003814697266
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/music/piano/island-calm-05125ed8.m4a",
+            "duration": 1.799999713897705
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/music/piano/island-tension-7faf0468.m4a",
+            "duration": 1.6999998092651367
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/music/piano/title-3d1f713a.m4a",
+            "duration": 0.2999997138977051
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/music/piano/sting-death-99b071e0.m4a",
+            "duration": 0.3000001907348633
+          },
+          {
+            "name": "http://127.0.0.1:4401/assets/practice-driftwood-isle-CY0vGxR0.webp",
+            "duration": 0.39999961853027344
+          }
+        ],
+        "screen": "F9F5FD3 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nDRIFTWOOD ISLE\n00:45.0\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n18.7 MB / 18.7 MB · 137 / 137 files\n99\nSETUP\nstep 13 / 16 · Weapons · HUD\n61\n▸ Renderer\n10 ms\n▸ Sky · lighting\n68 ms\n▸ Terrain · heightfield\n256² heightfield\n399 ms\n▸ Tree cards\n1 ms\n▸ Trees\n0 trees\n1 ms\n▸ Physics · Rapier · navmesh\n5 colliders\n75 ms\n▸ Chunk edge · water · horizon\n11 ms\n▸ Grass · ground cover\n0 ms\n▸ Buildings\n0 ms\n▸ Props\nBaked island\n2.3 s\n▸ Animals\n13 animals\n17 ms\n▸ Weapons · HUD\n9 ms\nLoad 1 · JS heap 13 MiB\nLongest page pause 1.2s at Props: Cove\nLast reload: shard switch to driftwood-isle-legacy (fresh page) · 45 s ago · resident driftwood-isle (playing) ~9 MB · build f9f5fd3 · nav navigate\nTotal RAM / CPU unavailable in page\nDriftwood Isle could not load\n\nBUILD f9f5fd3-mv17hc2q · STAGE level.kit\n\nShard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\n\nError: Shard item family driftwood-isle.wood must be named driftwood-isle-legacy.<name>\n    at kc (http://127.0.0.1:4401/assets/revision-DaFuOUF1.js:1:115958)\n    at Mc (http://127.0.0.1:4401/assets/revision-DaFuOUF1.js:1:116680)\n    at he (http://127.0.0.1:4401/assets/hybridRows-CoPFeoDQ.js:1:23886)\n    at O_.t.buildEquipment (http://127.0.0.1:4401/assets/plugin-BRh52PCa.js:349:164312)\n    at async oP (http://127.0.0.1:4401/assets/session-XqsvL3I7.js:2071:57869)\n    at async GB (http://127.0.0.1:4401/assets/session-XqsvL3I7.js:2097:21342)\n    at async a (http://127.0.0.1:4401/assets/session-XqsvL3I7.js:212:2060)\n    at async http://127.0.0.1:4401/assets/runtime-it5lgMUF.js:1:37271\n    at async l (http://127.0.0.1:4401/assets/runtime-it5lgMUF.js:1:36910)\n    at async ze.load (http://127.0.0.1:4401/assets/runtime-it5lgMUF.js:1:37170)\nRELOAD"
+      },
+      "workers": [],
+      "failure": "page.waitForFunction: Timeout 40000ms exceeded.",
+      "screen": "F9F5FD3 · RELOAD\nPROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK ·\nDRIFTWOOD ISLE\n01:25.0\nTIER\nphone · 1206×2043 · 18 cores · offline cache\nDOWNLOAD\n18.7 MB / 18.7 MB · 137 / 137 files\n99\nSETUP\nstep 13 / 16 · Weapons · HUD\n61\n▸ Renderer\n10 ms\n▸ Sky · li",
+      "errors": []
+    }
+  ],
+  "errors": []
+}
