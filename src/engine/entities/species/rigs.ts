@@ -19,7 +19,7 @@ const _v = new Vector3();
 const _look = { yaw: 0, pitch: 0 };
 
 /** the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped */
-export function lookAngles(c: RigAnimCtx, eyeY: number, maxYaw = 1.2, maxPitch = 0.6): { yaw: number; pitch: number } {
+export function lookAngles(c: Pick<RigAnimCtx, 'lookWeight' | 'lookTarget' | 'position' | 'yaw' | 'scale'>, eyeY: number, maxYaw = 1.2, maxPitch = 0.6): { yaw: number; pitch: number } {
   if (c.lookWeight < 0.001) { _look.yaw = 0; _look.pitch = 0; return _look; }
   _v.subVectors(c.lookTarget, c.position);
   let ly = Math.atan2(_v.x, _v.z) - c.yaw;
@@ -41,7 +41,7 @@ export const NO_FUR: FurStyle = {
  * root bone driven by the rig's `flinch` (1 at the blow, decaying to 0) — squashed flat at the blow, a stretch as it
  * springs back, settling. Every custom rig calls it last in `animate`: `squashBody(b.body, c.flinch)`.
  */
-export function squashBody(b: Bone, flinch: number, amt = 0.2): void {
+export function squashBody(b: Pick<Bone, 'scale'>, flinch: number, amt = 0.2): void {
   const k = clamp(flinch, 0, 1);
   const w = k * k * Math.cos((1 - k) * 10) * amt;
   const sy = 1 - w, sxz = 1 / Math.sqrt(Math.max(0.5, sy));

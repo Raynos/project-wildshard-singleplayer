@@ -1,0 +1,9 @@
+# Renderer-free cached pose owner (unactivated)
+
+DriftwoodPosedVolumes constructs numeric joints and collision FK from an owner-supplied actual rest recipe. It uses the committed scalar/joint laws and receives a trusted custom callback. advance changes locals at the body phase; publish is the explicit later render-equivalent boundary. Contacts keep the old joints/root until then. No world, renderer, scene, skeleton, scheduler or gameplay binding is constructed.
+
+Continuation includes scalar blend history, breathing, corpse spread, current locals/root and their distinct published locals/root. f64 values preserve signed-zero bits. Restore validates the whole state before mutation, resolves the saved publication once, then restores current locals without publishing them. It runs no bodies, callbacks, terrain queries or RNG.
+
+Five actual factory rigs (boar, bear, crab, monkey, sailor) match the source-hashed shipping callbacks over10k60/30/20Hz/paused frames; prior/post publication anchors/capsules stay within1e-12m, locals/actor motion exact. Each resumes a5k suffix exactly from a fresh owner captured before publication; malformed restores remain atomic. Five checks20.62s plus the focused source-fence check; root strict/touched typed lint/hooks. No builder full suite. Custom callbacks here are the frozen actual shipping expressions in test fixtures; production callbacks/selection remain unchanged.
+
+The shared lookAngles/squashBody helpers narrow only their read/write structural types; arithmetic is unchanged. No native binding, baked payload or input-only witness manifest changes. Actual browser rest-chain capture and phase integration remain next. Downward imports: Driftwood->engine3 (AnimalSim type, AnimalPoseLaw, animalRig), ->game1 (collisionPose); pre-approved in the posed-volume work.
