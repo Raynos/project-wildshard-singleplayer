@@ -3,10 +3,12 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { ND_AUDIO } from './data/audio';
 import { NINE_ITEMS } from './data/items';
+import { NINE_LEDGER } from './data/ledger';
 import { portalLinks, type ShardEdge } from './world/portalPlan';
 import { portalFloorRows } from './world/floorRows';
 
-// The trusted runtime preserves today's fragment geometry; audio is selected by its declared section.
+// The trusted runtime preserves today's fragment geometry; audio is selected by its declared section. G285: its two feats
+// are ledger rows (data/ledger.ts) the runtime emits as they are played (world/feats.ts); the platform grants each once.
 // G224 (Jake): Nine Dragon's four road-height decks each carry a portal to Lantern Square, and the square's one portal out
 // sends you back to the deck you came in by. Each entry is a `portalLink` (SF8c, src/game/shardfile/portalLink.ts): the
 // road portal on its deck, the square's arrival, the square's exit bound back to that road, and the walked route between
@@ -19,6 +21,6 @@ const links = new Map(portalLinks().map((row) => [row.edge, row.portal]));
 const portalOf = (edge: ShardEdge): ReturnType<typeof portalLinks>[number]['portal'] => { const portal = links.get(edge); if (portal === undefined) throw new Error(`Nine Dragon declares no portal on its ${edge} edge`); return portal; };
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, items: NINE_ITEMS, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items', 'ledger'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: base.entryways.map((row) => ({ edge: row.edge, at: row.at, width: row.width, kind: 'portalLink' as const, portal: portalOf(row.edge) })),
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [], colliders: portalFloorRows() } });

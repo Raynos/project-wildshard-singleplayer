@@ -8,13 +8,14 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime';
-import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
+import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
+import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
 import { PORTAL_STEP } from '../../../src/shards/nine-dragon-stack/runtime/portals';
 import { GRAPPLE_AIM, GRAPPLE_LOCK, GRAPPLE_STEP } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
 import { DECK_PORTALS, SQUARE_ROUTE } from '../../../src/shards/nine-dragon-stack/world/portalPlan';
-import { compatibilityProbe } from '../compatibility/fixture';
 
 /**
  * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`,
@@ -28,10 +29,12 @@ import { compatibilityProbe } from '../compatibility/fixture';
  * while it flies. Headless: the whole tape, then the adapter's `finish` runs the
  * portal-link entry proof (every deck lane, every bound transfer). Replay: committed checkpoints mid-swing AND mid-ride
  * and mid-crossing restore exactly, then each short suffix is replayed twice to identical canonical state.
- * Ledger: the fragment declares no rule, so the stage reports exactly that.
+ * Ledger (G285): the same tape's committed `fact` effects (the ride home lands in Lantern Square; the Fei Zhua's lifting
+ * crossing settles over the Well) go through the platform Ledger under their declared rules: each achievement granted
+ * once, durably, and a session restored from the end re-emits nothing.
  */
 export const ENTRY = 'runtime/headless.ts';
-/** Outcomes are renderer-free. Nine declares no ledger rule or creature; neither is an unproven gameplay system. */
+/** Outcomes are renderer-free. Nine declares no creature, so none is an unproven gameplay system. */
 export const SCOPE = {
   transitional: false,
   covers: [
@@ -42,11 +45,11 @@ export const SCOPE = {
     'portal rides during play on the page\'s own ride (world/portalRide.ts): walked into the square\'s ring and a deck\'s, held through the fade, the format\'s checked transfer under the dark, re-armed on stepping out, exact continuation mid-ride',
     'the Jian\'s charged heavy on the tick protocol\'s HEAVY hold: a 40-tick charge from the square\'s arrival, released into one heavy swing on the same clock',
     'the Fei Zhua on the page\'s own law (grapple/sim.ts over the 31 baked dragon hooks): aim as the phone\'s portrait camera, LOCK, JUMP; fire, bite, lift, zip, vault and settle on the player\'s capsule; the east tower\'s ledge from the arrival and exact continuation mid-zip in headless-runtime.test.ts',
+    'the ledger (data/ledger.ts): the ride home\'s landing in Lantern Square and the settled Well crossing emit their declared facts as committed effects; the platform Ledger grants each achievement once, durably, with no re-emission after a restore',
     'the Well crossing (gates / fragments): over the square\'s west balustrade onto the south rim, seen past the rim\'s rail and the safety cap, the lifting zip over the parapet onto a crossing\'s deck; the safety cap\'s baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)',
   ],
   open: [],
   notApplicable: ['Jian contacts on real targets: Nine has no creatures; its row fires a zero-damage contact at nothing'],
-  ledger: 'Nine declares no quest, fact or ledger rule (shard.config.ts), so there is nothing to emit: the stage loads the real source and reports the empty declaration',
 } as const;
 
 const ROOT = new URL('../../../', import.meta.url);
@@ -148,6 +151,8 @@ function portals(snapshot: string): RideSaved {
 /** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts: Rapier's snapshot bytes are not canonical, so the
  *  native world counts as the state it restores to, exactly) */
 const digest = (snapshot: string): string => canonicalSimDigest(snapshot);
+/** The committed fact effects' names, in order. */
+const facts = (effects: readonly HeadlessEffect[]): string[] => effects.flatMap(effect => effect.kind === 'fact' ? [effect.name] : []);
 function jian(snapshot: string): { swings: number; hits: number; move: number | null } {
   const state = decodeSimSnapshot(snapshot).adapters.find(row => row.id === JIAN_STEP)?.state;
   if (typeof state !== 'string') throw new Error('Missing Jian continuation');
@@ -155,13 +160,16 @@ function jian(snapshot: string): { swings: number; hits: number; move: number | 
   return { swings: value.swings, hits: value.hits, move: value.clock.move };
 }
 const reason = (error: unknown): string => (error instanceof Error ? error.message : String(error)).replaceAll(ROOT.href, 'repo:/');
-/** Run ticks [from, to) through one adapter; every tick commits, and must emit nothing (Nine declares no gameplay fact).
+/** Run ticks [from, to) through one adapter; every tick commits, and may emit only declared ledger facts (into `effects`).
  *  `watch` reads the grapple's phases off each committed snapshot (the headless stage; the replay compares hashes only). */
-function run(sim: TickWorkerAdapter, from: number, to: number, watch = false): string {
+function run(sim: TickWorkerAdapter, from: number, to: number, watch = false, effects: HeadlessEffect[] = []): string {
   let snapshot = '';
   for (let tick = from; tick < to; tick++) {
     sim.step(tape(tick)); const commit = sim.commit();
-    if (commit.effects.length > 0) throw new Error('Nine Dragon emitted a gameplay effect it does not declare');
+    for (const effect of commit.effects) {
+      if (effect.kind !== 'fact' || !source.ledger.some(rule => rule.fact === effect.name)) throw new Error(`Nine Dragon emitted an undeclared gameplay effect: ${JSON.stringify(effect)}`);
+      effects.push(effect);
+    }
     snapshot = commit.snapshot;
     if (!watch) continue;
     const law = tick >= AIM ? grapple(snapshot).sim : { phase: 'idle', target: null }, phase = law.phase;
@@ -175,9 +183,9 @@ export async function headlessProof(rapier: Rapier): Promise<object> {
   let sim: TickWorkerAdapter | undefined;
   try {
     sim = await adapter(rapier); phases.length = 0; capOpen = 0;
-    const snapshot = run(sim, 0, TICKS, true), entries = sim.finish(), blade = jian(snapshot), ride = portals(snapshot);
+    const effects: HeadlessEffect[] = [], snapshot = run(sim, 0, TICKS, true, effects), entries = sim.finish(), blade = jian(snapshot), ride = portals(snapshot);
     if (ride.ride.refused.length > 0) throw new Error(`A play-time portal ride was refused: ${ride.ride.refused.join('; ')}`);
-    return { status: 'passed', ticksExecuted: entries.ticks, swings: blade.swings, contacts: blade.hits, effects: 0,
+    return { status: 'passed', ticksExecuted: entries.ticks, swings: blade.swings, contacts: blade.hits, effects: effects.length, facts: facts(effects),
       rides: ride.ride.rides.map(r => `${r.from}>${r.to}`), grapple: { phases: [...phases], capOpenTicks: capOpen, landed: grapple(snapshot).last },
       entries: { lanes: entries.lanes, steps: entries.steps, portalTransfers: entries.portalTransfers ?? 0 } };
   } catch (error) { return { status: 'failed', dependency: reason(error), ticksExecuted: 0 }; } finally { sim?.dispose(); }
@@ -217,9 +225,55 @@ export async function replayProof(rapier: Rapier, inputs: string, name: Checkpoi
   } catch (error) { return { status: 'failed', dependency: reason(error), checkpointCaptured: false, suffixTicksExecuted: 0 }; } finally { sim?.dispose(); replay?.dispose(); }
 }
 
-/** The real shard source in strict Node: no declared ledger rule, so `not-declared` and no emission claimed. */
-export async function ledgerProof(): Promise<object> {
-  const result: unknown = await compatibilityProbe('nine-dragon-stack', ENTRY, 'ledger');
-  if (typeof result !== 'object' || result === null || !('ledger' in result) || !('declarations' in result)) throw new Error('Missing ledger stage');
-  return { declarations: result.declarations, ledger: result.ledger };
+const identity = { instance: 'nine-dragon-stack-witness', shard: source.identity.slug, revision: source.identity.revision };
+class ProfileStorage implements SaveStorage {
+  private readonly data = new Map<string, string>();
+  get length(): number { return this.data.size; }
+  key(index: number): string | null { return [...this.data.keys()][index] ?? null; }
+  getItem(key: string): string | null { return this.data.get(key) ?? null; }
+  setItem(key: string, value: string): void { this.data.set(key, value); }
+  removeItem(key: string): void { this.data.delete(key); }
+}
+const profile = (local: ProfileStorage): Ledger => new Ledger(new SaveStore({ local, session: null }), [{ id: identity.instance, shard: identity.shard }], [{ shard: identity.shard, revision: identity.revision, rules: source.ledger }], []);
+/** The parent's ingestion of committed fact effects: each fact under its declared rule's provenance, one cursor per origin. */
+function ingest(ledger: Ledger, effects: readonly HeadlessEffect[], tick: number, emitters: Map<string, LedgerEmitter>, dedupe: string[]): LedgerReceipt[] {
+  return effects.flatMap(effect => {
+    if (effect.kind !== 'fact') return [];
+    const rule = source.ledger.find(row => row.fact === effect.name);
+    if (rule === undefined) throw new Error(`Undeclared fact ${effect.name}`);
+    const key = JSON.stringify(rule.origin);
+    let emitter = emitters.get(key);
+    if (emitter === undefined) { emitter = new LedgerEmitter(ledger, identity, rule.origin, () => tick, dedupe); emitters.set(key, emitter); }
+    return [emitter.emit(effect.name, effect.actorId)];
+  });
+}
+/** Ticks the restored session keeps playing after the tape's end; nothing new happens, so nothing may be emitted. */
+const AFTER = 120;
+
+/** The ledger from gameplay (G285): the whole tape, its committed facts into the platform Ledger, granted once and
+ *  durably; a session restored from the tape's end plays on and re-emits nothing; the reopened profile refuses a replay. */
+export async function ledgerProof(rapier: Rapier): Promise<object> {
+  let sim: TickWorkerAdapter | undefined, after: TickWorkerAdapter | undefined;
+  try {
+    const local = new ProfileStorage(), ledger = profile(local), emitters = new Map<string, LedgerEmitter>(), dedupe: string[] = [], receipts: LedgerReceipt[] = [];
+    sim = await adapter(rapier);
+    let snapshot = '';
+    for (let tick = 0; tick < TICKS; tick++) {
+      const effects: HeadlessEffect[] = [];
+      snapshot = run(sim, tick, tick + 1, false, effects);
+      receipts.push(...ingest(ledger, effects, tick, emitters, dedupe));
+    }
+    if (!ledger.flush()) throw new Error('The profile refused the ledger write');
+    const durable = ledger.state(), rows = Object.values(durable.facts), achievements = Object.values(durable.achievements);
+    if (rows.length !== source.ledger.length || receipts.length !== source.ledger.length || receipts.some(r => r.status !== 'granted')
+      || achievements.length !== source.ledger.length || achievements.some(a => !a.earned || a.count !== 1)) throw new Error(`Gameplay facts did not grant once: ${JSON.stringify(receipts)}`);
+    after = await adapter(rapier, snapshot);
+    const later: HeadlessEffect[] = [];
+    run(after, TICKS, TICKS + AFTER, false, later);
+    const reopened = profile(local), replayed = rows.map(row => reopened.record(row).status);
+    if (later.length > 0 || JSON.stringify(reopened.state()) !== JSON.stringify(durable) || replayed.some(status => status !== 'duplicate')) throw new Error('Ledger was not durable and deduplicated');
+    return { declarations: { sourceLoaded: true, quests: source.quests.quests.map(row => row.id), ledgerRules: source.ledger.map(rule => rule.fact), runtimeBinds: source.runtime?.binds ?? [] },
+      ledger: { status: 'passed', rules: source.ledger.length, facts: rows.map(row => ({ name: row.name, origin: `${row.origin.kind}.${row.origin.source}`, tick: row.tick, entity: row.entity })),
+        achievements: achievements.map(a => ({ id: a.id, count: a.count, earned: a.earned })), durableReload: true, duplicateStable: true, restoredReemits: 0, gameplayEmissionProven: true } };
+  } catch (error) { return { ledger: { status: 'failed', dependency: reason(error), gameplayEmissionProven: false } }; } finally { sim?.dispose(); after?.dispose(); }
 }

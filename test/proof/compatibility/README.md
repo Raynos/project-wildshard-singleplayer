@@ -35,7 +35,7 @@ compatibility green. Unknown modes throw rather than emit a passing result.
 | Pine Hollow | `pine-hollow/runtime/index.ts` | `runtime/audio/score.ts` parameter property | Loads; 19 rules tested |
 | Driftwood | `driftwood-isle/runtime/hybrid.ts` | `game/shardfile/hybrid.ts` parameter property | Loads; 10 rules tested |
 | Nalati | `nalati-grasslands/runtime/index.ts` | `engine/app/runtime.ts` | Loads; 17 rules tested |
-| Nine Dragon | `nine-dragon-stack/runtime/index.ts` | `engine/combat/view/SweptMelee.ts` | Source rejects `engine/render/tiers.ts`; blocked |
+| Nine Dragon | `nine-dragon-stack/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay, G285) | 2 rules, both from gameplay |
 
 ## What the ledger checks establish
 
@@ -143,10 +143,9 @@ specimen lighting cannot be prerequisites of native collision/traversal.
 Native ownership: prebuilt Jian, play-built Fei Zhua, portal rider/transfer and the `NdRuntime` traversal/
 world controllers (no declared quest/feat/state or creature rows are invented here). Capture melee
 strike/pending actions, grapple cable/anchor/climb/zip state, player attachment and portal transition
-fences, gate/guard state and any gameplay-relevant world clocks. Nine declares no ledger rewards, but
-its full source import is blocked, so this witness makes no independently peeled-leaf ledger claim.
-Next target: real equipment/traversal host boot and grapple/portal restore suffix; only actual future
-reward declarations should add a ledger emission witness.
+fences, gate/guard state and any gameplay-relevant world clocks. (Historical: since SF72 the witness runs
+the renderer-free entry, and since G285 Nine declares two feats whose facts its tape emits from gameplay;
+see `test/proof/nine-dragon-stack/README.md`.)
 
 ## Delivery boundary
 

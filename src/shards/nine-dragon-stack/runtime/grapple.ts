@@ -4,6 +4,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { GrappleBody, GrapplePorts } from '../grapple/course';
 import { GrappleSim, type GrappleView, wellCourse } from '../grapple/sim';
+import { traverseFeats, type NineFacts } from '../world/feats';
 
 /** The Fei Zhua's fixed-step adapter id. */
 export const GRAPPLE_STEP = 'nine-dragon-stack.fei-zhua';
@@ -42,9 +43,11 @@ const Saved = v.strictObject({
  * JUMP that fired the claw never lifts the player) before the law moves it. The safety cap (`guard`: the baked
  * `nds-grapple-guard` colliders) opens exactly while a lifting crossing is in flight, as the page's `NdRuntime.guardOpen`
  * makes its piece inactive. Nothing draws: rope, markers, cues and arms are the page's (FeiZhua.ts). The law's state,
- * the aim, the tick's start and the cap's handles are exact continuation.
+ * the aim, the tick's start and the cap's handles are exact continuation. A lifting crossing that settles reports the
+ * Well's fact (world/feats.ts) to `fact`.
  */
-export function installNineGrapple(host: SimHost, hooks: readonly Vector3[], guardHandles: readonly number[], input: (into: GrappleInput) => void): NineGrapple {
+export function installNineGrapple(host: SimHost, hooks: readonly Vector3[], guardHandles: readonly number[], input: (into: GrappleInput) => void,
+  fact: NineFacts = () => { /* no ledger */ }): NineGrapple {
   const state = { pitch: 0, last: host.player.position.clone(), fall: { vy: host.playerFall.vy, grounded: host.playerFall.grounded }, guard: [...guardHandles] };
   const velocity = new Vector3();
   const body: GrappleBody = {
@@ -87,7 +90,7 @@ export function installNineGrapple(host: SimHost, hooks: readonly Vector3[], gua
       moved.copy(p); walked.vy = fall.vy; walked.grounded = fall.grounded;
       p.copy(state.last); fall.vy = state.fall.vy; fall.grounded = state.fall.grounded;
       velocity.set(0, fall.vy, 0);
-      if (sim.traverse(dt)) fall.vy = velocity.y;
+      if (traverseFeats(sim, dt, fact)) fall.vy = velocity.y;
       else { p.copy(moved); fall.vy = walked.vy; fall.grounded = walked.grounded; }
     }
     const p = host.player.position;

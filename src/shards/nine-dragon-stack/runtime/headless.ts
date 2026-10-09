@@ -85,7 +85,8 @@ export function addNinePieces(physics: Physics): { added: number; guard: number[
  * square's slab, the Well's crossings and safety cap, every placed model's colliders), the player standing at the declared spawn in Lantern Square, the
  * Jian as its declared item row on the swept melee family's own clock (runtime/jian.ts), and the play-time portal rides on
  * the page's own ride (runtime/portals.ts: walk into a ring, held through the fade, the checked transfer). The fragment declares no quest,
- * creature, encounter or ledger rule, so none is installed. The entry proof is the format's own portal-link proof
+ * creature or encounter; its two ledger facts (data/ledger.ts) are emitted as `fact` effects by the ride and the Fei Zhua's
+ * law as the player plays them (world/feats.ts). The entry proof is the format's own portal-link proof
  * (`provePortalLinks`): 23 capsule lanes across each deck's 8 m opening, then the bound ride to the square, the walked
  * route to its exit and the ride back, through the host's own collision world, so `finish` answers with real lanes,
  * steps and transfers. The Fei Zhua is the page's own law (runtime/grapple.ts over grapple/sim.ts): a LOCK script press, the
@@ -107,12 +108,13 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const guard = context.restoring ? [] : addNinePieces(host.physics).guard;
     installNineJian(host, jian, JIAN_ROW, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
       () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));
-    installNinePortals(host);
+    const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
+    installNinePortals(host, fact);
     installNineGrapple(host, NINE_HOOKS, guard, (tick) => {
       const commands = context.commands();
       tick.lock = commands.some(command => command.kind === 'script' && command.actorId === GRAPPLE_LOCK);
       tick.jump = commands.some(command => command.kind === 'player' && command.jump === true);
       tick.pitch = commands.reduce<number | undefined>((pitch, command) => command.kind === 'script' && command.actorId === GRAPPLE_AIM ? command.value : pitch, undefined);
-    });
+    }, fact);
   } };
 };

@@ -29,6 +29,7 @@ import { Flash, Sparks } from './fx';
 import type { GrappleCourse, GrapplePorts } from './course';
 import { FIRE_TIME, GrappleSim, type GrappleTarget, type GrappleView, hookVisible, landingFor, MAX_RANGE, MIN_RANGE, NONE, REEL_TIME, targetFor, WIN_X, WIN_Y, wellCourse } from './sim';
 import { grappleCue } from '../runtime/audio/cues';
+import { traverseFeats, type NineFacts } from '../world/feats';
 
 /** hooks whose sight (and, when stale, landing) are re-tested per frame: a round robin over the registry */
 const SCAN_PER_FRAME = 2;
@@ -120,19 +121,21 @@ export class FeiZhua extends Tool {
   enabled = true;
   private readonly shard: ShardContext;
   private readonly course: GrappleCourse | undefined;
+  private readonly fact: NineFacts;
   private courseSetter: ((course: GrappleCourse | null) => void) | undefined;
-  constructor(shard: ShardContext, course?: GrappleCourse) { super(FEI_ZHUA_ROW); this.shard = shard; this.course = course; }
+  /** `fact`: where the Well crossing's gameplay fact goes (world/feats.ts; the page's bound ledger) */
+  constructor(shard: ShardContext, course?: GrappleCourse, fact: NineFacts = () => { /* no ledger */ }) { super(FEI_ZHUA_ROW); this.shard = shard; this.course = course; this.fact = fact; }
   override install(equip: EquipContext): void {
     super.install(equip);
     const host = this.shard.app.equipmentHost;
     if (host === null) throw new Error('Fei Zhua needs the equipment scene ports');
-    this.courseSetter = installRuntime(host, this.shard, equip.scope, () => this.enabled, this.course);
+    this.courseSetter = installRuntime(host, this.shard, equip.scope, () => this.enabled, this.fact, this.course);
   }
   setGrappleCourse(course: GrappleCourse | null): void { this.courseSetter?.(course); }
   override update(_dt: number, _t: number): void { /* Owned systems retain their original phases. */ }
 }
 
-function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, toolEnabled: () => boolean, baseCourse?: GrappleCourse): (course: GrappleCourse | null) => void {
+function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, toolEnabled: () => boolean, fact: NineFacts, baseCourse?: GrappleCourse): (course: GrappleCourse | null) => void {
   // the fragment's own course (grapple/sim.ts wellCourse): its dragon hooks, read once at install, and the Well's safety cap
   const fragment = baseCourse ?? wellCourse(ndRuntime().world.ctx.hooks, RIM.z0, (open) => { ndRuntime().guardOpen = open; });
   let hooks = fragment.hooks;
@@ -300,7 +303,7 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   shard.app.events.answer('player.traversal', (dt) => {
     if (typeof dt !== 'number') return dt;
     if (!enabled() || sim.phase === 'idle') return false;
-    return sim.traverse(dt);
+    return traverseFeats(sim, dt, fact);
   }, scope);
 
   shard.app.addSystem({ id: 'fei-zhua.rope', phase: 'fixed.post', run: (dt) => {

@@ -10,7 +10,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
-import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
+import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { prepareHeadlessRuntime } from '../../../src/shards/nine-dragon-stack/runtime/headless';
 import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
@@ -22,15 +22,19 @@ beforeAll(async () => {
   plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
 });
 interface Tape { commands: readonly HeadlessCommand[] }
+/** G285: Nine emits only its declared ledger facts (the ride into Lantern Square, the settled Well crossing). */
+const declaredOnly = (effect: HeadlessEffect): void => {
+  if (effect.kind !== 'fact' || !source.ledger.some(rule => rule.fact === effect.name)) throw new Error(`Nine Dragon emitted an undeclared effect: ${JSON.stringify(effect)}`);
+};
 const boot = (tape: Tape): SimHost => {
   const host = createSimHost(plan.level, { ...plan.ports, rapier });
-  plan.install(host, { restoring: false, commands: () => tape.commands, emit: () => { throw new Error('Nine Dragon emits no gameplay effect'); } });
+  plan.install(host, { restoring: false, commands: () => tape.commands, emit: declaredOnly });
   return host;
 };
 const restore = (saved: string, tape: Tape): SimHost => {
   const decoded = decodeSimSnapshot(saved);
   return restoreSimHost(plan.level, { ...plan.ports, rapier }, decoded, fresh => {
-    plan.install(fresh, { restoring: true, snapshot: decoded, commands: () => tape.commands, emit: () => { throw new Error('Nine Dragon emits no gameplay effect'); } });
+    plan.install(fresh, { restoring: true, snapshot: decoded, commands: () => tape.commands, emit: declaredOnly });
   });
 };
 /** The tape: stroll Lantern Square, tapping the Jian on a rhythm that chains its combo and lets it lapse. */

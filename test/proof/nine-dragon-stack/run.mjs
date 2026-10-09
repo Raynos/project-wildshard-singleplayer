@@ -39,9 +39,9 @@ if (mode === 'fresh') {
     const ride = await witness.replayProof(rapier, fingerprint, 'ride'), crossing = await witness.replayProof(rapier, fingerprint, 'crossing');
     results.replay = { status: ride.status === 'passed' && crossing.status === 'passed' ? 'passed' : 'failed', ride, crossing };
   } else if (mode === 'replay-ride' || mode === 'replay-crossing') results.replay = await witness.replayProof(rapier, fingerprint, mode === 'replay-ride' ? 'ride' : 'crossing');
-  if (mode === 'all' || mode === 'ledger') Object.assign(results, await witness.ledgerProof());
+  if (mode === 'all' || mode === 'ledger') Object.assign(results, await witness.ledgerProof(rapier));
   const passed = name => results[name]?.status === 'passed';
-  const compatible = passed('headless') && passed('replay') && results.ledger?.status === 'not-declared';
+  const compatible = passed('headless') && passed('replay') && passed('ledger') && results.ledger?.gameplayEmissionProven === true;
   console.info(JSON.stringify({ slug: 'nine-dragon-stack', entry: witness.ENTRY, compatible, ...witness.SCOPE, ...results }));
-  process.exitCode = compatible || (mode === 'ledger' ? results.ledger?.status === 'not-declared' : passed(mode.startsWith('replay-') ? 'replay' : mode)) ? 0 : 1;
+  process.exitCode = compatible || passed(mode.startsWith('replay-') ? 'replay' : mode) ? 0 : 1;
 }

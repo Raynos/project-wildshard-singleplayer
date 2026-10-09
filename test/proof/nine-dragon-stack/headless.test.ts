@@ -9,7 +9,7 @@ it('walks the square into its ring, rides to the north deck and home again by ti
   expect(report.notApplicable).toEqual(['Jian contacts on real targets: Nine has no creatures; its row fires a zero-damage contact at nothing']);
   // 21 taps and the charged heavy; the grapple's whole lifting crossing from the Well's south rim
   expect(report).toMatchObject({ slug: 'nine-dragon-stack', entry: 'runtime/headless.ts', transitional: false,
-    headless: { status: 'passed', ticksExecuted: 1084, swings: 22, contacts: 22, effects: 0,
+    headless: { status: 'passed', ticksExecuted: 1084, swings: 22, contacts: 22, effects: 2, facts: ['nine-dragon-stack.lantern-square', 'nine-dragon-stack.well'],
       rides: ['portal.square.north>portal.north', 'portal.north>portal.square.arrival'],
       grapple: { phases: ['idle', 'fire', 'bite', 'lift', 'zip', 'vault', 'settle', 'idle'] }, entries: { lanes: 92, portalTransfers: 8 } } });
   // the cap stood open from the fire to the settle (~2.5 s), then the player dropped onto the crossing's deck, 6 m under the square

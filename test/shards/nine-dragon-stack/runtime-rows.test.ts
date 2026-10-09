@@ -29,15 +29,19 @@ function fixture() {
   return { scope, primary, ctx, grapple: new FeiZhua(ctx) };
 }
 describe('Nine Dragon runtime-owned fragment (SF51-p)', () => {
-  it('declares only its two shipping items, preserving empty gameplay and the checked portal floors', () => {
-    expect(source.runtime?.binds).toEqual(['items']);
+  it('declares its two shipping items and two runtime-owned feats, preserving the checked portal floors', () => {
+    expect(source.runtime?.binds).toEqual(['items', 'ledger']);
     expect(source.items.rows.map(row => [row.id, row.family])).toEqual([
       ['weapon.jian', 'nine-dragon-stack.jian'], ['tool.fei-zhua', 'nine-dragon-stack.fei-zhua'],
     ]);
     expect(source.items.rows.find(row => row.kind === 'tool')).toMatchObject({ action: null, hook: null, intensity: 0 });
-    expect([source.quests.quests, source.ledger, source.creatures.spawns, source.state.shared, source.state.player]).toEqual([[], [], [], [], []]);
+    // G285: the feats are ledger rows the runtime emits (world/feats.ts); the data installer leaves them to it
+    expect(source.ledger.map(rule => [rule.fact, `${rule.origin.kind}.${rule.origin.source}`])).toEqual([
+      ['nine-dragon-stack.lantern-square', 'engine.portal.ride'], ['nine-dragon-stack.well', 'engine.fei-zhua.crossing'],
+    ]);
+    expect([source.quests.quests, source.creatures.spawns, source.state.shared, source.state.player]).toEqual([[], [], [], []]);
     expect(manifest.species).toEqual([]); expect(manifest.encounters).toEqual([]);
-    const data = withoutRuntimeRows(source); expect(data.items.rows).toEqual([]);
+    const data = withoutRuntimeRows(source); expect(data.items.rows).toEqual([]); expect(data.ledger).toEqual([]);
     expect(data.props).toBe(source.props); expect(data.entryways).toBe(source.entryways); expect(data.audio).toBe(source.audio);
   });
   it('adopts the prebuilt Jian and original Fei Zhua without adding generic input or replacing native policies', () => {

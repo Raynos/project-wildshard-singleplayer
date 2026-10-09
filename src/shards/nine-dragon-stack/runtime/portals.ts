@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { playerRider, portalRide, type PortalPlayer, type PortalRide } from '../world/portalRide';
+import { rideFeats, type NineFacts } from '../world/feats';
 
 /** The ride's fixed-step adapter id. */
 export const PORTAL_STEP = 'nine-dragon-stack.portals';
@@ -34,8 +35,9 @@ const Saved = v.strictObject({
  * Player's (no move, no velocity, off the ground: the feet stay at the ring's touch while the fade runs), `spawn` its
  * resets (the motor's anchor released, every velocity and the dash cleared, facing the admitted heading), the hoverboard the host's.
  * Nothing draws: the veil is the page's (world/portalVeil.ts). The ride's state and the hold are exact continuation.
+ * A ride that lands in Lantern Square reports the square's fact (world/feats.ts) to `fact`.
  */
-export function installNinePortals(host: PortalHost): PortalRide {
+export function installNinePortals(host: PortalHost, fact: NineFacts = () => { /* no ledger */ }): PortalRide {
   const player = host.player;
   let held: Point | null = null;
   const keep = (at: Point): void => {
@@ -55,9 +57,10 @@ export function installNinePortals(host: PortalHost): PortalRide {
     spawn: (x, z, yaw, y) => { player.yaw = yaw; player.motor.release(); host.playerDash.t = 0; keep({ x, y: y ?? player.position.y, z }); },
   };
   const ride = portalRide(playerRider(body, () => host.physics), () => { /* the fade is the page's view */ });
+  const step = rideFeats(ride.step, ride.rides, fact);
   host.onStep(PORTAL_STEP, (dt) => {
     if (held !== null) keep(held);
-    ride.step(dt);
+    step(dt);
   }, { snapshot: () => JSON.stringify({ held, ride: ride.snapshot() }), restore: (value) => {
     if (typeof value !== 'string') throw new Error('Invalid Nine portal continuation');
     const saved = v.parse(Saved, JSON.parse(value));

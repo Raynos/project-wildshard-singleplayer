@@ -1,6 +1,6 @@
 # Nine Dragon Stack: runtime-owned item rows (SF51-p, E435)
 
-The committed fragment has one Neon Jian and one Fei Zhua. Its quests, ledger rules, fauna, encounters and mutable shard state are empty; this conversion does not create new gameplay or migrations for absent state.
+The committed fragment has one Neon Jian and one Fei Zhua. Its quests, fauna, encounters and mutable shard state are empty (its two ledger feats came later, G285, below); this conversion does not create new gameplay or migrations for absent state.
 
 `shard.config.ts` declares both items and binds `items` to the trusted runtime. The runtime adopts the existing prebuilt Sword and constructs the grapple at the original play-stage point, then installs it once. The Jian retains its native `sword` compatibility slot; the grapple retains `tool.fei-zhua`, LOCK/JUMP input and its native offhand policy. The runtime-owned tool has `action: null`, so the data installer creates no second toggle binding.
 
@@ -65,10 +65,15 @@ runtime presentation.
 zero-damage contact at nothing. The combo, heavy and contact clock are still exercised. This is not an open gameplay
 item and does not make the witness transitional.
 
-**Ledger `not-declared`** is the truth, not a skipped stage: Nine declares no quest, fact or ledger rule
-(`shard.config.ts`), so there is nothing to emit. The stage loads the real source in strict Node and reports the empty
-declaration; no gameplay emission is claimed. `scripts/shard-platform.mjs` computes its own structural transitional
-status while trusted runtime code remains; this witness does not change that classification.
+**Ledger from gameplay (G285).** Nine declares two feats as ledger rows (`data/ledger.ts`, bound to the runtime):
+`nine-dragon-stack.lantern-square` (a deck's portal rides you into Lantern Square, origin `engine.portal.ride`) and
+`nine-dragon-stack.well` (the Fei Zhua's lifting crossing settles over the Well, origin `engine.fei-zhua.crossing`).
+`world/feats.ts` reads both off the same laws the page and the host run (the ride's transfers, the grapple's settle →
+release); the page sends them to `bindRuntimeLedger` (`runtime/facts.ts`), the host emits them as committed `fact`
+effects. The ledger stage plays the whole tape: the ride home lands in the square (tick 522) and the crossing settles
+(tick 1024); both facts reach the platform `Ledger` once under their declared provenance, durably, and a session restored
+from the tape's end plays 120 more ticks and re-emits nothing. A zip that is blocked or times out releases from the zip,
+never the settle, so it reports nothing. The checkpoint payloads are unchanged (no new continuation state).
 
 ## Short replay checkpoints (Nine6)
 

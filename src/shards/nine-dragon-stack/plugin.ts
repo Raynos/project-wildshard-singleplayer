@@ -13,6 +13,7 @@ import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { bindNineItems } from './runtime/items';
+import { bindNineFacts } from './runtime/facts';
 import { STRINGS } from './strings';
 import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
@@ -59,12 +60,14 @@ export class NdPlugin extends ShardPlugin {
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
     const primary = this.primary;
     if (primary === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
-    const grapple = new FeiZhua(ctx);
+    // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
+    const facts = bindNineFacts(ctx, this.shell?.play?.progress);
+    const grapple = new FeiZhua(ctx, undefined, facts);
     bindNineItems(ctx, primary, grapple);
     equipment.add(grapple, { locked: false });
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
     const world = this.shell?.world, slot = this.ndWorld?.portal;
-    if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics));
+    if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics), facts);
     return Promise.resolve();
   }
   /** G224: the portals while they run (captures read them through the shard handle) */
