@@ -5,7 +5,7 @@
  *   GET  (x-review-password header)          → { entries: [...] }   every signup, for the admin site's Waitlist tab
  *
  * The POST is public: the site (`site/index.html`) calls it cross-origin, so CORS allows the site's origins only
- * (`wildshard-site.vercel.app` plus any in `WAITLIST_ORIGINS`, comma-separated, for the domains Jake buys). A claimed
+ * (`wildshard.io` and `wildshard-site.vercel.app`, plus any in `WAITLIST_ORIGINS`, comma-separated). A claimed
  * cell is a wish, not a promise: any grid cell but the fixed centre. `website` is a honeypot a person never fills.
  * Rate limit 10 / min per IP per warm instance. The GET reuses the review inbox's password (`REVIEW_PASSWORD`).
  */
@@ -16,7 +16,7 @@ export const MAX_BODY_BYTES = 8 * 1024;
 export const MAX_BUILD_CHARS = 500;
 export const RATE_LIMIT_PER_MIN = 10;
 const PREFIX = 'waitlist/';
-const SITE_ORIGINS = ['https://wildshard-site.vercel.app'];
+const SITE_ORIGINS = ['https://wildshard.io', 'https://wildshard-site.vercel.app'];
 /** the admin site reads the list (GET, with the review password) */
 const ADMIN_ORIGINS = new Set(['https://wildshard-admin.vercel.app']);
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,253}\.[^\s@]{2,}$/u;

@@ -1,5 +1,5 @@
 PROJECT WILDSHARD - PRESS KIT
-https://wildshard-site.vercel.app
+https://wildshard.io
 
 ONE LINE
 Project Wildshard is a browser MMO where every shard of the world is built by a player in Claude Code.

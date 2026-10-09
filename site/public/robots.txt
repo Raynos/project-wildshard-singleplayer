@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wildshard-site.vercel.app/sitemap.xml
+Sitemap: https://wildshard.io/sitemap.xml
