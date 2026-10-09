@@ -1,6 +1,8 @@
 # sp-x2 handoff — SF68 data pipeline, 2026-10-08
 
-IDLE per coordinator pacing. SF68 / E462 data-only source landed as `7ea6e6cb70a43d18d28ebbecdcbfdec3b6fcb890` (CAS / subject / stat / ancestor verified), and the coordinator relayed it to the admin UI lane. No small UI follow-up is pending. Resume only for an assigned SF68 data follow-up; the coordinator owns pushes, the Opus lane owns the admin UI, and the coordinator creates the separate `wildshard-admin` Vercel project before any deployment. Never message wildshard-v.
+SF64 owner-value correction active (coordinator request, E456): engine snapshot now groups unattributed bytes by owner value, with RAM/GPU/inherited-label and report-reader regression. Focused checks green; clean-export full suite, root lint/typecheck and ratchet queued. No reports or committed generated outputs changed.
+
+SF68 source is handed off; SF68 / E462 data-only source landed as `7ea6e6cb70a43d18d28ebbecdcbfdec3b6fcb890` (CAS / subject / stat / ancestor verified), and the coordinator relayed it to the admin UI lane. No small UI follow-up is pending. Resume only for an assigned SF68 data follow-up; the coordinator owns pushes, the Opus lane owns the admin UI, and the coordinator creates the separate `wildshard-admin` Vercel project before any deployment. Never message wildshard-v.
 
 **This source slice:** `scripts/admin-data.mjs` + `scripts/admin-data/`: pinned committed-tree collector, portable JSON schemas, typed bundle, semantic validators, source SHA-256 provenance, content-hashed media, playtest/plan Markdown extraction, explicit clean-export adapter and atomic output. `test/admin-data.test.ts` uses synthetic reports and a temporary Git repo, not progress-dependent Vercel fixtures. CLI / contract: `scripts/admin-data/README.md` and `types.d.mts`.
 

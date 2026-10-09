@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { MemoryAttribution } from '../../src/engine/core/memoryAttribution';
+import { readMemoryAttribution } from '../../scripts/memory-report-data.mjs';
 
 it('deduplicates shared backing storage, replaces reallocations, and separates domains/native footprint', () => {
   const ledger = new MemoryAttribution(), buffer = new ArrayBuffer(4096), handle = {};
@@ -32,4 +33,31 @@ it('keeps scalar receipts independent and refuses invalid sizes/provenance', () 
   expect(() => ledger.allocation({}, 'ram', 'wasm', -1)).toThrow('bytes');
   expect(() => ledger.snapshot(Number.NaN)).toThrow('bytes');
   expect(() => ledger.measurement({ webContentBytes: 1, labelledGpuBytes: 2, sampledAt: 0, source: '' })).toThrow('provenance');
+});
+
+it('reconciles explicitly unattributed owners by value for RAM, GPU and inherited labels', () => {
+  const ledger = new MemoryAttribution();
+  const cpu = new ArrayBuffer(24), unlabeledCpu = new ArrayBuffer(16);
+  const gpu = {}, unlabeledGpu = {}, knownGpu = {}, inheritedGpu = {}, source = {};
+  ledger.buffer(cpu, { owner: 'unattributed', asset: 'decoded/unknown' });
+  ledger.buffer(unlabeledCpu);
+  ledger.label(gpu, { owner: 'unattributed', asset: 'texture/unknown' });
+  ledger.allocation(gpu, 'gpu', 'texture', 12);
+  ledger.allocation(unlabeledGpu, 'gpu', 'buffer', 4);
+  ledger.label(knownGpu, { owner: 'engine/post', asset: 'unattributed' });
+  ledger.allocation(knownGpu, 'gpu', 'render-target', 32);
+  ledger.label(source, { owner: 'unattributed', asset: 'geometry/unknown' });
+  ledger.source(inheritedGpu, source);
+  ledger.allocation(inheritedGpu, 'gpu', 'buffer', 8);
+
+  const snapshot = ledger.snapshot();
+  expect(snapshot.totals).toEqual({ ram: 40, gpu: 56 });
+  expect(snapshot.unattributed).toEqual({ ram: 40, gpu: 24 });
+  expect(readMemoryAttribution(snapshot).unattributed).toEqual(snapshot.unattributed);
+  for (const domain of ['ram', 'gpu'] as const) {
+    const allocations = snapshot.allocations.filter(row => row.domain === domain && row.owner === 'unattributed');
+    expect(allocations.reduce((sum, row) => sum + row.bytes, 0)).toBe(snapshot.unattributed[domain]);
+  }
+  ledger.label(gpu, { owner: 'level/terrain', asset: 'texture/known' });
+  expect(ledger.snapshot().unattributed).toEqual({ ram: 40, gpu: 12 });
 });

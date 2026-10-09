@@ -106,7 +106,7 @@ export class MemoryAttribution {
       const label = this.labels.get(resource) ?? (source === undefined ? undefined : this.labels.get(source)) ?? UNATTRIBUTED;
       allocations.push({ id, domain: entry.domain, kind: entry.kind, bytes, precision: entry.precision, ...label });
       totals[entry.domain] += bytes;
-      if (label === UNATTRIBUTED) unattributed[entry.domain] += bytes;
+      if (label.owner === UNATTRIBUTED.owner) unattributed[entry.domain] += bytes;
     }
     allocations.sort((a, b) => b.bytes - a.bytes || a.id.localeCompare(b.id));
     return { version: 1, allocations, totals, unattributed, measured: this.measured === null ? null : { ...this.measured }, accountedBytes };
