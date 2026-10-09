@@ -36,13 +36,41 @@ export function keepShadowWhole(mesh: THREE.Mesh): void { whole.add(mesh); }
 
 export interface ShadowChunkReport { meshes: number; pieces: number; tris: number }
 
-export function chunkShadowCasters(scene: THREE.Scene): ShadowChunkReport {
+/** Triangles a split walks between pause points (SF67: an island-wide terrain is ~0.5 M triangles, one 0.3 s task at 4×). */
+const PAUSE_EVERY = 16384;
+
+/** One pass of the work: every eligible mesh's split, pausing (`yield`) every PAUSE_EVERY triangles. */
+function* chunkWork(scene: THREE.Scene, report: ShadowChunkReport): Generator<void, void> {
   const found: THREE.Mesh[] = [];
   scene.traverse((o) => { if (eligible(o)) found.push(o); });
-  const report: ShadowChunkReport = { meshes: 0, pieces: 0, tris: 0 };
   for (const mesh of found) {
-    const n = split(mesh);
+    if ((mesh.userData as ChunkUserData).shadowChunked === true) continue;
+    const n = yield* split(mesh);
     if (n > 0) { report.meshes++; report.pieces += n; report.tris += triangles(mesh.geometry); }
+    yield;
+  }
+}
+
+export function chunkShadowCasters(scene: THREE.Scene): ShadowChunkReport {
+  const report: ShadowChunkReport = { meshes: 0, pieces: 0, tris: 0 };
+  const work = chunkWork(scene, report);
+  while (work.next().done !== true) { /* run every step now */ }
+  return report;
+}
+
+/**
+ * The same split, its pieces and its order identical to `chunkShadowCasters`, in time slices (SF67, E461): after `budgetMs`
+ * of work it awaits `pause()` (a painted frame during loading). A mesh changes only when its own split finishes, so a pause
+ * never leaves a half-split mesh in the scene.
+ */
+export async function chunkShadowCastersSliced(scene: THREE.Scene, pause: () => Promise<void>, budgetMs = 12): Promise<ShadowChunkReport> {
+  const report: ShadowChunkReport = { meshes: 0, pieces: 0, tris: 0 };
+  const work = chunkWork(scene, report);
+  let t0 = performance.now();
+  while (work.next().done !== true) {
+    if (performance.now() - t0 < budgetMs) continue;
+    await pause();
+    t0 = performance.now();
   }
   return report;
 }
@@ -70,8 +98,9 @@ function eligible(o: THREE.Object3D): o is THREE.Mesh {
   return r * mesh.matrixWorld.getMaxScaleOnAxis() >= MIN_RADIUS;
 }
 
-/** the mesh's triangles into squares of its local xz; returns the pieces made (0: it stays whole) */
-function split(mesh: THREE.Mesh): number {
+/** the mesh's triangles into squares of its local xz; returns the pieces made (0: it stays whole). Yields every
+ *  PAUSE_EVERY triangles walked; the mesh itself changes only at the end. */
+function* split(mesh: THREE.Mesh): Generator<void, number> {
   const g: THREE.BufferGeometry = mesh.geometry;
   const pos = g.attributes['position'];
   if (pos === undefined) return 0;
@@ -94,6 +123,7 @@ function split(mesh: THREE.Mesh): number {
     const c = iz * nx + ix;
     cellOf[t] = c;
     counts[c] = (counts[c] ?? 0) + 1;
+    if (t % PAUSE_EVERY === PAUSE_EVERY - 1) yield;
   }
   let used = 0;
   for (const c of counts) if (c > 0) used++;
@@ -109,6 +139,7 @@ function split(mesh: THREE.Mesh): number {
     const c = cellOf[t] ?? 0, at = fill[c] ?? 0;
     fill[c] = at + 1;
     for (let k = 0; k < 3; k++) index[3 * at + k] = vert(t, k);
+    if (t % PAUSE_EVERY === PAUSE_EVERY - 1) yield;
   }
   const shared = new THREE.BufferAttribute(index, 1);
   const pieces = new THREE.Group();
@@ -125,6 +156,7 @@ function split(mesh: THREE.Mesh): number {
     geo.setDrawRange(first, count * 3);
     sphere.makeEmpty();
     for (let i = first; i < first + count * 3; i++) { const v = index[i] ?? 0; sphere.expandByPoint(p.fromBufferAttribute(pos, v)); }
+    if (count > PAUSE_EVERY / 4) yield;
     geo.boundingBox = sphere.clone();
     geo.boundingSphere = sphere.getBoundingSphere(new THREE.Sphere());
     const piece = new THREE.Mesh(geo, mesh.material);

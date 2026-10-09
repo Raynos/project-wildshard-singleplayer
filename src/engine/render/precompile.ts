@@ -7,7 +7,7 @@ import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/pe
 import { bootTraceActive } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
 import type { Game } from '../core/Game';
-import { chunkShadowCasters } from '../world/shadowChunks';
+import { chunkShadowCastersSliced } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
@@ -394,7 +394,11 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (game.renderer.shadowMap.type === THREE.PCFSoftShadowMap) game.renderer.shadowMap.type = THREE.PCFShadowMap;
     // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts)
     if (options.chunkCasters !== false) {
-      const cut = chunkShadowCasters(game.scene);
+      // SF67: sliced with a painted frame between (it was one 0.3 s task on Driftwood at 4×); the pieces are the same
+      const cut = await chunkShadowCastersSliced(game.scene, async () => {
+        await frame();
+        if (options.current?.() === false) throw new Error('Shader warm-up owner left');
+      });
       if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
     }
     // Compile against the same page lights/environment as firstFrame. A regional content binding
