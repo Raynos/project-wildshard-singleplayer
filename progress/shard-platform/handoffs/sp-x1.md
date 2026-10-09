@@ -1,26 +1,13 @@
-# sp-x1 handoff — 2026-10-08, Codex throttle
+# Handoff (sp-x1) — 2026-10-08
 
-Idle after this commit. **No owned browser, Simulator, sampler, Inspector or preview remains.** The SF64 preview reservation :4402 and own wrapper/build were terminated before capture; the reservation is gone. No RAM attribution result was collected. Coordinator owns pushes/generated outputs.
+Current owner: sp-x1. Coordinator wildshard-new owns pushes and generated outputs. No owned browser, Simulator or preview is running.
 
-**Done (local main; coordinator owns push status):**
+- Sky runtime-owner binding `158b42d8d` landed: quest/facts/Progress, fan/context/native slot, finite actors/Roc and bounded C26 state; map, Chromium standalone/grid and clean full proof in `sf49/hybrid-rows/`. Its scratch/preview were removed.
+- Signal checkpoint `370ecda0d` landed: emitting ledger through Progress, real current-save/rebind/profile-quota proofs. Clean 953 files / 5430 tests +14 skips, strict/root lint/ratchet/hooks green. +2 Sun->game approved. No world/config edits; no one-shot body remains unbound. Matriarch kills intentionally normalizes0/1; state was not widened.
+- `m3-status/README.md` and `inventory.json` record the six-shard 80/20 checklist on `370ecda0d41f461493d4c565fb1fc42e37ffa976`. All six remain transitional; committed bindings, G51 controllers, source share and qualifying gates are separate.
 
-- `81888d1c4`: SF64 weak allocation ledger, native GPU storage identities, CPU buffer/image/audio/WASM inventory, scalar `__wildshard.memory()` v1. Exact storage/capacity is distinct from physical resident RAM.
-- `619c87c4f`: renderer-free defining API `@wildshard/engine/core/memoryAttribution`; cuts the template sim closure render edge. `d5ac76cf0` clean committed ratchet witness: no sim-no-render debt.
-- `8ecc29759`: extends the EXISTING Developer MEMORY chip in place, preserving old accounted / PLAYING / LOAD lines and placement; expanded GPU/RAM owner/asset sorting, smaller-row subtotal, explicit observed-unattributed bytes and native provenance/unavailable. No ninth tool or separate panel. Four overlay tests + scoped strict/typed lint green.
-- This commit: optional `--allocator-trace` on existing `progress/memory/g227-budget/webkit-centre.mjs`; same-process passive native categories/maps before and after the existing paused-frame heap collection, worker heaps retained separately, PID/document fences, unsupported/errors explicit. Two PID/native-map helper fixtures + typed lint/syntax green. Browser integration is UNPROVEN; the queued preview was stopped under throttle.
+Exact next work (coordinator assigned): fix Signal Dunes' missing pack horse/cache-coverage regression (`eb19cbc58`) with standalone+grid presence proof; preserve hard admission and cache invalidation. Then re-record Driftwood M5 and gh-macos15 parity through official CLI/workflow after verifying only intended differences. The new profile save key from `3e995e5a2` is intended (same SF14 ledger at boot/combat); no Signal baseline masks the missing horse.
 
-**Open / exact next step:** SF64 priority is the 340–460 MB historical unowned resident RAM, not more UI. After coordinator approval, build a current clean pin (heavy lane), then ONE muted desktop WebKit/browser-lane capture:
+Scratch to retain until the next source slice closes: `/private/tmp/claude-501/sp-builders/sp-x1/signal-port/` (isolated source candidate, full log, strict/lint/ratchet, CAS scripts, inventory export). No server runs there. Delete only authored literal paths after archiving proof. Earlier SF64 paused-frame attribution remains unproven, not replaced by this work; its prior handoff `6d8b93cc8` records the preserved sf64 scratch/manual-cleanup paths. No new RAM credit is claimed.
 
-```sh
-scripts/browser-lane.sh --max 20 node progress/memory/g227-budget/webkit-centre.mjs http://127.0.0.1:PORT OUT/pine-paused.json pine-hollow on --allocator-trace
-```
-
-Keep preview + capture in one live wrapper, close both in finally. Read saved native before/after maps, worker heaps, main heap dominators and exact heapOwners. PID selection refuses ambiguous WebContent processes; unavailable maps remain unavailable. Worker decoder heaps are a hypothesis for the unidentified ~16.8 MB module, NOT an attribution finding. Never sum heap capacity with native footprint or infer physical owners from equal sizes. Heap/GC can alter footprint; preserve before/after and distinguish live storage from freed-but-kept pages. Native Simulator WC+labelled GL stays the cap ruler. Existing analyzer `progress/memory/g227-budget/analyze-heap.mjs` checks its WebKit algorithm SHA.
-
-**Seams:** x2 report/capture uses `619c87c4f` scalar API; `inspect.mjs` captures it automatically (`4da5ae9c2`). Report and native evidence keep WC/GL, allocator accounted and observed storage separate. x5 released the webkit-centre heap block. No liveSession edits owned here; sp-x3 released it after `f1918525` hover stow fix. SF45 remains paused by coordinator.
-
-**Scratch worth keeping:** `/private/tmp/claude-501/sp-builders/sp-x1/sf64/` contains `run-paused.mjs` (build+capture+finally stop wrapper, old pin 8ecc; UPDATE pin), focused tsconfig, clean-ratchet.json, landing scripts and panel-strings.json. Partial preview export `preview/20261008-105323-4402` may remain after cancellation; no server/listener. Do not use that incomplete build. No fresh heap evidence exists there. Historical owner references: `progress/memory/itemized-2026-10-08/`, `progress/memory/g227-budget/`.
-
-**Authored abandoned WIP — DO NOT SHIP:** separate-panel prototype was never committed/wired. Four untracked files remain: `src/engine/ui/memoryPanel.ts`, `src/engine/ui/memoryRows.ts`, `src/engine/ui/styles/memory.css`, `test/engine/memory-panel.test.ts`; only their `s_memory_debug_*` strings remain as an uncommitted hunk in `src/engine/strings.ts`. Targeted deletion was rejected by the automatic destructive-command guard; no workaround attempted. Manual cleanup required (exact strings in scratch panel-strings.json). These compile but are excluded from every private candidate; current debugOptions/check-css have no prototype wiring. Preserve other lanes' edits.
-
-Plan-State: unchanged. No further browser/Simulator/full-suite work under throttle.
+Plan-State: unchanged.

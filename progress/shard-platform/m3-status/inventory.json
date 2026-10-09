@@ -1,0 +1,167 @@
+{
+  "source": "370ecda0d41f461493d4c565fb1fc42e37ffa976",
+  "command": "pnpm gen && node scripts/shard-platform.mjs --json",
+  "shards": {
+    "_template": {
+      "publicLines": 1215,
+      "customLines": 123,
+      "runtimeLines": 0,
+      "trustedRuntimeLines": 0,
+      "uniqueKitLines": 0,
+      "publicShare": 0.9080717488789237,
+      "legacy": {
+        "generators": 631,
+        "data": 713,
+        "runtime": 126
+      },
+      "baseline": 550,
+      "milestones": {
+        "boot": true,
+        "headless": true,
+        "replay": true,
+        "ledger": true,
+        "gridReady": true,
+        "compatible": true,
+        "transitional": false
+      }
+    },
+    "driftwood-isle": {
+      "publicLines": 165,
+      "customLines": 15711,
+      "runtimeLines": 4560,
+      "trustedRuntimeLines": 3602,
+      "uniqueKitLines": 42,
+      "publicShare": 0.010393046107331822,
+      "legacy": {
+        "generators": 22,
+        "data": 581,
+        "runtime": 20688
+      },
+      "baseline": 18766,
+      "milestones": {
+        "boot": false,
+        "headless": false,
+        "replay": false,
+        "ledger": false,
+        "gridReady": false,
+        "compatible": false,
+        "transitional": true
+      }
+    },
+    "far-reach": {
+      "publicLines": 92,
+      "customLines": 5917,
+      "runtimeLines": 459,
+      "trustedRuntimeLines": 0,
+      "uniqueKitLines": 0,
+      "publicShare": 0.015310367781660842,
+      "legacy": {
+        "generators": 20,
+        "data": 2952,
+        "runtime": 7939
+      },
+      "baseline": 6889,
+      "milestones": {
+        "boot": false,
+        "headless": false,
+        "replay": false,
+        "ledger": false,
+        "gridReady": false,
+        "compatible": false,
+        "transitional": true
+      }
+    },
+    "nalati-grasslands": {
+      "publicLines": 113,
+      "customLines": 27050,
+      "runtimeLines": 7639,
+      "trustedRuntimeLines": 6520,
+      "uniqueKitLines": 258,
+      "publicShare": 0.004160070684386849,
+      "legacy": {
+        "generators": 0,
+        "data": 164,
+        "runtime": 34710
+      },
+      "baseline": 33094,
+      "milestones": {
+        "boot": false,
+        "headless": false,
+        "replay": false,
+        "ledger": false,
+        "gridReady": false,
+        "compatible": false,
+        "transitional": true
+      }
+    },
+    "nine-dragon-stack": {
+      "publicLines": 39,
+      "customLines": 20858,
+      "runtimeLines": 194,
+      "trustedRuntimeLines": 0,
+      "uniqueKitLines": 205,
+      "publicShare": 0.0018662965975977414,
+      "legacy": {
+        "generators": 0,
+        "data": 48,
+        "runtime": 26112
+      },
+      "baseline": 25166,
+      "milestones": {
+        "boot": false,
+        "headless": false,
+        "replay": false,
+        "ledger": false,
+        "gridReady": false,
+        "compatible": false,
+        "transitional": true
+      }
+    },
+    "pine-hollow": {
+      "publicLines": 665,
+      "customLines": 19384,
+      "runtimeLines": 3999,
+      "trustedRuntimeLines": 2297,
+      "uniqueKitLines": 595,
+      "publicShare": 0.03316873659534141,
+      "legacy": {
+        "generators": 0,
+        "data": 700,
+        "runtime": 24622
+      },
+      "baseline": 21698,
+      "milestones": {
+        "boot": false,
+        "headless": false,
+        "replay": false,
+        "ledger": false,
+        "gridReady": false,
+        "compatible": false,
+        "transitional": true
+      }
+    },
+    "sunscar-dunes": {
+      "publicLines": 42,
+      "customLines": 3647,
+      "runtimeLines": 62,
+      "trustedRuntimeLines": 0,
+      "uniqueKitLines": 0,
+      "publicShare": 0.011385199240986717,
+      "legacy": {
+        "generators": 33,
+        "data": 90,
+        "runtime": 4914
+      },
+      "baseline": 4825,
+      "milestones": {
+        "boot": false,
+        "headless": false,
+        "replay": false,
+        "ledger": false,
+        "gridReady": false,
+        "compatible": false,
+        "transitional": true
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "source": "370ecda0d41f461493d4c565fb1fc42e37ffa976",
+  "candidate": "d7cb0f71208d42160bdfc46a39af81c454a54947",
+  "candidateParent": "e2b5f4cb59fa13643b95e1c47fb20d7bde0f2324",
+  "patchSHA256": "5d31e7d3648cd6146361705c6598dbb2b7bb9b784738ffc29055332dbc076c95",
+  "full": {
+    "filesPassed": 953,
+    "testsPassed": 5430,
+    "testsSkipped": 14,
+    "seconds": 244.09,
+    "command": "python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --maxWorkers=4",
+    "raw": "signal-full.log.br",
+    "rawSHA256": "be7fc1ad0cd8a8d0ccbb2599dc5ded5f8f513ece2110eb89f127812556874c08",
+    "generatedExportOnly": "approved +2 Sun->game graph refreshed before suite"
+  },
+  "focused": {
+    "files": 3,
+    "tests": 10
+  },
+  "strict": "pass",
+  "rootOxlint": "pass",
+  "ratchet": "pass",
+  "privateHooks": "pass",
+  "cas": "pass",
+  "ancestor": "pass",
+  "knownLimitation": "Matriarch runtime kills is reconstructed as defeated ? 1 : 0; old saved document remains unchanged",
+  "actorsAudit": "13 respawning homes + Matriarch, no unbound one-shot bodies"
+}
