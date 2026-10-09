@@ -5,12 +5,14 @@
 // `place`: the POI modules' anchors, the floors under them), with its prompt point; Wendell's talk point (his head) and
 // radius; the iron sword's prompt point on the wreck's rack (its guarded radius at load); the reward spot the finale computed from the ring
 // and the planet; and the sluice gate's collider as the registry built it. Two independent captures must match exactly.
+// `inputs` hashes the sources the spots come from (scripts/driftwood-spots-inputs.mjs): the quest test refuses a stale bake.
 // scripts/browser-lane.sh node scripts/bake-driftwood-spots.mjs --url=<clean candidate preview> [--revision=<sha>]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { saveFixture } from './debug-settings.mjs';
+import { driftwoodSpotsInputs } from './driftwood-spots-inputs.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -34,7 +36,8 @@ try {
   const capture = () => {
     const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = snap['driftwood.adventure'], shell = snap.driftwood;
     const rows = adv.kit.lives.map(lv => {
-      const d = lv.def, row = { id: d.id, kind: d.kind, x: lv.position.x, y: lv.position.y, z: lv.position.z, yaw: lv.yaw };
+      // the barrel at its home (where the kit spawned its body), never where the body has settled since (it jitters by 1e-5)
+      const d = lv.def, at = d.kind === 'barrel' ? lv.home : lv.position, row = { id: d.id, kind: d.kind, x: at.x, y: at.y, z: at.z, yaw: lv.yaw };
       if (lv.prompt) row.prompt = { x: lv.prompt.position.x, y: lv.prompt.position.y, z: lv.prompt.position.z };
       if (lv.collider && d.kind === 'door') row.collider = { x: lv.collider.x, z: lv.collider.z, hw: lv.collider.hw, hd: lv.collider.hd, rot: lv.collider.rot, yTop: lv.collider.yTop, yBottom: lv.collider.yBottom };
       return row;
@@ -49,7 +52,7 @@ try {
   const first = await page.evaluate(capture), second = await page.evaluate(capture);
   if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Driftwood spots changed between independent captures');
   if (errors.length > 0) throw new Error(`Invalid Driftwood spots bake: ${JSON.stringify(errors)}`);
-  const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', ...first };
+  const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: driftwoodSpotsInputs(root), ...first };
   writeFileSync(resolve(root, 'src/shards/driftwood-isle/runtime/spots.baked.json'), `${JSON.stringify(result, null, 1)}\n`);
   console.log(`bake-driftwood-spots: ${first.rows.length} table rows, the talk, the sword and the reward spot, exact repeated browser equality`);
   await context.close();

@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The headless runtime reads the native physics module.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Trusted-bake freshness is checked against the test checkout.
+import process from 'node:process';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { beforeAll, expect, it } from 'vitest';
@@ -16,6 +18,8 @@ import { SWORDS_STEP } from '../../../src/shards/driftwood-isle/runtime/swords';
 import { ALTAR_FLAG, CAPTAIN_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/captain';
 import { DRIFTWOOD_CYCLE_S, DRIFTWOOD_DAY_START, prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
+import { driftwoodSpotsInputs } from '../../../scripts/driftwood-spots-inputs.mjs';
+import spotsBake from '../../../src/shards/driftwood-isle/runtime/spots.baked.json';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
@@ -135,6 +139,8 @@ function clearCrabs(host: SimHost, at: { x: number; z: number }, r: number): voi
 
 it('bakes one spot per interactables row and the page\'s day clock spellings', () => {
   expect(spots.rows.map(r => r.id)).toEqual(DRIFTWOOD_INTERACT.rows.map(d => d.id));
+  // the spots were read off a page built from these exact sources (scripts/bake-driftwood-spots.mjs re-reads them)
+  expect(v.parse(v.object({ inputs: v.record(v.string(), v.string()) }), spotsBake).inputs).toEqual(driftwoodSpotsInputs(process.cwd()));
   const backdrop = readFileSync('src/shards/driftwood-isle/look/backdrop.ts', 'utf8');
   expect(backdrop).toContain('const CYCLE_S = 48 * 60;'); expect(DRIFTWOOD_CYCLE_S).toBe(48 * 60);
   expect(backdrop).toContain(': 0.2 * DAY });'); expect(DRIFTWOOD_DAY_START).toBe(0.2 * (20 / 24));
