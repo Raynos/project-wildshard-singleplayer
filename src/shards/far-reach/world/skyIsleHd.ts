@@ -1,4 +1,4 @@
-import { Box3, Color, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
+import { BackSide, Box3, Color, DoubleSide, FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
 import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
@@ -73,16 +73,77 @@ interface Unit extends SkyIsleUnit { readonly map: Texture }
 
 const median = (v: number[]): number => { const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] ?? 0; };
 
+/**
+ * A probe's straight-down rays without walking every triangle (rt3-crossing2). Three's Mesh.raycast tests all of a model's
+ * triangles for each ray: 49 rays a model (twice: the isles and the keels) and one per pine cost Sky Reach's entry a 4.8 s
+ * task at 4x CPU. This bins the triangles by their x / z extent once (per position version) and runs three's own
+ * ray-triangle test, in index order, on the triangles under the ray: the nearest hit's height, as
+ * `new Raycaster(origin, down).intersectObject(probe, false)[0]?.point.y` returns it (a vertical ray meets only triangles
+ * whose x / z extent holds it). Any other ray or a moved probe takes three's raycast.
+ */
+interface DownGrid { readonly version: number; readonly x0: number; readonly z0: number; readonly step: number; readonly cells: readonly (number[] | undefined)[] }
+const DOWN_GRID = 64;
+const downGrids = new WeakMap<BufferGeometry, DownGrid>();
+const downA = new Vector3(), downB = new Vector3(), downC = new Vector3(), downHit = new Vector3(), downRay = new Raycaster(), DOWN = new Vector3(0, -1, 0), IDENTITY = new Matrix4();
+function downRange(geometry: BufferGeometry): { readonly start: number; readonly end: number; readonly corner: (i: number) => number } {
+  const index = geometry.getIndex(), count = index === null ? geometry.getAttribute('position').count : index.count, range = geometry.drawRange;
+  return { start: Math.max(0, range.start), end: Math.min(count, range.start + range.count), corner: index === null ? (i) => i : (i) => index.getX(i) };
+}
+function downGrid(geometry: BufferGeometry): DownGrid {
+  const p = geometry.getAttribute('position') as BufferAttribute, held = downGrids.get(geometry);
+  if (held !== undefined && held.version === p.version) return held;
+  const { start, end, corner } = downRange(geometry);
+  let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+  for (let i = start; i < end; i++) { const v = corner(i), x = p.getX(v), z = p.getZ(v); x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  const step = Math.max(x1 - x0, z1 - z0, 1e-6) / DOWN_GRID, cells = Array.from<number[] | undefined>({ length: DOWN_GRID * DOWN_GRID });
+  const cell = (v: number, o: number): number => Math.min(DOWN_GRID - 1, Math.max(0, Math.floor((v - o) / step)));
+  for (let i = start; i + 2 < end; i += 3) {
+    const a = corner(i), b = corner(i + 1), c = corner(i + 2);
+    const ax = p.getX(a), bx = p.getX(b), cx = p.getX(c), az = p.getZ(a), bz = p.getZ(b), cz = p.getZ(c);
+    const i0 = cell(Math.min(ax, bx, cx), x0), i1 = cell(Math.max(ax, bx, cx), x0), k0 = cell(Math.min(az, bz, cz), z0), k1 = cell(Math.max(az, bz, cz), z0);
+    for (let k = k0; k <= k1; k++) for (let j = i0; j <= i1; j++) { const at = k * DOWN_GRID + j; (cells[at] ??= []).push(i); }
+  }
+  const grid = { version: p.version, x0, z0, step, cells };
+  downGrids.set(geometry, grid);
+  return grid;
+}
+/** The height of the first hit of a ray from `origin` straight down onto `probe` (undefined: a miss). */
+export function skyIsleHitDown(probe: Mesh, origin: Vector3): number | undefined {
+  const geometry = probe.geometry, material = probe.material;
+  downRay.set(origin, DOWN);
+  if (Array.isArray(material) || !probe.matrixWorld.equals(IDENTITY) || probe.morphTargetInfluences !== undefined) return downRay.intersectObject(probe, false)[0]?.point.y;
+  // three's early-outs, in its order: the bounding sphere (computed if absent), then the box if the geometry has one
+  if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+  const sphere = geometry.boundingSphere;
+  if (sphere === null || !downRay.ray.intersectsSphere(sphere) || (geometry.boundingBox !== null && !downRay.ray.intersectsBox(geometry.boundingBox))) return undefined;
+  const grid = downGrid(geometry), p = geometry.getAttribute('position') as BufferAttribute, { corner } = downRange(geometry);
+  const j = Math.floor((origin.x - grid.x0) / grid.step), k = Math.floor((origin.z - grid.z0) / grid.step);
+  if (j < 0 || k < 0 || j >= DOWN_GRID || k >= DOWN_GRID) {
+    // past the outermost cell edge only by the clamp's rounding: three's walk decides
+    if (origin.x < grid.x0 || origin.z < grid.z0 || origin.x > grid.x0 + grid.step * DOWN_GRID || origin.z > grid.z0 + grid.step * DOWN_GRID) return undefined;
+    return downRay.intersectObject(probe, false)[0]?.point.y;
+  }
+  const backface = material.side === FrontSide, flip = material.side === BackSide;
+  let best = Infinity, y: number | undefined;
+  for (const i of grid.cells[k * DOWN_GRID + j] ?? []) {
+    downA.fromBufferAttribute(p, corner(i)); downB.fromBufferAttribute(p, corner(i + 1)); downC.fromBufferAttribute(p, corner(i + 2));
+    const hit = flip ? downRay.ray.intersectTriangle(downC, downB, downA, true, downHit) : downRay.ray.intersectTriangle(downA, downB, downC, backface, downHit);
+    if (hit === null) continue;
+    const distance = origin.distanceTo(hit);
+    if (distance < best) { best = distance; y = hit.y; }
+  }
+  return y;
+}
+
 /** Bring a loaded model to the unit frame (see the module note); moves the geometry in place. Node-safe (the far bake). */
 export function skyIsleUnit(geometry: BufferGeometry): SkyIsleUnit {
-  const ray = new Raycaster(), down = new Vector3(0, -1, 0), probe = new Mesh(geometry, new MeshBasicMaterial({ side: DoubleSide }));
+  const probe = new Mesh(geometry, new MeshBasicMaterial({ side: DoubleSide }));
   const p = geometry.getAttribute('position') as BufferAttribute, box = new Box3().setFromBufferAttribute(p);
   const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, half = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
   // the turf: the median first hit straight down over the middle of the top (bushes and the crag's outcrop are outliers)
   const hits: number[] = [];
   for (let i = -3; i <= 3; i++) for (let k = -3; k <= 3; k++) {
-    ray.set(new Vector3(cx + (i / 3) * half * 0.45, box.max.y + 1, cz + (k / 3) * half * 0.45), down);
-    const hit = ray.intersectObject(probe, false)[0]; if (hit !== undefined) hits.push(hit.point.y);
+    const hit = skyIsleHitDown(probe, new Vector3(cx + (i / 3) * half * 0.45, box.max.y + 1, cz + (k / 3) * half * 0.45)); if (hit !== undefined) hits.push(hit);
   }
   const deck = median(hits), lip = deck - (box.max.y - box.min.y) * 0.06;
   // the top's footprint: its centre, and its radius per angle (the farthest vertex near the turf level in each bin)
@@ -184,17 +245,16 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     });
     mesh.computeBoundingSphere(); group.add(mesh);
   }
-  const ray = new Raycaster(), down = new Vector3(0, -1, 0), local = new Vector3();
+  const local = new Vector3();
   return {
     group, fallback,
     topAt: (isle, x, z) => {
       const at = placed.get(isle.id); if (at === undefined) return null;
       local.set((x - isle.x) / isle.r, 0, (z - isle.z) / isle.r).applyAxisAngle(up, -at.yaw);
-      ray.set(new Vector3(local.x, 5, local.z), down);
-      const hit = ray.intersectObject(at.u.probe, false)[0];
+      const hit = skyIsleHitDown(at.u.probe, new Vector3(local.x, 5, local.z));
       // off the turf (a lip, a bush top, a root): no tree there
-      if (hit === undefined || Math.abs(hit.point.y) > SKY_ISLE_HD.turf) return null;
-      return isle.y + hit.point.y * isle.r * at.sy;
+      if (hit === undefined || Math.abs(hit) > SKY_ISLE_HD.turf) return null;
+      return isle.y + hit * isle.r * at.sy;
     },
     lipAt: (isle, a) => {
       const at = placed.get(isle.id); if (at === undefined) return null;

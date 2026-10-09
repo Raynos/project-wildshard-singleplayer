@@ -1,0 +1,47 @@
+version {'build': 'b-mv0842f9', 'time': '2026-10-09T00:25:04.719Z'} cpu 4 errors 0 failure 
+cold grid load 26.3s
+     0.3s  step 14 / 16 · Shaders · 25 / 91 programs linked · parallel · 93 programs
+     0.4s  
+     0.3s  step 2 / 16 · Renderer
+     0.3s  step 8 / 16 · Chunk edge · water · horizon
+    15.1s  step 13 / 16 · Weapons · HUD
+     0.3s  step 13 / 16 · Title art · explore · 12 / 13 pictures · UI
+     4.5s  step 14 / 16 · Title art · explore · 13 / 13 pictures · UI
+     0.3s  step 14 / 16 · Shaders · 165 materials · 3 / 35 batches · parallel · 11 programs
+     0.3s  step 14 / 16 · Shaders · 165 materials · 16 / 35 batches · parallel · 53 programs
+     0.3s  step 14 / 16 · Shaders · 165 materials · 31 / 35 batches · parallel · 94 programs
+     0.3s  step 14 / 16 · Shaders · 15 / 102 programs resolved · parallel · 104 programs
+     0.3s  step 14 / 16 · Shaders · 99 / 102 programs resolved · parallel · 104 programs
+     0.5s  step 15 / 16 · First frame · world + shadows · 104 programs
+     0.5s  step 15 / 16 · First frame · world, turned 270° · 104 programs
+     0.3s  step 15 / 16 · First frame · post chain · 104 programs
+     2.4s  step 16 / 16 · Audio · music + sound effects · 94 / 94 audio files
+
+driftwood-isle-to-pine-hollow  fail=None
+  wait(near->gameplay) 14.6s | near->world resident 1.9 | resident->commit 0.0 | commit->inside 1.0 | inside->gameplay 11.7 | screen-rows-inside 0
+  longest frame gap 450ms @None | longest task 457ms @None | gaps>100ms 11 sum 2.2s
+  top gaps: 450@+0.2s:None, 367@+9.0s:pine-hollow:afterKit, 233@+10.3s:pine-hollow:afterPlay, 183@+14.2s:None, 150@+9.4s:pine-hollow:play, 150@+9.8s:pine-hollow:play
+  hooks ms: beforeWorld=1 constructor=0 world=4255 afterWorld=0 kit=237 afterKit=2142 play=992 afterPlay=3811
+
+pine-hollow-to-nalati-grasslands  fail=None
+  wait(near->gameplay) 13.4s | near->world resident 2.7 | resident->commit 0.0 | commit->inside 1.2 | inside->gameplay 9.4 | screen-rows-inside 0
+  longest frame gap 1617ms @nalati-grasslands:world | longest task 1617ms @nalati-grasslands:world | gaps>100ms 22 sum 8.3s
+  top gaps: 1617@+5.8s:nalati-grasslands:world, 1033@+4.5s:nalati-grasslands:world, 833@+10.3s:nalati-grasslands:play, 767@+0.2s:None, 550@+8.3s:nalati-grasslands:world, 433@+12.9s:None
+  hooks ms: beforeWorld=1 constructor=0 world=6406 afterWorld=0 kit=0 afterKit=1068 play=616 afterPlay=1084
+
+nalati-grasslands-to-far-reach  fail=None
+  wait(near->gameplay) 5.6s | near->world resident 0.5 | resident->commit 0.0 | commit->inside 0.8 | inside->gameplay 4.3 | screen-rows-inside 0
+  longest frame gap 1417ms @None | longest task 1418ms @None | gaps>100ms 5 sum 2.9s
+  top gaps: 1417@+2.6s:None, 1067@+5.6s:None, 183@+4.2s:far-reach:afterPlay, 133@+5.4s:None, 100@+1.4s:far-reach:world
+  hooks ms: beforeWorld=1 constructor=0 world=2726 afterWorld=0 kit=35 afterKit=4 play=285 afterPlay=1126
+
+far-reach-to-driftwood-isle  fail=None
+  wait(near->gameplay) 4.9s | near->world resident 0.7 | resident->commit 0.0 | commit->inside 1.0 | inside->gameplay 3.2 | screen-rows-inside 0
+  longest frame gap 367ms @driftwood-isle:world | longest task 371ms @driftwood-isle:world | gaps>100ms 9 sum 2.0s
+  top gaps: 367@+3.4s:driftwood-isle:world, 350@+1.8s:driftwood-isle:world, 283@+0.1s:None, 250@+3.1s:driftwood-isle:world, 200@+2.4s:driftwood-isle:world, 183@+2.6s:driftwood-isle:world
+  hooks ms: beforeWorld=1 constructor=0 world=2211 afterWorld=0 kit=0 afterKit=129 play=97 afterPlay=613
+
+driftwood-isle-to-pine-hollow: warm-up 112 programs (0 region-look) | after ready 0 (0 region-look)
+pine-hollow-to-nalati-grasslands: warm-up 87 programs (27 region-look) | after ready 7 (0 region-look)
+nalati-grasslands-to-far-reach: warm-up 84 programs (40 region-look) | after ready 0 (0 region-look)
+far-reach-to-driftwood-isle: warm-up 103 programs (38 region-look) | after ready 0 (0 region-look)

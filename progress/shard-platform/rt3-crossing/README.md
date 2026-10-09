@@ -83,3 +83,57 @@ Wait = from the feet 8 m from the target cell's edge to gameplay ready inside. P
 - Crossing drives: 0 page errors before and after. Typecheck (`tsc --noEmit`, `tsc -b tsconfig.layers.json`), oxlint on
   the changed files, shard-coupling, ratchet and the pre-commit hook on the private index pass. Layer edges and the
   ratchet are unchanged; the API surface gains one documented function (`generatePlatformSliced`).
+
+## Part 2 (rt3-crossing2): the crossing waits cut
+
+Same drive (`crossings2.mjs`: full program keys, a per-frame program census, `--profile=<slugs>` CPU profiles per leg;
+`programs.py` reads which programs compile in the warm-up and which after gameplay ready). Before = `fa53d3728` plus the
+turn-back fix below (`before2.*`); after = `4c07eef41` plus this change (`after2.*`). 4x CPU, Chromium iPhone 16 Pro.
+
+| crossing (4x CPU) | wait before | wait after | longest freeze before | after | programs linked after ready (before / after) |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Driftwood → Pine | 17.3 s | 14.6 s | 550 ms | 457 ms | 0 / 0 |
+| Pine → Nalati | 15.1 s | 13.4 s | 1 999 ms | 1 617 ms | 25 (18 region-look) / 7 |
+| Nalati → Sky Reach | 9.5 s | **5.6 s** | **4 760 ms** | **1 418 ms** | 30 (all region-look) / 0 |
+| Sky Reach → Driftwood | 8.7 s | **4.9 s** | 985 ms | 371 ms | 33 (all region-look) / 0 |
+
+0 page errors in both drives. Pine's row moved without a change of mine (run-to-run spread and the newer HEAD).
+
+- **The missed programs (all four shards, not only Sky Reach):** the entered warm-up compiled every material the hooks
+  added with the page look, then the first frame after gameplay ready compiled the region-look variants (`|look:<id>`,
+  `render/regionLook.ts`) synchronously. The look's sweep that patches a region's materials runs as a `late` system, and no
+  frame runs while the hooks install. Fix (generic, `regionalWorld.ts` / `regionalRuntime.ts`): the foundation's new
+  `beforeWarm` sweeps the region look onto what the hooks added, and the runtime calls it just before
+  `warmEnteredFrame`. Warmed region-look programs: Sky Reach 0 → 40, Driftwood 2 → 38, Nalati 2 → 27; linked after ready:
+  30 → 0, 33 → 0, 25 → 7. Nalati's 7 left are unnamed ShaderMaterials created on the first frame (not the look).
+- **Sky Reach's 4.8 s task was not a shader in this build:** its `world` hook ran `skyIsleUnit` (49 straight-down
+  raycasts a model, through every triangle, for the isles and again for the keels, plus one per pine): 3.1 s of three's
+  `Mesh.raycast` at 4x. `skyIsleHitDown` (`world/skyIsleHd.ts`) bins the triangles by x / z once and runs three's own
+  ray-triangle test on the ones under the ray; a test pins it equal to three's raycast on 4 500 rays over three meshes.
+  World hook 6.1 → 2.7 s. The far-reach map is rebaked (map-hash input).
+- **Start the hooks at the commit: not possible as things stand.** Built and driven: the hooks then install while frames
+  render (only the interior holds the frame gate), and Pine's world hook changes a compressed texture's sampler after a
+  frame drew it: `Compressed texture 198 changed after mip retirement`, the render system faults three times and the loop
+  stops. The hooks assume no frame draws mid-install (G217), so starting them earlier only moves the held frame to the
+  strip: the same wait. Reverted. Found on the way and kept: a committed runtime the traveller never entered (turned back
+  on the strip) refused its checkpoint, because its own checkpoint waits for hooks that never ran, so the crossing sat in
+  `save-failed` for good. It now saves as the stored resident (`liveSession.ts`; `live-grid-owned-session.test.ts` turns
+  back on the strip and fails on the old code).
+- **Left (not cut here):** Nalati's world-hook tasks (1.0–1.6 s: outcrops, camps / yurts, `painted.ts`) are what
+  sf67-bake4 bakes; Pine's longest are `buildEquipment` → the longbow viewmodel (~1.2 s, afterKit) and one 6-material
+  `renderer.compile` job in its warm-up (~0.6 s; one stand-in per job for entered frames would bound it, not landed);
+  Nalati's 7 first-frame ShaderMaterials; Sky Reach's remaining 1.4 s task, inside its world hook's span (not profiled after).
+
+### Landing patch B (skyisle-land)
+
+`skyIsleHitDown` landed on its own (measured on `aeb76ea81` + the patch, landed on `04cb19f99`; the region-look warm-up landed earlier in `6465e4af9`).
+The same drive on that build (`after3.txt`, 4x CPU, Chromium iPhone 16 Pro): Nalati → Sky Reach waits **4.1 s** with a
+longest freeze of **925 ms** (was 9.5 s / 4 760 ms before part 2), Sky Reach → Driftwood 4.8 s / 364 ms, 0 page errors,
+0 region-look programs linked after ready on the Sky Reach legs.
+
+- **The map rebake.** `skyIsleHd.ts` is a map-hash input, so far-reach's map is rebaked. The probe returns exactly three's
+  heights, so nothing in the world moved. The 1.8 % the earlier rebake differed by is the bake, not the world: two bakes
+  of the same build differ from each other as much as either does from the committed map (≈ 0.9 % of pixels by more than
+  16 levels), all of it on the rims of the grass-topped isles. The meadow's grass blades sway with `uTime`
+  (`world/meadow.ts`), so each bake catches the rim tufts at a different moment. The map is right: islands and bridges
+  over the transparent void (G252b).
