@@ -1,5 +1,5 @@
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { SIM_API_VERSION, type SimHost, type SimLevel, type SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider } from '@wildshard/engine/physics/surface';
@@ -11,8 +11,9 @@ import { TERRAIN } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
 import { installNalatiGroups, type NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
-import { TrampleField } from '@wildshard/game/systems/looks/trample';
+import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
+import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from '../look/trampleMovers';
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
@@ -54,11 +55,53 @@ export function nalatiTerrainGrid(bytes: Uint8Array | undefined, seed: number): 
  * `grass` rows, test/shards/nalati-grasslands/headless-runtime.test.ts). The colour channels (the level's ground paint)
  * are the field's plain default: no headless reader asks them. And a trample map of the host's own (TrampleField).
  */
-export function nalatiGrassView(grid: BakedGrid, seed: number): NalatiGrassView {
+export function nalatiGrassView(grid: BakedGrid, seed: number): NalatiGrassView & { readonly trample: TrampleField } {
   const s = bakedSamplers(grid);
   const field = new GrassField({ seed, half: NALATI_GROUND_SIZE / 2, heightAt: s.heightAt, normalAt: (x, z, eps) => s.normalAt(x, z, eps), splatAt: s.splatAt,
     trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask, pondMask: TERRAIN.pondMask, waterLevel: TERRAIN.waterLevel, paint: () => false, layout: NALATI_GRASS_LAYOUT });
   return { field, trample: new TrampleField() };
+}
+
+/** The host's trample continuation: the player's last spot (null before the first step) and the map's own state. */
+interface NalatiTrampleState { trail: [number, number] | null; map: TrampleState }
+const isPair = (v: unknown): v is [number, number] => Array.isArray(v) && v.length === 2 && v.every(n => typeof n === 'number');
+function trampleState(value: SimValue): NalatiTrampleState {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new RangeError('Invalid Nalati trample state');
+  const { trail, map } = value;
+  if (!(trail === null || isPair(trail)) || typeof map !== 'object' || map === null || Array.isArray(map)) throw new RangeError('Invalid Nalati trample state');
+  const { cells, origin, centre, anyFlat, dirty, tick } = map;
+  if (!Array.isArray(cells) || !cells.every((n): n is number => typeof n === 'number') || !(origin === null || isPair(origin)) || !isPair(centre)
+    || typeof anyFlat !== 'boolean' || typeof dirty !== 'boolean' || typeof tick !== 'number') throw new RangeError('Invalid Nalati trample state');
+  return { trail, map: { cells, origin, centre, anyFlat, dirty, tick } };
+}
+
+/**
+ * The trample map on the host's fixed step (SF72), in the page's frame order: the painterly grass's update first (main.world,
+ * look/grass.ts: the player's push at its feet with its velocity from the last step, look/trampleMovers.ts, then the map's
+ * `update`, which re-centres the window on the player, re-pushes nothing tracked and runs the 10 Hz recovery), so every later
+ * push this step (the groups' senses through the wild view) lands in this step's window, as the page's wildlife pushes land
+ * after the grass. Its trail and map are snapshot state (`nalati.trample`), restored before any step pushes. Not yet: the
+ * wildlife's pushes from its moving wolves, horses and dog (creatures/wildlife.ts): nothing here moves them until the
+ * groups tick.
+ */
+export function installNalatiTrample(host: SimHost, trample: TrampleField): void {
+  const trail: PlayerTrail = { lastX: Number.NaN, lastZ: Number.NaN };
+  const push = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { trample.push(x, z, r, s, vx, vz); };
+  host.onStep('nalati.trample', dt => {
+    const p = host.player.position;
+    pushPlayerTrail(trail, dt, p.x, p.z, PLAYER_TRAMPLE_RADIUS, push);
+    trample.update(dt, p);
+  }, {
+    snapshot: () => {
+      const { cells, origin, centre, anyFlat, dirty, tick } = trample.snapshot();
+      return { trail: Number.isNaN(trail.lastX) ? null : [trail.lastX, trail.lastZ], map: { cells, origin, centre, anyFlat, dirty, tick } };
+    },
+    restore: value => {
+      const saved = trampleState(value);
+      trample.restore(saved.map);
+      [trail.lastX, trail.lastZ] = saved.trail ?? [Number.NaN, Number.NaN];
+    },
+  });
 }
 
 /** One manager body in the host: the roster's recipe, its baked native spec, the live actor. */
@@ -105,8 +148,8 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * as the height query, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
  * restored exactly by an identical install before the host restores, and the declared groups (runtime/groups.ts: the pack,
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them). Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati5.md): the groups' decisions (their wild view has the page's grass and a
- * trample map of the host's own; not yet the trample map's clock and restore, the weather's wind or the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
+ * progress/shard-platform/handoffs/sf72-nalati6.md): the groups' decisions (their wild view has the page's grass and a
+ * trample map of the host's own on its fixed step and in its snapshot; not yet the wildlife's pushes, the weather's wind or the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
  * weapons, the day clock past the boot's day, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -120,6 +163,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     addNalatiWorld(host, bake);
     const bodies = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y }), normal = bakedSamplers(grid).normalAt;
     // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
-    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass: nalatiGrassView(grid, shard.identity.seed) });
+    const grass = nalatiGrassView(grid, shard.identity.seed);
+    installNalatiTrample(host, grass.trample);
+    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass });
   } };
 };

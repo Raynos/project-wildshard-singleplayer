@@ -97,13 +97,26 @@ it('reads the page\'s grass: the groups\' standing grass is the page\'s grassBas
   } finally { host.dispose(); }
 });
 
-it('walks 2k ticks: every body stays finite on the ground, on the page\'s distance bands', () => {
+it('walks 2k ticks: every body stays finite on the ground, on the page\'s distance bands; the player\'s trail flattens the grass and recovers', () => {
   const host = boot();
   try {
-    for (let tick = 0; tick < 2000; tick++) walk(host);
+    const groups = nalatiGroupsOf(host); if (groups === undefined) throw new Error('no groups');
+    const { trample } = groups.grass, spots: { x: number; z: number }[] = [];
+    for (let tick = 0; tick < 2000; tick++) {
+      walk(host); spots.push({ x: host.player.position.x, z: host.player.position.z });
+      if (tick !== 1000) continue;
+      // the trample map on the host step (look/grass.ts's order): fresh under the feet, 10 s back half recovered (RECOVER =
+      // 20 s), and the groups' grass reads it (grassHeightAt = standing × (1 − 0.85 × trample))
+      const p = host.player.position, here = trample.amountAt(p.x, p.z), back = spots[400], old = back === undefined ? -1 : trample.amountAt(back.x, back.z);
+      expect(here).toBeGreaterThan(0.5); expect(old).toBeGreaterThan(0); expect(old).toBeLessThanOrEqual(0.5 + 1e-6);
+      expect(groups.env.grassHeightAt(p.x, p.z)).toBeCloseTo(groups.env.grassStandingAt(p.x, p.z) * (1 - 0.85 * here), 12);
+    }
     const p = host.player.position;
     expect(p.z).toBeLessThan(220); expect(p.y).toBeGreaterThan(heightAt(p.x, p.z) - 0.3);
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
+    // 25 s on, the tick-500 trail has stood back up, inside the map's 128 m window
+    const stood = spots[500]; if (stood === undefined) throw new Error('no trail');
+    expect(Math.max(Math.abs(stood.x - p.x), Math.abs(stood.z - p.z))).toBeLessThan(60); expect(trample.amountAt(stood.x, stood.z)).toBe(0);
   } finally { host.dispose(); }
 });
 
@@ -117,6 +130,9 @@ it('restores mid-walk exactly: the reinstalled roster and the host continue step
       for (let tick = 0; tick < 60; tick++) { walk(a); walk(b); }
       const sa = snapshotSimHost(a);
       expect(sa.bands).toBeDefined();
+      // the trample map continues too: the player's trail is in the saved state
+      const trample = sa.adapters.find(entry => entry.id === 'nalati.trample')?.state;
+      expect(JSON.stringify(trample)).toMatch(/^\{"trail":\[[^\]]+\],"map":\{"cells":\[\d+,/u);
       expectSameSimSnapshot(snapshotSimHost(b), sa);
     } finally { b.dispose(); }
   } finally { a.dispose(); }

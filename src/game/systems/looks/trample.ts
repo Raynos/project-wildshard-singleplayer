@@ -32,6 +32,16 @@ export const RECOVER = 20;
 export const MAX_MOVERS = 16;
 
 /**
+ * A trample map's whole continuation as plain JSON values (TrampleField.snapshot / restore, SF72): every flattened texel as
+ * `[index, amount, angle]` triples in index order (a texel at 0 holds no state: its stale angle is never read and the next
+ * stamp rewrites it), the window's origin in texels (null before the first update), its centre, the flags and the 10 Hz
+ * recovery's accumulated seconds. Float32 values round-trip exactly through a double.
+ */
+export interface TrampleState {
+  cells: number[]; origin: [number, number] | null; centre: [number, number]; anyFlat: boolean; dirty: boolean; tick: number;
+}
+
+/**
  * The trample map's state and law without the GPU (SF72): the 256² flatten amount and lie angle over the 128 m window that
  * follows the player, the pushes that stamp it, the tracked movers and the recovery at 10 Hz. GrassTrample (the page's)
  * adds the live-mover uniforms and the RG8 texture over it; a renderer-free host keeps its own.
@@ -108,6 +118,33 @@ export class TrampleField {
     this.anyFlat = any;
     this.dirty = false;
     this.uploaded();
+  }
+
+  /** The map's continuation (TrampleState). A tracked mover is a callback, not state: a field tracking one refuses. */
+  snapshot(): TrampleState {
+    if (this.tracked.length > 0) throw new Error('A trample map with tracked movers has no snapshot');
+    const cells: number[] = [];
+    for (let i = 0; i < SIZE * SIZE; i++) { const v = this.amount[i] ?? 0; if (v > 0) cells.push(i, v, this.angle[i] ?? 0); }
+    return { cells, origin: this.ox === 0x7fffffff ? null : [this.ox, this.oz], centre: [this.cx, this.cz], anyFlat: this.anyFlat, dirty: this.dirty, tick: this.tick };
+  }
+
+  /** Continue exactly from a snapshot: refuses a state no map could hold (a texel out of range, out of order or not in
+   *  (0, 1], a non-finite number) before changing anything. */
+  restore(state: TrampleState): void {
+    const { cells, origin, centre } = state, finite = (n: number): boolean => Number.isFinite(n);
+    let last = -1;
+    for (let k = 0; k < cells.length; k += 3) {
+      const i = cells[k] ?? -1, v = cells[k + 1] ?? 0, g = cells[k + 2] ?? Number.NaN;
+      if (!Number.isInteger(i) || i <= last || i >= SIZE * SIZE || !(v > 0 && v <= 1) || !finite(g)) throw new RangeError('Invalid trample cell');
+      last = i;
+    }
+    if (cells.length % 3 !== 0 || !centre.every(finite) || !finite(state.tick) || state.tick < 0 || (origin !== null && !origin.every(n => Number.isInteger(n)))) throw new RangeError('Invalid trample state');
+    if (this.tracked.length > 0) throw new Error('A trample map with tracked movers cannot restore');
+    this.amount.fill(0); this.angle.fill(0);
+    for (let k = 0; k < cells.length; k += 3) { const i = cells[k] ?? 0; this.amount[i] = cells[k + 1] ?? 0; this.angle[i] = cells[k + 2] ?? 0; }
+    [this.ox, this.oz] = origin ?? [0x7fffffff, 0x7fffffff];
+    [this.cx, this.cz] = centre;
+    this.anyFlat = state.anyFlat; this.dirty = state.dirty; this.tick = state.tick;
   }
 
   /** after this frame's pushes, before the recovery: the page hands its live movers to the shader */

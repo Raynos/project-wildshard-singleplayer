@@ -19,6 +19,8 @@ export interface NalatiGroups {
   readonly mayAttack: (actor: AnimalSim) => boolean;
   /** the wild view the groups' senses read (runtime/groups.ts nalatiHeadlessEnv) */
   readonly env: WildEnv;
+  /** the host's grass under that view: the page's field and the host's trample map (runtime/headless.ts) */
+  readonly grass: NalatiGrassView;
 }
 
 const installed = new WeakMap<SimHost, NalatiGroups>();
@@ -120,7 +122,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ARGYMAQ);
   if (argymaq === undefined || lair[lair.length - 1] !== argymaq) throw new Error('Argymaq\'s herd has no Argymaq');
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
-  const groups: NalatiGroups = { packs, herds, env: world.env, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
+  const groups: NalatiGroups = { packs, herds, env: world.env, grass: ports.grass, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
   installed.set(host, groups);
   return groups;
 }

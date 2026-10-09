@@ -44,6 +44,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '@wildshard/game/systems/looks/grassField';
 import { trample, TRAMPLE_GLSL } from '@wildshard/game/systems/looks/trample';
 import { paintedAir } from './air';
+import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from './trampleMovers';
 import { dressingCover } from '../world/dressing/index';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
@@ -477,11 +478,11 @@ export class GrassV2 {
   private rings: Ring[] = [];
   private flowers: Ring | null = null;
   private cards: Ring | null = null;
-  private lastPX = Number.NaN;
-  private lastPZ = Number.NaN;
+  private readonly trail: PlayerTrail = { lastX: Number.NaN, lastZ: Number.NaN };
+  private readonly pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { trample.push(x, z, r, s, vx, vz); };
   private baking = 0;
   /** live tunables */
-  readonly params = { playerRadius: 0.55 };
+  readonly params = { playerRadius: PLAYER_TRAMPLE_RADIUS };
 
   constructor(private readonly sky: Sky, private readonly forest: Forest) {
     instances.add(this);
@@ -637,10 +638,7 @@ export class GrassV2 {
 
   update(dt: number, playerPos: THREE.Vector3): void {
     // the player parts the grass and leaves a trail; the wind and the trample advance
-    const vx = Number.isNaN(this.lastPX) || dt <= 0 ? 0 : (playerPos.x - this.lastPX) / dt;
-    const vz = Number.isNaN(this.lastPZ) || dt <= 0 ? 0 : (playerPos.z - this.lastPZ) / dt;
-    this.lastPX = playerPos.x; this.lastPZ = playerPos.z;
-    if (vx * vx + vz * vz < 900) trample.push(playerPos.x, playerPos.z, this.params.playerRadius, 1, vx, vz);
+    pushPlayerTrail(this.trail, dt, playerPos.x, playerPos.z, this.params.playerRadius, this.pushTrample);
     wind.update(dt);
     painterlyUniforms.uPWind.value.set(wind.dirX, wind.dirZ, wind.speed / 5);
     trample.update(dt, playerPos);
