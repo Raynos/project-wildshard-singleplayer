@@ -1,0 +1,42 @@
+{
+  "glb": "ce5da45133af709d5a329ffe0b4b94239bdda09a5c40c0e5a7f12406cd484545",
+  "kinds": [
+    {
+      "name": "carcasses",
+      "count": 5,
+      "color": 16777215,
+      "roughness": 0.95,
+      "vertexColors": true,
+      "doubleSided": true
+    },
+    {
+      "name": "trees",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.95,
+      "vertexColors": true,
+      "doubleSided": true
+    },
+    {
+      "name": "scree",
+      "count": 60,
+      "color": 8143920,
+      "roughness": 0.95,
+      "vertexColors": false,
+      "doubleSided": false
+    }
+  ],
+  "colliders": [
+    {
+      "kind": "box",
+      "x": 96.15129731502012,
+      "y": 15.464213487279121,
+      "z": -15,
+      "hx": 0.2269459725301713,
+      "hy": 1.2086487668007608,
+      "hz": 0.2269459725301713,
+      "yaw": 0,
+      "surface": "wood"
+    }
+  ]
+}

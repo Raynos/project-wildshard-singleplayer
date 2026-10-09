@@ -8,8 +8,7 @@ import { STRINGS } from '../data/strings';
 import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
-import { bakedRocks, type BakedWorld } from './baked';
-import { buildDressing } from './dressing';
+import { bakedPiece, type BakedWorld } from './baked';
 import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
@@ -43,7 +42,6 @@ const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales th
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
-  const trailDistance = (x: number, z: number): number => terrain?.trailDistance(x, z) ?? 99;
   const file = (name: string): string => `src/shards/sunscar-dunes/world/${name}.ts`;
   const tower = buildTower(groundAt(TOWER.x, TOWER.z), groundAt);
   ctx.root.add(tower.root);
@@ -53,10 +51,10 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   const wellParts = buildWell(groundAt); ctx.root.add(wellParts.root);
   ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: file('places'), object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });
   // SF72: the rock field is baked offline (generators/rocks.ts); the client draws the bake and registers its colliders
-  const rocks = bakedRocks(baked); ctx.root.add(rocks.root);
+  const rocks = bakedPiece(baked, 'rocks'); ctx.root.add(rocks.root);
   ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: 'src/shards/sunscar-dunes/generators/rocks.ts', object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
-  const dressing = buildDressing(groundAt, trailDistance, ctx.scope); ctx.root.add(dressing.root);
-  ctx.piece({ id: 'sunscar.dressing', name: STRINGS.dressing, category: 'nature', file: file('dressing'), object: dressing.root, colliders: dressing.colliders, surface: 'sand' });
+  const dressing = bakedPiece(baked, 'dressing'); ctx.root.add(dressing.root);
+  ctx.piece({ id: 'sunscar.dressing', name: STRINGS.dressing, category: 'nature', file: 'src/shards/sunscar-dunes/generators/dressing.ts', object: dressing.root, colliders: dressing.colliders, surface: 'sand' });
   const interactables = ctx.game.runtime?.interactables, interactions = new SignalInteractions(flags, BRAZIERS.length);
 
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.
@@ -135,7 +133,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   // in the scene from the start, dark until a waymark burns)
   const wayLight = new PointLight(0xff7a30, 0, 10, 2); ctx.root.add(wayLight);
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
-    tickFires(t); dressing.tick(t);
+    tickFires(t);
     // E409 second top-10 row 8 (mockup B: the lantern lights the canvas, the tailboard and the sand): the caravan's lantern,
     // always burning, is one of the light's sources; the light goes to whichever lit source is nearest the player
     const me = ctx.game.runtime?.world?.player.position; let near: Vector3 | null = null, gain = 0, best = Infinity;

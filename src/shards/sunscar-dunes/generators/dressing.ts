@@ -1,18 +1,24 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
 import { Rng } from '@wildshard/engine/core/rng';
-import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
 import { rock } from '@wildshard/engine/world/geometryKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../data/layout';
-import { WIND } from './dunes';
+import { WIND } from '../world/dunes';
+import { signalDunesField } from './tiles';
+import { bakeKinds, type PieceBake } from './kinds';
 
 /**
  * The desert's dressing (loop 4; review #13 "something every few metres on the trails", mockups A–C): saltbush shrubs
  * and dry grass tufts gathered in the hollows and along the trail edges, marker posts with faded rags along the crest
  * paths, cairns where the paths fork and arrive, bleached carcasses, dead acacias, and scree at the ridges' feet.
  * Everything is code-built, faceted and vertex-coloured (the props' look), one `InstancedMesh` per kind (one draw each,
- * never multi-draw); the shrubs and the grass sway in the wind (`tick`).
+ * never multi-draw).
+ *
+ * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): baked offline into a static GLB and its
+ * collider rows (`scripts/bake-signal-world.mjs` → `public/assets/sunscar-dunes/baked/dressing.glb` + `data/dressing.json`);
+ * the client draws the bake (`world/baked.ts`) and builds no dressing mesh. The shapes are the runtime builder's,
+ * unchanged. The shrubs and the grass (none since loop 5) swayed in the wind in the client; a kind with instances must
+ * not need it: the bake refuses per-instance colours, and the sway would come back to the client with them.
  */
 
 export type V3 = readonly [number, number, number];
@@ -155,7 +161,10 @@ function treeGeometry(): BufferGeometry {
   return s.geometry();
 }
 
-export interface Dressing { root: Group; colliders: ColliderDesc[]; counts: Record<'shrubs' | 'tufts' | 'posts' | 'cairns' | 'carcasses' | 'trees' | 'scree' | 'outcrops' | 'gravel', number>; tick: (t: number) => void }
+/** The dressing's kinds, in the order they bake. */
+export const DRESSING_KINDS = ['shrubs', 'tufts', 'posts', 'cairns', 'carcasses', 'trees', 'scree', 'outcrops', 'gravel'] as const;
+export type DressingKind = (typeof DRESSING_KINDS)[number];
+export interface Dressing { root: Group; colliders: ColliderDesc[]; counts: Record<DressingKind, number>; meshes: Record<DressingKind, InstancedMesh> }
 
 /** The places the dressing keeps clear of (metres), and the trail bed (graded sand: nothing grows on it). */
 const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [
@@ -165,31 +174,12 @@ const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [
 ];
 const clear = (x: number, z: number, pad = 0): boolean => KEEP_CLEAR.every((c) => Math.hypot(x - c.x, z - c.z) > c.r + pad);
 
-/** The wind sway (shrubs and grass): the higher a vertex, the further it bends downwind; gusts roll across the field. */
-function sway(material: MeshStandardMaterial, time: { value: number }, amount: number, scope: Scope): void {
-  patchShader(material, 'sunscar.sway', PATCH_ORDER.decorate, (shader) => {
-    shader.uniforms['uSwayTime'] = time;
-    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform float uSwayTime;')
-      .replace('#include <begin_vertex>', `#include <begin_vertex>
-  {
-#ifdef USE_INSTANCING
-    vec3 swayRoot = instanceMatrix[3].xyz;
-#else
-    vec3 swayRoot = vec3(0.0);
-#endif
-    float swayGust = 0.55 + 0.45 * sin(uSwayTime * 0.6 - dot(swayRoot.xz, vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)})) * 0.05);
-    float swayK = max(transformed.y, 0.0) * ${amount.toFixed(3)} * swayGust * (0.7 + 0.3 * sin(uSwayTime * 2.3 + swayRoot.x * 0.7 + swayRoot.z * 0.4));
-    transformed.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * swayK;
-  }`);
-  }, { scope });
-}
-
 /**
  * Builds the dressing over the dunes. `groundAt` is the terrain height, `trailDistance` the distance to the nearest
- * trail centre line; the scope owns the sway patches.
+ * trail centre line.
  */
-export function buildDressing(groundAt: (x: number, z: number) => number, trailDistance: (x: number, z: number) => number, scope: Scope): Dressing {
-  const root = new Group(), colliders: ColliderDesc[] = [], rng = new Rng(SEED * 13 + 5), time = { value: 0 };
+export function buildDressing(groundAt: (x: number, z: number) => number, trailDistance: (x: number, z: number) => number): Dressing {
+  const root = new Group(), colliders: ColliderDesc[] = [], rng = new Rng(SEED * 13 + 5);
   const m = new Matrix4(), q = new Quaternion(), p = new Vector3(), sc = new Vector3(), up = new Vector3(0, 1, 0), tint = new Color();
   const place = (mesh: InstancedMesh, i: number, x: number, y: number, z: number, yaw: number, s: number, sy = s): void => {
     q.setFromAxisAngle(up, yaw); m.compose(p.set(x, y, z), q, sc.set(s, sy, s)); mesh.setMatrixAt(i, m);
@@ -198,16 +188,12 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     const mean = (groundAt(x + 10, z) + groundAt(x - 10, z) + groundAt(x, z + 10) + groundAt(x, z - 10)) / 4;
     return mean - groundAt(x, z); // > 0 in a hollow
   };
-  const material = (amount: number): MeshStandardMaterial => {
-    const mat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true, side: DoubleSide });
-    if (amount > 0) sway(mat, time, amount, scope);
-    return mat;
-  };
+  const material = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true, side: DoubleSide });
   const range = (half: number): number => rng.range(-half, half);
   const downwind = Math.atan2(-WIND.z, WIND.x); // a yaw that turns local +x along the wind
 
   // Shrubs: in clumps of 1–4 in the hollows and beside the trails (never on the trail bed, the crests mostly bare).
-  const shrubs = new InstancedMesh(shrubGeometry(SEED + 1), material(0.05), DRESSING.shrubs);
+  const shrubs = new InstancedMesh(shrubGeometry(SEED + 1), material(), DRESSING.shrubs);
   let ns = 0;
   for (let tries = 0; ns < DRESSING.shrubs && tries < DRESSING.shrubs * 30; tries++) {
     const cx = range(PLAY_HALF - 6), cz = range(PLAY_HALF - 6), td = trailDistance(cx, cz);
@@ -225,7 +211,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
   shrubs.count = ns;
 
   // Grass tufts: dense drifts in the hollows and along the trail edges, a few on the open slopes.
-  const tufts = new InstancedMesh(tuftGeometry(SEED + 2), material(0.12), DRESSING.tufts);
+  const tufts = new InstancedMesh(tuftGeometry(SEED + 2), material(), DRESSING.tufts);
   let nt = 0;
   for (let tries = 0; nt < DRESSING.tufts && tries < DRESSING.tufts * 20; tries++) {
     const cx = range(PLAY_HALF - 4), cz = range(PLAY_HALF - 4), td = trailDistance(cx, cz), low = hollow(cx, cz);
@@ -267,7 +253,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     if (cairnSpots.length < DRESSING.cairns && clear(dep.x, dep.z)) cairnSpots.push(dep);
     if (cairnSpots.length < DRESSING.cairns) cairnSpots.push({ x: ex - (ex - e2x) / le * 10 + (ez - e2z) / le * 2.6, z: ez - (ez - e2z) / le * 10 - (ex - e2x) / le * 2.6 });
   }
-  const posts = new InstancedMesh(postGeometry(), material(0), postSpots.length);
+  const posts = new InstancedMesh(postGeometry(), material(), postSpots.length);
   postSpots.forEach((s, i) => {
     const y = groundAt(s.x, s.z);
     q.setFromAxisAngle(up, downwind + rng.range(-0.3, 0.3));
@@ -294,7 +280,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     { x: -40, z: 46, yaw: 0.9 }, { x: WELL.x - 13, z: WELL.z + 9, yaw: -0.6 }, { x: BASIN.x + 30, z: BASIN.z + BASIN.r - 8, yaw: 2.2 },
     { x: 70, z: 60, yaw: 1.7 }, { x: -110, z: 70, yaw: -2.1 },
   ];
-  const carcasses = new InstancedMesh(carcassGeometry(), material(0), carcassSpots.length);
+  const carcasses = new InstancedMesh(carcassGeometry(), material(), carcassSpots.length);
   carcassSpots.forEach((c, i) => {
     // lie along the slope: the ground's normal from its height differences, then the carcass's own yaw about it
     const nrm = new Vector3(groundAt(c.x - 1, c.z) - groundAt(c.x + 1, c.z), 2, groundAt(c.x, c.z - 1) - groundAt(c.x, c.z + 1)).normalize();
@@ -309,7 +295,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     if (hollow(x, z) < 0.8 || trailDistance(x, z) < 10 || !clear(x, z, 8) || treeSpots.some((t) => Math.hypot(t.x - x, t.z - z) < 45)) continue;
     treeSpots.push({ x, z });
   }
-  const trees = new InstancedMesh(treeGeometry(), material(0), treeSpots.length);
+  const trees = new InstancedMesh(treeGeometry(), material(), treeSpots.length);
   treeSpots.forEach((t, i) => {
     const y = groundAt(t.x, t.z), s = rng.range(0.9, 1.3);
     place(trees, i, t.x, y, t.z, rng.range(0, 6.3), s);
@@ -347,7 +333,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
   outcrop.count = no;
 
   // Gravel: pebble patches in the hollows and along the trail edges (the near ground's surface detail).
-  const gravel = new InstancedMesh(gravelGeometry(SEED + 61), material(0), DRESSING.gravel);
+  const gravel = new InstancedMesh(gravelGeometry(SEED + 61), material(), DRESSING.gravel);
   let ng = 0;
   for (let tries = 0; ng < DRESSING.gravel && tries < DRESSING.gravel * 20; tries++) {
     const x = range(PLAY_HALF - 4), z = range(PLAY_HALF - 4), td = trailDistance(x, z);
@@ -362,5 +348,11 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
   }
   return { root, colliders,
     counts: { shrubs: ns, tufts: nt, posts: postSpots.length, cairns: cairnSpots.length, carcasses: carcassSpots.length, trees: treeSpots.length, scree: nr, outcrops: no, gravel: ng },
-    tick: (t) => { time.value = t; } };
+    meshes: { shrubs, tufts, posts, cairns, carcasses, trees, scree, outcrops: outcrop, gravel } };
+}
+
+/** The dressing baked on the manifest's own dune field: each non-empty kind one GLB node, the builder's own colliders. */
+export function bakeSignalDressing(): PieceBake {
+  const field = signalDunesField(), built = buildDressing(field.heightAt, field.trailDistance);
+  return bakeKinds('dressing', DRESSING_KINDS.map((kind) => [kind, built.meshes[kind]] as const), built.colliders);
 }

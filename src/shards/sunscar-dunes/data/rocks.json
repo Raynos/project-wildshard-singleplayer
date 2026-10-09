@@ -5,7 +5,9 @@
       "name": "ridges",
       "count": 30,
       "color": 9194542,
-      "roughness": 0.95
+      "roughness": 0.95,
+      "vertexColors": false,
+      "doubleSided": false
     }
   ],
   "colliders": [

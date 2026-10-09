@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/baked');
-const PIECES = [['rocks', 'generators/rocks.ts', 'bakeSignalRocks']];
+const PIECES = [['rocks', 'generators/rocks.ts', 'bakeSignalRocks'], ['dressing', 'generators/dressing.ts', 'bakeSignalDressing']];
 mkdirSync(out, { recursive: true });
 const keep = new Set();
 for (const [piece, file, name] of PIECES) {

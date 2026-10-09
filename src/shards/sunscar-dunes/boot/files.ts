@@ -43,8 +43,11 @@ const URLS: Readonly<Record<DuneMeshName, string>> = {
   'whip-glove': '/assets/sunscar-dunes/models/whip-glove/whip-glove.glb',
 };
 export const duneMeshUrl = (name: DuneMeshName): string => URLS[name];
-/** The world pieces baked offline (SF72: `generators/rocks.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`. */
-export const BAKED_ROCKS_URL = '/assets/sunscar-dunes/baked/rocks.glb';
+/** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`. */
+export const BAKED_PIECES = ['rocks', 'dressing'] as const;
+export type BakedPiece = (typeof BAKED_PIECES)[number];
+const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { rocks: '/assets/sunscar-dunes/baked/rocks.glb', dressing: '/assets/sunscar-dunes/baked/dressing.glb' };
+export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
 
 /** The flame's flipbook (world/fireFx.ts loadFireBook; art/sunscar-dunes/round-26-fire; E407 row 6). */
 export const FIRE_BOOK_URL = '/assets/sunscar-dunes/fx/fire-book.webp';
@@ -56,7 +59,7 @@ export const paintedUrl = (stage: PaintedStage): string => PAINTED_URLS[stage];
 
 /** Signal Dunes downloads its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and its painted dusk skies; the rest is code and every sound is a kit voice. */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
-  sky: PAINTED_STAGES.map(paintedUrl), baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl), BAKED_ROCKS_URL], art: [FIRE_BOOK_URL], music: [], sfx: [],
+  sky: PAINTED_STAGES.map(paintedUrl), baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl), ...BAKED_PIECES.map(bakedUrl)], art: [FIRE_BOOK_URL], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/sunscar-dunes/round-24-lut/). */

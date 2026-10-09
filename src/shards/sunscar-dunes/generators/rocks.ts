@@ -2,9 +2,9 @@ import { Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector
 import { Rng } from '@wildshard/engine/core/rng';
 import { rock } from '@wildshard/engine/world/geometryKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../data/layout';
 import { signalDunesField } from './tiles';
+import { bakeKinds, type PieceBake } from './kinds';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): Signal Dunes' wind-cut rock field, baked
@@ -66,25 +66,12 @@ export function buildRocks(groundAt: (x: number, z: number) => number, trailDist
   return { root, colliders, ridges, boulders };
 }
 
-/** One baked instanced kind: the GLB node's name, its instance count and the sandstone the client draws it in. */
-export interface BakedRockKind { name: 'ridges' | 'boulders'; count: number; color: number; roughness: number }
-/** The rock field's bake: the GLB bytes and its content hash's rows (`data/rocks.json`). */
-export interface RocksBake { glb: Uint8Array; kinds: BakedRockKind[]; colliders: ColliderDesc[] }
-
 /**
- * The rock field baked on the manifest's own dune field (`signalDunesField`,
- * the heights and trail distances the runtime builder read): each non-empty instanced kind is one GLB node (its lobe
- * geometry and EXT_mesh_gpu_instancing transforms, one draw each), and the colliders are the builder's own boxes.
+ * The rock field baked on the manifest's own dune field (`signalDunesField`, the heights and trail distances the runtime
+ * builder read): each non-empty instanced kind is one GLB node (`generators/kinds.ts`), and the colliders are the builder's
+ * own boxes.
  */
-export function bakeSignalRocks(): RocksBake {
-  const field = signalDunesField();
-  const built = buildRocks(field.heightAt, field.trailDistance), kinds: BakedRockKind[] = [], primitives: GlbPrimitive[] = [];
-  for (const [name, mesh] of [['ridges', built.ridges], ['boulders', built.boulders]] as const) {
-    if (mesh.count === 0) continue;
-    const instances = Array.from({ length: mesh.count }, (_, i) => { const m = new Matrix4(); mesh.getMatrixAt(i, m); return m; });
-    const material = Array.isArray(mesh.material) ? undefined : mesh.material;
-    if (!(material instanceof MeshStandardMaterial)) throw new Error('bakeSignalRocks: one standard material per kind');
-    primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false }); kinds.push({ name, count: mesh.count, color: material.color.getHex(), roughness: material.roughness });
-  }
-  return { glb: staticGlb(primitives, 'sunscar.rocks'), kinds, colliders: built.colliders };
+export function bakeSignalRocks(): PieceBake {
+  const field = signalDunesField(), built = buildRocks(field.heightAt, field.trailDistance);
+  return bakeKinds('rocks', [['ridges', built.ridges], ['boulders', built.boulders]], built.colliders);
 }
