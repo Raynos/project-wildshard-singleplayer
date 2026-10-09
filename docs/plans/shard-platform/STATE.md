@@ -29,7 +29,8 @@
 - **Nalati headless witness:** sp-x1 (elites, Kokbori, Qyran done; Qara night next).
 - **M2:** sp-x5 (SF57 re-soak on G270, SF22 gates); Jake's three phone runs.
 - **Still on SF72 gameplay:** sp-x2 Pine (King FK activation etc.), sp-x4 Driftwood (posed volumes).
-- **Other Opus:** op-signal (Signal 20.9 → 25.4 % candidate), op-sky (Sky 9.6 → 18.1 % candidate), op-bfill (fill the Blender cell, G220), op-floor (fps on HEAD: desktop 7/8, Pine cabin GPU-bound at vsync; Simulator 8/8).
+- **Other Opus:** op-signal (Signal 25.4 % candidate), op-sky (Sky 18.1 % candidate), op-bfill (fill the Blender cell), op-nine (Nine Dragon ledger + bakes).
+- **Floors on HEAD (`bb4d2409b`):** Simulator 8/8, Developer grid both surfaces, public grid PASS (quiet). Desktop 7/8: the Pine cabin is GPU-bound at vsync; Developer label fix `64b9b57ef` (rerun queued to sp-x5).
 
 **Unowned, next as slots free:**
 - **SF72:** Signal (~3.5k view lines to bake, Opus), Sky (~4.5k, Opus), Nine Dragon (ledger, Jian, gates, portal rides; Codex).
@@ -43,4 +44,4 @@
   - G260 Blender board;
   - confirm G120/G123/SF48 boards are moot.
 
-**Grid regression lead (for grid-fix, 21:25 UTC):** op-grid (d3704c31e/195597049) reported `GRID_GATES_PASSED` is still false, so the public build shows no INFINITE WILDSHARD card (G269 gate). G270 also dropped template-3 and moved Signal into public cells, and the SF73 legacy routing (10a4fbc7d) changed SHARD SELECT. G258's Auto texture resolver (986dc7495, b883abf1d) decides admission per resident. No lane of mine has a fix in flight.
+**Prod grid regression (Jake, 21:25 UTC):** owned by the plan agent's grid-fix lane.
