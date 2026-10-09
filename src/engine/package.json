@@ -321,6 +321,7 @@
     "./core/contentCost": "./core/contentCost.ts",
     "./entities/AnimalView": "./entities/AnimalView.ts",
     "./entities/AnimalSim": "./entities/AnimalSim.ts",
+    "./entities/killHeight": "./entities/killHeight.ts",
     "./script/host": "./script/host.ts",
     "./script/effects": "./script/effects.ts",
     "./script/queries": "./script/queries.ts",

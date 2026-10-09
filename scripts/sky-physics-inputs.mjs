@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 
 /** Exact native collision/model inputs; a changed recipe refuses the trusted headless bake. */
 export function skyPhysicsInputs(root) {
-  const paths = ['layout.ts', 'data/spawns.ts', 'data/movers.ts', 'data/isletLift.ts', 'data/storm.ts',
+  const paths = ['layout.ts', 'data/spawns.ts', 'runtime/variants.ts', 'data/movers.ts', 'data/isletLift.ts', 'data/storm.ts',
     'runtime/index.ts', 'runtime/crownLayout.ts'].map(path => `src/shards/far-reach/${path}`);
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {

@@ -1,21 +1,18 @@
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { DECK } from '../layout';
 import { STRINGS } from '../strings';
+import { DRIFT_RAY_VARIANTS } from '../runtime/variants';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 
-/** The dive: a 3-D sphere contact around the ray, tested against the player's chest (ENGINE §19 "Short flyer"). */
-export const DIVE: StrikeSpec = { id: 'far.ray.dive', shape: { kind: 'sphere', radius: 1.9 }, windup: 1.1, active: 1.1, recover: 0.6, cooldown: 5,
-  range: 14, damage: 10, tags: ['creature.driftRay'], units: 'world', weight: () => 1 };
 /** How the ray flies: its circle speed, how high it hangs over the player before the dive, its dive speed, its rest after one. */
 export const RAY = { circleSpeed: 8, hang: 9, stalkSpeed: 10, diveSpeed: 16, rest: 6, notice: 40, giveUp: 60 } as const;
 export const DRIFT_RAY: SpeciesRow = { id: 'far.creature.driftRay', kind: 'driftRay', label: STRINGS.ray, aggressive: true, blood: false,
   flight: { altitude: DECK + 14, above: 'world', climbRate: 6, diveRate: 20, lockRange: 32 },
-  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 50 }] };
+  variants: DRIFT_RAY_VARIANTS };
 
 /** Bone indices in build().bones order. */
 const BODY = 0, HEAD = 1, WING_L = 2, WING_R = 3, TAIL = 4;

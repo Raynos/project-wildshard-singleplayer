@@ -1,20 +1,17 @@
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BoxGeometry, ConeGeometry, type BufferGeometry } from 'three';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 import { STRINGS } from '../strings';
+import { SKY_GOAT_VARIANTS } from '../runtime/variants';
 import { hull } from './rig';
 
-/** The ram: a short lane straight ahead, telegraphed by a head-down windup. */
-export const RAM: StrikeSpec = { id: 'far.goat.ram', shape: { kind: 'lane', length: 4, width: 1.4 }, windup: 0.8, active: 0.5, recover: 0.9, cooldown: 3,
-  range: 5, damage: 12, tags: ['creature.skyGoat'], weight: () => 1 };
 /** `drop`: how far below its deck a goat counts as falling (metres). */
 export const GOAT = { graze: 1.2, ram: 7.5, notice: 9, rimMargin: 2.5, drop: 1.5 } as const;
 export const SKY_GOAT: SpeciesRow = { id: 'far.creature.skyGoat', kind: 'skyGoat', label: STRINGS.goat, aggressive: true, blood: false, lockable: true,
-  variants: [{ id: 'cloud', label: STRINGS.goat, weight: 1, rarity: 'common', scale: [0.95, 1.1], hp: 40 }] };
+  variants: SKY_GOAT_VARIANTS };
 
 const BODY = 0, LEG_FL = 2, LEG_FR = 3, LEG_BL = 4, LEG_BR = 5;
 /** The code goat: primitive parts (the stand-in while the generated model is missing). */

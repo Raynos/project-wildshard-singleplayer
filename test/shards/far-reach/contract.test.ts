@@ -23,7 +23,7 @@ import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
 import { WarFan, GUST, inCone } from '../../../src/shards/far-reach/weapons/WarFan';
-import { DIVE } from '../../../src/shards/far-reach/species/driftRay';
+import { DIVE } from '../../../src/shards/far-reach/runtime/strikes';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '../../../src/shards/far-reach/layout';
 import { UPDRAFT_ANGLE, vaneColliders } from '../../../src/shards/far-reach/world/build';
 import { SKY_GOAT, warmCoat } from '../../../src/shards/far-reach/species/skyGoat';

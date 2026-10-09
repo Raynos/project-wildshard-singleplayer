@@ -9,6 +9,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { ROC } from '../layout';
 import { STRINGS } from '../strings';
+import { STORM_ROC_VARIANTS } from '../runtime/variants';
 
 
 const brains = new WeakMap<Animal, StormRocBrain>();
@@ -16,7 +17,7 @@ export const rocBrain = (a: Animal): StormRocBrain => { let value = brains.get(a
 export const STORM_ROC: SpeciesRow = { id: 'far.creature.stormRoc', kind: 'stormRoc', label: STRINGS.roc, aggressive: true, blood: false,
   // bank (engine 8252e3978): it rolls into its turns, so the lap round the dais banks (round 7: 'a frontal level bird')
   flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40, bank: 0.35 },
-  variants: [{ id: 'storm', label: STRINGS.roc, weight: 1, rarity: 'legendary', scale: [1, 1], hp: 420 }],
+  variants: STORM_ROC_VARIANTS,
   think: (a, ctx) => { rocBrain(a).think(ctx); }, act: (a, ctx) => { rocBrain(a).act(ctx); } };
 
 
