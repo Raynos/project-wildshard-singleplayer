@@ -122,7 +122,7 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - Two engines: **Qwen-Image-2.1 turbo** locally for fast iteration (`scripts/mockup-local.sh`), **codex `image_gen`**
   for fidelity. Start from a live capture; quote every UI string; read every image before you send it.
 - Every mockup lives in `art/<subject>/round-<n>-<label>/`, committed as JPEG.
-- **Every pick is one labelled A / B / C board**, iPhone portrait. Motion is a video. Mockups are for UI and art
+- **Every pick is one labelled A / B / C board**, iPhone portrait; **every image Jake sees has burned-in labels** saying what each panel is (a file name is not enough). Motion is a video. Mockups are for UI and art
   direction, never for rendering or perf bugs (show the real game instead).
 - A plan with prototypes gets one read-only review page.
 

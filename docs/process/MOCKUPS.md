@@ -88,6 +88,7 @@ on his laptop.
 - **Every pick is one board image**: the variants side by side (2–4 across), each with a big letter (A, B, C, D) and a
   one-line caption, the question as its title. Text-only choices get a board too. `magick montage` with `-label`, a
   dark background and a title.
+- **Every image Jake sees says what it is, inside the image** (Jake, 2026-10-09: *"all these boards need some kind of label on the image … just the file name is not enough. They need text inside the image saying what the hell am I looking at"*): every board, before / after pair, capture sheet, evidence frame and infographic carries burned-in text: a title line (what the question or change is) and a label on every panel (A / B, "BEFORE: today" / "AFTER: …", the shard and pose). A pixel-difference panel is labelled "DIFFERENCE (black = identical)", or left off boards meant for Jake. A raw capture sent alone gets a one-line caption bar. No unlabelled image goes to Jake.
 - **iPhone portrait only, for every screenshot**: boards, before/after sheets, audits, evidence. Jake plays the Safari
   PWA and reviews from Claude iOS. Capture as the phone ([MACHINE.md](MACHINE.md)); no desktop frames, even for a
   desktop-only bug.
