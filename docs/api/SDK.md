@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-258 members; 0 without a doc line (—).
+265 members; 1 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -36,6 +36,13 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `GlbPrimitive` | interface | @wildshard/sdk/bake/glb | A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. |
 | `propBounds` | function | @wildshard/sdk/bake/glb | Collect world-space bounds without changing or flattening the generator's hierarchy. |
 | `staticGlb` | function | @wildshard/sdk/bake/glb | A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. |
+| `BakedKind` | interface | @wildshard/sdk/bake/kinds | One baked instanced kind: the GLB node's name, its instance count and the material the client draws it in. |
+| `bakeKinds` | function | @wildshard/sdk/bake/kinds | Bake named instanced meshes into one GLB (`name` is its scene name, e.g. `sunscar.rocks`) and their kind rows. |
+| `colliderRows` | const | @wildshard/sdk/bake/kinds | Colliders as the JSON rows keep them (a `-0` yaw is `0`). |
+| `foldKinds` | function | @wildshard/sdk/bake/kinds | A built group's meshes folded into instanced kinds, in first-seen order: every box of one look becomes an instance of |
+| `KindBakeOptions` | interface | @wildshard/sdk/bake/kinds | — |
+| `KindExtra` | type | @wildshard/sdk/bake/kinds | A kind row's extra fields: plain JSON a shard's client reads back (a lit-by-fire flag, a named client material). |
+| `PieceBake` | interface | @wildshard/sdk/bake/kinds | A piece's bake: the GLB bytes and its rows (`data/<piece>.json`, with the GLB's content hash). |
 | `NativeLatticeAttribute` | interface | @wildshard/sdk/bake/nativeLattice | A native vertex channel. Values are interpolated linearly at cuts, without renormalising normals or splat weights. |
 | `NativeLatticeSource` | interface | @wildshard/sdk/bake/nativeLattice | Exact native terrain mesh, including its original diagonal, holes and vertex channels. Collision is not rebuilt here. |
 | `NativeLatticeTile` | interface | @wildshard/sdk/bake/nativeLattice | Render-only tile geometry. Original vertices retain their values; new boundary vertices lie on original triangles. |

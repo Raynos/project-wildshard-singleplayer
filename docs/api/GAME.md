@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-860 members; 157 without a doc line (—).
+866 members; 158 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -398,6 +398,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
+| `BakedColliderRow` | interface | @wildshard/game/shardfile/bakedKinds | A baked collider row (a box; JSON keeps a yaw or a quaternion `rot`). |
+| `bakedColliders` | const | @wildshard/game/shardfile/bakedKinds | Baked collider rows as the registry takes them. |
+| `BakedKindRow` | interface | @wildshard/game/shardfile/bakedKinds | A baked kind's row, as the bake writes it; a shard's own extra fields ride along (`K` in the calls below). |
+| `BakedKindsDraw` | interface | @wildshard/game/shardfile/bakedKinds | — |
+| `bakedKindsGroup` | function | @wildshard/game/shardfile/bakedKinds | A piece's group from its loaded nodes: each kind one `InstancedMesh` in its own material; a kind not loaded is skipped. |
+| `loadBakedKinds` | function | @wildshard/game/shardfile/bakedKinds | Load one piece's GLB: its instanced nodes by kind name, in the rows' order; empty (with a warning) if it fails. |
 | `bossFlagRecord` | function | @wildshard/game/shardfile/bossRow | A boss row's record kept on the shard's own flags (no save of its own): `saved` to start from, `persist` to write. |
 | `BossRowFlagNames` | interface | @wildshard/game/shardfile/bossRow | A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). |
 | `BossRowFlags` | interface | @wildshard/game/shardfile/bossRow | The shard flags a boss record reads and writes. |

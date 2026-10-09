@@ -16224,6 +16224,42 @@
         "from": "@wildshard/game/shardfile/audio"
       },
       {
+        "name": "BakedColliderRow",
+        "kind": "interface",
+        "doc": "A baked collider row (a box; JSON keeps a yaw or a quaternion `rot`).",
+        "from": "@wildshard/game/shardfile/bakedKinds"
+      },
+      {
+        "name": "bakedColliders",
+        "kind": "const",
+        "doc": "Baked collider rows as the registry takes them.",
+        "from": "@wildshard/game/shardfile/bakedKinds"
+      },
+      {
+        "name": "BakedKindRow",
+        "kind": "interface",
+        "doc": "A baked kind's row, as the bake writes it; a shard's own extra fields ride along (`K` in the calls below).",
+        "from": "@wildshard/game/shardfile/bakedKinds"
+      },
+      {
+        "name": "BakedKindsDraw",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/shardfile/bakedKinds"
+      },
+      {
+        "name": "bakedKindsGroup",
+        "kind": "function",
+        "doc": "A piece's group from its loaded nodes: each kind one `InstancedMesh` in its own material; a kind not loaded is skipped.",
+        "from": "@wildshard/game/shardfile/bakedKinds"
+      },
+      {
+        "name": "loadBakedKinds",
+        "kind": "function",
+        "doc": "Load one piece's GLB: its instanced nodes by kind name, in the rows' order; empty (with a warning) if it fails.",
+        "from": "@wildshard/game/shardfile/bakedKinds"
+      },
+      {
         "name": "bossFlagRecord",
         "kind": "function",
         "doc": "A boss row's record kept on the shard's own flags (no save of its own): `saved` to start from, `persist` to write.",
@@ -19212,6 +19248,48 @@
         "kind": "function",
         "doc": "A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader.",
         "from": "@wildshard/sdk/bake/glb"
+      },
+      {
+        "name": "BakedKind",
+        "kind": "interface",
+        "doc": "One baked instanced kind: the GLB node's name, its instance count and the material the client draws it in.",
+        "from": "@wildshard/sdk/bake/kinds"
+      },
+      {
+        "name": "bakeKinds",
+        "kind": "function",
+        "doc": "Bake named instanced meshes into one GLB (`name` is its scene name, e.g. `sunscar.rocks`) and their kind rows.",
+        "from": "@wildshard/sdk/bake/kinds"
+      },
+      {
+        "name": "colliderRows",
+        "kind": "const",
+        "doc": "Colliders as the JSON rows keep them (a `-0` yaw is `0`).",
+        "from": "@wildshard/sdk/bake/kinds"
+      },
+      {
+        "name": "foldKinds",
+        "kind": "function",
+        "doc": "A built group's meshes folded into instanced kinds, in first-seen order: every box of one look becomes an instance of",
+        "from": "@wildshard/sdk/bake/kinds"
+      },
+      {
+        "name": "KindBakeOptions",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/sdk/bake/kinds"
+      },
+      {
+        "name": "KindExtra",
+        "kind": "type",
+        "doc": "A kind row's extra fields: plain JSON a shard's client reads back (a lit-by-fire flag, a named client material).",
+        "from": "@wildshard/sdk/bake/kinds"
+      },
+      {
+        "name": "PieceBake",
+        "kind": "interface",
+        "doc": "A piece's bake: the GLB bytes and its rows (`data/<piece>.json`, with the GLB's content hash).",
+        "from": "@wildshard/sdk/bake/kinds"
       },
       {
         "name": "NativeLatticeAttribute",

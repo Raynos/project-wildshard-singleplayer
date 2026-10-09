@@ -2416,7 +2416,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-860 exports, grouped by the module to import them from.
+866 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2487,6 +2487,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/assetGraph`: `preflightAssetGraph`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `assetOverdraw`, `parseAudio`, `parseGlb`, `parseKtx2`, `visitGlbTriangles`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
+- `@wildshard/game/shardfile/bakedKinds`: `BakedColliderRow`, `bakedColliders`, `BakedKindRow`, `BakedKindsDraw`, `bakedKindsGroup`, `loadBakedKinds`
 - `@wildshard/game/shardfile/bossRow`: `bossFlagRecord`, `BossRowFlagNames`, `BossRowFlags`, `BossRowSpec`, `installBossRow`
 - `@wildshard/game/shardfile/brainRuntime`: `DeclaredBrainPorts`, `DeclaredBrainRecipe`, `DeclaredNativeBrain`, `installDeclaredBrains`
 - `@wildshard/game/shardfile/brains`: `GuardianSchema`, `parseGuardian`, `parsePerchHunter`, `parseScriptBrain`, `parseSkirmisher`, `PerchHunterSchema`, `ScriptBrainSchema`, `ShardGuardian`, `ShardPerchHunter`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`
@@ -2582,7 +2583,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-252 exports, grouped by the module to import them from.
+259 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2592,6 +2593,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/bag`: `ItemRow`, `normalizeItemRow`, `RegisteredItemRow`
 - `@wildshard/sdk/bake/export`: `SampledSkinClip`, `sampleSkinClip`, `skinnedGlb`
 - `@wildshard/sdk/bake/glb`: `GlbPrimitive`, `propBounds`, `staticGlb`
+- `@wildshard/sdk/bake/kinds`: `BakedKind`, `bakeKinds`, `colliderRows`, `foldKinds`, `KindBakeOptions`, `KindExtra`, `PieceBake`
 - `@wildshard/sdk/bake/nativeLattice`: `NativeLatticeAttribute`, `NativeLatticeSource`, `NativeLatticeTile`, `sliceNativeLattice`
 - `@wildshard/sdk/bake/props`: `BakedProps`, `bakeProps`, `PropsBakeSource`, `PropScatter`
 - `@wildshard/sdk/bake/staticMaterials`: `CapturedStaticMaterial`, `captureStaticMaterial`, `checkStaticMaterialDependencies`, `StaticImageSource`, `StaticMaterialCatalogue`, `staticMaterialNames`, `StaticTextureIdentity`, `StaticTextureResolver`

@@ -36,6 +36,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-signal-world.mjs](./bake-signal-world.mjs)
 - [bake-sky-keys.mjs](./bake-sky-keys.mjs)
 - [bake-sky-physics.mjs](./bake-sky-physics.mjs)
+- [bake-sky-world.mjs](./bake-sky-world.mjs)
 - [bake-sky.mjs](./bake-sky.mjs)
 - [bake-template-shardfile.mjs](./bake-template-shardfile.mjs)
 - [bake-textures.mjs](./bake-textures.mjs)
