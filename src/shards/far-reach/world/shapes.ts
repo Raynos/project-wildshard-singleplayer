@@ -1,9 +1,10 @@
-import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
+import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { ropeSag } from '../layout';
 import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
 import { towerMill } from './mill';
+import { skyBakedGeometry } from './baked';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
@@ -11,53 +12,12 @@ export const PALETTE = {
   pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0x6a5c4a, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
 } as const;
 
-type Tri = (a: Vector3, b: Vector3, c: Vector3, color: number, vary?: number) => void;
-/** Macro colour noise (Gilded Air: painted variation, not one flat colour per facet): a soft value field over world metres. */
-const macro = (x: number, z: number): number => Math.sin(x * 0.31 + Math.sin(z * 0.23) * 1.7) * 0.5 + Math.sin(z * 0.37 - x * 0.11) * 0.5;
-function builder(): { tri: Tri; geometry: () => BufferGeometry } {
-  const pos: number[] = [], col: number[] = [], c = new Color();
-  const tri: Tri = (a, b, d, color, vary = 0) => {
-    for (const p of [a, b, d]) {
-      c.setHex(color); const k = 1 + vary * macro(p.x, p.z), warm = vary * Math.max(0, macro(p.z * 0.7, p.x * 0.7));
-      pos.push(p.x, p.y, p.z); col.push(c.r * k + warm * 0.05, c.g * k + warm * 0.03, c.b * k * (1 - warm * 0.4));
-    }
-  };
-  return { tri, geometry: () => { const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3));
-    g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals(); return g; } };
-}
 export const flat = (color = 0xffffff, extra: ConstructorParameters<typeof MeshStandardMaterial>[0] = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, flatShading: true, roughness: 0.95, metalness: 0, ...extra });
 
-/**
- * One pine (loop 4; the targets' wind-bent conifers, not two cones): a tapered trunk and six drooping tiers, each a ring
- * of jagged branch tips hanging below its collar, dark blue-green inside, lighter gold-lit green at the tips, the crown
- * leaning a little downwind. One vertex-coloured geometry for instancing.
- */
-export function pineGeometry(): BufferGeometry {
-  const { tri, geometry } = builder(), up = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
-  const trunk = new CylinderGeometry(0.12, 0.3, 2.4, 6).toNonIndexed(); trunk.translate(0, 1.2, 0);
-  const p = trunk.getAttribute('position'), a = new Vector3(), b = new Vector3(), c = new Vector3();
-  for (let i = 0; i < p.count; i += 3) { a.fromBufferAttribute(p, i); b.fromBufferAttribute(p, i + 1); c.fromBufferAttribute(p, i + 2); tri(a, b, c, PALETTE.trunk); }
-  trunk.dispose();
-  const tiers = 6, height = 7.4, inner = 0x22402f, mid = 0x355a3a, tip = 0x6f8a45, n = 9;
-  for (let t = 0; t < tiers; t++) {
-    const f = t / tiers, y = 1.5 + f * (height - 2.2), r = 2.0 * (1 - f * 0.82), drop = 1.15 - f * 0.45, lean = f * f * 0.35;
-    const collar = up(lean, y + drop * 0.9, 0);
-    for (let k = 0; k < n; k++) {
-      const a0 = (k / n) * Math.PI * 2 + t * 0.7, a1 = ((k + 1) / n) * Math.PI * 2 + t * 0.7, am = (a0 + a1) / 2;
-      const jag = 0.75 + 0.25 * Math.sin(k * 2.3 + t * 1.7);
-      const p0 = up(Math.cos(a0) * r * 0.62 + lean, y + 0.12, Math.sin(a0) * r * 0.62), p1 = up(Math.cos(a1) * r * 0.62 + lean, y + 0.12, Math.sin(a1) * r * 0.62);
-      const pt = up(Math.cos(am) * r * jag + lean, y - drop * 0.25, Math.sin(am) * r * jag);
-      tri(collar, p1, p0, mid); tri(p0, p1, pt, tip, 0.12);
-      // the underside, so a low view under the branches sees shade, not sky
-      tri(p0, pt, up(lean, y - 0.1, 0), inner);
-    }
-  }
-  tri(up(0.35 - 0.12, height - 0.3, -0.12), up(0.35 + 0.12, height - 0.3, 0.12), up(0.4, height + 0.6, 0), tip);
-  return geometry();
-}
+/** The code pines at `at` ([x, y, z, scale]), one instanced draw (SF72: the pine is baked, generators/geometries.ts). */
 export function pines(at: readonly (readonly [number, number, number, number])[]): InstancedMesh {
-  const mesh = new InstancedMesh(pineGeometry(), flat(0xffffff, { vertexColors: true, side: DoubleSide }), at.length), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
+  const mesh = new InstancedMesh(skyBakedGeometry('pine'), flat(0xffffff, { vertexColors: true, side: DoubleSide }), at.length), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   at.forEach(([x, y, z, s], i) => { q.setFromAxisAngle(up, i * 1.7); m.compose(new Vector3(x, y, z), q, new Vector3(s, s, s)); mesh.setMatrixAt(i, m); });
   mesh.computeBoundingSphere(); return mesh;
 }

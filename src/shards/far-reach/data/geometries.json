@@ -1,0 +1,66 @@
+{
+  "glb": "abdf809f046fb8aa5a311190b7b9ca5bc7cc1bb7faa496175e141a449c65e4fc",
+  "kinds": [
+    {
+      "name": "clump",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "flower",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "boulder",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "pine",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "fir",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    }
+  ],
+  "colliders": []
+}

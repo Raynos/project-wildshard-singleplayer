@@ -1,6 +1,7 @@
-import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
+import { Color, ConeGeometry, DoubleSide, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { paintIsleMaterial } from './isle';
+import { skyBakedGeometry } from './baked';
 import { meadowHoles, meadowPaths } from './meadow';
 import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';
 import { apothem, knollHeight } from '../layout';
@@ -24,68 +25,6 @@ export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.07, stonesPerIsle: 9, r
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
   return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-}
-
-/** One clump: five bent blades fanned round the centre, 1 m tall before scaling. */
-export function clumpGeometry(): BufferGeometry {
-  // E392 foreground: thin blades in the near meadow's ramp (dark root, yellow-green body, gold tip), not lime cards
-  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x2c4030), mid = new Color(0x6a8a40), tip = new Color(0xd8b878);
-  const push = (x: number, y: number, z: number, c: Color): void => { pos.push(x, y, z); col.push(c.r, c.g, c.b); nor.push(0, 1, 0); };
-  // twelve blades over a patch about 0.6 m across (fewer, fuller instances: the instance matrices are the GPU cost)
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2 + i * 0.4, dx = Math.cos(a), dz = Math.sin(a), w = 0.032, lean = 0.22 + (i % 3) * 0.14, h = 0.5 + (i % 4) * 0.16;
-    const ox = Math.cos(i * 2.4) * 0.3 * ((i % 4) / 3), oz = Math.sin(i * 2.4) * 0.3 * ((i % 4) / 3);
-    const px = -dz * w, pz = dx * w, mx = ox + dx * lean * 0.45, mz = oz + dz * lean * 0.45;
-    // two quads up the blade, then the tip triangle: root → mid → tip, leaning outward
-    push(ox + px, 0, oz + pz, root); push(ox - px, 0, oz - pz, root); push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid);
-    push(ox - px, 0, oz - pz, root); push(mx - px * 0.7, h * 0.5, mz - pz * 0.7, mid); push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid);
-    push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid); push(mx - px * 0.7, h * 0.5, mz - pz * 0.7, mid); push(ox + dx * lean, h, oz + dz * lean, tip);
-  }
-  const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.setAttribute('normal', new Float32BufferAttribute(nor, 3));
-  return g;
-}
-/**
- * A daisy (E392 foreground): eight white petals round a gold eye, 0.1 m across, facing up on a short stem. Vertex-coloured,
- * so an instance colour tints it: white keeps the daisy, yellow makes a buttercup (its eye a deeper gold).
- */
-export function flowerGeometry(): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], y = 0.3, r = 0.05, eye = new Color(0xe8b52a), petal = new Color(0xffffff), stem = new Color(0x4e6a22);
-  const push = (x: number, py: number, z: number, c: Color): void => { pos.push(x, py, z); col.push(c.r, c.g, c.b); };
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2, b = a + Math.PI / 4, m = a + Math.PI / 8, w = 0.16;
-    // the eye: an octagon fan, a hair above the petals
-    push(0, y + 0.006, 0, eye); push(Math.cos(b) * r * 0.32, y + 0.006, Math.sin(b) * r * 0.32, eye); push(Math.cos(a) * r * 0.32, y + 0.006, Math.sin(a) * r * 0.32, eye);
-    // a petal: a narrow kite from the eye out to the rim, its tip cupped up a little
-    const px = Math.cos(m), pz = Math.sin(m), qx = -pz * w * r, qz = px * w * r;
-    push(px * r * 0.25, y, pz * r * 0.25, petal); push(px * r * 0.62 - qx, y + 0.003, pz * r * 0.62 - qz, petal); push(px * r, y + 0.012, pz * r, petal);
-    push(px * r * 0.25, y, pz * r * 0.25, petal); push(px * r, y + 0.012, pz * r, petal); push(px * r * 0.62 + qx, y + 0.003, pz * r * 0.62 + qz, petal);
-  }
-  push(-0.005, 0, 0, stem); push(0.005, 0, 0, stem); push(0, y, 0, stem);
-  const nor = pos.map((_, i) => (i % 3 === 1 ? 1 : 0));
-  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.setAttribute('normal', new Float32BufferAttribute(nor, 3));
-  return g;
-}
-
-/**
- * A boulder: a subdivided icosahedron lumped by three octaves of noise, its underside flattened (it sits embedded), all
- * grey: the islands' rock paint gives it the cliff texture and moss on every facet that faces up (E392: a green vertex
- * colour took the painted meadow, a flat olive slab with daisies on it).
- */
-export function stoneGeometry(): BufferGeometry {
-  const g = new IcosahedronGeometry(1, 1).toNonIndexed(), p = g.getAttribute('position'), col: number[] = [];
-  const grey = new Color(0x8a8580), warm = new Color(0x9a8f84), dark = new Color(0x5c5856), c = new Color();
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    const n = Math.sin(x * 2.3 + z * 1.7 + 0.4) * 0.5 + Math.sin(y * 3.1 - x * 1.3) * 0.3 + Math.sin(z * 6.7 + y * 5.3 - x * 4.1) * 0.2;
-    // chunky facets: big lumps, a low crown, a flat bottom where it sits in the ground
-    const k = 1 + 0.28 * n;
-    p.setXYZ(i, x * k * (1 + 0.18 * Math.sin(z * 1.9)), Math.max(-0.35, y * k > 0.7 ? 0.7 + (y * k - 0.7) * 0.4 : y * k), z * k);
-    c.copy(grey).lerp(warm, 0.5 + 0.5 * n).lerp(dark, Math.max(0, -y) * 0.7);
-    col.push(c.r, c.g, c.b);
-  }
-  g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals();
-  return g;
 }
 
 /** Every lane a walker or a rider crosses: the bridges, the updraft and the fallen bridge (its walk once raised). */
@@ -249,7 +188,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     }
   }
   // the hero spots' foreground boulders, embedded so each stands its own height above the grass
-  const stone = stoneGeometry(); stone.computeBoundingBox();
+  const stone = skyBakedGeometry('boulder'); stone.computeBoundingBox();
   const stoneTop = (stone.boundingBox?.max.y ?? 1) * STONE_SQUASH;
   if (landings) for (const [x, z, deck, sc, top] of [...HERO_STONES, ...meadowRocks(isles)]) {
     if (!clearOfWalks(x, z, sc * 1.2)) continue;
@@ -282,11 +221,11 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
         transformed *= smoothstep(${DRESS.handoff[0].toFixed(1)}, ${DRESS.handoff[1].toFixed(1)}, distance(farAt.xz, cameraPosition.xz)); }
       #endif`);
   }, { key: (prior) => `${prior}|far.clump-handoff` });
-  place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
+  place(new InstancedMesh(skyBakedGeometry('clump'), clumpMaterial, clumps.length), clumps);
   // the lip clumps: each turned so its blades lean out over the edge (yaw = the rim angle, then tipped about the tangent)
   // (E407 row 4: they shrink away near the camera like the clumps, where the near meadow's blades own the rim: up close
   // their wide lime blades stood out of a shorter sward by the bridge heads)
-  const lipMesh = new InstancedMesh(clumpGeometry(), clumpMaterial, lips.length);
+  const lipMesh = new InstancedMesh(skyBakedGeometry('clump'), clumpMaterial, lips.length);
   const tq = new Quaternion(), ax = new Vector3();
   lips.forEach((it, i) => {
     ax.set(-Math.sin(it.yaw), 0, Math.cos(it.yaw)); tq.setFromAxisAngle(ax, -it.tilt);
@@ -303,7 +242,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
         transformed *= smoothstep(${DRESS.flowerHandoff[0].toFixed(1)}, ${DRESS.flowerHandoff[1].toFixed(1)}, farD) * clamp(farD / 12.0, 1.0, 2.2); }
       #endif`);
   }, { key: (prior) => `${prior}|far.flower-handoff` });
-  const flowerMesh = new InstancedMesh(flowerGeometry(), flowerMaterial, flowers.length);
+  const flowerMesh = new InstancedMesh(skyBakedGeometry('flower'), flowerMaterial, flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
   // the boulders wear the islands' painted rock and moss (E392: flat olive blobs up close)
   const stoneMaterial = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));

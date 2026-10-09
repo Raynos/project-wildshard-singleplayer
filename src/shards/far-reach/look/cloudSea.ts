@@ -1,5 +1,6 @@
 import { CircleGeometry, Color, DataTexture, DoubleSide, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, ShaderMaterial, UnsignedByteType, type Texture, type Vector3 } from 'three';
 import { SKY } from './sun';
+import SEA_BAKE from '../data/seaTexture.json' with { type: 'json' };
 
 /**
  * The cloud sea (review 2026-10-01 item 2): two layered sheets under the islands instead of the engine's one flat plane.
@@ -11,31 +12,13 @@ import { SKY } from './sun';
 /** `maelstrom`: the sea twists toward an eye under the storm crown (x, z, falloff radius m). */
 export const SEA = { size: 64, low: -48, high: -34, radius: 1400, handoff: [240, 700], maelstrom: { x: 0, z: -190, r: 95 } } as const;
 
-function hash(x: number, y: number): number { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
-function noise(x: number, y: number, p: number): number {
-  const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
-  const x0 = ((xi % p) + p) % p, x1 = (x0 + 1) % p, y0 = ((yi % p) + p) % p, y1 = (y0 + 1) % p;
-  const a = hash(x0, y0), b = hash(x1, y0), c = hash(x0, y1), d = hash(x1, y1);
-  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
-}
-/** Periodic fbm over the unit square (tiles seamlessly). */
-function fbm(u: number, v: number): number {
-  let sum = 0, amp = 0.55, f = 4, norm = 0;
-  for (let o = 0; o < 5; o++) { sum += amp * noise(u * f + o * 7.1, v * f + o * 3.7, f); norm += amp; amp *= 0.5; f *= 2; }
-  return sum / norm;
-}
-
-/** R: density; G: lit (the side of a puff that faces the sun). Baked for the fixed sun's heading. */
-export function bakeSeaTexture(sun: Vector3): DataTexture {
-  const N = SEA.size, d = new Float32Array(N * N), data = new Uint8Array(N * N * 4);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) d[y * N + x] = fbm(x / N, y / N);
-  const at = (x: number, y: number): number => d[(((y % N) + N) % N) * N + (((x % N) + N) % N)] ?? 0;
-  const h = Math.hypot(sun.x, sun.z) || 1, sx = Math.round((sun.x / h) * 2), sy = Math.round((sun.z / h) * 2);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const here = at(x, y), toward = at(x + sx, y + sy), lit = Math.min(1, Math.max(0, 0.55 + (here - toward) * 6));
-    const i = y * N + x; data[i * 4] = Math.round(here * 255); data[i * 4 + 1] = Math.round(lit * 255); data[i * 4 + 2] = 0; data[i * 4 + 3] = 255;
-  }
-  const tex = new DataTexture(data, N, N, RGBAFormat, UnsignedByteType);
+/**
+ * The cloud sea's small tileable cloud texture (R: density; G: lit, the side of a puff that faces the low sun), baked
+ * offline for the fixed sun's heading (SF72: generators/seaTexture.ts → data/seaTexture.json); uploaded once.
+ */
+export function seaTexture(): DataTexture {
+  const bytes = Uint8Array.from(atob(SEA_BAKE.rgba), (c) => c.codePointAt(0) ?? 0);
+  const tex = new DataTexture(bytes, SEA_BAKE.size, SEA_BAKE.size, RGBAFormat, UnsignedByteType);
   tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.needsUpdate = true;
   return tex;
 }

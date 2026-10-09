@@ -7,7 +7,7 @@ import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
-import { bakeSeaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } from './cloudSea';
+import { seaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } from './cloudSea';
 import { cumulus } from './puffs';
 import { sunGlow } from './sunGlow';
 import { PANO_SUN } from './panoramaData';
@@ -143,7 +143,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
         }
       });
       // the layered cloud sea goes in after the fog patch (its own haze; no scene fog)
-      const seaTex = bakeSeaTexture(SUN_DIR), sea = cloudSea(SUN_DIR, seaTex); scope.own(seaTex);
+      const seaTex = seaTexture(), sea = cloudSea(SUN_DIR, seaTex); scope.own(seaTex);
       // the procedural sheet only stands in when the painted sea is missing (it drew over the painted one)
       for (const mesh of sea.meshes) { if (seaPaint === null) scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });

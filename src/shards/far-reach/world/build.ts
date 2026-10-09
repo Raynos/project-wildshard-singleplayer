@@ -3,22 +3,21 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Isle, type Span } from '../data/layout';
+import { CROWN, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Isle, type Span } from '../data/layout';
 import { apothem, ropeSag } from '../layout';
 import { STRINGS } from '../data/strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
 import { crownArena } from './crown';
-import { CROWN_RING, crownStones } from '../runtime/crownLayout';
 import { firSheet, firs } from './fir';
 import { trees } from './trees';
 import { inCube, SKY_ISLES, skyIslesIn } from './skyIsles';
 import { ISLE_CUT, ISLE_KEEL_CUT, keelIsles, skyIsleModels } from './skyIsleHd';
-import { knollHull, knollMesh } from './knoll';
-import { skyBakedPiece } from './baked';
+import { skyBakedPiece, skyKnollHulls } from './baked';
 import { skyline } from './distant';
 import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
-import { BOOK_STAND, bookStand } from './bookStand';
+import { bookStand } from './bookStand';
+import { BOOK_STAND } from '../data/bookStand';
 import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';
 import { ownPrimitives } from './resources';
@@ -26,7 +25,7 @@ import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
 import { updraftFx, type UpdraftFx } from './windFx';
 import { SUN_DIR } from '../look/sun';
-import { bakeSeaTexture } from '../look/cloudSea';
+import { seaTexture } from '../look/cloudSea';
 import { GATE_ISLES, isletPieces, isletViews, type IsletViews } from './risingIslet';
 import { RISING_ISLETS } from './islets';
 import { skyDocksFor } from './skyDock';
@@ -153,11 +152,12 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
   }
   // the grassy rises (E399: proposal B's hill on the bridge's axis, mockup D's look down into the arena), walkable on their hulls
+  // (SF72: built offline, generators/knoll.ts → baked/knolls.glb; each collided by its rows' hull)
+  const knolls = skyBakedPiece('knolls'), hulls = skyKnollHulls();
   for (const k of KNOLLS) {
-    const isle = ISLES.find((i) => i.id === k.isle); if (isle === undefined) continue;
-    const knoll = knollMesh(k, isle.y); root.add(knoll);
-    ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll,
-      colliders: [{ kind: 'hull', x: k.x, y: isle.y, z: k.z, points: knollHull(k), surface: 'grass' }], surface: 'grass' });
+    const isle = ISLES.find((i) => i.id === k.isle), hull = hulls.get(k.id); if (isle === undefined || hull === undefined) continue;
+    const knoll = knolls.kinds.get(k.id) ?? new Group(); knoll.name = `far.knoll.${k.id}`; root.add(knoll);
+    ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll, colliders: [hull], surface: 'grass' });
   }
   const pineAt: [number, number, number, number][] = [];
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
@@ -261,10 +261,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   });
 
   // the arena (loop 4, mockup D): standing stones with wind glyphs, pennant ropes, the compass-rose dais
-  const arena = crownArena(); root.add(arena);
-  const stones: ColliderDesc[] = crownStones().map((st) => boxDesc({ x: st.x, z: st.z, hw: CROWN_RING.width / 2, hd: CROWN_RING.depth / 2, rot: -st.yaw, yBottom: CROWN.y, yTop: CROWN.y + st.h }, 'stone'));
-  ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena, surface: 'stone',
-    colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...stones] });
+  // (SF72: built offline, generators/crown.ts → baked/crown.glb; its colliders, the dais and each stone, are the rows')
+  const arena = crownArena(); root.add(arena.group);
+  ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena.group, surface: 'stone', colliders: arena.colliders });
   // the winch house on the high step (loop 5): the updraft view's landmark
   // (SF72: built offline, generators/winchHouse.ts → baked/winch-house.glb; drawn from the bake)
   const house = skyBakedPiece('winch-house'); house.root.name = 'far.step.winch-house'; house.root.position.set(WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z); root.add(house.root);
@@ -274,7 +273,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const nest = skyBakedPiece('roost'); nest.root.name = 'far.roost.nest'; root.add(nest.root);
   ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.root, colliders: nest.colliders, surface: 'wood' });
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
-  const stormTex = bakeSeaTexture(SUN_DIR); ctx.scope.own(stormTex);
+  const stormTex = seaTexture(); ctx.scope.own(stormTex);
   const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   const islets = isletViews();

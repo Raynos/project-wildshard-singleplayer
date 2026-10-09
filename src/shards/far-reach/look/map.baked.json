@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "tilesHash": "fad8c8d2c5ecda7c253b0a54a2439946dbf2c2fcb3c06b3258051474c1eff538",
+  "tilesHash": "cd82874607c12b8f6e1aad9eb81d02b85fd613bc117bdd3131ad23d84ae15927",
   "image": "/assets/far-reach/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:void",
-  "bytes": 23536
+  "bytes": 23392
 }

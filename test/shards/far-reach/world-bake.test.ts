@@ -9,12 +9,25 @@ import { colliderRows } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyWinchHouse, buildWinchHouse } from '../../../src/shards/far-reach/generators/winchHouse';
 import { bakeSkyRoost, roost } from '../../../src/shards/far-reach/generators/roost';
 import { bakeSkyDocks, buildSkyDocks } from '../../../src/shards/far-reach/generators/skyDock';
-import { skyBakedPiece } from '../../../src/shards/far-reach/world/baked';
+import { bakeSkyCrown, buildCrownSet } from '../../../src/shards/far-reach/generators/crown';
+import { bakeSkyMill, buildMillSet } from '../../../src/shards/far-reach/generators/mill';
+import { bakeSkyBookStand, buildBookStandSet } from '../../../src/shards/far-reach/generators/bookStand';
+import { bakeSkyKnolls, buildKnolls, knollHull } from '../../../src/shards/far-reach/generators/knoll';
+import { bakeSkyGeometries, buildGeometries } from '../../../src/shards/far-reach/generators/geometries';
+import { bakeSkySeaTexture } from '../../../src/shards/far-reach/generators/seaTexture';
+import { seaTexture } from '../../../src/shards/far-reach/look/cloudSea';
+import seaRows from '../../../src/shards/far-reach/data/seaTexture.json' with { type: 'json' };
+import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/boot/files';
-import { STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
+import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
 import roostRows from '../../../src/shards/far-reach/data/roost.json' with { type: 'json' };
 import dockRows from '../../../src/shards/far-reach/data/docks.json' with { type: 'json' };
+import crownRows from '../../../src/shards/far-reach/data/crown.json' with { type: 'json' };
+import millRows from '../../../src/shards/far-reach/data/mill.json' with { type: 'json' };
+import bookRows from '../../../src/shards/far-reach/data/bookStand.json' with { type: 'json' };
+import knollRows from '../../../src/shards/far-reach/data/knolls.json' with { type: 'json' };
+import geometryRows from '../../../src/shards/far-reach/data/geometries.json' with { type: 'json' };
 
 const folder = new URL('../../../public/assets/far-reach/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
@@ -29,7 +42,7 @@ async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promi
 
 describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
   it('every committed piece is byte-exact against its generator (the stale gate: rerun scripts/bake-sky-world.mjs)', () => {
-    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows]] as const;
+    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows]] as const;
     for (const [piece, { glb, ...rows }, committed] of pieces) {
       expect({ glb: sha(glb), ...rows }).toEqual(committed);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
@@ -126,5 +139,44 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
         expect(d === null ? null : [d.getX(i), d.getY(i), d.getZ(i)]).toEqual(c === null ? null : [c.getX(i), c.getY(i), c.getZ(i)]);
       }
     }
+  });
+  it('the crown arena, the mill, the book stand, the knolls and the instanced shapes draw every built kind exactly: each instance where the builder put it, every channel equal', async () => {
+    const pieces = [['crown', crownRows.kinds, buildCrownSet().kinds], ['mill', millRows.kinds, buildMillSet()], ['book-stand', bookRows.kinds, buildBookStandSet()], ['knolls', knollRows.kinds, buildKnolls().kinds], ['geometries', geometryRows.kinds, buildGeometries()]] as const;
+    for (const [piece, rows, built] of pieces) {
+      const drawn = skyBakedPiece(piece, await nodesOf(piece, rows));
+      expect([...drawn.kinds.keys()]).toEqual(built.map(([name]) => name));
+      const a = new Matrix4(), b = new Matrix4();
+      for (const [name, from] of built) {
+        const kind = drawn.kinds.get(name); if (kind === undefined) throw new Error(`${piece}: missing kind ${name}`);
+        expect(kind.count).toBe(from.count);
+        // every vertex channel the builder made (positions, normals, uvs, colours, the canvas's `farCloth`), bit for bit as float32
+        for (const [channel, attribute] of Object.entries(from.geometry.attributes)) {
+          const got = kind.geometry.getAttribute(channel);
+          expect(kind.geometry.hasAttribute(channel), `${piece}.${name}.${channel}`).toBe(true);
+          expect(Array.from(got.array)).toEqual(Array.from(new Float32Array(attribute.array)));
+        }
+        // the triangles as built (a soup draws unindexed, an indexed one keeps its index)
+        expect(kind.geometry.getIndex() === null ? null : Array.from(kind.geometry.getIndex()?.array ?? [])).toEqual(from.geometry.getIndex() === null ? null : Array.from(from.geometry.getIndex()?.array ?? []));
+        for (let i = 0; i < from.count; i++) {
+          from.getMatrixAt(i, a); kind.getMatrixAt(i, b);
+          b.elements.forEach((n, k) => { expect(Math.abs(n - (a.elements[k] ?? Number.NaN))).toBeLessThan(1e-6); });
+        }
+      }
+    }
+    expect(skyBakedPiece('crown', await nodesOf('crown', crownRows.kinds)).colliders).toEqual(colliderRows(buildCrownSet().colliders));
+    // each knoll's hull is the builder's own points (float32), on its island's deck
+    const hulls = skyKnollHulls();
+    for (const k of KNOLLS) {
+      const isle = ISLES.find((i) => i.id === k.isle);
+      expect(hulls.get(k.id)).toEqual({ kind: 'hull', x: k.x, y: isle?.y, z: k.z, points: knollHull(k), surface: 'grass' });
+    }
+  });
+  it('the cloud sea texture is its generator\'s bytes (the stale gate) and the client uploads exactly them', () => {
+    const rows = bakeSkySeaTexture();
+    expect(rows).toEqual(seaRows);
+    const tex = seaTexture(), data: unknown = tex.image.data;
+    expect(data instanceof Uint8Array ? Array.from(data) : null).toEqual(Array.from(atob(rows.rgba), (c) => c.codePointAt(0)));
+    expect([tex.image.width, tex.image.height]).toEqual([rows.size, rows.size]);
+    tex.dispose();
   });
 });

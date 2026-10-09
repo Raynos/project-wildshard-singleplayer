@@ -1,0 +1,135 @@
+{
+  "glb": "fc2fe3f550122f2186906915244c1dce6e5ed425f0a48a5d9f94215eab936487",
+  "kinds": [
+    {
+      "name": "stone",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.95,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "paint": 0.7
+    },
+    {
+      "name": "glyph",
+      "count": 1,
+      "color": 11840926,
+      "roughness": 0.95,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 10479346,
+      "emissiveIntensity": 0.04,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "dais",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.9,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": true,
+      "paint": 0.18
+    },
+    {
+      "name": "rope",
+      "count": 1,
+      "color": 14074005,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": true
+    },
+    {
+      "name": "flags",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.9,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": true
+    }
+  ],
+  "colliders": [
+    {
+      "kind": "box",
+      "x": 0,
+      "y": 44.15,
+      "z": -196,
+      "hx": 4.5,
+      "hy": 0.14999999999999858,
+      "hz": 4.5,
+      "yaw": 0,
+      "surface": "stone"
+    },
+    {
+      "kind": "box",
+      "x": -7.128052193506945,
+      "y": 45.8,
+      "z": -199.63192399791637,
+      "hx": 0.7,
+      "hy": 1.8000000000000007,
+      "hz": 0.4,
+      "yaw": 1.0995574287564278,
+      "surface": "stone"
+    },
+    {
+      "kind": "box",
+      "x": -4.179988517727595,
+      "y": 46.15,
+      "z": -202.82112131483274,
+      "hx": 0.7,
+      "hy": 2.1499999999999986,
+      "hz": 0.4,
+      "yaw": 0.5497787143782142,
+      "surface": "stone"
+    },
+    {
+      "kind": "box",
+      "x": -1.4695761589768238e-15,
+      "y": 46.5,
+      "z": -204,
+      "hx": 0.7,
+      "hy": 2.5,
+      "hz": 0.4,
+      "yaw": 1.8369701987210297e-16,
+      "surface": "stone"
+    },
+    {
+      "kind": "box",
+      "x": 4.179988517727587,
+      "y": 46.2,
+      "z": -202.82112131483274,
+      "hx": 0.7,
+      "hy": 2.1999999999999993,
+      "hz": 0.4,
+      "yaw": -0.5497787143782134,
+      "surface": "stone"
+    },
+    {
+      "kind": "box",
+      "x": 7.128052193506942,
+      "y": 45.85,
+      "z": -199.63192399791637,
+      "hx": 0.7,
+      "hy": 1.8500000000000014,
+      "hz": 0.4,
+      "yaw": -1.0995574287564276,
+      "surface": "stone"
+    }
+  ]
+}

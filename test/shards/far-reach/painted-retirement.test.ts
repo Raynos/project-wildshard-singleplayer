@@ -1,5 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest';
-import { Mesh, MeshStandardMaterial, ShaderMaterial, Texture, Vector3, type WebGLRenderer } from 'three';
+import { afterEach, beforeAll, expect, it, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed mill bake the client draws.
+import { readFileSync } from 'node:fs';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { InstancedMesh, Mesh, MeshStandardMaterial, ShaderMaterial, Texture, Vector3, type Object3D, type WebGLRenderer } from 'three';
+import millRows from '../../../src/shards/far-reach/data/mill.json' with { type: 'json' };
 import { sceneResources } from '../../../src/engine/app/sceneOwnership';
 import { loadPainted } from '../../../src/shards/far-reach/look/image';
 import { firSheet, setFirSheet } from '../../../src/shards/far-reach/world/fir';
@@ -8,6 +12,15 @@ import { setMillTextures, towerMill } from '../../../src/shards/far-reach/world/
 import { crownStorm, setStormPaint } from '../../../src/shards/far-reach/world/storm';
 import { legacyDouble } from '../../fake/FakeGame';
 
+// the mill's baked code set (world/mill.ts draws it), parsed as the client loads it
+const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
+let millNodes = new Map<string, InstancedMesh>();
+beforeAll(async () => {
+  const bytes = readFileSync(new URL('../../../public/assets/far-reach/baked/mill.glb', import.meta.url));
+  const gltf = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ''), nodes: InstancedMesh[] = [];
+  gltf.scene.traverse((node) => { if (instanced(node)) nodes.push(node); });
+  millNodes = new Map(millRows.kinds.flatMap((kind, i) => { const node = nodes[i]; return node === undefined ? [] : [[kind.name, node] as const]; }));
+});
 const originalFetch = globalThis.fetch;
 const originalBitmap = Object.getOwnPropertyDescriptor(globalThis, 'createImageBitmap');
 afterEach(() => {
@@ -45,7 +58,7 @@ it('forgets all four real builder sampler globals without an older retirement cl
     expect(shader.uniforms['farRock']?.value ?? null).toBe(expected);
     expect(shader.uniforms['farMeadow']?.value ?? null).toBe(expected);
     material.dispose();
-    const mill = towerMill(), storm = crownStorm(new Vector3(0, 1, 0), noise, () => 0.5);
+    const mill = towerMill(millNodes), storm = crownStorm(new Vector3(0, 1, 0), noise, () => 0.5);
     const maps = new Set<Texture>();
     mill.group.traverse(node => { if (node instanceof Mesh && node.material instanceof MeshStandardMaterial && node.material.map !== null) maps.add(node.material.map); });
     expect(maps).toEqual(expected === null ? new Set() : new Set([expected]));

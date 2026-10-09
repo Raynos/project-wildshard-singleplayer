@@ -1,0 +1,78 @@
+{
+  "glb": "e3da933c453560d90a7fc24665a18343695528cc0bcba9e18f055624c9c55cbf",
+  "kinds": [
+    {
+      "name": "desk-wood",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.85,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "desk-paper",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.95,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 4866096,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "stand-wood",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.85,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "stand-paper",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.95,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 4866096,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "cage",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.55,
+      "metalness": 0.6,
+      "flat": true,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false
+    },
+    {
+      "name": "glass",
+      "count": 1,
+      "color": 16761962,
+      "roughness": 0.4,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 16751150,
+      "emissiveIntensity": 2.2,
+      "vertexColors": false,
+      "doubleSided": false
+    }
+  ],
+  "colliders": []
+}
