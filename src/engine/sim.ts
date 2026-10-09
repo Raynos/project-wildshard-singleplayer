@@ -103,6 +103,9 @@ export interface SimBodyBands {
   /** A body's rate id this tick (the page's AnimalManager.tickRate); default 'always' for a driven or fight-scripted
    *  ('sidestep') body, else 'ai'. A body that changes rate starts a fresh clock, as on the page. */
   rate?: (body: AnimalSim) => string;
+  /** Roster presence, independent of distance: an absent body has no brain/body clock, and physics LOD releases its motor. The roster owns this
+   * predicate and restores its state before the next tick. Omitted means every installed body remains present. */
+  present?: (body: AnimalSim) => boolean;
   /** The physics body LOD (default true); false keeps every body's host motor. */
   physics?: boolean;
 }
@@ -203,7 +206,7 @@ export class SimHost {
   private playerMotor: CharacterMotor | undefined;
   private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
-  private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; physics: boolean } | undefined;
+  private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; present: ((body: AnimalSim) => boolean) | undefined; physics: boolean } | undefined;
   private bodyStep: SimBodyStep | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
   private day: SimDayClock | undefined;
@@ -325,7 +328,8 @@ export class SimHost {
   useBodyBands(options: SimBodyBands = {}): void {
     if (this.disposed || this.embedded || this.bands !== undefined) throw new Error('Body bands belong to an owned host, once');
     const clocks = new BodyBandClocks(options.rates);
-    this.bands = { clocks, rate: options.rate ?? ((body) => body.driven || body.state === 'sidestep' ? 'always' : 'ai'), physics: options.physics ?? true };
+    this.bands = { clocks, rate: options.rate ?? ((body) => body.driven || body.state === 'sidestep' ? 'always' : 'ai'),
+      present: options.present, physics: options.physics ?? true };
     if (this.bands.physics) for (const entity of this.entities.values()) { entity.motor?.dispose(); entity.motor = null; }
   }
   /** Wrap every body's step (SimBodyStep), once, by the installer that owns the bodies' brains (restoring too: hooks hold
@@ -357,7 +361,7 @@ export class SimHost {
     if (entity === undefined) throw new RangeError(`Unknown simulation body ${id}`);
     const bands = this.bands;
     if (bands === undefined) return FIXED_STEP;
-    if (entity.harnessHold) { bands.clocks.forget(id); return 0; }
+    if (entity.harnessHold || bands.present?.(entity) === false) { bands.clocks.forget(id); return 0; }
     return bands.clocks.bodyDt(id, bands.rate(entity), tickDistance(entity.position, this.player.position));
   }
   /** Take this tick's decision step for body `id` on its band (the page scheduler's takeBrainDt): 0 until its rate's
@@ -368,6 +372,7 @@ export class SimHost {
     if (entity === undefined) throw new RangeError(`Unknown simulation body ${id}`);
     const bands = this.bands;
     if (bands === undefined) return FIXED_STEP;
+    if (bands.present?.(entity) === false) { bands.clocks.forget(id); return 0; }
     return bands.clocks.takeBrainDt(id, bands.rate(entity), tickDistance(entity.position, this.player.position), urgent);
   }
   /** The page's creature capsule for a body under the physics body LOD (physics/creatures.ts's recipe), owned by its id. */
@@ -385,7 +390,8 @@ export class SimHost {
   private syncBodies(): void {
     const player = this.player.position;
     for (const entity of this.entities.values()) {
-      const keep = keepsCreatureBody(entity.motor !== null, entity.alive, entity.driven, creatureBodyDistance(entity.position, player));
+      const keep = this.bands?.present?.(entity) !== false
+        && keepsCreatureBody(entity.motor !== null, entity.alive, entity.driven, creatureBodyDistance(entity.position, player));
       if (entity.motor === null && keep) {
         const motor = new CharacterMotor(this.physics, this.creatureMotorOptions(entity));
         motor.resetAt(entity.position); // at the animal, not the world origin (G222 playtest #7)

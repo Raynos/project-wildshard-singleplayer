@@ -1927,14 +1927,16 @@ ignored and `impulsePlayer` with upward speed lifts the board off, as on the cli
 (`player.board`) and the handles (`boardColliders`) only when present, so a host that never boards keeps its bytes.
 
 **Body bands (SF72).** By default a host steps and collides every body every tick. A native shard's headless runtime
-calls `useBodyBands({ rates?, rate?, physics? })` once, in its install (before restore), to run its bodies as the page's
+calls `useBodyBands({ rates?, rate?, present?, physics? })` once, in its install (before restore), to run its bodies as the page's
 creature manager does: each body updates on its tick rate (§12; `rate(body)` names it, default `'always'` for a driven
 or `'sidestep'` body, else `'ai'`; `'legacy'` is the manager's self-thinking rate), and with `physics` (default on) a
 body holds a creature motor in the page's capsule only within 45 m of the player, released past 55 m. `bodyDt(id)` is
 the tick's update step (0 while paused or on the off tick of `'half'`) and `brainDt(id, urgent?)` takes the decision
 step on the same clocks, so a runtime's brains need no copy of the scheduler. The page's `TickScheduler` and
 `CreatureBodies` run on the same functions (`src/engine/sim/bands.ts`). The clocks ride `SimSnapshot.bands`, absent
-for a host without bands.
+for a host without bands. An optional roster-owned `present(body)` predicate freezes absent bodies' brain and motion
+clocks and, with physics LOD enabled, releases their motors. The installer restores its roster state before the next
+tick; re-entry starts a fresh cadence without catching up the absent time. Omitted predicates retain the existing path.
 
 `@wildshard/engine/sim/bands` is the defining pure module for the shared decision/body clocks and creature capsule LOD.
 Trusted deferred-spawn installers use `creatureBodyDistance`, `keepsCreatureBody` and `creatureBodyShape` to synchronize
