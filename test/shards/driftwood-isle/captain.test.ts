@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CAPTAIN_DEF } from '../../../src/shards/driftwood-isle/combat/captain';
-import { captainPhase } from '../../../src/shards/driftwood-isle/species/captain';
+import { captainPhase } from '../../../src/shards/driftwood-isle/species/captainPolicy';
 import { captainFixture } from '../../fake/captain';
 
 describe('Drowned Captain authored encounter', () => {

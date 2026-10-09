@@ -3,12 +3,13 @@ import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from '@wildshard/engine/entities/species/rigs';
-import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
+import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
 import * as THREE from 'three';
 
 /**
@@ -384,26 +385,29 @@ export const SAILOR_LOOK: SpeciesLook = {
   animate: animateSailor,
 };
 
-function strikeSailor(a: Animal, c: ThinkCtx): void {
+/** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
+export interface SailorStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
+function strikeSailor<A extends AnimalSim>(a: A, c: SailorStrikePorts<A>): void {
   const m = a.mem as SailorMem, p = a.attackPhase;
   if (m.st !== ST_ATTACK || p < 0) return;
   if (p >= WINDUP / SWING_DUR + 0.05 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.sailor, shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
 }
 const STATES = ['hide', 'rise', 'attack', 'guard', 'sink'] as const;
-export class SailorBrain extends CreatureBrain<typeof STATES[number], Animal> {
-  private readonly decide: typeof legacySailorDecision;
-  constructor(actor: Animal, decide = legacySailorDecision) { super(actor, STATES); this.decide = decide; }
-  override think(ctx: ThinkCtx): void {
+/** The sailor's brain shell: the selected decision (shipping or data-selected) at 10 Hz, the strike every body step. */
+export class SailorBrain<A extends AnimalSim, C extends SailorStrikePorts<A>> extends CreatureBrain<typeof STATES[number], A, C> {
+  private readonly decide: (actor: A, ctx: C) => void;
+  constructor(actor: A, decide: (actor: A, ctx: C) => void) { super(actor, STATES); this.decide = decide; }
+  override think(ctx: C): void {
     this.decide(this.actor, ctx);
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }
-  override act(ctx: ThinkCtx): void { strikeSailor(this.actor, ctx); }
+  override act(ctx: C): void { strikeSailor(this.actor, ctx); }
 }
-const brains = new WeakMap<Animal, SailorBrain>();
-function brain(a: Animal): SailorBrain {
+const brains = new WeakMap<Animal, SailorBrain<Animal, ThinkCtx>>();
+function brain(a: Animal): SailorBrain<Animal, ThinkCtx> {
   let value = brains.get(a);
-  if (value === undefined) { value = new SailorBrain(a); brains.set(a, value); }
+  if (value === undefined) { value = new SailorBrain(a, legacySailorDecision); brains.set(a, value); }
   return value;
 }
 function thinkSailor(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }

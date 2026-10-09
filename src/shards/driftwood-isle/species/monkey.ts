@@ -1,4 +1,3 @@
-import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { app } from '@wildshard/engine/app/runtime';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
@@ -9,7 +8,8 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from '@wildshard/engine/entities/species/rigs';
 import { engineString } from '@wildshard/engine/strings';
-import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
+import { MonkeyBrain, pickPerch, setPerch, type MonkeyMem, ST_PERCH, ST_GROUND_IDLE, ST_ATTACK, ST_DROP, ST_GROUND, ST_RETURN, ST_CLIMB,
+  THROW_R, THROW_DUR, BITE_R, BITE_DAMAGE, BITE_DUR, UNDER_R, UNDER_T, RUN, HOLD_R } from './monkeyPolicy';
 import * as THREE from 'three';
 
 /**
@@ -36,11 +36,6 @@ type Side = 'L' | 'R';
 type MonkeyBones = Record<'body' | 'spine' | 'chest' | 'head' | `tail${1 | 2 | 3}` | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, THREE.Bone>;
 /** `Animal.mem` as the monkey uses it (numbers only, the registry contract). The first `think` tick writes the first row;
  *  the rest are set as it perches / drops / climbs / bites, and `animate` (which can run first) guards them (`|| 0`, truthiness). */
-interface MonkeyMem extends Record<string, number> {
-  init: number; cd: number; under: number; hitT: number; fled: number; onGround: number; st: number; hx: number; hz: number;
-  perch: number; px: number; pz: number; bx: number; bz: number; perchH: number;
-  drop: number; vy: number; land: number; climb: number; bite: number; hit: number; gt: number; fleeTo: number; bit: number;
-}
 
 function monkeyPaint(v: VariantDef): Paint {
   const P = paletteColors(PALETTE, v.tint);
@@ -155,7 +150,6 @@ function buildMonkey(v: VariantDef, rng: Rng): AnimalSpecies {
 
 const R = (b: THREE.Bone, x: number, y: number, z: number) => b.rotation.set(x, y, z);
 const L = THREE.MathUtils.lerp;
-const _from = new THREE.Vector3(), _to = new THREE.Vector3();
 
 function animateMonkey(c: RigAnimCtx): void {
   const b = c.bones as MonkeyBones, t = c.t, seed = c.seed, m = c.mem as MonkeyMem, a = c.animal, dt = c.dt;
@@ -236,36 +230,9 @@ function animateMonkey(c: RigAnimCtx): void {
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
-const ST_PERCH = 0, ST_GROUND_IDLE = 1, ST_ATTACK = 2, ST_DROP = 3, ST_GROUND = 4, ST_RETURN = 5, ST_CLIMB = 6;
-const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DAMAGE = 6, BITE_DUR = 0.9 /* the bite lands at 0.45 → a 0.41 s readable wind-up */, UNDER_R = 2.6, UNDER_T = 2.0, RUN = 3.2;
-/** E297 fight rules: a monkey on the sand waiting its turn (two others attacking) hangs back this far (m) */
-const HOLD_R = 3.4;
 
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
-
-export function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
-  const P = c.world.perches; if (P === undefined || P.length === 0) return -1;
-  let best = -1, bestScore = -Infinity;
-  for (let i = 0; i < P.length; i++) {
-    const p = P[i]; if (p === undefined) continue;
-    const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-    if (d < minD || d > maxD) continue;
-    const taken = c.herd?.some((h) => h !== a && h.alive && h.mem['perch'] === i) ? 1 : 0;
-    const away = awayFrom ? Math.hypot(p.x - awayFrom.x, p.z - awayFrom.z) : 0;
-    const score = away * 0.5 - d * 0.3 - taken * 30 + c.rng.next() * 3;
-    if (score > bestScore) { bestScore = score; best = i; }
-  }
-  return best;
-}
-export function setPerch(a: Animal, c: ThinkCtx, i: number): void {
-  const m = a.mem as MonkeyMem;
-  const p = c.world.perches?.[i];
-  if (p === undefined) throw new Error(`monkey: no perch ${i}`);   // i came from pickPerch
-  const base = c.world.perchBases?.[i] ?? p;
-  m.perch = i; m.px = p.x; m.pz = p.z; m.bx = base.x; m.bz = base.z;
-  m.perchH = Math.max(0.5, p.y - c.heightAt(p.x, p.z) + 0.05);
-}
 
 export function legacyMonkeyDecision(a: Animal, c: ThinkCtx): void {
   const m = a.mem as MonkeyMem, rng = c.rng;
@@ -378,32 +345,10 @@ export const MONKEY_LOOK: SpeciesLook = {
   variants: { elder: { tint: { fur: [0.62, 0.58, 0.50], back: [0.40, 0.37, 0.32], belly: [0.85, 0.82, 0.74] } } },
 };
 
-function strikeMonkey(a: Animal, c: ThinkCtx): void {
-  const m = a.mem as MonkeyMem, p = a.attackPhase;
-  if (m.st !== ST_ATTACK || p < 0) return;
-  if (m.bite) { if (p >= 0.45 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, DRIFTWOOD_STRIKES.bite)) c.sound('monkey_shriek'); } }
-      else if (p >= THROW_RELEASE && !m.hit) {
-        m.hit = 1;
-        _from.set(a.position.x, a.position.y + 0.95 * a.scale, a.position.z);
-        _to.set(c.player.x, c.player.y + 0.9, c.player.z);
-        c.world.throwCoconut?.(_from, _to, a);
-      }
-}
-const STATES = ['perch', 'ground-idle', 'attack', 'drop', 'ground', 'return', 'climb'] as const;
-export class MonkeyBrain extends CreatureBrain<typeof STATES[number], Animal> {
-  private readonly decide: typeof legacyMonkeyDecision;
-  constructor(actor: Animal, decide = legacyMonkeyDecision) { super(actor, STATES); this.decide = decide; }
-  override think(ctx: ThinkCtx): void {
-    this.decide(this.actor, ctx);
-    const state = STATES[this.actor.mem['st'] ?? 0];
-    if (state !== undefined) this.transition(state);
-  }
-  override act(ctx: ThinkCtx): void { strikeMonkey(this.actor, ctx); }
-}
-const brains = new WeakMap<Animal, MonkeyBrain>();
-function brain(a: Animal): MonkeyBrain {
+const brains = new WeakMap<Animal, MonkeyBrain<Animal, ThinkCtx>>();
+function brain(a: Animal): MonkeyBrain<Animal, ThinkCtx> {
   let value = brains.get(a);
-  if (value === undefined) { value = new MonkeyBrain(a); brains.set(a, value); }
+  if (value === undefined) { value = new MonkeyBrain(a, legacyMonkeyDecision); brains.set(a, value); }
   return value;
 }
 function thinkMonkey(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }

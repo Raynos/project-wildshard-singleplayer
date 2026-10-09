@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Boss, type BossDef, type BossHost, type BossPhaseDef } from '../../src/game/Boss';
 import type { BossScript } from '../../src/engine/ai/BossBrain';
 import type { BossBar } from '../../src/engine/ui/BossBar';
-import { captainPhase } from '../../src/shards/driftwood-isle/species/captain';
+import { captainPhase } from '../../src/shards/driftwood-isle/species/captainPolicy';
 import { KING_PHASE_AT } from '../../src/shards/pine-hollow/combat/combatMath';
 import { fakeWorld } from '../fake/world';
 import { legacyDouble } from '../fake/FakeGame';

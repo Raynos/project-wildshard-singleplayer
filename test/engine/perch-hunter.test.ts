@@ -6,7 +6,7 @@ import { app } from '../../src/engine/app/runtime';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { Rng } from '../../src/engine/core/rng';
 import { MONKEY_BRAIN } from '../../src/shards/driftwood-isle/data/brains';
-import { pickPerch, setPerch } from '../../src/shards/driftwood-isle/species/monkey';
+import { pickPerch, setPerch } from '../../src/shards/driftwood-isle/species/monkeyPolicy';
 import { creature } from '../fake/creature';
 
 const restore = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0],

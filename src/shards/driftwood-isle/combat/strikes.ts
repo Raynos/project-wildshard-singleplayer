@@ -1,6 +1,5 @@
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 
 const point = (id: string, radius: number, damage: number, windup: number, recover: number, cooldown: number): StrikeSpec => ({
   id, shape: { kind: 'point', radius }, range: radius, damage, windup, active: 0, recover, cooldown,
@@ -17,7 +16,14 @@ export const DRIFTWOOD_STRIKES = {
   burst: { ...point('strike.captain.burst', 3, 16, 1.1, 0, 0), shape: { kind: 'point', radius: 3, exclusive: true } },
 } satisfies Record<string, StrikeSpec>;
 const contact = new StrikeRunner();
+/** What a Driftwood strike reads: the player's feet, the line-of-reach test and the common player damage pipeline.
+ * The browser's ThinkCtx satisfies it; a renderer-free host lends its own (SF72). */
+export interface DriftwoodContactPorts<A extends AnimalSim> {
+  readonly player: A['position'];
+  reach: (actor: A) => boolean;
+  hurt: (damage: number) => void;
+}
 /** The manager supplies facing, cover and the common player damage pipeline through these ports. */
-export function driftwoodContact(actor: Animal, ctx: ThinkCtx, spec: StrikeSpec): boolean {
+export function driftwoodContact<A extends AnimalSim>(actor: A, ctx: DriftwoodContactPorts<A>, spec: StrikeSpec): boolean {
   return contact.contact(spec, { actor, target: ctx.player, canReach: () => ctx.reach(actor), hit: (row) => { ctx.hurt(row.damage); } });
 }
