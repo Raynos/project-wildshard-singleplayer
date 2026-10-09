@@ -4,6 +4,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { captainHatGeometry } from '../src/shards/driftwood-isle/generators/captainHat.ts';
+import { boatGeometry } from '../src/shards/driftwood-isle/generators/boat.ts';
+import { sailclothCapeGeometry } from '../src/shards/driftwood-isle/generators/sailclothCape.ts';
 import { chimeGeometry } from '../src/shards/driftwood-isle/generators/seaGlassChime.ts';
 
 const assets = new URL('../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
@@ -16,11 +18,13 @@ const write = (url, bytes) => {
 if (!check) mkdirSync(assets, { recursive: true });
 const material = new MeshStandardMaterial({ vertexColors: true });
 const emit = (name, geometry) => {
-  const glb = staticGlb([{ geometry, material, customAttributes: { _SWAY: 'aSway' } }], name);
+  const glb = staticGlb([{ geometry, material, customAttributes: geometry.hasAttribute('aSway') ? { _SWAY: 'aSway' } : {} }], name);
   write(new URL(`${name}.glb`, assets), glb);
   geometry.dispose();
 };
 emit('captain-hat', captainHatGeometry());
+emit('sailcloth-cape', sailclothCapeGeometry());
+for (const [part, geometry] of Object.entries(boatGeometry())) emit(`boat-${part}`, geometry);
 const chime = chimeGeometry();
 emit('sea-glass-chime', chime.geometry);
 write(new URL('../src/shards/driftwood-isle/data/chimeSlots.json', import.meta.url), `${JSON.stringify(chime.ranges, null, 2)}\n`);

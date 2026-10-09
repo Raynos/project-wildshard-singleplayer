@@ -1,0 +1,91 @@
+{
+  "build": "7fbc794-mv1l6pw8",
+  "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+  "method": "original versus baked geometry on native three-mesh boat and registered Explorer cape; identical materials, transforms and frozen clock",
+  "rows": [
+    {
+      "model": "boat",
+      "pose": 0,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 120707
+    },
+    {
+      "model": "boat",
+      "pose": 1,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 80311
+    },
+    {
+      "model": "boat",
+      "pose": 2,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 1084813
+    },
+    {
+      "model": "boat",
+      "pose": 3,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 316049
+    },
+    {
+      "model": "cape",
+      "pose": 0,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 66184
+    },
+    {
+      "model": "cape",
+      "pose": 1,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 80578
+    },
+    {
+      "model": "cape",
+      "pose": 2,
+      "width": 804,
+      "height": 1362,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 92794
+    }
+  ],
+  "physics": {
+    "nativeBodies": 34,
+    "captainPreserved": true,
+    "solidColliders": 2067,
+    "pieces": 34,
+    "payloadIdentical": true
+  },
+  "spots": {
+    "rows": 30,
+    "payloadIdentical": true
+  },
+  "checks": {
+    "focusedTests": 31,
+    "strict": true,
+    "touchedLint": true
+  },
+  "share": {
+    "before": 0.01560097933154928,
+    "after": 0.028702966920541095,
+    "runtimeLines": 5991
+  }
+}

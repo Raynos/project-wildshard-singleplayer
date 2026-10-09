@@ -18,6 +18,10 @@ describe('Driftwood boot sources (E357 S4.1, 08 §6.1 step 7)', () => {
     expect(files).toMatchObject({ sky: [], trees: [], cabins: [], props: Object.values(FIXED_MODEL_FILES), art: [], music: [], sfx: [] });
     expect(files.props).toEqual([
       '/assets/driftwood-isle/baked/fixed-models/captain-hat.glb',
+      '/assets/driftwood-isle/baked/fixed-models/sailcloth-cape.glb',
+      '/assets/driftwood-isle/baked/fixed-models/boat-hull.glb',
+      '/assets/driftwood-isle/baked/fixed-models/boat-sail.glb',
+      '/assets/driftwood-isle/baked/fixed-models/boat-gear.glb',
       '/assets/driftwood-isle/baked/fixed-models/sea-glass-chime.glb',
     ]);
     expect(files.terrain).toHaveLength(1);

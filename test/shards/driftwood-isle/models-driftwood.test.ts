@@ -1,6 +1,10 @@
 // E315 M1 (project/archive/2026-09-30-model-architecture.md): Driftwood's models on the contract — a moving copy's colliders ride it
 // (`piece.follows: 'copy'`, the sailboat), and the island's models build in their own space (origin at their foot).
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the actual committed model bytes before synchronous placement.
+import { readFileSync } from 'node:fs';
+import { loadFixedGeometry } from '../../../src/shards/driftwood-isle/boot/fixedGeometry';
+import { FIXED_MODEL_FILES } from '../../../src/shards/driftwood-isle/data/modelFiles';
 import * as THREE from 'three';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import type { SkyRig as Sky } from '../../../src/engine/world/skyRig';
@@ -47,6 +51,11 @@ describe('Driftwood models (E315 M1)', () => {
     const reg = new WorldRegistry();
     const placed = place(boat, [{ x: -4.2, y: 0.8, z: -244 }], { ctx, draw: 'single', registry: reg, piece: { id: 'boat', follows: 'copy', solidFloor: true } });
     expect(placed.drawnAs).toBe('single');
+    const meshes: THREE.Object3D[] = [];
+    placed.object.traverse((node) => { if (node instanceof THREE.Mesh) meshes.push(node); });
+    expect(meshes).toHaveLength(3);
+    expect(meshes.map((mesh) => [mesh.castShadow, mesh.receiveShadow])).toEqual([[true, true], [false, true], [true, false]]);
+    expect(meshes[1]?.parent).toBe(meshes[0]);
     expect(reg.get('boat')?.colliders).toEqual(boatColliders());
     expect(reg.models().find((m) => m.id === 'driftwood-isle/boat')).toMatchObject({ name: 'Sailboat', copies: 1, pipeline: 'code', category: 'buildings' });
   });
@@ -154,3 +163,5 @@ describe('Driftwood models (E315 M1)', () => {
     expect(lay.floorHeightAt(46, 16)).toBeGreaterThan(4.5);
   });
 });
+
+beforeAll(async () => { await loadFixedGeometry(new Map(Object.values(FIXED_MODEL_FILES).map((url) => [url, new Uint8Array(readFileSync(`public${url}`))]))); });

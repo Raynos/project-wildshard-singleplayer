@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "1a360ee24b52a97c26cc91043973dba1f75264f5",
- "build": "1a360ee-mv1jfwft",
+ "revision": "7fbc794d453f3014586746fc5cda5efde063e758",
+ "build": "7fbc794-mv1l6pw8",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -15,7 +15,7 @@
   "src/shards/driftwood-isle/data/edges.ts": "d4487db1e8a08fb84833b6b27a920129e7ab0ae2ca361970f8d896c4160ef8bb",
   "src/shards/driftwood-isle/data/items.ts": "198fcb5fa13d3061adadc97ae09fccea392a06aace78649183839bbb73802e64",
   "src/shards/driftwood-isle/data/ledger.ts": "8cae1a67ef0b84feb291803461f5a683ac28cac5a0fc7c715765d8d4dcb0f257",
-  "src/shards/driftwood-isle/data/modelFiles.ts": "8239f22590a410de461588adf2d80c170b7fb2d937b694f968a27975fa299195",
+  "src/shards/driftwood-isle/data/modelFiles.ts": "bc6caa9db9d8ce2edd0cf78ed3a5f37169c0b1e73ed0001a5d5ca8cedb300325",
   "src/shards/driftwood-isle/data/quests.ts": "d9ec83bdeb9644c1f2a711ade27af5d79be082cf8966c31187510a32c23b33b2",
   "src/shards/driftwood-isle/data/runtimeCost.ts": "1cc31272878c926574cf2c168172463c3df167fec2291d8c51abbb293ef6e03d",
   "src/shards/driftwood-isle/data/spawns.ts": "1b0558f83ccd2feaf219f93dcd1df0f3ed8e87665ac63a3c5ae4780d7f11c7b6",

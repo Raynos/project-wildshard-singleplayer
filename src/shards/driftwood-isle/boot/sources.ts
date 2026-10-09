@@ -11,7 +11,7 @@ const ROOT = '/assets/baked/driftwood-isle/';
 /**
  * What the island's boot reads (E357 S4.1, 08 §6.1 step 7): the engine's chunkFiles (src/engine/boot/manifest.ts) for the
  * open-water, low-poly shard, declared here. No sky download (the stylized dome), the baked textures, the baked terrain
- * alone (no ground layers), two baked fixed-model props, no trees or cabins; Rapier's WASM and the baked navmesh.
+ * alone (no ground layers), six baked fixed-model meshes, no trees or cabins; Rapier's WASM and the baked navmesh.
  */
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu } = filePolicy(tier, tex, GPU_FILES);

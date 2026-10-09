@@ -5,16 +5,21 @@ import { MeshStandardMaterial } from 'three';
 import { modelGeometry } from '../src/sdk/modelGeometry';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { captainHatGeometry } from '../src/shards/driftwood-isle/generators/captainHat';
+import { boatGeometry } from '../src/shards/driftwood-isle/generators/boat';
+import { sailclothCapeGeometry } from '../src/shards/driftwood-isle/generators/sailclothCape';
 import { chimeGeometry } from '../src/shards/driftwood-isle/generators/seaGlassChime';
 import { SlotGeometry } from '../src/engine/models/slots';
 
 const material = new MeshStandardMaterial({ vertexColors: true });
 describe('lossless offline model geometry', () => {
-  it('retains every hat/chime attribute, including wind weights, and copies cannot mutate the template', async () => {
-    for (const [name, source] of [['captain-hat', captainHatGeometry()], ['sea-glass-chime', chimeGeometry().geometry]] as const) {
+  it('retains every fixed model attribute, including wind weights, and copies cannot mutate the template', async () => {
+    const boat = boatGeometry();
+    for (const [name, source] of [['captain-hat', captainHatGeometry()], ['sea-glass-chime', chimeGeometry().geometry], ['sailcloth-cape', sailclothCapeGeometry()], ['boat-hull', boat.hull], ['boat-sail', boat.sail], ['boat-gear', boat.gear]] as const) {
+      const channels = source.hasAttribute('aSway') ? { _SWAY: 'aSway' } : {};
+      const aliases = source.hasAttribute('aSway') ? { _sway: 'aSway' } : {};
       const bytes = new Uint8Array(readFileSync(`public/assets/driftwood-isle/baked/fixed-models/${name}.glb`));
-      expect(bytes).toEqual(staticGlb([{ geometry: source, material, customAttributes: { _SWAY: 'aSway' } }], name));
-      const asset = modelGeometry('fixed.glb', { _sway: 'aSway' });
+      expect(bytes).toEqual(staticGlb([{ geometry: source, material, customAttributes: channels }], name));
+      const asset = modelGeometry('fixed.glb', aliases);
       expect(() => asset.copy()).toThrow('not loaded');
       await asset.load(bytes);
       const copy = asset.copy();
