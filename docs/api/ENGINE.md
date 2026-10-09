@@ -2034,7 +2034,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SHRUB_MAX` | const | @wildshard/engine/world/forest/placement | — |
 | `STONE_MAX` | const | @wildshard/engine/world/forest/placement | — |
 | `TREE_RECORD_MAGIC` | const | @wildshard/engine/world/forest/placement | Baked forest instance records (SHARD-PLATFORM G227: a world's forest declared by its shardfile instead of placed at boot). |
-| `TreeGrid` | class | @wildshard/engine/world/forest/placement | Trees bucketed in 16 m cells, for "which trunks are near (x, z)" (collision, planting, herds, bolts). |
+| `TreeGrid` | class | @wildshard/engine/world/forest/placement | Trees bucketed in 16 m cells, for "which trunks are near (x, z)" (collision, planting, herds, bolts); generic over the |
 | `treeGridOf` | function | @wildshard/engine/world/forest/placement | The 16 m lookup grid over given trees (what `placeForest` returns beside them). |
 | `TreeInstance` | interface | @wildshard/engine/world/forest/placement | — |
 | `UNDER_KINDS` | const | @wildshard/engine/world/forest/placement | — |

@@ -12180,7 +12180,7 @@
       {
         "name": "TreeGrid",
         "kind": "class",
-        "doc": "Trees bucketed in 16 m cells, for \"which trunks are near (x, z)\" (collision, planting, herds, bolts).",
+        "doc": "Trees bucketed in 16 m cells, for \"which trunks are near (x, z)\" (collision, planting, herds, bolts); generic over the",
         "from": "@wildshard/engine/world/forest/placement"
       },
       {
