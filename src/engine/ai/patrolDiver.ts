@@ -63,7 +63,8 @@ export class PatrolDiverBrain<A extends AnimalSim> {
     const strikes = readStrikeState(value.strikes, [this.strike]);
     this.strikes.restore(strikes, [this.strike]); this.phase = value.state; this.clock = value.clock; this.rest = value.rest; this.struck = value.struck;
   }
-  private step(dt: number): void { if (!Number.isFinite(dt) || dt <= 0 || dt > 1) throw new Error('Invalid patrol diver step'); }
+  // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+  private step(dt: number): void { if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid patrol diver step'); }
   /** Calm and held actors retain the shipping glide reset without cancelling an existing runner. */
   think(c: PatrolDiverPorts<A>): void {
     this.step(c.dt); const a = this.actor; if (!a.alive) return;

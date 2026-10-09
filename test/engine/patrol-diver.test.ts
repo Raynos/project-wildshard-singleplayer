@@ -80,4 +80,12 @@ describe('declared patrol and chest swoop', () => {
     expect(() => new PatrolDiverBrain(f.animal, SPEC, { ...HOME, x: HOME.x + 1 }, SWOOP).restore(saved)).toThrow('Incompatible');
     expect(() => policy.restore(null)).toThrow('continuation'); expect(policy.snapshot()).toBe(saved);
   });
+  it('takes an interrupt\'s zero step (a second wake in one frame) instead of faulting', () => {
+    const f = fixture(true), policy = f.policy();
+    if (!(policy instanceof PatrolDiverBrain)) throw new Error('Expected platform policy');
+    for (let tick = 0; tick < 1500; tick++) drive(f, tick, 'contact');
+    const zero = { ...f.ctx, dt: 0 };
+    expect(() => { policy.think(zero); policy.think(zero); policy.act(zero); }).not.toThrow();
+    for (let tick = 1500; tick < 1800; tick++) drive(f, tick, 'contact');
+  });
 });

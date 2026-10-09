@@ -81,4 +81,12 @@ describe('declared challenge grazer', () => {
     expect(() => brain.restore('{"state":"fight"}')).toThrow();
     expect(brain.snapshot()).toBe(saved);
   });
+  it('takes an interrupt\'s zero step (a second wake in one frame) instead of faulting', () => {
+    const f = fixture(true), policy = f.policy();
+    if (!(policy instanceof ChallengeGrazerBrain)) throw new Error('Expected platform policy');
+    for (let tick = 0; tick < 1500; tick++) drive(f, tick, 'contact');
+    const zero = { ...f.ctx, dt: 0, phaseOffset: slot(f.animal, 6) };
+    expect(() => { policy.think(zero); policy.think(zero); policy.act(zero); }).not.toThrow();
+    for (let tick = 1500; tick < 1800; tick++) drive(f, tick, 'contact');
+  });
 });

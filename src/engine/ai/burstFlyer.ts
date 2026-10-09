@@ -62,7 +62,8 @@ export class BurstFlyerBrain<A extends AnimalSim> {
       c.hurt(value.damage); c.shove(Math.atan2(c.player.x - a.position.x, c.player.z - a.position.z), this.spec.shoveSpeed, this.spec.liftSpeed);
     } };
   }
-  private step(dt: number): void { if (!Number.isFinite(dt) || dt <= 0 || dt > 1) throw new Error('Invalid burst flyer step'); }
+  // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+  private step(dt: number): void { if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid burst flyer step'); }
   /** Only an idle, nearby, non-calm actor can claim a new burst; an active dart continues unchanged. */
   think(c: BurstFlyerPorts<A>): void {
     this.step(c.dt); const a = this.actor; if (!a.alive || this.state === 'dart') return;

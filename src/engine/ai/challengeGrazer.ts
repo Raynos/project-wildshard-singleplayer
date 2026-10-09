@@ -74,7 +74,8 @@ export class ChallengeGrazerBrain<A extends AnimalSim> {
   private context(c: ChallengeGrazerPorts<A>): StrikeContext {
     return { actor: this.actor, target: c.player, canReach: () => c.reach(this.actor), hit: spec => { c.hurt(spec.damage); } };
   }
-  private step(dt: number): void { if (!Number.isFinite(dt) || dt <= 0 || dt > 1) throw new Error('Invalid challenge grazer step'); }
+  // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+  private step(dt: number): void { if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid challenge grazer step'); }
   /** One scheduled observation, preserving timed challenge and authored stable strike tie order. */
   think(c: ChallengeGrazerPorts<A>): void {
     this.step(c.dt);

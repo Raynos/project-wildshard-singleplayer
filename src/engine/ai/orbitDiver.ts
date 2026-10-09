@@ -73,7 +73,8 @@ export class OrbitDiverBrain<A extends AnimalSim> {
     this.chest.copy(c.player); this.chest.y += this.spec.targetHeight;
     return { actor: this.actor, target: this.chest, canReach: () => c.reach(this.actor), hit: spec => { c.hurt(spec.damage); } };
   }
-  private step(dt: number): void { if (!Number.isFinite(dt) || dt <= 0 || dt > 1) throw new Error('Invalid orbit diver step'); }
+  // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+  private step(dt: number): void { if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid orbit diver step'); }
   /** Scheduled observation preserves the authored calm reset, token eligibility and stalk timeout. */
   think(c: OrbitDiverPorts<A>): void {
     this.step(c.dt);
