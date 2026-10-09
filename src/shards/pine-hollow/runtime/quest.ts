@@ -16,13 +16,14 @@ import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
 import { createPinePack, PinePackSchema } from './pack';
 import { PineDialogue } from './dialogue';
+import { pineBenchPose } from '../quest/benchPose';
 import baked from './spots.baked.json' with { type: 'json' };
 
 /** The script command actor that carries Pine's [E] prompts (`{ kind: 'script', actorId: PINE_INTERACT, value: PINE_ACT.* }`). */
 export const PINE_INTERACT = 'pine.interact';
-/** The prompts a command's value names: Hale's talk, the table's quest rows, the three lanterns, the zipline, the lever-action and eight carved tokens. */
+/** The prompts a command's value names: Hale's talk, the table's quest rows, the three lanterns, the zipline, the lever-action, eight carved tokens and lookout bench. */
 export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5, ridge: 6, den: 7, zip: 8, rifle: 9,
-  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, cancelTalk: -1 } as const;
+  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, bench: 18, cancelTalk: -1 } as const;
 /** The quest keeper's fixed-step id (the stag's walk, the dawn's clock, the clock's fast-forward, the ride, the feats' counts). */
 export const QUEST_STEP = 'pine.quest';
 
@@ -101,6 +102,7 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
  *  - the page's thirty resin drops use the captured trunk placements and shared native walk-in visibility law; each
  *    taken flag and resin fact precedes the pack add, as in Interactables.take / the page's take listener;
  *  - the eight captured carved tokens use the same table pickup flags, with no inventory item; repeated takes are hidden;
+ *  - the lookout bench uses the shared page seat pose, raises its vista secret and clears ordinary fall velocity;
  *  - the shared page feat law files every flag-driven feat and actual creature death; its counters and pack restore silently.
  * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its prompt); the reward's resin;
  * the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
@@ -120,8 +122,10 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (matches.length !== 1 || spot?.kind !== 'pickup' || spot.prompt === null) throw new Error(`Pine spots do not have one token pickup ${id}`);
     return spot;
   });
+  const benches = spots.rows.filter(row => row.id === 'lookout-bench'), bench = benches[0];
+  if (benches.length !== 1 || bench?.kind !== 'bench' || bench.prompt === null) throw new Error('Pine spots do not have one lookout bench');
   const table = pineTable({ resin: resinSpots.map(spot => ({ x: spot.x, y: spot.y, z: spot.z, dy: 0 })), tokens: tokenSpots.map(spot => ({ x: spot.x, y: spot.y, z: spot.z, dy: 0 })),
-    dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 }, finder: { x: 0, y: 0, z: 0 }, bench: { x: 0, y: 0, z: 0, yaw: 0 } });
+    dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 }, finder: { x: 0, y: 0, z: 0 }, bench });
   const pack = createPinePack();
   const rules = QUEST_ROWS.map((id): Rule => {
     const d = table.rows.find(row => row.id === id), spot = spots.rows.find(row => row.id === id);
@@ -135,9 +139,12 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (d?.kind !== 'pickup' || d.look !== 'token') throw new Error(`Pine table has no token take law ${spot.id}`);
     return { d, prompt: spot.prompt, auto: autoFlag(d), lever: `lever:${d.id}`, taken: `taken:${d.id}`, open: `open:${d.id}` };
   });
+  const seat = table.rows.find(row => row.id === bench.id);
+  if (seat?.kind !== 'bench') throw new Error('Pine table has no lookout bench law');
+  const benchRule: Rule = { d: seat, prompt: bench.prompt, auto: autoFlag(seat), lever: `lever:${seat.id}`, taken: `taken:${seat.id}`, open: `open:${seat.id}` };
   /** a command's table row (the prompts' order: the two logs, the glass, the flint) */
   const rowOf = (value: number): Rule | null => value === PINE_ACT.logA ? logA : value === PINE_ACT.logB ? logB : value === PINE_ACT.glass ? glass : value === PINE_ACT.flint ? flint
-    : Number.isInteger(value) && value >= PINE_ACT.token1 && value <= PINE_ACT.token8 ? tokenRules[value - PINE_ACT.token1] ?? null : null;
+    : value === PINE_ACT.bench ? benchRule : Number.isInteger(value) && value >= PINE_ACT.token1 && value <= PINE_ACT.token8 ? tokenRules[value - PINE_ACT.token1] ?? null : null;
   const raiseAll = (list: readonly string[] | undefined, on: boolean): void => {
     if (list === undefined) return;
     for (let k = 0; k < MAX_SETS; k++) { const f = list[k]; if (f === undefined) break; flags.set(f, on); }
@@ -158,7 +165,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const radius = (r: Rule): number => {
     if (!shown(r)) return 0;
     const d = r.d;
-    return d.kind === 'lever' ? (d.latch === true && flags.has(r.lever) ? 0 : PROMPT_R) : d.kind === 'pickup' ? PROMPT_R : 0;
+    return d.kind === 'lever' ? (d.latch === true && flags.has(r.lever) ? 0 : PROMPT_R) : d.kind === 'pickup' ? PROMPT_R : d.kind === 'bench' ? PROMPT_R + 0.5 : 0;
   };
   const interact = (r: Rule): void => {
     const d = r.d;
@@ -166,6 +173,11 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (d.kind === 'lever') { if (d.latch !== true || !flags.has(r.lever)) raiseAll(d.sets, flags.toggle(r.lever)); return; }
     if (r.auto !== null) flags.set(r.auto);
     raiseAll(d.sets, true);
+    if (d.kind === 'bench') {
+      const pose = pineBenchPose(bench, bench.yaw);
+      at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at);
+      host.player.yaw = pose.yaw; host.playerFall.vy = 0;
+    }
   };
   const resin = resinSpots.map(spot => {
     const d = table.rows.find(row => row.id === spot.id);

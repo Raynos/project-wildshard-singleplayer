@@ -14,6 +14,7 @@ import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, p
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
 import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
 import * as v from 'valibot';
+import { pineBenchPose } from '../../../src/shards/pine-hollow/quest/benchPose';
 import { LEVER_FLAG, PINE_WEAPON } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { KING_RECORD } from '../../../src/shards/pine-hollow/runtime/king';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
@@ -60,6 +61,28 @@ function finishTalk(host: SimHost, tick: Tick, talking: () => boolean): void {
   for (let i = 0; i < 16 && talking(); i++) { tick.press = [PINE_ACT.talk]; host.step(still); tick.press = []; }
   expect(talking()).toBe(false);
 }
+
+it('uses the captured lookout bench reach and shared page pose, and restores its secret without a second fact', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    const bench = spots.rows.find(spot => spot.id === 'lookout-bench');
+    if (bench?.prompt === null || bench?.prompt === undefined) throw new Error('Missing captured bench');
+    press(host, tick, bench.prompt, PINE_ACT.bench, 3.1);
+    expect(host.flags.has('used:lookout-bench')).toBe(false);
+    press(host, tick, bench.prompt, PINE_ACT.bench, 0.4);
+    const pose = pineBenchPose(bench, bench.yaw);
+    expect(host.player.position.toArray()).toEqual([pose.x, pose.y, pose.z]);
+    expect(host.player.yaw).toBe(pose.yaw); expect(host.playerFall.vy).toBe(0);
+    expect(host.flags.has('secret:vista')).toBe(true);
+    expect(tick.facts.filter(fact => fact === 'pine.feat.secrets/secrets:1')).toHaveLength(1);
+    const saved = snapshotSimHost(host), before = tick.facts.length;
+    resumed = restore(tick, saved); expectSameSimSnapshot(snapshotSimHost(resumed), saved);
+    press(resumed, tick, bench.prompt, PINE_ACT.bench, 0.4);
+    expect(resumed.player.position.toArray()).toEqual([pose.x, pose.y, pose.z]);
+    expect(tick.facts).toHaveLength(before);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
 
 it('walks from the actual spawn into resin-1 and restores the take, pack and ledger fact without a second grant', () => {
   const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest } = boot(tick);

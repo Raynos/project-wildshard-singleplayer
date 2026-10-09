@@ -67,6 +67,7 @@ import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAME
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
+import { pineBenchPose } from './benchPose';
 import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood, type TradeItem } from './trades';
 import { BoardPanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
@@ -233,9 +234,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   };
   // the vista bench: sit → face the far country, a little lift of the chin
   kit.onSit = (at, yaw) => {
-    const x = at.x + Math.sin(yaw) * 0.2, z = at.z + Math.cos(yaw) * 0.2;
-    player.position.set(x, at.y + 0.02, z); player.velocity.set(0, 0, 0);
-    player.yaw = yaw + Math.PI; player.pitch = 0.05;
+    const pose = pineBenchPose(at, yaw);
+    player.position.set(pose.x, pose.y, pose.z); player.velocity.set(0, 0, 0);
+    player.yaw = pose.yaw; player.pitch = pose.pitch;
     hud.toast('You sit a while. The far country goes on and on, blue and then bluer.');
   };
 
