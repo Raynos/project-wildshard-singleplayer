@@ -716,6 +716,30 @@
         "from": "@wildshard/engine/ai/species"
       },
       {
+        "name": "StrikeData",
+        "kind": "type",
+        "doc": "A serializable strike. A null range explicitly means no range limit; all other numbers remain finite.",
+        "from": "@wildshard/engine/ai/strikeRows"
+      },
+      {
+        "name": "strikeFromData",
+        "kind": "function",
+        "doc": "Bind admitted data to the existing runner. Row order, tie-breaking, contact and continuation stay runner-owned.",
+        "from": "@wildshard/engine/ai/strikeRows"
+      },
+      {
+        "name": "strikeWeight",
+        "kind": "function",
+        "doc": "Evaluate an admitted score without allocating or consulting rendering, time, random state or actor memory.",
+        "from": "@wildshard/engine/ai/strikeRows"
+      },
+      {
+        "name": "StrikeWeight",
+        "kind": "type",
+        "doc": "Deterministic score data. Horizontal distance uses the shipping Math.hypot subtraction and strict > boundary.",
+        "from": "@wildshard/engine/ai/strikeRows"
+      },
+      {
         "name": "BrainPoint",
         "kind": "interface",
         "doc": "",
@@ -20748,6 +20772,42 @@
         "kind": "const",
         "doc": "Bounded data-only link from a road socket through an admitted lift to playable ground.",
         "from": "@wildshard/sdk/socketLift"
+      },
+      {
+        "name": "species",
+        "kind": "function",
+        "doc": "Refuse malformed species data before registration, setup draws, actor construction or view creation.",
+        "from": "@wildshard/sdk/species"
+      },
+      {
+        "name": "SpeciesData",
+        "kind": "type",
+        "doc": "Gameplay-only species fields. Native brain, view, parent selection and recipe stay outside the authored row.",
+        "from": "@wildshard/sdk/species"
+      },
+      {
+        "name": "SpeciesSchema",
+        "kind": "const",
+        "doc": "Strict species data, with bounded ordered variants and no native callback fields.",
+        "from": "@wildshard/sdk/species"
+      },
+      {
+        "name": "strike",
+        "kind": "function",
+        "doc": "Validate a serializable native strike before its trusted engine adapter is constructed.",
+        "from": "@wildshard/sdk/species"
+      },
+      {
+        "name": "StrikeData",
+        "kind": "type",
+        "doc": "Serializable native strike accepted by the SDK, without an authored callback.",
+        "from": "@wildshard/sdk/species"
+      },
+      {
+        "name": "StrikeSchema",
+        "kind": "const",
+        "doc": "Full native strike data, including its finite score program; no author callback is admitted.",
+        "from": "@wildshard/sdk/species"
       },
       {
         "name": "parseTraversal",

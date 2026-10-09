@@ -6,7 +6,7 @@ The source of truth is `src/game/shardfile/schema.ts`, the schema exports in `sr
 
 Paths start at `$` for the compiled shardfile; `$sdk["./module"].Schema` names a public SDK schema, including build-only input. `[]` is an array member, `[n]` a tuple slot, `{key}` / `{value}` a record, and `<n>` a union branch. Optionality and nullability apply at the listed path. Branch-local required fields are conditional on selecting that branch. Function defaults and custom checks are explicitly opaque; the author guide explains their semantics. This is metadata coverage, not an assertion that custom predicate internals have a Valibot shape.
 
-Coverage: 5082/5082 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
+Coverage: 5265/5265 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
 
 ## Fields
 
@@ -5076,6 +5076,189 @@ Coverage: 5082/5082 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $sdk["./socketLift"].SocketLiftSchema.topStop[0] | number | required | finite [function; not executed]; min_value -250; max_value 250 |
 | $sdk["./socketLift"].SocketLiftSchema.topStop[1] | number | required | finite [function; not executed]; min_value -250; max_value 250 |
 | $sdk["./socketLift"].SocketLiftSchema.topStop[2] | number | required | finite [function; not executed]; min_value -250; max_value 250 |
+| $sdk["./species"].SpeciesSchema | strict_object | required |  |
+| $sdk["./species"].SpeciesSchema.aggressive | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.blood | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.chargeDamage | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.chargeSpeed | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.chargeWindup | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.corpseFade | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.flight | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.flight.above | picklist "ground", "world" | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.flight.altitude | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].SpeciesSchema.flight.bank | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number"; check [function; not executed] "bank below pi/2" |
+| $sdk["./species"].SpeciesSchema.flight.climbRate | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.flight.diveRate | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.flight.lockRange | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.id | string | required | regex /^[a-z][a-zA-Z0-9.:-]*$/u; max_length 128 |
+| $sdk["./species"].SpeciesSchema.kind | string | required | regex /^[a-z][a-zA-Z0-9.:-]*$/u; max_length 128 |
+| $sdk["./species"].SpeciesSchema.label | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.lockable | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.ringRadius | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.sounds | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.sounds.call | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.sounds.callEvery | tuple | exact_optional; default undefined | check [function; not executed] "ordered range" |
+| $sdk["./species"].SpeciesSchema.sounds.callEvery[0] | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.sounds.callEvery[1] | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.sounds.callVariants | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./species"].SpeciesSchema.sounds.callVariants[] | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.sounds.hurt | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.spawnOnly | array | exact_optional; default undefined | max_length 64 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[] | strict_object | required |  |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].hp | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].id | string | required | regex /^[a-z][a-zA-Z0-9.:-]*$/u; max_length 128 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].label | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].mods | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].mods.chargeDamage | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].mods.chargeDist | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].mods.damageTaken | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].mods.relentless | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].mods.speed | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].rarity | picklist "common", "uncommon", "rare", "legendary" | required |  |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].scale | tuple | required | check [function; not executed] "ordered range" |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].scale[0] | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].scale[1] | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.spawnOnly[].weight | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tick | picklist "ai", "always" | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.trampleRadius | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.tuning.alertAt | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.boltAt | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.fleeMaxTime | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.fleeMinTime | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.fleeUntil | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.fleeUntilMax | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.forgetRate | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.freezeMax | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.freezeMin | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.hearCrouch | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.hearSprint | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.hearStill | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.hearWalk | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.herdAlertRadius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.herdBoltDelayMax | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.herdBoltDelayMin | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.hp | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.impactAlert | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.impactSpook | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.lookBack | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.noticeRate | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.panicDist | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.relaxAfter | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.runSpeed | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.sightCone | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.sightRange | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.sightRangeGraze | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.detect | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.fleeBelowHp | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.fleeChance | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.giveUp | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.huffMax | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.huffMin | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.rechargeCd | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.roar | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.tuning.stalk.speed | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.trotSpeed | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.waryBoost | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.tuning.waryTime | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.variants | array | required | min_length 1; max_length 64 |
+| $sdk["./species"].SpeciesSchema.variants[] | strict_object | required |  |
+| $sdk["./species"].SpeciesSchema.variants[].hp | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.variants[].id | string | required | regex /^[a-z][a-zA-Z0-9.:-]*$/u; max_length 128 |
+| $sdk["./species"].SpeciesSchema.variants[].label | string | required | max_length 4096 |
+| $sdk["./species"].SpeciesSchema.variants[].mods | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.variants[].mods.chargeDamage | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.variants[].mods.chargeDist | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.variants[].mods.damageTaken | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.variants[].mods.relentless | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].SpeciesSchema.variants[].mods.speed | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.variants[].rarity | picklist "common", "uncommon", "rare", "legendary" | required |  |
+| $sdk["./species"].SpeciesSchema.variants[].scale | tuple | required | check [function; not executed] "ordered range" |
+| $sdk["./species"].SpeciesSchema.variants[].scale[0] | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.variants[].scale[1] | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].SpeciesSchema.variants[].weight | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].SpeciesSchema.walkSpeed | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.active | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.alternatives | array | exact_optional; default undefined | max_length 16 |
+| $sdk["./species"].StrikeSchema.alternatives[] | variant by kind | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<0> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<0>.halfAngle | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; max_value 3.141592653589793 |
+| $sdk["./species"].StrikeSchema.alternatives[]<0>.kind | literal "arc" | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<0>.radius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.alternatives[]<0>.yawOffset | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.alternatives[]<1> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<1>.kind | literal "lane" | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<1>.length | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.alternatives[]<1>.width | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].StrikeSchema.alternatives[]<2> | strict_object | required | check [function; not executed] "ordered ring" |
+| $sdk["./species"].StrikeSchema.alternatives[]<2>.inner | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.alternatives[]<2>.kind | literal "ring" | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<2>.outer | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.alternatives[]<3> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<3>.halfAngle | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; max_value 3.141592653589793 |
+| $sdk["./species"].StrikeSchema.alternatives[]<3>.kind | literal "wedge" | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<3>.length | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.alternatives[]<4> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<4>.exclusive | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<4>.kind | literal "point" | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<4>.radius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.alternatives[]<5> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<5>.kind | literal "sphere" | required |  |
+| $sdk["./species"].StrikeSchema.alternatives[]<5>.radius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.cooldown | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.damage | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.eligibility | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.eligibility.jumpDodges | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.eligibility.maxDy | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.id | string | required | regex /^[a-z][a-zA-Z0-9.:-]*$/u; max_length 128 |
+| $sdk["./species"].StrikeSchema.motion | strict_object | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.motion.delay | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.motion.overshoot | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.motion.skid | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.motion.speed | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.motion.track | picklist "none", "lead", "follow" | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.range | number | nullable; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.recover | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.shape | variant by kind | required |  |
+| $sdk["./species"].StrikeSchema.shape<0> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.shape<0>.halfAngle | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; max_value 3.141592653589793 |
+| $sdk["./species"].StrikeSchema.shape<0>.kind | literal "arc" | required |  |
+| $sdk["./species"].StrikeSchema.shape<0>.radius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.shape<0>.yawOffset | number | exact_optional; default undefined | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.shape<1> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.shape<1>.kind | literal "lane" | required |  |
+| $sdk["./species"].StrikeSchema.shape<1>.length | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.shape<1>.width | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; check [function; not executed] "positive number" |
+| $sdk["./species"].StrikeSchema.shape<2> | strict_object | required | check [function; not executed] "ordered ring" |
+| $sdk["./species"].StrikeSchema.shape<2>.inner | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.shape<2>.kind | literal "ring" | required |  |
+| $sdk["./species"].StrikeSchema.shape<2>.outer | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.shape<3> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.shape<3>.halfAngle | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0; max_value 3.141592653589793 |
+| $sdk["./species"].StrikeSchema.shape<3>.kind | literal "wedge" | required |  |
+| $sdk["./species"].StrikeSchema.shape<3>.length | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.shape<4> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.shape<4>.exclusive | boolean | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.shape<4>.kind | literal "point" | required |  |
+| $sdk["./species"].StrikeSchema.shape<4>.radius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.shape<5> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.shape<5>.kind | literal "sphere" | required |  |
+| $sdk["./species"].StrikeSchema.shape<5>.radius | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.tags | array | required | max_length 32 |
+| $sdk["./species"].StrikeSchema.tags[] | custom | required | custom predicate; not executed |
+| $sdk["./species"].StrikeSchema.units | picklist "world", "actor" | exact_optional; default undefined |  |
+| $sdk["./species"].StrikeSchema.weight | variant by kind | required |  |
+| $sdk["./species"].StrikeSchema.weight<0> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.weight<0>.kind | literal "constant" | required |  |
+| $sdk["./species"].StrikeSchema.weight<0>.value | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.weight<1> | strict_object | required |  |
+| $sdk["./species"].StrikeSchema.weight<1>.above | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
+| $sdk["./species"].StrikeSchema.weight<1>.far | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.weight<1>.kind | literal "horizontal-distance" | required |  |
+| $sdk["./species"].StrikeSchema.weight<1>.near | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000 |
+| $sdk["./species"].StrikeSchema.windup | number | required | finite [function; not executed]; min_value -10000000; max_value 10000000; min_value 0 |
 | $sdk["./traversal"].TraversalSchema | strict_object | required |  |
 | $sdk["./traversal"].TraversalSchema.hoverCap | number | optional; default 14 | finite [function; not executed]; min_value 0.1; max_value 14 |
 | $sdk["./worldSource"].WorldSourceSchema | strict_object | required | check [function; not executed] "world source is plain JSON with safe mapping keys"; check [function; not executed] "unique node names, stable object/panel IDs and interactive collider IDs" |

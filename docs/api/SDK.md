@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-268 members; 1 without a doc line (—).
+274 members; 1 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -261,6 +261,12 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseSocketLift` | function | @wildshard/sdk/socketLift | Validate the lift declaration before building its world and immutable assets. |
 | `SocketLift` | type | @wildshard/sdk/socketLift | The platform resolves mover/gate ids, commands and collision; authors supply no callbacks. |
 | `SocketLiftSchema` | const | @wildshard/sdk/socketLift | Bounded data-only link from a road socket through an admitted lift to playable ground. |
+| `species` | function | @wildshard/sdk/species | Refuse malformed species data before registration, setup draws, actor construction or view creation. |
+| `SpeciesData` | type | @wildshard/sdk/species | Gameplay-only species fields. Native brain, view, parent selection and recipe stay outside the authored row. |
+| `SpeciesSchema` | const | @wildshard/sdk/species | Strict species data, with bounded ordered variants and no native callback fields. |
+| `strike` | function | @wildshard/sdk/species | Validate a serializable native strike before its trusted engine adapter is constructed. |
+| `StrikeData` | type | @wildshard/sdk/species | Serializable native strike accepted by the SDK, without an authored callback. |
+| `StrikeSchema` | const | @wildshard/sdk/species | Full native strike data, including its finite score program; no author callback is admitted. |
 | `parseTraversal` | function | @wildshard/sdk/traversal | Compile a lowered interior cap, bounded by the platform's 15 m/s ceiling. |
 | `ShardTraversal` | type | @wildshard/sdk/traversal | Callback-free interior traversal tuning. |
 | `TraversalSchema` | const | @wildshard/sdk/traversal | Optional author tuning for the grid's interior board cap. |

@@ -6,7 +6,7 @@
     "root → engine": 19,
     "root → game": 25,
     "root → sdk": 2,
-    "sdk → engine": 27,
+    "sdk → engine": 29,
     "sdk → game": 64,
     "shards/_template → engine": 7,
     "shards/_template → game": 1,
@@ -26,8 +26,8 @@
     "shards/pine-hollow → engine": 603,
     "shards/pine-hollow → game": 108,
     "shards/pine-hollow → sdk": 15,
-    "shards/sunscar-dunes → engine": 121,
+    "shards/sunscar-dunes → engine": 122,
     "shards/sunscar-dunes → game": 37,
-    "shards/sunscar-dunes → sdk": 19
+    "shards/sunscar-dunes → sdk": 27
   }
 }

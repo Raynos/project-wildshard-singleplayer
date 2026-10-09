@@ -2032,7 +2032,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2293 exports, grouped by the module to import them from.
+2297 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2058,6 +2058,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/ai/scriptBrain`: `BRAIN_FIELD`, `ScriptBrainBinding`, `ScriptBrainDriver`, `ScriptBrainLane`, `ScriptBrainOptions`, `ScriptBrainPorts`
 - `@wildshard/engine/ai/skirmisher`: `SkirmisherBrain`, `SkirmisherPorts`, `SkirmisherSpec`
 - `@wildshard/engine/ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
+- `@wildshard/engine/ai/strikeRows`: `StrikeData`, `strikeFromData`, `strikeWeight`, `StrikeWeight`
 - `@wildshard/engine/ai/strikes`: `BrainPoint`, `StrikeActor`, `StrikeContext`, `StrikePhase`, `StrikeRunner`, `StrikeShape`, `StrikeSpec`, `UtilityScore`
 - `@wildshard/engine/ai/strikeState`: `readStrikeState`
 - `@wildshard/engine/ai/view/DebugOverlay`: `AiDebugHost`, `AiDebugView`, `DebugActor`, `installAiDebug`
@@ -2589,7 +2590,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-262 exports, grouped by the module to import them from.
+268 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2654,6 +2655,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/sdk/socketLift`: `parseSocketLift`, `SocketLift`, `SocketLiftSchema`
+- `@wildshard/sdk/species`: `species`, `SpeciesData`, `SpeciesSchema`, `strike`, `StrikeData`, `StrikeSchema`
 - `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
 - `@wildshard/sdk/weapons/bowProfile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`

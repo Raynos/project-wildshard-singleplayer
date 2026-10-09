@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2310 members; 841 without a doc line (—).
+2314 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -127,6 +127,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `deriveSpecies` | function | @wildshard/engine/ai/species | Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. |
 | `SpeciesRow` | interface | @wildshard/engine/ai/species | — |
 | `SpeciesVariant` | interface | @wildshard/engine/ai/species | Gameplay data only. A procedural builder, palette or hull never belongs on this row. |
+| `StrikeData` | type | @wildshard/engine/ai/strikeRows | A serializable strike. A null range explicitly means no range limit; all other numbers remain finite. |
+| `strikeFromData` | function | @wildshard/engine/ai/strikeRows | Bind admitted data to the existing runner. Row order, tie-breaking, contact and continuation stay runner-owned. |
+| `strikeWeight` | function | @wildshard/engine/ai/strikeRows | Evaluate an admitted score without allocating or consulting rendering, time, random state or actor memory. |
+| `StrikeWeight` | type | @wildshard/engine/ai/strikeRows | Deterministic score data. Horizontal distance uses the shipping Math.hypot subtraction and strict > boundary. |
 | `BrainPoint` | interface | @wildshard/engine/ai/strikes | — |
 | `StrikeActor` | interface | @wildshard/engine/ai/strikes | — |
 | `StrikeContext` | interface | @wildshard/engine/ai/strikes | — |
