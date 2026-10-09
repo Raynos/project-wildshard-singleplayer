@@ -96,7 +96,8 @@
         "public/assets/lut/driftwood-isle.bin",
         "public/assets/title/driftwood-isle-portrait.jpg",
         "public/assets/sfx/driftwood-isle/**",
-        "public/assets/driftwood-isle/map/**"
+        "public/assets/driftwood-isle/map/**",
+        "public/assets/driftwood-isle/baked/fixed-models/**"
       ]
     },
     "far-reach": {
