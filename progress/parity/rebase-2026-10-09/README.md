@@ -14,8 +14,8 @@ Driftwood at `16728f1c6` (= `780f71006` + an SF50 grid-only change); Signal Dune
 | `driftwood-isle` | none (both tiers green) | nothing to record |
 | `_template` | mesh +1, programs +1, `programKeys`; phone `current` SSIM .947 | all explained + intended → **re-recorded** |
 | `far-reach` (Sky Reach) | colliders +40, registry, instanced / instances, `scene.named`, `programKeys`, buffers +4.5 KB, pose calls +1 / tris +480 | all explained + intended → **re-recorded** |
-| `nalati-grasslands` | `boot.saves.read` / `boot.saves.written` / `combat.loot.written` | all explained + intended → **re-recorded** |
-| `sunscar-dunes` (Signal) | mesh, instanced, geometries, programs, textures, buffers, pose calls / tris, `systems.update` | all explained + intended (bisected, below) → **re-recorded** |
+| `nalati-grasslands` | `boot.saves.read` / `boot.saves.written` / `combat.loot.written` | all explained + intended; **not yet re-recorded** (record stopped, Claude usage cap) |
+| `sunscar-dunes` (Signal) | mesh, instanced, geometries, programs, textures, buffers, pose calls / tris, `systems.update` | all explained + intended (bisected, below); **not yet re-recorded** (record stopped) |
 | `nine-dragon-stack` | phone pose SSIM ×3 (minimap only); phone `leak.programs` 1 (intermittent) | **not re-recorded**: the leak is a bug (class D, not a baseline field) |
 | `pine-hollow` | colliders −4, registry, buffers −64 B, desktop instances −1, gate tris; walk `lookout-climb` end ±1 cm; phone `combat.sounds.ambient`; phone `leak.textures` / `leak.weather.textures` | **not re-recorded**: a leak bug, and two unclaimed side effects of `77772d696` |
 
@@ -51,6 +51,16 @@ Driftwood at `16728f1c6` (= `780f71006` + an SF50 grid-only change); Signal Dune
 
 The two `77772d696` side effects are harmless in play, but no commit claims them, so Pine keeps its baselines until the
 coordinator accepts them (with the leak fixed, a 3-run Pine record would also capture the walk's two end states as its band).
+
+## Left (handed to Codex, 2026-10-09)
+
+- Re-record Nalati and Signal Dunes on M5 from `77772d696` (every red explained above):
+  `node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=<slug> --tiers=phone,desktop --export=77772d6969a3f9ec52ba63f476b7d9aec3803b2a --jobs=1 --retry=0 --timeout=400`
+  (`--url=` a self-started preview of the cached tree if `vite preview` misses its 30 s deadline). Check that old → new
+  moves only the fields in the table. The working tree's `test/parity/baselines/m5/meta.json` holds another lane's
+  uncommitted edit; leave it out of these commits.
+- Fix the two `4b2089fc8` leaks, then decide whether to accept Pine's two `77772d696` side effects and re-record Pine.
+- Nine needs no re-record for its baseline fields beyond the minimap SSIMs; re-record it once its leak is fixed.
 
 ## Not covered here
 
