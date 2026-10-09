@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the current Node binary for the closure proof.
 import { execPath } from 'node:process';
+import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
@@ -17,6 +18,7 @@ import { MONKEY } from '../../../src/shards/driftwood-isle/species/monkey';
 import { MONKEY_VARIANTS } from '../../../src/shards/driftwood-isle/species/monkeyVariants';
 import { driftwoodBake } from '../../../src/shards/driftwood-isle/runtime/baked';
 import { DRIFTWOOD_FIGHT, FAUNA_DRAWS, ISLAND_STEP } from '../../../src/shards/driftwood-isle/runtime/keeper';
+import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
 import { prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
 
@@ -56,11 +58,23 @@ it('spawns the 34 load-time bodies in the manager\'s order, reproducing every ba
   const host = boot();
   try {
     expect([...host.entities.keys()]).toEqual(bake.actors.map(actor => actor.id));
+    const fauna = bake.actors.filter(a => a.kind === 'boar' || a.kind === 'bear'), stream = faunaPlacement(0x5ea1, fauna);
     for (const actor of bake.actors) {
       const live = host.entities.get(actor.id); if (live === undefined || actor.at === null) throw new Error(`missing ${actor.id}`);
       expect([actor.id, live.kind, live.variant, live.seed, live.scale]).toEqual([actor.id, actor.kind, actor.variant, actor.seed, actor.scale]);
-      expect(live.position.x).toBeCloseTo(actor.at.x, 9); expect(live.position.z).toBeCloseTo(actor.at.z, 9);
+      // a fauna body stands where its anchor search drew it, at its drawn yaw (runtime/fauna.ts)
+      const at = stream.spawns.get(actor.id) ?? actor.at;
+      expect(live.position.x).toBeCloseTo(at.x, 9); expect(live.position.z).toBeCloseTo(at.z, 9);
+      if (stream.spawns.has(actor.id)) expect(live.yaw).toBeCloseTo(stream.spawns.get(actor.id)?.yaw ?? Number.NaN, 9);
     }
+    // the bake's `at` is each body's memory goal when the page was captured: every fauna body that had not yet thought stood
+    // on its drawn spawn exactly; the first boar had already picked its first wander goal
+    const moved = fauna.filter(a => { const s = stream.spawns.get(a.id); return s === undefined || a.at === null || Math.hypot(s.x - a.at.x, s.z - a.at.z) > 1e-9; });
+    expect(moved.map(a => a.id)).toEqual(['creature:0']);
+    expect(stream.draws).toBe(FAUNA_DRAWS);
+    // the herd centres are the anchors' draws: the first members' spawns sit round them (the brain's placement ring, 1.5–9 m)
+    stream.centres.forEach(([cx, cz], herd) => { for (const a of fauna.filter(f => f.herd === herd)) { const s = stream.spawns.get(a.id); expect(s === undefined ? -1 : Math.hypot(s.x - cx, s.z - cz)).toBeGreaterThanOrEqual(1.5); } });
+    expect(DRIFTWOOD_FAUNA_TUNING).toEqual(DRIFTWOOD_ISLE.faunaTuning);
     // the fauna's baked seeds all come from the creature stream's first 148 draws (their anchor searches)
     const rng = new Rng(0x5ea1 + 31), head: number[] = []; for (let i = 0; i < FAUNA_DRAWS; i++) head.push(rng.next());
     for (const actor of bake.actors.filter(a => a.kind === 'boar' || a.kind === 'bear')) expect(head).toContain(actor.seed);
@@ -118,6 +132,43 @@ it('runs the enemies\' shipping policies: the crabs close in and snap, a strike 
     expect(attacking).toBeGreaterThan(0); expect(attacking).toBeLessThanOrEqual(2);
   } finally { host.dispose(); }
 });
+
+it('runs the fauna through the hunting brain: wander paths on the baked navmesh, a sounder that notices, a charge that lands, a hit that wakes', () => {
+  const host = boot();
+  try {
+    const blows: string[] = [];
+    host.events.on('damage.dealt', ({ req }) => { if (req.target === host.player.health) blows.push(req.sourceTags.join(' ')); }, host.scope);
+    const boars = [...host.entities.values()].filter(a => a.kind === 'boar'), start = boars.map(a => a.position.clone());
+    // 20 s standing on the pier: the sounders graze and wander (paths from the navmesh), nobody notices the far player
+    for (let tick = 0; tick < 1200; tick++) host.step();
+    expect(boars.some((a, i) => a.position.distanceTo(start[i] ?? a.position) > 1)).toBe(true);
+    expect(boars.every(a => a.state !== 'charge')).toBe(true);
+    // the keeper's continuation carries every fauna memory; some follow navmesh path corners
+    const keeper = v.parse(v.object({ fauna: v.object({ memories: v.array(v.nullable(v.object({ path: v.array(v.unknown()) }))) }) }),
+      snapshotSimHost(host).adapters.find(adapter => adapter.id === ISLAND_STEP)?.state);
+    expect(keeper.fauna.memories.filter(m => m !== null)).toHaveLength(13);
+    expect(keeper.fauna.memories.some(m => m !== null && m.path.length > 1)).toBe(true);
+    // walk at the first sounder's centre: it notices, stalks and charges; a charge lands as a creature blow
+    const goal = new Vector3(74.7, 0, -141.9);
+    for (let tick = 0; tick < 3600 && !blows.some(b => b.includes('creature.boar')); tick++) {
+      const p = host.player.position, dx = goal.x - p.x, dz = goal.z - p.z, d = Math.hypot(dx, dz);
+      host.step(d < 2 ? undefined : { moveX: dx / d, moveZ: dz / d, yaw: Math.atan2(dx, dz) });
+    }
+    expect(blows.some(b => b.includes('creature.boar') && b.includes('feel.blow'))).toBe(true);
+    // a blow that doesn't kill: the hunting brain's hit reaction, at once
+    const near = boars.filter(a => a.alive).sort((a, b) => a.position.distanceTo(host.player.position) - b.position.distanceTo(host.player.position))[0];
+    if (near === undefined) throw new Error('no boar left');
+    host.combat.hit({ source: host.player.health, sourceTags: ['actor.player'], target: near.combatActor(), amount: 1, point: near.position.clone(), dir: new Vector3(0, 0, 1), moveId: 'test.poke' });
+    expect(near.alive).toBe(true); expect(near.lastHitT).toBeGreaterThan(-Infinity);
+    // mid-hunt, the continuation is exact: memories, paths, the speed meter, sight and the hunting brain's clock
+    const restored = restore(serializeSimSnapshot(snapshotSimHost(host)));
+    try {
+      const away = (h: SimHost): void => { const p = h.player.position; h.step({ moveX: -p.x / Math.hypot(p.x, p.z), moveZ: -p.z / Math.hypot(p.x, p.z), yaw: 0 }); };
+      for (let tick = 0; tick < 900; tick++) { away(host); away(restored); }
+      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(host)));
+    } finally { restored.dispose(); }
+  } finally { host.dispose(); }
+}, 90_000);
 
 it('restores exactly at install, mid-walk and after a practice crab came back, reinstalling the saved roster before restore', () => {
   const checkpoint = (host: SimHost, at: number): void => {

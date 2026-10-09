@@ -4,7 +4,8 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
-import { HuntBrain, type HuntBody, type HuntGround } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, HuntBrain, type HuntBody, type HuntGround, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -15,6 +16,7 @@ import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { placeEnemies, PRACTICE_AT } from './placement';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake } from './baked';
+import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement, faunaSpecies } from './fauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
 export const ISLAND_STEP = 'driftwood.island';
@@ -35,6 +37,8 @@ const SHELL_FADE = 1.5;
 const NORMAL_EPS = 0.6;
 const ENEMIES = new Map<string, readonly { readonly id: string; readonly weight: number; readonly scale: readonly [number, number] }[]>([
   ['crab', CRAB.variants], ['sailor', SAILOR.variants], ['monkey', MONKEY_VARIANTS]]);
+/** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
+const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
 const HUNT_BODY = { hidden: false, sampleTerrain: (): void => undefined };
 
@@ -53,32 +57,57 @@ export interface IslandPorts {
   readonly waterLevel: number;
   /** the level spawn's height (AnimalManager.spawnAnimal's floor ray starts a metre over max(spawn y, ground)) */
   readonly spawnY: number;
+  /** the island's baked navmesh (public/assets/baked/driftwood-isle/navmesh.bin, the browser's file), or null */
+  readonly nav: HuntNav | null;
 }
 const finite = v.pipe(v.number(), v.finite());
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 const Placed = v.object({ id: v.string(), seed: finite, scale: finite, at: v.strictObject({ x: finite, y: finite, z: finite }), yaw: finite });
-const Saved = v.strictObject({ version: v.literal(1), rng: Stream, tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])), clocks: v.array(v.tuple([finite, finite, finite])),
+const Point = v.tuple([finite, finite, finite]);
+/** HuntMemory as plain data (its path corners as points) */
+const Memory = v.strictObject({ timer: finite, tx: finite, tz: finite, fleeT: finite, fleeUntil: finite, chargeCd: finite, callT: finite, awareness: finite,
+  freeze: finite, spooked: v.boolean(), wary: finite, sensed: v.boolean(), windup: finite, backoff: finite, side: finite, committed: v.boolean(),
+  path: v.array(Point), pathI: finite, goalX: finite, goalZ: finite, repathAt: finite });
+const Saved = v.strictObject({ version: v.literal(2), rng: Stream,
+  fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])), clocks: v.array(v.tuple([finite, finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })),
   practice: v.strictObject({ dead: finite, fade: finite }) });
 
+/** HuntMemory as plain data: every field, the path's corners as points. */
+function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
+  return { timer: m.timer, tx: m.tx, tz: m.tz, fleeT: m.fleeT, fleeUntil: m.fleeUntil, chargeCd: m.chargeCd, callT: m.callT, awareness: m.awareness,
+    freeze: m.freeze, spooked: m.spooked, wary: m.wary, sensed: m.sensed, windup: m.windup, backoff: m.backoff, side: m.side, committed: m.committed,
+    path: m.path.map(p => [p.x, p.y, p.z] as [number, number, number]), pathI: m.pathI, goalX: m.goalX, goalZ: m.goalZ, repathAt: m.repathAt };
+}
+
 /**
  * Driftwood Isle's creatures in a renderer-free host (SF72), as the shipping AnimalManager and creatures/Enemies.ts keep
- * them. The 13 fauna (four sounders and two bears) come from their baked recipes; the creature stream `Rng(seed + 31)`
- * then stands exactly past their anchor searches' 148 draws. The 21 enemies are placed by `placeEnemies` (crab groups,
- * the practice crab, three monkey troops, the sailor in the hold), each with the manager's spawn draws from that stream (a
- * monkey's variant roll, then scale, rig seed, body seed, and the three memory draws: timer, fleeUntil, callT). Every body
- * stands on the manager's creature floor: the first WORLD hit under its spawn ray, the terrain when that is the ground's
- * heightfield; a body on a structure keeps the layered floor under its feet. The herds are the manager's hunting brain's
+ * them. The 13 fauna (four sounders and two bears) come from their baked recipes at the spawns, yaws and herd centres
+ * their anchor searches drew off the creature stream `Rng(seed + 31)` (runtime/fauna.ts); each fauna body's memory takes
+ * the three draws after its seed (HuntBrain.adopt), and the stream then stands exactly past those 148 draws. The 21
+ * enemies are placed by `placeEnemies` (crab groups, the practice crab, three monkey troops, the sailor in the hold), each
+ * with the manager's spawn draws from that stream (a monkey's variant roll, then scale, rig seed, body seed, and the three
+ * memory draws: timer, fleeUntil, callT). Every body stands on the manager's creature floor: the first WORLD hit under its
+ * spawn ray, the terrain when that is the ground's heightfield; a body on a structure keeps the layered floor under its
+ * feet; every body's turn is capped while it attacks (a melee shard). The herds are the manager's hunting brain's
  * (`HuntBrain`, src/engine/ai/hunt.ts), in its order: the fauna's, then the enemies' at their `addHerd` points.
  *
- * The enemies run their shipping policies (runtime/enemyBrains.ts) on the scheduler's 'ai' decision clock (20 Hz within
- * 60 m, 10 Hz to 160 m, paused beyond; every frame while a crab sidesteps) and strike every tick,
- * steering and confined through the hunting brain over the island (the baked floor, its normals, the open sea, no trees,
- * no cabins), holding the manager's two E297 attack tokens (swept when an attack is over). The practice crab comes back
- * 45 s after it dies once the player is 30 m off, after its 1.5 s shell fade: a fresh body in its slot (same id, six more
- * draws), a new herd of one. Restore reinstalls exactly the saved roster from its recipes before the host restores, with
- * no stream draw. Not yet owned: the fauna's decisions (they stand: the hunting brain resolves their species rows through
- * the global registry, which needs their renderer looks) and the coconuts (a monkey's throw releases nothing).
+ * Decisions run on the scheduler's 'ai' clock per body (20 Hz within 60 m, 10 Hz to 160 m, paused beyond; every frame
+ * while a crab sidesteps), and an interrupt decides at once: a hunter that loses its line to the player, a fauna body hit
+ * without dying. The fauna decide through the hunting brain (the island's boar and bear rows, the manifest's fauna tuning,
+ * the browser's baked navmesh for paths and wander targets, the manager's smoothed player speed), charge on the body
+ * tick and land a charge as PlayerHurt.creature's blow; a hit turns, bolts or enrages them. The enemies run their
+ * shipping policies (runtime/enemyBrains.ts) and strike every tick, steering and confined through the hunting brain over
+ * the island (the baked floor, its normals, the open sea, no trees, no cabins). Every body holds the manager's two E297
+ * attack tokens (swept when an attack is over). The practice crab comes back 45 s after it dies once the player is 30 m
+ * off, after its 1.5 s shell fade: a fresh body in its slot (same id, six more draws), a new herd of one. Restore
+ * reinstalls exactly the saved roster from its recipes before the host restores, with no stream draw kept.
+ *
+ * Known differences from the browser (the SF72 handoff): every body's physics steps every tick (the host owns the bodies;
+ * the browser halves them 60–160 m out and pauses them beyond); a charge's contact is tested at the start of the next
+ * tick, against the player where the charging tick saw it (the host steps bodies after its systems), so its knockback
+ * starts one tick later; no 'target.attack' / 'target.dodge' wakes (no weapon or dodge is owned yet); no player
+ * push-out (`clearBody`); the practice crab's replacement keeps its slot's id; a monkey's coconut releases nothing.
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
@@ -99,9 +128,17 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     cabinMask: () => 0, streamAt: () => null, pond: () => null, sea: () => true, wetAt: () => false,
     trees: () => [], treeless: () => true, terrain: () => true,
   };
-  const hunt = new HuntBrain<HuntBody>({ rng, fight: DRIFTWOOD_FIGHT, faunaTuning: () => undefined }, {
-    ground, nav: () => null, reach: () => { throw new Error('Driftwood headless fauna do not decide yet'); }, wanderGoal: () => null, unaware: () => false,
-    now: () => host.clock.now * 1000, sound: () => undefined, charge: () => { throw new Error('Driftwood headless fauna do not decide yet'); },
+  const reach = (a: HuntBody, at: Vector3): boolean => canReach(a, at, host.physics);
+  // a charge that lands files PlayerHurt.creature's hit: a creature blow (feel.blow knocks the player back, as the browser's)
+  const charge = (a: HuntBody, damage: number): void => {
+    host.combat.hit({ source: 'env', sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: host.player.health, amount: damage,
+      point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } });
+  };
+  // the manager's ports (AnimalManager's constructor): no wander goal or calm on Driftwood, the voices are presentation and
+  // the idle glances' millisecond clock is cosmetic (look weight only)
+  const hunt = new HuntBrain<HuntBody>({ rng, fight: DRIFTWOOD_FIGHT, faunaTuning: () => DRIFTWOOD_FAUNA_TUNING, species: faunaSpecies }, {
+    ground, nav: () => ports.nav, reach, wanderGoal: () => null, unaware: () => false,
+    now: () => host.clock.now * 1000, sound: () => undefined, charge,
   }, player);
   const habitat = bake.habitat, world = {
     perches: habitat.perches.map(p => new Vector3(p.x, p.y, p.z)), perchBases: habitat.perchBases.map(p => new Vector3(p.x, p.y, p.z)),
@@ -123,6 +160,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const materialize = (body: IslandBody, recipe: SimSpawn, structure: boolean): void => {
     const a = Object.assign(host.spawn(recipe), HUNT_BODY);
     a.levelGround = structure; if (structure) a.groundHeight = floor;
+    // a melee shard caps every creature's turn while it attacks (AnimalManager.spawnAnimal)
+    a.attackTurnCap = ATTACK_TURN;
     body.actor = a;
     const members = hunt.herds[body.herd]?.members ?? null;
     members?.push(a);
@@ -145,27 +184,47 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const fauna = bake.actors.filter(actor => actor.kind === 'boar' || actor.kind === 'bear');
   const herdBase = new Set(fauna.map(actor => actor.herd)).size;
   const placed = placeEnemies({ seed: ports.seed, crabSites: habitat.crabSites, palms: habitat.perchBases, heightAt, waterLevel: ports.waterLevel });
-  // the manager's herds in its order: the fauna's (their centres are not baked: the members' mean), then the enemies'
-  bake.herds.slice(0, herdBase).forEach(h => {
-    const members = fauna.filter(a => h.members.includes(a.id) && a.at !== null);
-    hunt.addHerd(h.kind, members.reduce((s, a) => s + (a.at?.x ?? 0), 0) / Math.max(1, members.length), members.reduce((s, a) => s + (a.at?.z ?? 0), 0) / Math.max(1, members.length));
-  });
+  // the fauna's spawns, yaws and herd centres as the anchor searches drew them off the creature stream (runtime/fauna.ts)
+  const stream = faunaPlacement(ports.seed, fauna);
+  if (stream.draws !== FAUNA_DRAWS || stream.centres.length !== herdBase) throw new Error('Driftwood fauna placement diverges from the stream');
+  const spawnOf = (id: string): { x: number; z: number; yaw: number; at: number } => {
+    const at = stream.spawns.get(id); if (at === undefined) throw new Error(`Driftwood fauna ${id} has no stream placement`); return at;
+  };
+  const faunaBody = (actor: (typeof fauna)[number]): IslandBody => {
+    const at = spawnOf(actor.id);
+    return { id: actor.id, kind: actor.kind, variant: actor.variant, herd: actor.herd, range: [actor.scale, actor.scale], actor: null, brain: null,
+      recipe: { id: actor.id, spec: spec(actor.kind, actor.variant), seed: actor.seed, scale: actor.scale, at: { x: at.x, y: 0, z: at.z }, yaw: at.yaw } };
+  };
+  // the manager's herds in its order: the fauna's at their drawn centres, then the enemies'
+  bake.herds.slice(0, herdBase).forEach((h, i) => { const c = stream.centres[i]; if (c !== undefined) hunt.addHerd(h.kind, c[0], c[1]); });
   placed.centres.forEach((c, i) => { hunt.addHerd(bake.herds[herdBase + i]?.kind ?? 'crab', c.x, c.z); });
   if (hunt.herds.length !== bake.herds.length) throw new Error('Driftwood herds diverge from the bake');
 
   const practice: { body: IslandBody | null; dead: number; fade: number } = { body: null, dead: 0, fade: -1 };
-  const still = (a: HuntBody): boolean => a.alive && a.attackPhase >= 0;
+  /** AnimalManager.stillAttacking: a charger while it charges, a self-thinking species while its strike runs */
+  const still = (a: HuntBody): boolean => a.alive && (FAUNA.has(a.kind) ? a.state === 'charge' : a.attackPhase >= 0);
   /** Each body's decision clock (last time seen, elapsed, credit), in roster order: a new subject starts a frame ago. */
   const last = new Float64Array(BODY_COUNT).fill(host.clock.now - FRAME), elapsed = new Float64Array(BODY_COUNT), credit = new Float64Array(BODY_COUNT);
+  /** the tick each decision clock last ran (TickScheduler's per-frame fence: a second ask in one frame gets nothing) */
+  const ran = new Float64Array(BODY_COUNT).fill(-1);
+  /** AnimalManager.visibility: whether each aggressive body last had a clear line to the player (null: never asked) */
+  const sight = Array.from({ length: BODY_COUNT }, (): boolean | null => null);
+  /** the manager's smoothed player ground speed, the player where the last step saw it (once one has), and the hunting
+   *  brain's world clock */
+  const tracked = { speed: 0, prev: new Vector3(), seen: false, clock: 0 };
   if (saved === undefined) {
-    fauna.forEach(actor => {
-      if (actor.at === null) throw new Error(`Baked Driftwood fauna ${actor.id} has no spawn point`);
-      const body: IslandBody = { id: actor.id, kind: actor.kind, variant: actor.variant, herd: actor.herd, range: [actor.scale, actor.scale], actor: null, brain: null,
-        recipe: { id: actor.id, spec: spec(actor.kind, actor.variant), seed: actor.seed, scale: actor.scale, at: { x: actor.at.x, y: 0, z: actor.at.z }, yaw: 0 } };
-      arrive(body); bodies.push(body);
-    });
-    // the fauna's anchor searches drew these from the creature stream before the first enemy
-    for (let i = 0; i < FAUNA_DRAWS; i++) rng.next();
+    fauna.forEach(actor => { const body = faunaBody(actor); arrive(body); bodies.push(body); });
+    // the fauna's anchor searches drew these from the creature stream before the first enemy; each body's memory took the
+    // three draws after its seed (HuntBrain.adopt at its spawn point)
+    const adoptAt = new Map(bodies.map(b => [spawnOf(b.id).at, b] as const));
+    let drawn = 0;
+    for (let i = 0; i < FAUNA_DRAWS; i++) {
+      if (i < drawn) continue;
+      rng.next(); drawn = i + 1;
+      const body = adoptAt.get(i), a = body?.actor ?? null;
+      if (body !== undefined && a !== null) { hunt.adopt(a, body.recipe.at.x, body.recipe.at.z); drawn += 3; }
+    }
+    if (drawn !== FAUNA_DRAWS || bodies.some(b => b.actor === null || hunt.memory(b.actor) === undefined)) throw new Error('Driftwood fauna memories diverge from the stream');
     placed.enemies.forEach((row, i) => {
       const id = `creature:${String(fauna.length + i)}`;
       const variant = row.variant ?? new WeightedTable({ mode: 'weighted', rows: variants(row.kind).map(r => ({ item: r, weight: r.weight })) }).pick(undefined, rng.next())?.item.id;
@@ -183,32 +242,80 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const old = hunt.herds[body.herd]; if (old !== undefined) old.members.length = 0;
     body.herd = hunt.addHerd('crab', PRACTICE_AT.x, PRACTICE_AT.z);
     draw(body); arrive(body);
-    const i = bodies.indexOf(body); last[i] = host.clock.now - FRAME; elapsed[i] = 0; credit[i] = 0;
+    const i = bodies.indexOf(body); last[i] = host.clock.now - FRAME; elapsed[i] = 0; credit[i] = 0; ran[i] = -1; sight[i] = null;
     practice.dead = 0; practice.fade = -1;
   };
+  /** The body's decision rate (AnimalManager.tickRate on the 'ai' bands): every frame while a crab sidesteps. */
+  const rateOf = (a: HuntBody): number => {
+    const d = Math.hypot(a.position.x - player.x, a.position.y - player.y, a.position.z - player.z);
+    return a.state === 'sidestep' ? Infinity : d < NEAR ? NEAR_HZ : d < FAR ? FAR_HZ : 0;
+  };
+  /** TickScheduler.due (brain side) for body `i`: its decision dt this frame (0: not due); `urgent` is an interrupt's wake. */
+  const due = (i: number, a: HuntBody, urgent: boolean): number => {
+    const tick = host.state.tick;
+    if (ran[i] === tick && !urgent) return 0;
+    const now = host.clock.now, hz = rateOf(a), step = now - (last[i] ?? now);
+    last[i] = now; ran[i] = tick;
+    if (hz === 0) { elapsed[i] = 0; credit[i] = 0; } else { elapsed[i] = (elapsed[i] ?? 0) + step; credit[i] = (credit[i] ?? 0) + step; }
+    if (!urgent && (hz === 0 || (credit[i] ?? 0) + 1e-9 < 1 / hz)) return 0;
+    const dt = elapsed[i] ?? 0;
+    elapsed[i] = 0; credit[i] = urgent || hz === Infinity ? 0 : Math.max(0, (credit[i] ?? 0) - Math.floor(((credit[i] ?? 0) + 1e-9) * hz) / hz);
+    return dt;
+  };
+  /** AnimalManager.think for body `i`: a fauna body's hunting brain, or an enemy's own policy. */
+  const runBrain = (body: IslandBody, a: HuntBody, dt: number): void => {
+    if (body.brain === null) { hunt.think(a, dt, player, false, tracked.speed); return; }
+    if (!a.alive) { a.lookWeight = 0; return; }
+    // a staggered self-thinking species holds (AnimalManager.think)
+    if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
+    body.brain.decide(dt);
+    const herd = hunt.herds[body.herd]; if (herd !== undefined) hunt.updateHerd(herd);
+  };
+  /** TickScheduler.interrupt's wake (AnimalManager.spawnAnimal's onInterrupt): decide now, whatever the clock. */
+  const wake = (i: number): void => {
+    const body = bodies[i], a = body?.actor ?? null;
+    if (body === undefined || a === null || !a.alive) return;
+    runBrain(body, a, due(i, a, true));
+  };
+  // AnimalManager.damaged: a fauna body's hit reaction (a kill clears its timer); a hit that doesn't kill wakes its brain
+  host.events.on('damage.dealt', ({ req, killed }) => {
+    const i = bodies.findIndex(b => b.actor !== null && b.brain === null && b.actor.combatActor() === req.target), a = bodies[i]?.actor ?? null;
+    if (a === null) return;
+    if (killed) { hunt.died(a); return; }
+    hunt.hurt(a); wake(i);
+  }, host.scope);
   const keep = (): void => { host.onStep(ISLAND_STEP, dt => {
+    // the last frame's charge contacts, after its bodies moved (the host steps its bodies after every system), against the
+    // player where that frame saw it
+    if (tracked.seen) for (let i = 0; i < BODY_COUNT; i++) {
+      const body = bodies[i], a = body?.actor ?? null;
+      if (a !== null && body?.brain === null && a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, tracked.prev);
+    }
+    hunt.beginTick(dt); tracked.clock += dt;
+    // the player's ground speed is the noise they make (AnimalManager.update)
+    if (!tracked.seen) { tracked.prev.copy(player); tracked.seen = true; }
+    const moved = Math.hypot(player.x - tracked.prev.x, player.z - tracked.prev.z);
+    tracked.prev.copy(player);
+    tracked.speed += (Math.min(moved / dt, 9) - tracked.speed) * (1 - 0.5 ** (dt * 10));
+    hunt.resetRepaths();
     hunt.tokens.sweep(still);
-    const now = host.clock.now;
     for (let i = 0; i < BODY_COUNT; i++) {
       const body = bodies[i], a = body?.actor;
-      if (body === undefined || a === null || a === undefined || body.brain === null) continue;
-      // the subject's decision clock (TickScheduler.due, brain side): credit at the band's rate, elapsed time as its dt
-      const d = Math.hypot(a.position.x - player.x, a.position.y - player.y, a.position.z - player.z);
-      const hz = a.state === 'sidestep' ? Infinity : d < NEAR ? NEAR_HZ : d < FAR ? FAR_HZ : 0, step = now - (last[i] ?? now);
-      last[i] = now;
-      if (hz === 0) { elapsed[i] = 0; credit[i] = 0; continue; }
-      elapsed[i] = (elapsed[i] ?? 0) + step; credit[i] = (credit[i] ?? 0) + step;
-      if ((credit[i] ?? 0) + 1e-9 < 1 / hz) continue;
-      const brainDt = elapsed[i] ?? 0;
-      elapsed[i] = 0; credit[i] = hz === Infinity ? 0 : Math.max(0, (credit[i] ?? 0) - Math.floor(((credit[i] ?? 0) + 1e-9) * hz) / hz);
-      if (brainDt <= 0) continue;
-      if (!a.alive) { a.lookWeight = 0; continue; }
-      // a staggered self-thinking species holds (AnimalManager.think)
-      if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; continue; }
-      body.brain.decide(brainDt);
-      const herd = hunt.herds[body.herd]; if (herd !== undefined) hunt.updateHerd(herd);
+      if (body === undefined || a === null || a === undefined) continue;
+      // a hunter that loses its line to the player decides at once
+      if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
+        const clear = reach(a, player);
+        if (sight[i] === true && !clear) wake(i);
+        sight[i] = clear;
+      }
+      const brainDt = due(i, a, false);
+      if (brainDt > 0) runBrain(body, a, brainDt);
     }
-    for (let i = 0; i < BODY_COUNT; i++) { const body = bodies[i], a = body?.actor; if (a !== null && a !== undefined && a.alive && !a.stunned) body?.brain?.move(dt); }
+    for (let i = 0; i < BODY_COUNT; i++) {
+      const body = bodies[i], a = body?.actor ?? null;
+      if (body === undefined || a === null || !a.alive || a.stunned) continue;
+      if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, dt, player); } else body.brain.move(dt);
+    }
     const crab = practice.body?.actor ?? null;
     if (crab === null || crab.alive || practice.body === null) return;
     practice.dead += dt;
@@ -217,12 +324,15 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
-    snapshot: () => ({ version: 1, rng: { ...rng.snapshot() }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
+    snapshot: () => ({ version: 2, rng: { ...rng.snapshot() }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
+      fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
+        memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight] },
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), clocks: [...last].map((t, i) => [t, elapsed[i] ?? 0, credit[i] ?? 0] as [number, number, number]), practice: { dead: practice.dead, fade: practice.fade },
       bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })) }),
     restore: value => {
       const state = v.parse(Saved, value);
       if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length || state.clocks.length !== BODY_COUNT
+        || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== BODY_COUNT
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
       const holders = state.tokens.map(id => { const a = bodies.find(b => b.id === id)?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
       rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade;
@@ -230,6 +340,15 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       state.clocks.forEach(([t, e, c], i) => { last[i] = t; elapsed[i] = e; credit[i] = c; });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
       state.bodies.forEach((b, i) => { if (b.policy !== null) bodies[i]?.brain?.restore(v.parse(v.string(), JSON.parse(b.policy))); });
+      // the hunting brain's world clock from 0 (its path re-plan timers run on it), the speed meter, sight and memories
+      hunt.beginTick(state.fauna.clock); tracked.clock = state.fauna.clock; tracked.speed = state.fauna.speed;
+      tracked.seen = state.fauna.prev !== null; if (state.fauna.prev !== null) tracked.prev.set(...state.fauna.prev);
+      state.fauna.sight.forEach((seen, i) => { sight[i] = seen; });
+      state.fauna.memories.forEach((m, i) => {
+        const a = bodies[i]?.actor ?? null, memory = a === null ? undefined : hunt.memory(a);
+        if ((m === null) !== (memory === undefined || bodies[i]?.brain !== null)) throw new Error('Incompatible Driftwood fauna memory');
+        if (m !== null && memory !== undefined) Object.assign(memory, { ...m, path: m.path.map(p => new Vector3(...p)) });
+      });
     },
   }); };
   if (saved === undefined) { keep(); return { bodies: () => bodies, hunt, settle: () => undefined }; }
@@ -247,13 +366,11 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     body.recipe.seed = recipe.seed; body.recipe.scale = recipe.scale; body.recipe.at.x = recipe.at.x; body.recipe.at.y = recipe.at.y; body.recipe.at.z = recipe.at.z;
     floor(recipe.at.x, recipe.at.z, recipe.at.y + 1);
     materialize(body, body.recipe, under.structure);
+    // a fauna body's memory: the keeper's restore overwrites it and the stream it drew from
+    if (body.actor !== null && FAUNA.has(body.kind)) hunt.adopt(body.actor, recipe.at.x, recipe.at.z);
   };
   // the roster's identities and recipes: the fauna's baked, the enemies' placed (their draws come from the saved bodies)
-  fauna.forEach(actor => {
-    const body: IslandBody = { id: actor.id, kind: actor.kind, variant: actor.variant, herd: actor.herd, range: [actor.scale, actor.scale], actor: null, brain: null,
-      recipe: { id: actor.id, spec: spec(actor.kind, actor.variant), seed: actor.seed, scale: actor.scale, at: { x: actor.at?.x ?? 0, y: 0, z: actor.at?.z ?? 0 }, yaw: 0 } };
-    bodies.push(body);
-  });
+  fauna.forEach(actor => { bodies.push(faunaBody(actor)); });
   placed.enemies.forEach((row, i) => {
     const id = `creature:${String(fauna.length + i)}`, baked = bake.actors.find(a => a.id === id);
     if (baked === undefined) throw new Error(`Missing baked Driftwood enemy ${id}`);
