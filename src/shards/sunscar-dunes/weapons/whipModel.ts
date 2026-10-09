@@ -1,5 +1,5 @@
 import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
-import { braidColours, coilPoints as heldCoil, LashCord, plaitedCord, type CordRgb } from '@wildshard/game/systems/items/lashView';
+import { braidColours, coilPoints as heldCoil, LashCord, plaitedCord, type CordRgb, type LashCordView } from '@wildshard/sdk/items/lashView';
 import { COIL_A, COIL_B, GLOW, LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B } from '../data/whip';
 import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 
@@ -31,7 +31,7 @@ const braid = (geometry: BufferGeometry, rings: number, sides: number, popperRin
   braidColours(geometry, rings, sides, popperRings, a, b, POPPER);
 };
 
-export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: LashCord; tip: Vector3; glove: Mesh | null; hd: Group | null }
+export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: LashCordView; tip: Vector3; glove: Mesh | null; hd: Group | null }
 
 /**
  * The generated gloved fist on the braided handle (loop 2, P3: `art/sunscar-dunes/round-11-loop-2/ref-glove.jpg` →

@@ -1,4 +1,4 @@
-import { createFireFx } from '@wildshard/game/systems/looks/fireFx';
+import { createFireFx } from '@wildshard/sdk/looks/fireFx';
 import { FIRE_STYLE } from '../data/fire';
 
 /**
