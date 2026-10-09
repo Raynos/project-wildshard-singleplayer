@@ -1,0 +1,12 @@
+{
+  "parent": "a81555ed2300205bebae7614f5af174911b09f9e",
+  "sha": "666ff59e7123b9e01e7aa6f92a8b462b2799e4c0",
+  "paths": [
+    "src/engine/sim/snapshot.ts",
+    "src/engine/sim/snapshotData.ts",
+    "src/engine/sim/snapshotPhysics.ts",
+    "src/game/grid/durability.ts",
+    "src/game/grid/liveSession.ts",
+    "test/engine/snapshot-workspace.test.ts"
+  ]
+}

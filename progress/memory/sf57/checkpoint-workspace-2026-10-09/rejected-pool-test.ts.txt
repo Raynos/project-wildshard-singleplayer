@@ -1,0 +1,54 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The codec fixture loads the shipped native binary.
+import { readFileSync } from 'node:fs';
+import { beforeAll, expect, it, vi } from 'vitest';
+import { Scope } from '../../src/engine/app/scope';
+import { createSimHost } from '../../src/engine/sim';
+import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
+import { snapshotSimHost, serializeSimSnapshot, serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SimSnapshotWorkspace } from '../../src/engine/sim/snapshot';
+import { SIM_LEVEL } from '../fixtures/sim-level/level';
+
+let rapier: Rapier;
+beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
+
+it('keeps exact wire and independent bytes for fresh, growing, interleaved and abandoned regional jobs', () => {
+  const scope = new Scope('snapshot-workspace'), workspace = new SimSnapshotWorkspace(scope);
+  const host = createSimHost(SIM_LEVEL, { rapier });
+  try {
+    const native = snapshotSimHost(host);
+    expect(serializeSimSnapshot(native, undefined, workspace)).toBe(serializeSimSnapshot(native));
+    const basis = Uint8Array.from({ length: 131079 }, (_, i) => i % 251);
+    const a = { ...native, physics: Array.from(basis) }, changed = basis.slice(); changed[3] = 255;
+    const b = { ...native, physics: Array.from(changed), flags: ['changed'] };
+    const expectedA = serializeSimSnapshot(a, basis), expectedB = serializeSimSnapshot(b, basis);
+    const first = serializeSimSnapshotSteps(a, basis, workspace), second = serializeSimSnapshotSteps(b, basis, workspace);
+    first.next(); second.next(); first.next(); second.next(); // both hold owned reference bytes across a pause
+    expect(finishSimSteps(first)).toBe(expectedA);
+    expect(finishSimSteps(second)).toBe(expectedB);
+    const abandoned = serializeSimSnapshotSteps(a, basis, workspace); abandoned.next(); abandoned.next(); abandoned.return('cancelled');
+    expect(serializeSimSnapshot(b, basis, workspace)).toBe(expectedB);
+    expect(decodeSimSnapshot(expectedB, basis)).toEqual(b);
+    let random = 1729;
+    const noisy = { ...native, physics: Array.from({ length: 4096 }, () => { random ^= random << 13; random ^= random >>> 17; random ^= random << 5; return random & 255; }) };
+    expect(serializeSimSnapshot(noisy, undefined, workspace)).toBe(serializeSimSnapshot(noisy));
+    expect(serializeSimSnapshot(a, basis, workspace)).toBe(expectedA); // previous contents never affect matches
+  } finally { host.dispose(); scope.dispose(); }
+});
+
+it('drops scratch after idle and disposal, preserving byte-identical final teardown saves without retained buffers', () => {
+  vi.useFakeTimers();
+  const scope = new Scope('snapshot-workspace-idle'), workspace = new SimSnapshotWorkspace(scope);
+  try {
+    const basis = Uint8Array.from({ length: 65537 }, (_, i) => i % 251);
+    const first = workspace.encodeReferences(basis, basis), held = first.slice();
+    expect(workspace.retainedBytes).toBeGreaterThan(8_000_000);
+    vi.advanceTimersByTime(999); expect(workspace.retainedBytes).toBeGreaterThan(0);
+    expect(workspace.encodeReferences(basis, basis)).toEqual(held); // idle timer resets, no extra pending timer
+    vi.advanceTimersByTime(999); expect(workspace.retainedBytes).toBeGreaterThan(0);
+    vi.advanceTimersByTime(1); expect(workspace.retainedBytes).toBe(0);
+    expect(first).toEqual(held);
+    expect(workspace.encodeReferences(basis, basis)).toEqual(held);
+    scope.dispose(); expect(workspace.retainedBytes).toBe(0); expect(vi.getTimerCount()).toBe(0);
+    expect(workspace.encodeReferences(basis, basis)).toEqual(held);
+    expect(workspace.retainedBytes).toBe(0); expect(vi.getTimerCount()).toBe(0);
+  } finally { scope.dispose(); vi.useRealTimers(); }
+});

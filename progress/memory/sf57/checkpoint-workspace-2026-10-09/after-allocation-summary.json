@@ -1,0 +1,196 @@
+{
+  "buffers": [
+    {
+      "name": "Uint8Array",
+      "bytes": 1734367,
+      "at": 73381.39999961853,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/@dimforge+rapier3d-simd@0.21.0/node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+        "line": 9333,
+        "column": 25,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 1734367,
+      "at": 73417.69999980927,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotData.ts",
+        "line": 138,
+        "column": 16,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 1815683,
+      "at": 73447.39999961853,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotPhysics.ts",
+        "line": 75,
+        "column": 61,
+        "name": null
+      }
+    },
+    {
+      "name": "Int32Array",
+      "bytes": 100000,
+      "at": 73481.7999997139,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "line": 644,
+        "column": 19,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 1734367,
+      "at": 78315.69999980927,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/@dimforge+rapier3d-simd@0.21.0/node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+        "line": 9333,
+        "column": 25,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 1734367,
+      "at": 78326.19999980927,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotData.ts",
+        "line": 138,
+        "column": 16,
+        "name": null
+      }
+    },
+    {
+      "name": "Int32Array",
+      "bytes": 100000,
+      "at": 78351.09999990463,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "line": 644,
+        "column": 19,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 2173887,
+      "at": 102461.39999961853,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/@dimforge+rapier3d-simd@0.21.0/node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+        "line": 9333,
+        "column": 25,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 2173503,
+      "at": 118992,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/@dimforge+rapier3d-simd@0.21.0/node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+        "line": 9333,
+        "column": 25,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 2179023,
+      "at": 128394.7999997139,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/@dimforge+rapier3d-simd@0.21.0/node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+        "line": 9333,
+        "column": 25,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 2179023,
+      "at": 128428.69999980927,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotData.ts",
+        "line": 138,
+        "column": 16,
+        "name": null
+      }
+    },
+    {
+      "name": "Uint8Array",
+      "bytes": 2281183,
+      "at": 128461.69999980927,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotPhysics.ts",
+        "line": 74,
+        "column": 47,
+        "name": null
+      }
+    },
+    {
+      "name": "Int32Array",
+      "bytes": 4194304,
+      "at": 128461.7999997139,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotPhysics.ts",
+        "line": 74,
+        "column": 85,
+        "name": null
+      }
+    },
+    {
+      "name": "Int32Array",
+      "bytes": 4194304,
+      "at": 128461.7999997139,
+      "source": {
+        "source": "../../src/src/engine/sim/snapshotPhysics.ts",
+        "line": 76,
+        "column": 96,
+        "name": null
+      }
+    },
+    {
+      "name": "Int32Array",
+      "bytes": 100000,
+      "at": 128494.89999961853,
+      "source": {
+        "source": "../../../../../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "line": 644,
+        "column": 19,
+        "name": null
+      }
+    }
+  ],
+  "bytes": 28428378,
+  "count": 15,
+  "heapRange": {
+    "used": [
+      61959948,
+      166066800
+    ],
+    "backing": [
+      120719870,
+      153664227
+    ]
+  },
+  "routes": [
+    {
+      "name": "driftwood-isle-to-template-1",
+      "failures": []
+    },
+    {
+      "name": "template-1-to-template-2",
+      "failures": []
+    },
+    {
+      "name": "template-2-to-template-3",
+      "failures": []
+    }
+  ],
+  "errors": []
+}

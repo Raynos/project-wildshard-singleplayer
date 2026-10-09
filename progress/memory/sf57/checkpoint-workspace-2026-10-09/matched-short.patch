@@ -1,0 +1,291 @@
+diff --git a/src/engine/sim/snapshot.ts b/src/engine/sim/snapshot.ts
+index 117fec9b6..2ce177b59 100644
+--- a/src/engine/sim/snapshot.ts
++++ b/src/engine/sim/snapshot.ts
+@@ -1,6 +1,7 @@
+ import { Vector3 } from 'three';
+ import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, finishSteps } from './snapshotData';
+-import { byteArray } from './snapshotPhysics';
++import { byteArray, encodePhysicsReferences, PhysicsReferenceWorkspace } from './snapshotPhysics';
++import type { Scope } from '../app/scope';
+ import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
+ import { SHOVE_TIME } from '../player/shove';
+ import type { AnimalSim } from '../entities/AnimalSim';
+@@ -72,13 +73,32 @@ export interface SimSnapshot {
+ }
+ 
+ /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
+-export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Array): string {
+-  return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
++export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Array, workspace?: SimSnapshotWorkspace): string {
++  return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis, workspace);
+ }
+ /** The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and
+  *  {@link finishSimSteps} runs it whole. The snapshot is read only before the first pause. */
+-export function serializeSimSnapshotSteps(saved: SimSnapshot, physicsBasis?: Uint8Array): Generator<undefined, string> {
+-  return serializeSnapshotDataSteps(saved, SIM_API_VERSION, physicsBasis);
++export function serializeSimSnapshotSteps(saved: SimSnapshot, physicsBasis?: Uint8Array, workspace?: SimSnapshotWorkspace): Generator<undefined, string> {
++  return serializeSnapshotDataSteps(saved, SIM_API_VERSION, physicsBasis, workspace);
++}
++/** Optional page-owned encoding scratch shared across a crossing's saves. Every result owns its bytes; one idle
++ *  second or scope disposal drops all capacity, including between the grid's five-second periodic saves. */
++export class SimSnapshotWorkspace {
++  private scratch: PhysicsReferenceWorkspace | undefined;
++  private timer: ReturnType<typeof setTimeout> | 0 | undefined;
++  private readonly scope: Scope;
++  constructor(scope: Scope) { this.scope = scope; scope.onDispose(() => { this.scratch = undefined; this.timer = undefined; }); }
++  /** Currently retained scratch capacity only; zero after the idle timeout or disposal. Returned wire is independent. */
++  get retainedBytes(): number { return this.scratch?.retainedBytes ?? 0; }
++  /** Internal codec port: reset and reuse dictionaries, returning independent references before a generator pauses. */
++  encodeReferences(bytes: Uint8Array, basis?: Uint8Array): Uint8Array {
++    // Final durable checkpoints run inside page disposal, after its scope closes. Preserve the fresh codec there,
++    // without re-opening scratch capacity or registering another timer on the disposed owner.
++    if (this.scope.disposed) return encodePhysicsReferences(bytes, basis);
++    this.scope.cancelTimer(this.timer);
++    try { this.scratch ??= new PhysicsReferenceWorkspace(); return this.scratch.encode(bytes, basis); }
++    finally { this.timer = this.scope.timeout(1000, () => { this.scratch = undefined; this.timer = undefined; }); }
++  }
+ }
+ /** Run a staged snapshot job to completion now. */
+ export function finishSimSteps<T>(steps: Generator<undefined, T>): T { return finishSteps(steps); }
+diff --git a/src/engine/sim/snapshotData.ts b/src/engine/sim/snapshotData.ts
+index 582f911c4..e15627584 100644
+--- a/src/engine/sim/snapshotData.ts
++++ b/src/engine/sim/snapshotData.ts
+@@ -2,7 +2,7 @@ import * as v from 'valibot';
+ import { deflateSync, inflateSync } from 'fflate';
+ import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
+ import type { SimValue } from '../sim';
+-import type { SimSnapshot } from './snapshot';
++import type { SimSnapshot, SimSnapshotWorkspace } from './snapshot';
+ import { DAY_CLOCK_PHASES } from './dayClock';
+ 
+ const finite = v.pipe(v.number(), v.finite());
+@@ -170,8 +170,8 @@ function unpack(data: string): number[] {
+   if (pack(bytes) !== data) throw new RangeError('Noncanonical snapshot base64');
+   return bytes;
+ }
+-function* packedPhysics(raw: Uint8Array, basis?: Uint8Array): Generator<undefined, v.InferOutput<typeof packedSnapshot>['physics']> {
+-  const references = encodePhysicsReferences(raw, basis), chunks: string[] = [];
++function* packedPhysics(raw: Uint8Array, basis?: Uint8Array, workspace?: SimSnapshotWorkspace): Generator<undefined, v.InferOutput<typeof packedSnapshot>['physics']> {
++  const references = workspace === undefined ? encodePhysicsReferences(raw, basis) : workspace.encodeReferences(raw, basis), chunks: string[] = [];
+   yield;
+   for (let offset = 0; offset < references.length; offset += physicsBlockBytes) chunks.push(pack(deflateSync(references.subarray(offset, offset + physicsBlockBytes), { level: 6 })));
+   const hash = checksum(raw);
+@@ -248,20 +248,20 @@ export function finishSteps<T>(steps: Generator<undefined, T>): T {
+ /** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
+  *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
+  *  touch nothing the live simulation can change. */
+-export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
++export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array, workspace?: SimSnapshotWorkspace): Generator<undefined, string> {
+   if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
+   // The byte array is checked in one flat pass; every other field keeps the strict JSON-tree and schema validation.
+   const raw = physicsArray(input.physics), metadata = { ...input, physics: [0] };
+   jsonTree(metadata);
+   const saved = identities(v.parse(snapshot, metadata), apiVersion);
+   yield;
+-  const physics = yield* packedPhysics(raw, physicsBasis);
++  const physics = yield* packedPhysics(raw, physicsBasis, workspace);
+   yield;
+   return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } });
+ }
+ /** Internal packed wire writer; the defining public entry supplies its current engine version. */
+-export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): string {
+-  return finishSteps(serializeSnapshotDataSteps(input, apiVersion, physicsBasis));
++export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array, workspace?: SimSnapshotWorkspace): string {
++  return finishSteps(serializeSnapshotDataSteps(input, apiVersion, physicsBasis, workspace));
+ }
+ /** Internal strict wire parser; unknown static fields are refused at every nesting level. */
+ export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBasis?: Uint8Array, mismatch?: (levelId: string, tick: number) => Error): SimSnapshot {
+diff --git a/src/engine/sim/snapshotPhysics.ts b/src/engine/sim/snapshotPhysics.ts
+index 2a7005259..178a0d348 100644
+--- a/src/engine/sim/snapshotPhysics.ts
++++ b/src/engine/sim/snapshotPhysics.ts
+@@ -27,12 +27,13 @@ export function byteArray(bytes: Uint8Array): number[] {
+   return array;
+ }
+ /** Lossless literal/copy framing with bounded dictionaries; a basis is immutable, freshly admitted world data. */
+-export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): Uint8Array {
++function encodeReferences(bytes: Uint8Array, basis?: Uint8Array, scratch?: ReferenceBuffers): Uint8Array {
+   if (bytes.length === 0 || bytes.length > MAX_PHYSICS_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
+   if (basis !== undefined && (basis.length === 0 || basis.length > MAX_PHYSICS_BYTES)) throw new RangeError('Snapshot physics basis exceeds byte bounds');
+-  const encoded = new Uint8Array(bytes.length + Math.ceil(bytes.length / matchMinimum) * 3 + 16), view = new DataView(encoded.buffer);
+-  const dictionary = new Int32Array(0x100000).fill(-1);
+-  const basisDictionary = basis === undefined ? undefined : new Int32Array(0x100000).fill(-1);
++  const capacity = bytes.length + Math.ceil(bytes.length / matchMinimum) * 3 + 16;
++  const encoded = scratch?.encoded ?? new Uint8Array(capacity), view = new DataView(encoded.buffer);
++  const dictionary = (scratch?.dictionary ?? new Int32Array(0x100000)).fill(-1);
++  const basisDictionary = basis === undefined ? undefined : (scratch?.basisDictionary ?? new Int32Array(0x100000)).fill(-1);
+   if (basis !== undefined && basisDictionary !== undefined) for (let i = 0; i + matchMinimum <= basis.length; i += basisStride) basisDictionary[hash(basis, i)] = i;
+   let written = 0, literal = 0, at = 0;
+   const flush = (end: number): void => {
+@@ -58,8 +59,27 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array):
+     at += length; literal = at;
+   }
+   flush(bytes.length);
+-  return encoded.subarray(0, written);
++  // A reusable buffer never escapes: later/interleaved writers must not mutate a yielded job's references.
++  return scratch === undefined ? encoded.subarray(0, written) : encoded.slice(0, written);
+ }
++interface ReferenceBuffers { encoded: Uint8Array; dictionary: Int32Array; basisDictionary?: Int32Array }
++/** Internal scratch for one page's serial writers. Matching decisions and framing are identical to fresh buffers. */
++export class PhysicsReferenceWorkspace {
++  private buffers: ReferenceBuffers | undefined;
++  get retainedBytes(): number { return this.buffers === undefined ? 0 : this.buffers.encoded.byteLength + this.buffers.dictionary.byteLength + (this.buffers.basisDictionary?.byteLength ?? 0); }
++  encode(bytes: Uint8Array, basis?: Uint8Array): Uint8Array {
++    if (bytes.length === 0 || bytes.length > MAX_PHYSICS_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
++    if (basis !== undefined && (basis.length === 0 || basis.length > MAX_PHYSICS_BYTES)) throw new RangeError('Snapshot physics basis exceeds byte bounds');
++    const capacity = bytes.length + Math.ceil(bytes.length / matchMinimum) * 3 + 16;
++    const buffers = this.buffers ?? { encoded: new Uint8Array(capacity), dictionary: new Int32Array(0x100000) };
++    if (buffers.encoded.length < capacity) buffers.encoded = new Uint8Array(capacity);
++    if (basis !== undefined && buffers.basisDictionary === undefined) buffers.basisDictionary = new Int32Array(0x100000);
++    this.buffers = buffers;
++    return encodeReferences(bytes, basis, buffers);
++  }
++}
++/** Lossless literal/copy framing with fresh bounded dictionaries; immutable admitted world bytes may be its basis. */
++export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): Uint8Array { return encodeReferences(bytes, basis); }
+ /** Reject malformed references before copying; output allocation and total reconstructed work are bounded by length. */
+ function references(bytes: Uint8Array, length: number, basisLength: number | undefined, result?: Uint8Array, basis?: Uint8Array): void {
+   if (!Number.isSafeInteger(length) || length < 1 || length > MAX_PHYSICS_BYTES || bytes.length > MAX_REFERENCE_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
+diff --git a/src/game/grid/durability.ts b/src/game/grid/durability.ts
+index fd3994fd5..513a5a99c 100644
+--- a/src/game/grid/durability.ts
++++ b/src/game/grid/durability.ts
+@@ -2,7 +2,7 @@ import * as v from 'valibot';
+ import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
+ import type { SimHost } from '@wildshard/engine/sim';
+ import { fnv1a32 } from '@wildshard/engine/core/rng';
+-import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
++import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot, type SimSnapshotWorkspace } from '@wildshard/engine/sim/snapshot';
+ import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
+ import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
+ import type { QuestDataPorts } from '../quest/declared';
+@@ -37,8 +37,10 @@ export class GridRegionDurability {
+   private physicsBasis: Uint8Array | undefined;
+   private colliders: ShardfileSimulation['colliders'] = new Map();
+   private receipt: { mode: 'exact' | 'logical'; characters: number } | null = null;
++  private readonly workspace: SimSnapshotWorkspace | undefined;
+ 
+-  constructor(store: SaveStore, placement: LocalSaveInstance, source: Shardfile, catalogue: readonly LedgerCatalogueItem[]) {
++  constructor(store: SaveStore, placement: LocalSaveInstance, source: Shardfile, catalogue: readonly LedgerCatalogueItem[], workspace?: SimSnapshotWorkspace) {
++    this.workspace = workspace;
+     this.source = source;
+     this.identity = { instance: placement.id, shard: source.identity.slug, revision: source.identity.revision };
+     this.saved = instanceSave(store, continuation, placement);
+@@ -125,7 +127,7 @@ export class GridRegionDurability {
+     if (!this.flush()) return false;
+     const logical = clientStateFromRegion(this.source, snapshot, this.identity.revision, this.source.state.version,
+       Object.fromEntries([...this.colliders].map(([id, port]) => [id, port.active()])));
+-    const wire = yield* serializeSimSnapshotSteps(snapshot, this.physicsBasis);
++    const wire = yield* serializeSimSnapshotSteps(snapshot, this.physicsBasis, this.workspace);
+     yield;
+     if (!this.flush()) return false; // facts emitted while the stages waited are durable before the region is
+     let value: SavedRegion = { revision: this.identity.revision, snapshot: wire, logical, mode: 'exact' };
+diff --git a/src/game/grid/liveSession.ts b/src/game/grid/liveSession.ts
+index 4a98a4103..e48ada2e7 100644
+--- a/src/game/grid/liveSession.ts
++++ b/src/game/grid/liveSession.ts
+@@ -30,7 +30,7 @@ import type { PlayerHealth } from '@wildshard/engine/combat/health';
+ import type { SaveStore } from '@wildshard/engine/saves/store';
+ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+ import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+-import { restoreSimHost, finishSimSteps } from '@wildshard/engine/sim/snapshot';
++import { restoreSimHost, finishSimSteps, SimSnapshotWorkspace } from '@wildshard/engine/sim/snapshot';
+ import { installStripCollider, PLATFORM_COLLIDER_OWNER } from '@wildshard/engine/physics/stripColliders';
+ import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
+ import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
+@@ -175,6 +175,7 @@ export class LiveGridSession {
+   private readonly ports: LiveGridSessionPorts;
+   private readonly page: LiveGridPage;
+   private readonly durability = new Map<string, GridRegionDurability>();
++  private readonly snapshotWorkspace: SimSnapshotWorkspace;
+   private readonly transferWalls = new Map<string | null, TransferWalls>();
+   private readonly offset = new Vector3();
+   private framePhysics: Physics;
+@@ -202,6 +203,7 @@ export class LiveGridSession {
+   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
+     if (ports.residency.allocator !== ports.allocator || ports.residency.instance !== ports.home.instance) throw new Error('Live grid requires its admitted home on the page allocator');
+     this.ports = ports; this.page = page;
++    this.snapshotWorkspace = new SimSnapshotWorkspace(ports.scope);
+     // The one-shot boot intent identifies the home before GridSession constructs; an owned page starts on the road.
+     if (page.ownedHome === true) gridCells.leave();
+     this.framePhysics = ports.physics;
+@@ -538,7 +540,7 @@ export class LiveGridSession {
+     if (source.runtime !== null) return await this.admitRuntime(cell, retained);
+     let durability = this.durability.get(cell.instance);
+     if (durability === undefined) {
+-      durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
++      durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue, this.snapshotWorkspace);
+       this.durability.set(cell.instance, durability);
+     }
+     const savedRegion = durability, quest = savedRegion.quest;
+@@ -628,7 +630,7 @@ export class LiveGridSession {
+     await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
+     const { slug: identity } = entry;
+     if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
+-    const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
++    const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue, this.snapshotWorkspace);
+     this.durability.set(cell.instance, saved);
+     let closed = false;
+     const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
+diff --git a/test/engine/snapshot-workspace.test.ts b/test/engine/snapshot-workspace.test.ts
+new file mode 100644
+index 000000000..66059fda5
+--- /dev/null
++++ b/test/engine/snapshot-workspace.test.ts
+@@ -0,0 +1,54 @@
++// oxlint-disable-next-line import/no-nodejs-modules -- The codec fixture loads the shipped native binary.
++import { readFileSync } from 'node:fs';
++import { beforeAll, expect, it, vi } from 'vitest';
++import { Scope } from '../../src/engine/app/scope';
++import { createSimHost } from '../../src/engine/sim';
++import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
++import { snapshotSimHost, serializeSimSnapshot, serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SimSnapshotWorkspace } from '../../src/engine/sim/snapshot';
++import { SIM_LEVEL } from '../fixtures/sim-level/level';
++
++let rapier: Rapier;
++beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
++
++it('keeps exact wire and independent bytes for fresh, growing, interleaved and abandoned regional jobs', () => {
++  const scope = new Scope('snapshot-workspace'), workspace = new SimSnapshotWorkspace(scope);
++  const host = createSimHost(SIM_LEVEL, { rapier });
++  try {
++    const native = snapshotSimHost(host);
++    expect(serializeSimSnapshot(native, undefined, workspace)).toBe(serializeSimSnapshot(native));
++    const basis = Uint8Array.from({ length: 131079 }, (_, i) => i % 251);
++    const a = { ...native, physics: Array.from(basis) }, changed = basis.slice(); changed[3] = 255;
++    const b = { ...native, physics: Array.from(changed), flags: ['changed'] };
++    const expectedA = serializeSimSnapshot(a, basis), expectedB = serializeSimSnapshot(b, basis);
++    const first = serializeSimSnapshotSteps(a, basis, workspace), second = serializeSimSnapshotSteps(b, basis, workspace);
++    first.next(); second.next(); first.next(); second.next(); // both hold owned reference bytes across a pause
++    expect(finishSimSteps(first)).toBe(expectedA);
++    expect(finishSimSteps(second)).toBe(expectedB);
++    const abandoned = serializeSimSnapshotSteps(a, basis, workspace); abandoned.next(); abandoned.next(); abandoned.return('cancelled');
++    expect(serializeSimSnapshot(b, basis, workspace)).toBe(expectedB);
++    expect(decodeSimSnapshot(expectedB, basis)).toEqual(b);
++    let random = 1729;
++    const noisy = { ...native, physics: Array.from({ length: 4096 }, () => { random ^= random << 13; random ^= random >>> 17; random ^= random << 5; return random & 255; }) };
++    expect(serializeSimSnapshot(noisy, undefined, workspace)).toBe(serializeSimSnapshot(noisy));
++    expect(serializeSimSnapshot(a, basis, workspace)).toBe(expectedA); // previous contents never affect matches
++  } finally { host.dispose(); scope.dispose(); }
++});
++
++it('drops scratch after idle and disposal, preserving byte-identical final teardown saves without retained buffers', () => {
++  vi.useFakeTimers();
++  const scope = new Scope('snapshot-workspace-idle'), workspace = new SimSnapshotWorkspace(scope);
++  try {
++    const basis = Uint8Array.from({ length: 65537 }, (_, i) => i % 251);
++    const first = workspace.encodeReferences(basis, basis), held = first.slice();
++    expect(workspace.retainedBytes).toBeGreaterThan(8_000_000);
++    vi.advanceTimersByTime(999); expect(workspace.retainedBytes).toBeGreaterThan(0);
++    expect(workspace.encodeReferences(basis, basis)).toEqual(held); // idle timer resets, no extra pending timer
++    vi.advanceTimersByTime(999); expect(workspace.retainedBytes).toBeGreaterThan(0);
++    vi.advanceTimersByTime(1); expect(workspace.retainedBytes).toBe(0);
++    expect(first).toEqual(held);
++    expect(workspace.encodeReferences(basis, basis)).toEqual(held);
++    scope.dispose(); expect(workspace.retainedBytes).toBe(0); expect(vi.getTimerCount()).toBe(0);
++    expect(workspace.encodeReferences(basis, basis)).toEqual(held);
++    expect(workspace.retainedBytes).toBe(0); expect(vi.getTimerCount()).toBe(0);
++  } finally { scope.dispose(); vi.useRealTimers(); }
++});
