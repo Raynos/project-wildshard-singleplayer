@@ -93,7 +93,32 @@ export function isletPieces(): Piece[] {
     mesh.position.set(l.x, l.y, l.z); mesh.name = `far.islet.lip.${entry.edge}`;
     return { id: `far.islet.lip.${entry.edge}`, name: STRINGS.isletLip, category: 'buildings', file: FILE, object: mesh, colliders: [lipCollider(entry)], surface: 'stone' };
   });
-  return [...lips, { id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: rigGroup, colliders: postColliders, surface: 'wood' }];
+  return [...lips, rails(), { id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: rigGroup, colliders: postColliders, surface: 'wood' }];
+}
+
+/**
+ * Playtest round 3 (#8): the resting islet's rail. Driving straight in from the road crossed the lip and the resting islet
+ * and went off its far rim into the cloud sea ("FELL TOO FAR") before the RIDE prompt could matter. Around every rim edge but
+ * the two that face the lip (the way on and off), a timber rail stands just outside the resting islet's rim, so a walker or a
+ * hover rider stops on the deck, inside the RIDE prompt. The rail's colliders are static (`isletPieces`); it is drawn with
+ * the moving parts (`isletViews`) only while its islet rests at the road, and the islet lifts out of it.
+ */
+const RAIL = { thick: 0.22, height: 1 } as const;
+type RailBox = ReturnType<typeof boxDesc>;
+const OUTWARD_OF: Readonly<Record<RisingIslet['edge'], readonly [number, number]>> = { north: [0, 1], east: [1, 0], south: [0, -1], west: [-1, 0] };
+/** An entry's rail: per closed rim edge (the 12-gon's edge normal `a`, radians from +x toward +z), one box. */
+export function railBoxes(entry: RisingIslet): { a: number; box: RailBox }[] {
+  const [ox, oz] = OUTWARD_OF[entry.edge], lip = Math.atan2(oz, ox), inner = apothem(ISLET_ISLE) + ISLET.gap, mid = inner + RAIL.thick / 2;
+  const half = (inner + RAIL.thick) * Math.tan(Math.PI / 12), out: { a: number; box: RailBox }[] = [];
+  for (let k = 0; k < 12; k++) {
+    const a = Math.PI / 12 + (k * Math.PI) / 6;
+    if (Math.abs(Math.atan2(Math.sin(a - lip), Math.cos(a - lip))) < Math.PI / 6) continue; // faces the lip: open
+    out.push({ a, box: boxDesc({ x: entry.rest.x + Math.cos(a) * mid, z: entry.rest.z + Math.sin(a) * mid, hw: RAIL.thick / 2, hd: half, rot: a, yBottom: 0, yTop: RAIL.height }, 'wood') });
+  }
+  return out;
+}
+function rails(): Piece {
+  return { id: 'far.islet.rails', name: STRINGS.isletRail, category: 'props', file: FILE, colliders: RISING_ISLETS.flatMap((entry) => railBoxes(entry).map((r) => r.box)), surface: 'wood' };
 }
 
 const LINK = { r: 0.3, tube: 0.075, pitch: 0.46 } as const;
@@ -142,6 +167,19 @@ export function isletViews(): IsletViews {
   };
   RISING_ISLETS.forEach((_entry, i) => { barAt(i, false); });
   bars.instanceMatrix.needsUpdate = true;
+  // round 3 (#8): each entry's rail, drawn while its islet rests at the road (its colliders are isletPieces')
+  const railRows = RISING_ISLETS.map((entry) => railBoxes(entry)), perEntry = Math.max(...railRows.map((r) => r.length));
+  const railMesh = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), RISING_ISLETS.length * perEntry), resting = RISING_ISLETS.map(() => true);
+  railMesh.name = 'far.islet.rails'; railMesh.frustumCulled = false; group.add(railMesh);
+  const railAt = (i: number, on: boolean): void => {
+    const rows = railRows[i] ?? [];
+    for (let j = 0; j < perEntry; j++) {
+      const row = rows[j];
+      railMesh.setMatrixAt(i * perEntry + j, row !== undefined && on ? m.compose(c.set(row.box.x, row.box.y, row.box.z), q.setFromAxisAngle(y, -row.a), a.set(2 * row.box.hx, 2 * row.box.hy, 2 * row.box.hz)) : hidden);
+    }
+  };
+  RISING_ISLETS.forEach((_entry, i) => { railAt(i, true); });
+  railMesh.instanceMatrix.needsUpdate = true;
   return { group, ids: RISING_ISLETS.map(isletId), update: (pose) => {
     let moved = false, gated = false;
     for (let i = 0; i < RISING_ISLETS.length; i++) {
@@ -153,6 +191,8 @@ export function isletViews(): IsletViews {
     for (let i = 0; i < RISING_ISLETS.length; i++) {
       const entry = RISING_ISLETS[i], g = islets[i]; if (entry === undefined || g === undefined) continue;
       const p = pose(isletId(entry)).position; g.position.set(p.x, p.y, p.z);
+      const atRest = Math.hypot(p.x - entry.rest.x, p.y - entry.rest.y, p.z - entry.rest.z) < 0.001;
+      if (atRest !== resting[i]) { resting[i] = atRest; railAt(i, atRest); railMesh.instanceMatrix.needsUpdate = true; }
       const key = p.x * 1e-3 + p.y + p.z * 1e-6; if (key === last[i]) continue;
       last[i] = key; lay(i, p); moved = true;
     }
@@ -170,7 +210,7 @@ export interface IsletCalls { readonly interactables: readonly Interactable[]; u
 export function isletCalls(command: (entry: RisingIslet, action: 1 | 2 | 3) => void): IsletCalls {
   const away = -1e5, items: Interactable[] = [], updates: ((pose: (id: string) => MoverPose) => void)[] = [];
   for (const entry of RISING_ISLETS) {
-    const ride: Interactable = { label: STRINGS.rideIslet, position: new Vector3(entry.rest.x, away, entry.rest.z), radius: apothem(ISLET_ISLE) - 0.4, onInteract: () => { command(entry, 1); } };
+    const ride: Interactable = { label: STRINGS.rideIslet, position: new Vector3(entry.rest.x, away, entry.rest.z), radius: apothem(ISLET_ISLE) + 0.05, onInteract: () => { command(entry, 1); } }; // round 3 (#8): reaches a rider stopped at the rail, never the lip
     const l = entry.landing, down: Interactable = { label: STRINGS.callIslet, position: new Vector3(l.x, away, l.z), radius: 3, onInteract: () => { command(entry, 2); } };
     const h = new Vector3(entry.dock.x - entry.rest.x, 0, entry.dock.z - entry.rest.z).normalize(), rim = new Vector3(entry.dock.x, entry.gate.y + 1, entry.dock.z).addScaledVector(h, apothem(ISLET_ISLE) + 1.5);
     const up: Interactable = { label: STRINGS.callIslet, position: rim.clone().setY(away), radius: 3, onInteract: () => { command(entry, 3); } };

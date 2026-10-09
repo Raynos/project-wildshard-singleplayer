@@ -605,11 +605,14 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     boot.runtime.hooks.audioUpdate?.(dt);
     mark('audio');
 
-    // nearest interactable
+    // nearest interactable: standalone and in the grid's home frame the page runtime's own; inside an entered runtime cell
+    // (Sky Reach's RIDE, a cell's talk / pickup / open) that cell's own, in its frame (grid-interact, src/game/grid/enteredInteract.ts)
     const physics = app.physics;
-    nearest = pickInteractable(boot.runtime.interactables, game.camera.position, physics);
+    const homeActive = grid === null || gridLive === null || (session.ownedGridHome !== true && gridLive.live.current() === grid.home.instance);
+    nearest = gridLive === null ? pickInteractable(boot.runtime.interactables, game.camera.position, physics)
+      : gridLive.pickPrompt(homeActive ? boot.runtime.interactables : gridLive.interactables(), game.camera.position, physics);
     carcass = undefined;
-    if (!nearest) for (const a of animals.animals) {
+    if (!nearest && homeActive) for (const a of animals.animals) {
       if (a.alive || harvested.has(a) || a.position.distanceTo(player.position) >= 2.6) continue;
       if (inventory.harvest(a.kind, a.variant).length === 0) continue; // nothing to take (Pine Hollow's elk: E314 C) (the drowned sailor / captain fade): no [E] Harvest (E318 row 17)
       if (physics && !lineOfSight(physics, game.camera.position, carcassAt.copy(a.position).setY(a.position.y + 0.4), 0.6)) continue; // not through a wall (animals aren't physics yet: their body blocks nothing)

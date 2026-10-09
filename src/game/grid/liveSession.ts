@@ -58,6 +58,7 @@ import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '
 import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
 import { loadNavmesh } from '@wildshard/engine/physics/navmesh';
+import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { yieldGridAdmission } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/runtime';
@@ -674,6 +675,23 @@ export class LiveGridSession {
     const feet = this.live.worldFeet();
     if (this.ports.assembly.at(feet.x, feet.z)?.instance !== state.instance) return [];
     return this.runtimeRegions.get(state.instance)?.aimAnimals() ?? [];
+  }
+
+  /** grid-interact: the entered runtime's own prompts, only after its hooks complete and while the feet stand in its cell
+   *  (`enteredRuntime`); none on the road, in a template copy or mid-crossing. They are frame-local: pick them with `pickPrompt`. */
+  interactables(): ReturnType<PreparedRegionalRuntime['interactables']> {
+    const instance = this.enteredRuntimeInstance();
+    return instance === null ? [] : this.runtimeRegions.get(instance)?.interactables() ?? [];
+  }
+  /** The page prompt in the active frame: `list` (the home's or `interactables()`) against the camera less the render
+   *  origin applied this frame (C39), with the active frame's physics. */
+  pickPrompt<T extends ReturnType<PreparedRegionalRuntime['interactables']>[number]>(list: readonly T[], camera: Readonly<Vector3>, physics: Physics | null): T | undefined {
+    return pickInFrame(list, camera, this.applied, physics, this.eye);
+  }
+  private readonly eye = new Vector3();
+  private enteredRuntimeInstance(): string | null {
+    const feet = this.live.worldFeet();
+    return enteredRuntime({ hybrid: this.hybrid.state(), current: this.live.current(), feetCell: this.ports.assembly.at(feet.x, feet.z)?.instance });
   }
 
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */

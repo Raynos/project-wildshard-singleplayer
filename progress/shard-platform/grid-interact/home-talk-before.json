@@ -1,0 +1,41 @@
+{
+ "errors": [],
+ "version": {
+  "build": "a04ac6e-mv07c48o",
+  "time": "2026-10-09T00:03:10.082Z"
+ },
+ "find": [
+  {
+   "name": "npc-castaway",
+   "x": -19.6,
+   "y": 17.83920833139038,
+   "z": -72.2
+  }
+ ],
+ "rows": [
+  {
+   "dx": 1.5,
+   "dz": 0,
+   "current": "driftwood-isle",
+   "prompt": "ETalk to Wendell"
+  },
+  {
+   "dx": 0,
+   "dz": 1.5,
+   "current": "driftwood-isle",
+   "prompt": "ETalk to Wendell"
+  },
+  {
+   "dx": -1.5,
+   "dz": 0,
+   "current": "driftwood-isle",
+   "prompt": "ETalk to Wendell"
+  },
+  {
+   "dx": 0,
+   "dz": -1.5,
+   "current": "driftwood-isle",
+   "prompt": "ETalk to Wendell"
+  }
+ ]
+}

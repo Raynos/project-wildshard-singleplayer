@@ -91,6 +91,9 @@ export interface PreparedRegionalRuntime {
   readonly checkpoint: () => boolean;
   /** The actual retained herd; callers expose it to aiming only while this runtime is ready and entered. */
   readonly aimAnimals: () => AnimalManager['animals'];
+  /** Its own scoped runtime's interact prompts (frame-local; emptied on entry, ended with the runtime); callers scan them
+   *  only while this runtime is ready and entered (`enteredRuntime`). Empty before the runtime's context exists. */
+  readonly interactables: () => readonly ShardRuntime['interactables'][number][];
   /** Actual actor-object provenance in the retained region; repeated IDs in parked neighbours grant no permission. */
   readonly combatActors: () => ReadonlyMap<ReturnType<AnimalManager['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
 }
@@ -275,6 +278,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         } };
       return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); } }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
+        interactables: () => localRuntime?.interactables ?? [],
         combatActors: () => new Map((localPlay?.animals.animals ?? []).map(animal => [animal.combatActor(), animal.position])),
         loadout: { checkpoint, stow: () => {
           stowed = true;

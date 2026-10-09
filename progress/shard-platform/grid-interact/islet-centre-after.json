@@ -1,0 +1,87 @@
+{
+ "tag": "c1",
+ "engine": "webkit",
+ "errors": [],
+ "version": {
+  "build": "2d269d9-mv07pvmf",
+  "time": "2026-10-09T00:13:53.923Z"
+ },
+ "home": {
+  "current": "driftwood-isle",
+  "feet": {
+   "x": -0.000019843763085447552,
+   "y": 1.2146582704655884,
+   "z": -194.00003659210034
+  },
+  "prompt": ""
+ },
+ "leg": {
+  "why": "arrived",
+  "seconds": 14.7,
+  "feet": {
+   "x": -0.015165713425645887,
+   "y": 0.01999993631263952,
+   "z": -326.9628691614192
+  },
+  "current": "far-reach",
+  "y": 0.01999993631263952,
+  "prompts": [
+   "ERide the islet@-321.7",
+   "ERide the islet@-321.8",
+   "ERide the islet@-321.9",
+   "ERide the islet@-322.1",
+   "ERide the islet@-322.2",
+   "ERide the islet@-322.4",
+   "ERide the islet@-322.6",
+   "ERide the islet@-322.8",
+   "ERide the islet@-322.9",
+   "ERide the islet@-323.0",
+   "ERide the islet@-323.2",
+   "ERide the islet@-323.3",
+   "ERide the islet@-323.5",
+   "ERide the islet@-323.7",
+   "ERide the islet@-323.8",
+   "ERide the islet@-324.0",
+   "ERide the islet@-324.1",
+   "ERide the islet@-324.2",
+   "ERide the islet@-324.4",
+   "ERide the islet@-324.5",
+   "ERide the islet@-324.7",
+   "ERide the islet@-324.8",
+   "ERide the islet@-325.0",
+   "ERide the islet@-325.1",
+   "ERide the islet@-325.2",
+   "ERide the islet@-325.4",
+   "ERide the islet@-325.5",
+   "ERide the islet@-325.7",
+   "ERide the islet@-325.8",
+   "ERide the islet@-326.0",
+   "ERide the islet@-326.2",
+   "ERide the islet@-326.4",
+   "ERide the islet@-326.5",
+   "ERide the islet@-326.7",
+   "ERide the islet@-326.8",
+   "ERide the islet@-327.0"
+  ]
+ },
+ "atCentre": {
+  "current": "far-reach",
+  "feet": {
+   "x": -0.015160408207618391,
+   "y": 0.019999979153477954,
+   "z": -327.198308710965
+  },
+  "local": {
+   "x": -0.015160408207618391,
+   "y": 0.019999979153477954,
+   "z": 227.80169128903498
+  },
+  "cam": {
+   "x": -0.015160408207161285,
+   "y": 1.6999999791545595,
+   "z": -327.198308710965
+  },
+  "prompt": "ERide the islet",
+  "use": "Ride the islet"
+ }
+}
