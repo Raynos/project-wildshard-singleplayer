@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-796 members; 141 without a doc line (—).
+797 members; 141 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -696,6 +696,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `declaredWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. |
 | `sharedWeaponVoices` | function | @wildshard/game/systems/audio/weaponVoices | The platform's default equipment voices; samples and synth blocks come from the level's mixer. |
 | `WeaponSynth` | interface | @wildshard/game/systems/audio/weaponVoices | Only the oscillator blocks and sample/cue ports that an equipment recipe reads. |
+| `STARTER_EFFECTS` | const | @wildshard/game/systems/effects/starter | Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects. |
 | `fogGLSL` | const | @wildshard/game/systems/looks/fogProgram | — |
 | `configureGrassField` | function | @wildshard/game/systems/looks/grassField | — |
 | `flowerPatchAt` | function | @wildshard/game/systems/looks/grassField | 0..1 flower-drift strength |

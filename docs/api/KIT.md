@@ -4,14 +4,13 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-75 members; 18 without a doc line (—).
+74 members; 18 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
 | `createForestAudio` | function | @wildshard/kit/audio/forest | Asset-free profile; installForestAmbience supplies the shared synth wind bed. |
 | `installForestAmbience` | function | @wildshard/kit/audio/forest | A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime. |
 | `installStarterEffects` | function | @wildshard/kit/effects/install | An optional entered installer retires observers and icons while statuses remain player-owned. |
-| `STARTER_EFFECTS` | const | @wildshard/kit/effects/starter | Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play. |
 | `BAG_ICONS` | const | @wildshard/kit/icons | the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) |
 | `installKitIcons` | function | @wildshard/kit/icons | — |
 | `declaredKitItemFamilies` | function | @wildshard/kit/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |

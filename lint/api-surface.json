@@ -17784,6 +17784,12 @@
         "from": "@wildshard/game/systems/audio/weaponVoices"
       },
       {
+        "name": "STARTER_EFFECTS",
+        "kind": "const",
+        "doc": "Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects.",
+        "from": "@wildshard/game/systems/effects/starter"
+      },
+      {
         "name": "fogGLSL",
         "kind": "const",
         "doc": "",
@@ -18450,12 +18456,6 @@
         "kind": "function",
         "doc": "An optional entered installer retires observers and icons while statuses remain player-owned.",
         "from": "@wildshard/kit/effects/install"
-      },
-      {
-        "name": "STARTER_EFFECTS",
-        "kind": "const",
-        "doc": "Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play.",
-        "from": "@wildshard/kit/effects/starter"
       },
       {
         "name": "BAG_ICONS",
@@ -19888,6 +19888,12 @@
         "from": "@wildshard/sdk/runtime/effects"
       },
       {
+        "name": "STARTER_EFFECTS",
+        "kind": "const",
+        "doc": "Starter tuning derived from the build-only commons effects pack; no runtime commons dependency or automatic installation.",
+        "from": "@wildshard/sdk/runtime/effects"
+      },
+      {
         "name": "StatusMovement",
         "kind": "type",
         "doc": "Independent status-effect movement channels, separate from equipment and traversal multipliers.",
@@ -20428,6 +20434,12 @@
         "kind": "function",
         "doc": "Emit the starter harvest rows as owned immutable JSON; provenance is supplied by the pack publisher.",
         "from": "@wildshard/commons/packs/bag"
+      },
+      {
+        "name": "starterEffectsPack",
+        "kind": "function",
+        "doc": "Emit the five unchanged starter status rows as immutable JSON with publisher-owned provenance.",
+        "from": "@wildshard/commons/packs/effects"
       },
       {
         "name": "bridgeScriptSources",

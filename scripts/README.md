@@ -215,6 +215,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [gen-shards.mjs](./gen-shards.mjs)
 - [gen-starter-bag.d.mts](./gen-starter-bag.d.mts)
 - [gen-starter-bag.mjs](./gen-starter-bag.mjs)
+- [gen-starter-effects.d.mts](./gen-starter-effects.d.mts)
+- [gen-starter-effects.mjs](./gen-starter-effects.mjs)
 - [gen.mjs](./gen.mjs)
 - [generated-files.d.mts](./generated-files.d.mts)
 - [generated-files.mjs](./generated-files.mjs)

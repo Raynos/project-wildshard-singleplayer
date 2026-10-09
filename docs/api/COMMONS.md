@@ -4,11 +4,12 @@
 
 Build-time packs and catalogue (src/commons/package.json `exports`); no commons code executes in the game.
 
-4 members; 0 without a doc line (—).
+5 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
 | `catalogueRef` | function | @wildshard/commons/catalogue | Resolve a stable build-time entry to its immutable content reference and actual cost. |
 | `createCatalogue` | function | @wildshard/commons/catalogue | Build a versioned catalogue using only the SDK's author-tool contract. Nothing installs on import. |
 | `starterBagPack` | function | @wildshard/commons/packs/bag | Emit the starter harvest rows as owned immutable JSON; provenance is supplied by the pack publisher. |
+| `starterEffectsPack` | function | @wildshard/commons/packs/effects | Emit the five unchanged starter status rows as immutable JSON with publisher-owned provenance. |
 | `bridgeScriptSources` | function | @wildshard/commons/scripts | Versioned build-only sources for the shared ABI setup and bridge mover; no runtime installer. |
