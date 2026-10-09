@@ -9,10 +9,14 @@ export const behaviour = [{ id: 'door', source: 'behaviour/door.as', maximumPage
 const project = { ...base, accent: 'teal', spawn: { x: 0, y: 0.1, z: 9, yaw: Math.PI },
   world: { glb: 'assets/world.glb', materials: { Clay: 'pbr', 'Road clay': 'pbr', 'Hall door': 'pbr' }, colliders: 'mesh',
     interactive: [{ node: 'HallDoor', id: 'blender.door', colliderId: 'blender.door.collider' }] },
-  look: { ...base.look, families: ['pbr'], materials: { pbr: { family: 'pbr', faceted: true, roughness: 1 } },
-    keys: [{ time: 0, sky: { zenith: [0.35, 0.42, 0.5], horizon: [0.75, 0.75, 0.75] },
-      fog: { colour: [0.55, 0.55, 0.55], density: 0, near: 60, far: 300 }, sun: { colour: [1, 1, 1], intensity: 1.5 },
-      ambient: { sky: [0.33, 0.38, 0.45], ground: [0.12, 0.12, 0.12], intensity: 0.7 } }] },
+  // G166 look B, a clay studio: the GLB's vertex colours carry the clay tones; a fixed mid-morning sun from the
+  // south-west lights the hall door three-quarter on, a high warm/cool hemisphere keeps every shaded face readable,
+  // and linear fog fades distance into the warm horizon.
+  look: { ...base.look, families: ['pbr'], materials: { pbr: { family: 'pbr', faceted: true, roughness: 1, vertexColours: true } },
+    day: { minutes: 12, start: 0.4, maxElevation: 50, azimuth: 71 }, dayOverride: 0.4,
+    keys: [{ time: 0, sky: { zenith: [0.42, 0.52, 0.66], horizon: [0.80, 0.78, 0.74] },
+      fog: { colour: [0.80, 0.78, 0.74], density: 0, near: 160, far: 700 }, sun: { colour: [1, 0.93, 0.82], intensity: 1.7 },
+      ambient: { sky: [0.80, 0.84, 0.90], ground: [0.55, 0.50, 0.45], intensity: 0.65 } }] },
   rows: ROWS, quests: HALL_QUEST,
   ledger: parseLedgerRules([{ fact: 'blender.hall', origin: { kind: 'engine', source: 'quest.complete' },
     rewards: [{ kind: 'achievement', id: 'blender.firstHall', title: 'The clay hall', threshold: 1 }] }]),
