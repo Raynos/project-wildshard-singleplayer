@@ -170,15 +170,13 @@ export async function walkSlice(rapier: Rapier, name: string): Promise<object> {
     return { status: 'passed', resumedTick: cp.tick, ticksExecuted: until - cp.tick, complete: session.host.flags.has('quest:driftwood-done'), hash: digest(session) };
   } finally { session.dispose(); }
 }
-/** Resume the preceding gameplay window, capture its living Captain, then compare one mid-fight restore with the still-running original. */
+/** Resume the real committed living Captain, capture it again, then compare its fight/reward and worker suffix.
+ * The separate walk windows cover the prefix; replay spends its budget on the same mid-fight checkpoint only. */
 export async function replayProof(rapier: Rapier): Promise<object> {
   const m = manifest(), frames = tape(m), cp = m.checkpoints.find(row => row.name === 'captain');
   if (cp === undefined) throw new Error('No real Captain checkpoint');
-  const before = [...m.checkpoints].reverse().find(row => row.tick < cp.tick && row.name.startsWith('tick-'));
-  if (before === undefined) throw new Error('No preceding gameplay window');
-  const original = await resume(rapier, before); let restored: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
+  const original = await resume(rapier, cp); let restored: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
   try {
-    const prefix = play(original, frames, cp.tick); sameEffects(prefix, expected(m, before.tick, cp.tick));
     const captain = [...original.host.entities.values()].find(actor => actor.kind === 'captain');
     const encounter = original.host.adapters.get(CAPTAIN_STEP)?.snapshot();
     if (captain === undefined || !captain.alive || captain.hp >= 200 || typeof encounter !== 'string') throw new Error('Checkpoint is not the living mid-fight Captain');
@@ -186,7 +184,7 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     if (digest(original) !== digest(restored)) throw new Error('Mid-fight restore not exact');
     worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } });
     const until = Math.min(m.ticks, cp.tick + 1000), a: Recorded['effects'] = [], b: Recorded['effects'] = [];
-    if (until - before.tick > 10_000) throw new Error('Captain replay exceeded its 10k window');
+    if (until - cp.tick > 10_000) throw new Error('Captain replay exceeded its 10k window');
     for (let i = cp.tick; i < until; i++) {
       const commands = frames[i]; if (commands === undefined) throw new Error('Missing Captain command');
       original.step(commands); restored.step(commands);
@@ -203,7 +201,7 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     }
     const endHash = digest(original), replayHash = digest(restored); sameEffects(a, b); sameEffects(a, expected(m, cp.tick, until));
     if (endHash !== replayHash || !original.host.flags.has('dead:captain') || !original.host.flags.has('quest:driftwood-done')) throw new Error('Captain continuation/reward diverged');
-    return { status: 'passed', resumedFrom: before.name, prefixTicks: cp.tick - before.tick, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks: 60, workerExact: true, victory: true };
+    return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks: 60, workerExact: true, victory: true };
   } finally { await worker?.dispose(); restored?.dispose(); original.dispose(); }
 }
 
