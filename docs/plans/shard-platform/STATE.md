@@ -57,6 +57,7 @@ Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned b
 - SF66 map in shardfile.
 
 **Jake:**
+- SF67: the AudioContext constructor is one ~130 ms task; only creating it on the first tap removes it (changes when sound can start). Pick.
 - G269: three phone runs.
 - G260: Blender board.
 - Sky's playable isles are per-session random; baking them fixes one look (pick).
