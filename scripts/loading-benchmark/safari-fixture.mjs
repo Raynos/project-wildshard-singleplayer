@@ -7,7 +7,7 @@ import { saveFixtureCode } from '../debug-settings.mjs';
 /** Only modify an owned served export. The original bytes are restored only if the exact fixture is intact. */
 export function installSafariFixture(dist) {
   const html = resolvePath(dist, 'index.html'), setup = resolvePath(dist, 'sf67-start.html');
-  if (!html.includes('/wildshard-serve/') || existsSync(setup)) throw new Error('Requires an owned clean served export');
+  if (!html.includes('/wildshard-serve/') || existsSync(resolvePath(dist, 'package.json')) || existsSync(setup)) throw new Error('Requires an owned clean served export');
   const original = readFileSync(html, 'utf8');
   if (original.includes('data-sf67-safari')) throw new Error('Safari fixture already installed');
   const injected = `<script data-sf67-safari>(${safariRecorder.toString()})();</script>`;
