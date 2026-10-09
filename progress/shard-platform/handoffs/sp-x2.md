@@ -1,6 +1,8 @@
 # sp-x2 handoff — SF68 data pipeline, 2026-10-08
 
-SF64 owner-value correction active (coordinator request, E456): engine snapshot now groups unattributed bytes by owner value, with RAM/GPU/inherited-label and report-reader regression. Focused checks green; clean-export full suite, root lint/typecheck and ratchet queued. No reports or committed generated outputs changed.
+IDLE after SF64 owner-value correction (coordinator request, E456), landed `10a0b1a06f65031f5c6f220dccab990d381cbd80` with private HEAD + own hunks, CAS and ancestor verification. Engine snapshot groups unattributed bytes by owner value; regression covers RAM/GPU/inherited labels, a known owner whose asset is named unattributed, relabeling and the real report reader. No reports or committed generated outputs changed. Coordinator owns the push.
+
+**SF64 validation:** 11 focused tests green. Clean export based on `351cd2e36` plus only the two owned source/test files: root typecheck, full root lint and ratchet passed; full suite had 958 passing files / 5450 passing tests / 14 skips and exactly one stale-generated graph failure (game→engine 791 vs 792). Copied only the coordinator's already-committed `3026718e2` graph baseline into the export (its sole difference is 791→792), then reran only the failed arch-guards file: 111/111 green. Effective total: 959 files / 5451 applicable tests green, 14 skipped. No regeneration or repeat full suite. The export and old SF68 sample outputs were removed with a non-forced literal-path cleanup after forced cleanup was rejected. No live process, queue ticket, browser, Simulator or preview remains mine.
 
 SF68 source is handed off; SF68 / E462 data-only source landed as `7ea6e6cb70a43d18d28ebbecdcbfdec3b6fcb890` (CAS / subject / stat / ancestor verified), and the coordinator relayed it to the admin UI lane. No small UI follow-up is pending. Resume only for an assigned SF68 data follow-up; the coordinator owns pushes, the Opus lane owns the admin UI, and the coordinator creates the separate `wildshard-admin` Vercel project before any deployment. Never message wildshard-v.
 
@@ -16,6 +18,6 @@ Real committed inventory at validation: 2 memory reports, 2 playtests (10 findin
 
 **SF64 capture work remains open, separately:** fresh Driftwood/template/Sky/Signal centres and fully observed worst crossing. Follow `progress/memory/sf64-report/capture-plan.md`; Nine Dragon explicitly unavailable (not in grid catalogue). Original report APIs landed 6f5ca1ae4 / b7f559d5d / 4da5ae9c2; receipt 16c927650, protocol fa0238f05 / 46d696223. x1 owns attribution. Earlier audio cohort closed 5d6e1d41b + bb91db4b0, native saving ZERO.
 
-**Resources:** no owned preview/browser/Simulator/Inspector/sampler or queued build/full suite. Scratch only `/private/tmp/claude-501/sp-builders/sp-x2/land-source.py` and SF68 landing specs worth keeping. Two byte-identical validation outputs are retained at `.../sf68-output-1/` and `.../sf68-output-2/` (pin 3f098fde5); automatic command review blocked recursive scratch cleanup. They are samples for the UI lane, never deployment inputs; source is the durable contract.
+**Resources:** no owned preview/browser/Simulator/Inspector/sampler or queued build/full suite. Scratch only `/private/tmp/claude-501/sp-builders/sp-x2/land-source.py` and SF68 landing specs worth keeping. The two old SF68 sample outputs and the SF64 validation export were deleted after their results were read; source is the durable contract.
 
 Plan-State: unchanged. This handoff records local landing, not a push/deploy claim.
