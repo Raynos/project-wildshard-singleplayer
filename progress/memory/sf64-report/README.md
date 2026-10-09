@@ -4,6 +4,8 @@
 
 **[pages/](pages/) is regenerated on the fixed ruler (G257, ruler lane):** `b49135480`, three valid cold runs per pose, manifest [../ruler/report-input.json](../ruler/report-input.json). Road 600.0, Pine centre 750.5, Nalati centre 775.2, template centre (public grid) 771.1, Sky Reach worst entered pose 732.8 MB WC + GL; all under the 1000 MB cap. The historical example below (its table and input.json) is the census- and vmmap-inflated first report.
 
+**No-owner share (SF64 target < 10 %, added 2026-10-09):** every page's takeaway and gauge now say how much of the native WC + GL ruler has no named owner (owned GPU storage matched to GL, owned RAM storage clamped to WC; `unattributed` and the scene walk's unnamed `engine/scene` bucket count as no owner; `report.json` carries it per pose as `noOwner`). On these fixed-ruler captures: **road 68.9 %** (413 MB: RAM 345, GPU 68), **Pine centre 53.1 %** (398 MB: RAM 311, GPU 87), template centre 68.7 %, Sky Reach 71.1 %; Nalati has no owner sidecar (null). These captures predate `36b3e81fe`, which charges scene-walk resources to their named subtree and decoded audio to its file: re-deriving the same rows with that rule gives road 48.5 % / Pine 34.9 %, with GPU 98 % owned. What remains is WebContent RAM nobody observes (≈ 260–290 MB: WebKit malloc JS objects, JIT, browser floor); closing it needs a same-moment heap snapshot and vmmap regions at the pose (see the itemized README's "what a real memory debugger would need").
+
 The command writes `memory-report/1` JSON, a file manifest, and one 1179 × 2556 portrait SVG/JPEG for the road, every requested shard centre and the worst crossing. It runs offline over native-audit receipts; it starts no browser, build, Simulator, Inspector or GL query.
 
 ```sh

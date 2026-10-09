@@ -6,7 +6,7 @@ import { resolve, dirname, join, basename } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { brotliDecompressSync, gunzipSync } from 'node:zlib';
-import { nativeMemoryPose, emptyMemoryAttribution, readMemoryAttribution, readMemoryMeasured, readMemoryReport, worstMemoryCrossing, withItemizedMemoryPose } from './memory-report-data.mjs';
+import { memoryNoOwner, nativeMemoryPose, emptyMemoryAttribution, readMemoryAttribution, readMemoryMeasured, readMemoryReport, worstMemoryCrossing, withItemizedMemoryPose } from './memory-report-data.mjs';
 import { memoryInfographic } from './memory-report-graphic.mjs';
 
 /** @param {string} path @returns {unknown} */
@@ -74,7 +74,8 @@ async function main(args){
   // The already-declared SDK sharp dependency renders static SVG; no browser/GPU context is created.
   const sharp=svgOnly?null:createRequire(new URL('../src/sdk/package.json',import.meta.url))('sharp');
   mkdirSync(out); // Refuse an existing directory, so no prior evidence can be overwritten.
-  writeFileSync(join(out,'report.json'),`${JSON.stringify(report,null,2)}\n`);
+  // `noOwner` is derived (SF64's < 10 % target); a re-import recomputes it, it is never read back as evidence
+  writeFileSync(join(out,'report.json'),`${JSON.stringify({...report,poses:report.poses.map(pose=>({...pose,noOwner:memoryNoOwner(pose)}))},null,2)}\n`);
   const files=[];
   for(const [index,pose]of report.poses.entries()){
     const stem=`${String(index+1).padStart(2,'0')}-${pose.name.replaceAll(/[^a-zA-Z0-9_-]/gu,'-').slice(0,100)}`;

@@ -202,3 +202,21 @@ export function withItemizedMemoryPose(pose,value,id,source){
     evidence:{...pose.evidence,itemized:{source,situation},historicalResidentRemainderBytes:residual},
     missing:[...pose.missing,`Historical RAM rows are capacity/heap estimates, not resident owner measurements. Itemized WC remainder ${residual} bytes stays unassigned; vmmap dirty regions overlap and are not added.`]};
 }
+
+/** Owners that name no one: the explicit remainder and the scene walk's unnamed-path bucket (SF64). */
+export const NO_OWNER=/^(?:unattributed|unlabelled|engine\/scene)$/u;
+/** The share of the native ruler (WC + GL) with no named owner, the SF64 target (< 10 %). Owned GPU storage is matched
+ * against live GL; owned RAM storage is clamped to WC because capacity rows can exceed resident pages. Null when either
+ * side is missing: no zero is inferred.
+ * @param {import('./memory-report-data.mjs').MemoryPose} pose
+ * @returns {import('./memory-report-data.mjs').MemoryNoOwner|null}
+ */
+export function memoryNoOwner(pose){
+  const measured=pose.measured, totals=pose.accounted.storageTotals;
+  if(measured===null||totals.gpu===null||totals.ram===null)return null;
+  const owned={gpu:0,ram:0};
+  for(const row of pose.accounted.allocations)if(!NO_OWNER.test(row.owner))owned[row.domain]+=row.bytes;
+  const gpuOwned=Math.min(measured.gl,owned.gpu), ramOwned=Math.min(measured.wc,owned.ram);
+  const gpu=measured.gl-gpuOwned, ram=measured.wc-ramOwned;
+  return {gpuOwned,ramOwned,gpu,ram,bytes:gpu+ram,share:measured.total>0?(gpu+ram)/measured.total:0};
+}

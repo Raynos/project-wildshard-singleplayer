@@ -42691,6 +42691,14 @@
           "accountedBytes": 147022208
         },
         "pin": "b491354-mv033tge, b491354-mv074goi"
+      },
+      "noOwner": {
+        "gpuOwned": 33237404,
+        "ramOwned": 153361152,
+        "gpu": 67956890,
+        "ram": 345404536,
+        "bytes": 413361426,
+        "share": 0.6889816627803019
       }
     },
     {
@@ -42710,7 +42718,8 @@
       },
       "missing": [
         "No native source supplied for this required pose"
-      ]
+      ],
+      "noOwner": null
     },
     {
       "name": "pine-hollow-centre",
@@ -121212,6 +121221,14 @@
           "accountedBytes": 683327497
         },
         "pin": "b491354-mv033tge, b491354-mv074goi"
+      },
+      "noOwner": {
+        "gpuOwned": 144255134,
+        "ramOwned": 207907948,
+        "gpu": 86996242,
+        "ram": 311354532,
+        "bytes": 398350774,
+        "share": 0.5307707123797591
       }
     },
     {
@@ -121275,7 +121292,8 @@
         "wasm": null,
         "attribution": null,
         "pin": "b491354-mv033tge, b491354-mv074goi"
-      }
+      },
+      "noOwner": null
     },
     {
       "name": "_template-centre",
@@ -200940,6 +200958,14 @@
           "accountedBytes": 535826809
         },
         "pin": "b491354-mv033tge, b491354-mv074goi"
+      },
+      "noOwner": {
+        "gpuOwned": 102398194,
+        "ramOwned": 139183626,
+        "gpu": 145136187,
+        "ram": 384387822,
+        "bytes": 529524009,
+        "share": 0.6867073092764806
       }
     },
     {
@@ -200959,7 +200985,8 @@
       },
       "missing": [
         "No native source supplied for this required pose"
-      ]
+      ],
+      "noOwner": null
     },
     {
       "name": "far-reach-centre",
@@ -259756,6 +259783,14 @@
           "accountedBytes": 371203244
         },
         "pin": "b491354-mv033tge, b491354-mv074goi"
+      },
+      "noOwner": {
+        "gpuOwned": 100366266,
+        "ramOwned": 111270008,
+        "gpu": 79981694,
+        "ram": 441153544,
+        "bytes": 521135238,
+        "share": 0.7111838130519462
       }
     },
     {
@@ -259775,7 +259810,8 @@
       },
       "missing": [
         "Nine Dragon is not in the grid catalogue; no grid centre capture exists"
-      ]
+      ],
+      "noOwner": null
     },
     {
       "name": "worst-crossing",
@@ -259794,7 +259830,8 @@
       },
       "missing": [
         "No complete matched crossing window; settled entry samples are not a crossing peak"
-      ]
+      ],
+      "noOwner": null
     }
   ]
 }

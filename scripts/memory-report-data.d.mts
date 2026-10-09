@@ -10,6 +10,10 @@ export interface MemoryAccounted {
 }
 export interface MemoryPose {name:string;measured:MemoryMeasured|null;accounted:MemoryAccounted;missing:string[];evidence?:Record<string,unknown>}
 export interface MemoryReport {schema:'memory-report/1';pin:string;device:string;settings:Record<string,unknown>;cap:{bytes:1000000000};poses:MemoryPose[]}
+/** Native-ruler bytes with no named owner (SF64): owned storage matched to GL / clamped to WC, and the rest. */
+export interface MemoryNoOwner {gpuOwned:number;ramOwned:number;gpu:number;ram:number;bytes:number;share:number}
+export const NO_OWNER:RegExp;
+export function memoryNoOwner(pose:MemoryPose):MemoryNoOwner|null;
 export interface CrossingMemorySample {measured:MemoryMeasured;glTime:string;accounted:MemoryAccounted}
 export function readMemoryMeasured(value:unknown):MemoryMeasured|null;
 export function readMemoryAttribution(value:unknown):MemoryAccounted;

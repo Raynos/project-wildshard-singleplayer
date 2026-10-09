@@ -11,7 +11,7 @@ import { gzipSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use this Node's executable for the offline CLI fixture.
 import { execPath } from 'node:process';
 import { expect, it } from 'vitest';
-import { emptyMemoryAttribution, nativeMemoryPose, readMemoryAttribution, readMemoryReport, withItemizedMemoryPose, worstMemoryCrossing, type MemoryMeasured } from '../scripts/memory-report-data.mjs';
+import { emptyMemoryAttribution, memoryNoOwner, nativeMemoryPose, readMemoryAttribution, readMemoryReport, withItemizedMemoryPose, worstMemoryCrossing, type MemoryMeasured } from '../scripts/memory-report-data.mjs';
 import { memoryInfographic, memoryOwnerColour } from '../scripts/memory-report-graphic.mjs';
 import { memoryReportFromManifest, readMemoryJson } from '../scripts/memory-report.mjs';
 
@@ -135,4 +135,22 @@ it('accepts the approved minimal report shape but never confuses unavailable sto
   const report = readMemoryReport({ schema: 'memory-report/1', pin: 'abc', device: 'phone', settings: {}, cap: { bytes: 1e9 }, poses: [{ name: 'road', measured: measured(), accounted: minimal, missing: [] }] });
   expect(report.poses.at(0)?.accounted.storageTotals.gpu).toBe(100);
   expect(accounted.storageTotals.ram).toBeNull();
+});
+
+it('grades the native ruler by named owners: generic buckets and unobserved RAM are the no-owner share (SF64)', () => {
+  const rows = [
+    { id: 'gpu:1', domain: 'gpu', bytes: 70, owner: 'scene:grid-deck', asset: 'deck', kind: 'buffer', precision: 'exact' },
+    { id: 'gpu:2', domain: 'gpu', bytes: 30, owner: 'engine/scene', asset: 'generated/Scene/Mesh[0]', kind: 'buffer', precision: 'exact' },
+    { id: 'ram:1', domain: 'ram', bytes: 900, owner: 'engine/physics', asset: 'rapier', kind: 'wasm', precision: 'exact' },
+  ] as const;
+  const accounted = readMemoryAttribution({ version: 1, allocations: rows, totals: { ram: 900, gpu: 100 }, unattributed: { ram: 0, gpu: 0 }, measured: null, accountedBytes: null });
+  const pose = { name: 'road', measured: measured(), accounted, missing: [] };
+  // RAM capacity above WC is clamped: owned RAM never exceeds the resident footprint
+  expect(memoryNoOwner(pose)).toEqual({ gpuOwned: 70, ramOwned: 600, gpu: 30, ram: 0, bytes: 30, share: 30 / 700 });
+  expect(memoryNoOwner({ ...pose, measured: null })).toBeNull();
+  expect(memoryNoOwner({ ...pose, accounted: emptyMemoryAttribution() })).toBeNull();
+  const report = readMemoryReport({ schema: 'memory-report/1', pin: 'p', device: 'd', settings: {}, cap: { bytes: 1e9 }, poses: [pose] });
+  const page = report.poses[0];
+  if (page === undefined) throw new Error('Missing pose');
+  expect(memoryInfographic(report, page)).toContain('4% has no owner (target &lt;10%)');
 });

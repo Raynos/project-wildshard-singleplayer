@@ -1,4 +1,5 @@
 import { memoryBlocks, memoryOwnerInventory } from './memory-report-blocks.mjs';
+import { memoryNoOwner } from './memory-report-data.mjs';
 
 const WIDTH=1179, HEIGHT=2556;
 const ACCENTS={'driftwood-isle':'#fbbb2d','pine-hollow':'#89c06a','nalati-grasslands':'#fe8169','sunscar-dunes':'#e989e1','far-reach':'#f9add0','nine-dragon-stack':'#bc8bfe','_template':'#beaf91'};
@@ -31,7 +32,8 @@ function wrap(value,limit){const lines=[];let line='';for(const word of value.sp
 export function memoryInfographic(report,pose){
   const owners=memoryOwnerInventory(pose.accounted.allocations), bricks=memoryBlocks(owners);
   const measured=pose.measured, total=measured?.total;
-  const takeaway=total===undefined?'No valid native measurement; do not infer a fit.':total>report.cap.bytes?`Over cap by ${mb(total-report.cap.bytes)} MB; attribution is shown below.`:`${mb(report.cap.bytes-total)} MB below cap at this sampled pose; not a peak guarantee.`;
+  const noOwner=memoryNoOwner(pose), shareText=noOwner===null?'owner share unavailable':`${(noOwner.share*100).toFixed(0)}% has no owner (target <10%)`;
+  const takeaway=total===undefined?'No valid native measurement; do not infer a fit.':total>report.cap.bytes?`Over cap by ${mb(total-report.cap.bytes)} MB; ${shareText}.`:`${mb(report.cap.bytes-total)} MB under the cap; ${shareText}.`;
   const svg=[`<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}"><defs><pattern id="unknown" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#656b76"/><path d="M-4 4L4-4M0 14L14 0M10 18L18 10" stroke="#b5bac5" stroke-width="3"/></pattern><pattern id="estimated" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M-4 4L4-4M0 16L16 0M12 20L20 12" stroke="#ffffff" stroke-opacity="0.24" stroke-width="2"/></pattern></defs><rect width="1179" height="2556" fill="#111722"/><g font-family="Arial, sans-serif" fill="#f0f3fa">`];
   /** @param {number} x @param {number} y @param {string} value @param {number} size @param {string} colour */
   const text=(x,y,value,size=32,colour='#f0f3fa')=>svg.push(`<text x="${x}" y="${y}" font-size="${size}" fill="${colour}">${escape(value)}</text>`);
@@ -42,9 +44,13 @@ export function memoryInfographic(report,pose){
   text(64,298,short(takeaway,87),25);
   if(measured){
     const max=Math.max(report.cap.bytes*1.15,measured.total), unit=1051/max, y=330;
-    svg.push(`<rect x="64" y="${y}" width="1051" height="36" rx="4" fill="#293344"/><rect x="64" y="${y}" width="${measured.wc*unit}" height="36" fill="#8892a6"/><rect x="${64+measured.wc*unit}" y="${y}" width="${measured.gl*unit}" height="36" fill="#4a9cf7"/><path d="M${64+report.cap.bytes*unit} 320v62" stroke="#ff5a68" stroke-width="5"/>`);
-    text(64,411,`Native WC ${mb(measured.wc)} + live GL ${mb(measured.gl)} MB`,29);
-    text(64,452,`RED LINE = 1000 MB · PID ${measured.pid} · ${measured.time}`,23,'#c0cbdd');
+    svg.push(`<rect x="64" y="${y}" width="1051" height="36" rx="4" fill="#293344"/>`);
+    // WC then GL; each split into owned (solid) and no owner (hatched) when the owner ledger exists
+    const parts=noOwner===null?[[measured.wc,'#8892a6'],[measured.gl,'#4a9cf7']]:[[noOwner.ramOwned,'#f5b84b'],[noOwner.ram,'url(#unknown)'],[noOwner.gpuOwned,'#4a9cf7'],[noOwner.gpu,'url(#unknown)']];
+    let left=64;for(const [bytes,fill]of parts){const width=Number(bytes)*unit;svg.push(`<rect x="${left}" y="${y}" width="${width}" height="36" fill="${fill}"/>`);left+=width;}
+    svg.push(`<path d="M${64+report.cap.bytes*unit} 320v62" stroke="#ff5a68" stroke-width="5"/>`);
+    text(64,411,noOwner===null?`Native WC ${mb(measured.wc)} + live GL ${mb(measured.gl)} MB`:`WC ${mb(measured.wc)} (owned ${mb(noOwner.ramOwned)}) + GL ${mb(measured.gl)} (owned ${mb(noOwner.gpuOwned)}) MB`,27);
+    text(64,452,noOwner===null?`RED LINE = 1000 MB · PID ${measured.pid} · ${measured.time}`:`RED LINE = 1000 MB · HATCHED = NO OWNER ${mb(noOwner.bytes)} MB (RAM ${mb(noOwner.ram)} · GPU ${mb(noOwner.gpu)})`,23,'#c0cbdd');
   }else {text(64,386,'RED CAP LINE: 1000 MB (measurement unavailable)',27,'#ff969c');}
   text(64,512,`Allocator accounted: ${pose.accounted.total===null?'not captured':`${mb(pose.accounted.total)} MB`}`,29,'#c0cbdd');
   text(64,556,'STORAGE INVENTORY · not additional process memory',25,'#c0cbdd');
