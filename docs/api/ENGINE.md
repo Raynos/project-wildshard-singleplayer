@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2309 members; 841 without a doc line (—).
+2310 members; 841 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1693,6 +1693,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `createSimHost` | function | @wildshard/engine/sim | Embed a level with an initialized Rapier module. Its own scope owns teardown, independently of the caller's ambient page callback. |
 | `SIM_API_VERSION` | const | @wildshard/engine/sim | The embedded simulation contract. Versions change when level or command semantics change. |
 | `SimBodyBands` | interface | @wildshard/engine/sim | SF72: run this host's bodies on the page's distance bands (sim/bands.ts), as the page's AnimalManager runs a native |
+| `SimBodyStep` | interface | @wildshard/engine/sim | Hooks around each body's own step (SimHost.useBodyStep), in the host's body order: the page creature manager's per-body |
 | `SimCommand` | interface | @wildshard/engine/sim | Resolved world-space movement and an optional targeted attack for one fixed tick. |
 | `SimExternalPlayer` | interface | @wildshard/engine/sim | The existing page owns this traveller, its health update and its one physics/movement step. |
 | `SimHost` | class | @wildshard/engine/sim | A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. |

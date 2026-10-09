@@ -10129,6 +10129,12 @@
         "from": "@wildshard/engine/sim"
       },
       {
+        "name": "SimBodyStep",
+        "kind": "interface",
+        "doc": "Hooks around each body's own step (SimHost.useBodyStep), in the host's body order: the page creature manager's per-body",
+        "from": "@wildshard/engine/sim"
+      },
+      {
         "name": "SimCommand",
         "kind": "interface",
         "doc": "Resolved world-space movement and an optional targeted attack for one fixed tick.",
