@@ -29,6 +29,7 @@ import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { BEAR_CAVE, KINGS_CLEARING } from '../../../src/shards/pine-hollow/layout';
 import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
+import { PINE_ACT, PINE_INTERACT } from '../../../src/shards/pine-hollow/runtime/quest';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan, basis: Uint8Array;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
@@ -446,8 +447,10 @@ it('parks the Antler King by day (out of sight, kept for tonight) and a restore 
   } finally { host.dispose(); }
 }, 30_000);
 
-it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once and files his fact; by day he goes, the next night a fresh King (the next entity id), restored exactly', () => {
-  const { parts, clock, facts } = kingParts(), { host, king } = bootWith(parts);
+it('pays three resin each King victory, keeps the first bow pending through restore until real in-range USE, and refights exactly', () => {
+  const setup = kingParts(), { clock, facts } = setup;
+  let commands: { actorId: string; value: number }[] = [];
+  const parts = { ...setup.parts, interact: () => commands }, { host, king, quest, loadout } = bootWith(parts);
   /** walk in through the south gap, sit out the intro, fell him with one blow */
   const fell = (): void => {
     standAtClearing(host, 12);
@@ -461,7 +464,15 @@ it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once a
     expect(host.flags.has('dead:king')).toBe(false);
     fell();
     expect(king.boss.state).toBe('victory');
-    expect(['dead:king', 'paid:king'].map(f => host.flags.has(f))).toEqual([true, true]);
+    expect(['dead:king', 'paid:king'].map(f => host.flags.has(f))).toEqual([true, false]);
+    expect(quest.pack.count('amber-resin')).toBe(3); expect(loadout.owned(PINE_WEAPON.longbow)).toBe(false);
+    expect(king.rewardPoint()).not.toBeNull();
+    commands = [{ actorId: PINE_INTERACT, value: PINE_ACT.kingBow }]; host.step(still);
+    expect(host.flags.has('paid:king')).toBe(false); // eight metres away cannot take the orb
+    commands = []; exactAfter(parts, host, 120); // pending pickup restores without re-paying trophy or granting bow
+    standAtClearing(host, 4); commands = [{ actorId: PINE_INTERACT, value: PINE_ACT.kingBow }]; host.step(still); host.step(still);
+    expect(host.flags.has('paid:king')).toBe(true); expect(loadout.owned(PINE_WEAPON.longbow)).toBe(true);
+    expect(king.rewardPoint()).toBeNull(); expect(quest.pack.count('amber-resin')).toBe(3); commands = [];
     expect(facts).toEqual(['pine.feat.king/king:1']);
     // by day the fallen King goes (his body retired); the next night he is back, a fresh body at the stones
     clock.night = 0; host.step(still);
@@ -473,6 +484,7 @@ it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once a
     exactAfter(parts, host, 30);
     // a re-fight: the record counts him twice, the bow is not paid again
     fell();
+    expect(quest.pack.count('amber-resin')).toBe(6); expect(king.rewardPoint()).toBeNull();
     expect([king.boss.state, king.boss.snapshot().saved]).toEqual(['victory', { defeated: true, rewardTaken: true, kills: 2 }]);
     expect(facts).toEqual(['pine.feat.king/king:1']); // the page's saturated King counter does not grant again on a refight
   } finally { host.dispose(); }

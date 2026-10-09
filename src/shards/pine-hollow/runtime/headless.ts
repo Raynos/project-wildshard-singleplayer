@@ -177,20 +177,21 @@ export function installPine(host: SimHost, parts: PineInstall): {
   addPineWorld(host, bake);
   // the elites' step first (the page's elites tick before its creature manager), on the roster's lair bodies
   let roster: ReturnType<typeof installPineRoster> | null = null;
+  let quest: ReturnType<typeof installHollowQuest> | null = null;
   const live = (): ReturnType<typeof installPineRoster> => { if (roster === null) throw new Error('Pine roster is not installed'); return roster; };
   const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? [], heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
     retire: a => { live().retire(a); }, dusk, night });
   // the King's steps next (the page ticks him after the elites, before its creature manager), before any live spawn
   const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
     spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
-    retire: a => { live().retire(a); }, find: id => live().actor(id), night });
+    retire: a => { live().retire(a); }, find: id => live().actor(id), night,
+    grantTrophy: () => { if (quest === null) throw new Error('Pine quest pack is not installed'); quest.pack.add('amber-resin', 3); } });
   // the player's loadout and weapons, locked through the King's intro: installed before the roster (a restoring roster
   // reinstalls its live spawns at install, and the host keeps every adapter in registration order). Their afterBodies
   // work follows the creature manager, as on the page; the loadout swaps before every weapon updates. The roster's King
   // publication comes last, matching render propagation after equipment's cached-pose queries.
   const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null), pick = parts.pick ?? ((): null => null);
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
-  let quest: ReturnType<typeof installHollowQuest> | null = null;
   const loadout = installPineLoadout(host, { locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
     pick: () => { const picked = pick(), took = quest?.takeRifle() ?? false; return picked ?? (took ? PINE_WEAPON.lever : null); } });
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
@@ -209,7 +210,8 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
-    fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night });
+    fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
+    takeKingReward: eye => king.takeReward(eye) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster
   // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
   const thralls = installPineNight(host, { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),

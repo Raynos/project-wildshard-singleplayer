@@ -6,7 +6,7 @@ import type { Interactable } from '../world/interact/types';
 import { isMesh } from '../combat/view/ranged';
 import { TIER_CONFIG } from '../core/tier';
 import { LightPool } from '../fx/LightPool';
-import { floorBelow } from '../physics/query';
+import { itemPickupFloor, ITEM_PICKUP_HOVER as HOVER } from '../world/interact/pickup';
 import { Drop } from '../physics/bodies';
 import type { Renderer } from '../render/renderer';
 
@@ -65,9 +65,7 @@ export interface ItemPickupOptions {
   glow?: boolean;
 }
 
-const SPHERE_R = 0.65, HOVER = 0.78;
-/** settling: the ray down starts this far over the given point (under a cabin roof, over a deck built above the sand) and reaches this far under it */
-const SETTLE_FROM = 1.2, SETTLE_DROP = 2;
+const SPHERE_R = 0.65;
 /** a tossed drop starts this far over its `position` (out of the carcass, not under the ground) */
 const TOSS_UP = 1.0;
 const BOB = 0.06, BOB_PERIOD = 2.2, YAW_RATE = THREE.MathUtils.degToRad(25);
@@ -448,9 +446,8 @@ export class ItemPickup {
  * physics world (node) or nothing within reach: where it was put.
  */
 function settle(p: THREE.Vector3): THREE.Vector3 {
-  const physics = app.physics;
-  const from = p.y + SETTLE_FROM, y = physics ? floorBelow(physics, p.x, p.z, from, SETTLE_FROM + SETTLE_DROP) : undefined;
-  return new THREE.Vector3(p.x, y !== undefined && y < from - 0.01 ? y : p.y, p.z); // a ray that starts inside something (a wall, a rock) says nothing
+  const at = itemPickupFloor(app.physics, p);
+  return new THREE.Vector3(at.x, at.y, at.z);
 }
 
 /** the AR-15 was the first item; main.ts constructs it under this name */

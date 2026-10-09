@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "321506f4f26b27eb2c9941e802422224ec8d7d0af72e4f99f69a109e43c6520f",
+  "inputs": "7654632bada4bda29b791749795e65f773fd819343ffcc3dba286fecd2122e2d",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,10 +12,10 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "e01af035e199283e1c4c87b12bd20cc555e2ce1a7d0b57ba54a516e352c3dd56",
+    "hash": "37e3f98a14f651454be56381ae45db9c5531f7aa3317cbc4ec0073e082c76b98",
     "pack": {
       "counts": {
-        "amber-resin": 2
+        "amber-resin": 5
       },
       "order": [
         "amber-resin"
@@ -550,8 +550,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 27851,
     "suffixTicksExecuted": 1200,
-    "hash": "c1d4789da1a487d2cf6b7507079fc6af217079141481ba81575da56e72aef834",
-    "replayHash": "c1d4789da1a487d2cf6b7507079fc6af217079141481ba81575da56e72aef834",
+    "hash": "b95b9abb5713cdf21ce20bcc886144da4efbbfe6b43d2266923ae0990e3648cc",
+    "replayHash": "b95b9abb5713cdf21ce20bcc886144da4efbbfe6b43d2266923ae0990e3648cc",
     "checkpoint": {
       "state": "fight",
       "phase": 1
@@ -777,7 +777,7 @@
     "All three NPC readings, completion flags, Brandt's once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott's trades.",
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
-    "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
+    "King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved."
   ],
@@ -790,7 +790,7 @@
     "All three NPC readings, completion flags, Brandt's once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott's trades.",
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
-    "King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.",
+    "King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.",
     "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",

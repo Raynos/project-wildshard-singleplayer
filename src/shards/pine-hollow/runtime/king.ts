@@ -11,14 +11,17 @@ import { PINE_LANES } from '../combat/strikes';
 import type { PineHuntBody, PineParked } from './roster';
 import { pineBake } from './baked';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
+import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
+import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 
 type BossBrain = ReturnType<typeof installBossRow>['boss'];
 type BossDefinition = Parameters<typeof installBossRow>[1]['definition'];
 
 /** The King's encounter step (BossBrain's and the fight's one continuation, the boss row's) and its presence / dormant steps. */
 export const KING_STEP = 'pine.king', KING_PRESENCE_STEP = 'pine.king.presence', KING_DORMANT_STEP = 'pine.king.dormant';
+export const KING_REWARD_STEP = 'pine.king.reward';
 /** His record on the shard's own flags (no save of his own): beaten is the quest's `dead:king` (the page raises it on his
- *  kill), paid is the Warden's Longbow taken (the first fall's reward; a re-fight pays nothing more here). */
+ *  kill), paid is the Warden's Longbow taken (only the first unpaid fall leaves that orb; every victory pays its trophy). */
 export const KING_RECORD = { defeated: 'dead:king', paid: 'paid:king' } as const;
 /** combat/ctx.ts SCRIPTED: the state a fight's own animal holds. */
 const SCRIPTED = 'sidestep';
@@ -36,6 +39,8 @@ export interface PineKingPorts {
   readonly find: (id: string) => PineHuntBody | null;
   /** PineDayNight's night 0..1 (0 without a day-night clock: he never comes on his own) */
   readonly night: () => number;
+  /** The page's trophy effect runs on every victory, including the first. */
+  readonly grantTrophy: () => void;
 }
 
 /** Scratch for the page-rig cage centre. */
@@ -137,10 +142,10 @@ const Fight = v.strictObject({ first: v.boolean(), lightActive: v.boolean(), hid
   thralls: v.array(v.strictObject({ a: v.string(), lane: finite, mode: v.picklist(['approach', 'charge']) })), thrallLanes: v.array(LaneSaved), rngs: v.array(Stream) });
 
 /** His encounter as the boss brain runs it (data/antlerKing.ts: the intro, the three phases at 100 / 60 / 30 %). */
-function kingDefinition(): BossDefinition {
+function kingDefinition(trophy: () => void): BossDefinition {
   return { id: ANTLER_KING_ENCOUNTER.id, name: ANTLER_KING_ENCOUNTER.name, title: ANTLER_KING_ENCOUNTER.title, retryTitle: ANTLER_KING_ENCOUNTER.retryTitle,
     intro: ANTLER_KING_ENCOUNTER.intro, introShort: ANTLER_KING_ENCOUNTER.introShort,
-    phases: ANTLER_KING_ENCOUNTER.phases.map(({ at, caption, name }) => ({ at, caption, name })), reward: {} };
+    phases: ANTLER_KING_ENCOUNTER.phases.map(({ at, caption, name }) => ({ at, caption, name })), reward: { trophy } };
 }
 
 /**
@@ -154,7 +159,7 @@ function kingDefinition(): BossDefinition {
  * them in the host's order before this restores).
  *
  * His record is the shard's flags (`KING_RECORD`: beaten is `dead:king`, paid is the Warden's Longbow taken); his first fall
- * pays the bow at once (the page's orb waits for a pickup; headless has no interact). The quest's shared feat law observes
+ * leaves the bow at the page's settled orb point until USE; every victory pays three resin. The quest's shared feat law observes
  * his defeated flag and files the one saturated King fact, exactly as the page does.
  * A fallen King goes by day and comes back the next night as a fresh body (the declared row spawned live, out of the list);
  * a parked King stays hidden across a restore.
@@ -162,14 +167,16 @@ function kingDefinition(): BossDefinition {
  * His damage rule is the page's (`damageMul` at the pipeline's order 50: bark ×0.25, the ribcage ×3 open / ×0.6 shut, the
  * beat ×0.01); the ribcage reads the shared animated FK chest at the page getter's forced-parent clock.
  *
- * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): the re-fight's three amber resin (no item effect).
+ * Browser-save interoperability remains separate from these host-owned flags and continuation.
  */
-export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: BossBrain; fight: AntlerKingCore<PineHuntBody>; locked: () => boolean } {
+export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: BossBrain; fight: AntlerKingCore<PineHuntBody>; locked: () => boolean;
+  rewardPoint: () => { x: number; y: number; z: number } | null; takeReward: (eye: { x: number; y: number; z: number }) => boolean } {
   const fight = new HeadlessKing(host, ports), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
   host.onStep(KING_PRESENCE_STEP, () => { if (brain.boss !== null) kingPresence(brain.boss, fight, player, ports.night() > 0.5); });
   // read at install (a restoring install's record is the brain's continuation, which restores over it)
   const record = bossFlagRecord(host.flags, KING_RECORD), saved = record.saved;
-  const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(), script: fight, body: () => fight.king, shielded: () => fight.shielded,
+  let reward: { x: number; y: number; z: number } | null = null;
+  const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(ports.grantTrophy), script: fight, body: () => fight.king, shielded: () => fight.shielded,
     fight: {
       // a parked King's `hidden` is the fight's (the body's own flag is no part of the host's entity record)
       snapshot: () => ({ first: fight.first, lightActive: fight.lightActive, hidden: fight.king?.hidden === true, ...fight.fightState(b => b.entityId) }),
@@ -181,8 +188,12 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
         if (fight.king !== null) fight.king.hidden = hidden;
       },
     }, saved, persist: record.persist,
-    // the first fall: the Warden's Longbow, taken at once
-    spawnReward: () => { saved.rewardTaken = true; record.persist(saved); } });
+    spawnReward: () => { const at = itemPickupFloor(host.physics, fight.rewardPoint()); reward = { x: at.x, y: at.y + ITEM_PICKUP_HOVER + 0.5, z: at.z }; } });
+  const Reward = v.strictObject({ version: v.literal(1), point: v.nullable(v.strictObject({ x: finite, y: finite, z: finite })) });
+  host.onStep(KING_REWARD_STEP, () => undefined, {
+    snapshot: () => ({ version: 1, point: reward === null ? null : { ...reward } }),
+    restore: value => { const state = v.parse(Reward, value); if (state.point !== null && (!saved.defeated || saved.rewardTaken)) throw new RangeError('Incompatible Pine King reward'); reward = state.point; },
+  });
   brain.boss = row.boss;
   // his species' damage rule (the page's `damageMul`, the pipeline's order 50): the beat and the dormant King shrug a hit
   // off (×0.01), the open ribcage takes ×3 (shut ×0.6), the bark ×0.25
@@ -192,5 +203,10 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
     return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
   }, host.scope, { order: 50 });
   host.onStep(KING_DORMANT_STEP, dt => { kingDormant(row.boss, fight, dt, host.clock.now); });
-  return { boss: row.boss, fight, locked: row.locked };
+  return { boss: row.boss, fight, locked: row.locked,
+    rewardPoint: () => reward === null ? null : { ...reward },
+    takeReward: eye => {
+      if (reward === null || saved.rewardTaken || pickPrompt([{ position: reward, radius: 2.6 }], eye, host.physics) === undefined) return false;
+      reward = null; saved.rewardTaken = true; record.persist(saved); return true;
+    } };
 }

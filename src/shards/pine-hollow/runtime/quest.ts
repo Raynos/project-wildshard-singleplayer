@@ -25,7 +25,7 @@ import baked from './spots.baked.json' with { type: 'json' };
 export const PINE_INTERACT = 'pine.interact';
 /** The prompts a command's value names: Hale's talk, the table's quest rows, the three lanterns, the zipline, the lever-action, eight carved tokens and lookout bench. */
 export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5, ridge: 6, den: 7, zip: 8, rifle: 9,
-  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, bench: 18, miller: 19, trader: 20, cancelTalk: -1 } as const;
+  token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, bench: 18, miller: 19, trader: 20, kingBow: 21, cancelTalk: -1 } as const;
 /** The quest keeper's fixed-step id (the stag's walk, the dawn's clock, the clock's fast-forward, the ride, the feats' counts). */
 export const QUEST_STEP = 'pine.quest';
 
@@ -60,6 +60,8 @@ const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.intege
 export interface PineQuestDay { phase: number; readonly night: number }
 /** What the quest keeper is lent. */
 export interface PineQuestPorts {
+  /** USE on the King's pending orb, after the quest's modal ownership check. */
+  readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
   readonly quests: QuestData;
   readonly spots: PineSpots;
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
@@ -265,6 +267,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(PINE_LODGE_ACT.close, eye); return; }
     if (lodge.active) { lodge.use(PINE_LODGE_ACT.close, eye); return; }
     if (dialogue.active) { dialogue.press('ranger'); return; } // modal USE advances text; it cannot also take another prompt
+    if (value === PINE_ACT.kingBow) { eye.copy(host.player.position); eye.y += EYE; ports.takeKingReward?.(eye); return; }
     const speaker = value === PINE_ACT.talk ? 'ranger' : value === PINE_ACT.miller ? 'miller' : value === PINE_ACT.trader ? 'trader' : null;
     if (speaker !== null) {
       const spot = personSpots[speaker];

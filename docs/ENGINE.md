@@ -1715,6 +1715,8 @@ Nonpositive trades remain successful no-ops; no save format or numeric admission
 pickup hosts: strict 1.1 m horizontal radius and 2.2 m vertical separation, with chest-to-pickup line of sight through
 actual world collision (0.3 m target slack). The caller owns visibility, taken flags, events and inventory admission.
 A null physics world retains the pre-physics page behavior; an admitted headless world supplies its native physics.
+`itemPickupFloor(physics, point)` preserves the untossed item’s WORLD-floor settle ray (1.2 m above, 3.2 m reach),
+including the inside-surface refusal. `ITEM_PICKUP_HOVER` defines its 0.78 m hover; callers own prompt lift and rewards.
 
 `@wildshard/engine/world/interact/prompts` defines `PromptPoint`, `PromptTarget`, `PromptSight`, `pickPrompt`,
 `promptVisible` and `setPromptSight` without a renderer or view dependency. Picking preserves strict eye-distance

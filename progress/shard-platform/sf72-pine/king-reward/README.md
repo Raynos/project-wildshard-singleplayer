@@ -1,0 +1,5 @@
+# Pine King reward continuation (E435, SF72)
+
+Every real victory now pays three amber resin through the shared pack, including refights. The first bow remains at the page’s exact WORLD-floor settle point until visible, strictly in-range USE; it is neither granted on death nor collected by walking over it. The shared settle helper replaces the page’s identical arithmetic. Modal USE still belongs to an open dialogue or lodge panel.
+
+The real native fixture proves first victory, out-of-range refusal, pending pickup restore, one grant, second victory and six total resin, plus exact restored suffixes. All 36 focused runtime/pickup/night checks, scoped strict and touched lint pass. The deliberate gameplay checkpoint recording on c42ab19468126afc957725599d60a472d088b15b passed headless, phase-II replay and durable fact ledger; all six compressed payloads and the full receipt are byte-identical on ARM/x64. Compatibility remains false: nearest competing prompts, browser boss-save interoperability and the other recorded differences remain open.

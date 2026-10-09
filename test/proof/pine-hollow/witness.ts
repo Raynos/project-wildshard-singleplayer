@@ -504,7 +504,7 @@ export const OUTCOME_DIFFERENCES = [
   'All three NPC readings, completion flags, Brandt\'s once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott\'s trades.',
   'Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.',
   'Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.',
-  'King victory resin has no item effect, including refights; the first bow is granted before the page pickup, so reward timing and inventory can differ.',
+  'King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.',
   'Rain wander goals are null: creature positions can differ.',
   'The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.',
 ];
