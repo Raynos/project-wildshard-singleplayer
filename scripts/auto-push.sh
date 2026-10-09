@@ -79,8 +79,12 @@ lanes_for() {
 }
 
 ping_red() {
-  local tip="$1" out="$2" why="$3" tail_lines lane lanes
-  tail_lines="$(grep -E 'FAILED|error|Error|rose|refus|stale' "$out" | tail -4 | cut -c1-220 | tr '\n' ' ')"
+  local tip="$1" out="$2" why="$3" tail_lines lane lanes origin
+  tail_lines="$(grep -E ' FAIL |FAILED|Error:|rose|refus|stale' "$out" | grep -v '^error: failed to push' | tail -4 | cut -c1-220 | tr '\n' ' ')"
+  # A streak ends when origin moves: a push that carried some commits before a later loop went red starts a new one
+  # (2026-10-09: a red at fc295c61d pinged nobody because its lanes were still listed from an earlier red).
+  origin="$(git rev-parse origin/main)"
+  [ "$(head -1 "$pinged" 2>/dev/null)" = "origin $origin" ] || printf 'origin %s\n' "$origin" > "$pinged"
   lanes="$(lanes_for "origin/main..$tip")"
   case "$why" in *receipt*) lanes="$(printf '%s\nwildshard-new\n' "$lanes" | sort -u)" ;; esac
   for lane in $lanes; do
