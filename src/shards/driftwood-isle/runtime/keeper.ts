@@ -7,6 +7,7 @@ import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { ATTACK_TURN, HuntBrain, type HuntBody, type HuntGround, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
+import { EntityIds } from '@wildshard/engine/entities/ids';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { CRAB } from '../species/crab';
@@ -44,7 +45,7 @@ const HUNT_BODY = { hidden: false, sampleTerrain: (): void => undefined };
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody {
-  readonly id: string; readonly kind: string; readonly variant: string; herd: number; readonly recipe: SimSpawn;
+  id: string; readonly kind: string; readonly variant: string; herd: number; readonly recipe: SimSpawn;
   readonly range: readonly [number, number]; actor: HuntBody | null; brain: EnemyBrain | null;
 }
 export interface IslandPorts {
@@ -71,7 +72,7 @@ const Memory = v.strictObject({ timer: finite, tx: finite, tz: finite, fleeT: fi
 const Saved = v.strictObject({ version: v.literal(2), rng: Stream,
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])), clocks: v.array(v.tuple([finite, finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })),
-  practice: v.strictObject({ dead: finite, fade: finite }) });
+  practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 
 /** HuntMemory as plain data: every field, the path's corners as points. */
 function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
@@ -100,14 +101,14 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  * shipping policies (runtime/enemyBrains.ts) and strike every tick, steering and confined through the hunting brain over
  * the island (the baked floor, its normals, the open sea, no trees, no cabins). Every body holds the manager's two E297
  * attack tokens (swept when an attack is over). The practice crab comes back 45 s after it dies once the player is 30 m
- * off, after its 1.5 s shell fade: a fresh body in its slot (same id, six more draws), a new herd of one. Restore
+ * off, after its 1.5 s shell fade: a fresh body in its slot (the manager's next entity id, six more draws), a new herd of one. Restore
  * reinstalls exactly the saved roster from its recipes before the host restores, with no stream draw kept.
  *
  * Known differences from the browser (the SF72 handoff): every body's physics steps every tick (the host owns the bodies;
  * the browser halves them 60–160 m out and pauses them beyond); a charge's contact is tested at the start of the next
  * tick, against the player where the charging tick saw it (the host steps bodies after its systems), so its knockback
  * starts one tick later; no 'target.attack' / 'target.dodge' wakes (no weapon or dodge is owned yet); no player
- * push-out (`clearBody`); the practice crab's replacement keeps its slot's id; a monkey's coconut releases nothing.
+ * push-out (`clearBody`); a monkey's coconut releases nothing.
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
@@ -236,9 +237,14 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (bodies.length !== BODY_COUNT || practice.body === null) throw new Error('Driftwood keeps its 34 load-time bodies');
   }
 
-  /** Enemies.placePracticeCrab: a fresh small crab in the practice slot at the pier's foot, facing down the path, a herd of one. */
+  /** the manager's own entity ids (EntityIds('creature')): the load-time roster took creature:0–33, each later spawn the next */
+  const entityIds = new EntityIds('creature');
+  for (let i = 0; i < BODY_COUNT; i++) entityIds.allocate();
+  /** Enemies.placePracticeCrab: a fresh small crab in the practice slot at the pier's foot, facing down the path, a herd of
+   *  one, under the manager's next entity id. */
   const replacePractice = (body: IslandBody): void => {
     host.retire(body.id);
+    body.id = entityIds.allocate(); body.recipe.id = body.id;
     const old = hunt.herds[body.herd]; if (old !== undefined) old.members.length = 0;
     body.herd = hunt.addHerd('crab', PRACTICE_AT.x, PRACTICE_AT.z);
     draw(body); arrive(body);
@@ -327,7 +333,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     snapshot: () => ({ version: 2, rng: { ...rng.snapshot() }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
         memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight] },
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), clocks: [...last].map((t, i) => [t, elapsed[i] ?? 0, credit[i] ?? 0] as [number, number, number]), practice: { dead: practice.dead, fade: practice.fade },
+      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), clocks: [...last].map((t, i) => [t, elapsed[i] ?? 0, credit[i] ?? 0] as [number, number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
       bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })) }),
     restore: value => {
       const state = v.parse(Saved, value);
@@ -335,7 +341,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== BODY_COUNT
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
       const holders = state.tokens.map(id => { const a = bodies.find(b => b.id === id)?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
-      rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade;
+      rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
       state.clocks.forEach(([t, e, c], i) => { last[i] = t; elapsed[i] = e; credit[i] = c; });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
@@ -380,6 +386,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // the practice slot's herd is the newest herd of one once it has been replaced
   const slot = practice.body;
   if (slot !== null && keeper.herds.length > bake.herds.length) slot.herd = keeper.herds.length - 1;
+  // ... under the entity id it was given
+  const slotId = slot === null ? undefined : keeper.bodies[bodies.indexOf(slot)]?.id;
+  if (slot !== null && slotId !== undefined) { slot.id = slotId; slot.recipe.id = slotId; }
   // The host snapshots its adapters in registration order: the load-time bodies sit before the keeper's step, a body
   // spawned in play (a new practice crab) after it, and after the runtime's later steps. Reinstall each at its own point.
   const step = ids.indexOf(ISLAND_STEP), first = ids.findIndex((id, i) => i > step && !id.startsWith('runtime.actor.'));

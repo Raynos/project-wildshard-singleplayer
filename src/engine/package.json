@@ -5,6 +5,7 @@
   "exports": {
     "./physics/navmesh": "./physics/navmesh.ts",
     "./physics/navmeshLoad": "./physics/navmeshLoad.ts",
+    "./entities/ids": "./entities/ids.ts",
     "./ai/flock": "./ai/flock.ts",
     "./ai/orbitDiver": "./ai/orbitDiver.ts",
     "./ai/patrolDiver": "./ai/patrolDiver.ts",

@@ -108,7 +108,9 @@ it('brings the practice crab back 45 s after it dies once the player is 30 m off
     expect(host.entities.get(slot)?.alive).toBe(false);
     host.player.motor.resetAt(new Vector3(-7, 3, -100)); host.player.position.set(-7, 3, -100);
     for (let tick = 0; tick < 60 * 2; tick++) host.step();
-    const fresh = host.entities.get(slot);
+    // a fresh body under the manager's next entity id (EntityIds: the load-time roster took creature:0–33)
+    expect(host.entities.has(slot)).toBe(false);
+    const fresh = host.entities.get('creature:34');
     expect(fresh?.alive).toBe(true); expect(fresh?.kind).toBe('crab'); expect(fresh?.variant).toBe('small'); expect(fresh?.seed).not.toBe(before);
     expect(fresh?.position.x).toBeCloseTo(PRACTICE_CRAB.x, 1); expect(fresh?.position.z).toBeCloseTo(PRACTICE_CRAB.z, 1);
   } finally { host.dispose(); }
@@ -184,7 +186,7 @@ it('restores exactly at install, mid-walk and after a practice crab came back, r
     const original = boot(); let restored: SimHost | undefined;
     try {
       checkpoint(original, at);
-      if (at === 3700) expect(original.entities.get(bake.habitat.practice)?.alive).toBe(true);
+      if (at === 3700) expect(original.entities.get('creature:34')?.alive).toBe(true);
       restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
       expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
       for (let tick = 0; tick < 900; tick++) {
