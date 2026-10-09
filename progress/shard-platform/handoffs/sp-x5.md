@@ -1,4 +1,4 @@
-# Handoff (sp-x5) — G258 matched grid residency, 2026-10-09
+# Handoff (sp-x5) — SF73 copy landing, 2026-10-09
 
 Coordinator wildshard-new pushes; Plan-State: unchanged. Current-HEAD private own-hunk index and CAS only. Never message wildshard-v.
 
@@ -11,3 +11,12 @@ Actual Pine physics capture twice equal, King collision regenerated, all 14 Pine
 Exact next step after this forward: take over SF73 legacy-copy landing from progress/shard-platform/handoffs/sp-x3.md (eac7945f5), rebase private patch, generator-owned slug blocker, focused + proof freshness, CAS. Then Sky/Signal/Nine standalone entries. Presentation immutable still-image/sourceManifest mapping remains queued for sp-x6's SDK facade. Then G266 Signal Dunes tiles-only ground after labelled pixel parity and both-surface frame floor. Deferred SF72 dialogue/weather/remaining facts remain open; King/ranged belongs sp-x2.
 
 Scratch: /private/tmp/claude-501/sp-builders/sp-x5/g258-accounting/claim/. Primary clean candidate /private/tmp/wildshard-serve/20261009-120322-4403/src. Owned :4402 final production proof preview /private/tmp/wildshard-serve/20261009-130801-4402/dist, PGID99774, HTTP==disk adf6bc2-mv1a98g8; retire after proof (all wrapped browsers closed). :4403 old preview owns the active source export, so preserve candidate files before stopping it. No Simulator owned. Receipt archives keep every useful raw result; no throwaway builds should remain after landing.
+
+
+## Current priority and exact continuation
+
+Release blocker: test/fixtures/soak/native-interval.py's live libproc integration is macOS-only. Linux CI tried to open /usr/lib/libproc.dylib. The phase-maxima/identity loop remains unconditional; a portable exact ancestry/path/cycle selection fixture now runs on all platforms. Native live assertion remains on macOS. Focused Python and Vitest green, Linux branch exercised by explicit sys.platform override (not a real Linux host). CI also reports two King collision floating-point equality failures; that defining bake belongs sp-x2, not this sampler fix.
+
+SF73 copy takeover remains next: /private/tmp/claude-501/sp-builders/sp-x5/sf73/ tracks the CURRENT-HEAD rebase and 1179 selected own paths; source export /private/tmp/claude-501/sp-builders/sp-x3/sf73/copy-export. Original sp-x3 reviewed frozen snapshot and historical browser proof preserved. Canonical slug identities are generated, with a defining .d.mts declaration and regression. Root strict and touched lint green; CURRENT-HEAD focused generator/models plus all test/proof freshness checks are running. Do not land stale docs or foreign hunks. Then Sky/Signal/Nine standalone entries from the retired lane's entries-source drafts. Only coordinator pushes.
+
+All sp-x5 previews 4402/4403 are STOPPED; no browser, Simulator, build or full suite remains. Old preview/export paths above are historical and were removed by serve-build cleanup. Keep the G258 receipt and claim scripts; do not reuse their vanished export paths.

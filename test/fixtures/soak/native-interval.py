@@ -17,12 +17,24 @@ SPEC.loader.exec_module(PHASES)
 
 
 class Intervals(unittest.TestCase):
+    @unittest.skipUnless(sys.platform == 'darwin', 'live libproc process listing requires macOS')
     def test_libproc_listing_finds_this_process_under_its_parent(self):
         table = PHASES.wd.process_table()
         me = os.getpid()
         self.assertEqual(table[me][0], os.getppid())
         found = PHASES.wd.simulator_processes(os.getppid(), pathlib.Path(PHASES.wd.process_path(me, '')).name)
         self.assertIn(me, found)
+
+    def test_process_selection_checks_kernel_ancestry_and_exact_executable(self):
+        # The selection law runs on Linux too; only the live libproc call above is Darwin-specific.
+        executable = 'com.apple.WebKit.WebContent'
+        rows = {1: (0, 'launchd'), 7: (1, executable[:31]), 8: (2, executable[:31]),
+                9: (1, executable[:31]), 10: (11, executable[:31]), 11: (10, 'cycle')}
+        paths = {7: '/Simulator/' + executable, 8: '/OtherSimulator/' + executable,
+                 9: '/Simulator/' + executable + '.wrong'}
+        with patch.object(PHASES.wd, 'process_table', return_value=rows), \
+                patch.object(PHASES.wd, 'process_path', lambda pid, fallback: paths.get(pid, fallback)):
+            self.assertEqual(PHASES.wd.simulator_processes(1), {7: paths[7]})
 
     def test_sample_interval_high_is_opt_in_and_phase_peaks_are_preserved(self):
         for fresh in (False, True):
