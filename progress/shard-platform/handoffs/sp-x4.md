@@ -1,19 +1,29 @@
-# sp-x4 handoff — 2026-10-08
+# sp-x4 handoff — SF72 Sky Reach, 2026-10-08
 
-Status: Pine P0 functional fix landed locally; WebKit standalone + grid entry GREEN; clean full suite 910 files / 5254 passed / 14 skipped / no unhandled errors. IDLE under Codex throttle after this receipt. Coordinator owns push/release; do not call local-only commits shipped.
+Status: bounded Sky policy/bake source LANDED locally as `ac04ae5f82fbb9217c80efb1b9228cfb7eb8811b`; full Sky compatibility remains OPEN. Coordinator `wildshard-new` owns pushes and approved Far→engine +4. No new multi-hour work under the 3% Codex budget notice.
 
-Done:
-- Generic mip lifetime: `d77c83b8490a8dfeb170fd6bf05b28479b635e58`; allocation-free scalar guard: `f9e50f6fbbb6afb4e678dbc391608842cbe3134e`. Retain through first successful real draw, including shader uniforms; fail descriptively on retired sampler/source/allocation changes.
-- Bolt provisional preload `6ba810ee1a5c02cfeed25d4e8cfeb4e88f4e3c75`; tree sampler-before-upload `733e6e6353fa3b0393004c310cb0218469ac5b9c`; rifle lifetime fixture `09d9bc6ab976d4ecb546038dace82965ce9ae354`.
-- Official release boot smoke adds standalone Pine, unchanged 60 s / ten-frame gates: `1bffb4df03715c32fa0b999f037f0b4184d64f3e`.
-- Proof pin d77c83b84: standalone Developer OFF 11.312 s + ten frames/errors0; Developer grid real Driftwood→road→Pine 18.35 s, Pine entered/resident/ready, pending[]/issues{}/errors0. Evidence: [Pine first draw](../sf57/pine-first-draw/README.md).
+Landed prerequisites:
+- `04cb19f9954e285daff22c2be81dfbed74742656`: Node-safe Sky lift declarations (`data/isletLift.ts`), real partial ledger proof, official map rebake; clean full suite 984 files / 5502 passed.
+- `c2981e816`: SDK `headlessRuntime` caller-selected trusted file-module factory and one real host; install before restore, no install-time effects; finish refuses absent entry proof.
+- `0f82dbeb8`: `SimHost.spawn/retire` and optional decoded install `context.snapshot`; reinstall the saved roster before restore, immutable actor recipes, retire cancels targets.
+- `bd5336bd7`: Opus Sky isle-probe binning speedup + map; final candidate builds on it.
 
-Exact next step: coordinator carries these through the serialized push, runs the official boot smoke on that exact SHA (Driftwood + Pine standalone + Developer grid), then releases only a push-CI/boot-smoke green intersection. sp-x3 may resume its Sun floor/soak on the coordinator's pin. The full 30-minute SF57 soak remains OPEN; this short Mac WebKit proof claims no memory cap or GPU crash-rate result.
+Committed source and diagnostic:
+- Source commit `ac04ae5f82fbb9217c80efb1b9228cfb7eb8811b`, parent/shared API seam `454811f1a7fbaba67c8a9e66c68ce93e9e9c085b`. Engine type/export hunks landed once through sp-x1 and are excluded from Sky. Final candidate/index: `sky-land-candidate.json` / `sky-land.index` in the scratchpad.
+- Unreferenced diagnostic `86634b6c759e9541c808ff01c601b49259b4771f`, parent `bd5336bd7`; private candidate/index in `/private/tmp/claude-501/sp-builders/sp-x4/sky-policy-final-candidate.json` and `sky-policy-final.index`.
+- Renderer-free `runtime/stormRocBrain.ts`, exact shipping decisions with a defaulted type-only `CreatureBrain<S,A,C=ThinkCtx>` port. Native species retains its WeakMap wrapper; visuals unchanged. Full policy/strike continuation validates before mutation. Public existing validator export `engine ./ai/strikeState` approved.
+- Test-only source-hashed shipping policy (`b478f70cfebd7a350251e56de1617b319e99a08a`) and exact 10k-tick oracle across all three strikes, calm/reach/token/death/restart plus three restore suffixes/no extra RNG/effects.
+- `runtime/crownLayout.ts` and plain `data/storm.ts` remove renderer-dependent policy imports, preserving math.
+- Trusted browser metadata tool `scripts/bake-sky-physics.mjs`, input hasher, `runtime/physics.baked.json`, freshness guard. Captures actual model-derived specs/seeds/scales for 13 actors and 43 native collider pieces; two repeated same-page captures must match exactly. This is not yet an executable headless runtime.
+- Own pending encounter extraction was removed from the shared tree and preserved only at scratch `rocEncounter.ts.pending`; it is NOT proved or part of this candidate. Shipping `combat/stormRoc.ts` changes only its RocPhase type import.
 
-Open/parked:
-- Template-copy fps / desktop grid boot investigation transfers to Opus. Borrowed-home stationary prefetch count fix `abba21fc38a7c68150ed5f3d8d9d271bf7263f1e` landed with a no-thrash fixture; no browser fps improvement claimed.
-- Public-grid native/floor proof is incomplete (template-copy fps red); G233 public catalogue does not itself clear G210.
-- Sky cut has no native-saving credit; kurgan lazy native pairs and SF27 flock retirement/floor tails remain in the plan, not new tasks for this idle lane.
-- Original texture195 is not mapped by the retained trace; actual standalone bolt40 and tree73 labels are proven. Do not overstate attribution.
+Exact next step after this commit:
+1. Add `src/shards/far-reach/runtime/headless.ts` exporting SDK `PrepareHeadlessRuntime`. Use baked native static colliders and real actor specs; set ground:false and real WORLD floor queries (no fake global plane).
+2. Start the eight flying actors in shipping order; spawn five goats on the shipping deferred first-fixed-post boundary via `host.spawn`. On restore reinstall the roster from `context.snapshot` before host restore; never consume setup RNG on restore. AnimalManager owns private RNG `new Rng(SEED+31)`, six setup draws/actor (scale, rig seed, actor seed, timer, fleeUntil, callT). Do not substitute the app AI stream. Preserve that RNG via onStep adapter and compare baked seed/scale.
+3. Use existing RamGrazer/OrbitDiver/BurstFlyer policies and extracted Roc with real flight/contact/token/body ports, six-tick decisions / per-tick body. Pure strike declarations currently still live in rendered species modules: move their defining constants carefully and update strike-table readers if needed.
+4. Compose native movers (data/MOVERS plus admitted islet lifts) and actual bridge AS module, real quest progression and Roc BossBrain/encounter continuation. The WarFan cone/heavy/impulse recipe is native G51 and must be extracted as a real adapter, not replaced with a placeholder weapon. Saved quest/ledger facts must come from actual completion events.
+5. Flip `test/proof/far-reach/{headless,replay,ledger}` only after real SDK 10k/replay/ledger gameplay proof. `finish` needs genuine four-entrance lift/physics traversal proof; until then compatibility=false stays honest. Then contracts, boot smoke and one muted Chromium iPhone 16 Pro browser; map input changes require official rebake.
 
-Resources: all owned proof browsers closed; no Simulator owned; proof preview :4407 stopped. No owned P0 source differs from HEAD. Shared stale index and other lanes' WIP were left alone. Validation details are in the linked receipt; coordinator's clean push gate remains required.
+Validation: clean exported candidate + pnpm gen, root strict, FULL root-config type-aware oxlint, ratchet and private-index hooks GREEN. Queued full Vitest ticket549: **989 files / 5507 passed / 14 skipped**, 135.16s. Real muted Chromium phone-profile Sky boot and repeated metadata capture passed; 13 actor/43 collider recipes match the earlier capture exactly. Official map rebaked on the latest isle-probe code. No full gameplay/entry compatibility claim.
+
+Resources: all owned browsers closed, :4405 preview STOPPED, no Simulator owned. Temporary final clean export removed after validation. Small diagnostic logs/candidates and the explicitly unproved encounter draft remain in `/private/tmp/claude-501/sp-builders/sp-x4/`. Other agents' package/index hunks untouched; only own landed paths synchronized. Hooks, old-value CAS, subject/stat and ancestry verified. Coordinator pushes; this lane goes IDLE under the budget notice.
