@@ -13,7 +13,10 @@ import sys
 import time
 import uuid
 
-RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build'), 'gate': ('full-test', 'build')}
+# The push gate has its own lease (process audit 2026-10-09: a lane's suite delayed pushes by a median 115 s). A gate
+# lease covers every heavy resource for its own descendants, so its nested vitest / vite build need no second lease.
+RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build'), 'gate': ('push-gate',)}
+LANES = ('full-test', 'build', 'push-gate')
 
 
 def alive(pid):
@@ -41,14 +44,17 @@ def inherited(root, resources):
     if not token:
         return False
     family = ancestors()
-    for resource in resources:
-        try:
-            lease = json.loads((root / (resource + '.active.json')).read_text())
-        except (OSError, ValueError):
-            return False
-        if lease.get('token') != token or not family.intersection([lease.get('runnerPid'), lease.get('childPid')]):
-            return False
-    return True
+    if owns(root, 'push-gate', token, family):
+        return True
+    return all(owns(root, resource, token, family) for resource in resources)
+
+
+def owns(root, resource, token, family):
+    try:
+        lease = json.loads((root / (resource + '.active.json')).read_text())
+    except (OSError, ValueError):
+        return False
+    return lease.get('token') == token and bool(family.intersection([lease.get('runnerPid'), lease.get('childPid')]))
 
 
 @contextlib.contextmanager
@@ -127,7 +133,7 @@ def terminate(child):
 def status(root):
     with scheduler(root) as state:
         active = []
-        for resource in ('full-test', 'build'):
+        for resource in LANES:
             with (root / (resource + '.lock')).open('a+') as fd:
                 try:
                     fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)

@@ -40,8 +40,8 @@ and app Vite builds refuse an absent or copied lease before workers start. Focus
 unrestricted; `--project`, `--shard` and reporter flags alone are still full runs. Listing tests needs no lease.
 An SDK package build that includes its app clients also runs through the build wrapper.
 
-The push gate reserves both lanes atomically and takes priority over waiting ordinary jobs, without interrupting
-active work. Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate retains its existing
+The push gate has its **own `push-gate` lease** (process audit 2026-10-09: a lane's suite held pushes a median 115 s):
+one gate at a time, running beside lanes' suites and builds, and its lease covers both guards for its descendants. Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate retains its existing
 internal parallel steps. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
 full-test lease; request `check` up front when one ordinary command needs both resources (`gate` is push priority).
 

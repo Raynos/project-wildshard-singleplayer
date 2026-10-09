@@ -72,23 +72,27 @@ it('keeps requests FIFO while the independent build resource can proceed', async
   expect(await second.done).toBe(0); expect(await third.done).toBe(0); expect(await build.done).toBe(0);
 });
 
-it('gives the push gate priority without preemption and reserves both resources', async () => {
+it('runs the push gate on its own lease beside lane suites and builds, one gate at a time', async () => {
   const { root, env } = fixture();
-  const active = start(env, 'full-test', marker(root, 'active', 'release-active'));
-  await until(() => existsSync(join(root, 'active')));
-  const waiting = start(env, 'full-test', marker(root, 'waiting'));
-  await until(() => queued(root, 1));
+  const suite = start(env, 'full-test', marker(root, 'suite', 'release-suite'));
+  const build = start(env, 'build', marker(root, 'build', 'release-build'));
+  await until(() => existsSync(join(root, 'suite')) && existsSync(join(root, 'build')));
   const gate = start(env, 'gate', marker(root, 'gate', 'release-gate'));
-  await until(() => queued(root, 2));
-  const build = start(env, 'build', marker(root, 'build'));
-  await until(() => queued(root, 3));
-  expect(existsSync(join(root, 'gate'))).toBe(false);
-  writeFileSync(join(root, 'release-active'), 'go');
-  expect(await active.done).toBe(0);
   await until(() => existsSync(join(root, 'gate')));
-  expect(existsSync(join(root, 'waiting'))).toBe(false); expect(existsSync(join(root, 'build'))).toBe(false);
+  const second = start(env, 'gate', marker(root, 'second'));
+  await until(() => queued(root, 1));
+  expect(existsSync(join(root, 'second'))).toBe(false);
   writeFileSync(join(root, 'release-gate'), 'go');
-  expect(await gate.done).toBe(0); expect(await waiting.done).toBe(0); expect(await build.done).toBe(0);
+  expect(await gate.done).toBe(0); expect(await second.done).toBe(0);
+  writeFileSync(join(root, 'release-suite'), 'go'); writeFileSync(join(root, 'release-build'), 'go');
+  expect(await suite.done).toBe(0); expect(await build.done).toBe(0);
+});
+
+it('lets a gate descendant pass the full-test and build guards', async () => {
+  const { root, env } = fixture();
+  const command = `import(${JSON.stringify(guard)}).then(({assertHeavyLease})=>{assertHeavyLease('full-test');assertHeavyLease('build');${marker(root, 'guarded')}})`;
+  expect(await start(env, 'gate', command).done).toBe(0);
+  expect(existsSync(join(root, 'guarded'))).toBe(true);
 });
 
 it('releases on error, timeout and cancellation and removes a cancelled queued ticket', async () => {

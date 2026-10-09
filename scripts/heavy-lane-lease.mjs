@@ -12,6 +12,10 @@ export function assertHeavyLease(resource, env = process.env) {
   /** @type {unknown} */
   let lease;
   try { lease = JSON.parse(readFileSync(join(root, `${resource}.active.json`), 'utf8')); } catch { /* Refuse below. */ }
+  // The push gate's own lease covers every heavy resource for its descendants (heavy-lane.py RESOURCES).
+  if (lease === undefined || lease === null || typeof lease !== 'object' || !('token' in lease) || lease.token !== env.WS_HEAVY_TOKEN) {
+    try { lease = JSON.parse(readFileSync(join(root, 'push-gate.active.json'), 'utf8')); } catch { /* Refuse below. */ }
+  }
   const message = `Run this through python3 scripts/heavy-lane.py ${resource} -- <command>; focused Vitest file runs remain unrestricted.`;
   if (lease === null || typeof lease !== 'object' || !('token' in lease) || !env.WS_HEAVY_TOKEN || lease.token !== env.WS_HEAVY_TOKEN ||
     !('runnerPid' in lease) || !('childPid' in lease)) throw new Error(message);
