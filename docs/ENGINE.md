@@ -1,5 +1,11 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/game/systems/viewmodel/{rigArms,armClips,armRig}` define the first-person arm player
+(`RigArms`, `swordArmsOf`, `vmScale`), the arm rigs' clip alias tables and the two-bone arm IK the
+arm bakes and `measure` share; they moved unchanged from the kit (SF54). Trusted runtimes reach them through
+`@wildshard/sdk/runtime/viewmodel/*`, whose facades bind the same values; legacy shard files outside `runtime/`
+import the game modules until their -p port. Nothing installs on import.
+
 `@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
 as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
 status movement / periodic-damage / death bindings, with no second kit wrapper,

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Validate committed bake metadata against the actual GLB JSON chunk.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ARM_CLIPS, SWIM_CLIPS } from '../../../src/kit/viewmodel/armClips';
+import { ARM_CLIPS, SWIM_CLIPS } from '../../../src/game/systems/viewmodel/armClips';
 
 interface Glb {
   nodes: { name?: string; extras?: { rig?: string; clips?: Record<string, { loop: boolean }> } }[];

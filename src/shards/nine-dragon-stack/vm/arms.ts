@@ -12,7 +12,7 @@
 import { Quaternion, Vector3 } from 'three';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 import type { SwordArms, Move } from '@wildshard/engine/combat/view/melee';
-import { vmScale } from '@wildshard/kit/viewmodel/rigArms';
+import { vmScale } from '@wildshard/game/systems/viewmodel/rigArms';
 import { type MoveName, NineDragonArms } from './fpArms';
 
 /** the engine's moves → the rig's clips (the sabre's passes never reach this sword) */

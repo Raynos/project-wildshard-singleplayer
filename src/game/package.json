@@ -4,6 +4,9 @@
   "type": "module",
   "exports": {
     "./systems/audio/combatCues": "./systems/audio/combatCues.ts",
+    "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
+    "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
+    "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
     "./shardfile/reportCard": "./shardfile/reportCard.ts",
     "./grid/memoryAdmission": "./grid/memoryAdmission.ts",
     "./grid/regionalRuntime": "./grid/regionalRuntime.ts",

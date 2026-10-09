@@ -1,5 +1,9 @@
 # Build and preview an author project
 
+The trusted `@wildshard/sdk/runtime/viewmodel/rigArms`, `armClips` and `armRig` modules expose the
+platform first-person arm player, clip alias tables and arm IK measures by binding the defining game
+systems; they own no second parse cache or mixer and carry no commons content.
+
 The trusted `@wildshard/sdk/runtime/audio/combatCues` system routes stable equipment
 cues into a supplied mixer through `sharedCombatCues`. It preserves existing sound
 recipes, surface routing and silence policy without installing services on import.

@@ -130,7 +130,7 @@
     "scripts/blender/nine-dragon-stack/viewmodel/rig/gate_chart.py",
     "scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs"
    ],
-   "inputs": ["src/kit/viewmodel/armRig.ts"],
+   "inputs": ["src/game/systems/viewmodel/armRig.ts"],
    "lock": true,
    "outputs": [
     "public/assets/nine-dragon/viewmodel/fp-rig.glb",
@@ -147,12 +147,12 @@
    "script": "scripts/blender/driftwood-isle/fp-arms/arms.py",
    "args": ["$BUILD/bind.json", "$BUILD"],
    "sources": ["scripts/blender/driftwood-isle/fp-arms/skeleton.mjs", "scripts/blender/driftwood-isle/fp-arms/bake.mjs", "scripts/blender/driftwood-isle/fp-arms/gate.mjs", "scripts/blender/driftwood-isle/fp-arms/preview.py"],
-   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/kit/viewmodel/armRig.ts"],
+   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/game/systems/viewmodel/armRig.ts"],
    "lock": false,
    "build": ["fp-arms.raw.glb", "gate.json"],
    "meshopt": [["fp-arms.raw.glb", "public/assets/models/driftwood-fp/fp-arms.glb"]],
    "outputs": ["public/assets/models/driftwood-fp/fp-arms.glb"],
-   "feeds": ["src/shards/driftwood-isle/fpArms.ts", "src/kit/viewmodel/rigArms.ts"]
+   "feeds": ["src/shards/driftwood-isle/fpArms.ts", "src/game/systems/viewmodel/rigArms.ts"]
   },
   "far-reach/roc": {
    "about": "Sky Reach's Storm Roc repair (E392/E399 council round 13): Hunyuan3D-2's eagle (art/far-reach/round-27-roc) with its loose second-head lump deleted, its open edges filled, the claw shapes painted on its tail fan painted out and its beak and toes pushed to gold; then meshopt + a 1024 WebP map (art/far-reach/round-31-roc-fix)",

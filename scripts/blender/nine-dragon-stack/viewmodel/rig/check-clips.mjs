@@ -2,7 +2,7 @@
 // check-clips.mjs — the --check of the Nine Dragon first-person rig (scripts/blender/targets.json "nine-dragon-stack/fp-rig").
 //
 // fp-rig.glb's 16 clips were sampled by bake.ts from moves.ts (the authored weapon paths) through the arm IK in
-// src/kit/viewmodel/armRig.ts (the same file the lab used: it moved into the shard unchanged). This re-samples
+// src/game/systems/viewmodel/armRig.ts (the same file the lab used: it moved into the shard unchanged). This re-samples
 // every clip the way bake.ts does (60 Hz, each bone's local rotation under its parent) from the recovered moves.ts and
 // the shipped rig.ts, and compares it with the rotations in the committed GLB. It needs no browser and no Blender.
 //
@@ -22,7 +22,7 @@ const ROOT = resolve(import.meta.dirname, '../../../../..');
 const tolArg = process.argv.find((a) => a.startsWith('--tol='));
 const TOL = tolArg === undefined ? 0.1 : Number(tolArg.slice(6));
 const GLB = join(ROOT, 'public/assets/nine-dragon/viewmodel/fp-rig.glb');
-const RIG = pathToFileURL(join(ROOT, 'src/kit/viewmodel/armRig.ts')).href;
+const RIG = pathToFileURL(join(ROOT, 'src/game/systems/viewmodel/armRig.ts')).href;
 const THREE = pathToFileURL(join(ROOT, 'node_modules/three/build/three.module.js')).href;
 
 // moves.ts as the lab had it, with its two imports pointed at the shipped rig.ts and three

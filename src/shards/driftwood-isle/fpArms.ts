@@ -3,8 +3,8 @@ import type { SwimArms } from '@wildshard/engine/player/Hands';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from '@wildshard/kit/viewmodel/armClips';
-import { RigArms, swordArmsOf, vmScale } from '@wildshard/kit/viewmodel/rigArms';
+import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
+import { RigArms, swordArmsOf, vmScale } from '@wildshard/game/systems/viewmodel/rigArms';
 // Driftwood Isle's first-person arms (E334, DRIFTWOOD-TOP10 row 12; Jake's picks 2026-09-30: board 2 A "castaway",
 // board 3 A "breaststroke" — art/driftwood-fp/round-1-remaster/): sun-browned hands with fingers round a hemp-cord grip,
 // patched linen sleeves rolled to mid-forearm, the off hand in frame, both swords on the same arms, and the same arms
@@ -13,7 +13,7 @@ import { RigArms, swordArmsOf, vmScale } from '@wildshard/kit/viewmodel/rigArms'
 // The rig is public/assets/models/driftwood-fp/fp-arms.glb, built by scripts/blender/driftwood-isle/fp-arms/ (a Blender
 // script models the arms and swords round Nine Dragon's round-13 skeleton; bake.mjs keeps that skeleton and its 16 clips —
 // the engine's SwordMoves timing — adds 15 finger bones a hand and the swim clips, and skins it). It is played by the
-// shared arm player (src/kit/viewmodel/rigArms.ts): three skeleton clones of one parse — the wooden sword, the iron sword and the
+// shared arm player (src/game/systems/viewmodel/rigArms.ts): three skeleton clones of one parse — the wooden sword, the iron sword and the
 // swimming hands — sharing the geometry. Driftwood's toon look: flat facets, vertex colour, no textures, lit like the
 // island (sky.setupMaterial: the CSM shadows and the fog). ~9.5 k triangles of arms + ~0.8 k of sword, two draws + the
 // engine's trail.

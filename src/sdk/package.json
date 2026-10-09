@@ -4,6 +4,9 @@
   "type": "module",
   "exports": {
     "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
+    "./runtime/viewmodel/armClips": "./runtime/viewmodel/armClips.ts",
+    "./runtime/viewmodel/armRig": "./runtime/viewmodel/armRig.ts",
+    "./runtime/viewmodel/rigArms": "./runtime/viewmodel/rigArms.ts",
     "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
     "./flyers": "./flyers.ts",
@@ -95,6 +98,18 @@
   },
   "publishConfig": {
     "exports": {
+      "./runtime/viewmodel/armClips": {
+        "types": "./dist/types/sdk/runtime/viewmodel/armClips.d.ts",
+        "default": "./dist/runtime/viewmodel/armClips.js"
+      },
+      "./runtime/viewmodel/armRig": {
+        "types": "./dist/types/sdk/runtime/viewmodel/armRig.d.ts",
+        "default": "./dist/runtime/viewmodel/armRig.js"
+      },
+      "./runtime/viewmodel/rigArms": {
+        "types": "./dist/types/sdk/runtime/viewmodel/rigArms.d.ts",
+        "default": "./dist/runtime/viewmodel/rigArms.js"
+      },
       "./runtime/audio/combatCues": {
         "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",
         "default": "./dist/runtime/audio/combatCues.js"
