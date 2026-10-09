@@ -55,6 +55,15 @@ function act(run: Run, value: number, at: SignalSpot): void {
   if (CRACKS.has(value)) for (let i = 0; i < 60; i++) tick(run);
   run.host.player.position.set(at.x, at.y - 1, at.z + 0.3);
   tick(run, [{ kind: 'script', actorId: SIGNAL_INTERACT, value }]);
+  if (!CRACKS.has(value)) return;
+  for (let i = 0; i < 120; i++) {
+    const saved = snapshotSimHost(run.host).adapters.find(adapter => adapter.id === WHIP_STEP)?.state;
+    if (typeof saved !== 'string') throw new Error('missing lash continuation');
+    const state = v.parse(v.object({ crackT: v.number() }), JSON.parse(saved));
+    if (state.crackT < 0) return;
+    tick(run);
+  }
+  throw new Error('Signal lash did not finish within its bounded recovery window');
 }
 /** The quest's own steps up to the signal fire (each act at its baked spot). */
 function lightTheSignal(run: Run): void {
@@ -131,9 +140,13 @@ it('a death in her fight answers the checkpoint: back at the basin rim, her body
   const run = boot();
   try {
     lightTheSignal(run); run.host.player.position.set(STAND.x, run.host.groundHeightAt(STAND.x, STAND.z) + 0.1, STAND.z);
-    until(run, e => e.phase === 1);
-    const seed = her(run).seed, attempts = encounter(run).attempts;
-    for (let i = 0; i < 30_000 && encounter(run).attempts === attempts; i++) fight(run);
+    until(run, e => e.phase === 1 && e.state === 'fight');
+    const seed = her(run).seed, attempts = encounter(run).attempts, actor = her(run);
+    // Exercise checkpoint recovery through real lethal combat, rather than depending on this tape losing a fight.
+    run.host.combat.hit({ source: actor.combatActor(), sourceTags: ['actor.creature'], target: run.host.player.health,
+      amount: 10_000, point: run.host.player.position.clone(), dir: new Vector3(0, 0, 1), from: actor.position.clone(), moveId: 'test.checkpoint' });
+    expect(run.host.player.health.alive).toBe(false);
+    for (let i = 0; i < 240 && encounter(run).attempts === attempts; i++) tick(run);
     expect(encounter(run).attempts).toBe(attempts + 1);
     const p = run.host.player.position;
     expect(Math.hypot(p.x - BASIN.x, p.z - (BASIN.z + BASIN.r + 4))).toBeLessThan(1);

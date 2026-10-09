@@ -1,93 +1,95 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { ItemRuntime, type ItemSpec, type ItemState, type ItemTarget } from '@wildshard/engine/combat/items';
+import type { ItemSpec } from '@wildshard/engine/combat/items';
+import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { lashContact } from '../weapons/lash';
+import { LashRuntime, lashSpec, lashVolumeHit, type LashWorldTarget } from '@wildshard/game/systems/items/lash';
+import { WHIP_MOVES, WHIP_TIMING } from '../data/items';
 
 /** The declared whip row's id (data/items.ts) and its fixed-step adapter id. */
 export const WHIP_ID = 'weapon.sunscar-whip';
 export const WHIP_STEP = `item.${WHIP_ID}`;
 /** The browser player's eye above the feet (engine Player EYE): the lash leaves from the eye toward the crosshair. */
 const EYE = 1.68;
-/** The tick protocol's command allowance (sdk/tickProtocol.ts): a tick never carries more. */
-const MAX_COMMANDS = 1024;
 /** One player attack this tick: a light crack at the named target (the protocol's `player.attack`), or a heavy one. */
 export interface WhipCreatureCommand { readonly targetId: string; readonly heavy?: boolean }
-/** A crack at a world target (a lever, a brazier): `world` names it back to its owner, `at` is where the lash aims. */
-export interface WhipWorldCommand { readonly world: number; readonly at: { readonly x: number; readonly y: number; readonly z: number }; readonly heavy: boolean }
+/** A crack at a world target: `world` names the crack row's act, whose spot the lash aims at. */
+export interface WhipWorldCommand { readonly world: number; readonly heavy: boolean }
 /** Every whip command a tick carries, in tape order. */
 export type WhipCommand = WhipCreatureCommand | WhipWorldCommand;
-/** The whip in the host: its item, and the world target its crack reached this tick (null: none, or the lash was cooling). */
-export interface SignalWhip { readonly item: ItemRuntime; readonly cracked: () => number | null }
+/** A world target the lash can reach (a crack row's spot): the act it answers and the crack that reaches it. */
+export interface WhipWorldTarget { readonly act: number; readonly at: { readonly x: number; readonly y: number; readonly z: number }; readonly radius: number; readonly crack: 'light' | 'heavy' }
+/** The whip in the host: the act its lash reached this tick (null: none). */
+export interface SignalWhip { readonly lash: LashRuntime; readonly cracked: () => number | null }
 
 const finite = v.pipe(v.number(), v.finite());
-const Aim = v.strictObject({ x: finite, y: finite, z: finite });
-const Saved = v.strictObject({ version: finite, id: v.string(), tick: finite, cooldown: finite, fuel: finite, lit: v.boolean(), held: v.boolean(), chargeTime: finite,
-  pending: v.array(v.strictObject({ action: v.picklist([1, 2, 3, 4]), aim: v.nullable(v.strictObject({ origin: Aim, direction: Aim })) })) });
+const Saved = v.strictObject({ version: v.literal(2), cooldown: finite, crackT: finite, heavy: v.boolean(), landed: v.picklist([0, 1, 2]),
+  target: v.nullable(v.string()), world: v.nullable(finite), dir: v.tuple([finite, finite, finite]) });
 
 /**
- * Signal's bullwhip as its declared item row in the renderer-free host (SF72): the platform's own `ItemRuntime` with the
- * row's light (18) and heavy (16) contacts, reach, width and cooldowns, aimed from the player's eye at the commanded
- * target's body. A body's contact point is where the lash first meets its head ball or body capsule, the browser
- * whip's rule (weapons/lash.ts): the reach runs to her skin, never to her centre. The browser's trusted family (weapons/Bullwhip.ts) adds the lash's 0.12 s unroll, the heavy's second
- * lash, the pull and the stagger as presentation-timed extras; headless strikes are the row's single declared contacts,
- * never an invented one. Its cooldown and queued commands are exact continuation. A world crack (the well's crank, a
- * waymark's brazier) is the same item's crack aimed at its target, so the row's cooldown gates it as the browser's crack
- * does: it reaches the target only when the whip fires on it this tick (`cracked`).
+ * Signal's bullwhip in the renderer-free host (SF72): the platform's lash runtime (`@wildshard/game/systems/items/lash`)
+ * on the declared row, the browser Bullwhip's own crack: the lash lands 0.12 s after the swing, the heavy's second lash
+ * at 0.32 s staggers a big creature, its first yanks a small one, and the row's cooldowns refuse a swing. The player's
+ * whip is locked on (the row's `lockOn`): each lash leaves the eye toward the commanded target's body as it stands
+ * then (a world crack toward its spot); a target gone keeps the last aim. A lash takes the first body it meets (the
+ * creatures' head balls and body capsules), else a chest in its lane, else a crack row's spot in its lane: a `light`
+ * row is reached by a crack's first lash, a `heavy` row by the double crack's second (its first wraps), as the
+ * browser's levers and braziers answer. The lash and its aim are exact continuation.
  */
-export function installSignalWhip(host: SimHost, row: ItemSpec, commands: () => readonly WhipCommand[]): SignalWhip {
+export function installSignalWhip(host: SimHost, row: ItemSpec, commands: () => readonly WhipCommand[], worldRows: readonly WhipWorldTarget[]): SignalWhip {
   if (row.kind !== 'weapon' || row.id !== WHIP_ID) throw new Error('Signal declares its whip as a weapon row');
-  const origin = new Vector3(), target = new Vector3(), eye = new Vector3(), ray = new Vector3();
   const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
-  const reach = Math.max(row.light.range, row.heavy.range), width = row.light.width;
-  // Each body's contact point: where a lash from the eye at its centre first meets its head ball or body capsule (or
-  // its chest in the lane), the browser whip's rule (weapons/lash.ts); out of reach it stays the centre, which the
-  // item's own range then refuses.
-  const contact = (actor: AnimalSim): Vector3 => {
-    const centre = actor.position.clone(); centre.y += actor.dims.bodyY * actor.scale;
-    eye.copy(host.player.position); eye.y += EYE; ray.subVectors(centre, eye);
-    const length = ray.length(); if (length < 1e-9) return centre;
-    ray.multiplyScalar(1 / length);
-    actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
-    volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
-    const along = lashContact(eye, ray, reach, width, volumes, actor.position);
-    return along === null ? centre : eye.clone().addScaledVector(ray, along);
+  const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
+  let cracked: number | null = null;
+  const port = (id: string): CombatTarget | null => {
+    const actor = host.entities.get(id); return actor === undefined ? null : host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
   };
-  const targets = (): readonly ItemTarget[] => [...host.entities.values()].map(actor =>
-    Object.assign(host.combat.targetPort(actor.combatActor(), actor), { aimPoint: contact(actor) }));
-  const whip = new ItemRuntime(row, { actor: host.player.health, combat: host.combat, hook: null, targets,
-    effect: () => { throw new Error('The whip row declares no contact effect'); } });
-  // the item copies the aim at its input boundary, so one buffer serves every command
-  const aim = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: 0 } };
-  // The item drops every command it cannot fire, so within a tick only the first queued command can fire (the row's
-  // cooldowns are positive): a world crack reached its target exactly when it was first and the whip fired.
-  const shot = { fired: false }, fired = (): boolean => shot.fired;
-  let first: WhipCommand | undefined, cracked: number | null = null;
-  whip.observe(host.scope, phase => { if (phase === 'fire') shot.fired = true; });
+  const world: LashWorldTarget[] = worldRows.map(entry => ({ at: new Vector3(entry.at.x, entry.at.y, entry.at.z), radius: entry.radius,
+    crack: (heavy, second) => {
+      if (entry.crack === 'light') { if (second) return false; cracked = entry.act; return true; }
+      if (heavy && second) cracked = entry.act;
+      return true;
+    } }));
+  const lash = new LashRuntime(lashSpec(row, WHIP_TIMING, WHIP_MOVES), { source: host.player.health, hit: req => host.combat.hit(req), world: () => world,
+    targets: () => [...host.entities.keys()].flatMap(id => { const p = port(id); return p === null ? [] : [p]; }),
+    aim: (from, dir) => {
+      from.copy(host.player.position); from.y += EYE;
+      const actor = aimed.target === null ? undefined : host.entities.get(aimed.target), spot = aimed.world === null ? undefined : worldRows.find(entry => entry.act === aimed.world);
+      if (actor !== undefined) dir.copy(actor.position).setY(actor.position.y + actor.dims.bodyY * actor.scale).sub(from);
+      else if (spot !== undefined) dir.set(spot.at.x, spot.at.y, spot.at.z).sub(from);
+      else dir.copy(aimed.dir);
+      if (dir.lengthSq() < 1e-9) dir.copy(aimed.dir);
+      dir.normalize(); aimed.dir.copy(dir); return true;
+    },
+    body: (from, dir, reach) => {
+      let best: { port: CombatTarget; point: Vector3 } | null = null, bestT = Infinity;
+      if (host.entities.size > 1024) throw new RangeError('Signal lash actor roster exceeds its bounded contact scan');
+      const actors = host.entities.entries();
+      for (let i = 0; i < Math.min(1024, host.entities.size); i++) {
+        const next = actors.next(); if (next.done) break;
+        const [id, actor] = next.value;
+        const p = port(id); if (p === null || !p.hittable) continue;
+        actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
+        volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
+        const t = lashVolumeHit(from, dir, reach, volumes);
+        if (t !== null && t < bestT) { best = { port: p, point: from.clone().addScaledVector(dir, t) }; bestT = t; }
+      }
+      return best;
+    } });
   host.onStep(WHIP_STEP, dt => {
     const list = commands();
-    first = undefined; shot.fired = false; cracked = null;
-    for (let i = 0; i < MAX_COMMANDS; i++) {
+    cracked = null; lash.cool(dt);
+    for (let i = 0; i < 1024; i++) {
       const command = list[i]; if (command === undefined) break;
-      origin.copy(host.player.position); origin.y += EYE;
-      if ('world' in command) target.set(command.at.x, command.at.y, command.at.z);
-      else {
-        const actor = host.entities.get(command.targetId); if (actor === undefined) continue;
-        target.copy(actor.position); target.y += actor.dims.bodyY * actor.scale;
-      }
-      target.sub(origin);
-      if (target.lengthSq() < 1e-9) continue;
-      target.normalize();
-      aim.origin.x = origin.x; aim.origin.y = origin.y; aim.origin.z = origin.z; aim.direction.x = target.x; aim.direction.y = target.y; aim.direction.z = target.z;
-      first ??= command;
-      whip.queue(command.heavy === true ? 2 : 1, aim);
+      if (!('world' in command) && !host.entities.has(command.targetId)) continue;
+      if (!lash.swing(command.heavy === true)) continue;
+      aimed.target = 'world' in command ? null : command.targetId; aimed.world = 'world' in command ? command.world : null;
     }
-    whip.step(host.state.tick, dt);
-    if (fired() && first !== undefined && 'world' in first) cracked = first.world;
-  }, { snapshot: () => JSON.stringify(whip.snapshot()), restore: value => {
+    lash.advance(dt);
+  }, { snapshot: () => JSON.stringify({ version: 2, ...lash.snapshot(), target: aimed.target, world: aimed.world, dir: aimed.dir.toArray() }), restore: value => {
     if (typeof value !== 'string') throw new Error('Invalid Signal whip continuation');
-    const state: ItemState = v.parse(Saved, JSON.parse(value)); whip.restore(state);
+    const state = v.parse(Saved, JSON.parse(value));
+    lash.restore(state); aimed.target = state.target; aimed.world = state.world; aimed.dir.fromArray(state.dir);
   } });
-  return { item: whip, cracked: () => cracked };
+  return { lash, cracked: () => cracked };
 }

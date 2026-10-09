@@ -164,6 +164,7 @@
     "./systems/npc/faceHeads": "./systems/npc/faceHeads.ts",
     "./systems/effects/install": "./systems/effects/install.ts",
     "./systems/items/declared": "./systems/items/declared.ts",
+    "./systems/items/lash": "./systems/items/lash.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts"

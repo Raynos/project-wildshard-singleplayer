@@ -17,7 +17,7 @@ import type { SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 import { MATRIARCH_STEP } from '../../../src/shards/sunscar-dunes/runtime/matriarch';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/combat/matriarchFight';
-import { lashContact } from '../../../src/shards/sunscar-dunes/weapons/lash';
+import { lashContact } from '../../../src/game/systems/items/lash';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
@@ -94,7 +94,7 @@ function encounter(host: SimHost): Encounter {
   return { ...value.boss, storm: value.fight.storm };
 }
 
-/** The player's eyes: is a prompt in reach, is a creature inside the lash (the shared contact rule, weapons/lash.ts)? */
+/** The player's eyes: is a prompt in reach, is a creature inside the lash (the shared contact rule, @wildshard/game/systems/items/lash)? */
 const eye = new Vector3(), ray = new Vector3(), at = new Vector3();
 const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
 function sees(host: SimHost, spot: SignalSpot, reach = 0): boolean {

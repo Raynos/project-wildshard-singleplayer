@@ -99,7 +99,7 @@ export interface InteractionRowPorts {
   /** every row's spot by its `at` name (the built world's placements, baked) */
   readonly spots: Readonly<Record<string, InteractionSpot>>;
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
-  /** the item that cracks: its light / heavy reach, and the act its crack reached this tick (null: none or cooling) */
+  /** the item that cracks: its light / heavy reach, and the act its lash reached this tick (null: none); its step runs before this one */
   readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
   /** a row ran (the shard's beat on it: a summons, a cue) */
   readonly done?: (row: string) => void;
@@ -111,10 +111,10 @@ const EYE = 1.68;
 const MAX_COMMANDS = 1024;
 
 /**
- * The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the row whose `act`
- * they name, when the player's eye stands within the row's spot radius (a crack row: only when the item's crack reached
- * that act this tick, within the spot's radius plus the crack's reach), through the same `InteractionRules` the browser's
- * interactables use. The marks are the step's exact continuation. Not modelled: the prompts' line of sight and the
+ * The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the prompt row whose
+ * `act` they name, when the player's eye stands within the row's spot radius; a crack row runs on the tick the item's
+ * lash reaches its act (the command started the crack; the lash lands later, as the browser's does), within the spot's
+ * radius plus the crack's reach. Both go through the same `InteractionRules` the browser's interactables use. The marks are the step's exact continuation. Not modelled: the prompts' line of sight and the
  * nearest-prompt pick (a command names its row).
  */
 export function installInteractionRows(host: SimHost, rules: InteractionRules, ports: InteractionRowPorts): void {
@@ -125,11 +125,11 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     return [entry.act, { entry, spot }] as const;
   }));
   const eye = new Vector3(), at = new Vector3();
-  const act = (value: number): void => {
+  const act = (value: number, lashed: boolean): void => {
     const found = byAct.get(value); if (found === undefined) return;
     const { entry, spot } = found, crack = ports.crack;
-    let reach = 0;
-    if (entry.crack !== undefined && crack !== undefined) { if (crack.cracked() !== value) return; reach = crack.reach[entry.crack]; }
+    if ((entry.crack !== undefined) !== lashed) return;
+    const reach = entry.crack !== undefined && crack !== undefined ? crack.reach[entry.crack] : 0;
     eye.copy(host.player.position); eye.y += EYE;
     if (at.set(spot.x, spot.y, spot.z).distanceTo(eye) >= spot.radius + reach) return;
     if (rules.run(entry.id).ok) ports.done?.(entry.id);
@@ -138,7 +138,9 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     const list = ports.commands();
     for (let i = 0; i < MAX_COMMANDS; i++) {
       const command = list[i]; if (command === undefined) break;
-      if (command.actorId === ports.actorId) act(command.value);
+      if (command.actorId === ports.actorId) act(command.value, false);
     }
+    const reached = ports.crack?.cracked() ?? null;
+    if (reached !== null) act(reached, true);
   }, { snapshot: () => rules.snapshot(), restore: value => { rules.restore(v.parse(v.string(), value)); } });
 }

@@ -8,14 +8,13 @@ import type { Material } from '@wildshard/engine/physics/surface';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import { SCOUT_FLAG } from '../data/flags';
 import { installSignalHomes } from './homes';
-import { installSignalWhip, WHIP_ID, type WhipCommand } from './whip';
+import { installSignalWhip, WHIP_ID, type WhipCommand, type WhipWorldTarget } from './whip';
 import { installSignalQuest, type SignalSpots } from './quest';
-import { SIGNAL_ACT, SIGNAL_INTERACT } from '../quests/interactions';
+import { SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../quests/interactions';
 import { installSignalMatriarch } from './matriarch';
 import { proveSignalEntries } from './entries';
 import { SIGNAL_SPAWNS } from '../data/spawns';
 import { MATRIARCH_ID } from '../combat/matriarchFight';
-import { BRAZIERS } from '../data/layout';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */
@@ -77,6 +76,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   };
   const whip = shard.items.rows.find(row => row.id === WHIP_ID), spots = signalSpots();
   if (whip?.kind !== 'weapon') throw new Error('Signal Dunes declares its whip row');
+  // the crack rows' spots (a crack row's `at` is `crack.<baked crack spot id>`)
+  const cracks = SIGNAL_INTERACTIONS.rows.flatMap((row): WhipWorldTarget[] => {
+    if (row.crack === undefined) return [];
+    const spot = spots.crack.find(s => `crack.${s.id}` === row.at); if (spot === undefined) throw new Error(`Signal's crack row ${row.id} has no baked spot`);
+    return [{ act: row.act, at: spot, radius: spot.radius, crack: row.crack }];
+  });
   const reach = { light: whip.light.range, heavy: whip.heavy.range }, matriarchRow = SIGNAL_SPAWNS.bosses.find(row => row.id === MATRIARCH_ID);
   if (matriarchRow === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveSignalEntries(host.physics, shard.entryways, heightAt), install: (host, context) => {
@@ -87,16 +92,12 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
     const matriarch = installSignalMatriarch(host, { body: keeper.boss, fact, coins });
     // the browser disables the player's weapons through her intro (BossPorts.lockInput)
-    // a crack command at the well's crank (heavy) or a waymark's brazier (light) is the whip's own crack at that spot
-    const world = (value: number): WhipCommand | null => {
-      const at = value === SIGNAL_ACT.crank ? spots.crack[0] : value >= SIGNAL_ACT.light && value < SIGNAL_ACT.light + BRAZIERS.length ? spots.crack[1 + value - SIGNAL_ACT.light] : undefined;
-      return at === undefined ? null : { world: value, at, heavy: value === SIGNAL_ACT.crank };
-    };
+    // a crack command on a crack row's act (the crank's double crack, a waymark's light one) is the whip's own crack at that row's spot
     const signalWhip = installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): WhipCommand[] => {
       if (command.kind === 'player') return command.attack === undefined ? [] : [{ targetId: command.attack.targetId }];
-      const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? world(command.value) : null;
-      return crack === null ? [] : [crack];
-    }));
+      const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? cracks.find(row => row.act === command.value) : undefined;
+      return crack === undefined ? [] : [{ world: crack.act, heavy: crack.crack === 'heavy' }];
+    }), cracks);
     installSignalQuest(host, { quests: shard.quests, spots, reach, cracked: signalWhip.cracked,
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []), fact, coins, lit: matriarch.summon });
     keeper.settle();

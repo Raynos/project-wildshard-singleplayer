@@ -1,0 +1,48 @@
+{
+  "events": [
+    {
+      "action": "heavy",
+      "frame": 7,
+      "kind": "input"
+    },
+    {
+      "frame": 11,
+      "heavy": true,
+      "kind": "crank",
+      "raised": false,
+      "result": true,
+      "second": false
+    },
+    {
+      "frame": 17,
+      "heavy": true,
+      "kind": "crank",
+      "raised": true,
+      "result": true,
+      "second": true
+    },
+    {
+      "action": "attack",
+      "frame": 57,
+      "kind": "input"
+    },
+    {
+      "frame": 61,
+      "heavy": false,
+      "kind": "brazier",
+      "lit": true,
+      "result": true,
+      "second": false
+    }
+  ],
+  "final": {
+    "lit": true,
+    "raised": true
+  },
+  "frames": 63,
+  "initial": {
+    "lit": false,
+    "raised": false
+  },
+  "profile": "iPhone 16 Pro / phone / muted"
+}

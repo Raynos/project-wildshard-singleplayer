@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The headless runtime reads the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
+import * as v from 'valibot';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
@@ -12,6 +13,7 @@ import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/da
 import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
+import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/whip';
 import { INTERACTIONS_STEP, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 
@@ -42,6 +44,16 @@ function act(run: Run, value: number, spot: SignalSpot | null, cool = true): voi
   if (spot !== null) run.host.player.position.set(spot.x, spot.y - 1, spot.z + 0.3);
   run.tape = [{ kind: 'script', actorId: SIGNAL_INTERACT, value }];
   try { run.host.step({ moveX: 0, moveZ: 0, yaw: 0 }); } finally { run.tape = []; }
+  // Keep the player at the target until the browser's lash finishes; the act is not a command-tick side effect.
+  if (!CRACKS.has(value)) return;
+  for (let i = 0; i < 120; i++) {
+    const saved = snapshotSimHost(run.host).adapters.find(adapter => adapter.id === WHIP_STEP)?.state;
+    if (typeof saved !== 'string') throw new Error('missing lash continuation');
+    const state = v.parse(v.object({ crackT: v.number() }), JSON.parse(saved));
+    if (state.crackT < 0) return;
+    run.host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+  }
+  throw new Error('Signal lash did not finish within its bounded recovery window');
 }
 const spot = (list: readonly SignalSpot[], id: string): SignalSpot => { const found = list.find(s => s.id === id); if (found === undefined) throw new Error(`missing spot ${id}`); return found; };
 

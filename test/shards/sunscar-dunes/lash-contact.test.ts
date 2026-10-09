@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { LASH_BODY, LASH_CHEST, lashContact, lashLane, lashVolumeHit } from '../../../src/shards/sunscar-dunes/weapons/lash';
+import { LASH_BODY, LASH_CHEST, lashContact, lashLane, lashVolumeHit } from '../../../src/game/systems/items/lash';
 
 /** The grounded Matriarch at 3.6x (bodyY 0.3, half-length 1.1, radius 0.8, head 0.4), facing +z (the player at the origin). */
 function matriarch(at: Vector3) {

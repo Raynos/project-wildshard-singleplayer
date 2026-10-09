@@ -112,7 +112,7 @@ it('restores mid-fight and mid-respawn continuation exactly, reinstalling the sa
   }
 });
 
-it('cracks the declared whip row through the platform ItemRuntime: 18 per light contact inside its reach, cooldown-gated, exact on restore', () => {
+it('cracks the declared whip row through the shared LashRuntime: 18 per light contact inside its reach, cooldown-gated, exact on restore', () => {
   const host = boot(); let restored: SimHost | undefined;
   try {
     const target = host.entities.get('sunscar.home:12'); if (target === undefined) throw new Error('missing strider');
@@ -121,14 +121,14 @@ it('cracks the declared whip row through the platform ItemRuntime: 18 per light 
     host.player.position.set(target.position.x, target.position.y, target.position.z + 4);
     const hp = target.combatActor().attributes.health;
     crack(host, target.entityId);
-    expect(target.combatActor().attributes.health).toBe(hp - WHIP_ITEM.light.damage);
-    crack(host, target.entityId); // inside the 0.45 s cooldown: no second contact
-    expect(target.combatActor().attributes.health).toBe(hp - WHIP_ITEM.light.damage);
+    expect(target.combatActor().attributes.health).toBe(hp); // the lash is still unrolling
+    crack(host, target.entityId); // inside the 0.45 s cooldown: no second swing
+    expect(target.combatActor().attributes.health).toBe(hp);
     const saved = serializeSimSnapshot(snapshotSimHost(host));
     expect(snapshotSimHost(host).adapters.some(adapter => adapter.id === WHIP_STEP)).toBe(true);
     restored = restore(saved);
     const twin = restored.entities.get(target.entityId); if (twin === undefined) throw new Error('missing restored strider');
-    for (let tick = 0; tick < 40; tick++) {
+    for (let tick = 0; tick < 60; tick++) {
       host.player.position.set(target.position.x, target.position.y, target.position.z + 4); restored.player.position.set(twin.position.x, twin.position.y, twin.position.z + 4);
       crack(host, tick % 10 === 0 ? target.entityId : null); crack(restored, tick % 10 === 0 ? twin.entityId : null);
     }

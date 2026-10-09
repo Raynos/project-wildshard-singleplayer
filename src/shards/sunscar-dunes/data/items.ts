@@ -21,3 +21,11 @@ export const WHIP_ITEMS = { version: 1,
 } as const;
 /** The one declared weapon row. */
 export const WHIP_ITEM = WHIP_ITEMS.rows[0];
+/**
+ * The lash's own timing (seconds) and reactions, read by the platform's lash runtime (`@wildshard/game/systems/items/lash`)
+ * in the browser whip and the headless one alike: the 0.12 s unroll, the heavy's second lash at 0.32 s, the 0.42 s show,
+ * the second lash's stagger, and the first lash's 16 m/s yank on a creature of 40 hit points or less.
+ */
+export const WHIP_TIMING = { unroll: 0.12, second: 0.32, show: 0.42, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
+/** The move ids the lash's hits carry: the light crack and the double crack's two lashes. */
+export const WHIP_MOVES = { light: 'sunscar.whip.crack', first: 'sunscar.whip.double.1', second: 'sunscar.whip.double.2' } as const;

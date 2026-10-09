@@ -1,7 +1,7 @@
 {
   "audit": {
-    "sourceRevision": "704a04d55f67a0794794b466c32c9ed87521896c",
-    "candidate": "this commit (Signal creature blows knock back, feel.blow, on that revision); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts \u2014 Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly); the quest fact re-recorded under the quest id (DeclaredQuests files it as the page's bindRuntimeQuest does); the final state hash re-recorded when the interactions became declared rows on the platform's interaction step (SF72: the sunscar.interactions continuation is the generic marks record), every gameplay number identical",
+    "sourceRevision": "601ed0299112c2befe6a88bb8e648d9414384853",
+    "candidate": "SF72 generic lash on current HEAD: headless light cracks now land after the browser unroll (0.12 s), and the crank reacts on the heavy second lash (0.32 s). Correct browser timing changes the real fight: ticks 12636 -> 12459, victory 12516 -> 12339, blows 15 -> 14, shoved ticks 165 -> 154, checkpoint 10710 -> 10680, suffix 1926 -> 1779. Browser 13-case pinned trace unchanged; 25 coins, both facts, 92 entry lanes / 46095 steps and one attempt unchanged.",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
     "exitStatus": 0,
     "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
@@ -12,9 +12,9 @@
   "compatible": true,
   "headless": {
     "status": "passed",
-    "ticksExecuted": 12636,
-    "hash": "7d23c44abdff78651e1a1e885f3c73739622b578a7c397cd99dc9194bfe714c2",
-    "victoryTick": 12516,
+    "ticksExecuted": 12459,
+    "hash": "378b731986cf2d609e65071945937b78f76d4ab056f92b55fb541547efda6a81",
+    "victoryTick": 12339,
     "attempts": 1,
     "questComplete": true,
     "facts": [
@@ -22,8 +22,8 @@
       "sunscar.matriarch"
     ],
     "coins": 25,
-    "blows": 15,
-    "shovedTicks": 165,
+    "blows": 14,
+    "shovedTicks": 154,
     "entries": {
       "lanes": 92,
       "steps": 46095
@@ -32,17 +32,17 @@
   "replay": {
     "status": "passed",
     "checkpointCaptured": true,
-    "checkpointTick": 10710,
+    "checkpointTick": 10680,
     "checkpoint": {
       "state": "fight",
       "phase": 1,
-      "storm": 0.62,
+      "storm": 0.687,
       "hp": 396
     },
-    "suffixTicksExecuted": 1926,
-    "victoryTick": 12516,
-    "hash": "7d23c44abdff78651e1a1e885f3c73739622b578a7c397cd99dc9194bfe714c2",
-    "replayHash": "7d23c44abdff78651e1a1e885f3c73739622b578a7c397cd99dc9194bfe714c2",
+    "suffixTicksExecuted": 1779,
+    "victoryTick": 12339,
+    "hash": "378b731986cf2d609e65071945937b78f76d4ab056f92b55fb541547efda6a81",
+    "replayHash": "378b731986cf2d609e65071945937b78f76d4ab056f92b55fb541547efda6a81",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [
@@ -58,13 +58,13 @@
       {
         "name": "sunscar.signal",
         "origin": "engine.quest.complete",
-        "tick": 12516,
+        "tick": 12339,
         "entity": "sunscar.signal"
       },
       {
         "name": "sunscar.matriarch",
         "origin": "engine.encounter.victory",
-        "tick": 12516,
+        "tick": 12339,
         "entity": "sunscar.matriarch"
       }
     ],
