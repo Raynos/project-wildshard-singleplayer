@@ -20,6 +20,7 @@
     "./ai/reach": "./ai/reach.ts",
     "./ai/species": "./ai/species.ts",
     "./ai/strikes": "./ai/strikes.ts",
+    "./ai/strikeState": "./ai/strikeState.ts",
     "./ai/view/DebugOverlay": "./ai/view/DebugOverlay.ts",
     "./ai/weighted": "./ai/weighted.ts",
     "./anim/channel": "./anim/channel.ts",

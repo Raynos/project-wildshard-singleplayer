@@ -1430,7 +1430,7 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | `deriveSpecies(parent, patch)` | a row that overrides its parent field by field |
 | `SpeciesLook`, `speciesWithLook`, `CreatureHull`, `EyeSpot` | the render row: `{ id, species, kind, rig, fur, rigContract, build(variant: VariantDef, rng: Rng): AnimalSpecies, animate(ctx: RigAnimCtx) }` |
 | `SpeciesService` | `app.species` |
-| `CreatureBrain<S>` | a state machine: `think(ctx)` (decisions, on the brain tick) and `act(ctx)` (the body, every body tick); `transition(state)` |
+| `CreatureBrain<S, A, C = ThinkCtx>` | a state machine: `think(ctx)` (decisions, on the brain tick) and `act(ctx)` (the body, every body tick); `transition(state)` |
 | `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`, `RigAnimCtx`, `FurStyle` | what a brain and a look receive |
 | `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore` | strikes as data: `pick(specs, ctx)`, `start(spec, actor, target)`, `update(dt, ctx)` |
 | `canReach`, `ReachActor` | occlusion only: a WORLD ray from target feet + 1.2 m to the creature aim point; no navmesh test |
@@ -1439,6 +1439,9 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec` | spawn and loot tables (`mode: 'weighted' \| 'each'`) |
 | `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
 
+
+
+`@wildshard/engine/ai/strikeState` exposes `readStrikeState(value, specs)`, the strict continuation decoder shared by trusted policies. It validates finite clocks, phases and catalogue identities before returning a strike snapshot; malformed state refuses before the caller mutates its runner. `CreatureBrain` accepts a typed context parameter for renderer-free policies; existing subclasses retain `ThinkCtx` by default.
 **Brain context (`ThinkCtx`, G20).** `think(animal, ctx)` receives the scheduled decision delta;
 `act(animal, ctx)` receives the scheduled body delta. Do not hard-code 0.1 s: cadence depends on the species tick
 policy and scheduler (§17). The manager reuses one context object across Animals/callbacks, including its
