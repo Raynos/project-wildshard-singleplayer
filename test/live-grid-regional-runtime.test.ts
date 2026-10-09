@@ -33,7 +33,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const noop = (): void => undefined;
 
-it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered hooks and returns both worlds to baseline on %s unload', async unload => {
+it.each([['road', false], ['inside', false], ['road', true]] as const)('admits a whole-cost runtime on %s unload (owned approach: %s)', async (unload, owned) => {
   const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer), app = new App(), scope = app.engineScope.child('page');
   app.levelScope = scope;
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier: R });
@@ -86,6 +86,7 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
     const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon' }); aimBodies = animals.animals; vi.spyOn(animals, 'update').mockImplementation(noop);
     return Promise.resolve({ region: { host, dispose: () => { disposed++; host.dispose(); } }, ground: { heightAt: () => 0, waterSurfaceAt: () => null },
       world: view => ({ ...world, registry: view.registry, physics: host.physics }),
+      prepare: construction => { const prior = app.levelScope; app.levelScope = request.scope; construction.onDispose(() => { app.levelScope = prior; }); },
       enter: entered => { const prior = app.levelScope; app.levelScope = request.scope; entered.onDispose(() => { app.levelScope = prior; }); },
       afterKit: () => Promise.resolve({ animals, wearSkin: noop }), checkpoint: () => ports.checkpoint(host, request) });
   });
@@ -95,14 +96,23 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
     neighbourEdges: () => [], rimEdges: () => [] }, {
     traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: app.events,
     saves: app.saves, checkpoint: () => true, catalogue: [], runtimePage: () => ({ world, play, context }), setPhysics: noop,
+    ownedHome: owned,
     onFixedPre: noop, onFixedPost: noop, onInput: noop, onUpdate: noop,
   });
   try {
     await session.live.prefetch([target.instance]); expect(worlds).toBe(0); expect(plays).toBe(0);
     const claim = allocator.entries().find(row => row.id === `sim:${target.instance}`);
-    expect(claim).toMatchObject({ bytes: regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW, 'img'), refs: 1, holds: 0 });
+    if (owned) expect(claim).toBeUndefined();
+    else expect(claim).toMatchObject({ bytes: regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW, 'img'), refs: 1, holds: 0 });
     expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
-    const prepared = await session.live.prepare(home.instance, target.instance); prepared.commit();
+    const prepared = await session.live.prepare(owned ? null : home.instance, target.instance);
+    if (owned) {
+      expect([worlds, plays]).toEqual([1, 1]); expect(app.registryValue).toBe(registry);
+      expect(scene.children[0]?.visible).toBe(false); expect(session.aimAnimals()).toEqual([]);
+      expect(allocator.entries().find(row => row.id === `sim:${target.instance}`)).toMatchObject({
+        bytes: regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW, 'img'), refs: 1, holds: 1 });
+    }
+    prepared.commit();
     traveller.position.set(0, 0.5, 0); expect(session.gameplayReady()).toBe(false);
     expect(session.fallFloor()).toBe(-250); // No authored recovery before the interior world hook is ready.
     gridCells.enter({ instance: target.instance, slug: target.slug });

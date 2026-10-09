@@ -149,6 +149,17 @@ it('owns a bodyless destination, its terrain collider and a scene subtree that g
     const world = prepared.world(view);
     expect(world.game).toBe(f.game); expect(world.player).toBe(f.world.player); expect(world.physics).toBe(host.physics); expect(world.registry).toBe(view.registry);
     expect(world.terrain.group.parent?.parent).toBe(view.root); expect(f.game.scene).toBe(f.game.rootScene);
+    const prepare = prepared.prepare;
+    if (prepare === undefined) throw new Error('Missing regional construction binding');
+    const before = f.app.systemIds(f.scope);
+    for (let turn = 0; turn < 30; turn++) {
+      const construction = f.scope.child('construction'); prepare(construction); view.prepare(construction);
+      expect(activeLevel()).toBe(f.region); expect(heightAt(0, 0)).toBe(30);
+      expect(f.game.scene).not.toBe(f.game.rootScene); expect(view.root.visible).toBe(false);
+      expect(f.app.systemIds(f.scope)).toEqual(before);
+      construction.dispose(); expect(activeLevel()).toBe(f.home); expect(heightAt(0, 0)).toBe(3);
+      expect(f.game.scene).toBe(f.game.rootScene); expect(f.app.registry).not.toBe(view.registry);
+    }
     const entry = new Scope('entered');
     prepared.enter(entry); view.enter(entry);
     const regional = f.game.scene;

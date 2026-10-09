@@ -251,6 +251,12 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           world = { ...home, terrain, forest, physics: host.physics, registry: view.registry, chunk: request.manifest };
           return world;
         },
+        prepare: entry => {
+          if (resident.disposed || entry.disposed) throw new Error('Regional construction requires a live resident and owner');
+          frame.enter(app, entry);
+          const leaveScene = game.bindScene(scene, entry);
+          entry.onDispose(leaveScene);
+        },
         enter: entry => {
           if (resident.disposed || entry.disposed) throw new Error('Regional world requires a live resident and entry');
           light?.(entry); // first, so the page's light goes back last, after everything the entry installed has left

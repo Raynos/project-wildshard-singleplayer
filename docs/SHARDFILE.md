@@ -627,6 +627,15 @@ regional sky: its exact bytes remain a visible child claim covered only by that 
 makes the sky independently charged; platform, composer and highway claims remain independent throughout. Root activation requires reviewed metadata;
 missing metadata never acquires a placeholder claim. The live registry retains the same claim,
 while the composition root releases the boot reference after consumers dispose.
+
+Owned grid pages begin neighbour preparation on the road approach after the outgoing runtime releases its claim.
+Product prefetch alone does not run hooks or allocate an opaque runtime. The full measured claim precedes world,
+creature and equipment construction. Hidden destination registry/terrain bindings are reversible; unrelated scoped
+road callbacks recover their own frame during asset awaits. Entered callbacks, input and parent runtime slots remain
+unpublished until the completed resident activates. Cancellation releases the destination through its ordinary
+scope; an undurable outgoing save never authorizes another runtime. Readiness includes world/kit/play and sliced
+shader/upload warm-up. Preparation wall time and the eventual crossing activation cost are reported separately.
+
 Local instance checkpoints
 retain admitted script continuation, item fuel/cooldowns/queued commands, quest flags,
 current steps and dialogue. They restore silently before panel/collider bindings,

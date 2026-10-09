@@ -42,6 +42,23 @@ function fixture() {
 }
 const down = (physics: Physics) => { physics.step(); return castRay(physics, { x: 0, y: 10, z: 0 }, { x: 0, y: -1, z: 0 }, 20); };
 
+it('binds construction to destination colliders without drawing it and releases each temporary binding', () => {
+  const f = fixture();
+  try {
+    withOwner(f.resident, () => { f.view.registry.add(box('construction.deck', 2)); });
+    const before = f.view.scope.census.disposers;
+    for (let turn = 0; turn < 300; turn++) {
+      const construction = f.resident.child('construction'); f.view.prepare(construction);
+      expect(f.app.registry).toBe(f.view.registry); expect(f.view.census()).toMatchObject({ visible: false, held: true });
+      construction.dispose(); expect(f.app.registry).toBe(f.homeRegistry); expect(f.view.census()).toMatchObject({ visible: false, held: false });
+    }
+    expect(f.view.scope.census.disposers).toBe(before);
+    expect(down(f.home)).toBeNull(); expect(down(f.region)?.point.y).toBeCloseTo(2.5);
+    const entered = f.resident.child('entered'); f.view.enter(entered); expect(f.view.root.visible).toBe(true);
+    entered.dispose(); expect(f.view.root.visible).toBe(false);
+  } finally { f.resident.dispose(); f.claim.release(); f.home.dispose(); f.region.dispose(); }
+});
+
 it('protects an entered view and permits quota eviction of its parked resident', () => {
   const allocator = new ResidencyAllocator(), resident = new Scope('evictable-region'), scene = new Scene(), physics = new Physics(rapier);
   const claim = allocator.reserve({ id: 'runtime:region-1', category: 'product', bytes: 40 * MB, owner: cell.instance, distance: 0, needed: false,

@@ -99,8 +99,10 @@ contains numeric data, with no procedural pose callback.
 `@wildshard/game/shardfile/runtime` resolves a declared `runtime/*.ts` entry only through a trusted first-party
 registry. `prepareHybridShard` admits the shardfile and its trusted entry, chooses the catalogue instance inside
 the game layer, and composes their world, kit and play stages. Empty transitional data adds no gameplay services.
-`HybridRuntimeSession` prefetches module code without running hooks, activates only the entered cell and removes
-its play scope on leave while resident data remains frozen. `bindScopedRuntime` restores each parent slot's original
+`HybridRuntimeSession.prepare` prefetches module code without running hooks. `installAhead(instance)` requires an
+inactive, retained, fully claimed resident with reversible construction bindings; it builds world/kit/play and warms
+programs while entered callbacks, input, parent runtime slots and presentation stay unpublished. `enter` activates
+the prepared resident without repeating those stages. Ordinary borrowed-home callers retain entry-time installation. `bindScopedRuntime` restores each parent slot's original
 descriptor on exit; late hooks retain a private overlay and cannot register into a disposed scope. The staged home-cell
 adapter consumes the same cell events and reinstalls only trusted hooks on re-entry. Driftwood's first transition
 keeps its legacy presentation and gameplay in the declared entry; it does not claim a baked or grid-ready conversion.

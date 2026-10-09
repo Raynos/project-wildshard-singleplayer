@@ -73,6 +73,8 @@ export interface RegionalView {
   readonly registry: WorldRegistry;
   /** The region's player frame: admitted ground and water plus registered floors. */
   readonly queries: PlayerFrameQueries;
+  /** Bind construction registry verbs without showing the destination or covering its coarse tiles. */
+  prepare: (owner: Scope) => void;
   /** Show the parked root and route the page registry verbs here while `entry` (an entered runtime scope) lives. */
   enter: (entry: Scope) => void;
   /** Pose moving pieces (also run from `fixedPre` when supplied). */
@@ -148,26 +150,27 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   });
 
   const queries: PlayerFrameQueries = { heightAt: request.ground.heightAt, waterSurfaceAt: request.ground.waterSurfaceAt, platforms };
-  const enter = (owner: Scope): void => {
+  const bind = (owner: Scope, present: boolean): void => {
     if (scope.disposed || owner.disposed) throw new Error('Regional registry requires a live view and entry');
     const unhold = claim.hold(); held = true;
     const prior = slot.registryValue;
     if (prior === registry) { unhold(); throw new Error('Regional registry is already entered'); }
-    slot.registryValue = registry; bindings++; root.visible = true;
+    slot.registryValue = registry; bindings++; root.visible = present;
     // G223: the cell's coarse cover (far proxy, ring tiles) hands over to this root while the entry lives
-    const uncover = cellCoverOf(request.scene)?.cover(cell.instance) ?? ((): void => undefined);
+    const uncover = present ? cellCoverOf(request.scene)?.cover(cell.instance) ?? ((): void => undefined) : (): void => undefined;
     let restored = false;
+    let forgetEntry = (): void => undefined, forgetView = (): void => undefined;
     const restore = (): void => {
-      if (restored) return; restored = true; bindings--; unhold(); uncover(); held = bindings > 0;
+      if (restored) return; restored = true; forgetEntry(); forgetView(); bindings--; unhold(); uncover(); held = bindings > 0;
       if (bindings === 0) root.visible = false;
       if (slot.registryValue === registry) slot.registryValue = prior;
     };
-    const forgetEntry = owner.capture('disposers', restore);
+    forgetEntry = owner.capture('disposers', restore);
     // A view disposed before its entry still hands the page its previous registry back.
-    scope.onDispose(() => { forgetEntry(); restore(); });
+    forgetView = scope.capture('disposers', restore);
   };
   return {
-    scope, root, registry, queries, enter, sync,
+    scope, root, registry, queries, enter: owner => { bind(owner, true); }, prepare: owner => { bind(owner, false); }, sync,
     census: () => {
       const native = physics.scopedCensus(scope);
       return { bodies: native.bodies, colliders: native.colliders, pieces: registry.pieces.length, objects: root.children.length,

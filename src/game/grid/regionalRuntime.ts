@@ -1,7 +1,7 @@
 import { Object3D } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { ownedFacade, ownerTask, withOwner } from '@wildshard/engine/app/ownership';
+import { bindConstructionEnvironment, ownedFacade, ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
@@ -88,7 +88,8 @@ export interface RegionalRuntimeRequest {
 /**
  * The view adapter owns the real region, including critical terrain/colliders and a registry whose additions target
  * its own Physics. Its resident context supplies regional sky/terrain/forest; afterWorld and afterKit finish the shell
- * stages only inside the cell, including the real AnimalManager, equipment, inventory and progress before trusted play.
+ * stages under isolated construction bindings, including the real AnimalManager, equipment, inventory and progress
+ * before trusted play. Entered services publish only when the prepared resident crosses into its cell.
  * The resident's scope owns disposal in dependency order. A synthetic empty host cannot stand in for this contract.
  */
 export interface PreparedRegionalRuntime {
@@ -107,7 +108,7 @@ export interface PreparedRegionalRuntime {
   readonly combatActors: () => ReadonlyMap<ReturnType<AnimalManager['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
 }
 
-/** Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only. */
+/** Trusted composition-root adapter. Whole-runtime admission precedes construction; entered services stay interior-only. */
 export type RegionalRuntimeFactory = (request: RegionalRuntimeRequest) => Promise<PreparedRegionalRuntime>;
 
 /**
@@ -121,6 +122,8 @@ export interface RegionalRuntimeFoundation {
   /** The one renderer/player, but a regional scene facade, level scope, sky, terrain and forest. */
   readonly world: (view: RegionalView) => ShardWorld;
   readonly enter: (scope: Scope) => void;
+  /** Bind reversible terrain/scene construction services without lights, entered systems or presentation. */
+  readonly prepare?: (scope: Scope) => void;
   readonly afterWorld?: (context: ShardContext, world: ShardWorld) => Promise<void> | void;
   /** Build regional creatures after kit registrations; apply skins through the existing regional view adapter. */
   readonly afterKit: (context: ShardContext, world: ShardWorld) => Promise<{
@@ -195,7 +198,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       const skinRows: SkinDef[] = [];
       let localPlay: ShardPlayHost | null = null;
       let localRuntime: ShardRuntime | undefined;
-      let stowed = false, restored = false;
+      let stowed = false, restored = false, preparing = false;
       const checkpoint = (): boolean => {
         if (scope.disposed || localPlay === null || !restored) return false;
         // Attempt all owners even after a refusal; neither gameplay death/reset hooks nor a constant true is a save.
@@ -220,7 +223,20 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             const list: readonly SkinDef[] = Array.isArray(values) ? values : [values as SkinDef];
             skinRows.push(...list);
           } } };
+          const prepareFrame = foundation.prepare;
           return { ...installation, context,
+            ...(prepareFrame === undefined ? {} : { prepareConstruction: () => {
+              preparing = true;
+              const leave = bindConstructionEnvironment(scope, () => {
+                const frameScope = owner.child('runtime.construction');
+                try {
+                  prepareFrame(frameScope); app.bindPlayerServices(pageScope, frameScope); view.prepare(frameScope);
+                  return () => { frameScope.dispose(); };
+                } catch (error) { frameScope.dispose(); throw error; }
+              });
+              const forget = owner.capture('disposers', leave);
+              return () => { try { forget(); leave(); } finally { preparing = false; } };
+            } }),
             beforeWorld: entered => { enteredContext = entered; installEnteredRuntimeService(entered, entry => {
               foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);
               app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
@@ -253,6 +269,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   }); } }, ...(kit.order === undefined ? {} : { order: [...kit.order] }) });
                 for (const weapon of [kit.rifle, kit.secondary, ...(kit.extras ?? [])]) if (weapon !== null) weapons.add(weapon, { locked: true });
                 kit.install?.(weapons); app.registerEquipment(weapons, world.game.levelScope);
+                if (preparing) { weapons.enabled = false; weapons.visible = false; weapons.stowed = true; }
                 const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance);
                 const skins = new SkinLocker(request.cell.instance, skinRows);
                 // SF57: the page's maps reach this resident's hooks through owner facades, so what its play registers on

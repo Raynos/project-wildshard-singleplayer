@@ -4,7 +4,7 @@ import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope, scopeRegistrations } from '../src/engine/app/scope';
-import { withOwner } from '../src/engine/app/ownership';
+import { bindConstructionEnvironment, withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
@@ -64,7 +64,8 @@ function fixture(options?: HybridRuntimeOptions) {
     residents.set(instance, { instance, slug, declaration: { entry }, firstParty: true, scope, runtime: parent,
       context: (playScope, local) => {
         const installation = createLevelInstallation(app, playScope, { inputContext: (def) => {
-          app.input.register(def, playScope); app.input.push(def.id, playScope); return () => { app.input.pop(def.id); };
+          const input = playScope.child(`fixture.input.${def.id}`);
+          app.input.register(def, input); app.input.push(def.id, input); return () => { input.dispose(); };
         } }, () => ({ set: noop, detail: noop }));
         root.add(installation.context.root);
         return { ...installation, context: shardContext(installation.context, manifest, { ...game, runtime: local }) };
@@ -124,6 +125,60 @@ it('stages an admitted regional shell only inside the cell and parks retained se
     expect(f.calls).toEqual(['module', 'trusted.world', 'shell.world', 'trusted.kit', 'shell.kit', 'trusted.play']);
   } finally { f.app.engineScope.dispose(); }
   expect(f.app.registry.pieceList()).toEqual([]); expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+});
+
+it('finishes road preparation with hooks and parent slots unpublished, then activates without rebuilding', async () => {
+  const f = fixture(), resident = f.residents.get('template-1');
+  if (resident === undefined) throw new Error('Missing fixture resident');
+  const before = Object.getOwnPropertyDescriptors(f.parent), road = f.app.registry, destination = new WorldRegistry();
+  let release = noop, constructions = 0, entered = 0;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.residents.set('template-1', { ...resident, retainRuntime: true, context: (scope, rt) => ({
+    ...resident.context(scope, rt),
+    prepareConstruction: () => bindConstructionEnvironment(scope, () => {
+      const previous = f.app.registryValue; f.app.registryValue = destination;
+      return () => { f.app.registryValue = previous; };
+    }),
+    beforeWorld: context => { constructions++; installEnteredRuntimeService(context, entryScope => {
+      entered++; const previous = f.app.registryValue; f.app.registryValue = destination;
+      entryScope.onDispose(() => { f.app.registryValue = previous; });
+    }); },
+    afterWorld: () => gate,
+  }) });
+  try {
+    const pending = f.session.installAhead('template-1');
+    expect(f.session.installAhead('template-1')).toBe(pending);
+    for (let turn = 0; turn < 25; turn++) await Promise.resolve();
+    expect(f.session.timings().current?.hook).toBe('afterWorld');
+    withOwner(f.app.engineScope, () => { expect(f.app.registry).toBe(road); });
+    expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+    expect(f.app.systemIds(f.app.engineScope)).toEqual([]); expect(f.app.debug.snapshot()).toEqual({});
+    expect(f.session.state()).toEqual({ instance: null, ready: false }); expect(entered).toBe(0);
+    release(); expect(await pending).toBe(true);
+    expect(f.app.registry).toBe(road); expect(f.app.input.contexts).toEqual([]);
+    expect(f.app.debug.snapshot()).toEqual({}); expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+    const hooks = f.session.timings().completed.length;
+    expect(await f.session.enter({ instance: 'template-1', slug: 'template' })).toBe(true);
+    expect(f.session.timings().completed).toHaveLength(hooks); expect(constructions).toBe(1); expect(entered).toBe(1);
+    expect(f.parent.objects['hybrid']).toBe('template-1'); expect(f.app.input.contexts).toContain('hybrid.input');
+    f.session.leave(); expect(f.app.input.contexts).toEqual([]); expect(f.app.registry).toBe(road);
+    expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+    expect(await f.session.enter({ instance: 'template-1', slug: 'template' })).toBe(true);
+    expect(constructions).toBe(1); expect(entered).toBe(2);
+  } finally { release(); f.app.engineScope.dispose(); }
+});
+
+it('refuses road construction without an isolation port and disposes failed preparation before publication', async () => {
+  const f = fixture(), resident = f.residents.get('template-1');
+  if (resident === undefined) throw new Error('Missing fixture resident');
+  const before = Object.getOwnPropertyDescriptors(f.parent);
+  try {
+    await expect(f.session.installAhead('template-1')).rejects.toThrow('inactive retained');
+    f.residents.set('template-1', { ...resident, retainRuntime: true });
+    await expect(f.session.installAhead('template-1')).rejects.toThrow('isolated construction');
+    expect(f.calls).toEqual(['template.import']); expect(f.app.input.contexts).toEqual([]);
+    expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before); expect(f.session.state().ready).toBe(false);
+  } finally { f.app.engineScope.dispose(); }
 });
 
 it('cannot continue a regional shell callback into the next entered cell after leaving during an await', async () => {

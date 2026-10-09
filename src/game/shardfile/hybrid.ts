@@ -29,6 +29,8 @@ export interface HybridResident {
     context: ShardContext;
     openKit: () => void;
     closeKit: () => void;
+    /** Bind reversible construction services while queued entered services remain unpublished. */
+    prepareConstruction?: (context: ShardContext) => () => void;
     /** Apply entered regional bindings before any trusted world hook reads ambient engine services. */
     beforeWorld?: (context: ShardContext) => Promise<void> | void;
     /** Finish the regional shell's world stage, after trusted world and before its kit registration window. */
@@ -295,12 +297,13 @@ export async function hybridShardManifest(data: ShardManifest, presentation: Sha
   } }) };
 }
 
-/** Only the entered cell owns trusted hooks. Prefetch imports the declared chunk without constructing or running it. */
+/** Only the entered cell owns gameplay callbacks. Module prefetch stays inert; claimed road preparation is explicit. */
 export class HybridRuntimeSession {
   private readonly residents: ReadonlyMap<string, HybridResident>;
   private readonly entries: readonly TrustedRuntimeEntry[];
   private readonly prepared = new Map<string, Promise<new () => ShardPlugin>>();
   private readonly retained = new Map<string, ActiveRuntime>();
+  private readonly installations = new Map<string, Promise<boolean>>();
   private active: ActiveRuntime | undefined;
   private generation = 0;
   private disposed = false;
@@ -311,7 +314,7 @@ export class HybridRuntimeSession {
     scope.onDispose(() => {
       this.disposed = true; this.leave();
       for (const active of this.retained.values()) active.scope.dispose();
-      this.retained.clear(); this.prepared.clear();
+      this.retained.clear(); this.prepared.clear(); this.installations.clear();
     });
   }
   /** Module admission can run while a neighbour is frozen; no constructor or world/kit/play hook runs here. */
@@ -344,18 +347,39 @@ export class HybridRuntimeSession {
   timings(): { readonly current: Readonly<Pick<HybridHookTiming, 'instance' | 'hook' | 'start'>> | null; readonly completed: readonly HybridHookTiming[] } {
     return { current: this.currentHook, completed: [...this.completedHooks] };
   }
+  /** Build a fully claimed destination on the road, keeping its entered services and parent runtime slots unpublished.
+   * The resident must supply isolated construction bindings; module-only prepare remains safe for any resident. */
+  installAhead(instance: string): Promise<boolean> {
+    if (this.disposed) return Promise.reject(new Error('Hybrid session is disposed'));
+    const resident = this.residents.get(instance);
+    if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
+    const prior = this.installations.get(instance); if (prior !== undefined) return prior;
+    const request = this.install({ instance, slug: resident.slug }, true);
+    this.installations.set(instance, request);
+    void request.finally(() => { if (this.installations.get(instance) === request) this.installations.delete(instance); }).catch(() => undefined);
+    return request;
+  }
   /** Called by the cell-interior producer, after leaving the old cell. Late hook completions cannot publish another scope. */
   async enter(cell: GridCellRef): Promise<boolean> {
+    const preparing = this.installations.get(cell.instance);
+    if (preparing !== undefined && !await preparing) return false;
+    return this.install(cell, false);
+  }
+  private async install(cell: GridCellRef, preparing: boolean): Promise<boolean> {
     if (this.disposed) throw new Error('Hybrid session is disposed');
     const resident = this.residents.get(cell.instance);
     if (resident === undefined) throw new Error('Missing hybrid resident');
     const { slug: identity } = resident, { slug: cellIdentity } = cell;
     if (identity !== cellIdentity) throw new Error('Hybrid cell must match its catalogue instance and shard');
     if (this.active?.resident === resident) return this.active.ready;
-    this.leave(); const generation = this.generation;
+    if (preparing && (this.active !== undefined || resident.retainRuntime !== true)) throw new Error('Road preparation requires an inactive retained resident');
+    if (!preparing) this.leave();
+    const generation = this.generation;
+    let construction: (() => void) | undefined, preparingScope: Scope | undefined;
     try {
       const parked = this.retained.get(cell.instance);
       if (parked !== undefined && !parked.scope.disposed && parked.retained !== undefined) {
+        if (preparing) return true;
         parked.retained.slots.activate();
         try { parked.retained.hooks.activate(); }
         catch (error) { parked.retained.slots.deactivate(); throw error; }
@@ -364,17 +388,21 @@ export class HybridRuntimeSession {
       const Plugin = await this.prepare(cell.instance);
       if (generation !== this.generation || resident.scope.disposed) return false;
       const scope = resident.scope.child(`runtime:${cell.instance}`), active: ActiveRuntime = { resident, scope, ready: false };
-      this.active = active;
+      if (preparing) preparingScope = scope; else this.active = active;
       scope.onDispose(() => { if (this.active === active) this.active = undefined; if (this.retained.get(cell.instance) === active) this.retained.delete(cell.instance); });
       const slots = resident.retainRuntime === true ? createScopedRuntimeBinding(resident.runtime, scope) : undefined;
-      slots?.activate();
+      if (!preparing) slots?.activate();
       const runtime = slots?.runtime ?? bindScopedRuntime(resident.runtime, scope), installation = resident.context(scope, runtime);
       residentScopes.set(scope, resident.scope);
       scope.onDispose(() => { residentScopes.delete(scope); });
-      const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context);
+      const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context, { deferActivation: preparing });
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
       const context = hooks?.context ?? installation.context;
-      const live = (): boolean => !scope.disposed && this.active === active && generation === this.generation;
+      const live = (): boolean => !scope.disposed && (preparing ? this.active === undefined : this.active === active) && generation === this.generation;
+      if (preparing) {
+        if (installation.prepareConstruction === undefined) throw new Error('Road preparation requires isolated construction bindings');
+        construction = installation.prepareConstruction(context);
+      }
       await this.stage(scope, cell.instance, 'beforeWorld', () => ownerTask(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
       const plugin = await this.stage(scope, cell.instance, 'constructor', () => withOwner(scope, () => new Plugin()));
       if (!live()) return false;
@@ -390,9 +418,13 @@ export class HybridRuntimeSession {
       if (active.retained !== undefined) this.retained.set(cell.instance, active);
       return true;
     } catch (error) {
+      if (preparing) { preparingScope?.dispose(); throw error; }
       if (generation !== this.generation) return false;
       try { this.leave(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Hybrid activation and cleanup failed', { cause: cleanup }); }
       throw error;
+    } finally {
+      construction?.();
+      if (preparingScope !== undefined && !this.retained.has(cell.instance)) preparingScope.dispose();
     }
   }
   /** Remove only play resources and runtime aliases; the admitted shardfile world, tiles and frozen simulation remain. */

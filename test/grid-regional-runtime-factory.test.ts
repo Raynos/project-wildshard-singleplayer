@@ -81,6 +81,8 @@ function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
       } });
       return { ...world, physics: host.physics, registry: view.registry, game: regionalGame };
     },
+    prepare: construction => { const prior = app.levelScope; app.levelScope = prepared.scope;
+      construction.onDispose(() => { app.levelScope = prior; }); },
     enter: entry => { calls.push('binding.enter'); const prior = app.levelScope; app.levelScope = prepared.scope;
       entry.onDispose(() => { app.levelScope = prior; calls.push('binding.leave'); }); },
     afterWorld: () => { calls.push('shell.world'); },
@@ -98,6 +100,50 @@ it('requires a real foundation and exact whole-runtime lease before constructing
     expect(f.world.game.scene.children).toHaveLength(0); expect(f.homeRegistry.pieces).toHaveLength(0);
     f.claim.release(); await expect(f.regional(f.request)).rejects.toThrow('whole-runtime lease');
   } finally { f.host.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+  expect(f.allocator.entries()).toEqual([]);
+});
+
+it('prepares the complete claimed world on the road with inactive equipment and native services, then activates it', async () => {
+  const f = fixture(), before = Object.getOwnPropertyDescriptors(f.runtime), prepared = await f.regional(f.request);
+  const warm = vi.spyOn(f.world.game, 'warmEnteredFrame');
+  let built: ShardPlayHost | null = null, ticks = 0;
+  class Runtime extends ShardPlugin {
+    override async world(ctx: ShardContext): Promise<void> {
+      ctx.piece({ id: 'prepared.deck', name: 'Deck', category: 'props', file: 'runtime/index.ts', colliders: [{ kind: 'box', x: 0, y: 1, z: 0, hx: 1, hy: 0.5, hz: 1 }] });
+      await Promise.resolve();
+      expect(ctx.app.registry).not.toBe(f.homeRegistry);
+      withOwner(f.scope, () => {
+        expect(ctx.app.registry).toBe(f.homeRegistry); expect(ctx.app.levelScope).toBe(f.scope);
+      });
+      expect(ctx.app.registry).not.toBe(f.homeRegistry);
+    }
+    override kit(ctx: ShardContext): void {
+      const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing prepared runtime');
+      rt.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null });
+    }
+    override play(ctx: ShardContext): void {
+      built = ctx.game.runtime?.play ?? null;
+      if (built === null) throw new Error('Missing prepared play host');
+      expect(built.weapons.enabled).toBe(false); expect(built.weapons.visible).toBe(false);
+      ctx.system({ id: 'prepared.gameplay', phase: 'update', run: () => { ticks++; } });
+    }
+  }
+  const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+    { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+  ], f.scope);
+  try {
+    expect(await session.installAhead('pine-hollow')).toBe(true);
+    expect(Object.getOwnPropertyDescriptors(f.runtime)).toEqual(before); expect(f.app.registry).toBe(f.homeRegistry);
+    expect(f.world.game.scene.children[0]?.visible).toBe(false); expect(f.equipment.service.current).toBe(f.road.current);
+    expect(f.host.physics.world.colliders.len()).toBe(2); expect(f.home.world.colliders.len()).toBe(0);
+    expect(f.herd).not.toHaveBeenCalled(); expect(f.app.systemIds(f.scope)).not.toContain('prepared.gameplay');
+    expect(warm).toHaveBeenCalledOnce(); expect(prepared.checkpoint()).toBe(true);
+    const hooks = session.timings().completed.length;
+    prepared.loadout.interior(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
+    expect(session.timings().completed).toHaveLength(hooks); expect(f.world.game.scene.children[0]?.visible).toBe(true);
+    for (const system of f.app.systemsByPhase().update) system.run(1 / 60, 1);
+    expect(ticks).toBe(1); expect(f.herd).toHaveBeenCalledOnce();
+  } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
   expect(f.allocator.entries()).toEqual([]);
 });
 

@@ -651,7 +651,10 @@ export class LiveGridSession {
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
-      try { await this.hybrid.prepare(cell.instance); }
+      try {
+        await this.hybrid.prepare(cell.instance);
+        if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
+      }
       catch (error) {
         this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
         try { prepared.region.dispose(); } finally { saved.unbind(); }
