@@ -1,0 +1,180 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "off": {
+    "name": "Driftwood Isle",
+    "badge": null,
+    "play": {
+      "hidden": false,
+      "disabled": false,
+      "label": "Enter world",
+      "line": "Play"
+    },
+    "shardfile": {
+      "hidden": true,
+      "disabled": false,
+      "label": "SHARDFILE",
+      "line": ""
+    }
+  },
+  "on": [
+    {
+      "index": 0,
+      "name": "Driftwood Isle",
+      "badge": "1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Pine Hollow",
+      "badge": "3% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 2,
+      "name": "Nalati Grasslands",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 3,
+      "name": "Nine Dragon Stack",
+      "badge": "<1% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 4,
+      "name": "Signal Dunes",
+      "badge": "21% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 5,
+      "name": "Sky Reach",
+      "badge": "10% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": false,
+        "label": "LEGACY",
+        "line": "ORIGINAL TYPESCRIPT"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Blender Template",
+      "badge": "97% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    },
+    {
+      "index": 7,
+      "name": "Template shard",
+      "badge": "90% PORTED",
+      "play": {
+        "hidden": false,
+        "disabled": true,
+        "label": "LEGACY",
+        "line": "SHARDFILE ONLY · NO LEGACY"
+      },
+      "shardfile": {
+        "hidden": false,
+        "disabled": false,
+        "label": "SHARDFILE",
+        "line": "CURRENT PORT STATE"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "card": "Sky Reach",
+      "mode": "shardfile",
+      "entered": true,
+      "reports": [],
+      "slug": "far-reach",
+      "saveKeys": [
+        "wildshard.save.v2.global",
+        "wildshard.save.v2.driftwood-isle",
+        "wildshard.save.v2.device",
+        "wildshard.save.v2.far-reach"
+      ],
+      "seconds": 10,
+      "slot": {
+        "far-reach": "shardfile"
+      },
+      "fps": 30,
+      "level": "Shardfar-reach | Entryshardfile",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

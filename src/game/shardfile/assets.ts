@@ -2,6 +2,7 @@ import { decodeTerrainTile, isTerrainTileData, terrainTileCost } from '@wildshar
 import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from '@wildshard/engine/core/meshCollision';
 import { visitGlbGeometry, type GlbVertex } from './glbTriangles';
 import { projectedLayerCoverage, type OverdrawEstimate } from './overdraw';
+import { parseStillImage } from './stillImage';
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }
@@ -245,6 +246,7 @@ export function parseAudio(bytes: Uint8Array): AssetCost {
 }
 /** Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. */
 export function assetCost(kind: string, bytes: Uint8Array): AssetCost {
+  if (kind === 'image') { const image = parseStillImage(bytes); return { decoded: image.decoded, gpu: image.gpu, triangles: 0, draws: 0 }; }
   if (kind === 'glb') return parseGlb(bytes);
   if (kind === 'ktx2') return parseKtx2(bytes);
   if (kind === 'audio') return parseAudio(bytes);

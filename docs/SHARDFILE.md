@@ -113,6 +113,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | Section | Contract |
 |---|---|
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
+| `presentation` | Optional SHARD SELECT data: nonempty `biome` (≤128 characters), `blurb` (≤512), and `card: {thumb, portrait, landscape}` (local immutable image hashes in the charged library closure). No author URLs or page code. |
 | `accent` | Required lowercase ID from the platform’s 20-colour palette; road/safe-zone cyan is reserved. |
 | `requires` | SDK revision 0; capability names; unique declared SHA-256 commons hashes and `commonsWire` (exact hash→wire bytes) and `commonsCosts` (exact hash→`{decoded, gpu, triangles, draws}`). Both maps default to `{}` only for an empty commons list; missing or extra keys fail format admission before asset reads. Costs are nonnegative safe integers derived from pinned bytes, not author estimates. |
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
@@ -133,7 +134,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `authorCaps` | 1–32 players (authors may lower the room cap); in-cell speed 0–15 m/s. Highway speed belongs to the platform. |
 | `serverBudget` | Positive tick budget ≤16,666 μs, positive memory ≤25 MB, ≤10,000 entities, ≤1,024 commands per tick. These are author declarations, not a server implementation. |
 | `edge` | Four ordered perimeter profiles with exactly 256 (legacy native bake) or 257 (tile-bake native lattice) height and RGB samples of equal length, heights inside ±250 m, colours in [0,1], road height exactly 0. North/south samples run west→east; east/west run south→north. |
-| `files` | Unique lowercase 64-character SHA-256 hash, kind (`glb`, `ktx2`, `audio`, `json`, `wasm`, `binary`), compressed/decoded/GPU byte sizes, triangles, draws including shadows, dependency references, critical flag. |
+| `files` | Unique lowercase 64-character SHA-256 hash, kind (`glb`, `ktx2`, `audio`, `json`, `wasm`, `binary`, `image`), compressed/decoded/GPU byte sizes, triangles, draws including shadows, dependency references, critical flag. |
 | `entryways` | Required, four unique openings: north `[0,0,250]`, east `[250,0,0]`, south `[0,0,-250]`, west `[-250,0,0]`; width exactly 8 m (`ENTRY_WIDTH`); optional kind `ground`, `socketOverWater`, `socketLift` or `portalLink`. A lift names its admitted movers and may declare a permanent static approach. A portal names two directed links and static arrival/deck floors. Every opening reaches road height y=0 through its footprint/landing/traversal proof. |
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
@@ -1092,3 +1093,30 @@ The game-layer `createPortalTraversal` uses the existing physics, capsule and fe
 Native world-only hybrids retain the original `terrain.bin` as `nativeGround.file`, an independent critical binary root. Admission checks WSTR v1, the native 256² lattice over 500 m, the identity seed, finite cell-bounded heights, bounded placement metadata, exact full 256-sample boundary rows and every continuous 8×15 m entry footprint. The native runtime owns collision and interactive geometry. Render tiles do not replace its native physics, and a standalone flat declared simulation proxy is refused. The renderer-free native collision/worker adapter remains a follow-up; this byte witness is not a claim that arbitrary trusted gameplay has been headlessly replayed.
 
 G188 grid Auto evaluates the target images-first claim together with the page allocator’s current road and regional residents. If that projected playing envelope exceeds 1.0 GB it requests compressed textures; capability refusal still falls back to images and honest admission refusal. Explicit texture settings keep precedence, and standalone Auto keeps its standalone envelope.
+
+### Data-only SHARD SELECT cards
+
+`presentation` is exact optional; omission preserves existing first-party cards. Each of
+`card.thumb`, `card.portrait` and `card.landscape` names a local `files` row of kind
+`image` reachable from `library`. Missing, wrong-kind, uncharged or remote references
+fail format admission before immutable asset reads. The admitted metadata replaces
+the first-party card and text only when present; identity, accent and entry choices
+continue through the ordinary picker.
+
+`image` accepts single-frame PNG (up to 8-bit), 8-bit JPEG and WebP. Byte-derived
+dimensions are at most 4096×4096 and wire at most 4,194,304 bytes; containers have at
+most 1024 chunks/markers. PNG checksums and complete container ranges are checked;
+animation, compressed PNG metadata, SVG, scripts and author URLs are refused. The
+browser remains the pixel decoder. The asset cost is RGBA pixels plus four times wire
+for retained bytes/base64 URL on the CPU, and RGBA pixels for compositor residency,
+with zero geometry/draws. These costs are derived by `assetCost("image", bytes)` in
+the SDK and checked by ordinary asset admission, charged once per distinct library hash.
+
+`sourceManifest(source, admittedAssets?)` in
+`@wildshard/game/shardfile/sourceManifest` is the pure defining identity/accent/card
+mapping for shardfile-only catalogue rows. It performs no fetch, image decode, world
+allocation or service installation. A presentation requires its already admitted byte
+map. `presentationCard` resolves each distinct hash once to a MIME-sniffed inert
+`data:image/...;base64,...` URL. The returned ordinary session hooks run later; the
+caller remains responsible for product admission and the library lease.
+

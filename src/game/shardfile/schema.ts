@@ -35,6 +35,7 @@ import { portalLinkEntries, portalLinkRules } from './portalLink';
 import { StateSchema, stateRules } from './state';
 import { CommonsCostsSchema, assertCommonsCosts } from './commonsCosts';
 import { AccentSchema } from './accent';
+import { PresentationSchema } from './presentation';
 import { MigrationsSchema, migrationRules } from './migrations';
 import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs, materialGraphRules } from './materials';
@@ -58,12 +59,13 @@ const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1
 /** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
 export const LOOK_LUT_BYTES = 33 ** 3 * 4;
 const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, bounds, geometricError: v.pipe(finite, v.minValue(0)), files: references, ...costs });
-const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary']), ...costs, dependencies: references, critical: v.boolean() });
+const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary', 'image']), ...costs, dependencies: references, critical: v.boolean() });
 const tileCount = (2 * CHUNK_HALF / CONTENT_CAPS.l0.size) ** 2 + (2 * CHUNK_HALF / CONTENT_CAPS.l1.size) ** 2;
 const rawSchema = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
   accent: AccentSchema,
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), revision: positive, seed: natural }),
+  presentation: v.exactOptional(PresentationSchema),
   requires: v.strictObject({ sdk: v.literal(SHARDFILE_VERSION), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}), commonsCosts: v.optional(CommonsCostsSchema, {}) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: natural, compressed: natural }), sim: v.strictObject({ resident: natural, compressed: natural }), overlap: natural }),
   look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),

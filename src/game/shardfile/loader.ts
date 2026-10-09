@@ -7,13 +7,11 @@ import { shardEntries } from '../shard/entryMode';
 import { game } from '../shard/registry';
 import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
-import { parseShardSlug } from '../shard/slug';
 import { parseShardfile, type Shardfile } from './schema';
+import { sourceManifest } from './sourceManifest';
 import { SHARDFILE_VERSION } from './version';
 import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
-import { EmptyEquipment } from './emptyEquipment';
-import type { ShardContext } from '../shard/context';
 import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import { ClientAssets } from './clientAssets';
 import { ShardfileClient, type ShardfileClientBindings } from './client';
@@ -40,31 +38,6 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
   return sourceManifest(source);
 }
 
-function sourceManifest(source: Shardfile): ShardManifest {
-  const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
-  return {
-    api: 1, accent: source.accent, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
-    order: 0, status: 'live', label: '(0, 0)', biome: 'Empty world', blurb: 'An empty shardfile world.',
-    card: { thumb: card, portrait: card, landscape: card }, style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',
-    treeCount: 0, trees: { factory: 'none', noun: 'trees' }, ground: { structures: true, paths: 'plugin' }, horizon: { rings: [], cloudSea: false },
-    spawn: { ...source.spawn }, spawns: [], species: [], uses: [], boundary: { visible: false },
-    sky: { sunColor: [1, 1, 1], sunIntensity: 1, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1], hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
-    atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
-    grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
-    budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: {},
-    render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look)), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
-    audio: { ambience: 'none', score: 'none' },
-    boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
-    // A plugin source enters the ordinary staged LevelLoader, even with no authored hooks.
-    load: () => Promise.resolve({ default: class {
-      kit(ctx: ShardContext): void {
-        const runtime = ctx.game.runtime;
-        if (runtime === undefined) throw new Error('Shardfile source requires the session host');
-        runtime.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), secondary: null, rifle: null });
-      }
-    } }),
-  };
-}
 
 /** Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. */
 export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
@@ -89,9 +62,9 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
     ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
   const residency = clientResidency(source, ownedBindings);
   const assets = new ClientAssets(source, admitted.assets, options);
-  const manifest = sourceManifest(source);
+  const manifest = sourceManifest(source, admitted.assets);
   const clientBindings = { ...ownedBindings, allocator: residency.allocator };
-  return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
+  return { ...manifest, ...(source.presentation === undefined ? { biome: 'Authored world', blurb: source.identity.name } : {}),
     // Traversal belongs to the platform, independently of authored item rows or Developer mode.
     loadout: { weapons: [], tools: ['tool.hoverboard'], start: ['tool.hoverboard'] },
     ground: { ...(source.terrain === null && source.meshCollision === null && !source.entryways.some(entry => entry.kind === 'socketLift' || entry.kind === 'portalLink') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
@@ -150,7 +123,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const admitted = await admitProduct(source, productOptions);
   return selectSource({ ...clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance }),
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
-    biome: manifest.biome, blurb: manifest.blurb, card: manifest.card,
+    ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
     entries: shardEntries(manifest),
     // G252b: so does its map (the baked image, SF66): the admitted source's empty minimap left Bag ▸ MAP with only the fog
