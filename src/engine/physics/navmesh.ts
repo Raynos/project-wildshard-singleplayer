@@ -98,7 +98,7 @@ function readLayer(r: Reader): NavLayer {
 
 /** a world point into the navmesh's frame: the bake is the level's authored frame, so a level shifted at runtime (its
  *  terrain datum, G164) queries `y − datum` and every point out adds it back (datum 0: the point exactly) */
-const toVec3 = (p: XYZ, out: Vec3): Vec3 => { out[0] = p.x; out[1] = p.y - terrainDatum(); out[2] = p.z; return out; };
+const toVec3 = (p: XYZ, out: Vec3, datum: number): Vec3 => { out[0] = p.x; out[1] = p.y - datum; out[2] = p.z; return out; };
 
 export class Navmesh {
   /** by radius, smallest first */
@@ -108,6 +108,10 @@ export class Navmesh {
   /** where each query's cost also goes: nowhere by default; the browser's loader points it at the perf meter
    *  (navmeshLoad.ts → frameCost.nav), so this module stays renderer-free */
   costSink: (ms: number) => void = () => undefined;
+  /** the level's vertical datum its queries read (m): by default the active level's (terrainHeight.ts, bound by the
+   *  Heightfield, which refuses with no level configured). A renderer-free host that configures no level and shifts nothing
+   *  says so on its own instance (`() => 0`, SF72): never a silent fallback in the browser */
+  datum: () => number = terrainDatum;
   private readonly nearest = createFindNearestPolyResult();
   private readonly nearest2 = createFindNearestPolyResult();
   private readonly query = createSlicedNodePathQuery();
@@ -139,18 +143,18 @@ export class Navmesh {
     const t0 = performance.now();
     try {
       const { mesh } = this.layerFor(agentRadius);
-      const s = findNearestPoly(this.nearest, mesh, toVec3(from, this.a), SNAP, DEFAULT_QUERY_FILTER);
+      const s = findNearestPoly(this.nearest, mesh, toVec3(from, this.a, this.datum()), SNAP, DEFAULT_QUERY_FILTER);
       if (!s.success) return null;
-      const e = findNearestPoly(this.nearest2, mesh, toVec3(to, this.b), SNAP, DEFAULT_QUERY_FILTER);
+      const e = findNearestPoly(this.nearest2, mesh, toVec3(to, this.b, this.datum()), SNAP, DEFAULT_QUERY_FILTER);
       const endRef = e.success ? e.nodeRef : s.nodeRef, endPos = e.success ? e.position : s.position;
       initSlicedFindNodePath(mesh, this.query, s.nodeRef, endRef, s.position, endPos, DEFAULT_QUERY_FILTER);
       updateSlicedFindNodePath(mesh, this.query, maxNodes);
       const nodes = finalizeSlicedFindNodePath(mesh, this.query);
       if ((nodes.status & SlicedFindNodePathStatusFlags.SUCCESS) === 0 || nodes.path.length === 0) return null;
       // the goal off the mesh: head for where it would be (findStraightPath clamps it to the last poly)
-      const straight = findStraightPath(mesh, s.position, e.success ? endPos : toVec3(to, this.b), nodes.path);
+      const straight = findStraightPath(mesh, s.position, e.success ? endPos : toVec3(to, this.b, this.datum()), nodes.path);
       if (!straight.success) return null;
-      const datum = terrainDatum();
+      const datum = this.datum();
       straight.path.forEach((pt, i) => { out[i] = (out[i] ?? new THREE.Vector3()).set(pt.position[0], pt.position[1] + datum, pt.position[2]); });
       out.length = straight.path.length;
       return out;
@@ -161,8 +165,8 @@ export class Navmesh {
   closestWalkable(p: XYZ, agentRadius = 0, out = new THREE.Vector3()): THREE.Vector3 | null {
     const t0 = performance.now();
     try {
-      const r = findNearestPoly(this.nearest, this.layerFor(agentRadius).mesh, toVec3(p, this.a), SNAP, DEFAULT_QUERY_FILTER);
-      return r.success ? out.set(r.position[0], r.position[1] + terrainDatum(), r.position[2]) : null;
+      const r = findNearestPoly(this.nearest, this.layerFor(agentRadius).mesh, toVec3(p, this.a, this.datum()), SNAP, DEFAULT_QUERY_FILTER);
+      return r.success ? out.set(r.position[0], r.position[1] + this.datum(), r.position[2]) : null;
     } finally { this.count(t0); }
   }
 
@@ -176,14 +180,14 @@ export class Navmesh {
     const t0 = performance.now();
     try {
       const { mesh } = this.layerFor(agentRadius);
-      const s = findNearestPoly(this.nearest, mesh, toVec3(p, this.a), SNAP, DEFAULT_QUERY_FILTER);
+      const s = findNearestPoly(this.nearest, mesh, toVec3(p, this.a, this.datum()), SNAP, DEFAULT_QUERY_FILTER);
       if (!s.success) return null;
       let best = Infinity;
       for (let i = 0; i < 4 && best > radius * 1.5; i++) {
         const r = findRandomPointAroundCircle(mesh, s.nodeRef, s.position, radius, DEFAULT_QUERY_FILTER, rand);
         if (!r.success) continue;
         const d = Math.hypot(r.position[0] - s.position[0], r.position[2] - s.position[2]);
-        if (d < best) { best = d; out.set(r.position[0], r.position[1] + terrainDatum(), r.position[2]); }
+        if (d < best) { best = d; out.set(r.position[0], r.position[1] + this.datum(), r.position[2]); }
       }
       return best < Infinity ? out : null;
     } finally { this.count(t0); }
@@ -198,7 +202,7 @@ export class Navmesh {
     const t0 = performance.now();
     try {
       const { mesh } = this.layerFor(agentRadius);
-      const s = findNearestPoly(this.nearest, mesh, toVec3(p, this.a), SNAP, DEFAULT_QUERY_FILTER);
+      const s = findNearestPoly(this.nearest, mesh, toVec3(p, this.a, this.datum()), SNAP, DEFAULT_QUERY_FILTER);
       if (!s.success) return null;
       const b = this.b;
       b[0] = s.position[0] + Math.sin(yaw) * dist; b[1] = s.position[1]; b[2] = s.position[2] + Math.cos(yaw) * dist;
