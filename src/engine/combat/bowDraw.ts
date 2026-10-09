@@ -38,6 +38,10 @@ export type DrawEvent = 'start' | 'full' | 'loose' | 'letdown' | 'tired';
 
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
 
+/** A draw's whole state, for a host that saves and restores it (a headless runtime's snapshot): the clocks and the
+ *  finger's edges. */
+export interface BowDrawState { drawT: number; holdT: number; renockT: number; tiredT: number; wasHeld: boolean; needLift: boolean; reachedFull: boolean }
+
 /** Pure held-draw, full-release, let-down, fatigue and re-nock state machine. */
 export class BowDraw {
   /** linear draw time 0..1 (1 = full draw) */
@@ -60,6 +64,16 @@ export class BowDraw {
   get sway(): number { return clamp01((this.holdT - HOLD_STEADY) / (HOLD_TIRE - HOLD_STEADY)); }
   /** the draw is coming / held (not letting down) */
   get drawing(): boolean { return this.wasHeld && !this.needLift && this.drawT > 0; }
+
+  /** the whole state (`load` puts it back exactly) */
+  save(): BowDrawState {
+    return { drawT: this.drawT, holdT: this.holdT, renockT: this.renockT, tiredT: this.tiredT, wasHeld: this.wasHeld, needLift: this.needLift, reachedFull: this.reachedFull };
+  }
+  /** put back a saved state */
+  load(s: BowDrawState): void {
+    this.drawT = s.drawT; this.holdT = s.holdT; this.renockT = s.renockT; this.tiredT = s.tiredT;
+    this.wasHeld = s.wasHeld; this.needLift = s.needLift; this.reachedFull = s.reachedFull;
+  }
 
   /** drop everything (a holster, a death): no event */
   reset(): void { this.drawT = 0; this.holdT = 0; this.needLift = this.wasHeld; this.reachedFull = false; }

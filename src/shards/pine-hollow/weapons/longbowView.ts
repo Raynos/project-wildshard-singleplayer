@@ -5,6 +5,7 @@ import { fixIBL, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged'
 import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { withHunterPalette } from './hunterHands';
+import { ARROW_FLIGHT, ARROW_MAX_FLYING } from './longbowFlight';
 import type { BowView, GripPose } from '@wildshard/sdk/weapons/bowProfile';
 
 
@@ -94,7 +95,7 @@ export function arrowMaterial(sky: Sky): THREE.MeshStandardMaterial {
 /** the arrow as a `Projectiles` kind: one instanced standard material for every arrow in flight or stuck in the world */
 export function arrowKind(sky: Sky): ProjectileKind {
   const material = arrowMaterial(sky);
-  return { geometry: buildArrowGeometry(), material, length: ARROW_LEN, gravity: 6, drag: 0.014, windCoupling: 0.25, bury: 0.09, recover: 0.7, maxFlying: 8, maxStuck: 48 };
+  return { geometry: buildArrowGeometry(), material, length: ARROW_LEN, ...ARROW_FLIGHT, bury: 0.09, recover: 0.7, maxFlying: ARROW_MAX_FLYING, maxStuck: 48 };
 }
 
 // ───────────────────────────── the longbow's shape ─────────────────────────────

@@ -15,6 +15,7 @@ import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { ROSTER_STEP, type PineHuntBody } from '../../../src/shards/pine-hollow/runtime/roster';
 import { ELITES_STEP } from '../../../src/shards/pine-hollow/runtime/elites';
 import { bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { LEVER_FLAG, PINE_WEAPON } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
 import { parseNavmesh } from '../../../src/engine/physics/navmesh';
 import type { ImperialBull } from '../../../src/shards/pine-hollow/combat/eliteScripts';
@@ -479,5 +480,85 @@ it('takes the King\'s bark at ×0.25 and his ribcage at ×0.6 shut, and a bolt p
     expect(far).toBeGreaterThan(97); expect(far).toBeLessThan(100);
     body.hidden = true;
     expect(bodyHit([body], from, dir, 30)).toBeNull();
+  } finally { host.dispose(); }
+}, 30_000);
+
+/** Hold the tick's weapon pick, trigger pulls and HEAVY hold as a tape would (the trusted runtime reads them from commands). */
+function armed(): { parts: PineInstall; tick: { pick: number | null; shots: string[]; heavy: { targetId?: string } | null } } {
+  const tick: { pick: number | null; shots: string[]; heavy: { targetId?: string } | null } = { pick: null, shots: [], heavy: null };
+  return { tick, parts: { ...pineParts(), pick: () => tick.pick, shots: () => tick.shots, heavy: () => tick.heavy } };
+}
+/** Step `n` ticks standing still, the tick's inputs cleared after the first. */
+function stepFor(host: SimHost, tick: ReturnType<typeof armed>['tick'], n: number): void {
+  for (let i = 0; i < n; i++) { host.step(still); tick.pick = null; tick.shots = []; }
+}
+
+it('swaps weapons on the `pine.weapon` command as the page\'s EquipmentService: only owned ones, 0.25 s out then 0.25 s in with no trigger live, restored exactly mid-swap', () => {
+  const { parts, tick } = armed(), { host, loadout, crossbow } = bootWith(parts);
+  try {
+    const id = standBy(host, 'boar', 14);
+    tick.pick = PINE_WEAPON.lever; stepFor(host, tick, 1);
+    expect([loadout.held(), loadout.swapping()]).toEqual([PINE_WEAPON.crossbow, false]); // the cabin's rifle is not owned yet
+    host.flags.set(LEVER_FLAG);
+    tick.pick = PINE_WEAPON.lever; stepFor(host, tick, 1);
+    expect([loadout.held(), loadout.swapping(), loadout.live(PINE_WEAPON.crossbow)]).toEqual([PINE_WEAPON.crossbow, true, false]);
+    tick.shots = [id]; stepFor(host, tick, 1);
+    expect(crossbow.state.loaded).toBe(true); // mid-swap: the trigger is dead
+    exactAfter(parts, host, 16); // across the switch at 0.25 s
+    expect([loadout.held(), loadout.swapping()]).toEqual([PINE_WEAPON.lever, true]);
+    stepFor(host, tick, 16);
+    expect([loadout.held(), loadout.swapping(), loadout.live(PINE_WEAPON.lever)]).toEqual([PINE_WEAPON.lever, false, true]);
+    tick.pick = PINE_WEAPON.longbow; stepFor(host, tick, 1);
+    expect(loadout.swapping()).toBe(false); // the longbow is the King's reward
+  } finally { host.dispose(); }
+}, 30_000);
+
+it('fires the lever-action on the page\'s action: a hitscan round lands the damage model\'s blow ×1.5, the lever cycles the next one in; a dry pull reloads through the gate, a pull mid-reload stops after the round in hand; restored exactly mid-cycle', () => {
+  const { parts, tick } = armed(), { host, lever } = bootWith(parts);
+  try {
+    host.flags.set(LEVER_FLAG);
+    tick.pick = PINE_WEAPON.lever; stepFor(host, tick, 31);
+    const id = standBy(host, 'boar', 14), boar = host.entities.get(id);
+    if (boar === undefined) throw new Error('no boar');
+    const hp = boar.hp;
+    tick.shots = [id]; stepFor(host, tick, 1);
+    expect(boar.hp).toBeLessThan(hp);
+    expect([lever.act.phase, lever.act.rounds]).toEqual(['beat', 6]);
+    tick.shots = [id]; stepFor(host, tick, 1);
+    expect(lever.act.rounds).toBe(6); // no second shot before the throw
+    exactAfter(parts, host, 20); // into the throw
+    stepFor(host, tick, 30);
+    expect([lever.act.phase, lever.act.chambered, lever.act.tube]).toEqual(['idle', true, 5]);
+    // run it dry: a pull on an empty gun clicks and reloads, a pull mid-reload stops it after the round in hand
+    lever.act.tube = 0; lever.act.chambered = false;
+    tick.shots = [id]; stepFor(host, tick, 1);
+    expect([lever.act.phase, lever.act.dryAtStart]).toEqual(['reload', true]);
+    stepFor(host, tick, 40);
+    expect([lever.act.fed, lever.store.reserve]).toEqual([1, 20]);
+    tick.shots = [id]; stepFor(host, tick, 1);
+    stepFor(host, tick, 30);
+    expect([lever.act.phase, lever.act.fed, lever.store.reserve]).toEqual(['cycle', 2, 19]); // the gun run dry is cycled at the end
+    stepFor(host, tick, 40);
+    expect([lever.act.phase, lever.act.chambered, lever.act.tube]).toEqual(['idle', true, 1]);
+  } finally { host.dispose(); }
+}, 30_000);
+
+it('draws the longbow on the HEAVY hold and looses only at full: an arrow flies to the named boar and lands its blow; an early release lets down; restored exactly mid-flight', () => {
+  const { parts, tick } = armed(), { host, longbow } = bootWith(parts);
+  try {
+    host.flags.set('paid:king');
+    tick.pick = PINE_WEAPON.longbow; stepFor(host, tick, 31);
+    const id = standBy(host, 'boar', 14), boar = host.entities.get(id);
+    if (boar === undefined) throw new Error('no boar');
+    const hp = boar.hp;
+    tick.heavy = { targetId: id }; stepFor(host, tick, 20); tick.heavy = null; stepFor(host, tick, 1);
+    expect([longbow.flying(), longbow.state.arrows, longbow.draw.drawT > 0]).toEqual([0, 20, true]); // let down
+    stepFor(host, tick, 30);
+    tick.heavy = { targetId: id }; stepFor(host, tick, 50); tick.heavy = null; stepFor(host, tick, 1);
+    expect([longbow.flying(), longbow.state.arrows]).toEqual([1, 19]);
+    exactAfter(parts, host, 4); // mid-flight: the arrow and the re-nock are the bow's continuation
+    stepFor(host, tick, 20);
+    expect(longbow.flying()).toBe(0);
+    expect(boar.hp).toBeLessThan(hp);
   } finally { host.dispose(); }
 }, 30_000);

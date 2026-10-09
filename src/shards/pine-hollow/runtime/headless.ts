@@ -9,6 +9,9 @@ import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
 import { installPineKing } from './king';
 import { installPineCrossbow } from './weapons/headlessCrossbow';
+import { installPineLever } from './weapons/headlessLever';
+import { installPineLongbow } from './weapons/headlessLongbow';
+import { installPineLoadout, PINE_WEAPON, WEAPON_COMMAND } from './weapons/headlessLoadout';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY } from '../look/dayKeys';
@@ -54,8 +57,10 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * (runtime/elites.ts: the page's own scripts), with their live spawns (an elite's respawn, the Imperial Bull's rivals) and the
  * roar's stun, and the Antler King on the boss row (runtime/king.ts: the page's own fight, combat/kingFight.ts, his prewarm
  * body, his thralls as live spawns, his record on the shard's flags, a fallen King's next night, his damage rule), and
- * the player's crossbow as a real projectile item (runtime/weapons/headlessCrossbow.ts: a command's attack fires at that body). The page's day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the lever
- * rifle and the longbow, the quest and its facts, and the entry proof; `finish` refuses.
+ * the player's three weapons as real projectile items (runtime/weapons/: a command's attack pulls the held crossbow's or
+ * lever-action's trigger at that body, its HEAVY hold draws the longbow, a `pine.weapon` script command swaps). The page's
+ * day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the quest and its facts,
+ * and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
@@ -70,8 +75,11 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     installPine(host, { bake, grid, nav, heightAt, spawnY: shard.spawn.y, saved: context.snapshot, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
-      // a player command's attack pulls the crossbow's trigger at that body
-      shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []) });
+      // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a
+      // `pine.weapon` script command picks a weapon (the tick's last)
+      shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
+      heavy: () => { const held = context.commands().find(command => command.kind === 'player' && command.heavy !== undefined); return held?.kind === 'player' ? held.heavy ?? null : null; },
+      pick: () => context.commands().reduce<number | null>((pick, command) => command.kind === 'script' && command.actorId === WEAPON_COMMAND ? command.value : pick, null) });
   } };
 };
 
@@ -85,13 +93,18 @@ export interface PineInstall {
   readonly dusk?: () => number; readonly night?: () => number;
   /** the platform's fact effect (the Antler King's fall files his ledger fact) */
   readonly fact?: (name: string, entity: string) => void;
-  /** the tick's crossbow shots (the bodies they are aimed at; absent: none) */
+  /** the tick's trigger pulls on the held weapon (the bodies they are aimed at; absent: none) */
   readonly shots?: () => readonly string[];
+  /** the tick's HEAVY hold (the longbow's draw; null when up; absent: never held) */
+  readonly heavy?: () => { readonly targetId?: string | undefined } | null;
+  /** the tick's weapon pick (a PINE_ITEMS slot; null: none; absent: never) */
+  readonly pick?: () => number | null;
 }
 
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
 export function installPine(host: SimHost, parts: PineInstall): {
   roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: ReturnType<typeof installPineCrossbow>;
+  lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof installPineLoadout>;
 } {
   const { bake, grid, nav, heightAt } = parts;
   // the page's own day clock (look/dayKeys.ts PINE_DAY, as PineDayNight builds it), stepped by the host before every step and
@@ -109,15 +122,19 @@ export function installPine(host: SimHost, parts: PineInstall): {
   const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
     spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
     retire: a => { live().retire(a); }, find: id => live().actor(id), night, ...(parts.fact === undefined ? {} : { fact: parts.fact }) });
-  // the player's crossbow, locked through the King's intro: installed before the roster (a restoring roster reinstalls its
-  // live spawns at install, and the host keeps every step in registration order), so its bolts fly before the creatures
-  // move this tick where the page's weapons update after them (a tick's lag on a moving body)
-  const shots = parts.shots ?? ((): readonly string[] => []);
+  // the player's loadout and weapons, locked through the King's intro: installed before the roster (a restoring roster
+  // reinstalls its live spawns at install, and the host keeps every step in registration order), so their shots fly before
+  // the creatures move this tick where the page's weapons update after them (a tick's lag on a moving body); the loadout
+  // steps first (the page's EquipmentService swaps, then updates every weapon)
+  const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null), pick = parts.pick ?? ((): null => null);
+  const loadout = installPineLoadout(host, { pick, locked: () => king.locked() });
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
   const bodyBuffer: AnimalSim[] = [];
   const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
-  const crossbow = installPineCrossbow(host, { shots, enabled: () => !king.locked(), bodies });
+  const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies });
+  const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies });
+  const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies });
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
-  return { roster, elites, king, crossbow };
+  return { roster, elites, king, crossbow, lever, longbow, loadout };
 }
