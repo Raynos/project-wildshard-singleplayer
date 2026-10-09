@@ -10,7 +10,21 @@ import { installCaptain } from './captain';
 import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
 import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../quest/rows';
+import { DRIFTWOOD_INTERACT } from '../quest/interactables';
+import { driftwoodSpots, installDriftwoodQuest } from './quest';
 import navmeshBaked from './navmesh.baked.json' with { type: 'json' };
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { DRIFTWOOD_DAY, type Preset } from '../look/dayKeys';
+
+/** The page's sky clock (look/backdrop.ts, Settings ▸ Time of day 'live', no `?tod`): it starts at 0.2 of the day phase
+ *  (`0.2 * DAY`, DAY = 20 / 24) and runs a 48 min cycle (`CYCLE_S`); test/shards/driftwood-isle holds the two equal. */
+export const DRIFTWOOD_DAY_START = 0.2 * (20 / 24), DRIFTWOOD_CYCLE_S = 48 * 60;
+/** Driftwood's DayCycle exactly as its page sky builds it. */
+export function driftwoodDayClock(): DayCycle<Preset> {
+  const clock = new DayCycle({ ...DRIFTWOOD_DAY, start: DRIFTWOOD_DAY_START });
+  clock.cycle = DRIFTWOOD_CYCLE_S;
+  return clock;
+}
 
 /** The tick protocol's command allowance (sdk/tickProtocol.ts): a tick never carries more. */
 const MAX_COMMANDS = 1024;
@@ -48,28 +62,39 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts), and the
  * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
  * runtime/captain.ts), and the two swords on the swept melee family's own clock (a player command's attack is a light tap at
- * its target; runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts).
- * Not yet owned (fail-closed, see the SF72 handoff): the quest's interactables and their facts (the iron sword's pickup
- * among them: the wooden sword stays in hand), and the entry proof; `finish` refuses.
+ * its target; runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts), and
+ * "The Sealed Ring" with the island's interactables at the page's baked points (`script` commands on `driftwood.interact`:
+ * Wendell, the chest, the beacon, the hold key / pump / winch / strongbox, the shards, the plates and the sluice, the altar,
+ * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).
+ * Not yet owned (fail-closed, see the SF72 handoff): the puzzle barrel's body (the second tide plate), the night respawns,
+ * and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
-  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows);
+  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (runtime/swords.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
+    // the page's own day clock, stepped by the host before every tick's steps (a restoring install builds it again)
+    host.useDayClock(driftwoodDayClock());
     if (!context.restoring) addDriftwoodWorld(host, bake);
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     installCaptain(host, bake, island);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
-    installDriftwoodSwords(host, swords, island, () => {
+    const held = installDriftwoodSwords(host, swords, island, () => {
       const list = context.commands();
       for (let i = 0; i < MAX_COMMANDS; i++) { const command = list[i]; if (command === undefined) break; if (command.kind === 'player' && command.attack !== undefined) return command.attack.targetId; }
       return null;
     });
+    const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
+    const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
     // the kill hooks: the sailor's flag and the kill feats' ledger facts
-    installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); });
+    installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, fact);
+    // the quest and its interactables at the page's points: `script` commands on `driftwood.interact` (runtime/quest.ts)
+    installDriftwoodQuest(host, { quests: shard.quests, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
+      commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
+      floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); } });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
   } };

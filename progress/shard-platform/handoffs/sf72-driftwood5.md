@@ -1,44 +1,47 @@
-# Handoff (sf72-driftwood, part 7) — 2026-10-09, SF72 Driftwood Isle headless
+# Handoff (sf72-driftwood, part 8) — 2026-10-09, SF72 Driftwood Isle headless
 
-Coordinator `wildshard-new` pushes. Supersedes part 6's "Exact next steps". Driftwood's canonical witness
+Coordinator `wildshard-new` pushes. Supersedes part 7's "Exact next steps". Driftwood's canonical witness
 (`test/proof/driftwood-isle/`) is UNCHANGED and still fails closed (its entry is still `runtime/hybrid.ts`).
 
-## Landed (part 7)
+## Landed (part 8, one commit: see the report's SHA)
 
-- `b7fa5ec86` runtime/swords.ts: both swords on `SweptMeleeCore` (84c4aedb2) over the starter moves and the page's
-  profiles (`driftwoodSwordProfiles` = loadout/rows.ts's recipe, built from HEAD's `@wildshard/game/weapons/starterMeleeProfile`,
-  not the stale uncommitted sword-module move). A player command's attack is a light tap at its target (no heavy: the
-  protocol has no hold). Every swing start is the page's 'weapon.fired': `island.alarm()` wakes the live aggressive or
-  sensing load-time bodies through the keeper's `wake(i)` (the captain is never interrupted). In the active window the
-  blade meets the named target once when its skin (head ball / body capsule) is within `reach` of the eye (1.68 m) and
-  `bladeBlocked` is false: `Melee.contact`'s hit (source 'env', tags actor.player / row id / dmg.melee / cover.checked,
-  `move.<name>`, `sweptMoveDamage` rounded: 12 / 12 / 16 on the wood combo), then the page's knockback + `AnimalSim.stagger`,
-  and `island.staggered` → `hunt.staggered` on a fauna body. `equip(0|1)` swaps the hand (stops the other clock).
-  The swords step registers after the keeper, so a wake is a zero step in the keeper's frame.
-- `14fb7f900` runtime/kills.ts: 'actor.died' → `dead:sailor` (Spine.ts) and the kill feats' ledger facts
-  (`driftwood.<id>` for `<id>:<n>`, sailor / crab10 / monkey6, capped at each feat's count; counts are continuation).
-  The test harness's `emit` now collects effects instead of throwing.
+- `runtime/quest.ts` "The Sealed Ring": `DeclaredQuests` (its `driftwood.quest` fact) plus the whole interactables table
+  (quest/interactables.ts) on the engine kit's own rules (shown / locked / prompt radius / interact, walk-in sea glass, the
+  plates' slab overlap against PLAYER + ITEM, the sluice's latch), driven by `script` commands on actor `driftwood.interact`:
+  value 0 = Wendell's talk (`talked:castaway`, 3.2 m from his head), 1 = the iron sword (2.6 m; refused while a drowned
+  sailor stands; `swords.equip(1)`), `100 + i` = table row `i`. The sailor's death drops the hold key where he fell
+  (floor = max(baked floor, hold floor)). The reward beat starts within 7 m of the finale's spot once the captain is dead and
+  sets `seen:reward` 7 s later (the quest completes). The flag feats (castaway, shards, glass, treasure, vista, zipline,
+  quest) emit `driftwood.<id>` / `<id>:<n>` as quest/facts.ts does. Continuation: the key's point, the beat's clock, the iron
+  taken, the feat counts.
+- `scripts/bake-driftwood-spots.mjs` → `runtime/spots.baked.json`: every table row as the page's kit placed it (+ prompt
+  point, the sluice's collider), Wendell's talk point, the sword's prompt, the reward spot (`finale.rewardAt`). Baked from
+  a3fae021c's preview, two equal captures. No inputs-hash freshness guard yet (the test only holds ids / kinds to the table).
+- The day clock (b109b957c): `host.useDayClock(driftwoodDayClock())` on every install (look/backdrop.ts's 0.2·DAY start,
+  48 min cycle; the test reads backdrop.ts's two spellings). Nothing reads it yet.
+- keeper.ts fix: a restored body takes its saved `levelGround` (a restored world answers no scene query before its first
+  step, so the captain's pool deck was missed and his corpse drifted 0.4 m after a restore).
 
-## Still different from the browser (keeper.ts / swords.ts headers)
+## Still different from the browser
 
-1. A charge's contact is tested at the next tick's start: one tick late.
-2. No 'target.dodge' wake (the tick protocol has no dodge); no `clearBody`.
-3. The coconuts' swell runs on `host.clock.now`.
-4. Swords: no camera-space sweep rays (the command's target is the crosshair's), no lunge dash, no hit-stop, no clang,
-   no heavy. The swing wake is not directly asserted by a test (only through exact restore).
+1-4 as part 7 (charge contact a tick late; no dodge wake / clearBody; coconut swell on host clock; sword sweep details).
+5. Quest: no prompt line of sight; no nearest-prompt pick (the command names its row); chest doubloons are pack items (no
+   effect); the reward view does not carry the player; no zipline; the shown strongbox and the open sluice keep the baked
+   load-time colliders.
 
 ## Exact next steps (in order)
 
-1. **The quest's interactables headless** (quest/interactables.ts `DRIFTWOOD_INTERACT`, questLine.ts): the castaway talk
-   (`talked:castaway`), the chest (`has:flint`), the beacon (`lit:beacon`) and lookout shard, the hold key (dropped at
-   the sailor's death point; `kit.moveTo`) → pump → winch → strongbox (`shard:wreck`), the tide plates + barrel + sluice
-   (`open:sluice`, a pushable barrel in the host's physics — the hard one), the cave shard, the altar (`used:altar`, which
-   already spawns the captain), the reward view (`seen:reward`), and the iron sword pickup (guarded while a sailor lives,
-   then `swords.equip(1)`). Every anchor's world point must come from the bake (extend scripts' Driftwood bake with the
-   resolved interactable spots, as Signal's `signalSpots()`), driven by `script` commands at the page's prompt radii
-   from the eye (Signal's runtime/quest.ts is the pattern), through `DeclaredQuests` with the fact / coins ports. Then
-   the feats from flags (quest/Feats.ts: castaway, shards, quest, glass, treasure, vista, zipline).
-2. `proveEntries`, then the witness on `runtime/headless.ts` with bands (10k, a captain mid-fight replay checkpoint,
-   ledger); point `test/proof/driftwood-isle/run.mjs` at the trusted entry and flip `compatibility.json` only from a real run.
+1. **The puzzle barrel needs an engine seam (coordinator):** the host's player motor is `blockedBy: ['WORLD','PLAYER',
+   'CREATURE']` (sim.ts `motor()`), the browser player's is `['WORLD','CREATURE','ITEM']` with mass 80, so a headless player
+   cannot push an ITEM barrel. With a seam (level / port opt-in to ITEM), spawn `BARREL_BODY` (copy the spec renderer-free;
+   Interactables.ts imports the app) at row `tide-barrel` through a `Bodies` service, add BarrelWatch's leash / lost /
+   wedged rules, and plate b presses → `open:sluice` → the cave shard. Until then the quest cannot finish headless.
+2. **Night respawns (Ecology.ts)**: the RespawnQueue on the 'spawn' stream, the sailor's night gate on `host.dayClock.night`.
+3. **Entry proof**: probed on the baked world + `installDeclaredPropColliders(propColliderDescriptors(shard.props))`: the
+   centre lanes walk 50 m onto every pier / jetty (feet up to 1.23 m), the outer lanes (±3.65 m) step off the jetty's side
+   at 16.5 m into the lowered sea, as on the page. Define the off-socket route (lanes converge onto the deck after the
+   landing) before writing `proveEntries`. Host must `step()` once before any ray (scene queries).
+4. The witness on `runtime/headless.ts` (10k, a captain mid-fight replay checkpoint, ledger from gameplay); point
+   `run.mjs` at the trusted entry; flip `compatibility.json` only from a real run.
 
 Plan-State: unchanged.

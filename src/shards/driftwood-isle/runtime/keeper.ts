@@ -441,7 +441,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (recipe.id !== body.id) throw new Error(`Incompatible saved Driftwood body ${body.id}`);
     body.recipe.seed = recipe.seed; body.recipe.scale = recipe.scale; body.recipe.at.x = recipe.at.x; body.recipe.at.y = recipe.at.y; body.recipe.at.z = recipe.at.z;
     floor(recipe.at.x, recipe.at.z, recipe.at.y + 1);
-    materialize(body, body.recipe, under.structure);
+    // a restored world answers no scene query before its first step (the captain's pool deck was missed, his corpse then
+    // smoothed to the terrain under it): the saved body says whether it stood on a structure
+    const level = saved.entities.find(entity => entity.id === body.id)?.state.flags.levelGround;
+    materialize(body, body.recipe, level ?? under.structure);
     // a fauna body's memory: the keeper's restore overwrites it and the stream it drew from
     if (body.actor !== null && FAUNA.has(body.kind)) hunt.adopt(body.actor, recipe.at.x, recipe.at.z);
   };
