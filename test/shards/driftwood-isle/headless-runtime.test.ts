@@ -12,7 +12,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { Rng } from '../../../src/engine/core/rng';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
-import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
+import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { DRIFTWOOD_ISLE, PRACTICE_CRAB } from '../../../src/shards/driftwood-isle/manifest';
 import { MONKEY } from '../../../src/shards/driftwood-isle/species/monkey';
@@ -22,6 +22,7 @@ import { CAPTAIN_SCALE, DRIFTWOOD_FIGHT, FAUNA_DRAWS, ISLAND_STEP } from '../../
 import { ALTAR_FLAG, CAPTAIN_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/captain';
 import { CAPTAIN } from '../../../src/shards/driftwood-isle/species/captain';
 import { SWORDS_STEP, driftwoodSwordProfiles } from '../../../src/shards/driftwood-isle/runtime/swords';
+import { KILLS_STEP, SAILOR_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/kills';
 import { SWORD_IRON, SWORD_WOOD } from '../../../src/game/weapons/starterMeleeProfile';
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
@@ -35,8 +36,10 @@ beforeAll(async () => {
 });
 /** the tick's commands every booted host reads (the swords' attack taps); empty unless a test fills it */
 let tape: readonly HeadlessCommand[] = [];
-const effects = { commands: () => tape, emit: () => { throw new Error('the island keeper emits no gameplay effects'); } };
-const boot = (): SimHost => { tape = []; const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
+/** the effects the hosts emitted (the kill feats' ledger facts) */
+const emitted: HeadlessEffect[] = [];
+const effects = { commands: () => tape, emit: (effect: HeadlessEffect) => { emitted.push(effect); } };
+const boot = (): SimHost => { tape = []; emitted.length = 0; const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
 const restore = (saved: string): SimHost => {
   const decoded = decodeSimSnapshot(saved), ports = { ...plan.ports, rapier };
   return restoreSimHost(plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, { restoring: true, snapshot: decoded, ...effects }); });
@@ -333,6 +336,26 @@ it('swings the swords on the swept melee clock: the combo\'s blows land on the n
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { tape = []; restored?.dispose(); original.dispose(); }
 }, 60_000);
+
+it('files the kill hooks: the sailor\'s death sets dead:sailor, each kill of a feat\'s kind emits its ledger fact up to the feat\'s count, and the counts restore', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const crabs = [...original.entities].filter(([, a]) => a.kind === 'crab').map(([id]) => id), sailor = [...original.entities].find(([, a]) => a.kind === 'sailor')?.[0];
+    if (sailor === undefined || crabs.length < 3) throw new Error('missing the sailor or the crabs');
+    // the pipeline's death events reach their listeners at the tick's flush
+    crabs.slice(0, 2).forEach(id => { kill(original, id); }); original.step();
+    expect(emitted).toEqual([{ kind: 'fact', name: 'driftwood.crab10', actorId: 'crab10:1' }, { kind: 'fact', name: 'driftwood.crab10', actorId: 'crab10:2' }]);
+    expect(original.flags.has(SAILOR_DEAD_FLAG)).toBe(false);
+    kill(original, sailor); original.step(); kill(original, sailor); original.step();
+    expect(original.flags.has(SAILOR_DEAD_FLAG)).toBe(true);
+    expect(emitted.slice(2)).toEqual([{ kind: 'fact', name: 'driftwood.sailor', actorId: 'sailor:1' }]); // a dead body dies once
+    expect(snapshotSimHost(original).adapters.find(a => a.id === KILLS_STEP)?.state).toEqual({ sailor: 1, crab10: 2, monkey6: 0 });
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    emitted.length = 0;
+    kill(restored, crabs[2] ?? ''); restored.step();
+    expect(emitted).toEqual([{ kind: 'fact', name: 'driftwood.crab10', actorId: 'crab10:3' }]);
+  } finally { restored?.dispose(); original.dispose(); }
+});
 
 it('refuses a saved roster whose recipe no longer matches the baked spec', () => {
   const host = boot();

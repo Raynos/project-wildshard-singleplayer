@@ -8,6 +8,8 @@ import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captain';
 import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
+import { installDriftwoodKills } from './kills';
+import { DRIFTWOOD_FEATS } from '../quest/rows';
 import navmeshBaked from './navmesh.baked.json' with { type: 'json' };
 
 /** The tick protocol's command allowance (sdk/tickProtocol.ts): a tick never carries more. */
@@ -46,8 +48,9 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts), and the
  * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
  * runtime/captain.ts), and the two swords on the swept melee family's own clock (a player command's attack is a light tap at
- * its target; runtime/swords.ts). Not yet owned (fail-closed, see the SF72 handoff): the quest and its facts (the iron
- * sword's pickup among them: the wooden sword stays in hand), and the entry proof; `finish` refuses.
+ * its target; runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts).
+ * Not yet owned (fail-closed, see the SF72 handoff): the quest's interactables and their facts (the iron sword's pickup
+ * among them: the wooden sword stays in hand), and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows);
@@ -65,6 +68,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
       for (let i = 0; i < MAX_COMMANDS; i++) { const command = list[i]; if (command === undefined) break; if (command.kind === 'player' && command.attack !== undefined) return command.attack.targetId; }
       return null;
     });
+    // the kill hooks: the sailor's flag and the kill feats' ledger facts
+    installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
   } };
