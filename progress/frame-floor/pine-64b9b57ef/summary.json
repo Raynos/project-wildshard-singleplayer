@@ -1,0 +1,117 @@
+{
+  "sha": "64b9b57ef84dc41cd19ddd62ed033dd8d33dca88",
+  "surface": "desktop",
+  "developer": true,
+  "tier": "desktop",
+  "renderScale": 2,
+  "viewport": [
+    1440,
+    900
+  ],
+  "framesPerPose": 120,
+  "complete": true,
+  "pass": false,
+  "elapsedSeconds": 393.086,
+  "errors": [],
+  "contextLost": false,
+  "simulatorIdle": true,
+  "rows": [
+    {
+      "pose": {
+        "name": "spawn",
+        "x": -3.13341533811351e-06,
+        "y": 0.011699999573465902,
+        "z": -234.99999981140508,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "medianFps": 59.524,
+      "p95Ms": 66.7,
+      "p99Ms": 83.4,
+      "workP95Ms": 17.7,
+      "gameP95Ms": 60.1,
+      "calls": 271,
+      "triangles": 8210408,
+      "cpuPass": true,
+      "pass": false,
+      "miss": "frame cost / scheduling",
+      "trustedPineCpuP95Ms": 0.6999998092651367
+    },
+    {
+      "pose": {
+        "name": "cabin",
+        "x": -14,
+        "z": -62,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "medianFps": 20,
+      "p95Ms": 83.4,
+      "p99Ms": 100,
+      "workP95Ms": 16.4,
+      "gameP95Ms": 82.8,
+      "calls": 276,
+      "triangles": 7811667,
+      "cpuPass": true,
+      "pass": false,
+      "miss": "frame cost / scheduling",
+      "trustedPineCpuP95Ms": 0.7000002861022949
+    },
+    {
+      "pose": {
+        "name": "gate",
+        "x": 0,
+        "z": -200,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "medianFps": 20,
+      "p95Ms": 66.7,
+      "p99Ms": 83.3,
+      "workP95Ms": 17.7,
+      "gameP95Ms": 72.3,
+      "calls": 261,
+      "triangles": 8176648,
+      "cpuPass": true,
+      "pass": false,
+      "miss": "frame cost / scheduling",
+      "trustedPineCpuP95Ms": 0.9000000953674316
+    }
+  ],
+  "load": {
+    "wholeDetachedRun": {
+      "start": "2026-10-09T22:10:07",
+      "end": "2026-10-09T22:16:47.999",
+      "samples": 400,
+      "oneMinuteMedian": 23.69970703125,
+      "oneMinuteMin": 13.52001953125,
+      "oneMinuteMax": 48.60595703125
+    },
+    "pageBootAndMeasurements": {
+      "start": "2026-10-09T22:15:37",
+      "end": "2026-10-09T22:16:40.983",
+      "samples": 64,
+      "oneMinuteMedian": 16.34521484375,
+      "oneMinuteMin": 14.07275390625,
+      "oneMinuteMax": 19.5966796875
+    },
+    "finalPoseWindow": {
+      "start": "2026-10-09T22:16:10",
+      "end": "2026-10-09T22:16:40.983",
+      "samples": 31,
+      "oneMinuteMedian": 15.35009765625,
+      "oneMinuteMin": 14.07275390625,
+      "oneMinuteMax": 16.34521484375
+    }
+  },
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  },
+  "limitations": [
+    "Other game browsers and shared-machine work were active. This is a recorded floor failure under that load, not an isolated GPU-cost attribution.",
+    "Historical preview initially failed before acquiring a browser; af7e01750 fixes the missing pure preview module. This result is the subsequent completed exact-pin run."
+  ]
+}
