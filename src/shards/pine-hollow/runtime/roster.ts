@@ -18,15 +18,10 @@ import type { PineBake } from './baked';
 export const ROSTER_STEP = 'pine.roster';
 /** The manager's list at load (160 herd bodies and the 4 lair elites): every keeper loop is bounded by it. */
 const BODY_COUNT = 164;
-/** The scheduler's 'ai' rate (app/scheduler.ts AI; Pine overrides no tier ticks): decisions at 20 Hz within 60 m of the player,
- *  10 Hz to 160 m, paused beyond (the time away discarded). A scripted elite is pinned: it thinks every frame ('always'). */
-const NEAR = 60, FAR = 160, NEAR_HZ = 20, FAR_HZ = 10;
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
 const HUNT_BODY = { hidden: false, sampleTerrain: (): void => undefined };
 /** combat/ctx.ts SCRIPTED: the state a fight's own animal holds (the manager's loop leaves it alone). */
 const SCRIPTED = 'sidestep';
-/** The host's fixed step (s): a blow lands between steps, its wake takes one frame for a new subject's clock. */
-const FRAME = 1 / 60;
 
 /** One manager body: its id and kind, the live host actor, and whether a fight scripts it (an elite). */
 export interface PineBody { readonly id: string; readonly kind: string; readonly actor: HuntBody; readonly scripted: boolean }
@@ -43,8 +38,8 @@ export interface PineRosterPorts {
 const finite = v.pipe(v.number(), v.finite());
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 const Memory = v.record(v.string(), v.union([finite, v.boolean(), v.array(v.tuple([finite, finite, finite]))]));
-const Saved = v.strictObject({ version: v.literal(1), rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
-  bodies: v.array(v.strictObject({ id: v.string(), clock: v.tuple([v.nullable(finite), finite, finite]), seen: v.boolean(), memory: Memory })),
+const Saved = v.strictObject({ version: v.literal(2), rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
+  bodies: v.array(v.strictObject({ id: v.string(), seen: v.boolean(), memory: Memory })),
   herds: v.array(v.tuple([finite, finite])) });
 type SavedMemory = v.InferOutput<typeof Memory>;
 const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Pine hunting path'); return [p.x, p.y, p.z]; };
@@ -78,21 +73,27 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * control: out of its herd, scripted). Every body stands on the manager's creature floor (the first WORLD hit under its
  * spawn ray; the terrain when that is the ground's heightfield) and is adopted by the hunting brain (three more draws).
  *
- * Every tick, in the manager's list order: the herds' decisions on the scheduler's 'ai' clock (20 Hz within 60 m, 10 Hz to
- * 160 m, paused beyond) and a pinned elite's every frame (its state is the fight's: the brain's ambient calls and confine
+ * The host runs on the page's distance bands (`useBodyBands`: the bodies' 'ai' update rate and the creature body LOD), and
+ * every tick, in the manager's list order: the herds' decisions on the band's brain clock (`brainDt`: 20 Hz within 60 m,
+ * 10 Hz to 160 m, paused beyond) and a pinned elite's every frame (its state is the fight's: the brain's ambient calls and confine
  * still run, as the page's do), a 'lost.sight' wake when a stalking / charging / alert hunter loses its line to the player,
  * the hit reaction and its wake on a non-lethal blow, and a running charge on the body clock (`advanceCharge`), its contact
  * filed as the page's PlayerHurt.creature files it (`feel.blow`: the host knocks the player back). The player's noise is the
  * manager's smoothed ground speed (the headless player never sprints).
  *
- * Not yet owned (fail-closed, progress/shard-platform/handoffs/sf72-pine.md): the elites' fights (EliteGoals over a
- * renderer-free lane), the Antler King, the rain's wander goals, the bodies' 'half' / 'paused' update bands and the physics
- * body LOD (the host steps and collides every body every tick: an engine host seam).
+ * Not yet owned (fail-closed, progress/shard-platform/handoffs/sf72-pine.md): the elites' fights (EliteGoals and the bare
+ * lane run renderer-free; the headless EliteScripts and the elite system's engage / leash / phase / respawn do not yet), the
+ * Antler King and the rain's wander goals.
  */
 export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: HuntBrain<HuntBody>;
 } {
   const { bake, grid } = ports, rng = new Rng(PINE_HERD_STREAM), player = host.player.position;
+  // the page's distance bands (engine/sim/bands.ts, Pine overrides no tier ticks): the scheduler's 'ai' rate for the herds
+  // (every frame within 60 m, every other frame to 160 m, paused beyond; decisions at 20 / 10 Hz), 'always' for a scripted
+  // elite (pinned: it thinks every frame), and the creature body LOD (a capsule within 45 m, released past 55). Before any
+  // spawn, and on a restoring host before the host restores its clocks.
+  host.useBodyBands({ rate: body => body.driven || body.scripted || body.state === SCRIPTED ? 'always' : 'ai' });
   const kingRow = bake.parked[0];
   if (kingRow?.kind !== PINE_KING_KIND) throw new Error('Pine bake has no Antler King prewarm');
   const species = pineSpawnSpecies({ id: kingRow.variant, label: kingRow.spec.label, weight: 1, rarity: kingRow.spec.rarity, scale: [kingRow.scale, kingRow.scale] });
@@ -167,22 +168,9 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   if (list.length !== BODY_COUNT || bake.actors.length !== BODY_COUNT || list.some((b, i) => { const row = bake.actors[i]; return row === undefined || b.id !== row.id || b.scripted !== row.scripted; })
     || hunt.herds.length !== bake.herds.length || hunt.herds.some((h, i) => JSON.stringify(h.members.map(m => m.entityId)) !== JSON.stringify(bake.herds[i]?.members))) throw new Error('Pine roster diverges from the page\'s list');
 
-  const last = Array.from({ length: BODY_COUNT }, (): number | null => null), elapsed = new Float64Array(BODY_COUNT), credit = new Float64Array(BODY_COUNT), seen = Array.from({ length: BODY_COUNT }, () => false);
+  const seen = Array.from({ length: BODY_COUNT }, () => false);
   const speed = { init: false, x: 0, z: 0, v: 0 };
   let clock = 0;
-  /** TickScheduler.due (brain side) for body `i`: credit at its band's rate, elapsed time as its dt; an interrupt wakes it now. */
-  const due = (i: number, a: HuntBody, scripted: boolean, urgent: boolean, dt: number): number => {
-    const now = host.clock.now, d = Math.hypot(a.position.x - player.x, a.position.y - player.y, a.position.z - player.z);
-    const hz = scripted || a.state === SCRIPTED ? Infinity : d < NEAR ? NEAR_HZ : d < FAR ? FAR_HZ : 0;
-    const step = now - (last[i] ?? now - dt); // a new subject starts a frame ago
-    last[i] = now;
-    if (hz === 0) { elapsed[i] = 0; credit[i] = 0; } else { elapsed[i] = (elapsed[i] ?? 0) + step; credit[i] = (credit[i] ?? 0) + step; }
-    if (!urgent && (hz === 0 || (credit[i] ?? 0) + 1e-9 < 1 / hz)) return 0;
-    const brainDt = elapsed[i] ?? 0;
-    elapsed[i] = 0;
-    credit[i] = urgent || hz === Infinity ? 0 : Math.max(0, (credit[i] ?? 0) - Math.floor(((credit[i] ?? 0) + 1e-9) * hz) / hz);
-    return brainDt;
-  };
   const decide = (a: HuntBody, dt: number): void => { if (dt > 0) hunt.think(a, dt, player, false, speed.v); };
   // AnimalManager.damaged: a death stops its timer; a blow that does not kill is the brain's hit reaction and wakes it now
   host.events.on('damage.dealt', ({ req, killed }) => {
@@ -190,7 +178,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     if (body === undefined) return;
     if (killed) { hunt.died(body.actor); return; }
     hunt.hurt(body.actor);
-    if (body.actor.alive) decide(body.actor, due(i, body.actor, body.scripted, true, FRAME));
+    if (body.actor.alive) decide(body.actor, host.brainDt(body.id, true));
   }, host.scope);
 
   host.onStep(ROSTER_STEP, dt => {
@@ -207,14 +195,19 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
         const line = canReach(a, player, host.physics);
         urgent = seen[i] === true && !line; seen[i] = line;
       }
-      decide(a, due(i, a, body.scripted, urgent, dt));
+      decide(a, host.brainDt(body.id, urgent));
     }
-    for (let i = 0; i < BODY_COUNT; i++) { const a = list[i]?.actor; if (a?.alive === true && !a.stunned && a.state === 'charge') hunt.advanceCharge(a, dt, player); }
+    // a running charge on the body clock: its band's step (0 on a paused or off frame, both frames' time on the next)
+    for (let i = 0; i < BODY_COUNT; i++) {
+      const body = list[i], a = body?.actor;
+      if (body === undefined || a?.alive !== true || a.stunned || a.state !== 'charge') continue;
+      const step = host.bodyDt(body.id); if (step > 0) hunt.advanceCharge(a, step, player);
+    }
   }, {
-    snapshot: () => ({ version: 1, rng: { ...rng.snapshot() }, clock, speed: { ...speed },
+    snapshot: () => ({ version: 2, rng: { ...rng.snapshot() }, clock, speed: { ...speed },
       bodies: list.map((b, i) => {
         const memory = hunt.memory(b.actor); if (memory === undefined) throw new Error(`Pine body ${b.id} has no memory`);
-        return { id: b.id, clock: [last[i] ?? null, elapsed[i] ?? 0, credit[i] ?? 0] as [number | null, number, number], seen: seen[i] === true, memory: saveMemory(memory) };
+        return { id: b.id, seen: seen[i] === true, memory: saveMemory(memory) };
       }),
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]) }),
     restore: value => {
@@ -226,7 +219,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
       state.bodies.forEach((b, i) => {
         const body = list[i], memory = body === undefined ? undefined : hunt.memory(body.actor);
         if (memory === undefined) throw new Error('Incompatible Pine roster continuation');
-        [last[i], elapsed[i], credit[i]] = b.clock; seen[i] = b.seen; loadMemory(memory, b.memory);
+        seen[i] = b.seen; loadMemory(memory, b.memory);
       });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
     },

@@ -1,31 +1,41 @@
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { PineCtx, LaneCharge } from '../combat/ctx';
+import type { Vector3 } from 'three';
+import type { BrainPoint } from '@wildshard/engine/ai/strikes';
+import type { Lane, LaneBody } from '../combat/lane';
+import type { PhShot } from './audio/sfx';
 import { headingTo } from '../combat/combatMath';
 import { pineContact, PINE_STRIKES } from '../combat/strikes';
 
 interface GoalTell { setTime: (t: number) => void; ring: (x: number, z: number, radius: number, alpha: number) => void; hide: () => void }
+/** What the King's goals read of the world, renderer-free (the page's PineCtx satisfies it over its Animal). */
+export interface KingGoalEnv<B extends LaneBody> {
+  reach: (actor: B, target: BrainPoint) => boolean;
+  player: { readonly position: Vector3 };
+  hurt: (a: B, dmg: number, throughWalls?: boolean) => void;
+  trauma: (k: number) => void;
+  shot: (name: PhShot, at: Vector3) => void;
+}
 const SWEEP_REACH = 7.1, SWEEP_R = SWEEP_REACH - 0.38, STALK_NEAR = 0.9 * SWEEP_REACH, STOMP_R = 4.4;
 
-/** The King's complete move policy. The adapter supplies arena hazards, animation and tells. */
-export abstract class AntlerKingGoals {
+/** The King's complete move policy, renderer-free over any lane body (SF72). The adapter supplies arena hazards, animation and tells. */
+export abstract class AntlerKingGoals<B extends LaneBody> {
   phase = 0;
   mode = 'dormant';
   protected modeT = 0;
   protected sweepCd = 2; protected stompCd = 4; protected callCd = 0; protected laneN = 0;
   protected open = 0;
-  protected abstract readonly ctx: Pick<PineCtx, 'reach' | 'player' | 'hurt' | 'trauma' | 'shot'>;
+  protected abstract readonly ctx: KingGoalEnv<B>;
   protected abstract readonly tellRing: GoalTell;
   protected abstract readonly waves: readonly { on: boolean }[];
-  protected abstract readonly lane: LaneCharge;
-  protected abstract tickWaves(k: Animal, dt: number, t: number): void;
-  protected abstract stompNow(k: Animal): void;
+  protected abstract readonly lane: Lane<B>;
+  protected abstract tickWaves(k: B, dt: number, t: number): void;
+  protected abstract stompNow(k: B): void;
   protected abstract aliveThralls(): number;
   protected abstract callThralls(n: number): void;
-  protected abstract action(k: Animal, action: 'roar' | 'sweep' | 'strike' | 'brace'): void;
-  protected abstract roar(k: Animal): void;
+  protected abstract action(k: B, action: 'roar' | 'sweep' | 'strike' | 'brace'): void;
+  protected abstract roar(k: B): void;
   protected setMode(mode: string): void { this.mode = mode; this.modeT = 0; }
 
-  protected fight(k: Animal, dt: number, t: number): void {
+  protected fight(k: B, dt: number, t: number): void {
     const p = this.ctx.player.position;
     const d = Math.hypot(p.x - k.position.x, p.z - k.position.z), yaw = headingTo(k.position.x, k.position.z, p.x, p.z);
     this.sweepCd -= dt; this.stompCd -= dt; this.callCd -= dt;

@@ -136,7 +136,7 @@ class Dim {
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color();
 
-export class AntlerKingFight extends AntlerKingGoals implements BossScript {
+export class AntlerKingFight extends AntlerKingGoals<Animal> implements BossScript {
   king: Animal | null = null;
   look: KingLook | null = null;
   private invuln = false; private lockHp = 0;

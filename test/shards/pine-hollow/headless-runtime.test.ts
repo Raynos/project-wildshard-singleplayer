@@ -147,6 +147,8 @@ it('restores exactly at install, mid-walk and mid-fight, by an identical install
       for (let tick = 0; tick < 600; tick++) { walk(original); walk(restored); }
       expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
       expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === ROSTER_STEP)).toBe(true);
+      // the host runs on the page's distance bands and the body LOD; their clocks ride the snapshot
+      expect(original.bodyBands).toEqual({ physics: true }); expect(snapshotSimHost(original).bands).toBeDefined();
     } finally { restored?.dispose(); original.dispose(); }
   }
 }, 120_000);
