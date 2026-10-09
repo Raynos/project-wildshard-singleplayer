@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { Buffer } from 'node:buffer';
 import { skinnedModel } from '@wildshard/sdk/skinnedModel';
 import { bakeSkyCreatures, skyCreatureBodies } from '../../../src/shards/far-reach/generators/creatures';
-import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../../../src/shards/far-reach/data/creatures';
+import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../../../src/shards/far-reach/boot/files';
 
 const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${url}`));
 const bytes = (array: ArrayLike<number> & { buffer: ArrayBufferLike; byteOffset: number; byteLength: number }): Buffer => Buffer.from(array.buffer, array.byteOffset, array.byteLength);

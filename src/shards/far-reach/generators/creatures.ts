@@ -2,7 +2,8 @@ import { Color, Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttrib
 import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from '@wildshard/sdk/bake/skinned';
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid, facetedGeometry, fit, hdGeometry } from '../world/meshes';
-import { SKY_CREATURE_SOURCES, type SkyCreature, type SkyCreatureExtras } from '../data/creatures';
+import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from '../data/creatures';
+import type { SkyCreature } from '../boot/files';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, the offline skinned-model bake): Sky Reach's three generated creature bodies, baked by
