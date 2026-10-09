@@ -3,6 +3,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 import pathlib
 import sys
 import tempfile
@@ -16,6 +17,13 @@ SPEC.loader.exec_module(PHASES)
 
 
 class Intervals(unittest.TestCase):
+    def test_libproc_listing_finds_this_process_under_its_parent(self):
+        table = PHASES.wd.process_table()
+        me = os.getpid()
+        self.assertEqual(table[me][0], os.getppid())
+        found = PHASES.wd.simulator_processes(os.getppid(), pathlib.Path(PHASES.wd.process_path(me, '')).name)
+        self.assertIn(me, found)
+
     def test_sample_interval_high_is_opt_in_and_phase_peaks_are_preserved(self):
         for fresh in (False, True):
             with tempfile.TemporaryDirectory() as scratch:
@@ -67,6 +75,11 @@ class Intervals(unittest.TestCase):
                 self.assertEqual(summary['gameHighGB'], 0.4)
                 self.assertEqual(summary['allWebContentGB'], 0.4)
                 self.assertEqual(rows[-1]['lost'], [])
+                # SF57: the sampler promotes its thread's QoS and records the load and its read time per sample.
+                self.assertEqual(rows[0]['type'], 'policy')
+                self.assertIn(rows[0]['qos'], ('user-interactive', rows[-1]['qos']))
+                self.assertTrue(all(isinstance(row['load'], float) and row['readMs'] >= 0 for row in samples))
+                self.assertEqual(rows[-1]['load']['max'], max(row['load'] for row in samples))
                 if fresh:
                     self.assertEqual(samples[0]['processIdentities'], {
                         'webContent': {'7': {'startAbstime': 123, 'footprintBytes': 400_000_000,

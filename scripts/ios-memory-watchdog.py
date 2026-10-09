@@ -68,17 +68,70 @@ def command(args):
     return result.stdout.strip()
 
 
+class ProcBsdInfo(ctypes.Structure):
+    # macOS SDK sys/proc_info.h, struct proc_bsdinfo (PROC_PIDTBSDINFO). It reads only the kernel's proc
+    # record, never the target's memory.
+    _fields_ = [(name, ctypes.c_uint32) for name in (
+        'pbi_flags', 'pbi_status', 'pbi_xstatus', 'pbi_pid', 'pbi_ppid', 'pbi_uid', 'pbi_gid', 'pbi_ruid',
+        'pbi_rgid', 'pbi_svuid', 'pbi_svgid', 'rfu_1')] + [
+        ('pbi_comm', ctypes.c_char * 16), ('pbi_name', ctypes.c_char * 32)] + [
+        (name, ctypes.c_uint32) for name in ('pbi_nfiles', 'pbi_pgid', 'pbi_pjobc', 'e_tdev', 'e_tpgid')] + [
+        ('pbi_nice', ctypes.c_int32), ('pbi_start_tvsec', ctypes.c_uint64), ('pbi_start_tvusec', ctypes.c_uint64)]
+
+
+_LIBPROC = None
+
+
+def _libproc():
+    global _LIBPROC
+    if _LIBPROC is None:
+        lib = ctypes.CDLL('/usr/lib/libproc.dylib', use_errno=True)
+        lib.proc_listallpids.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        lib.proc_listallpids.restype = ctypes.c_int
+        lib.proc_pidinfo.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_uint64, ctypes.c_void_p, ctypes.c_int]
+        lib.proc_pidinfo.restype = ctypes.c_int
+        lib.proc_pidpath.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_uint32]
+        lib.proc_pidpath.restype = ctypes.c_int
+        _LIBPROC = lib
+    return _LIBPROC
+
+
+def process_table():
+    """Every readable process as {pid: (ppid, name)}, from libproc in-process.
+
+    SF57 (2026-10-09): this replaced a `ps -axo pid=,ppid=,comm=` fork per call. `ps` reads each process's
+    arguments out of its memory (KERN_PROCARGS2), so one busy or swapping process could hold a 1 Hz sampler
+    for seconds; a 9 s native-sampler gap during boot loading failed a qualifying soak's sampling that way.
+    """
+    lib = _libproc()
+    count = lib.proc_listallpids(None, 0)
+    if count <= 0:
+        raise RuntimeError(f'proc_listallpids failed: errno {ctypes.get_errno()}')
+    pids = (ctypes.c_int * (count + 256))()
+    count = lib.proc_listallpids(pids, ctypes.sizeof(pids))
+    if count <= 0:
+        raise RuntimeError(f'proc_listallpids failed: errno {ctypes.get_errno()}')
+    info, size, rows = ProcBsdInfo(), ctypes.sizeof(ProcBsdInfo), {}
+    for pid in pids[:count]:
+        if pid > 0 and lib.proc_pidinfo(pid, 3, 0, ctypes.byref(info), size) == size:
+            rows[pid] = (info.pbi_ppid, (info.pbi_name or info.pbi_comm).decode('utf-8', 'replace'))
+    return rows
+
+
+def process_path(pid, fallback):
+    buffer = ctypes.create_string_buffer(4096)
+    length = _libproc().proc_pidpath(pid, buffer, ctypes.sizeof(buffer))
+    return buffer.raw[:length].decode('utf-8', 'replace') if length > 0 else fallback
+
+
 def simulator_processes(manager_pid, executable_name='com.apple.WebKit.WebContent'):
     # All WebContent processes under this Simulator's launchd, including prewarmed
     # processes. Avoid desktop Safari and every other booted Simulator.
-    rows = {}
-    for line in command(['/bin/ps', '-axo', 'pid=,ppid=,comm=']).splitlines():
-        parts = line.strip().split(None, 2)
-        if len(parts) == 3:
-            rows[int(parts[0])] = (int(parts[1]), parts[2])
+    rows = process_table()
     selected = {}
-    for pid, (_, path) in rows.items():
-        if pathlib.PurePath(path).name != executable_name:
+    for pid, (_, name) in rows.items():
+        # The kernel keeps 31 characters of the name; the executable path settles a longer one.
+        if name != executable_name[:31]:
             continue
         ancestor = pid
         visited = set()
@@ -86,7 +139,9 @@ def simulator_processes(manager_pid, executable_name='com.apple.WebKit.WebConten
             visited.add(ancestor)
             ancestor = rows[ancestor][0]
             if ancestor == manager_pid:
-                selected[pid] = path
+                path = process_path(pid, executable_name)
+                if pathlib.PurePath(path).name == executable_name:
+                    selected[pid] = path
                 break
     return selected
 

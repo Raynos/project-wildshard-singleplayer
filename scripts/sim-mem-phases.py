@@ -6,6 +6,10 @@ The sampler behind scripts/nine-sim-memory.mjs. It reuses scripts/ios-memory-wat
 each phase start, so a burst between two samples still counts toward the phase it happened in.
 
 The phase is the text in --phase-file, written by the driver. 'done' ends the run.
+It runs its thread at the user-interactive QoS class (no root needed; `nice -n -5` would need it) and lists processes
+through libproc in-process, so a loaded Mac does not stall it. Every sample records the 1-minute load average and how
+long the read took (`readMs`), so a gap names its cause (SF57, 2026-10-09).
+
 The summary names the game tab's process: the WebContent PID with the highest interval high.
 Its other numbers:
   - the sum over every WebContent process in that Simulator (a ~0.04 GB prewarmed one included);
@@ -14,9 +18,11 @@ Its other numbers:
   python3 scripts/sim-mem-phases.py --device <udid> --phase-file <f> --out <new .jsonl> [--max 900]
 """
 import argparse
+import ctypes
 import datetime
 import importlib.util
 import json
+import os
 import pathlib
 import sys
 import time
@@ -27,6 +33,19 @@ if spec is None or spec.loader is None:
 wd = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(wd)
 GB = 1e9
+QOS_CLASS_USER_INTERACTIVE = 0x21
+
+
+def raise_priority():
+    # pthread_set_qos_class_self_np(3): a user process may promote its own thread to user-interactive.
+    try:
+        system = ctypes.CDLL('/usr/lib/libSystem.B.dylib')
+        system.pthread_set_qos_class_self_np.argtypes = [ctypes.c_uint, ctypes.c_int]
+        system.pthread_set_qos_class_self_np.restype = ctypes.c_int
+        code = system.pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0)
+        return 'user-interactive' if code == 0 else f'unchanged (error {code})'
+    except (OSError, AttributeError) as error:
+        return f'unchanged ({error})'
 
 
 def main() -> int:
@@ -42,6 +61,7 @@ def main() -> int:
                     help='include GPU and WebContent PID/start identities for restart diagnostics')
     args = ap.parse_args()
 
+    qos = raise_priority()
     native = wd.NativeMemory()
     manager = int(wd.command(['xcrun', 'simctl', 'spawn', args.device, 'launchctl', 'managerpid']))
     out = args.out.open('x')
@@ -56,7 +76,10 @@ def main() -> int:
         except FileNotFoundError:
             return 'idle'
 
+    emit('policy', qos=qos, loadAverage=[round(value, 2) for value in os.getloadavg()])
     peaks = {}
+    loads = []
+    slowest = {'readMs': 0, 'elapsed': None}
     identities = {}
     lost = []
     phase = None
@@ -71,6 +94,7 @@ def main() -> int:
         ph = phase_now()
         procs = wd.simulator_processes(manager)
         gprocs = wd.simulator_processes(manager, 'com.apple.WebKit.GPU')
+        listed = time.monotonic()
         if ph != phase:
             if phase is not None:  # close the old phase with its interval highs as they stand
                 b = bucket(phase)
@@ -113,6 +137,11 @@ def main() -> int:
                 pass
         b = bucket(ph)
         el = round(tick - start, 2)
+        load = round(os.getloadavg()[0], 2)
+        loads.append(load)
+        read_ms = round((time.monotonic() - tick) * 1000, 1)
+        if read_ms > slowest['readMs']:
+            slowest = {'readMs': read_ms, 'listMs': round((listed - tick) * 1000, 1), 'elapsed': el, 'phase': ph}
         b['samples'] += 1
         b['first'] = el if b['first'] is None else b['first']
         b['last'] = el
@@ -134,7 +163,7 @@ def main() -> int:
                 for kind, entries in (('webContent', rows), ('gpu', grows))}}
         emit('sample', phase=ph, elapsed=el, footprint=agg, interval=agg_interval,
              pids={r['pid']: [r['physicalFootprintBytes'], r['intervalMaxPhysicalFootprintBytes']] for r in rows},
-             gpu=sum(r['physicalFootprintBytes'] for r in grows), **detail)
+             gpu=sum(r['physicalFootprintBytes'] for r in grows), load=load, readMs=read_ms, **detail)
         if args.sample_interval_high:
             for pid in list(procs) + list(gprocs):
                 try:
@@ -155,8 +184,9 @@ def main() -> int:
             'gameSampledGB': round(b['pidFootprint'].get(game, 0) / GB, 3) if game is not None else 0,
             'allWebContentGB': round(b['aggInterval'] / GB, 3), 'gpuProcessGB': round(b['gpuInterval'] / GB, 3),
         }
-    emit('summary', phases=summary, lost=lost)
-    print(json.dumps({'phases': summary, 'lost': lost}), flush=True)
+    load_summary = {'min': min(loads), 'max': max(loads), 'mean': round(sum(loads) / len(loads), 2)} if loads else None
+    emit('summary', phases=summary, lost=lost, qos=qos, load=load_summary, slowestRead=slowest)
+    print(json.dumps({'phases': summary, 'lost': lost, 'qos': qos, 'load': load_summary, 'slowestRead': slowest}), flush=True)
     out.close()
     return 0
 
