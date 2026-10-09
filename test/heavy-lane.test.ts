@@ -17,7 +17,7 @@ const roots: string[] = [];
 const children: { child: ChildProcess; done: Promise<number | null> }[] = [];
 function fixture(): { root: string; env: NodeJS.ProcessEnv } {
   const root = mkdtempSync(join(tmpdir(), 'heavy-lane-test-')); roots.push(root);
-  return { root, env: { ...process.env, WS_HEAVY_ROOT: root, WS_HEAVY_TOKEN: '', WS_HEAVY_GATE: '' } };
+  return { root, env: { ...process.env, WS_HEAVY_ROOT: root, WS_HEAVY_TOKEN: '', WS_HEAVY_GATE: '', WS_FULL_SUITE: '1' } };
 }
 function start(env: NodeJS.ProcessEnv, kind: string, code: string, max = '0.2') {
   const child = spawn('python3', [lane, kind, '--max', max, '--', process.execPath, '-e', code], { env });
@@ -123,6 +123,16 @@ it('accepts a descendant lease and refuses a copied token in an unrelated proces
   })).toThrow();
   writeFileSync(join(root, 'release-valid'), 'go');
   expect(await holder.done).toBe(0);
+});
+
+it('refuses a lane full suite (SF74 W1) unless CI or WS_FULL_SUITE=1 asks for it', async () => {
+  const { root, env } = fixture();
+  const lane = { ...env, WS_FULL_SUITE: '', CI: '', GITHUB_ACTIONS: '' };
+  expect(await start(lane, 'full-test', marker(root, 'refused')).done).toBe(2);
+  expect(await start(lane, 'check', marker(root, 'refused')).done).toBe(2);
+  expect(existsSync(join(root, 'refused'))).toBe(false);
+  expect(await start({ ...lane, CI: 'true' }, 'full-test', marker(root, 'ci')).done).toBe(0);
+  expect(await start(lane, 'build', marker(root, 'build')).done).toBe(0);
 });
 
 it('reuses a gate for nested wrappers and refuses resource upgrades', async () => {

@@ -19,6 +19,20 @@ RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-t
 LANES = ('full-test', 'build', 'push-gate')
 
 
+# SF74 W1 (Jake, G280 / process audit 2026-10-09): the push gate is the only local full suite. Lanes still ran 56 full
+# suites in 6 h after the broadcast (lease queue median 134 s), so a lane's full-test / check request is refused here;
+# CI (CI / GITHUB_ACTIONS), the gate's own descendants (inherited lease) and an explicit WS_FULL_SUITE=1 pass.
+FULL_SUITE_REFUSAL = """heavy-lane: refused: lanes do not run the full suite (SF74 W1). The push gate runs it (every 8th gate, 6 h after the
+last full one, or GATE_FULL=1) and CI runs it on every push. Run the tests of what you touched instead:
+    pnpm exec vitest run test/<file>.test.ts …           (named test files)
+    pnpm exec vitest related --run src/<changed file> …  (tests that import your changed files)
+Override, for the gate, the nightly and the coordinator only: WS_FULL_SUITE=1 <command>."""
+
+
+def full_suite_allowed():
+    return bool(os.environ.get('CI') or os.environ.get('GITHUB_ACTIONS')) or os.environ.get('WS_FULL_SUITE') == '1'
+
+
 def alive(pid):
     try:
         os.kill(pid, 0)
@@ -166,6 +180,9 @@ def main():
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'
         os.execvpe(command[0], command, env)
+    if args.kind in ('full-test', 'check') and not full_suite_allowed():
+        print(FULL_SUITE_REFUSAL, file=sys.stderr)
+        return 2
     if os.environ.get('WS_HEAVY_TOKEN'):
         parser.error('cannot upgrade an inherited lane; release it before requesting different resources')
     token = uuid.uuid4().hex

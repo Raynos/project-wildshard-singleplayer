@@ -32,6 +32,9 @@ Ten simultaneous full suites pushed machine load above 150 and timed out real wo
 now provide separate full-test and build lanes across working trees and clean exports:
 
 - `python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run` (coverage and sharded full runs also take this lane).
+  **Lanes don't run full suites** (SF74 W1): `full-test` and `check` (so `pnpm test`, `pnpm test:coverage`) refuse
+  outside CI unless `WS_FULL_SUITE=1` (the nightly, the coordinator); the push gate runs the full suite in its own lease.
+  Run your focused tests: `pnpm exec vitest run test/<file>.test.ts` or `pnpm exec vitest related --run <src files>`.
 - `python3 scripts/heavy-lane.py build -- <command…>` for a whole app build pipeline, including generation.
 - `python3 scripts/heavy-lane.py status` shows active owners, commands and FIFO tickets.
 
