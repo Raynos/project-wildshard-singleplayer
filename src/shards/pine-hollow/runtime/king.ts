@@ -40,6 +40,9 @@ export interface PineKingPorts {
   readonly fact?: (name: string, entity: string) => void;
 }
 
+/** models/antlerKing.ts RIB_R: the ribcage basket's radius (m, before his scale) */
+const KING_RIB_R = 0.36;
+const RIB_A = new Vector3(), RIB_B = new Vector3();
 const silentTell = { setTime: (): void => undefined, ring: (): void => undefined, hide: (): void => undefined };
 
 /** The shared fight (combat/kingFight.ts) on the host's bodies, its views silent. */
@@ -83,6 +86,14 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
     return a;
   }
   protected override retireKing(k: PineHuntBody): void { this.ports.retire(k); }
+  /** the ribcage without his rig: a ball on his chest (halfway from his body's centre to its front, at its height), the
+   *  page's ribcage radius (models/antlerKing.ts RIB_R 0.36 × his scale × 1.15); the page's rides his chest bone */
+  protected override onRibs(p: Vector3): boolean {
+    const k = this.king;
+    if (k === null) return false;
+    k.bodyCapsule(RIB_A, RIB_B);
+    return p.distanceTo(RIB_A.lerp(RIB_B, 0.75)) < KING_RIB_R * k.scale * 1.15;
+  }
   protected override parkKing(k: PineHuntBody): void { k.hidden = true; }
   protected override unparkKing(k: PineHuntBody): void { k.hidden = false; }
   protected override spawnThrall(kind: 'elk' | 'boar', x: number, z: number, yaw: number): PineHuntBody {
@@ -133,8 +144,10 @@ function kingDefinition(): BossDefinition {
  * A fallen King goes by day and comes back the next night as a fresh body (the declared row spawned live, out of the list);
  * a parked King stays hidden across a restore.
  *
- * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): the ribcage weak point and the bark's damage multiplier
- * on the player's hits (the host's player has no weapon yet); the re-fight's three amber resin (no item effect).
+ * His damage rule is the page's (`damageMul` at the pipeline's order 50: bark ×0.25, the ribcage ×3 open / ×0.6 shut, the
+ * beat ×0.01); the ribcage is a ball on his chest (no rig headless).
+ *
+ * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): the re-fight's three amber resin (no item effect).
  */
 export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: BossBrain; fight: AntlerKingCore<PineHuntBody>; locked: () => boolean } {
   const fight = new HeadlessKing(host, ports), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
@@ -155,6 +168,13 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
     // the first fall: the Warden's Longbow, taken at once
     spawnReward: () => { saved.rewardTaken = true; record.persist(saved); } });
   brain.boss = row.boss;
+  // his species' damage rule (the page's `damageMul`, the pipeline's order 50): the beat and the dormant King shrug a hit
+  // off (×0.01), the open ribcage takes ×3 (shut ×0.6), the bark ×0.25
+  host.events.answer('damage.modify', req => {
+    const k = fight.king;
+    if (req === null || k === null || req.target !== k.combatActor()) return req;
+    return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
+  }, host.scope, { order: 50 });
   host.events.on('boss.attempt', ({ boss, outcome }) => { if (boss === ANTLER_KING_ENCOUNTER.id && outcome === 'won') ports.fact?.(KING_FACT.name, KING_FACT.entity); }, host.scope);
   host.onStep(KING_DORMANT_STEP, dt => { kingDormant(row.boss, fight, dt, host.clock.now); });
   return { boss: row.boss, fight, locked: row.locked };

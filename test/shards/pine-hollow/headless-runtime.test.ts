@@ -14,6 +14,7 @@ import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { ROSTER_STEP, type PineHuntBody } from '../../../src/shards/pine-hollow/runtime/roster';
 import { ELITES_STEP } from '../../../src/shards/pine-hollow/runtime/elites';
+import { boltBodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessCrossbow';
 import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
 import { parseNavmesh } from '../../../src/engine/physics/navmesh';
 import type { ImperialBull } from '../../../src/shards/pine-hollow/combat/eliteScripts';
@@ -431,5 +432,49 @@ it('keeps the King\'s record on the shard\'s flags: his fall pays the bow once a
     fell();
     expect([king.boss.state, king.boss.snapshot().saved]).toEqual(['victory', { defeated: true, rewardTaken: true, kills: 2 }]);
     expect(facts).toEqual(['pine.feat.king/king:1', 'pine.feat.king/king:1']);
+  } finally { host.dispose(); }
+}, 30_000);
+
+it('fires the crossbow as a real projectile: a bolt flies to a boar and lands the damage model\'s blow through the host; the bow reloads itself; restored exactly mid-flight', () => {
+  const shots: string[] = [], parts: PineInstall = { ...pineParts(), shots: () => shots }, { host, crossbow } = bootWith(parts);
+  try {
+    const id = standBy(host, 'boar', 14), boar = host.entities.get(id);
+    if (boar === undefined) throw new Error('no boar');
+    const hp = boar.hp;
+    shots.push(id); host.step(still); shots.length = 0;
+    expect([crossbow.flying(), crossbow.state.loaded, crossbow.state.quiver]).toEqual([1, false, 29]);
+    exactAfter(parts, host, 30); // mid-flight: the bolt is the bow's continuation
+    expect(crossbow.flying()).toBe(0);
+    expect(boar.hp).toBeLessThan(hp);
+    expect(hp - boar.hp).toBeGreaterThanOrEqual(19); // 32-40, ×2.5 on the head, less the range's falloff (none at 14 m)
+    // a pull while it is spent: the reload starts at once (1.35 s), then it is loaded again
+    shots.push(id); host.step(still); shots.length = 0;
+    expect(crossbow.state.reloading).toBe(true);
+    for (let tick = 0; tick < 90; tick++) host.step(still);
+    expect([crossbow.state.loaded, crossbow.state.reloading]).toEqual([true, false]);
+  } finally { host.dispose(); }
+}, 30_000);
+
+it('takes the King\'s bark at ×0.25 and his ribcage at ×0.6 shut, and a bolt passes a faded (hidden) body', () => {
+  const { parts } = kingParts(), { host, king } = bootWith(parts);
+  try {
+    standAtClearing(host, 12);
+    for (let tick = 0; tick < 600 && king.boss.state !== 'fight'; tick++) host.step(still);
+    const body = king.fight.king;
+    if (body === null) throw new Error('no King');
+    const hit = (point: Vector3): number => {
+      const before = body.hp;
+      host.combat.hit({ source: host.player.health, sourceTags: ['weapon.crossbow', 'cover.checked'], target: body.combatActor(), amount: 100, point, dir: new Vector3() });
+      return before - body.hp;
+    };
+    const a = new Vector3(), b = new Vector3();
+    body.bodyCapsule(a, b);
+    expect(hit(a.clone())).toBe(25); // the haunch: bark
+    expect(hit(a.clone().lerp(b, 0.75))).toBe(60); // the chest: the ribcage, shut
+    // the boltBodyHit test skips a hidden body (the Ghost Stag's fade, a parked King)
+    const from = new Vector3(b.x + 10, b.y, b.z), dir = new Vector3(-1, 0, 0);
+    expect(boltBodyHit([body], from, dir, 30)?.body).toBe(body);
+    body.hidden = true;
+    expect(boltBodyHit([body], from, dir, 30)).toBeNull();
   } finally { host.dispose(); }
 }, 30_000);

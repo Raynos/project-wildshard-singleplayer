@@ -8,6 +8,8 @@ import { PINE_GROUND_RES, pineBake, type PineBake } from './baked';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
 import { installPineKing } from './king';
+import { installPineCrossbow } from './weapons/headlessCrossbow';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY } from '../look/dayKeys';
 
@@ -51,8 +53,9 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * the stream's, the same every boot) before the host restores, and the four named elites' fights under the game's elite rules
  * (runtime/elites.ts: the page's own scripts), with their live spawns (an elite's respawn, the Imperial Bull's rivals) and the
  * roar's stun, and the Antler King on the boss row (runtime/king.ts: the page's own fight, combat/kingFight.ts, his prewarm
- * body, his thralls as live spawns, his record on the shard's flags, a fallen King's next night). The page's day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the player's
- * weapons, the quest and its facts, and the entry proof; `finish` refuses.
+ * body, his thralls as live spawns, his record on the shard's flags, a fallen King's next night, his damage rule), and
+ * the player's crossbow as a real projectile item (runtime/weapons/headlessCrossbow.ts: a command's attack fires at that body). The page's day clock steps on the host (`useDayClock`). Not yet owned (fail-closed, see the SF72 handoff): the lever
+ * rifle and the longbow, the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
@@ -66,7 +69,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     // the host's player strike is a zero-damage probe, never a crossbow: the weapons are declared items (data/items.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
-    installPine(host, { bake, grid, nav, heightAt, spawnY: shard.spawn.y, saved: context.snapshot, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); } });
+    installPine(host, { bake, grid, nav, heightAt, spawnY: shard.spawn.y, saved: context.snapshot, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+      // a player command's attack pulls the crossbow's trigger at that body
+      shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []) });
   } };
 };
 
@@ -80,10 +85,14 @@ export interface PineInstall {
   readonly dusk?: () => number; readonly night?: () => number;
   /** the platform's fact effect (the Antler King's fall files his ledger fact) */
   readonly fact?: (name: string, entity: string) => void;
+  /** the tick's crossbow shots (the bodies they are aimed at; absent: none) */
+  readonly shots?: () => readonly string[];
 }
 
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
-export function installPine(host: SimHost, parts: PineInstall): { roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing> } {
+export function installPine(host: SimHost, parts: PineInstall): {
+  roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: ReturnType<typeof installPineCrossbow>;
+} {
   const { bake, grid, nav, heightAt } = parts;
   // the page's own day clock (look/dayKeys.ts PINE_DAY, as PineDayNight builds it), stepped by the host before every step and
   // restored from the snapshot's `day` (a restoring install installs it again); `SimLevel.day.start` starts a witness near dusk
@@ -100,7 +109,15 @@ export function installPine(host: SimHost, parts: PineInstall): { roster: Return
   const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
     spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
     retire: a => { live().retire(a); }, find: id => live().actor(id), night, ...(parts.fact === undefined ? {} : { fact: parts.fact }) });
+  // the player's crossbow, locked through the King's intro: installed before the roster (a restoring roster reinstalls its
+  // live spawns at install, and the host keeps every step in registration order), so its bolts fly before the creatures
+  // move this tick where the page's weapons update after them (a tick's lag on a moving body)
+  const shots = parts.shots ?? ((): readonly string[] => []);
+  // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
+  const bodyBuffer: AnimalSim[] = [];
+  const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
+  const crossbow = installPineCrossbow(host, { shots, locked: king.locked, bodies });
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
-  return { roster, elites, king };
+  return { roster, elites, king, crossbow };
 }
