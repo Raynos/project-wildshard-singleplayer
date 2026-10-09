@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050a12">
+<title>Project Wildshard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Round 3 desktop · B · Two columns: each section's question, headline and lede stay put on the left while its visuals scroll on the right.
+     Round 2's picked page (C's conversation in A's Lattice look, violet accent), unchanged below 1024 px. */
+  :root {
+    --abyss: #050a12; --navy: #0b1622; --glass: rgba(13, 27, 38, .8);
+    --cyan: #8fe3ff; --cyan-line: rgba(143, 227, 255, .32); --cyan-faint: rgba(143, 227, 255, .10);
+    --violet: #a487ff; --violet-line: rgba(164, 135, 255, .45);
+    --ink: #e8f6ff; --mute: #8ea6ba; --faint: #4d6275;
+    --display: 'Rajdhani', 'Bahnschrift', sans-serif; --mono: 'JetBrains Mono', Menlo, monospace;
+    --g: 16px;
+    --act: var(--cyan); --act-ink: #04121c; --act-glow: rgba(143, 227, 255, .55);
+  }
+  [data-accent="violet"] { --act: #a487ff; --act-ink: #0e0626; --act-glow: rgba(164, 135, 255, .6); }
+  [data-accent="pink"] { --act: #ff2d87; --act-ink: #22000f; --act-glow: rgba(255, 45, 135, .55); }
+  * { box-sizing: border-box; }
+  html { background: var(--abyss); -webkit-text-size-adjust: 100%; }
+  body { margin: 0; color: var(--ink); font-family: var(--display); font-weight: 500; font-size: 18px; line-height: 1.42; overflow-x: hidden;
+    background:
+      radial-gradient(1px 1px at 12% 8%, #cfe9ff 50%, transparent 51%), radial-gradient(1px 1px at 78% 3%, #cfe9ff 50%, transparent 51%),
+      radial-gradient(1px 1px at 41% 14%, #9cc 50%, transparent 51%), radial-gradient(1.5px 1.5px at 88% 19%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 63% 27%, #9cc 50%, transparent 51%), radial-gradient(1px 1px at 22% 33%, #cfe9ff 50%, transparent 51%),
+      radial-gradient(ellipse at 50% 0%, #0d1f35 0%, var(--abyss) 60%) fixed;
+    background-color: var(--abyss); }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; }
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  /* the game's HUD vocabulary */
+  .label { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+  .label.dim { color: var(--mute); }
+  .bk { --c: var(--cyan); --s: 10px; position: relative; border: 1px solid var(--cyan-line);
+    background:
+      linear-gradient(var(--c), var(--c)) top left / var(--s) 1.5px no-repeat, linear-gradient(var(--c), var(--c)) top left / 1.5px var(--s) no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / var(--s) 1.5px no-repeat, linear-gradient(var(--c), var(--c)) top right / 1.5px var(--s) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / var(--s) 1.5px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 1.5px var(--s) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / var(--s) 1.5px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 1.5px var(--s) no-repeat,
+      var(--glass); }
+  .tag { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink);
+    background: rgba(5, 10, 18, .8); border: 1px solid var(--cyan-line); padding: 4px 8px; display: inline-flex; gap: 7px; align-items: center; }
+  .tag::before { content: ""; width: 6px; height: 6px; background: var(--cyan); transform: rotate(45deg); box-shadow: 0 0 8px var(--cyan); }
+  .tag.warn::before { background: var(--violet); box-shadow: 0 0 8px var(--violet); }
+
+  /* the prompt line: every place you'd type */
+  .ask { font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--ink); margin: 0; padding-left: 2ch; text-indent: -2ch; }
+  .ask::before { content: ">"; color: var(--act); font-weight: 700; display: inline-block; width: 2ch; text-indent: 0; text-shadow: 0 0 10px var(--act-glow); }
+  .out { font-family: var(--mono); font-size: 11.5px; line-height: 1.8; color: var(--mute); margin: 0; }
+  .out b { color: var(--ink); font-weight: 500; }
+  .ok { color: var(--act); }
+  .cursor { display: inline-block; width: .6em; height: 1.1em; background: var(--act); vertical-align: -.18em; margin-left: 2px; box-shadow: 0 0 10px var(--act-glow); animation: blink 1.05s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* hero */
+  .hero { position: relative; min-height: 874px; display: flex; flex-direction: column; }
+  .pane { margin: 14px var(--g) 0; position: relative; z-index: 2; }
+  .pane-bar { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-bottom: 1px solid var(--cyan-line);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--mute); }
+  .pane-bar i { width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid var(--cyan-line); }
+  .pane-bar span { margin: 0 auto; padding-right: 30px; }
+  .pane-body { padding: 16px 14px 14px; }
+  .hero .ask { font-size: 15px; line-height: 1.55; font-weight: 500; }
+  .hero .out { margin-top: 10px; }
+  .js .line { opacity: 0; transition: opacity .2s; } .js .line.on { opacity: 1; }
+  .world { position: relative; margin-top: -1px; height: 396px; z-index: 1;
+    clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); }
+  .js .world { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, calc(100% - var(--g)) 0, calc(100% - var(--g)) 0, var(--g) 0, var(--g) 0); transition: clip-path 1.1s cubic-bezier(.7,0,.2,1); }
+  .js .world.open { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); }
+  .world img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 73%; }
+  .world::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(90deg, transparent calc(100% - 1px), var(--cyan-line) 0) 0 0 / 25% 100%, linear-gradient(transparent calc(100% - 1px), var(--cyan-line) 0) 0 0 / 100% 25%; opacity: .5; mix-blend-mode: screen; }
+  .world::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 70%, rgba(5,10,18,.7) 88%, var(--abyss) 100%); }
+  .world .tag { position: absolute; z-index: 3; right: calc(var(--g) + 10px); top: 10px; }
+  .world .loop { position: absolute; z-index: 3; left: calc(var(--g) + 10px); right: auto; top: 10px; }
+  .loop::before { content: "▶"; width: auto; height: auto; transform: none; background: none; box-shadow: none; color: var(--act); font-size: 8px; }
+  .masthead { position: relative; z-index: 3; margin-top: -40px; padding: 0 var(--g); }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .5em; color: var(--cyan); text-transform: uppercase; }
+  h1 { margin: 2px 0 0; font-weight: 700; font-size: 70px; line-height: .86; letter-spacing: .01em; text-transform: uppercase;
+    background: linear-gradient(180deg, #fff 0%, #cdeeff 55%, #7fb6d6 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(143, 227, 255, .35)); }
+  .tagline { margin: 12px 0 0; font-weight: 600; font-size: 25px; line-height: 1.12; max-width: 19ch; }
+  .sub { margin: 6px 0 0; color: var(--mute); font-size: 17px; }
+  .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; padding-bottom: 26px; }
+  .door { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 68px; padding: 11px 12px; text-decoration: none;
+    font-weight: 700; font-size: 21px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+  .door small { font-family: var(--mono); font-weight: 400; font-size: 10px; letter-spacing: .1em; text-transform: none; }
+  .door.play { --c: var(--cyan); color: var(--ink); }
+  .door.play small { color: var(--mute); }
+  .door.author { background: var(--act); color: var(--act-ink); box-shadow: 0 0 28px var(--act-glow); }
+
+  /* sections: each answers a question you'd type */
+  section { padding: 66px var(--g) 0; }
+  .q { padding: 10px 12px; margin-bottom: 18px; border-left: 2px solid var(--act); background: linear-gradient(90deg, rgba(143,227,255,.07), transparent); }
+  h2 { margin: 0; font-weight: 700; font-size: 42px; line-height: .98; letter-spacing: .005em; max-width: 13ch; text-transform: uppercase; }
+  .lede { margin: 14px 0 0; font-size: 18px; color: #c6dbea; max-width: 34ch; }
+  .note { margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--faint); letter-spacing: .06em; }
+
+  .trailer { margin: 0 var(--g); position: relative; }
+  .trailer img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .trailer .play-btn { position: absolute; inset: 0; margin: auto; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(5,10,18,.6); border: 1.5px solid var(--act); box-shadow: 0 0 24px var(--act-glow); color: var(--act); font-size: 22px; padding-left: 4px; }
+  .trailer .tag { position: absolute; left: 10px; top: 10px; }
+
+  /* the grid map: B's inked map, drawn as a glowing lattice */
+  .map { margin-top: 22px; padding: 14px 10px 10px; }
+  .map svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .map .seam { fill: none; stroke: var(--violet); stroke-width: 1.4; filter: drop-shadow(0 0 3px var(--violet)); }
+  .map .road { fill: none; stroke: var(--cyan); stroke-width: 1; stroke-dasharray: 3 4; opacity: .7; }
+  .map .cell { fill: rgba(143,227,255,.03); stroke: var(--cyan-line); stroke-width: 1; }
+  .map .lit { fill: rgba(143,227,255,.16); stroke: var(--cyan); filter: drop-shadow(0 0 6px rgba(143,227,255,.6)); }
+  .map .centre { fill: rgba(164,135,255,.22); stroke: var(--violet); }
+  .map .claim { fill: none; stroke: var(--act); stroke-width: 2; stroke-dasharray: 5 3; filter: drop-shadow(0 0 6px var(--act-glow)); }
+  .map text { font-family: var(--mono); font-size: 7.2px; letter-spacing: .08em; fill: var(--ink); text-transform: uppercase; }
+  .map text.k { fill: var(--mute); font-size: 6.5px; }
+  .map text.c { fill: var(--violet); }
+  .map text.a { fill: var(--act); font-size: 8px; font-weight: 700; }
+  .ink path, .ink rect, .ink line { stroke-dasharray: 1200; stroke-dashoffset: 1200; transition: stroke-dashoffset 1.6s ease-out; }
+  .ink.drawn path, .ink.drawn rect, .ink.drawn line { stroke-dashoffset: 0; }
+  .map .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; color: var(--mute); text-transform: uppercase; }
+  .map .legend i { display: inline-block; width: 9px; height: 9px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--cyan); background: rgba(143,227,255,.2); }
+  .map .legend i.v { border-color: var(--violet); background: rgba(164,135,255,.3); }
+  .map .legend i.e { background: none; border-color: var(--cyan-line); }
+
+  .plate { margin: 18px 0 0; position: relative; }
+  .plate img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .plate .tag { position: absolute; top: 10px; left: 10px; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; margin-top: 18px; }
+  .facts div { padding: 12px 10px; border-bottom: 1px solid var(--cyan-faint); }
+  .facts div:nth-child(odd) { border-right: 1px solid var(--cyan-faint); }
+  .facts b { display: block; font-weight: 700; font-size: 32px; line-height: 1; color: var(--cyan); text-shadow: 0 0 14px rgba(143,227,255,.4); }
+  .facts span { display: block; margin-top: 5px; font-size: 14px; line-height: 1.3; color: var(--mute); }
+
+  /* shards: the prompt that could have made it, then the world it made */
+  .shards { list-style: none; margin: 22px 0 0; padding: 0; }
+  .shard { margin-bottom: 30px; }
+  .shard .ask { padding: 9px 12px 9px calc(12px + 2ch); background: rgba(13,27,38,.85); border: 1px solid var(--cyan-faint); border-bottom: 0; font-size: 12px; }
+  .shard .shot { position: relative; overflow: hidden; aspect-ratio: 5 / 4; border: 1px solid var(--cyan-line); }
+  .shard .shot img { width: 100%; height: 100%; object-fit: cover; }
+  .shard .shot .tag { position: absolute; left: 8px; bottom: 8px; }
+  .shard h3 { margin: 12px 0 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 27px; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; }
+  .shard h3 a { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .14em; color: var(--act); text-decoration: none; border: 1px solid var(--act); padding: 5px 9px; white-space: nowrap; box-shadow: 0 0 12px var(--act-glow) inset; }
+  .shard p { margin: 5px 0 0; color: #b3c8d8; font-size: 16px; line-height: 1.4; max-width: 36ch; }
+  .shard.grey .shot img { filter: saturate(.2); }
+
+  /* how a shard is made: C's terminal */
+  .session { margin-top: 22px; }
+  .steps { list-style: none; margin: 0; padding: 4px 14px 8px; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; padding: 13px 0; border-bottom: 1px dashed rgba(143,227,255,.14); }
+  .steps li:last-child { border-bottom: 0; }
+  .steps li::before { content: counter(s, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--act); padding-top: 4px; }
+  .steps strong { font-weight: 600; font-size: 19px; line-height: 1.25; display: block; }
+  .steps code { font-family: var(--mono); font-size: 13px; color: var(--cyan); font-weight: 500; }
+  .term { margin-top: 8px; padding: 9px 10px; background: rgba(0,0,0,.45); border: 1px solid var(--cyan-faint); }
+  .term .ask { font-size: 11.5px; } .term .out { font-size: 11px; }
+
+  /* one sentence → a shard */
+  .chain { margin-top: 22px; display: grid; gap: 12px; }
+  .chain figure { margin: 0; display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: start; }
+  .chain .n { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--act); text-transform: uppercase; writing-mode: vertical-rl; transform: rotate(180deg); justify-self: center; padding: 6px 0; border-left: 1px solid var(--cyan-line); }
+  .chain img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--cyan-line); }
+  .chain figcaption { font-size: 15px; color: #b3c8d8; margin-top: 6px; line-height: 1.3; }
+  .chain .sentence { padding: 14px 12px; font-size: 14px; }
+
+  /* the ritual */
+  .ritual { margin-top: 22px; padding: 18px 8px 8px; }
+  .ritual svg { width: 100%; height: auto; display: block; }
+  .ritual .tag { position: absolute; top: 10px; left: 10px; }
+
+  /* safe: the shardfile peek */
+  .manifest { margin-top: 20px; padding: 14px; font-family: var(--mono); font-size: 12px; line-height: 1.85; }
+  .manifest .h { color: var(--mute); }
+  .manifest .y::before { content: "+ "; color: var(--cyan); }
+  .manifest .n { color: var(--act); } .manifest .n::before { content: "− "; }
+  .json { margin-top: 12px; padding: 0; overflow: hidden; }
+  .json pre { margin: 0; padding: 12px 14px; font-family: var(--mono); font-size: 11.2px; line-height: 1.65; color: #c6dbea; white-space: pre; overflow-x: auto; }
+  .json .k { color: var(--cyan); } .json .s { color: #ffd59e; } .json .c { color: var(--faint); }
+
+  .grow { list-style: none; margin: 20px 0 0; padding: 0; }
+  .grow li { padding: 13px 0; border-bottom: 1px solid var(--cyan-faint); font-weight: 600; font-size: 20px; line-height: 1.2; display: grid; grid-template-columns: 22px 1fr; }
+  .grow li::before { content: ""; width: 7px; height: 7px; margin-top: 8px; background: var(--violet); transform: rotate(45deg); box-shadow: 0 0 8px var(--violet); }
+
+  /* road + devlog */
+  .road { list-style: none; margin: 20px 0 0; padding: 0; font-size: 18px; }
+  .road li { display: grid; grid-template-columns: 30px 1fr; padding: 10px 0; border-bottom: 1px solid var(--cyan-faint); line-height: 1.3; font-weight: 600; }
+  .road li::before { font-family: var(--mono); font-size: 14px; }
+  .road .done::before { content: "✓"; color: var(--cyan); }
+  .road .now::before { content: "◐"; color: var(--act); }
+  .road .next { color: var(--mute); font-weight: 500; } .road .next::before { content: "○"; color: var(--faint); }
+  .log { margin-top: 18px; }
+  .log ol { list-style: none; margin: 0; padding: 6px 14px 10px; }
+  .log li { padding: 10px 0; border-bottom: 1px dashed rgba(143,227,255,.14); }
+  .log li:last-child { border-bottom: 0; }
+  .log time { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--act); }
+  .log p { margin: 3px 0 0; font-size: 16px; line-height: 1.35; }
+
+  .ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .idea { padding: 12px 11px 13px; }
+  .idea b { display: block; font-weight: 700; font-size: 19px; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; }
+  .idea span { display: block; margin-top: 6px; font-size: 14.5px; line-height: 1.3; color: var(--mute); }
+
+  .who { margin-top: 18px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: baseline; font-family: var(--mono); font-size: 12px; color: var(--mute); }
+  .who b { font-family: var(--display); font-weight: 700; font-size: 42px; color: var(--ink); line-height: 1; }
+  .who b.act { color: var(--act); text-shadow: 0 0 14px var(--act-glow); }
+
+  .faq { margin-top: 18px; }
+  .faq details { border-bottom: 1px solid var(--cyan-faint); padding: 12px 0; }
+  .faq summary { list-style: none; font-weight: 600; font-size: 19px; display: flex; justify-content: space-between; gap: 10px; }
+  .faq summary::after { content: "+"; font-family: var(--mono); color: var(--act); }
+  .faq details[open] summary::after { content: "−"; }
+  .faq p { margin: 6px 0 0; color: #b3c8d8; font-size: 16px; }
+  .faq .draft { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; color: var(--violet); text-transform: uppercase; margin-left: 6px; }
+
+  .install { margin-top: 18px; padding: 14px; }
+  .install ol { margin: 0; padding-left: 20px; font-size: 17px; }
+  .install li { padding: 3px 0; }
+  .install p { margin: 10px 0 0; font-family: var(--mono); font-size: 11px; color: var(--mute); letter-spacing: .06em; }
+
+  /* the author door: as loud as the play door */
+  .door-end { margin-top: 76px; padding: 34px var(--g) 40px; position: relative;
+    background: linear-gradient(180deg, rgba(5,10,18,0), rgba(5,10,18,.0) 0), var(--navy);
+    border-top: 1px solid var(--act); box-shadow: 0 -18px 40px -20px var(--act-glow); }
+  .door-end h2 { font-size: 60px; max-width: none; color: var(--act); text-shadow: 0 0 24px var(--act-glow); }
+  .founding { margin-top: 18px; padding: 12px 14px; font-size: 16.5px; line-height: 1.35; }
+  .founding b { color: var(--act); }
+  form { margin-top: 20px; }
+  .field { display: block; padding: 12px 14px; border-bottom: 1px solid var(--cyan-faint); }
+  .field .lab { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; }
+  .field input, .field textarea { width: 100%; background: transparent; border: 0; padding: 0; color: var(--ink); resize: none; font-family: var(--mono); font-size: 14px; line-height: 1.5; }
+  .field input::placeholder, .field textarea::placeholder { color: #5d7488; }
+  .field input:focus, .field textarea:focus { outline: none; }
+  .prompt-field { display: grid; grid-template-columns: 2ch 1fr; }
+  .prompt-field::before { content: ">"; color: var(--act); font-family: var(--mono); font-weight: 700; font-size: 14px; line-height: 1.5; }
+  .claimmap { padding: 4px 6px 0; }
+  .send { display: flex; justify-content: space-between; align-items: center; width: 100%; border: 0; padding: 16px 14px; cursor: pointer; background: var(--act); color: var(--act-ink);
+    font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 0 26px var(--act-glow); }
+  .send small { font-family: var(--mono); font-weight: 400; font-size: 11px; letter-spacing: .06em; }
+  .ends { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .ends a { display: flex; align-items: center; justify-content: center; min-height: 54px; text-decoration: none; font-weight: 700; font-size: 18px; letter-spacing: .04em; text-transform: uppercase; }
+  .mail { margin-top: 16px; font-family: var(--mono); font-size: 12.5px; color: var(--mute); }
+  .mail a { text-decoration: none; border-bottom: 1px solid var(--cyan-line); color: var(--ink); }
+  footer { padding: 22px var(--g) 40px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--faint); text-transform: uppercase; }
+  footer a { text-decoration: none; color: var(--mute); }
+
+  /* ===== Round 3 · B · Two columns: the question, headline and lede hold still on the left; the visuals scroll on the right ===== */
+  .shot picture { display: block; width: 100%; height: 100%; }
+  @media (min-width: 1024px) {
+    :root { --g: 40px; --side: 400px; }
+    body { font-size: 19px; }
+    .wrap { max-width: 1360px; }
+
+    /* hero: the masthead holds the left, the terminal and the world it opens fill the right */
+    .hero { max-width: 1440px; margin: 0 auto; min-height: 900px; height: 900px; padding-top: 40px;
+      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "mast pane" "mast world"; }
+    .pane { grid-area: pane; }
+    .pane-body { padding: 20px 20px 18px; }
+    .hero .ask { font-size: 18px; }
+    .hero .out { font-size: 12.5px; margin-top: 12px; }
+    .world { grid-area: world; height: auto; }
+    .world img { position: absolute; inset: 0; object-position: 50% 90%; }
+    .masthead { grid-area: mast; margin: 0; padding: 0 40px 0 72px; align-self: center; }
+    .kicker { font-size: 14px; }
+    h1 { font-size: 122px; }
+    .tagline { font-size: 40px; margin-top: 18px; max-width: 16ch; }
+    .sub { font-size: 21px; margin-top: 10px; }
+    .doors { margin-top: 34px; padding-bottom: 0; gap: 14px; max-width: 560px; }
+    .door { min-height: 92px; padding: 15px 16px; font-size: 27px; }
+    .door small { font-size: 11.5px; }
+
+    .trailer { max-width: 1280px; margin: 56px auto 0; }
+    .trailer img { aspect-ratio: 21 / 9; }
+    .trailer .play-btn { width: 92px; height: 92px; font-size: 30px; }
+
+    /* every section: a still left column, the visuals on the right */
+    section { padding: 150px var(--g) 0; display: grid; grid-template-columns: var(--side) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+    .side { position: sticky; top: 48px; }
+    .body > :first-child { margin-top: 0; }
+    .q { padding: 12px 16px; margin-bottom: 22px; }
+    .q .ask { font-size: 15px; }
+    h2 { font-size: 58px; max-width: 12ch; }
+    .lede { font-size: 20px; max-width: 32ch; margin-top: 20px; }
+    .note { font-size: 11px; }
+
+    /* the map and the concept plate share a row */
+    #world-sec .body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    #world-sec .map, #world-sec .plate { margin: 0; }
+    #world-sec .plate img { height: 100%; aspect-ratio: auto; }
+    #world-sec .facts { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); margin-top: 8px; }
+    .facts div { border-right: 1px solid var(--cyan-faint); padding: 16px 14px; }
+    .facts div:last-child { border-right: 0; }
+    .facts b { font-size: 40px; }
+    .facts span { font-size: 15px; }
+
+    /* shards two across; the Template takes a row of its own */
+    .shards { display: grid; grid-template-columns: 1fr 1fr; gap: 44px 28px; }
+    .shard { margin: 0; }
+    .shard .ask { font-size: 12.5px; min-height: 66px; }
+    .shard .shot img { object-position: 50% 50% !important; }
+    .shard h3 { font-size: 31px; margin-top: 14px; }
+    .shard h3 a { font-size: 12px; }
+    .shard p { font-size: 17px; }
+    .shard.grey { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; column-gap: 28px; }
+    .shard.grey .ask { grid-column: 1; grid-row: 1; min-height: 0; }
+    .shard.grey .shot { grid-column: 1; grid-row: 2 / 4; aspect-ratio: 2 / 1; }
+    .shard.grey .shot img { transform: scale(1.2) !important; transform-origin: 100% 54% !important; object-position: 50% 54% !important; }
+    .shard.grey h3 { grid-column: 2; grid-row: 2; margin-top: 0; justify-content: flex-start; gap: 20px; }
+    .shard.grey p { grid-column: 2; grid-row: 3; }
+
+    .steps { padding: 8px 24px 12px; }
+    .steps li { grid-template-columns: 44px 1fr; padding: 18px 0; }
+    .steps li::before { font-size: 13px; }
+    .steps strong { font-size: 23px; }
+    .term .ask { font-size: 13px; } .term .out { font-size: 12.5px; }
+
+    .chain { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .chain figure:first-child { grid-column: 1 / -1; }
+    .chain .sentence .ask { font-size: 18px; }
+    .chain .sentence { padding: 20px 22px; }
+    .chain figcaption { font-size: 16px; }
+
+    .ritual { padding: 26px 18px 14px; }
+    .ritual svg { max-height: 500px; margin: 0 auto; }
+
+    .manifest { font-size: 14.5px; padding: 20px 22px; }
+    .json pre { font-size: 13.5px; padding: 16px 20px; }
+    .grow li { font-size: 27px; padding: 20px 0; grid-template-columns: 30px 1fr; }
+    .grow li::before { margin-top: 12px; }
+    .ideas { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .idea { padding: 20px 18px 22px; }
+    .idea b { font-size: 24px; }
+    .idea span { font-size: 16.5px; }
+    .road { font-size: 22px; }
+    .road li { padding: 13px 0; }
+    .log p { font-size: 18px; }
+    .who { font-size: 15px; gap: 10px 22px; }
+    .who b { font-size: 80px; }
+    .faq summary { justify-content: flex-start; align-items: baseline; }
+    .faq summary::after { margin-left: auto; }
+    .faq summary { font-size: 24px; }
+    .faq details { padding: 18px 0; }
+    .faq p { font-size: 18px; }
+    .install { padding: 22px 24px; }
+    .install ol { font-size: 20px; }
+
+    /* the author door: the pitch stays put while you fill the form */
+    .door-end { margin-top: 160px; padding: 80px var(--g) 90px; display: block; }
+    .door-end > .wrap { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+    .door-end h2 { font-size: 92px; max-width: 8ch; }
+    .founding { font-size: 18px; padding: 16px 18px; margin-top: 26px; }
+    form { margin-top: 0; }
+    .field { padding: 16px 20px; }
+    .field input, .field textarea { font-size: 16px; }
+    .claimmap { max-width: 420px; }
+    .send { padding: 20px; font-size: 26px; }
+    .ends a { min-height: 64px; font-size: 21px; }
+    .mail { font-size: 14px; }
+    footer { max-width: 1360px; margin: 0 auto; padding: 28px var(--g) 48px; font-size: 11px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cursor { animation: none; } .js .line { opacity: 1; transition: none; }
+    .js .world { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); transition: none; }
+    .ink path, .ink rect, .ink line { transition: none; stroke-dashoffset: 0; }
+  }
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add("js");</script>
+
+<header class="hero">
+  <div class="pane bk">
+    <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/shards/driftwood-isle</span></div>
+    <div class="pane-body">
+      <p class="ask" id="typed" data-text="build me a bright island with a pier, a wreck and a shrine"><span class="t">build me a bright island with a pier, a wreck and a shrine</span><span class="cursor" aria-hidden="true"></span></p>
+      <div class="out" aria-hidden="true">
+        <div class="line">· raising the island on a 500 m cube</div>
+        <div class="line">· placing <b>pier</b>, <b>wreck</b>, <b>shrine</b></div>
+        <div class="line"><span class="ok">✓</span> wildshard validate: every budget, every edge</div>
+      </div>
+    </div>
+  </div>
+  <div class="world" id="world">
+    <img src="../../../../progress/driftwood-isle/20261002-0011-0d59505c/aerial-overview.jpg" alt="Driftwood Isle from the air in the game" fetchpriority="high">
+    <span class="tag loop">Loop</span>
+    <span class="tag">In engine · Driftwood Isle</span>
+  </div>
+  <div class="masthead">
+    <div class="kicker">Project</div>
+    <h1>Wildshard</h1>
+    <p class="tagline">One world. Every shard built by a player.</p>
+    <p class="sub">Play it in the browser. Build it in Claude Code.</p>
+    <nav class="doors" aria-label="Start">
+      <a class="door play bk" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play now ↗<small>in your browser</small></a>
+      <a class="door author" href="#author">Become an author<small>in Claude Code</small></a>
+    </nav>
+  </div>
+</header>
+
+<div class="trailer bk">
+  <img src="../../round-2-merge/trailer-poster.jpg" alt="A frame of the trailer: first person on Driftwood Isle's pier, sword in hand">
+  <span class="tag">Trailer · 30 s · real gameplay</span>
+  <span class="play-btn" aria-hidden="true">▶</span>
+</div>
+
+<main class="wrap">
+  <section id="world-sec">
+    <div class="side">
+      <div class="q"><p class="ask">what is a shard?</p></div>
+      <h2>A world made of shards.</h2>
+      <p class="lede">Each shard is 500 × 500 × 500 metres, built by one author and placed on a shared grid. A server-owned highway runs between them; glowing seams stitch them together. The first grid is five by five around a fixed centre.</p>
+    </div>
+    <div class="body">
+      <div class="map bk">
+        <svg class="ink" id="grid-map" viewBox="0 0 300 300" role="img" aria-label="Map of the 5 by 5 grid: a fixed centre, seven shards lit, the highway between them"></svg>
+        <div class="legend"><span><i></i>Playable today</span><span><i class="v"></i>Fixed centre</span><span><i class="e"></i>Unclaimed</span></div>
+        <div class="note">Fig. 1 · the first grid · placement illustrative</div>
+      </div>
+      <figure class="plate bk">
+        <img src="../../../../docs/design/mmo/concept-art/shard-grid-overview.jpg" alt="Concept painting: shards of different biomes on a glowing grid">
+        <span class="tag warn">Concept art</span>
+      </figure>
+      <div class="facts">
+        <div><b>500 m</b><span>a cube per shard, one author each</span></div>
+        <div><b>5 × 5</b><span>the first grid, around a fixed centre</span></div>
+        <div><b>15 m</b><span>the server-owned highway between them</span></div>
+        <div><b>Seams</b><span>glowing edges stitch shards together</span></div>
+    </div>
+    </div>
+  </section>
+
+  <section id="shards">
+    <div class="side">
+      <div class="q"><p class="ask">show me the shards I can play today</p></div>
+      <h2>Seven shards. Seven looks. One engine.</h2>
+    </div>
+    <div class="body">
+      <ul class="shards">
+        <li class="shard">
+          <p class="ask">a bright low-poly island in a toon ocean, with a pier, a sailboat, a shrine and a wreck</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="../../../../progress/parity/e1bb0c8/driftwood-isle.desktop.pier.jpg"><img src="../../../../public/assets/title/driftwood-isle-portrait.jpg" style="object-position:50% 22%" alt="Driftwood Isle in the game"></picture><span class="tag loop">Loop</span></div>
+          <h3>Driftwood Isle <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>A bright low-poly island in a toon ocean: pier, sailboat, shrine and wreck.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">a boreal hunt from dawn fog to lantern-lit night, and an Antler King at the end</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="../../../../art/hero-images/round-4-pine-hollow-in-engine/hero-pine-hollow-landscape.jpg"><img src="../../../../art/hero-images/round-4-pine-hollow-in-engine/hero-pine-hollow-portrait.jpg" style="object-position:50% 4%" alt="Pine Hollow in the game: the Antler King by a fire at night"></picture><span class="tag loop">Loop</span></div>
+          <h3>Pine Hollow <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>A boreal hunt from dawn fog to lantern-lit night. Face the Antler King.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">a painted steppe I ride on horseback, with the Golden King's kurgan to open</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="../../../../art/hero-images/round-3-nalati-in-engine/hero-nalati-grasslands-landscape.jpg"><img src="../../../../art/hero-images/round-3-nalati-in-engine/hero-nalati-grasslands-portrait.jpg" style="object-position:50% 90%" alt="Nalati Grasslands in the game"></picture><span class="tag loop">Loop</span></div>
+          <h3>Nalati Grasslands <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>The painted steppe on horseback. Tame horses, open the Golden King's kurgan.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">night dunes, a bullwhip, dune rays to drive off and a signal fire to light</p>
+          <div class="shot"><img src="../../../../progress/sunscar-dunes/20261003-1458-a37cbc42/h2-caravan.jpg" style="transform:scale(1.3);transform-origin:62% 52%" alt="Signal Dunes in the game: a caravan wagon on a dune at dusk"><span class="tag loop">Loop</span></div>
+          <h3>Signal Dunes <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>Crack the bullwhip, drive off the dune rays and light the signal fire.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="../../../../progress/parity/8221929/far-reach.desktop.hover.jpg"><img src="../../../../progress/far-reach/20261003-0952-6066f959/aerial-overview.jpg" style="object-position:50% 70%" alt="Sky Reach in the game: floating islands over a sea of cloud"></picture><span class="tag loop">Loop</span></div>
+          <h3>Sky Reach <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>Grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride.</p>
+        </li>
+        <li class="shard">
+          <p class="ask">a neon city stacked 500 metres high; start me in Lantern Square</p>
+          <div class="shot"><picture class="d"><source media="(min-width: 1024px)" srcset="../../../../progress/parity/e1bb0c8/nine-dragon-stack.desktop.spawn-rail.jpg"><img src="../../../../public/assets/title/nine-dragon-stack-portrait.jpg" style="object-position:50% 45%" alt="Nine Dragon Stack in the game: a red gate over a neon square"></picture><span class="tag loop">Loop</span></div>
+          <h3>Nine Dragon Stack <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play ↗</a></h3>
+          <p>Lantern Square, halfway up a neon city stacked 500 metres high.</p>
+        </li>
+        <li class="shard grey">
+          <p class="ask">start me a new shard</p>
+          <div class="shot"><img src="../../../../progress/normalization/j15/template-play.jpg" style="transform:scale(1.42);transform-origin:52% 56%" alt="The Template in the game: a grey hut on a grey floor"></div>
+          <h3>The Template <a href="#author">Build</a></h3>
+          <p>The greybox every new shard starts from.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="side">
+      <div class="q"><p class="ask">how do I make one?</p></div>
+      <h2>Claude Code is the level editor.</h2>
+    </div>
+    <div class="body">
+      <div class="session bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/shards/my-shard</span></div>
+        <ol class="steps">
+          <li><div><strong>Get a creator key</strong><div class="term"><p class="out">key ws_live_••••••••  <span class="ok">✓</span> signed in as you</p></div></div></li>
+          <li><div><strong>Install the Wildshard skill and SDK in your own Claude Code</strong></div></li>
+          <li><div><strong>Describe it. Claude builds it on a floating cube</strong>
+            <div class="term"><p class="ask">a frozen fjord where you are the last ferryman</p><p class="out">· carving the fjord · freezing the bay · placing the village</p></div></div></li>
+          <li><div><strong><code>wildshard build</code> and <code>validate</code> check every budget and edge</strong>
+            <div class="term"><p class="out"><span class="ok">✓</span> budgets &nbsp;<span class="ok">✓</span> edges &nbsp;<span class="ok">✓</span> package</p></div></div></li>
+          <li><div><strong>Walk it locally</strong></div></li>
+          <li><div><strong>Upload it in the game: the beacon ritual</strong></div></li>
+        </ol>
+    </div>
+    </div>
+  </section>
+
+  <section id="sentence">
+    <div class="side">
+      <div class="q"><p class="ask">can Claude really build a whole shard from one line?</p></div>
+      <h2>One sentence to a shard.</h2>
+      <p class="lede">Our own dry run, Thin Ice: from one line to a playable plan in a day of steering.</p>
+    </div>
+    <div class="body">
+      <div class="chain">
+        <figure><span class="n">The line</span><div class="sentence bk"><p class="ask">a frozen fjord where you are the last ferryman</p></div></figure>
+        <figure><span class="n">Pitch</span><div><img src="../../../../art/thin-ice/round-1-pitches/p2-c-thin-ice.jpg" alt="Pitch C, Thin Ice: racing over black ice above a drowned village"><figcaption>Three pitches; Jake picked Thin Ice.</figcaption></div></figure>
+        <figure><span class="n">Style</span><div><img src="../../../../art/thin-ice/round-2-art-direction/p3s-aurora-hub.jpg" alt="Art direction: the village under an aurora"><figcaption>Art direction: "Aurora, kept simple".</figcaption></div></figure>
+        <figure><span class="n">Map</span><div><img src="../../../../art/thin-ice/round-6-map-revision-2/p5r2-map.jpg" alt="The map of the fjord, revision 2"><figcaption>The map, from a 3D blockout.</figcaption></div></figure>
+        <figure><span class="n">In view</span><div><img src="../../../../art/thin-ice/round-8-first-person-wave-2/w2-02-village.jpg" alt="First-person view of the village"><figcaption>First-person views before a line of the level is built.</figcaption></div></figure>
+      </div>
+      <div class="note">WorldClaw dry run · concept images, not the built shard</div>
+    </div>
+  </section>
+
+  <section id="ritual">
+    <div class="side">
+      <div class="q"><p class="ask">what happens when I upload it?</p></div>
+      <h2>Uploading is a set piece.</h2>
+      <p class="lede">Plant a beacon at each of the eight corners, a ninth at the centre, and watch your shard rise onto the grid.</p>
+    </div>
+    <div class="body">
+      <div class="ritual bk">
+        <span class="tag warn">Coming</span>
+        <svg viewBox="0 0 360 280" role="img" aria-label="A cube with a beacon at each corner and one at the centre, rising onto the grid">
+          <defs>
+            <radialGradient id="glow"><stop offset="0" style="stop-color:var(--act)" stop-opacity=".9"/><stop offset="1" style="stop-color:var(--act)" stop-opacity="0"/></radialGradient>
+            <radialGradient id="glowc"><stop offset="0" stop-color="#a487ff" stop-opacity=".95"/><stop offset="1" stop-color="#a487ff" stop-opacity="0"/></radialGradient>
+          </defs>
+          <g stroke="rgba(164,135,255,.55)" stroke-width="1"><path d="M20 236 L180 276 L340 236 L180 196 Z" fill="none"/><path d="M60 226 L220 266 M100 216 L260 256 M140 206 L300 246 M60 246 L220 206 M100 256 L260 216 M140 266 L300 226"/></g>
+          <g style="stroke:var(--act)" stroke-width="1" stroke-dasharray="2 4" opacity=".7"><line x1="90" y1="214" x2="90" y2="168"/><line x1="270" y1="214" x2="270" y2="168"/><line x1="180" y1="236" x2="180" y2="190"/></g>
+          <g fill="none" stroke="#8fe3ff" stroke-width="1.2" style="filter:drop-shadow(0 0 3px #8fe3ff)"><path d="M90 78 L180 100 L270 78 L180 56 Z"/><path d="M90 78 L90 168 L180 190 L270 168 L270 78"/><path d="M180 100 L180 190"/><path d="M90 168 L180 146 L270 168 M180 56 L180 146" stroke="#4d6275" stroke-dasharray="3 4"/></g>
+          <g><circle cx="90" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="100" r="12" fill="url(#glow)"/><circle cx="270" cy="78" r="12" fill="url(#glow)"/><circle cx="180" cy="56" r="12" fill="url(#glow)"/><circle cx="90" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="190" r="12" fill="url(#glow)"/><circle cx="270" cy="168" r="12" fill="url(#glow)"/><circle cx="180" cy="146" r="12" fill="url(#glow)"/>
+            <g style="fill:var(--act)"><circle cx="90" cy="78" r="3.5"/><circle cx="180" cy="100" r="3.5"/><circle cx="270" cy="78" r="3.5"/><circle cx="180" cy="56" r="3.5"/><circle cx="90" cy="168" r="3.5"/><circle cx="180" cy="190" r="3.5"/><circle cx="270" cy="168" r="3.5"/><circle cx="180" cy="146" r="3.5"/></g>
+            <circle cx="180" cy="123" r="16" fill="url(#glowc)"/><circle cx="180" cy="123" r="4.5" fill="#a487ff"/></g>
+        </svg>
+    </div>
+    </div>
+  </section>
+
+  <section id="safe">
+    <div class="side">
+      <div class="q"><p class="ask">is a stranger's shard safe on my phone?</p></div>
+      <h2>Strangers' worlds, safe on your phone.</h2>
+      <p class="lede">A shard ships data and baked assets, never code that can touch your browser. Every shard is metered, deterministic and built against a versioned API.</p>
+    </div>
+    <div class="body">
+      <div class="manifest bk">
+        <div class="h">a shard package holds</div>
+        <div class="y">data</div><div class="y">baked assets</div><div class="y">sandboxed behaviour (wasm)</div>
+        <div class="n">code that can touch your browser</div>
+      </div>
+      <div class="json bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>template · shard.json (excerpt)</span></div>
+  <pre><span class="c">{</span>
+    <span class="k">"slug"</span>: <span class="s">"template"</span>,
+    <span class="k">"name"</span>: <span class="s">"Template shard"</span>,
+    <span class="k">"author"</span>: <span class="s">"Wildshard"</span>,
+    <span class="k">"revision"</span>: 1, <span class="k">"seed"</span>: 357,
+    <span class="k">"budgets"</span>: {
+      <span class="k">"phone"</span>:   { <span class="k">"fps"</span>: 30, <span class="k">"cpuMs"</span>: 9.6 },
+      <span class="k">"desktop"</span>: { <span class="k">"fps"</span>: 60, <span class="k">"cpuMs"</span>: 4.8 }
+    },
+    <span class="k">"scripts"</span>: [{ <span class="k">"kind"</span>: <span class="s">"wasm"</span>, <span class="k">"hash"</span>: <span class="s">"7035c4…aa7"</span> }]
+  <span class="c">}</span></pre>
+      </div>
+      <div class="note">Read from the repo at build time</div>
+    </div>
+  </section>
+
+  <section id="grow">
+    <div class="side">
+      <div class="q"><p class="ask">does a shard stay the same forever?</p></div>
+      <h2>Shards that grow.</h2>
+    </div>
+    <div class="body">
+      <ul class="grow">
+        <li>Co-edit with friends.</li>
+        <li>Renovate abandoned shards.</li>
+        <li>Your name and title travel with you.</li>
+        <li>Two wallets, so no shard can break the economy.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="ideas">
+    <div class="side">
+      <div class="q"><p class="ask">what could I build?</p></div>
+      <h2>Coming worlds.</h2>
+      <p class="lede">Shards nobody has built yet. One of them could be yours.</p>
+    </div>
+    <div class="body">
+      <div class="ideas">
+        <div class="idea bk"><b>The Clockwork Tide</b><span>A canal city on a 20-minute tide.</span></div>
+        <div class="idea bk"><b>Skyforge Regatta</b><span>Sky-sailing races through floating islands.</span></div>
+        <div class="idea bk"><b>Ashfall Bastion</b><span>A co-op siege on a volcanic fortress.</span></div>
+        <div class="idea bk"><b>Lantern Night Market</b><span>A social hub that only opens at dusk.</span></div>
+        <div class="idea bk"><b>The Underways</b><span>A deep mine in the 100 m below ground.</span></div>
+        <div class="idea bk"><b>The Drowned Archive</b><span>A sunken library, explored underwater.</span></div>
+      </div>
+      <div class="note">Ideas · not built</div>
+    </div>
+  </section>
+
+  <section id="road">
+    <div class="side">
+      <div class="q"><p class="ask">where are you now?</p></div>
+      <h2>Where we are.</h2>
+    </div>
+    <div class="body">
+      <ul class="road">
+        <li class="done">Seven single-player shards on one engine</li>
+        <li class="done">The shard package</li>
+        <li class="now">The grid: seamless travel between shards</li>
+        <li class="now">Every shard as data</li>
+        <li class="next">Multiplayer</li>
+        <li class="next">Upload</li>
+        <li class="next">The 25-shard world</li>
+      </ul>
+      <div class="log bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>devlog · generated from the build</span></div>
+        <ol>
+          <li><time>This week</time><p>Signal Dunes is the first shard to win its boss fight headless and replay it byte for byte.</p></li>
+          <li><time>This week</time><p>Every shard now fits in 1 GB on the phone.</p></li>
+          <li><time>Last week</time><p>The 3 × 3 grid: walk from shard to shard without a loading screen.</p></li>
+          <li><time>Last week</time><p>The shard package: a sealed file a server could load unchanged.</p></li>
+        </ol>
+    </div>
+    </div>
+  </section>
+
+  <section id="who">
+    <div class="side">
+      <div class="q"><p class="ask">who's building it?</p></div>
+      <h2>Built the way its authors will build.</h2>
+    </div>
+    <div class="body">
+      <div class="who"><b>2</b><span>humans</span><b class="act">+</b><span>a fleet of Claude Code agents</span></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="side">
+      <div class="q"><p class="ask">questions</p></div>
+      <h2>FAQ.</h2>
+    </div>
+    <div class="body">
+      <div class="faq">
+        <details open><summary>What can I play it on?</summary><p>Any modern browser, on desktop and phone. No install.</p></details>
+        <details><summary>Is it free?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>Do I need a Claude subscription to build?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>Who owns my shard?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>What can't a shard do?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+    </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="side">
+      <div class="q"><p class="ask">can I keep it on my phone?</p></div>
+      <h2>Install it.</h2>
+    </div>
+    <div class="body">
+      <div class="install bk">
+        <ol><li>Open the game in Safari or Chrome.</li><li>Tap Share, then <b>Add to Home Screen</b>.</li><li>It opens full screen, like an app.</li></ol>
+        <p>iOS and Android apps: coming</p>
+    </div>
+    </div>
+  </section>
+</main>
+
+<section class="door-end" id="author">
+  <div class="wrap">
+    <div class="side">
+      <div class="q"><p class="ask">I want to build one</p></div>
+      <h2>Become an author.</h2>
+      <p class="lede">Join the waitlist for a creator key. Tell us the shard you'd build, and claim the empty cell you'd build it in.</p>
+      <div class="founding bk"><b>Founding authors:</b> the first authors to upload get a permanent Founding Author title and a plaque on their shard.</div>
+    </div>
+    <div class="body">
+      <form class="bk" onsubmit="event.preventDefault();">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>~/waitlist</span></div>
+        <label class="field"><span class="lab">Email</span><input type="email" name="email" placeholder="you@example.com" autocomplete="email"></label>
+        <label class="field"><span class="lab">What would you build?</span><span class="prompt-field"><textarea name="build" rows="2" placeholder="build me a frozen fjord where you are the last ferryman"></textarea></span></label>
+        <div class="field"><span class="lab">Claim a cell (a wish, not a promise)</span>
+          <div class="claimmap map"><svg id="claim-map" viewBox="0 0 300 300" role="img" aria-label="Tap an empty cell to claim it"></svg></div></div>
+        <button class="send" type="submit">Join the waitlist <small>enter ↵</small></button>
+      </form>
+      <div class="ends">
+        <a class="bk" href="#discord">Join the Discord</a>
+        <a class="bk" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play now ↗</a>
+      </div>
+      <p class="mail">or write to <a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></p>
+    </div>
+  </div>
+</section>
+<footer><span>Project Wildshard</span><a href="#press">Press kit</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+
+<script>
+(function () {
+  // the grid, drawn twice: the world map (lit shards) and the claim map (your wish)
+  var NS = "http://www.w3.org/2000/svg";
+  var LIT = { "B2": "Driftwood", "C2": "Pine", "D2": "Nalati", "B3": "Dunes", "D3": "Sky Reach", "C4": "9 Dragon", "B4": "Template" };
+  var COLS = "ABCDE";
+  function el(n, a, txt) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (txt) e.textContent = txt; return e; }
+  function draw(svg, opts) {
+    var cell = 48, gap = 9, o = 22;
+    for (var r = 0; r < 5; r++) for (var c = 0; c < 5; c++) {
+      var id = COLS[c] + (r + 1), x = o + c * (cell + gap), y = o + r * (cell + gap);
+      var cls = "cell";
+      if (id === "C3") cls += " centre"; else if (opts.lit && LIT[id]) cls += " lit";
+      svg.appendChild(el("rect", { x: x, y: y, width: cell, height: cell, "class": cls }));
+      var name = id === "C3" ? "Centre" : (opts.lit ? LIT[id] : null);
+      svg.appendChild(el("text", { x: x + 4, y: y + 9, "class": "k" }, id));
+      if (name) svg.appendChild(el("text", { x: x + 4, y: y + cell - 5, "class": id === "C3" ? "c" : "" }, name));
+      if (opts.claim === id) {
+        svg.appendChild(el("rect", { x: x - 3, y: y - 3, width: cell + 6, height: cell + 6, "class": "claim" }));
+        svg.appendChild(el("text", { x: x + 4, y: y + cell - 5, "class": "a" }, "Your wish"));
+      }
+    }
+    // the highway between the cells, and the seams round the grid
+    for (var i = 1; i < 5; i++) {
+      var p = o + i * (cell + gap) - gap / 2;
+      svg.appendChild(el("line", { x1: p, y1: o - 6, x2: p, y2: 300 - o + 6 - 9, "class": "road" }));
+      svg.appendChild(el("line", { x1: o - 6, y1: p, x2: 300 - o + 6 - 9, y2: p, "class": "road" }));
+    }
+    var s = 5 * cell + 4 * gap;
+    svg.appendChild(el("rect", { x: o - 8, y: o - 8, width: s + 16, height: s + 16, "class": "seam" }));
+  }
+  draw(document.getElementById("grid-map"), { lit: true });
+  draw(document.getElementById("claim-map"), { lit: true, claim: "D4" });
+  var ink = document.querySelectorAll(".ink");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("drawn"); io.unobserve(e.target); } }); }, { threshold: .25 });
+    ink.forEach(function (n) { io.observe(n); });
+  } else ink.forEach(function (n) { n.classList.add("drawn"); });
+
+  // the hero types itself, then the world opens out of the pane
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var p = document.getElementById("typed"), t = p.querySelector(".t"), full = p.getAttribute("data-text");
+  var lines = Array.prototype.slice.call(document.querySelectorAll(".hero .line")), world = document.getElementById("world");
+  function finish() { t.textContent = full; lines.forEach(function (l) { l.classList.add("on"); }); world.classList.add("open"); }
+  if (reduce) { finish(); return; }
+  t.textContent = ""; var i = 0;
+  (function type() {
+    i += 1; t.textContent = full.slice(0, i);
+    if (i < full.length) { setTimeout(type, 24 + Math.random() * 30); return; }
+    lines.forEach(function (l, k) { setTimeout(function () { l.classList.add("on"); }, 220 + k * 260); });
+    setTimeout(function () { world.classList.add("open"); }, 260);
+  })();
+})();
+</script>
+</body>
+</html>
