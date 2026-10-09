@@ -320,6 +320,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [precommit-guards.d.mts](./precommit-guards.d.mts)
 - [precommit-guards.mjs](./precommit-guards.mjs)
 - [progress-video.sh](./progress-video.sh)
+- [proof-driftwood-boat-cape.mjs](./proof-driftwood-boat-cape.mjs)
 - [proof-driftwood-fixed-models.mjs](./proof-driftwood-fixed-models.mjs)
 - [proof-run.sh](./proof-run.sh)
 - [public-grid.d.mts](./public-grid.d.mts)
