@@ -1,5 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainField } from '@wildshard/engine/level/data';
+import { decodeTerrainTile, type TerrainTileData } from '@wildshard/engine/world/terrainTileData';
 import type { ResidencyAllocator } from '../grid/allocator';
 import type { ClientAssets } from './clientAssets';
 import { clientGround } from './clientGround';
@@ -18,8 +19,11 @@ import { clientWorld, type ClientWorldViews } from './clientWorld';
 export interface RuntimeTerrainPorts {
   /** The admitted product's reader (the same `ClientAssets` the data client streams from). */
   readonly assets: ClientAssets;
-  /** The runtime's tile view: decode `bytes` (a terrain tile) under `scope`, in the runtime's own material. */
-  readonly terrain: ClientWorldViews['terrain'];
+  /**
+   * The runtime's tile view: decode `bytes` (a terrain tile) under `scope`, in the runtime's own material. `lattice` is the
+   * decoded collider every tile was cut from: hand it to `installTerrainTile` so tiles light their shared edges alike.
+   */
+  readonly terrain: (bytes: Uint8Array, scope: Scope, shadow: boolean, lattice: TerrainTileData) => ReturnType<ClientWorldViews['terrain']>;
   /** Where residency starts (shard-local metres). */
   readonly x: number;
   readonly z: number;
@@ -49,7 +53,9 @@ export async function bindRuntimeTerrain(ctx: { readonly scope: Scope }, source:
   const collider = await ports.assets.read(terrain.collider);
   if (ctx.scope.disposed) throw new Error('Runtime left while reading its terrain collider');
   const ground = clientGround({ ...source, meshCollision: null }, new Map([[terrain.collider, collider]]));
+  // the shared lattice (E435 tiles-shade): each tile's normals from it, so a tile edge across a sharp ridge lights as one surface
+  const lattice = decodeTerrainTile(collider);
   const world = await clientWorld({ ...source, props: null }, ports.assets, { scope: ctx.scope, x: ports.x, z: ports.z,
-    views: { terrain: ports.terrain, ...noProps }, ...(ports.residency === undefined ? {} : { residency: ports.residency }) });
+    views: { terrain: (bytes, scope, shadow) => ports.terrain(bytes, scope, shadow, lattice), ...noProps }, ...(ports.residency === undefined ? {} : { residency: ports.residency }) });
   return { ground, refresh: world.refresh, get fine() { return world.fine; } };
 }

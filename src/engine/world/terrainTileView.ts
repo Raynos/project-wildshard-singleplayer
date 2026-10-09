@@ -9,8 +9,10 @@
  *   them (`maskTerrainTile`): one index allocation, one draw, no overlapping surfaces.
  * - **Every other tile** (L0) hangs a skirt below its four edges, so the step where a fine edge meets a coarse neighbour's
  *   straighter edge never opens a crack. The skirt sits under the surface and never changes where the ground is.
- * - Normals come from the height grid itself (central differences; second-order one-sided at a tile edge), so two tiles
- *   that share an edge light it alike.
+ * - Normals are central differences of the **shared lattice** the tiles were cut from (`lattice`: the level's 257²
+ *   collider) at each vertex, so every tile that holds a point (two L0 neighbours, an L1 / L0 seam) lights it alike.
+ *   Without one, the tile's own grid (second-order one-sided at a tile edge): those agree only to O(h²), and across a sharp
+ *   ridge that is a hard tonal line along the tile edge (E435 tiles-shade).
  */
 import { BufferAttribute, BufferGeometry, Mesh, type Material, type Object3D } from 'three';
 import type { Scope } from '../app/scope';
@@ -27,19 +29,50 @@ const coarseTiles = new WeakMap<Mesh, TileState>();
 /** True when this tile is a coarse tile whose quadrants refinement may hide. */
 function isCoarse(data: TerrainTileData): boolean { return data.resolution === COARSE.resolution && data.size === COARSE.size; }
 
-/** Grid normals: central differences inside, second-order one-sided differences on an edge (both tiles agree to O(h²)). */
+/** A grid's slope along one axis at sample `at` of `n`: central inside, second-order one-sided on the grid's edge. */
+function gridSlope(at: number, n: number, step: number, sample: (i: number) => number): number {
+  if (n === 2) return (sample(1) - sample(0)) / step;
+  if (at === 0) return (-3 * sample(0) + 4 * sample(1) - sample(2)) / (2 * step);
+  if (at === n - 1) return (3 * sample(n - 1) - 4 * sample(n - 2) + sample(n - 3)) / (2 * step);
+  return (sample(at + 1) - sample(at - 1)) / (2 * step);
+}
+
+/** Write the unit normal of slopes (dx, dz) at vertex `vertex`. */
+function writeNormal(out: Float32Array, vertex: number, dx: number, dz: number): void {
+  const length = Math.hypot(dx, 1, dz), at = vertex * 3;
+  out[at] = -dx / length; out[at + 1] = 1 / length; out[at + 2] = -dz / length;
+}
+
+/** Grid normals from the tile's own heights (one-sided at its edges, so neighbours agree only to O(h²)). */
 function gridNormals(data: TerrainTileData, out: Float32Array): void {
   const r = data.resolution, step = data.size / (r - 1), h = (x: number, z: number): number => data.heights[z * r + x] ?? 0;
-  const slope = (at: number, sample: (i: number) => number): number => {
-    if (r === 2) return (sample(1) - sample(0)) / step;
-    if (at === 0) return (-3 * sample(0) + 4 * sample(1) - sample(2)) / (2 * step);
-    if (at === r - 1) return (3 * sample(r - 1) - 4 * sample(r - 2) + sample(r - 3)) / (2 * step);
-    return (sample(at + 1) - sample(at - 1)) / (2 * step);
-  };
-  for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) {
-    const dx = slope(x, (i) => h(i, z)), dz = slope(z, (i) => h(x, i)), length = Math.hypot(dx, 1, dz), at = (z * r + x) * 3;
-    out[at] = -dx / length; out[at + 1] = 1 / length; out[at + 2] = -dz / length;
+  for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) writeNormal(out, z * r + x, gridSlope(x, r, step, (i) => h(i, z)), gridSlope(z, r, step, (i) => h(x, i)));
+}
+
+/** The lattice sample index of world coordinate `w` on one axis, or −1 when `w` is not one of its samples. */
+function latticeIndex(w: number, origin: number, step: number, n: number): number {
+  const g = (w - origin) / step, i = Math.round(g);
+  return Math.abs(g - i) < 1e-3 && i >= 0 && i < n ? i : -1;
+}
+
+/**
+ * Normals from the shared lattice the tile was cut from: each vertex's normal is a function of its world position only
+ * (central differences of the lattice there, one-sided only on the lattice's own edge), so tiles sharing a point agree
+ * exactly. False (nothing written) when a vertex is not a lattice sample.
+ */
+function latticeNormals(data: TerrainTileData, lattice: TerrainTileData, out: Float32Array): boolean {
+  const r = data.resolution, cell = data.size / (r - 1), n = lattice.resolution, step = lattice.size / (n - 1), columns: number[] = [], rows: number[] = [];
+  for (let i = 0; i < r; i++) {
+    const x = latticeIndex(data.x + i * cell, lattice.x, step, n), z = latticeIndex(data.z + i * cell, lattice.z, step, n);
+    if (x < 0 || z < 0) return false;
+    columns.push(x); rows.push(z);
   }
+  const h = (x: number, z: number): number => lattice.heights[z * n + x] ?? 0;
+  for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) {
+    const lx = columns[x] ?? 0, lz = rows[z] ?? 0;
+    writeNormal(out, z * r + x, gridSlope(lx, n, step, (i) => h(i, lz)), gridSlope(lz, n, step, (i) => h(lx, i)));
+  }
+  return true;
 }
 
 /** The perimeter in walk order (+x along z = 0, +z along x = r − 1, −x along z = r − 1, −z along x = 0): skirts face outward. */
@@ -56,9 +89,11 @@ function perimeter(r: number): number[] {
  * Install one admitted terrain render tile under `root`; `scope` owns its geometry and its place in the scene.
  * The mesh receives shadows; it casts them only when `shadow` is set (an L0 tile wholly inside the shadow disc). `material`
  * stays the caller's (one family material shared by every tile). It takes the tile's wire bytes, or the tile already
- * decoded (and validated) by `decodeTerrainTile` off the main thread (SF18b's decode workers).
+ * decoded (and validated) by `decodeTerrainTile` off the main thread (SF18b's decode workers). `lattice` is the shared
+ * height lattice the tile was cut from (the level's collider, every tile's vertices among its samples): the normals come
+ * from it, so the tile's edges light like its neighbours'; a tile off that lattice falls back to its own grid.
  */
-export function installTerrainTile(bytes: Uint8Array | TerrainTileData, ports: { root: Object3D; scope: Scope; material: Material; shadow: boolean }): Mesh {
+export function installTerrainTile(bytes: Uint8Array | TerrainTileData, ports: { root: Object3D; scope: Scope; material: Material; shadow: boolean; lattice?: TerrainTileData }): Mesh {
   if (ports.scope.disposed) throw new Error('terrain tile: its scope is already disposed');
   const data = bytes instanceof Uint8Array ? decodeTerrainTile(bytes) : bytes, r = data.resolution, colours = data.colours;
   if (colours === undefined) throw new Error('terrain tile: a render tile needs vertex colours (a heights-only payload is a collider)');
@@ -74,7 +109,7 @@ export function installTerrainTile(bytes: Uint8Array | TerrainTileData, ports: {
     if (x < r - 1 && z < r - 1) indices.set([vertex, vertex + r, vertex + 1, vertex + 1, vertex + r, vertex + r + 1], (z * (r - 1) + x) * 6);
   }
   if (!coarse) colour.set(colours);
-  gridNormals(data, normals);
+  if (ports.lattice === undefined || !latticeNormals(data, ports.lattice, normals)) gridNormals(data, normals);
   const depth = data.size / 16;
   ring.forEach((border, i) => {
     const skirt = grid + i, next = (i + 1) % ring.length, from = border * 3, to = skirt * 3;

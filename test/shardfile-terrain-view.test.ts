@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { Box3, Group, Mesh, MeshStandardMaterial, Raycaster, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { encodeTerrainTile, terrainTileHeight } from '../src/engine/world/terrainTileData';
+import { encodeTerrainTile, terrainTileHeight, type TerrainTileData } from '../src/engine/world/terrainTileData';
 import { installTerrainTile, maskTerrainTile } from '../src/engine/world/terrainTileView';
 import { chunkShadowCasters } from '../src/engine/world/shadowChunks';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';
@@ -74,6 +74,42 @@ describe('terrain tile view (SF15a)', () => {
     }
     expect(() => { maskTerrainTile(a, new Set([0])); }).toThrow(); maskTerrainTile(a, new Set());
     expect(scope.census.geometries).toBe(2); scope.dispose(); expect(root.children).toHaveLength(0); expect(scope.census.geometries).toBe(0);
+  });
+
+  it('with the shared lattice, tiles light a sharp ridge on their shared edge as one surface: L0 neighbours and the L1 / L0 seam agree exactly (E435 tiles-shade)', () => {
+    // a knife-edge ridge 1.5 lattice cells left of the x = −187.5 tile edge (a dune crest's slope break), on a gentle swell
+    const n = 257, step = 500 / 256, ridge = -187.5 - 1.5 * step;
+    const field = (x: number, z: number): number => 12 - 0.6 * Math.abs(x - ridge) * (x < ridge ? 0.15 : 1) + Math.sin(z * 0.05) * 2;
+    const heights = Float32Array.from({ length: n * n }, (_v, i) => field(-250 + (i % n) * step, -250 + Math.floor(i / n) * step));
+    const lattice = { resolution: n, x: -250, z: -250, size: 500, heights };
+    const cut = (x0: number, size: number, r: number): TerrainTileData => {
+      const stride = size / (r - 1) / step, gx = (x0 + 250) / step;
+      return { resolution: r, x: x0, z: -250, size, colours: new Float32Array(r * r * 3).fill(0.4),
+        heights: Float32Array.from({ length: r * r }, (_v, i) => heights[Math.floor(i / r) * stride * n + gx + (i % r) * stride] ?? 0) };
+    };
+    const scope = new Scope('lattice-normals'), root = new Group(), material = scope.own(new MeshStandardMaterial());
+    const install = (data: TerrainTileData, shared: boolean): Mesh => installTerrainTile(data, { root, scope, material, shadow: false, ...(shared ? { lattice } : {}) });
+    const normal = (mesh: Mesh, i: number): Vector3 => new Vector3().fromBufferAttribute(mesh.geometry.getAttribute('normal'), i);
+    // the shared edge: the left tile's x = 32 column against the right tile's x = 0 column
+    const edgeAngle = (left: Mesh, right: Mesh): number => { let worst = 0; for (let z = 0; z < 33; z++) worst = Math.max(worst, normal(left, z * 33 + 32).angleTo(normal(right, z * 33))); return worst; };
+    const ownLeft = install(cut(-250, 62.5, 33), false), ownRight = install(cut(-187.5, 62.5, 33), false);
+    expect(edgeAngle(ownLeft, ownRight) * 180 / Math.PI).toBeGreaterThan(1); // the hard line: one-sided edge normals disagree
+    const left = install(cut(-250, 62.5, 33), true), right = install(cut(-187.5, 62.5, 33), true);
+    expect(edgeAngle(left, right)).toBeLessThan(1e-6);
+    // inside a tile the lattice normals are its own grid's central differences
+    for (const i of [5 * 33 + 7, 20 * 33 + 30]) expect(normal(left, i).angleTo(normal(ownLeft, i))).toBeLessThan(1e-6);
+    // the coarse tile over both (stride 4) lights every vertex it shares with them exactly as they do
+    const coarse = install(cut(-250, 125, 17), true);
+    let seam = 0; for (let z = 0; z < 17; z++) for (let x = 0; x < 17; x++) {
+      const fine = x <= 8 ? left : right, fx = x <= 8 ? x * 4 : (x - 8) * 4, fz = z * 4;
+      if (fz > 32) continue;
+      seam = Math.max(seam, normal(coarse, z * 17 + x).angleTo(normal(fine, fz * 33 + fx)));
+    }
+    expect(seam).toBeLessThan(1e-6);
+    // a tile off the lattice keeps its own grid normals
+    const off = install({ ...cut(-250, 62.5, 33), x: -249.3 }, true);
+    for (const i of [0, 32, 33 * 33 - 1]) expect(normal(off, i).angleTo(normal(ownLeft, i))).toBeLessThan(1e-6);
+    scope.dispose();
   });
 
   it('a coarse tile masks quadrants in its one index buffer and draws nothing it hides', () => {

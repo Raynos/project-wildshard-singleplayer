@@ -27,18 +27,19 @@ let live: { bound: Bound; x: number; z: number; busy: boolean } | null = null;
  * (`bindRuntimeProductTerrain`: the same product reader standalone and in a grid cell, the shardfile's own residency rings,
  * 16 coarse L1 tiles always resident and the fine L0 tiles inside the 150 m disc). Each tile is the engine's terrain tile
  * view in the sand material; its vertex tint is the painter's own (hollows and crests against a 14 m ring), not the
- * bake's map ramp, so the sand reads as it does on the code-built mesh. The tiles cast no shadow (the baked dune shadow
- * map shades them, as it did the mesh). Height and normal queries and the collider come from the compiled collider
- * (`PainterField.bindGround`).
+ * bake's map ramp, so the sand reads as it does on the code-built mesh. Its normals are the shared collider lattice's, so a
+ * tile edge across a crest lights as one surface (tiles-shade: the tiles' own one-sided edge normals drew a hard line
+ * there). The tiles cast no shadow (the baked dune shadow map shades them, as it did the mesh). Height and normal queries
+ * and the collider come from the compiled collider (`PainterField.bindGround`).
  */
 export async function bindSandTiles(terrain: Terrain, field: PainterField, material: Material, tint: SandTint, scope: Scope): Promise<void> {
-  const bound = await bindRuntimeProductTerrain(scope, source, { x: SPAWN.x, z: SPAWN.z, terrain: (bytes, tileScope) => {
+  const bound = await bindRuntimeProductTerrain(scope, source, { x: SPAWN.x, z: SPAWN.z, terrain: (bytes, tileScope, _shadow, lattice) => {
     const data = decodeTerrainTile(bytes), r = data.resolution, cell = data.size / (r - 1), colours = new Float32Array(r * r * 3);
     for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) {
       const vertex = z * r + x;
       tint(data.x + x * cell, data.z + z * cell, data.heights[vertex] ?? 0, colours, vertex * 3);
     }
-    const mesh = installTerrainTile({ ...data, colours }, { root: terrain.group, scope: tileScope, material, shadow: false });
+    const mesh = installTerrainTile({ ...data, colours }, { root: terrain.group, scope: tileScope, material, shadow: false, lattice });
     mesh.receiveShadow = false;
     return { mask: (excluded) => { maskTerrainTile(mesh, excluded); }, shadow: () => undefined };
   } });

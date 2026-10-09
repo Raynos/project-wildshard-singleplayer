@@ -1,0 +1,229 @@
+{
+ "units": "8-bit RGB at 402x874; over8 / over24 = % of pixels whose max-channel difference exceeds 8 / 24",
+ "ground": [
+  0,
+  460,
+  402,
+  740
+ ],
+ "grid": {
+  "entry": {
+   "raw": {
+    "noise_off_off2": {
+     "full": {
+      "meanAbs": 0.65,
+      "over8": 0.49,
+      "over24": 0.01
+     },
+     "ground": {
+      "meanAbs": 0.951,
+      "over8": 1.43,
+      "over24": 0.04
+     }
+    },
+    "before_off_headOn": {
+     "full": {
+      "meanAbs": 0.833,
+      "over8": 1.45,
+      "over24": 0.03
+     },
+     "ground": {
+      "meanAbs": 1.356,
+      "over8": 3.87,
+      "over24": 0.08
+     }
+    },
+    "after_off_fixOn": {
+     "full": {
+      "meanAbs": 0.714,
+      "over8": 0.57,
+      "over24": 0.01
+     },
+     "ground": {
+      "meanAbs": 1.037,
+      "over8": 1.29,
+      "over24": 0.02
+     }
+    }
+   },
+   "lowpass3px": {
+    "noise_off_off2": {
+     "full": {
+      "meanAbs": 0.337,
+      "over8": 0.37,
+      "over24": 0.0
+     },
+     "ground": {
+      "meanAbs": 0.511,
+      "over8": 1.15,
+      "over24": 0.0
+     }
+    },
+    "before_off_headOn": {
+     "full": {
+      "meanAbs": 0.478,
+      "over8": 1.0,
+      "over24": 0.0
+     },
+     "ground": {
+      "meanAbs": 0.831,
+      "over8": 3.04,
+      "over24": 0.0
+     }
+    },
+    "after_off_fixOn": {
+     "full": {
+      "meanAbs": 0.372,
+      "over8": 0.28,
+      "over24": 0.0
+     },
+     "ground": {
+      "meanAbs": 0.556,
+      "over8": 0.87,
+      "over24": 0.0
+     }
+    }
+   }
+  },
+  "centre": {
+   "raw": {
+    "noise_off_off2": {
+     "full": {
+      "meanAbs": 0.645,
+      "over8": 0.28,
+      "over24": 0.04
+     },
+     "ground": {
+      "meanAbs": 0.863,
+      "over8": 0.49,
+      "over24": 0.08
+     }
+    },
+    "before_off_headOn": {
+     "full": {
+      "meanAbs": 3.253,
+      "over8": 17.28,
+      "over24": 4.47
+     },
+     "ground": {
+      "meanAbs": 7.532,
+      "over8": 45.75,
+      "over24": 13.73
+     }
+    },
+    "after_off_fixOn": {
+     "full": {
+      "meanAbs": 3.017,
+      "over8": 15.48,
+      "over24": 3.4
+     },
+     "ground": {
+      "meanAbs": 7.038,
+      "over8": 42.09,
+      "over24": 10.48
+     }
+    }
+   },
+   "lowpass3px": {
+    "noise_off_off2": {
+     "full": {
+      "meanAbs": 0.257,
+      "over8": 0.08,
+      "over24": 0.0
+     },
+     "ground": {
+      "meanAbs": 0.34,
+      "over8": 0.21,
+      "over24": 0.0
+     }
+    },
+    "before_off_headOn": {
+     "full": {
+      "meanAbs": 1.436,
+      "over8": 6.53,
+      "over24": 1.3
+     },
+     "ground": {
+      "meanAbs": 3.297,
+      "over8": 19.23,
+      "over24": 4.06
+     }
+    },
+    "after_off_fixOn": {
+     "full": {
+      "meanAbs": 0.86,
+      "over8": 1.38,
+      "over24": 0.04
+     },
+     "ground": {
+      "meanAbs": 1.9,
+      "over8": 4.19,
+      "over24": 0.13
+     }
+    }
+   }
+  }
+ },
+ "standalone_fix": {
+  "spawn": {
+   "noise(off-off2)": {
+    "meanAbs": 0.012,
+    "over8": 0.0,
+    "over24": 0.0
+   },
+   "swap(off-on)": {
+    "meanAbs": 0.906,
+    "over8": 4.78,
+    "over24": 0.23
+   }
+  },
+  "whip": {
+   "noise(off-off2)": {
+    "meanAbs": 0.021,
+    "over8": 0.0,
+    "over24": 0.0
+   },
+   "swap(off-on)": {
+    "meanAbs": 0.291,
+    "over8": 0.83,
+    "over24": 0.02
+   }
+  },
+  "ray": {
+   "noise(off-off2)": {
+    "meanAbs": 0.008,
+    "over8": 0.02,
+    "over24": 0.01
+   },
+   "swap(off-on)": {
+    "meanAbs": 0.461,
+    "over8": 1.29,
+    "over24": 0.17
+   }
+  },
+  "quest": {
+   "noise(off-off2)": {
+    "meanAbs": 0.006,
+    "over8": 0.01,
+    "over24": 0.01
+   },
+   "swap(off-on)": {
+    "meanAbs": 0.473,
+    "over8": 2.47,
+    "over24": 0.33
+   }
+  },
+  "centre": {
+   "noise(off-off2)": {
+    "meanAbs": 0.02,
+    "over8": 0.02,
+    "over24": 0.01
+   },
+   "swap(off-on)": {
+    "meanAbs": 1.031,
+    "over8": 5.01,
+    "over24": 0.52
+   }
+  }
+ }
+}
