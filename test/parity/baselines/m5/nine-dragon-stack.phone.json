@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "ca969df25908be165a71648a2ecbbca8040477a1",
-    "build": "ca969df-mv057rza",
+    "sha": "f983de200b2b54ccde9cb551cc41188c24445222",
+    "build": "f983de2-mv0y1k5e",
     "shard": "nine-dragon-stack",
     "tier": "phone",
     "viewport": {
@@ -3251,26 +3251,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 3819.3999996185303,
+    "playMs": 2579,
     "stepMs": {
-      "renderer": 18,
-      "sky": 86,
-      "terrain": 2,
+      "renderer": 12,
+      "sky": 63,
+      "terrain": 1,
       "cards": 1,
-      "forest": 8,
-      "physics": 3,
-      "edge": 15,
+      "forest": 6,
+      "physics": 2,
+      "edge": 11,
       "grass": 1,
       "cabins": 0,
-      "props": 2029,
-      "animals": 2,
-      "weapon": 35,
-      "menu": 69,
-      "shaders": 302,
-      "firstFrame": 86,
-      "audio": 2
+      "props": 1385,
+      "animals": 1,
+      "weapon": 23,
+      "menu": 44,
+      "shaders": 216,
+      "firstFrame": 67,
+      "audio": 1
     },
-    "heapMB": 88.74011611938477,
+    "heapMB": 72.3278923034668,
     "facade": {
       "multiDraw": true,
       "batches": 0,
@@ -3287,13 +3287,13 @@
       ],
       "calls": 148,
       "tris": 1434678,
-      "fps": 129.59902585432638,
-      "frameP95Ms": 8.900000095367432,
-      "cpuP50Ms": 7.400000095367432,
-      "cpuP95Ms": 8.600000381469727,
+      "fps": 240.47772760318549,
+      "frameP95Ms": 4.800000190734863,
+      "cpuP50Ms": 4,
+      "cpuP95Ms": 4.599999904632568,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/nine-dragon-stack.phone.spawn-rail.jpg",
+      "shot": "/private/tmp/wildshard-serve/20261009-073025-4403/src/test/parity/baselines/m5/nine-dragon-stack.phone.spawn-rail.jpg",
       "ssim": 1
     },
     "well-edge": {
@@ -3305,13 +3305,13 @@
       ],
       "calls": 132,
       "tris": 1280155,
-      "fps": 139.55230872587572,
-      "frameP95Ms": 8.800000190734863,
-      "cpuP50Ms": 6.800000190734863,
-      "cpuP95Ms": 8.299999713897705,
+      "fps": 247.67287237968736,
+      "frameP95Ms": 4.699999809265137,
+      "cpuP50Ms": 3.9000000953674316,
+      "cpuP95Ms": 4.5,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/nine-dragon-stack.phone.well-edge.jpg",
+      "shot": "/private/tmp/wildshard-serve/20261009-073025-4403/src/test/parity/baselines/m5/nine-dragon-stack.phone.well-edge.jpg",
       "ssim": 1
     },
     "stair-street": {
@@ -3323,13 +3323,13 @@
       ],
       "calls": 126,
       "tris": 1003058,
-      "fps": 132.20940550133096,
-      "frameP95Ms": 9.200000286102295,
-      "cpuP50Ms": 7,
-      "cpuP95Ms": 8.5,
+      "fps": 239.35742971887552,
+      "frameP95Ms": 4.900000095367432,
+      "cpuP50Ms": 4,
+      "cpuP95Ms": 4.600000381469727,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/nine-dragon-stack.phone.stair-street.jpg",
+      "shot": "/private/tmp/wildshard-serve/20261009-073025-4403/src/test/parity/baselines/m5/nine-dragon-stack.phone.stair-street.jpg",
       "ssim": 1
     }
   },
@@ -3833,7 +3833,7 @@
         },
         "maxY": 146.021,
         "out": 0,
-        "seconds": 18.63333333333417,
+        "seconds": 18.633333333334036,
         "trace": [
           [
             0.033,
@@ -16785,18 +16785,18 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:35:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4688/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at O (http://127.0.0.1:4688/assets/bootTrace-BemYI8W3.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:960)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1268)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1378)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4403/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:35:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4403/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:4213)\n    at O (http://127.0.0.1:4403/assets/bootTrace-BNgwBEwT.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:960)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:864",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:4213)\n    at new <anonymous> (http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:1268)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:864",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:4213)\n    at new <anonymous> (http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:1378)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:864"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:4912)\n    at e.combat (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:228:75196)\n    at HL.E.onHit (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:2111:13862)\n    at e.onHit (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:333:72189)\n    at Re.strike (http://127.0.0.1:4688/assets/SweptMelee-DbDBJIkE.js:32:4288)\n    at Re.sweepHit (http://127.0.0.1:4688/assets/SweptMelee-DbDBJIkE.js:32:2243)\n    at Re.update (http://127.0.0.1:4688/assets/SweptMelee-DbDBJIkE.js:32:8148)\n    at vv.update (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:333:77083)\n    at Object.run (http://127.0.0.1:4688/assets/session-B8rPIQpw.js:2111:24536)",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:5181)\n    at new <anonymous> (http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:1236)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:3:864",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:5181)\n    at Wt (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:74:4045)\n    at G (http://127.0.0.1:4688/assets/pageServices-BlqLfdqz.js:1:273681)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:10:1507",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:5181)\n    at Wt (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:74:4145)\n    at G (http://127.0.0.1:4688/assets/pageServices-BlqLfdqz.js:1:273681)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:10:1507",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:3:5181)\n    at Wt (http://127.0.0.1:4688/assets/runtime-Cjv1cZq4.js:74:4254)\n    at G (http://127.0.0.1:4688/assets/pageServices-BlqLfdqz.js:1:273681)\n    at http://127.0.0.1:4688/assets/main-DDNHfsXy.js:10:1507"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:4916)\n    at e.combat (http://127.0.0.1:4403/assets/session-DZvHivfF.js:212:75196)\n    at PR.E.onHit (http://127.0.0.1:4403/assets/session-DZvHivfF.js:2095:13876)\n    at e.onHit (http://127.0.0.1:4403/assets/session-DZvHivfF.js:317:77321)\n    at Ve.strike (http://127.0.0.1:4403/assets/Sword-BxHTsePA.js:32:4290)\n    at Ve.sweepHit (http://127.0.0.1:4403/assets/Sword-BxHTsePA.js:32:2245)\n    at Ve.update (http://127.0.0.1:4403/assets/Sword-BxHTsePA.js:32:7394)\n    at Xv.update (http://127.0.0.1:4403/assets/session-DZvHivfF.js:317:82215)\n    at Object.run (http://127.0.0.1:4403/assets/session-DZvHivfF.js:2095:24671)",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:5185)\n    at new <anonymous> (http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:1236)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:3:864",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:5185)\n    at Kt (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:74:4045)\n    at G (http://127.0.0.1:4403/assets/pageServices-w-tdQ5nB.js:1:275934)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:5185)\n    at Kt (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:74:4145)\n    at G (http://127.0.0.1:4403/assets/pageServices-w-tdQ5nB.js:1:275934)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:3:5185)\n    at Kt (http://127.0.0.1:4403/assets/runtime-Dwmh5_5-.js:74:4254)\n    at G (http://127.0.0.1:4403/assets/pageServices-w-tdQ5nB.js:1:275934)\n    at http://127.0.0.1:4403/assets/main-wKp4hUNL.js:10:1507"
       ]
     },
     "retained": [
@@ -16917,6 +16917,10 @@
         "textures": 10,
         "programs": 5
       },
+      "orphans": {
+        "live": 1,
+        "collected": 0
+      },
       "retained": {
         "geometries": 2,
         "textures": 10,
@@ -16924,11 +16928,15 @@
       },
       "resources": [
         {
-          "type": "Fr",
+          "type": "ru",
+          "uuid": "ab052f82-6f08-4d0b-a6d8-d21d8128a2c7",
+          "name": "",
           "owner": null,
           "retained": true,
           "texture": false,
-          "programs": [],
+          "programs": [
+            64
+          ],
           "image": {}
         },
         {
@@ -16960,51 +16968,91 @@
           }
         },
         {
-          "type": "Yl",
-          "uuid": "46b9c057-f275-4b00-b43e-4c6598ecf835",
-          "name": "ViewmodelDepthMerge",
+          "type": "Fr",
           "owner": null,
           "retained": true,
           "texture": false,
-          "programs": [
-            68
-          ],
+          "programs": [],
           "image": {}
         },
         {
-          "type": "ce",
-          "uuid": "341c867c-7c98-4ea1-8570-2e56798507eb",
-          "name": "CopyMaterial",
+          "type": "e",
+          "uuid": "24aae384-f58a-405f-82e8-00693149516a",
+          "name": "EffectComposer.Buffer",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "97547eda-c933-47f7-b16b-e16314cc2603",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
+        },
+        {
+          "type": "Fr",
           "owner": null,
           "retained": true,
           "texture": false,
-          "programs": [
-            69
-          ],
+          "programs": [],
           "image": {}
         },
         {
-          "type": "Tt",
-          "uuid": "7465b673-8d12-4bbb-bdc6-a0a1086c5dd6",
-          "name": "EffectMaterial",
+          "type": "e",
+          "uuid": "04136d47-a211-4476-b223-1c601736f0aa",
+          "name": "CopyPass.Target",
           "owner": null,
           "retained": true,
           "texture": false,
-          "programs": [
-            70
-          ],
+          "programs": [],
+          "source": "3b2288bb-a287-45ae-966a-71b1a21f86db",
+          "image": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
           "image": {}
         },
         {
-          "type": "Tt",
-          "uuid": "b62bc6c1-b3fb-4bcc-8e9e-34bd28d80e82",
-          "name": "EffectMaterial",
+          "type": "e",
+          "uuid": "9c4d8b0f-f16b-478a-8721-571fdecbfa74",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "5e7714d5-a820-4b63-a324-f355397d6ed7",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
+        },
+        {
+          "type": "qs",
+          "uuid": "2971b6e9-87ad-4121-b3fc-0f0f7e807e26",
+          "name": "EffectComposer.StableDepth",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "a8f74358-a2c4-4f39-a01b-d3c5471abcac",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
+        },
+        {
+          "type": "Fr",
           "owner": null,
           "retained": true,
           "texture": false,
-          "programs": [
-            71
-          ],
+          "programs": [],
           "image": {}
         },
         {
@@ -17064,18 +17112,48 @@
           }
         },
         {
-          "type": "qs",
-          "uuid": "2971b6e9-87ad-4121-b3fc-0f0f7e807e26",
-          "name": "EffectComposer.StableDepth",
+          "type": "e",
+          "uuid": "d3842976-405b-4cf5-a8b3-894805d2449c",
+          "name": "",
           "owner": null,
           "retained": true,
-          "texture": true,
+          "texture": false,
           "programs": [],
-          "source": "a8f74358-a2c4-4f39-a01b-d3c5471abcac",
-          "image": {
-            "width": 780,
-            "height": 1688
-          }
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "46b9c057-f275-4b00-b43e-4c6598ecf835",
+          "name": "ViewmodelDepthMerge",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            68
+          ],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "21a61fbe-0ef3-4245-849b-c0f5cb1f96f7",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Tt",
+          "uuid": "7465b673-8d12-4bbb-bdc6-a0a1086c5dd6",
+          "name": "EffectMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            70
+          ],
+          "image": {}
         },
         {
           "type": "Rr",
@@ -17092,101 +17170,27 @@
           }
         },
         {
-          "type": "ru",
-          "uuid": "ab052f82-6f08-4d0b-a6d8-d21d8128a2c7",
-          "name": "",
+          "type": "Tt",
+          "uuid": "b62bc6c1-b3fb-4bcc-8e9e-34bd28d80e82",
+          "name": "EffectMaterial",
           "owner": null,
           "retained": true,
           "texture": false,
           "programs": [
-            64
+            71
           ],
           "image": {}
         },
         {
-          "type": "Fr",
+          "type": "ce",
+          "uuid": "341c867c-7c98-4ea1-8570-2e56798507eb",
+          "name": "CopyMaterial",
           "owner": null,
           "retained": true,
           "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "9c4d8b0f-f16b-478a-8721-571fdecbfa74",
-          "name": "",
-          "owner": null,
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "5e7714d5-a820-4b63-a324-f355397d6ed7",
-          "image": {
-            "width": 780,
-            "height": 1688
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "d3842976-405b-4cf5-a8b3-894805d2449c",
-          "name": "",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "Fr",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "24aae384-f58a-405f-82e8-00693149516a",
-          "name": "EffectComposer.Buffer",
-          "owner": null,
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "97547eda-c933-47f7-b16b-e16314cc2603",
-          "image": {
-            "width": 780,
-            "height": 1688
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "21a61fbe-0ef3-4245-849b-c0f5cb1f96f7",
-          "name": "",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "04136d47-a211-4476-b223-1c601736f0aa",
-          "name": "CopyPass.Target",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "3b2288bb-a287-45ae-966a-71b1a21f86db",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "Fr",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
+          "programs": [
+            69
+          ],
           "image": {}
         }
       ]
@@ -17220,24 +17224,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 1013.4000005722046,
-    "boot.stepMs.renderer": 8,
-    "boot.stepMs.sky": 44,
+    "boot.playMs": 352.800000667572,
+    "boot.stepMs.renderer": 2,
+    "boot.stepMs.sky": 15,
     "boot.stepMs.terrain": 0,
     "boot.stepMs.cards": 0,
-    "boot.stepMs.forest": 2,
+    "boot.stepMs.forest": 0,
     "boot.stepMs.physics": 0,
-    "boot.stepMs.edge": 6,
-    "boot.stepMs.grass": 1,
+    "boot.stepMs.edge": 3,
+    "boot.stepMs.grass": 2,
     "boot.stepMs.cabins": 0,
-    "boot.stepMs.props": 519,
+    "boot.stepMs.props": 161,
     "boot.stepMs.animals": 1,
-    "boot.stepMs.weapon": 15,
-    "boot.stepMs.menu": 19,
-    "boot.stepMs.shaders": 137,
-    "boot.stepMs.firstFrame": 28,
+    "boot.stepMs.weapon": 3,
+    "boot.stepMs.menu": 7,
+    "boot.stepMs.shaders": 84,
+    "boot.stepMs.firstFrame": 5,
     "boot.stepMs.audio": 0,
-    "boot.heapMB": 316.46155548095703,
+    "boot.heapMB": 16.59880828857422,
     "boot.facade.batches": 0,
     "boot.facade.instances": 0,
     "poses.spawn-rail.pos": [
@@ -17247,10 +17251,10 @@
     ],
     "poses.spawn-rail.calls": 0,
     "poses.spawn-rail.tris": 0,
-    "poses.spawn-rail.fps": 16.993487937802428,
-    "poses.spawn-rail.frameP95Ms": 1.0999999046325684,
-    "poses.spawn-rail.cpuP50Ms": 0.8000001907348633,
-    "poses.spawn-rail.cpuP95Ms": 1.0999999046325684,
+    "poses.spawn-rail.fps": 58.17652051741646,
+    "poses.spawn-rail.frameP95Ms": 1.5000004768371582,
+    "poses.spawn-rail.cpuP50Ms": 1.299999713897705,
+    "poses.spawn-rail.cpuP95Ms": 1.4000000953674316,
     "poses.spawn-rail.creatureBoxes": 0,
     "poses.spawn-rail.boxes": [],
     "poses.spawn-rail.ssim": 0,
@@ -17261,10 +17265,10 @@
     ],
     "poses.well-edge.calls": 0,
     "poses.well-edge.tris": 0,
-    "poses.well-edge.fps": 46.59278762728988,
-    "poses.well-edge.frameP95Ms": 2.700000286102295,
-    "poses.well-edge.cpuP50Ms": 1.6999998092651367,
-    "poses.well-edge.cpuP95Ms": 2.5,
+    "poses.well-edge.fps": 39.7963280401122,
+    "poses.well-edge.frameP95Ms": 1.0999994277954102,
+    "poses.well-edge.cpuP50Ms": 0.7000002861022949,
+    "poses.well-edge.cpuP95Ms": 1,
     "poses.well-edge.creatureBoxes": 0,
     "poses.well-edge.boxes": [],
     "poses.well-edge.ssim": 0,
@@ -17275,10 +17279,10 @@
     ],
     "poses.stair-street.calls": 0,
     "poses.stair-street.tris": 0,
-    "poses.stair-street.fps": 54.024309977773896,
-    "poses.stair-street.frameP95Ms": 3.299999713897705,
-    "poses.stair-street.cpuP50Ms": 1.9000000953674316,
-    "poses.stair-street.cpuP95Ms": 2.9000000953674316,
+    "poses.stair-street.fps": 5.4168399431543435,
+    "poses.stair-street.frameP95Ms": 0.09999990463256836,
+    "poses.stair-street.cpuP50Ms": 0.09999990463256836,
+    "poses.stair-street.cpuP95Ms": 0.3000001907348633,
     "poses.stair-street.creatureBoxes": 0,
     "poses.stair-street.boxes": [],
     "poses.stair-street.ssim": 0,
@@ -17524,7 +17528,7 @@
     "walk.legs.stair-street.end.z": 0,
     "walk.legs.stair-street.maxY": 0,
     "walk.legs.stair-street.out": 0,
-    "walk.legs.stair-street.seconds": 1.1013412404281553e-13,
+    "walk.legs.stair-street.seconds": 3.907985046680551e-14,
     "walk.legs.crossing-gate-bridge.stuck": [],
     "walk.legs.crossing-gate-bridge.end.x": 0,
     "walk.legs.crossing-gate-bridge.end.y": 0,
@@ -17666,6 +17670,8 @@
     "leak.gpu.total.geometries": 0,
     "leak.gpu.total.textures": 0,
     "leak.gpu.total.programs": 0,
+    "leak.gpu.orphans.live": 0,
+    "leak.gpu.orphans.collected": 0,
     "leak.gpu.retained.geometries": 0,
     "leak.gpu.retained.textures": 0,
     "leak.gpu.retained.programs": 0
@@ -17673,10 +17679,10 @@
   "selfMin": {
     "spawn-rail": 1,
     "well-edge": 1,
-    "stair-street": 0.9989510004804341
+    "stair-street": 0.9997966343743062
   },
   "harness": 2,
-  "sha": "ca969df25908be165a71648a2ecbbca8040477a1",
-  "recorded": "2026-10-08T23:43:36.128Z",
+  "sha": "f983de200b2b54ccde9cb551cc41188c24445222",
+  "recorded": "2026-10-09T13:02:22.134Z",
   "browser": "153.0.8010.12"
 }
