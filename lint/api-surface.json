@@ -5479,7 +5479,7 @@
       {
         "name": "clearBody",
         "kind": "function",
-        "doc": "E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than its",
+        "doc": "Shared renderer-free law; the page mesh follows the same native displacement.",
         "from": "@wildshard/engine/entities/AnimalManager"
       },
       {
@@ -5559,6 +5559,18 @@
         "kind": "const",
         "doc": "",
         "from": "@wildshard/engine/entities/AnimalView"
+      },
+      {
+        "name": "BodyClearable",
+        "kind": "interface",
+        "doc": "What `clearBody` needs of an animal (Animal implements it).",
+        "from": "@wildshard/engine/entities/bodyClear"
+      },
+      {
+        "name": "clearBody",
+        "kind": "function",
+        "doc": "E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than its",
+        "from": "@wildshard/engine/entities/bodyClear"
       },
       {
         "name": "eliteAct",

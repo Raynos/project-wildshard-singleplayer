@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2357 members; 842 without a doc line (—).
+2359 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -919,7 +919,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `AnimalManager` | class | @wildshard/engine/entities/AnimalManager | E322 F-L4: the grass a body parts (m, the trample's radius) |
 | `AnimalSound` | type | @wildshard/engine/entities/AnimalManager | a species' own sound id (SpeciesDef.sounds); the engine names none (E405) |
 | `BodyClearable` | interface | @wildshard/engine/entities/AnimalManager | What `clearBody` needs of an animal (Animal implements it). |
-| `clearBody` | function | @wildshard/engine/entities/AnimalManager | E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than its |
+| `clearBody` | function | @wildshard/engine/entities/AnimalManager | Shared renderer-free law; the page mesh follows the same native displacement. |
 | `Herd` | type | @wildshard/engine/entities/AnimalManager | — |
 | `WanderGoalQuery` | interface | @wildshard/engine/entities/AnimalManager | — |
 | `AnimalMotor` | interface | @wildshard/engine/entities/AnimalSim | Collision-only displacement port; the creature retains its own feet position. |
@@ -933,6 +933,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Animal` | class | @wildshard/engine/entities/AnimalView | Client creature view over headless state: rigs, animation, material LOD and corpse presentation. |
 | `damageFor` | function | @wildshard/engine/entities/AnimalView | Seeded legacy bolt formula shared with the headless simulation. |
 | `P_COUNT` | const | @wildshard/engine/entities/AnimalView | — |
+| `BodyClearable` | interface | @wildshard/engine/entities/bodyClear | What `clearBody` needs of an animal (Animal implements it). |
+| `clearBody` | function | @wildshard/engine/entities/bodyClear | E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than its |
 | `eliteAct` | function | @wildshard/engine/entities/eliteBrain | — |
 | `eliteDamageMul` | function | @wildshard/engine/entities/eliteBrain | — |
 | `eliteThink` | function | @wildshard/engine/entities/eliteBrain | — |

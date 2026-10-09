@@ -2231,6 +2231,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BodyClearable`, `clearBody`, `Herd`, `WanderGoalQuery`
 - `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalPoseSample`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
 - `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
+- `@wildshard/engine/entities/bodyClear`: `BodyClearable`, `clearBody`
 - `@wildshard/engine/entities/eliteBrain`: `eliteAct`, `eliteDamageMul`, `eliteThink`, `setEliteAct`, `setEliteBrain`, `setEliteDamage`
 - `@wildshard/engine/entities/ids`: `EntityIds`
 - `@wildshard/engine/entities/killHeight`: `killBelowWorld`
