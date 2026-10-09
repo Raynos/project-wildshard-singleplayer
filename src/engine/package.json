@@ -5,6 +5,7 @@
   "exports": {
     "./entities/bodyClear": "./entities/bodyClear.ts",
     "./entities/animalPose": "./entities/animalPose.ts",
+    "./entities/animalRig": "./entities/animalRig.ts",
     "./physics/navmesh": "./physics/navmesh.ts",
     "./physics/navmeshLoad": "./physics/navmeshLoad.ts",
     "./entities/ids": "./entities/ids.ts",
