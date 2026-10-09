@@ -2,7 +2,7 @@
  * `/api/waitlist` — the marketing site's author waitlist and cell claims (MARKETING-SITE MS7 / MS16, E465).
  *
  *   POST { email, build?, cell?, website? }  → { ok: true }    writes waitlist/<id>.json to Vercel Blob (private)
- *   GET  (x-review-password header)          → { entries: [...] }   every signup, for the admin site
+ *   GET  (x-review-password header)          → { entries: [...] }   every signup, for the admin site's Waitlist tab
  *
  * The POST is public: the site (`site/index.html`) calls it cross-origin, so CORS allows the site's origins only
  * (`wildshard-site.vercel.app` plus any in `WAITLIST_ORIGINS`, comma-separated, for the domains Jake buys). A claimed
@@ -17,6 +17,8 @@ export const MAX_BUILD_CHARS = 500;
 export const RATE_LIMIT_PER_MIN = 10;
 const PREFIX = 'waitlist/';
 const SITE_ORIGINS = ['https://wildshard-site.vercel.app'];
+/** the admin site reads the list (GET, with the review password) */
+const ADMIN_ORIGINS = new Set(['https://wildshard-admin.vercel.app']);
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,253}\.[^\s@]{2,}$/u;
 const CELL_RE = /^[A-E][1-5]$/u;
 const CENTRE = 'C3';
@@ -30,6 +32,7 @@ function allowedOrigins(): Set<string> {
 
 function corsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('origin') ?? '';
+  if (ADMIN_ORIGINS.has(origin)) return { 'access-control-allow-origin': origin, 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-allow-headers': 'x-review-password', vary: 'origin' };
   if (!allowedOrigins().has(origin)) return {};
   return { 'access-control-allow-origin': origin, 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', vary: 'origin' };
 }

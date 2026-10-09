@@ -8,6 +8,19 @@
 <meta name="description" content="One world. Every shard built by a player. Play it in the browser. Build it in Claude Code.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://wildshard-site.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Project Wildshard">
+<meta property="og:title" content="Project Wildshard">
+<meta property="og:description" content="One world. Every shard built by a player. Play it in the browser. Build it in Claude Code.">
+<meta property="og:url" content="https://wildshard-site.vercel.app/">
+<meta property="og:image" content="https://wildshard-site.vercel.app/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Project Wildshard">
+<meta name="twitter:description" content="One world. Every shard built by a player. Play it in the browser. Build it in Claude Code.">
+<meta name="twitter:image" content="https://wildshard-site.vercel.app/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -197,6 +210,7 @@
   .road .done::before { content: "✓"; color: var(--cyan); }
   .road .now::before { content: "◐"; color: var(--act); }
   .road .next { color: var(--mute); font-weight: 500; } .road .next::before { content: "○"; color: var(--faint); }
+  .road .pct { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--act); margin-left: 6px; white-space: nowrap; }
   .log { margin-top: 18px; }
   .log ol { list-style: none; margin: 0; padding: 6px 14px 10px; }
   .log li { padding: 10px 0; border-bottom: 1px dashed rgba(143,227,255,.14); }
@@ -221,6 +235,12 @@
   .faq p { margin: 6px 0 0; color: #b3c8d8; font-size: 16px; }
   .faq .draft { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; color: var(--violet); text-transform: uppercase; margin-left: 6px; }
 
+  .press { padding: 18px 16px; }
+  .press-logo { width: 100%; max-width: 360px; height: auto; margin-bottom: 14px; }
+  .blurb { margin: 10px 0 0; font-size: 16px; line-height: 1.45; color: #c6dbea; }
+  .blurb b { color: var(--ink); }
+  .press-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .press-links a { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; padding: 8px 10px; border: 1px solid var(--act); color: var(--act); }
   .install { margin-top: 18px; padding: 14px; }
   .install ol { margin: 0; padding-left: 20px; font-size: 17px; }
   .install li { padding: 3px 0; }
@@ -246,6 +266,7 @@
     font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 0 26px var(--act-glow); }
   .send small { font-family: var(--mono); font-weight: 400; font-size: 11px; letter-spacing: .06em; }
   .ends { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .ends .soon { display: flex; align-items: center; justify-content: center; min-height: 54px; font-weight: 700; font-size: 18px; letter-spacing: .04em; text-transform: uppercase; color: var(--mute); }
   .ends a { display: flex; align-items: center; justify-content: center; min-height: 54px; text-decoration: none; font-weight: 700; font-size: 18px; letter-spacing: .04em; text-transform: uppercase; }
   .mail { margin-top: 16px; font-family: var(--mono); font-size: 12.5px; color: var(--mute); }
   .mail a { text-decoration: none; border-bottom: 1px solid var(--cyan-line); color: var(--ink); }
@@ -570,19 +591,9 @@
       </div>
       <div class="json bk">
         <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>template · shard.json (excerpt)</span></div>
-  <pre><span class="c">{</span>
-    <span class="k">"slug"</span>: <span class="s">"template"</span>,
-    <span class="k">"name"</span>: <span class="s">"Template shard"</span>,
-    <span class="k">"author"</span>: <span class="s">"Wildshard"</span>,
-    <span class="k">"revision"</span>: 1, <span class="k">"seed"</span>: 357,
-    <span class="k">"budgets"</span>: {
-      <span class="k">"phone"</span>:   { <span class="k">"fps"</span>: 30, <span class="k">"cpuMs"</span>: 9.6 },
-      <span class="k">"desktop"</span>: { <span class="k">"fps"</span>: 60, <span class="k">"cpuMs"</span>: 4.8 }
-    },
-    <span class="k">"scripts"</span>: [{ <span class="k">"kind"</span>: <span class="s">"wasm"</span>, <span class="k">"hash"</span>: <span class="s">"7035c4…aa7"</span> }]
-  <span class="c">}</span></pre>
+  <pre><!--gen:shardfile--></pre>
       </div>
-      <div class="note">Read from the repo at build time</div>
+      <div class="note">The template's real shard.json, read from the live game at build time</div>
     </div>
   </section>
 
@@ -626,23 +637,10 @@
       <h2>Where we are.</h2>
     </div>
     <div class="body">
-      <ul class="road">
-        <li class="done">Seven single-player shards on one engine</li>
-        <li class="done">The shard package</li>
-        <li class="now">The grid: seamless travel between shards</li>
-        <li class="now">Every shard as data</li>
-        <li class="next">Multiplayer</li>
-        <li class="next">Upload</li>
-        <li class="next">The 25-shard world</li>
-      </ul>
+      <ul class="road"><!--gen:road--></ul>
       <div class="log bk">
         <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>devlog · generated from the build</span></div>
-        <ol>
-          <li><time>This week</time><p>Signal Dunes is the first shard to win its boss fight headless and replay it byte for byte.</p></li>
-          <li><time>This week</time><p>Every shard now fits in 1 GB on the phone.</p></li>
-          <li><time>Last week</time><p>The 3 × 3 grid: walk from shard to shard without a loading screen.</p></li>
-          <li><time>Last week</time><p>The shard package: a sealed file a server could load unchanged.</p></li>
-        </ol>
+        <ol><!--gen:devlog--></ol>
     </div>
     </div>
   </section>
@@ -665,10 +663,10 @@
     <div class="body">
       <div class="faq">
         <details open><summary>What can I play it on?</summary><p>Any modern browser, on desktop and phone. No install.</p></details>
-        <details><summary>Is it free?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
-        <details><summary>Do I need a Claude subscription to build?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
-        <details><summary>Who owns my shard?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
-        <details><summary>What can't a shard do?<span class="draft">Draft</span></summary><p>Answer to come.</p></details>
+        <details><summary>Is it free?</summary><p>Playing is free, in your browser. Building is free too, and we never charge for uploading a shard.</p></details>
+        <details><summary>Do I need a Claude subscription to build?</summary><p>Yes: you build with your own Claude Code, on any plan that includes it. Playing needs nothing.</p></details>
+        <details><summary>Who owns my shard?</summary><p>You do. You keep the rights to what you build; uploading lets us host it and show it in the world. Abandoned shards can be renovated by new authors, and your name stays on as the original author.</p></details>
+        <details><summary>What can't a shard do?</summary><p>Run code that can touch your browser, go over its budgets, block the roads into it, or mint loot that breaks other shards: a shard ships data and baked assets, checked by the validator before it can join the grid.</p></details>
     </div>
     </div>
   </section>
@@ -683,6 +681,27 @@
         <ol><li>Open the game in Safari or Chrome.</li><li>Tap Share, then <b>Add to Home Screen</b>.</li><li>It opens full screen, like an app.</li></ol>
         <p>iOS and Android apps: coming</p>
     </div>
+    </div>
+  </section>
+  <section id="press">
+    <div class="side">
+      <div class="q"><p class="ask">I'm writing about it</p></div>
+      <h2>Press kit.</h2>
+      <p class="lede">The logo, screenshots from the game and two blurbs, free to use when you write about Project Wildshard.</p>
+    </div>
+    <div class="body">
+      <div class="press bk">
+        <img class="press-logo" src="/press/logo.svg" alt="The Project Wildshard logo: a 3 by 3 lattice with a lit violet centre, and the wordmark">
+        <p class="blurb"><b>One line.</b> Project Wildshard is a browser MMO where every shard of the world is built by a player in Claude Code.</p>
+        <p class="blurb"><b>A paragraph.</b> Project Wildshard is a first-person sandbox MMO that runs in the browser on desktop and phone. Its world is a grid of 500-metre shards, and every shard is built by a player: authors describe a world to their own Claude Code, which builds it with the Wildshard SDK, and upload it to the shared grid in an in-game ritual. Seven single-player shards already run on the engine, each in its own look, from a toon island to a painterly steppe and a neon city stacked 500 metres high.</p>
+        <div class="press-links">
+          <a href="/press/wildshard-press-kit.zip" download>Download the kit (zip)</a>
+          <a href="/press/logo.svg" download>Logo (SVG)</a>
+          <a href="/press/logo.png" download>Logo (PNG)</a>
+          <a href="/press/mark.svg" download>Mark (SVG)</a>
+        </div>
+        <p class="mail">Contact: <a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></p>
+      </div>
     </div>
   </section>
 </main>
@@ -707,7 +726,7 @@
       <p class="field lab" style="margin:0;font-family:var(--mono);font-size:10.5px;color:var(--mute)">We only use your email to tell you when creator keys open.</p>
       </form>
       <div class="ends">
-        <a class="bk" href="#discord">Join the Discord</a>
+        <span class="bk soon" aria-disabled="true">Discord: coming</span>
         <a class="bk" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">Play now ↗</a>
       </div>
       <p class="mail">or write to <a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></p>

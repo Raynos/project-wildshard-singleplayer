@@ -72,7 +72,7 @@ a { color: var(--accent); }
 
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(5, 1fr);
   height: calc(var(--tab-h) + var(--safe-b)); padding-bottom: var(--safe-b);
   background: color-mix(in srgb, var(--panel) 92%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
@@ -87,6 +87,7 @@ a { color: var(--accent); }
 .ti-mem { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 20h18v-2H3zm2-4h3V8H5zm5 0h3V4h-3zm5 0h3v-6h-3z'/%3E%3C/svg%3E"); }
 .ti-load { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8zm-1 5v6l5 3 1-1.7-4-2.3V7z'/%3E%3C/svg%3E"); }
 .ti-play { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 4h16v12H4zm2 2v8h12V6zm3 1.5 6 2.5-6 2.5zM4 18h16v2H4z'/%3E%3C/svg%3E"); }
+.ti-wait { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 3h5v5H3zm6.5 0h5v5h-5zM16 3h5v5h-5zM3 9.5h5v5H3zm6.5 0h5v5h-5zM16 9.5h5v5h-5zM3 16h5v5H3zm6.5 0h5v5h-5zM16 16h5v5h-5z'/%3E%3C/svg%3E"); }
 .ti-plan { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 5h2v2H4zm4 0h12v2H8zm-4 6h2v2H4zm4 0h12v2H8zm-4 6h2v2H4zm4 0h8v2H8z'/%3E%3C/svg%3E"); }
 
 h1 { font-size: 22px; line-height: 1.2; margin: 6px 0 4px; }
@@ -261,3 +262,15 @@ input.search { width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 
 .empty .glyph { font-size: 40px; opacity: .6; }
 .empty p { color: var(--muted); max-width: 420px; margin: 8px auto; }
 .err { color: var(--bad); }
+
+/* the waitlist tab (MARKETING-SITE MS7 / MS16) */
+.claim-grid { width: 100%; max-width: 360px; display: block; margin: 0 auto; }
+.claim-grid rect.free { fill: none; stroke: var(--line); }
+.claim-grid rect.taken { fill: rgba(164, 135, 255, .22); stroke: #a487ff; }
+.claim-grid rect.claimed { fill: color-mix(in srgb, var(--accent) 25%, transparent); stroke: var(--accent); }
+.claim-grid text { font-size: 7px; fill: var(--muted); }
+.claim-grid text.name { fill: #c9bbff; }
+.claim-grid text.n { font-size: 18px; font-weight: 700; fill: var(--accent); }
+table.waitlist { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.waitlist th, table.waitlist td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.waitlist td a { color: inherit; }

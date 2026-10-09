@@ -1,0 +1,9 @@
+{
+  "about": "The devlog's history (MARKETING-SITE MS14). New entries come from the build: any commit on main with a `Devlog: <one plain sentence>` trailer is listed by date, newest first, above these.",
+  "entries": [
+    { "date": "2026-10-09", "sha": "35aa1f9be", "text": "Project Wildshard has a home: this site, built the way the game is, by Claude Code agents." },
+    { "date": "2026-10-09", "sha": "67773a54c", "text": "The grid is public: walk a 3 × 3 grid of shards without a loading screen." },
+    { "date": "2026-10-08", "sha": "847d4baee", "text": "Signal Dunes is the first shard to win its boss fight with no screen at all, and replay it byte for byte." },
+    { "date": "2026-10-08", "sha": "8a98f8ef9", "text": "Every shard now fits in 1 GB of memory on the phone." }
+  ]
+}

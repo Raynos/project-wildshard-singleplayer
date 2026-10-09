@@ -72,6 +72,14 @@ describe('POST', () => {
 });
 
 describe('GET', () => {
+  it('the admin site may read (GET with the password header), the site may only write', () => {
+    const pre = (origin: string): Response => OPTIONS(new Request('https://x.test/api/waitlist', { method: 'OPTIONS', headers: { origin } }));
+    const admin = pre('https://wildshard-admin.vercel.app');
+    expect(admin.headers.get('access-control-allow-methods')).toBe('GET, OPTIONS');
+    expect(admin.headers.get('access-control-allow-headers')).toBe('x-review-password');
+    expect(pre(SITE).headers.get('access-control-allow-methods')).toBe('POST, OPTIONS');
+  });
+
   it('needs the review password, then lists every signup', async () => {
     await POST(post({ email: 'a@b.co', cell: 'B1' }));
     const req = (pw: string): Request => new Request('https://x.test/api/waitlist', { headers: { 'x-review-password': pw, 'x-forwarded-for': '5.6.7.8' } });

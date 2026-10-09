@@ -7,8 +7,9 @@ import { memoryView } from './memory.ts';
 import { planView } from './plan.ts';
 import { playtestsView } from './playtests.ts';
 import { installUpdates } from './update.ts';
+import { waitlistView } from './waitlist.ts';
 
-const TABS = ['memory', 'loading', 'playtests', 'plan'] as const;
+const TABS = ['memory', 'loading', 'playtests', 'plan', 'waitlist'] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(v: string): v is Tab {
@@ -43,7 +44,8 @@ function render(bundle: Bundle): void {
   if (tab === 'memory') memoryView(view, bundle.memory, rest);
   else if (tab === 'loading') loadingView(view, bundle.loading);
   else if (tab === 'playtests') playtestsView(view, bundle.playtests, rest);
-  else planView(view, bundle.plans);
+  else if (tab === 'plan') planView(view, bundle.plans);
+  else waitlistView(view);
 }
 
 async function main(): Promise<void> {
