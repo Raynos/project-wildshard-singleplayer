@@ -103,6 +103,17 @@ wildshard`), the door becomes *install the skill*; when the API exists, *request
 | MS8 | **Sharing** — Open Graph / Twitter cards per section, favicon, the page title, `robots.txt`, sitemap | the link unfurls with the hero in iMessage | marketing agent |
 | MS9 | **Domain** — Jake picks and buys one or more (he may buy several); the primary serves the site, the rest redirect to it. Unregistered on 2026-10-09 (whois): `wildshard.gg`, `wildshard.io`, `wildshard.game`, `wildshard.net`, `wildshard.org`, `wildshard.co`, `projectwildshard.com`, `playwildshard.com`, `getwildshard.com`, `wildshardgame.com` (likely `.dev` / `.app` / `.world` too: no name servers). `wildshard.com` is taken (registered 2025-02, live). Then attach apex + `www` to `wildshard-site`, DNS at the registrar, HTTPS | the primary domain serves the site and every other one redirects to it | Jake (pick + purchase), marketing agent (attach) |
 | MS10 | **Keep it true** — when a SHARD-PLATFORM milestone, a new shard or the SDK ships, the site's road and cards follow (the deploy script is the one step) | a standing row; closes only if the site is retired | marketing agent |
+| MS11 | **Motion** (idea 1) — the 30 s trailer as a muted autoplay loop in the hero; a ~5 s loop on each shard card from the per-shard capture clips (`progress/<slug>/<run>/clip.mp4`), re-encoded small, lazy, on Blob | the hero and every card move on the phone; first load stays ≤ 3 MB before any video | marketing agent |
+| MS12 | **Play in a new tab** (idea 2) — each shard card's *Play* opens the live game in a new tab, in that shard where the game can take it there without a URL switch (AGENTS.md: no `?foo=` params); otherwise the game's title | every card's Play opens the game | marketing agent |
+| MS13 | **One sentence → a shard** (idea 4) — the Thin Ice dry run as a scrolling case study: the sentence, the pitch, the style, concepts, the map, first-person views (`art/thin-ice/round-*`), labelled as the WorldClaw dry run | the section shows the whole chain on the phone | marketing agent |
+| MS14 | **Build-in-public devlog** (idea 5) — generated at build time from the plans' State lines and the week's commits (no hand-written posts); newest first, a few lines a week | the deployed devlog matches the plans at the deployed SHA | marketing agent |
+| MS15 | **Shardfile peek** (idea 6) — a short real `shard.json` excerpt (the template's) with its budgets, beside *Safe by construction* | the excerpt is read from the repo at build time, not pasted | marketing agent |
+| MS16 | **Claim a cell** (idea 7) — the waitlist lets you tap an empty cell on the grid map to say where you'd build (a wish, not a promise); the admin site shows the claims on the map | a test claim shows in admin | marketing agent |
+| MS17 | **Founding authors** (idea 8) — the site promises the first authors to upload a permanent "Founding Author" title and a plaque on their shard. A real commitment: it is also written into the MMO's requirements so the MMO keeps it | the promise is on the site and in `docs/design/mmo/MMO-REQUIREMENTS.md` | marketing agent |
+| MS18 | **Coming worlds** (idea 9) — a gallery of unbuilt shard ideas from `docs/design/mmo/SHARD-IDEAS.md` (Clockwork Tide, Skyforge Regatta, Lantern Night Market …), each with a concept image labelled "Idea · concept art" | the gallery is live, every image labelled | marketing agent |
+| MS19 | **FAQ** (idea 10) — is it free, do I need a Claude subscription to build, which devices, who owns my shard, what can't a shard do. The pricing and ownership answers are Jake's words (asked as picks before they go live) | every answer is either a fact from the plans or Jake's | marketing agent + Jake |
+| MS20 | **Press kit** (idea 11) — logo, screenshots, the trailer, one-paragraph blurbs, as one download page. Needs a logo first: a logo mockup round | the kit page and its zip are live | marketing agent |
+| MS21 | **Install it** (idea 12) — "Add to Home Screen" for the PWA now; App Store / Play links when NATIVE-APPS ships | the install steps are on the site | marketing agent |
 
 ## 5. Not in this plan
 
@@ -125,10 +136,12 @@ plans (SHARD-PLATFORM Part B, then the MMO's). The site only describes them and 
 - **Q3 · The author door: all three**: the waitlist form, a Discord (to be made) and the mail link
   `project.wildshard@gmail.com`. MS7 builds all three.
 - **Q4 · Public from day one.** Every deploy is public; no protection gate.
+- **More ideas (Jake, 2026-10-09):** yes to motion (1), play in a new tab (2), one sentence → a shard (4), the devlog (5), the shardfile peek (6), claim a cell (7), founding authors (8), coming worlds (9), FAQ (10), press kit (11), install it (12); no to the soundtrack player (3). Rows MS11–MS21.
 - **Open: the domain(s)** (MS9; Jake 2026-10-09: "I'll figure it out later").
 
 ## 8. Mockup rounds (MS2)
 
 | Round | Folder | What | Jake's pick |
 |---|---|---|---|
-| 1 · direction | `art/marketing-site/round-1-direction/` | A The Lattice (the world map at night, the game's UI language), B The Atlas (an explorer's atlas, shards as plates), C The Prompt (a Claude Code terminal, the world opening out of a prompt). Real HTML pages (`<x>/index.html`), first screens `<x>-hero.jpg`, whole pages `<x>-full-<n>.jpg`, `board.jpg` | asked 2026-10-09 |
+| 1 · direction | `art/marketing-site/round-1-direction/` | A The Lattice (the world map at night, the game's UI language), B The Atlas (an explorer's atlas, shards as plates), C The Prompt (a Claude Code terminal, the world opening out of a prompt). Real HTML pages (`<x>/index.html`), first screens `<x>-hero.jpg`, whole pages `<x>-full-<n>.jpg`, `board.jpg` | **C's layout and content with A's colour theme** (Jake, 2026-10-09); borrow C's prompt on each shard card, C's terminal for How a shard is made, B's inked grid map |
+| 2 · merge | `art/marketing-site/round-2-merge/` | C's page in A's Lattice palette and UI language, B's map redrawn as a glowing lattice; three accent variants for the action colour (A cyan, B violet, C C's hot pink kept on navy) | open |
