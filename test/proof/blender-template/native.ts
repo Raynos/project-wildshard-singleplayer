@@ -19,7 +19,11 @@ export function fixture(): Promise<{ shard: Shardfile; assets: Map<string, Uint8
     if (typeof wire !== 'string') throw new Error('Missing native author asset');
     assets.set(file.hash, Uint8Array.from(Buffer.from(wire, 'base64')));
   }
-  const open = (snapshot?: string) => HeadlessSimulation.create(shard, assets, snapshot, { deadline: 'advisory' });
+  // The boot/browser proofs walk from the authored spawn and exercise the door's collision.
+  // These worker proofs start just outside the hall trigger: every committed tick serializes
+  // the complete native world, so repeating that approach would dominate the gate under load.
+  const nearby = { ...shard, spawn: { ...shard.spawn, z: 27 } };
+  const open = (snapshot?: string) => HeadlessSimulation.create(nearby, assets, snapshot, { deadline: 'advisory' });
   return Promise.resolve({ shard, assets, open });
 }
 export async function ticks(host: HeadlessSimulation, count: number, commands: readonly HeadlessCommandSource[] = []): Promise<{ commit: HeadlessTickCommit; emissions: { tick: number; effect: HeadlessEffect }[] }> {
@@ -33,5 +37,5 @@ export async function ticks(host: HeadlessSimulation, count: number, commands: r
 }
 export async function hall(host: HeadlessSimulation): ReturnType<typeof ticks> {
   await ticks(host, 1, door);
-  return ticks(host, 300, walk);
+  return ticks(host, 24, walk);
 }

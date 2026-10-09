@@ -7,10 +7,12 @@ it('restores one mid-hall checkpoint in a fresh Node host and replays the exact 
   const f = await fixture(), host = await f.open();
   try {
     await ticks(host, 1, door);
-    const prefix = await ticks(host, 100, walk), suffix = await ticks(host, 200, walk);
+    const prefix = await ticks(host, 2, walk);
+    expect(prefix.emissions).toEqual([]);
+    const suffix = await ticks(host, 24, walk);
     const restored = await f.open(prefix.commit.snapshot);
     try {
-      const replay = await ticks(restored, 200, walk);
+      const replay = await ticks(restored, 24, walk);
       expect(replay.emissions).toEqual(suffix.emissions);
       expectSameSimSnapshot(decodeSimSnapshot(replay.commit.snapshot), decodeSimSnapshot(suffix.commit.snapshot));
       expect(replay.emissions.some(row => row.effect.kind === 'fact' && row.effect.name === 'blender.hall')).toBe(true);
