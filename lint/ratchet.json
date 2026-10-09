@@ -114,10 +114,6 @@
     "src/shards/nalati-grasslands/runtime/audio/synth.ts": 1,
     "src/shards/nalati-grasslands/runtime/index.ts": 1,
     "src/shards/nalati-grasslands/runtime/state.ts": 1,
-    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts": 1,
-    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts": 1,
-    "src/shards/nalati-grasslands/runtime/weapons/Sabre.ts": 3,
-    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts": 3,
     "src/shards/pine-hollow/runtime/index.ts": 5,
     "src/shards/sunscar-dunes/runtime/audio/cues.ts": 1
   },
