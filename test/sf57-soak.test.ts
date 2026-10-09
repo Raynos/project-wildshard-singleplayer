@@ -149,7 +149,11 @@ describe('SF57 honest drive and native memory gate', () => {
     const broken = witness(); for (const sample of broken.samples) sample.gl.reconciled = false;
     expect(gradeSoak(broken).sampling).toBe(false);
     // Unlabelled GL is graded by bytes: a zero-byte create-then-label handle holds nothing; one unlabelled byte fails.
-    const unlabelledFirst = (bytes: number) => ({ ...witness(), samples: witness().samples.map((sample, index) => index === 0 ? { ...sample, gl: { ...sample.gl, unlabelled: 1, unlabelledBytes: bytes } } : sample) });
+    const unlabelledFirst = (bytes: number) => {
+      const run = witness(), first = run.samples[0];
+      if (first !== undefined) Object.assign(first.gl, { unlabelled: 1, unlabelledBytes: bytes });
+      return run;
+    };
     expect(gradeSoak(unlabelledFirst(0)).sampling).toBe(true); expect(gradeSoak(unlabelledFirst(1)).sampling).toBe(false);
     expect(soakUnlabelledBytes({ totalBytes: 1, reconciled: true, unlabelled: 1, accountedBytes: null, cycle: 0, assets: [{ owner: 'unlabelled', bytes: 1 }] })).toBe(1);
     expect(soakUnlabelledBytes({ totalBytes: 1, reconciled: true, unlabelled: 1, accountedBytes: null, cycle: 0, assets: [{ owner: 'engine/scene', bytes: 1 }, { owner: 'unlabelled', bytes: 0 }] })).toBe(0);
