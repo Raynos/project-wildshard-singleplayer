@@ -1,6 +1,6 @@
-# Pushes and pull requests run the gates. Production deploys hourly or on manual dispatch.
-# A release ships the SHA in .github/deploy-pin.json (GAME-NORMALIZATION F3.1), not main's head; the hourly run
-# checks /version.json first and skips when the pin is already live.
+# Pushes and pull requests run the gates. Production releases after a successful boot, hourly or on manual dispatch.
+# A release resolves .github/deploy-pin.json's policy; newest-ci-green requires push CI and an exact-SHA boot proof.
+# It checks /version.json and skips only when that selected commit is already live.
 # GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
 # Secrets: VERCEL_BUILD_TOKEN (team-scoped CLI token for pull/build/deploy),
 # VERCEL_ORG_ID and VERCEL_PROJECT_ID.
@@ -58,8 +58,8 @@ jobs:
             !/docs/
           sparse-checkout-cone-mode: false
 
-      # The deploy pin (GAME-NORMALIZATION F3.1, plan spec 03 §13.3): a release ships .github/deploy-pin.json's SHA, never
-      # main's head. main's own pin scripts run from $RUNNER_TEMP (the pinned tree may predate them).
+      # Resolve the current pin policy, including newest CI + exact-SHA smoke for newest-ci-green.
+      # main's reader runs from $RUNNER_TEMP because the selected tree may predate it.
       - name: Read the deploy pin
         id: pin
         if: env.DEPLOY == 'true'

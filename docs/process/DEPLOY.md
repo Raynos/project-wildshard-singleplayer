@@ -3,8 +3,8 @@
 Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-03).
 
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
-  deploys at :17 each hour or from `gh workflow run deploy`; the job skips if
-  `/version.json` already reports `main`'s short SHA. `gh workflow run deploy -f force=true`
+  deploys after a successful boot smoke in `newest-ci-green` mode, at :17 each hour, or from
+  `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it
   with `vercel deploy --prebuilt`, so Vercel does not repeat the build.
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
@@ -38,7 +38,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
   commit and drives the real title, Driftwood gameplay and Developer grid home. Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A missing, pending or failing
-  latest smoke status refuses release selection. An explicit emergency rollback may instead return to any SHA
+  latest smoke status excludes that candidate; selection can still return an older proven build. Successful smoke
+  completion dispatches a fresh release in `newest-ci-green` mode, closing the race where an earlier manual or
+  scheduled release selected the already-live older build. The release rechecks CI, exact-SHA smoke and current pin
+  policy; it never forces deployment. Smoke runs following manual/scheduled releases are intentionally skipped
+  (only push CI or explicit smoke dispatch runs the proof), so inspect the run event as well as its SHA. This
+  promotion job has its own Actions-write permission; the smoke/build job remains Actions-read. Pinned and
+  `newest-green` modes keep their existing release schedule. An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a
   successful historical release job's exact full pin plus matching production-version reading. Pin history alone
   is insufficient. The OTA reader enforces the same proof. `force`
