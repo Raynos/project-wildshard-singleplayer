@@ -35,8 +35,6 @@
 - **SF72:** Signal (~3.5k view lines to bake, Opus), Sky (~4.5k, Opus), Nine Dragon (ledger, Jian, gates, portal rides; Codex).
 - **Systems rows (Codex):** SF36 weapon rows (2 kit subclasses left); SF34 player modes; SF24 directors as the only path; SF27 brains (Pine/Nalati/Nine); SF26 commons packs (G259); SF66 map inside the shardfile.
 - **Opus:** SF28 panels (26 DOM files, E332); SF59/SF63 post and per-shard look; SF16 re-board; SF17b void wall + art check.
-- **Small:** frame-floor.mjs refuses Signal's Developer-off entry.
-- **Orphaned WIP:** untracked src/engine/ui/memoryPanel.ts + s_memory_debug_* strings (superseded by 8ecc29759): owner should drop.
 
 **Jake:**
 - **Done:** pier ramps, Signal tiles, shadow new, public 3×3.
@@ -45,4 +43,3 @@
   - G260 Blender board;
   - confirm G120/G123/SF48 boards are moot.
 
-The for-Jake page (docs/reviews/shard-platform-for-jake.md) is stale since 10-04.
