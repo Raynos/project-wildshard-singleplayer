@@ -1,0 +1,97 @@
+{
+  "candidate": "17dea041604e27b08b3abf2c701d982599f0f6a3",
+  "changedFields": [
+    "revision",
+    "build",
+    "inputs",
+    "spawns"
+  ],
+  "worldRecipesAndActorPlacementsExact": true,
+  "bodies": 35,
+  "trees": 155,
+  "colliders": 2694,
+  "registryPieces": 81,
+  "firstSightRuntimeDifferences": [
+    {
+      "before": {
+        "id": "creature:21",
+        "at": [
+          69.1,
+          -3.530386807410239,
+          213.4
+        ],
+        "yaw": 1.5707963267948966,
+        "mem": {
+          "owned": 1,
+          "_rear": 0,
+          "_buck": 0,
+          "_headUp": 0,
+          "_pin": 0,
+          "_bz": -0.05,
+          "_graze": 0.0002199997901916504,
+          "_turnLead": 0
+        }
+      },
+      "after": {
+        "id": "creature:21",
+        "at": [
+          69.1,
+          -3.530386807410239,
+          213.4
+        ],
+        "yaw": 1.5707963267948966,
+        "mem": {
+          "owned": 1,
+          "_rear": 0,
+          "_buck": 0,
+          "_headUp": 0,
+          "_pin": 0,
+          "_bz": -0.05,
+          "_graze": 0.0004400006294250488,
+          "_turnLead": 0
+        }
+      }
+    },
+    {
+      "before": {
+        "id": "creature:23",
+        "at": [
+          -108,
+          -2.0367280824661256,
+          228
+        ],
+        "yaw": -2.4983115445867004,
+        "mem": {
+          "owned": 1,
+          "_rear": 0,
+          "_buck": 0,
+          "_headUp": 0,
+          "_pin": 0,
+          "_bz": -0.05,
+          "_graze": 0,
+          "_turnLead": 0
+        }
+      },
+      "after": {
+        "id": "creature:23",
+        "at": [
+          -108,
+          -2.0367280824661256,
+          228
+        ],
+        "yaw": -2.498531545425934,
+        "mem": {
+          "owned": 1,
+          "_rear": 0,
+          "_buck": 0,
+          "_headUp": 0,
+          "_pin": 0,
+          "_bz": -0.05,
+          "_graze": 0,
+          "_turnLead": 0
+        }
+      }
+    }
+  ],
+  "note": "Actual repeated browser bake retained without rewriting observations. _graze and the shepherd ring can advance before first sight; the existing direct boot contract bounds the latter by one frame."
+}

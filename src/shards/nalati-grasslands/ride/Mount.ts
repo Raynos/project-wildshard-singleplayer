@@ -3,6 +3,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { InputService } from '@wildshard/engine/input/InputService';
+import type { RideCommandSample } from '@wildshard/engine/input/commands';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
 import type { Player } from '@wildshard/engine/player/Player';
@@ -198,6 +199,9 @@ export class Mount extends MountedBody {
     thrown: () => { this.dismount(true); this.opts.hurt?.(10); },
   };
   private readonly reinsFrame: ReinsFrame;
+  private readonly consumedCommand = { steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, sprint: false, jump: false };
+  /** The device controls consumed by the last input phase, before the touch jump is cleared. */
+  sampleCommand(): RideCommandSample { return this.consumedCommand; }
   constructor(private opts: MountOpts) {
     super(HORSE_SPEED);
     this.player = opts.player;
@@ -209,7 +213,7 @@ export class Mount extends MountedBody {
       get turn() { return held('move.right', 'KeyD') - held('move.left', 'KeyA'); },
       get touchX() { return p.touchMove.x; }, get touchY() { return p.touchMove.y; },
       get gallop() { return m.input ? m.input.held('ride.gallop') : p.keys.has('ShiftLeft') || p.keys.has('ShiftRight') || m.touchGallop; },
-      get jump() { return p.keys.has('Space') || p.touchJump; },
+      get jump() { return m.input === null ? p.keys.has('Space') || p.touchJump : m.input.held('jump') || m.input.pressed('jump'); },
       get drawing() { return m.opts.isDrawing?.() ?? false; }, get moveScale() { return p.moveScale; },
       get phase() { return m.horse?.gaitPhase ?? 0; }, feet: m.feet,
       get roads() { return m.roadsOverride ?? m.opts.roads; }, inBounds: inChunk,
@@ -401,7 +405,12 @@ export class Mount extends MountedBody {
     if (Math.abs(angDiff(p.yaw, this.camYaw)) > 1e-4 || Math.abs(p.pitch - this.camPitch) > 1e-4) this.lookIdle = 0;
     else this.lookIdle += dt;
     // ── input, in the HORSE's frame (never the camera's): forward / back = the reins' speed, left / right = turn ──
+    const used = this.consumedCommand, frame = this.reinsFrame;
+    used.steer.keyX = frame.turn; used.steer.keyY = frame.forward;
+    used.steer.stickX = frame.touchX; used.steer.stickY = frame.touchY;
+    used.sprint = frame.gallop; used.jump = frame.jump;
     this.read(dt, this.reinsFrame);
+    this.input?.consume('jump');
     p.touchJump = false;
     a.mem['turnLead'] = this.turnLead;
     a.lookWeight = 0;   // no alert look-at under a rider (a stale one from the wait at the rail pulled the neck aside)

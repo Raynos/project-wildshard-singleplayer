@@ -1,0 +1,31 @@
+{
+  "build": "17dea04-mv1cvpuz",
+  "profile": "iPhone 16 Pro / phone / DPR2 / muted Chromium",
+  "setup": "actual first camp prompt callback; native motor and ordinary input pipeline",
+  "boot": {
+    "horse": "creature:21",
+    "feet": [
+      69.1,
+      -3.530386807410239,
+      213.4
+    ]
+  },
+  "keyboardFrames": 36,
+  "touchFrames": 21,
+  "capturedJumpFrames": 14,
+  "capturedTouchJumpFrames": 1,
+  "observedFrames": 59,
+  "movementMetres": 5.139605743707104,
+  "inputFrameSeconds": [
+    0.1,
+    0.026,
+    0.0332999997138977,
+    0.03330000019073486,
+    0.03340000009536743,
+    0.033199999809265135,
+    0.033399999618530275,
+    0.033200000286102295
+  ],
+  "errors": [],
+  "caveat": "Proves page consumed-input capture, collected touch/keyboard jump and native movement. Does not establish page/native input cadence or tap-only rhythm-spur equivalence."
+}
