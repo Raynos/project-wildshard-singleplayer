@@ -282,13 +282,30 @@ export class KurganDungeon {
   }
 
   private buildStatic(kit: PaintKit): void {
+    const steps = this.staticSteps(kit);
+    while (steps.next().done !== true) { /* the whole interior now */ }
+  }
+
+  /**
+   * The hidden static interior after a lazy `build(true)`, a task apart per part (SF67: one 0.5-1.1 s task at 4x CPU when
+   * built inside `build`). The same kit seed and rng stream as the eager build, so the same geometry and child order.
+   */
+  async buildStaticSliced(yieldTask: () => Promise<void>): Promise<void> {
+    const steps = this.staticSteps(new PaintKit(0xb0551));
+    while (steps.next().done !== true) await yieldTask();
+  }
+
+  private *staticSteps(kit: PaintKit): Generator<void, void> {
     if (this.staticBuilt) return;
     const mat = this.staticMaterial;
     if (mat === null) throw new Error('The dungeon must build before entry');
     const rng = kit.rng;
     this.buildChamber(kit, rng);
+    yield;
     this.buildDromos(kit, rng);
+    yield;
     this.buildGraveGoods(kit, rng);
+    yield;
     const geo = kit.finish();
     bake(geo);
     const mesh = new THREE.Mesh(geo, mat);

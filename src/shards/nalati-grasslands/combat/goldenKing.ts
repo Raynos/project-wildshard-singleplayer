@@ -670,6 +670,19 @@ export class KurganBoss {
   /** Boot collision, movables and light; Memory saver delays only the hidden static dressing until entry. */
   build(): this {
     this.dungeon.build(memorySaverOn());
+    return this.attach();
+  }
+
+  /** `build`, the hidden static interior a few tasks later (SF67); the same dungeon */
+  async buildSliced(yieldTask: () => Promise<void>): Promise<this> {
+    const lazy = memorySaverOn();
+    this.dungeon.build(true);
+    this.attach();
+    if (!lazy) { await yieldTask(); await this.dungeon.buildStaticSliced(yieldTask); }
+    return this;
+  }
+
+  private attach(): this {
     this.ctx.game.scene.add(this.dungeon.group);
     this.dungeon.register(this.ctx.registry);   // NALATI-MERGE P1: the interior's collision, the seal, the sand drifts
     this.spareLight.position.set(DUNGEON.x, DUNGEON.y - 30, DUNGEON.z);
@@ -831,3 +844,5 @@ export class KurganBoss {
 
 /** the wiring's one call (src/shards/nalati-grasslands/index.ts): the interior built at boot, the fight bound later by main.ts */
 export function wireKurgan(ctx: KurganCtx): KurganBoss { return new KurganBoss(ctx).build(); }
+/** `wireKurgan`, its hidden static interior built a task apart per part (SF67: the load's long task) */
+export function wireKurganSliced(ctx: KurganCtx, yieldTask: () => Promise<void>): Promise<KurganBoss> { return new KurganBoss(ctx).buildSliced(yieldTask); }

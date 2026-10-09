@@ -76,6 +76,20 @@ export class NalatiPOIs {
   constructor(private sky: Sky, private ground: Ground = (x, z) => heightAt(x, z)) { this.group.name = 'nalati-pois'; this.models = modelContext(sky); }
 
   build(): this {
+    const steps = this.steps();
+    while (steps.next().done !== true) { /* every POI now */ }
+    return this;
+  }
+
+  /** `build`, a task apart per POI (SF67: the camp, the kurgans and the crags were 0.4–1.2 s of one task at 4× CPU); the
+   *  same pieces in the same order from the same rng streams */
+  async buildSliced(yieldTask: () => Promise<void>): Promise<this> {
+    const steps = this.steps();
+    while (steps.next().done !== true) await yieldTask();
+    return this;
+  }
+
+  private *steps(): Generator<void, void> {
     const ctx: PoiCtx = { sky: this.sky, ground: this.ground, flutter: this.flutter, smoke: this.smoke };
     const run = (name: string, f: (c: PoiCtx) => PoiPiece) => {
       const t0 = performance.now();
@@ -86,25 +100,38 @@ export class NalatiPOIs {
       this.colliders.push(...p.colliders);
     };
     run('camp', buildNomadCamp);
+    yield;
     run('bridge', buildBridge);
+    yield;
     run('roads', buildRoadFurniture);
+    yield;
     run('summerCamp', buildSummerCamp);
+    yield;
     let crownSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
     run('kurgans', (c) => { const k = buildKurganField(c); this.kurganEntrance = k.entrance; crownSpots = k.balbalSpots; return k.piece; });
+    yield;
     // the balbals stand only on the kurgan crowns (layout v2: the balbal circle is cut)
     run('balbals', (c) => { const b = buildBalbals(c, crownSpots); this.balbals = b.balbals; return b.piece; });
+    yield;
     run('eagleRock', buildEagleRock);
+    yield;
     run('cairn', (c) => { const k = buildCairn(c); this.cairnTieSpot = k.tieSpot; return k.piece; });
+    yield;
     run('crags', (c) => { const k = buildCrags(c); this.cragLedges = k.ledges; this.cragCave = k.cave; return k.piece; });
+    yield;
     // layout v2 (N9): the watchtower, the kokpar field + its riders, the herds in the hundreds, snow lotus
     run('watchtower', buildWatchtower);
+    yield;
     run('kokpar', buildKokpar);
+    yield;
     run('farHerds', buildFarHerds);
+    yield;
     run('snowLotus', buildSnowLotus);
+    yield;
     run('glacier', buildGlacier);
+    yield;
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
     if (this.smoke.count > 0) this.group.add(this.smoke.build(this.sky));
-    return this;
   }
 
   /** into the scene, and each POI into the world registry (drawn, collides, in Explore) — at once (the dev pages) */

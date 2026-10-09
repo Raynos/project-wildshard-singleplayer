@@ -42,6 +42,21 @@ export interface Outcrops {
 }
 
 export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
+  const steps = outcropSteps(sky, seed);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildOutcrops`, a task apart whenever `due` says the task is over budget (SF67: one 0.5-1 s task at 4x CPU); the same
+ *  rocks from the same rng stream in the same order */
+export async function buildOutcropsSliced(sky: Sky, due: () => Promise<void> | null, seed = 0x0c7): Promise<Outcrops> {
+  const steps = outcropSteps(sky, seed);
+  for (;;) {
+    const step = steps.next(); if (step.done === true) return step.value;
+    const pause = due(); if (pause !== null) await pause;
+  }
+}
+
+function* outcropSteps(sky: Sky, seed: number): Generator<void, Outcrops> {
   const kit = new PaintKit(seed);
   const rng = kit.rng;
   const set = new NalatiSet(kit, { ground: heightAt, flutter: new Flutter(), smoke: new Smoke() });
@@ -84,6 +99,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     }
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
+    yield;
   }
   // the rim: a broken band of granite just under the plateau's lip, so the climb tops out through rock
   for (let x = -236; x <= 236; x += 4.5) {
@@ -100,6 +116,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     hulls(set.paint(graniteOutcrop, { x, y, z, yaw }, { w, h, d, rough: 0.24, pitch: 0.12, roll: 0, draw: 2, lichen: 0.5, solid: h > 1.1 }));
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
+    yield;
   }
   // (Snow Lotus Valley's walls are src/shards/nalati-grasslands/cragRock.ts's: ribs standing against them, sunk into the rock)
   // the river's channels: boulders standing in the current (the white water breaks round them)
@@ -110,6 +127,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const r = rng.range(0.5, 1.2);
     set.paint(roundedBoulder, { x: bx, y: heightAt(bx, bz) + r * 0.2, z: bz, yaw: 0 }, { r, look: 'channel', tint: 'cool', solid: false });
     count++;
+    yield;
   }
   // the river banks: rounded boulders along both edges of the gravel corridor and a few out on the bars
   for (let x = -244; x <= 244; x += 5) {
@@ -124,6 +142,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
         set.paint(roundedBoulder, { x: ox, y: Math.max(heightAt(ox, oz), RIVER.level - 0.4) - r * 0.3, z: oz, yaw: 0 }, { r, look: 'bank', coolOdds: 0.5, solid: false });
       }
       count++;
+      yield;
     }
   }
   // the meltwater stream (Snow Lotus Valley): boulders in its bed that the water runs round, heaped along both banks
@@ -139,6 +158,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
         const bx = px - tz * u, bz = pz + tx * u;
         set.paint(roundedBoulder, { x: bx, y: heightAt(bx, bz) - r * 0.15, z: bz, yaw: 0 }, { r, look: 'bed', tint: 'cool', solid: false });
         count++;
+        yield;
       }
       for (const side of [-1, 1]) {
         if (rng.next() > 0.6) continue;
@@ -147,6 +167,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
         hulls(set.paint(roundedBoulder, { x: bx, y: heightAt(bx, bz) - r * 0.3, z: bz, yaw: 0 }, { r, look: 'streambank', coolOdds: 0.6, solid: r > 1.0 }));
         if (r > 1.0) colliders.push({ x: bx, z: bz, hw: r * 0.7, hd: r * 0.7, rot: 0, yBottom: heightAt(bx, bz) - 1, yTop: heightAt(bx, bz) + r * 0.5 });
         count++;
+        yield;
       }
     }
   }
@@ -169,8 +190,10 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
       hulls(set.paint(graniteOutcrop, { x, y, z, yaw }, { w, h, d: dd, rough: 0.24, pitch: tilt * Math.cos(yaw - downYaw), roll: tilt * Math.sin(yaw - downYaw), draw: 3, lichen: 0.5, solid: true }));
       colliders.push({ x, z, hw: w * 0.42, hd: dd * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
       count++;
+      yield;
     }
   }
+  yield;
   const triangles = Math.round(kit.triangleCount);
   const mesh = kit.mesh(sky, { ground: heightAt, ao: false, aoH: 0.8, aoMin: 0.6 });
   mesh.name = 'nalati-outcrops';

@@ -30,11 +30,11 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 import { NalatiWater } from '../water';
-import { buildOutcrops } from '../outcrops';
+import { buildOutcropsSliced } from '../outcrops';
 import { buildCragRock } from '../cragRock';
 import { NalatiPOIs } from '../world/index';
 import { NalatiDressing } from '../world/dressing/index';
-import { wireKurgan, type KurganBoss } from '../combat/goldenKing';
+import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
 import { wireElites, type NalatiElites } from '../combat/elites';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
 import { windEnv } from '../world/weatherStep';
@@ -150,7 +150,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await slice(++completed, total, 'Water');
 
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
-  const outcrops = buildOutcrops(sky);
+  const outcrops = await buildOutcropsSliced(sky, slicer(30).due); // SF67: ~30 ms a task, the same rocks
   game.scene.add(outcrops.mesh);
   // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `its registry piece`) —
   // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
@@ -171,7 +171,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
-  const pois = new NalatiPOIs(sky).build();
+  const pois = await new NalatiPOIs(sky).buildSliced(macrotask); // SF67: a task apart per POI
   await pois.place(game.scene, ctx.player, macrotask);   // each POI into the world registry (NALATI-MERGE P1): drawn, collides, in Explore
   groups['pois'] = pois.group;
   updates.push((dt) => pois.update(dt));
@@ -220,7 +220,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ShardManifest.weapon`; the Nalati kit hooks in here ──
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
-  const boss = wireKurgan({ game, sky, player: ctx.player, entrance: pois.kurganEntrance, registry: plugin.app.registry });
+  const boss = await wireKurganSliced({ game, sky, player: ctx.player, entrance: pois.kurganEntrance, registry: plugin.app.registry }, macrotask); // SF67: its static interior a task apart per part
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
