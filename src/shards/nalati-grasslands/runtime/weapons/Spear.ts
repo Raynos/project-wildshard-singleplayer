@@ -17,9 +17,11 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { Melee, type MeleeProfile } from '@wildshard/kit/weapons/melee/Melee';
-import { SWORD_WOOD } from '@wildshard/kit/weapons/melee/profiles';
-import { Thrown, type ThrownProfile } from '@wildshard/kit/weapons/thrown/Thrown';
+import { Melee } from '@wildshard/sdk/runtime/weapons/Melee';
+import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
+import { SWORD_WOOD } from '@wildshard/sdk/runtime/weapons/starterMeleeProfile';
+import { Thrown } from '@wildshard/sdk/runtime/weapons/Thrown';
+import type { ThrownProfile } from '@wildshard/sdk/weapons/thrownProfile';
 import { SPEAR } from '../../weapons/equipment';
 
 import * as THREE from 'three';
@@ -291,7 +293,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   private prevPos = new Map<object, THREE.Vector3>();
 
   constructor(w: SpearWorld, targets?: Targets, opts: SpearOptions = {}) {
-    super(opts.profile ?? SPEAR_PROFILE);
+    super(opts.profile ?? SPEAR_PROFILE, app.combat);
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.spear' } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.setAimSource(() => this.player.sampleAimCommand());

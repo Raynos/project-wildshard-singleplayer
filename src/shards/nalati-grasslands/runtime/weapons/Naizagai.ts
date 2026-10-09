@@ -7,7 +7,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { meleeActor } from '@wildshard/kit/weapons/melee/Melee';
+import { meleeActor } from '@wildshard/sdk/runtime/weapons/Melee';
 import * as THREE from 'three';
 import { GroundTell } from '@wildshard/game/Elite';
 import { fxMaterial, FX, annulus, type FxMaterial } from '@wildshard/engine/fx/groundFx';

@@ -5,7 +5,7 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from '../../weapons/effects';
 import * as THREE from 'three';
-import { Bow, type BowWorld, type BowOptions } from '@wildshard/kit/weapons/bow/family';
+import { Bow, type BowInstance, type BowWorld, type BowOptions } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { BOW } from '../../weapons/equipment';
 
 
@@ -38,7 +38,7 @@ const STREAK_PTS = 48, SPEED_BASE = 30, SPEED_DRAW = 28, SUN_DRAW = 0.95;
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Color();
 
 export class GoldenBowPower {
-  private bow: Bow | null = null;
+  private bow: BowInstance | null = null;
   private streak: THREE.Mesh; private streakMat: FxMaterial; private streakPos: Float32Array; private streakAttr: THREE.BufferAttribute;
   private streakT = 0;
   private pts = new Float32Array(STREAK_PTS * 3);
@@ -68,7 +68,7 @@ export class GoldenBowPower {
   get applied(): boolean { return this.bow !== null; }
 
   /** upgrade the bow in place (idempotent) */
-  apply(bow: Bow): void {
+  apply(bow: BowInstance): void {
     bow.row = { ...bow.row, id: 'weapon.golden-bow', meta: { ...bow.meta, name: 'Golden Bow' } };
     if (this.bow === bow) return;
     this.bow = bow;
@@ -85,7 +85,7 @@ export class GoldenBowPower {
   }
 
   /** gold limbs, a string of light: B2's first-class bow style (Bow.setStyle repaints the limbs + string, the fist keeps its leather) */
-  private recolour(bow: Bow): void { bow.setStyle('golden'); }
+  private recolour(bow: BowInstance): void { bow.setStyle('golden'); }
 
   private loosed(p: number): void {
     const bow = this.bow;
@@ -230,7 +230,7 @@ export const GOLDEN_BOW = { ...BOW, id: 'weapon.golden-bow' as const,
   ui: { ...BOW.ui, name: 'Golden Bow', swapName: 'Golden Bow' }, meta: { ...BOW.meta, name: 'Golden Bow' } };
 /** Reward behavior shares the Bow family and keeps the source's preloaded streak clock. */
 export class GoldenBow extends Bow {
-  constructor(world: BowWorld, targets: Targets, opts: BowOptions & { power: GoldenBowPower; previous?: Bow }) {
+  constructor(world: BowWorld, targets: Targets, opts: BowOptions & { power: GoldenBowPower; previous?: BowInstance }) {
     super(world, targets, { ...opts, row: GOLDEN_BOW });
     if (opts.previous) {
       this.damageMultiplier = opts.previous.damageMultiplier;
