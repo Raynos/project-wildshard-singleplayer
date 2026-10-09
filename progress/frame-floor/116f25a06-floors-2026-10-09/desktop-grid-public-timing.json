@@ -1,0 +1,71 @@
+{
+  "surface": "desktop",
+  "task": {
+    "name": "grid-public",
+    "developer": "off",
+    "shards": "grid"
+  },
+  "start": 1791546051423,
+  "end": 1791546080113,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=desktop",
+    "--developer=off",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=grid",
+    "--grid-scenario=baseline",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791546651423",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-grid-public.json"
+  ],
+  "events": [
+    {
+      "ms": 1791546071424,
+      "text": "desktop grid spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        42.3583984375,
+        50.5087890625,
+        46.17431640625
+      ]
+    },
+    {
+      "ms": 1791546075571,
+      "text": "desktop grid grid-crossroads: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        42.3583984375,
+        50.5087890625,
+        46.17431640625
+      ]
+    },
+    {
+      "ms": 1791546079720,
+      "text": "desktop grid grid-deck-east: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        41.68896484375,
+        50.234375,
+        46.1025390625
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T11:40:51.423Z",
+    "ms": 1791546051423,
+    "load": [
+      44.6279296875,
+      51.45068359375,
+      46.39404296875
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T11:41:20.113Z",
+    "ms": 1791546080113,
+    "load": [
+      41.68896484375,
+      50.234375,
+      46.1025390625
+    ]
+  }
+}

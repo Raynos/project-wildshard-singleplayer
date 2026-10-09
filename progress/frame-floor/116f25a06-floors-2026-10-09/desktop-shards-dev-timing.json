@@ -1,0 +1,224 @@
+{
+  "surface": "desktop",
+  "task": {
+    "name": "shards-dev",
+    "developer": "on",
+    "shards": "driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack"
+  },
+  "start": 1791545882927,
+  "end": 1791546051422,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=desktop",
+    "--developer=on",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack",
+    "--grid-scenario=baseline",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791546482927",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-shards-dev.json"
+  ],
+  "events": [
+    {
+      "ms": 1791545896817,
+      "text": "desktop driftwood-isle spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        59.6884765625,
+        59.4306640625,
+        47.8857421875
+      ]
+    },
+    {
+      "ms": 1791545900947,
+      "text": "desktop driftwood-isle beach: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        56.91064453125,
+        58.85888671875,
+        47.75146484375
+      ]
+    },
+    {
+      "ms": 1791545905183,
+      "text": "desktop driftwood-isle pier: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        56.91064453125,
+        58.85888671875,
+        47.75146484375
+      ]
+    },
+    {
+      "ms": 1791545942192,
+      "text": "desktop pine-hollow spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        40.74609375,
+        54.70751953125,
+        46.75390625
+      ]
+    },
+    {
+      "ms": 1791545946289,
+      "text": "desktop pine-hollow pond: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        37.96337890625,
+        53.8984375,
+        46.5146484375
+      ]
+    },
+    {
+      "ms": 1791545950753,
+      "text": "desktop pine-hollow cabin: 59.88 fps, p95 33.3 ms, p99 33.4 ms — FAIL",
+      "load": [
+        37.96337890625,
+        53.8984375,
+        46.5146484375
+      ]
+    },
+    {
+      "ms": 1791545965122,
+      "text": "desktop nalati-grasslands spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        36.6396484375,
+        52.798828125,
+        46.24951171875
+      ]
+    },
+    {
+      "ms": 1791545969320,
+      "text": "desktop nalati-grasslands plains: 59.88 fps, p95 16.7 ms, p99 16.7 ms — PASS",
+      "load": [
+        37.54931640625,
+        52.71875,
+        46.259765625
+      ]
+    },
+    {
+      "ms": 1791545973506,
+      "text": "desktop nalati-grasslands bridge: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        38.1455078125,
+        52.59033203125,
+        46.251953125
+      ]
+    },
+    {
+      "ms": 1791545984447,
+      "text": "desktop far-reach spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        37.43408203125,
+        51.96142578125,
+        46.10205078125
+      ]
+    },
+    {
+      "ms": 1791545988610,
+      "text": "desktop far-reach spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        41.24267578125,
+        52.509765625,
+        46.32958984375
+      ]
+    },
+    {
+      "ms": 1791545992776,
+      "text": "desktop far-reach hover: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        42.90478515625,
+        52.6669921875,
+        46.42138671875
+      ]
+    },
+    {
+      "ms": 1791546006285,
+      "text": "desktop sunscar-dunes spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        43.35546875,
+        52.31640625,
+        46.40673828125
+      ]
+    },
+    {
+      "ms": 1791546010436,
+      "text": "desktop sunscar-dunes spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        43.35546875,
+        52.31640625,
+        46.40673828125
+      ]
+    },
+    {
+      "ms": 1791546014599,
+      "text": "desktop sunscar-dunes whip: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        43.72705078125,
+        52.24462890625,
+        46.416015625
+      ]
+    },
+    {
+      "ms": 1791546024004,
+      "text": "desktop _template spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        43.5537109375,
+        51.923828125,
+        46.3701171875
+      ]
+    },
+    {
+      "ms": 1791546028194,
+      "text": "desktop _template spawn-reverse: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        44.31005859375,
+        51.94140625,
+        46.40869140625
+      ]
+    },
+    {
+      "ms": 1791546042353,
+      "text": "desktop nine-dragon-stack spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        46.09375,
+        51.9599609375,
+        46.51171875
+      ]
+    },
+    {
+      "ms": 1791546046532,
+      "text": "desktop nine-dragon-stack well-edge: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS",
+      "load": [
+        45.205078125,
+        51.67822265625,
+        46.44384765625
+      ]
+    },
+    {
+      "ms": 1791546050722,
+      "text": "desktop nine-dragon-stack spawn-rail: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS",
+      "load": [
+        45.205078125,
+        51.67822265625,
+        46.44384765625
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T11:38:02.927Z",
+    "ms": 1791545882928,
+    "load": [
+      66.642578125,
+      60.68701171875,
+      48.11572265625
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T11:40:51.422Z",
+    "ms": 1791546051422,
+    "load": [
+      44.6279296875,
+      51.45068359375,
+      46.39404296875
+    ]
+  }
+}

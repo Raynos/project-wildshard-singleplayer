@@ -1,0 +1,5 @@
+Start 2026-10-09T11:44:42.850Z load=[67.7265625,54.59716796875,48.4111328125]
+Command node /private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs --worker --surface=desktop --developer=on --base=http://127.0.0.1:4402/ --shards=pine-hollow --grid-scenario=baseline --frames=120 --settle=2 --deadline=1791546882850 --worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-pine-quiet-1.json
+desktop pine-hollow spawn: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop pine-hollow cabin: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop pine-hollow pond: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL

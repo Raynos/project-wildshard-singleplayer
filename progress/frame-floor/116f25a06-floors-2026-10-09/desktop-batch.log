@@ -1,0 +1,26 @@
+desktop driftwood-isle spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop driftwood-isle beach: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop driftwood-isle pier: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow pond: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow cabin: 59.88 fps, p95 33.3 ms, p99 33.4 ms — FAIL
+desktop nalati-grasslands spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop nalati-grasslands plains: 59.88 fps, p95 16.7 ms, p99 16.7 ms — PASS
+desktop nalati-grasslands bridge: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop far-reach spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop far-reach spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop far-reach hover: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop sunscar-dunes spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop sunscar-dunes spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop sunscar-dunes whip: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop _template spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop _template spawn-reverse: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop nine-dragon-stack spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop nine-dragon-stack well-edge: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop nine-dragon-stack spawn-rail: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+BATCH desktop-shards-dev code=0 complete=true pass=false load=44.6279296875/51.45068359375/46.39404296875
+desktop grid spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid grid-crossroads: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid grid-deck-east: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid: Public template entry and residency were not witnessed
+BATCH desktop-grid-public code=0 complete=false pass=false load=41.68896484375/50.234375/46.1025390625

@@ -1,0 +1,71 @@
+{
+  "surface": "desktop",
+  "task": {
+    "name": "pine-quiet-2",
+    "developer": "on",
+    "shards": "pine-hollow"
+  },
+  "start": 1791546338698,
+  "end": 1791546395141,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=desktop",
+    "--developer=on",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=pine-hollow",
+    "--grid-scenario=baseline",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791546938698",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-pine-quiet-2.json"
+  ],
+  "events": [
+    {
+      "ms": 1791546385665,
+      "text": "desktop pine-hollow spawn: 59.88 fps, p95 16.8 ms, p99 33.4 ms — PASS",
+      "load": [
+        44.27880859375,
+        49.95556640625,
+        47.2646484375
+      ]
+    },
+    {
+      "ms": 1791546390132,
+      "text": "desktop pine-hollow gate: 59.88 fps, p95 33.3 ms, p99 33.4 ms — FAIL",
+      "load": [
+        41.37353515625,
+        49.2587890625,
+        47.0341796875
+      ]
+    },
+    {
+      "ms": 1791546394900,
+      "text": "desktop pine-hollow cabin: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL",
+      "load": [
+        39.66162109375,
+        48.77294921875,
+        46.87548828125
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T11:45:38.698Z",
+    "ms": 1791546338698,
+    "load": [
+      49.33984375,
+      51.4130859375,
+      47.59521484375
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T11:46:35.141Z",
+    "ms": 1791546395141,
+    "load": [
+      39.66162109375,
+      48.77294921875,
+      46.87548828125
+    ]
+  }
+}

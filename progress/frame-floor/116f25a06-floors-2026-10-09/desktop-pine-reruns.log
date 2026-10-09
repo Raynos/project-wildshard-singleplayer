@@ -1,0 +1,12 @@
+desktop pine-hollow spawn: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop pine-hollow cabin: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop pine-hollow pond: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+BATCH desktop-pine-quiet-1 code=0 complete=true pass=false load=49.33984375/51.4130859375/47.59521484375
+desktop pine-hollow spawn: 59.88 fps, p95 16.8 ms, p99 33.4 ms — PASS
+desktop pine-hollow gate: 59.88 fps, p95 33.3 ms, p99 33.4 ms — FAIL
+desktop pine-hollow cabin: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+BATCH desktop-pine-quiet-2 code=0 complete=true pass=false load=39.66162109375/48.77294921875/46.87548828125
+desktop pine-hollow spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow gate: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop pine-hollow cabin: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+BATCH desktop-pine-quiet-3 code=0 complete=true pass=true load=24.107421875/43.55078125/45.05908203125

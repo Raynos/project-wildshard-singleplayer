@@ -1,0 +1,6 @@
+Start 2026-10-09T11:40:51.423Z load=[44.6279296875,51.45068359375,46.39404296875]
+Command node /private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs --worker --surface=desktop --developer=off --base=http://127.0.0.1:4402/ --shards=grid --grid-scenario=baseline --frames=120 --settle=2 --deadline=1791546651423 --worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-grid-public.json
+desktop grid spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid grid-crossroads: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid grid-deck-east: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid: Public template entry and residency were not witnessed

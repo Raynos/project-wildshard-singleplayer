@@ -1,0 +1,22 @@
+Start 2026-10-09T11:38:02.927Z load=[66.642578125,60.68701171875,48.11572265625]
+Command node /private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs --worker --surface=desktop --developer=on --base=http://127.0.0.1:4402/ --shards=driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack --grid-scenario=baseline --frames=120 --settle=2 --deadline=1791546482927 --worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-shards-dev.json
+desktop driftwood-isle spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop driftwood-isle beach: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop driftwood-isle pier: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow pond: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop pine-hollow cabin: 59.88 fps, p95 33.3 ms, p99 33.4 ms — FAIL
+desktop nalati-grasslands spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop nalati-grasslands plains: 59.88 fps, p95 16.7 ms, p99 16.7 ms — PASS
+desktop nalati-grasslands bridge: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop far-reach spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop far-reach spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop far-reach hover: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop sunscar-dunes spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop sunscar-dunes spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop sunscar-dunes whip: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop _template spawn: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop _template spawn-reverse: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop nine-dragon-stack spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop nine-dragon-stack well-edge: 59.88 fps, p95 16.8 ms, p99 16.8 ms — PASS
+desktop nine-dragon-stack spawn-rail: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS

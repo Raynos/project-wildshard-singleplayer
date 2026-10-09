@@ -1,0 +1,11 @@
+{
+  "sha": "116f25a06426c1d35bc4084a0127875e2f338980",
+  "base": "http://127.0.0.1:4402/",
+  "version": {
+    "build": "116f25a-mv0w4kyg",
+    "time": "2026-10-09T11:37:15.269Z"
+  },
+  "source": "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src",
+  "harness": "pinned source scripts/frame-floor.mjs --worker; unchanged fixture helper from parent harness",
+  "startedAt": "2026-10-09T11:38:01.984Z"
+}
