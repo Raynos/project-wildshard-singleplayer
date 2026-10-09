@@ -6277,6 +6277,12 @@
         "from": "@wildshard/engine/input/commands"
       },
       {
+        "name": "RideCommandSample",
+        "kind": "interface",
+        "doc": "A traversal's last consumed local controls, sampled without asking live device state again.",
+        "from": "@wildshard/engine/input/commands"
+      },
+      {
         "name": "validateLocalMovement",
         "kind": "function",
         "doc": "Reject malformed/new-version movement before a host changes clocks or physics.",
@@ -8418,6 +8424,12 @@
         "from": "@wildshard/engine/player/viewmodelTextures"
       },
       {
+        "name": "walkingSpeed",
+        "kind": "function",
+        "doc": "Shipping on-foot speed selection, shared by the page and an opted-in simulation driver.",
+        "from": "@wildshard/engine/player/walk"
+      },
+      {
         "name": "ItemPickup",
         "kind": "class",
         "doc": "an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup)",
@@ -10378,6 +10390,12 @@
         "name": "SimValue",
         "kind": "type",
         "doc": "Serializable F1 extension values, without callbacks or renderer objects.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimWalkingControl",
+        "kind": "interface",
+        "doc": "Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative.",
         "from": "@wildshard/engine/sim"
       },
       {

@@ -2122,7 +2122,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2352 exports, grouped by the module to import them from.
+2355 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2298,7 +2298,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/fx/Impacts`: `ImpactKind`, `Impacts`
 - `@wildshard/engine/fx/LightPool`: `LightPool`
 - `@wildshard/engine/fx/ParticlePool`: `ParticleAttr`, `ParticlePool`, `ParticlePoolSpec`, `pointScale`
-- `@wildshard/engine/input/commands`: `AimCommand`, `FightCommand`, `LocalMovementCommand`, `LocalSteer`, `PlayerCommand`, `validateLocalMovement`
+- `@wildshard/engine/input/commands`: `AimCommand`, `FightCommand`, `LocalMovementCommand`, `LocalSteer`, `PlayerCommand`, `RideCommandSample`, `validateLocalMovement`
 - `@wildshard/engine/input/dom`: `listenDom`, `listenPage`, `mountDom`, `PageInputEvent`
 - `@wildshard/engine/input/gameplay`: `installGameplayInput`, `weaponInputContext`
 - `@wildshard/engine/input/InputService`: `Action`, `ActionCommand`, `ActionMap`, `DeclaredAction`, `InputService`, `InputState`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
@@ -2366,6 +2366,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/player/Skins`: `applySkin`, `clearSkin`, `SkinDef`, `SkinId`, `WeaponKind`
 - `@wildshard/engine/player/TouchControls`: `IS_TOUCH`, `TouchControls`
 - `@wildshard/engine/player/viewmodelTextures`: `clamp01`, `CLASSIC_SETS`, `Ctx2D`, `makeNoise`, `makePixels`, `MODERN_SETS`, `Noise`, `normalPixels`, `Pixels`, `SetName`, `sstep`, `viewmodelBakeUrl`
+- `@wildshard/engine/player/walk`: `walkingSpeed`
 - `@wildshard/engine/player/WeaponPickup`: `ItemPickup`, `ItemPickupOptions`, `PickupTier`, `TIER_COLOUR`, `WeaponPickup`
 - `@wildshard/engine/practice/playground/catalog`: `asPlaygroundId`, `PLAYGROUND_CARDS`, `playgroundCard`, `PlaygroundCard`, `PlaygroundId`, `playgroundsFor`, `registeredPlayground`, `registerPlayground`
 - `@wildshard/engine/practice/playground/devGrid`: `DevKit`, `devLabel`, `devMaterial`, `devTexture`, `DevTone`, `TILE`
@@ -2415,7 +2416,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptDriver`, `ScriptDriverOptions`, `ScriptLane`, `ScriptLaneOptions`, `ScriptLanePort`, `ScriptModule`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
-- `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimBodyBands`, `SimBodyStep`, `SimCommand`, `SimExternalPlayer`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimPlayerDriver`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
+- `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimBodyBands`, `SimBodyStep`, `SimCommand`, `SimExternalPlayer`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimPlayerDriver`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`, `SimWalkingControl`
 - `@wildshard/engine/sim/bands`: `AI_TICK_RATE`, `ALWAYS_TICK_RATE`, `bandAt`, `BandRow`, `BandsState`, `BodyBandClocks`, `checkTickRate`, `CREATURE_BODY_FAR`, `CREATURE_BODY_NEAR`, `creatureBodyDistance`, `creatureBodyShape`, `DEFAULT_TICK_RATES`, `freshClock`, `keepsCreatureBody`, `LEGACY_TICK_RATE`, `tickClock`, `TickClock`, `tickDistance`
 - `@wildshard/engine/sim/edgeProfiles`: `bakedEdgeProfiles`, `EdgeColour`, `EdgeProfiles`, `EdgeResolution`, `edgeSample`, `edgeSampleLocations`, `nativeEdgeProfiles`, `validateEdgeProfile`
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`

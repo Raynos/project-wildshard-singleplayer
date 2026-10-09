@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2372 members; 842 without a doc line (—).
+2375 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1052,6 +1052,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `LocalMovementCommand` | interface | @wildshard/engine/input/commands | Additive raw-input protocol. New fields require version 1; absent fields retain legacy command bytes. |
 | `LocalSteer` | interface | @wildshard/engine/input/commands | Raw local inputs, kept separate because keyboard holds and analog strength can select different motion. |
 | `PlayerCommand` | interface | @wildshard/engine/input/commands | Resolved device input for one fixed step. Replays supply these values directly. |
+| `RideCommandSample` | interface | @wildshard/engine/input/commands | A traversal's last consumed local controls, sampled without asking live device state again. |
 | `validateLocalMovement` | function | @wildshard/engine/input/commands | Reject malformed/new-version movement before a host changes clocks or physics. |
 | `listenDom` | function | @wildshard/engine/input/dom | Scoped widget gestures keep DOM event typing and dispose with their owner. Gameplay uses actions. |
 | `listenPage` | function | @wildshard/engine/input/dom | A page-wide input listener (E362 AG18): a drag that leaves its widget, "a touch anywhere" that dismisses or skips, |
@@ -1408,6 +1409,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SetName` | type | @wildshard/engine/player/viewmodelTextures | — |
 | `sstep` | const | @wildshard/engine/player/viewmodelTextures | — |
 | `viewmodelBakeUrl` | function | @wildshard/engine/player/viewmodelTextures | G187 cut 3 (E435): the name a set plane's baked KTX2 is keyed by in a level's KTX2 table (scripts/bake-viewmodel-sets.mjs |
+| `walkingSpeed` | function | @wildshard/engine/player/walk | Shipping on-foot speed selection, shared by the page and an opted-in simulation driver. |
 | `ItemPickup` | class | @wildshard/engine/player/WeaponPickup | an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) |
 | `ItemPickupOptions` | interface | @wildshard/engine/player/WeaponPickup | — |
 | `PickupTier` | type | @wildshard/engine/player/WeaponPickup | ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like |
@@ -1735,6 +1737,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |
 | `SimStrike` | type | @wildshard/engine/sim | Pure strike data. The host supplies the constant selection weight. |
 | `SimValue` | type | @wildshard/engine/sim | Serializable F1 extension values, without callbacks or renderer objects. |
+| `SimWalkingControl` | interface | @wildshard/engine/sim | Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative. |
 | `AI_TICK_RATE` | const | @wildshard/engine/sim/bands | The scheduler's 'ai' rate (also 'npc'): decisions 20 Hz / 10 Hz / paused, the body every frame / 'half' / paused. |
 | `ALWAYS_TICK_RATE` | const | @wildshard/engine/sim/bands | A pinned, driven or fight-scripted subject: it decides and moves every frame at any distance. |
 | `bandAt` | function | @wildshard/engine/sim/bands | The first band covering `distance` (undefined only for a rate that `checkTickRate` refuses). |
