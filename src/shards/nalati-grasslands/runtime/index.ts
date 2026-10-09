@@ -50,7 +50,8 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await import('@wildshard/engine/world/Grass');
     await import('@wildshard/game/systems/looks/trample');
-    (await import('@wildshard/game/systems/looks/grassField')).configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);
+    const grassField = await import('@wildshard/game/systems/looks/grassField');
+    grassField.configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);
     // the grass step also builds the shared mote / mist / needle field the steppe has always carried (main.ts built it for
     // every forest shard before the plugin split; R2: dropping it lost a Points, two InstancedMeshes and three textures)
     const { grass, particles } = await step('grass', async () => {
@@ -74,8 +75,9 @@ export class NalatiPlugin extends ShardPlugin {
     shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
-    // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands)
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ coats: () => creatureRigs.coatSources() }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
+    // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
+    // trampling the senses read (scripts/bake-nalati-physics.mjs samples it for the renderer-free field's check)
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ coats: () => creatureRigs.coatSources(), grassBase: (x: number, z: number) => grassField.grassBaseHeightAt(x, z) }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
     installEnteredRuntimeService(ctx, (scope) => { scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); })); });

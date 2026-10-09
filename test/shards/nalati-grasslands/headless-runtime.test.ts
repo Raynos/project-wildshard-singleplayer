@@ -83,6 +83,20 @@ it('seeds the pack, the wild herd and Argymaq\'s herd on the \'ai\' stream exact
   } finally { host.dispose(); }
 });
 
+it('reads the page\'s grass: the groups\' standing grass is the page\'s grassBaseHeightAt at every sampled point, untrampled', () => {
+  const host = boot();
+  try {
+    const groups = nalatiGroupsOf(host); if (groups === undefined) throw new Error('no groups');
+    // every body's tick-0 spot, then a 48² off-lattice grid: the lattice, the trail beds, the yurt floors, the water
+    expect(bake.grass.length).toBe(bake.spawns.length + 48 * 48);
+    expect(bake.grass.filter(row => row[2] > 0.9).length).toBeGreaterThan(20);
+    expect(bake.grass.filter(row => row[2] === 0).length).toBeGreaterThan(20);
+    const env = groups.env;
+    const off = bake.grass.filter(([x, z, h]) => Math.abs(env.grassStandingAt(x, z) - h) > 1e-9 || Math.abs(env.grassHeightAt(x, z) - h) > 1e-9);
+    expect(off).toEqual([]);
+  } finally { host.dispose(); }
+});
+
 it('walks 2k ticks: every body stays finite on the ground, on the page\'s distance bands', () => {
   const host = boot();
   try {

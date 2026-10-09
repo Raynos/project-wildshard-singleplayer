@@ -9,7 +9,10 @@ import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, nalatiBake, type NalatiBake, typ
 import { nalatiBootRoster, type NalatiBootBody, type NalatiBootClock } from './bootRoster';
 import { TERRAIN } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
-import { installNalatiGroups } from './groups';
+import { installNalatiGroups, type NalatiGrassView } from './groups';
+import { GrassField } from '@wildshard/game/systems/looks/grassField';
+import { TrampleField } from '@wildshard/game/systems/looks/trample';
+import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
@@ -42,6 +45,20 @@ export function nalatiTerrainGrid(bytes: Uint8Array | undefined, seed: number): 
   const grid = bytes === undefined ? null : parseBakedTerrain(buffer(bytes));
   if (grid === null || grid.res !== NALATI_GROUND_RES || grid.size !== NALATI_GROUND_SIZE || grid.seed !== seed) throw new Error(`Nalati headless needs its baked terrain grid (${NALATI_TERRAIN_ASSET})`);
   return grid;
+}
+
+/**
+ * The host's grass (SF72): the page's field (game/systems/looks/grassField.ts GrassField) over the samplers the page binds,
+ * the baked grid's height, normal and splat and Nalati's terrain field's trails, pads and water, with the authored meadow
+ * (look/grassFieldLayout.ts) on the level's noise seed; its height channel is the page's, sample for sample (the bake's
+ * `grass` rows, test/shards/nalati-grasslands/headless-runtime.test.ts). The colour channels (the level's ground paint)
+ * are the field's plain default: no headless reader asks them. And a trample map of the host's own (TrampleField).
+ */
+export function nalatiGrassView(grid: BakedGrid, seed: number): NalatiGrassView {
+  const s = bakedSamplers(grid);
+  const field = new GrassField({ seed, half: NALATI_GROUND_SIZE / 2, heightAt: s.heightAt, normalAt: (x, z, eps) => s.normalAt(x, z, eps), splatAt: s.splatAt,
+    trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask, pondMask: TERRAIN.pondMask, waterLevel: TERRAIN.waterLevel, paint: () => false, layout: NALATI_GRASS_LAYOUT });
+  return { field, trample: new TrampleField() };
 }
 
 /** One manager body in the host: the roster's recipe, its baked native spec, the live actor. */
@@ -88,8 +105,8 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * as the height query, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
  * restored exactly by an identical install before the host restores, and the declared groups (runtime/groups.ts: the pack,
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them). Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati4.md): the groups' decisions (their wild view: the grass field, its trample
- * map, the wind and the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
+ * progress/shard-platform/handoffs/sf72-nalati5.md): the groups' decisions (their wild view has the page's grass and a
+ * trample map of the host's own; not yet the trample map's clock and restore, the weather's wind or the day's light), the flock and its dog, the elites, the Golden King and the Storm Titan, the mounted player and the
  * weapons, the day clock past the boot's day, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -103,6 +120,6 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     addNalatiWorld(host, bake);
     const bodies = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y }), normal = bakedSamplers(grid).normalAt;
     // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
-    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1] });
+    installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass: nalatiGrassView(grid, shard.identity.seed) });
   } };
 };

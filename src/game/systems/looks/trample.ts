@@ -31,58 +31,29 @@ const SPAN = SIZE * TEXEL;       // 128 m
 export const RECOVER = 20;
 export const MAX_MOVERS = 16;
 
-export class GrassTrample {
-  /** RG8: the lie vector × flatten amount, 0.5-biased (128, 128 = standing) — filters linearly, unlike an angle */
-  readonly texture: THREE.DataTexture;
-  readonly uniforms = {
-    tTrample: { value: null as THREE.DataTexture | null },
-    /** xz = window centre (m), z = window half-span (m), w = 1 / span */
-    uTrampleWin: { value: new THREE.Vector4(0, 0, SPAN / 2, 1 / SPAN) },
-    uMovers: { value: Array.from({ length: MAX_MOVERS }, () => new THREE.Vector4(0, 0, 0, 0)) },
-    uMoverCount: { value: 0 },
-  };
-
+/**
+ * The trample map's state and law without the GPU (SF72): the 256² flatten amount and lie angle over the 128 m window that
+ * follows the player, the pushes that stamp it, the tracked movers and the recovery at 10 Hz. GrassTrample (the page's)
+ * adds the live-mover uniforms and the RG8 texture over it; a renderer-free host keeps its own.
+ */
+export class TrampleField {
   private amount = new Float32Array(SIZE * SIZE);
   private angle = new Float32Array(SIZE * SIZE);
-  private data = new Uint8Array(SIZE * SIZE * 2).fill(128);
   private ox = 0x7fffffff;  // window origin, texel units
   private oz = 0x7fffffff;
   private anyFlat = false;
   private dirty = false;
   private tick = 0;
-  private live: { x: number; z: number; r: number; s: number; d: number }[] = [];
-  private liveN = 0;
-  private cx = 0;
-  private cz = 0;
+  /** the window centre: the player at the last update */
+  protected cx = 0;
+  protected cz = 0;
   private tracked: { p: { x: number; z: number }; r: number; s: number; on: (() => boolean) | undefined; px: number; pz: number }[] = [];
 
-  constructor() {
-    this.texture = new THREE.DataTexture(this.data, SIZE, SIZE, THREE.RGFormat, THREE.UnsignedByteType);
-    this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
-    this.texture.magFilter = THREE.LinearFilter;
-    this.texture.minFilter = THREE.LinearFilter;
-    this.texture.generateMipmaps = false;
-    this.texture.needsUpdate = true;
-    this.uniforms.tTrample.value = this.texture;
-    for (let i = 0; i < MAX_MOVERS; i++) this.live.push({ x: 0, z: 0, r: 0, s: 0, d: 0 });
-  }
-
   /**
-   * A mover at (x, z) this frame: bends blades within ~`radius` m away from it and stamps the trample map.
-   * `strength` 1 = a person / wolf, 1.5 = a horse. (vx, vz) = its velocity (m/s) — trampled blades lie the
-   * way it went; standing still they lie outward.
+   * A mover at (x, z) this frame: stamps the trample map within ~0.8 × `radius` m. `strength` 1 = a person / wolf, 1.5 = a
+   * horse. (vx, vz) = its velocity (m/s) — trampled blades lie the way it went; standing still they lie outward.
    */
   push(x: number, z: number, radius: number, strength = 1, vx = 0, vz = 0): void {
-    // live list: keep the MAX_MOVERS nearest the player (the camera)
-    const d = (x - this.cx) ** 2 + (z - this.cz) ** 2;
-    let slot = -1;
-    if (this.liveN < MAX_MOVERS) slot = this.liveN++;
-    else {
-      let wd = d;
-      for (let i = 0; i < MAX_MOVERS; i++) { const m = this.live[i]; if (m && m.d > wd) { wd = m.d; slot = i; } }
-    }
-    const m = this.live[slot];
-    if (m) { m.x = x; m.z = z; m.r = radius; m.s = strength; m.d = d; }
     this.stamp(x, z, radius * 0.8, Math.min(1, strength), vx, vz);
   }
 
@@ -114,38 +85,37 @@ export class GrassTrample {
       if (vx * vx + vz * vz > 900) continue; // a teleport / respawn, not a stride
       this.push(e.p.x, e.p.z, e.r, e.s, vx, vz);
     }
-    // live movers → uniforms
-    const u = this.uniforms;
-    for (let i = 0; i < MAX_MOVERS; i++) {
-      const m = this.live[i], v = u.uMovers.value[i];
-      if (!v) continue;
-      if (m && i < this.liveN) v.set(m.x, m.z, m.r, m.s); else v.set(0, 0, 0, 0);
-    }
-    u.uMoverCount.value = this.liveN;
-    this.liveN = 0;
-    u.uTrampleWin.value.set(this.cx, this.cz, SPAN / 2, 1 / SPAN);
-    // decay + upload at 10 Hz
+    this.frame();
+    // decay at 10 Hz
     this.tick += dt;
     if (this.tick < 0.1) return;
     const step = this.tick / RECOVER;
     this.tick = 0;
     if (!this.anyFlat && !this.dirty) return;
     let any = false;
-    const a = this.amount, g = this.angle, out = this.data;
+    const a = this.amount, g = this.angle, out = this.texels();
     for (let i = 0; i < SIZE * SIZE; i++) {
       const v = a[i] ?? 0;
-      if (v <= 0) { out[i * 2] = 128; out[i * 2 + 1] = 128; continue; }
+      if (v <= 0) { if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } continue; }
       const nv = v - step;
-      if (nv <= 0) { a[i] = 0; out[i * 2] = 128; out[i * 2 + 1] = 128; continue; }
+      if (nv <= 0) { a[i] = 0; if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } continue; }
       a[i] = nv; any = true;
+      if (out === null) continue;
       const ang = g[i] ?? 0;
       out[i * 2] = Math.round(127.5 + 127 * Math.cos(ang) * nv);
       out[i * 2 + 1] = Math.round(127.5 + 127 * Math.sin(ang) * nv);
     }
     this.anyFlat = any;
     this.dirty = false;
-    this.texture.needsUpdate = true;
+    this.uploaded();
   }
+
+  /** after this frame's pushes, before the recovery: the page hands its live movers to the shader */
+  protected frame(): void { /* a renderer-free field draws nothing */ }
+  /** the RG8 texels the recovery rewrites (the page's texture data), or null */
+  protected texels(): Uint8Array | null { return null; }
+  /** the recovery rewrote the texels */
+  protected uploaded(): void { /* nothing to upload */ }
 
   private idx(ix: number, iz: number): number {
     return (((iz % SIZE) + SIZE) % SIZE) * SIZE + (((ix % SIZE) + SIZE) % SIZE);
@@ -193,6 +163,69 @@ export class GrassTrample {
     }
     this.ox = nx; this.oz = nz;
   }
+}
+
+export class GrassTrample extends TrampleField {
+  /** RG8: the lie vector × flatten amount, 0.5-biased (128, 128 = standing) — filters linearly, unlike an angle */
+  readonly texture: THREE.DataTexture;
+  readonly uniforms = {
+    tTrample: { value: null as THREE.DataTexture | null },
+    /** xz = window centre (m), z = window half-span (m), w = 1 / span */
+    uTrampleWin: { value: new THREE.Vector4(0, 0, SPAN / 2, 1 / SPAN) },
+    uMovers: { value: Array.from({ length: MAX_MOVERS }, () => new THREE.Vector4(0, 0, 0, 0)) },
+    uMoverCount: { value: 0 },
+  };
+
+  private data = new Uint8Array(SIZE * SIZE * 2).fill(128);
+  private live: { x: number; z: number; r: number; s: number; d: number }[] = [];
+  private liveN = 0;
+
+  constructor() {
+    super();
+    this.texture = new THREE.DataTexture(this.data, SIZE, SIZE, THREE.RGFormat, THREE.UnsignedByteType);
+    this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
+    this.texture.magFilter = THREE.LinearFilter;
+    this.texture.minFilter = THREE.LinearFilter;
+    this.texture.generateMipmaps = false;
+    this.texture.needsUpdate = true;
+    this.uniforms.tTrample.value = this.texture;
+    for (let i = 0; i < MAX_MOVERS; i++) this.live.push({ x: 0, z: 0, r: 0, s: 0, d: 0 });
+  }
+
+  /**
+   * A mover at (x, z) this frame: bends blades within ~`radius` m away from it and stamps the trample map.
+   * `strength` 1 = a person / wolf, 1.5 = a horse. (vx, vz) = its velocity (m/s) — trampled blades lie the
+   * way it went; standing still they lie outward.
+   */
+  override push(x: number, z: number, radius: number, strength = 1, vx = 0, vz = 0): void {
+    // live list: keep the MAX_MOVERS nearest the player (the camera)
+    const d = (x - this.cx) ** 2 + (z - this.cz) ** 2;
+    let slot = -1;
+    if (this.liveN < MAX_MOVERS) slot = this.liveN++;
+    else {
+      let wd = d;
+      for (let i = 0; i < MAX_MOVERS; i++) { const m = this.live[i]; if (m && m.d > wd) { wd = m.d; slot = i; } }
+    }
+    const m = this.live[slot];
+    if (m) { m.x = x; m.z = z; m.r = radius; m.s = strength; m.d = d; }
+    super.push(x, z, radius, strength, vx, vz);
+  }
+
+  /** live movers → uniforms */
+  protected override frame(): void {
+    const u = this.uniforms;
+    for (let i = 0; i < MAX_MOVERS; i++) {
+      const m = this.live[i], v = u.uMovers.value[i];
+      if (!v) continue;
+      if (m && i < this.liveN) v.set(m.x, m.z, m.r, m.s); else v.set(0, 0, 0, 0);
+    }
+    u.uMoverCount.value = this.liveN;
+    this.liveN = 0;
+    u.uTrampleWin.value.set(this.cx, this.cz, SPAN / 2, 1 / SPAN);
+  }
+
+  protected override texels(): Uint8Array { return this.data; }
+  protected override uploaded(): void { this.texture.needsUpdate = true; }
 }
 
 /** the world's trample map (a singleton — movers anywhere push into it) */

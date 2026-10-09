@@ -5,10 +5,13 @@ import { join, relative } from 'node:path';
 /** Exact native actor/collision/model inputs of Nalati Grasslands; a changed recipe refuses the trusted headless bake (SF72). */
 export function nalatiPhysicsInputs(root) {
   const paths = ['layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'edge.ts', 'wet.ts', 'outcrops.ts', 'cragRock.ts', 'terrainSurface.ts', 'water.ts', 'kokpar.ts',
-    'runtime/index.ts', 'runtime/state.ts', 'runtime/groupDeclared.ts', 'runtime/groupDispatch.ts', 'runtime/groupPorts.ts', 'runtime/groupRegistry.ts', 'runtime/flockDeclared.ts']
+    'runtime/index.ts', 'runtime/state.ts', 'runtime/groupDeclared.ts', 'runtime/groupDispatch.ts', 'runtime/groupPorts.ts', 'runtime/groupRegistry.ts', 'runtime/flockDeclared.ts',
+    'look/grassFieldLayout.ts']
     .map(path => `src/shards/nalati-grasslands/${path}`);
   // the manager, the hunting brain and the group policies that roll and drive the bodies, the shared floor recipe
   paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/pack.ts', 'src/engine/ai/herd.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
+  // the grass field the bake samples (its `grass` rows)
+  paths.push('src/game/systems/looks/grassField.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

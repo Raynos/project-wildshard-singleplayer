@@ -17,22 +17,34 @@ export interface NalatiGroups {
   /** the aggression director's registrations (the page's `app.aggression`): an attack token's claim and check for an actor */
   readonly claim: (actor: AnimalSim) => boolean;
   readonly mayAttack: (actor: AnimalSim) => boolean;
+  /** the wild view the groups' senses read (runtime/groups.ts nalatiHeadlessEnv) */
+  readonly env: WildEnv;
 }
 
 const installed = new WeakMap<SimHost, NalatiGroups>();
 /** The declared groups installed into `host` (its tests and, next, its decisions read them), or undefined. */
 export function nalatiGroupsOf(host: SimHost): NalatiGroups | undefined { return installed.get(host); }
 
-const unbound = (what: string) => (): never => { throw new Error(`Nalati headless ${what} is not modelled yet (sf72-nalati4 handoff)`); };
+const unbound = (what: string) => (): never => { throw new Error(`Nalati headless ${what} is not modelled yet (sf72-nalati5 handoff)`); };
+
+/** The host's own grass (SF72): the page's field over the same baked grid and terrain field (game/systems/looks/grassField.ts
+ *  GrassField) and a trample map of its own (game/systems/looks/trample.ts TrampleField); runtime/headless.ts builds them. */
+export interface NalatiGrassView {
+  readonly field: { baseHeightAt: (x: number, z: number) => number };
+  readonly trample: { amountAt: (x: number, z: number) => number; push: (x: number, z: number, radius: number, strength?: number, vx?: number, vz?: number) => void };
+}
+
 /**
  * The wild view a renderer-free host's groups read: the page's defaults for the data fields (the boot's wind and full day
- * light, no storm, the player standing, unhurt, on foot), and refusals for every seam the page binds from a renderer-owned
- * system (the grass field and its trample map, the trample pushes, the event and knock-down routes): the groups are built
- * and seeded here, and nothing decides until those are modelled, so nothing reads a refusal.
+ * light, no storm, the player standing, unhurt, on foot), the host's own grass (`grassStandingAt` = the field before
+ * trampling, `grassHeightAt` = it × (1 − 0.85 × trample), as the page's GrassTrample `grassHeightAt`; pushes stamp the host's
+ * map), and refusals for the event and knock-down routes: nothing decides until the groups tick, so nothing reads a refusal.
  */
-export function nalatiHeadlessEnv(): WildEnv {
+export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
+  const { field, trample } = grass;
   return { ...wildEnv, wind: { ...wildEnv.wind }, light: 1, storm: false, playerFwdX: 0, playerFwdZ: -1, playerCrouched: false, playerMounted: false, playerHealth01: 1, lastShotT: -1e9,
-    grassHeightAt: unbound('grass'), grassStandingAt: unbound('grass'), trample: unbound('grass trample'), onEvent: unbound('creature signal'), onKnockdown: unbound('knock-down') };
+    grassHeightAt: (x, z) => field.baseHeightAt(x, z) * (1 - 0.85 * trample.amountAt(x, z)), grassStandingAt: (x, z) => field.baseHeightAt(x, z),
+    trample: (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); }, onEvent: unbound('creature signal'), onKnockdown: unbound('knock-down') };
 }
 
 /**
@@ -45,13 +57,13 @@ export function nalatiHeadlessEnv(): WildEnv {
  * flock's sheep are not modelled. Checked against the bake's tick-0 continuations
  * (test/shards/nalati-grasslands/headless-runtime.test.ts). Not yet: their decisions (the groups never tick here).
  */
-export function installNalatiGroups(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly { readonly kind: string; readonly members: readonly string[] }[]; normalY: (x: number, z: number) => number }): NalatiGroups {
+export function installNalatiGroups(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly { readonly kind: string; readonly members: readonly string[] }[]; normalY: (x: number, z: number) => number; grass: NalatiGrassView }): NalatiGroups {
   const byId = new Map(ports.bodies.map(b => [b.boot.id, b.actor] as const));
   const actor = (id: string): AnimalSim => { const a = byId.get(id); if (a === undefined) throw new Error(`Nalati group member ${id} has no body`); return a; };
   const policies = new WeakMap<AnimalSim, Parameters<PackPorts<AnimalSim>['register']>[1]>();
   const group: NativeGroupHost<AnimalSim> = { sharedRng: () => host.rng.stream('ai'), register: (a, director) => { policies.set(a, director); } };
   const packOf = new WeakMap<AnimalSim, PackBrain<AnimalSim>>();
-  const world: NativeGroupWorld<AnimalSim> = { env: nalatiHeadlessEnv(), normalY: ports.normalY, passThrough: unbound('stampede pass-through'), packOf: a => packOf.get(a) ?? null };
+  const world: NativeGroupWorld<AnimalSim> = { env: nalatiHeadlessEnv(ports.grass), normalY: ports.normalY, passThrough: unbound('stampede pass-through'), packOf: a => packOf.get(a) ?? null };
   const identity = {
     preyIdentity: (prey: unknown): string => {
       const found = ports.bodies.find(b => b.actor === prey);
@@ -108,7 +120,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ARGYMAQ);
   if (argymaq === undefined || lair[lair.length - 1] !== argymaq) throw new Error('Argymaq\'s herd has no Argymaq');
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
-  const groups: NalatiGroups = { packs, herds, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
+  const groups: NalatiGroups = { packs, herds, env: world.env, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
   installed.set(host, groups);
   return groups;
 }

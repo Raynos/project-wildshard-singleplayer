@@ -114,7 +114,12 @@ try {
     });
     const spawns = actors.map(a => { const row = window.__nalatiSpawns.get(a.id); if (row === undefined) throw new Error(`No tick-0 spawn for ${a.id}`); return row; });
     const groups = [...window.__nalatiGroups.values()];
-    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids, spawns, groups };
+    // the grass the senses read before trampling (grassBaseHeightAt), at every body's tick-0 spot and on a 48² grid at an
+    // off-lattice pitch (the 4 m lattice's interpolation, the trail beds, the yurt floors, the water): the renderer-free field's check
+    const grassBase = g.app.debug.snapshot()['harness.shard.nalati-grasslands'].grassBase;
+    const points = [...spawns.map(row => [row.at[0], row.at[2]]), ...Array.from({ length: 48 * 48 }, (_v, i) => [-247.3 + (i % 48) * 10.37, -246.1 + Math.floor(i / 48) * 10.41])];
+    const grass = points.map(([x, z]) => [x, z, grassBase(x, z)]);
+    if (!wantCensus) return { actors, herds, trees, pieces, grounds, solids, spawns, groups, grass };
     const nalati = g.app.debug.snapshot().nalati;
     return { kinds, actors: actors.map(a => `${a.id} ${a.kind}.${a.variant} herd ${a.herd}${a.scripted ? ' scripted' : ''}`), herds, trees: trees.length, pieces: pieces.length, solids: solids.length,
       solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ rows: gr.rows, cols: gr.cols, scale: gr.scale, at: gr.at, friction: gr.friction, groups: gr.groups, heights: gr.heights.length })),
@@ -130,7 +135,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Nalati bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces, spawns: first.spawns, groups: first.groups };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: nalatiPhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces, spawns: first.spawns, groups: first.groups, grass: first.grass };
     writeFileSync(resolve(root, 'src/shards/nalati-grasslands/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-nalati-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }
