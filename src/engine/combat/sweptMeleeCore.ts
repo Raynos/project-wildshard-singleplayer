@@ -65,6 +65,24 @@ export function sweptMoveDamage(base: number, move: SwingTiming, heavy: boolean,
   return base * move.damage * (heavy ? heavyMult : 1);
 }
 
+/** The profile's lunge numbers (meleeProfile.ts `lunge`) the dash reads. */
+export interface SweptLungeTiming {
+  readonly range: number; readonly heavyRange: number; readonly stop: number;
+  readonly speed: number; readonly minTime: number; readonly maxTime: number;
+}
+/**
+ * A swing's lunge onto a target `radius` m round, (dx, dz) from the feet (SF72): null past the move's range (the heavy
+ * reaches `heavyRange`, feet → body edge), else the dash onto it — stop `stopAt` m from its centre (its body + `stop`)
+ * after `time` s (the gap at `speed`, clamped to minTime…maxTime). The browser's SweptMelee hands it to Player.dashTo, a
+ * headless runtime to SimHost.dashTo: one law.
+ */
+export function sweptLunge(lunge: SweptLungeTiming, heavy: boolean, dx: number, dz: number, radius: number): { stopAt: number; time: number } | null {
+  const d = Math.hypot(dx, dz);
+  if (d - radius > (heavy ? lunge.heavyRange : lunge.range)) return null;
+  const go = d - radius - lunge.stop;
+  return { stopAt: radius + lunge.stop, time: Math.max(lunge.minTime, Math.min(lunge.maxTime, go / lunge.speed)) };
+}
+
 /** The swept melee family's swing / combo / heavy clock; see the module comment. */
 export class SweptMeleeCore<M extends SwingTiming> {
   private readonly moves: SweptMoves<M>;

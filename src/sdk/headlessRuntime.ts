@@ -63,7 +63,7 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeP
     step: input => {
       commands = input; effects = [];
       let player: Parameters<SimHost['step']>[0];
-      for (const command of input) if (command.kind === 'player') player = { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw, ...(command.attack === undefined ? {} : { attack: command.attack }), ...(command.hover === undefined ? {} : { hover: command.hover }) };
+      for (const command of input) if (command.kind === 'player') player = { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw, ...(command.attack === undefined ? {} : { attack: command.attack }), ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }), ...(command.dodge === undefined ? {} : { dodge: command.dodge }) };
       host.step(player);
       if (![host.player.position, ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
     },

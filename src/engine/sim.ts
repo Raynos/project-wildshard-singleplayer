@@ -19,6 +19,8 @@ import { fallStep, groundedVelocity, hardFallHit, hardLanding } from './player/f
 import { hitShoveSpeed, shoveHop, startShove, stepShove, type ShoveState } from './player/shove';
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardPorts, type BoardState, type BoardStepOut } from './player/board';
 import { hoverSpeed } from './player/hoverSpeed';
+import { COYOTE_MS, JUMP_SPEED, jump as jumpLaw, jumpClock, type JumpState } from './player/jump';
+import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from './player/dash';
 import { floorBelow } from './physics/query';
 import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
@@ -61,6 +63,12 @@ export interface SimCommand {
   /** The HOVER press this tick (SF72): steps on or off the hoverboard, as the client's `hover` action toggles
    * `Player.setHover(!hover)`. A press, not a held state: `advance`, which repeats its command, refuses it. */
   hover?: true;
+  /** The JUMP press this tick (SF72): on foot the client Player's jump (player/jump.ts: on the ground or within its
+   * 100 ms coyote window, else the double jump), on the board the board jump. A press: `advance` refuses it. */
+  jump?: true;
+  /** The DODGE press this tick (SF72): the client Player's dodge (player/dash.ts) toward this command's move, a backstep
+   * with none; refused on its 0.8 s cooldown and on the board. A press: `advance` refuses it. */
+  dodge?: true;
 }
 /** Each future brain/script instance registers its own continuation state, never a process singleton. */
 export interface SimStateAdapter {
@@ -139,6 +147,16 @@ export class SimHost {
   readonly playerBoard: BoardState & { on: boolean } = { on: false, hoverAir: false, hoverBob: 0, onGround: false };
   /** The riding board's world velocity (m/s), the client Player's `velocity` while it hovers; zero on foot. */
   readonly boardVelocity = new Vector3();
+  /** The owned player's on-foot jump clocks (player/jump.ts), or null until the first JUMP press (SF72): tracking starts
+   * there (grounded: the client's own state; in the air: no coyote window left), so a host that never jumps keeps its
+   * exact snapshot bytes. */
+  playerJump: JumpState | null = null;
+  /** The owned player's running dash: a dodge's burst or a lunge (dashTo), the client Player's dash law (player/dash.ts). */
+  readonly playerDash: DashState = { t: 0, vx: 0, vz: 0 };
+  /** The owned player's dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
+  readonly playerDodge: DodgeState = { cd: 0, t: 0 };
+  private readonly dashVelocity = { x: 0, z: 0 };
+  private readonly dodgeDir = { x: 0, z: 0 };
   private boardHandles: number[] = [];
   private readonly boardOut: BoardStepOut = { lat: 0, fwd: 0, accel: 0, water: null };
   private readonly boardPorts: BoardPorts = {
@@ -151,7 +169,7 @@ export class SimHost {
       return c !== undefined && c > g ? c : g;
     },
     water: () => null,
-    jumped: () => { /* SimCommand carries no jump: the headless board never jumps */ },
+    jumped: () => { this.events.emit('player.jump', true); },
     // a hard board touchdown files the client's fall hit (Player.onLand(hard) → PlayerHurt.fall)
     landed: (speed) => { if (speed > HOVER_HARD_LANDING) this.combat.hit(hardFallHit(this.player.health, this.player.position)); },
   };
@@ -190,7 +208,7 @@ export class SimHost {
     }
     this.combat = ports.combat ?? new CombatPipeline(this.events, this.scope, () => this.physics);
     const position = new Vector3(level.player.at.x, level.player.at.y, level.player.at.z);
-    const health = new PlayerHealth(this.events, { now: () => this.clock.now * 1000, position: () => position, dodging: () => false, dodgeGuard: () => false });
+    const health = new PlayerHealth(this.events, { now: () => this.clock.now * 1000, position: () => position, dodging: () => this.playerDodge.t > 0, dodgeGuard: () => false });
     if (ports.player !== undefined && ports.playerBody === false) throw new Error('A borrowed player owns its motor');
     this.playerMotor = ports.player === undefined && ports.playerBody !== false ? this.motor('PLAYER', 0.35, 1.8, health.id) : undefined;
     this.playerMotor?.resetAt(position);
@@ -438,8 +456,28 @@ export class SimHost {
     if (![fromX, fromZ, speed].every(Number.isFinite)) throw new RangeError('Invalid player knockback');
     if (this.playerBoard.on) return; // the client Player ignores a creature's knockback on the board
     startShove(this.playerShove, this.player.position.x, this.player.position.z, fromX, fromZ, this.player.yaw, speed);
+    this.playerDash.t = 0; // a knockback ends a dash
     const fall = this.playerFall;
     if (fall.grounded) { fall.vy = shoveHop(fall.vy); fall.grounded = false; }
+  }
+  /** Dash the owned player toward (x, z), stopping `stopAt` m short, over `time` s: the client Player's `dashTo`, a sword's
+   * lunge (combat/sweptMeleeCore `sweptLunge` gives the numbers). The dash overrides the walk, a wall ends it, a knockback
+   * cancels it. False (nothing happens) when already that close, or on the board. */
+  dashTo(x: number, z: number, stopAt: number, time: number): boolean {
+    if (this.disposed || this.embedded) throw new Error('Borrowed simulation player owns its dash');
+    if (![x, z, stopAt, time].every(Number.isFinite)) throw new RangeError('Invalid player dash');
+    if (this.playerBoard.on) return false;
+    return dashToward(this.playerDash, this.player.position.x, this.player.position.z, x, z, stopAt, time);
+  }
+  /** The DODGE press: the client Player's dodge (no lock-on headless) toward the command's world move, a backstep with
+   * none (yaw = the command's), at DODGE_DIST / DODGE_TIME; the cooldown and the burst start, and 'player.dodge' fires. */
+  private dodgePlayer(command: SimCommand): void {
+    if (this.playerDodge.cd > 0 || this.playerBoard.on) return;
+    const heading = this.dodgeDir, v = DODGE_DIST / DODGE_TIME;
+    dodgeHeading(command.moveX, command.moveZ, command.yaw, heading);
+    if (!startDash(this.playerDash, heading.x * v, heading.z * v, DODGE_TIME)) return;
+    startDodge(this.playerDodge, 1);
+    this.events.emit('player.dodge', true);
   }
   /** Step the owned player on or off the hoverboard, as the client Player's `setHover`: on, the board starts from the
    * feet's vertical speed with no horizontal speed (the host's walk keeps none) and is not yet riding; off, the board's
@@ -481,7 +519,7 @@ export class SimHost {
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
     stepBoard(this.player.position, this.boardVelocity, this.playerImpulse, this.wanted, this.playerBoard,
-      { mx, mz, len, yaw: this.player.yaw, top: hoverSpeed(), capped: false, jump: false }, this.boardPorts, FIXED_STEP, this.boardOut);
+      { mx, mz, len, yaw: this.player.yaw, top: hoverSpeed(), capped: false, jump: command?.jump === true }, this.boardPorts, FIXED_STEP, this.boardOut);
     decayImpulse(this.playerImpulse, FIXED_STEP);
     if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
   }
@@ -496,9 +534,12 @@ export class SimHost {
     if (command?.hover === true) this.setBoard(!this.playerBoard.on);
     if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
-    const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall, knocked = this.playerShove;
-    if (this.playerBoard.on) this.stepBoardPlayer(command);
-    else if (command !== undefined || shoved || knocked.t > 0 || !fall.grounded || fall.vy !== 0) {
+    const shoved = this.playerImpulse.lengthSq() > 0, fall = this.playerFall, knocked = this.playerShove, dash = this.playerDash, dodge = this.playerDodge;
+    // the DODGE press, then the dodge clocks, as the client Player's step; the board ends a dash
+    if (command?.dodge === true) this.dodgePlayer(command);
+    if (dodge.cd > 0 || dodge.t > 0) stepDodge(dodge, dash.t > 0, FIXED_STEP);
+    if (this.playerBoard.on) { dash.t = 0; this.stepBoardPlayer(command); }
+    else if (command !== undefined || shoved || knocked.t > 0 || dash.t > 0 || !fall.grounded || fall.vy !== 0) {
       if (command === undefined) this.wanted.set(0, 0, 0);
       else {
         this.player.yaw = command.yaw;
@@ -508,16 +549,28 @@ export class SimHost {
         // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
         const k = stepShove(knocked, FIXED_STEP);
         this.wanted.x = knocked.vx * k * FIXED_STEP; this.wanted.z = knocked.vz * k * FIXED_STEP;
+      } else if (dash.t > 0) {
+        // a dash (dodge / lunge) overrides the walk; its last step brakes; the headless world has no deep water to stop it
+        stepDash(dash, FIXED_STEP, this.player.position.x, this.player.position.z, () => false, this.dashVelocity);
+        this.wanted.x = this.dashVelocity.x * FIXED_STEP; this.wanted.z = this.dashVelocity.z * FIXED_STEP;
       }
       if (shoved) { this.wanted.addScaledVector(this.playerImpulse, FIXED_STEP); decayImpulse(this.playerImpulse, FIXED_STEP); }
       // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
       // Walking on the ground (grounded, no vertical speed, a sideways move) the step adds no downward push: the motor's
       // snap-to-ground holds the feet as the client's one-tick push does, without snagging on a collider seam; the tick
       // the motor loses the ground takes that tick's gravity, so the fall speed runs exactly the client's from there.
+      // the jump (player/jump.ts) on last step's ground, before the step's gravity, as the client Player's walk
+      if (this.playerJump !== null) jumpClock(this.playerJump, fall.grounded, FIXED_STEP);
+      if (command?.jump === true) {
+        this.playerJump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
+        const vy = jumpLaw(this.playerJump, fall.grounded, fall.vy, COYOTE_MS, false, JUMP_SPEED);
+        if (vy !== null) { fall.vy = vy; fall.grounded = false; this.events.emit('player.jump', true); }
+      }
       const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
       if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
       this.wanted.y += fall.vy * FIXED_STEP;
       const moved = this.player.motor.move(this.player.position, this.wanted);
+      dashBlocked(dash, moved.horizontalFreedom, this.dashVelocity); // a dash that runs into a wall ends there
       if (moved.grounded) {
         // touching down from the air: a hard landing files the client's fall hit (PlayerHurt.fall); the headless ground is dry
         if (!fall.grounded && hardLanding(fall.vy, 0)) this.combat.hit(hardFallHit(this.player.health, this.player.position));
@@ -551,7 +604,7 @@ export class SimHost {
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Invalid simulation delta');
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
-    if (command?.hover !== undefined) throw new RangeError('A HOVER press is one tick\'s input; advance repeats its command');
+    if (command?.hover !== undefined || command?.jump !== undefined || command?.dodge !== undefined) throw new RangeError('A HOVER, JUMP or DODGE press is one tick\'s input; advance repeats its command');
     this.state.accumulator += seconds; let ticks = 0;
     while (this.state.accumulator + Number.EPSILON >= FIXED_STEP) { this.state.accumulator -= FIXED_STEP; this.step(command); ticks++; }
     return ticks;

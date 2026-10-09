@@ -19,7 +19,7 @@ import type { Player } from '../../player/Player';
 import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import { Melee } from '../Melee';
-import { SweptMeleeCore, sweptMoveDamage } from '../sweptMeleeCore';
+import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '../sweptMeleeCore';
 import type { MeleeProfile } from '../meleeProfile';
 
 import * as THREE from 'three';
@@ -316,16 +316,17 @@ export class SweptMelee extends Melee {
     this.ribbon.reset(); this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
     // lunge onto the locked animal (a chained combo swing re-locks, so a fleeing target is chased swing by swing)
-    const lock = lunge ? this.findLunge(move === this.mv.heavy ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null;
+    const heavy = move === this.mv.heavy;
+    const lock = lunge ? this.findLunge(heavy ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null;
     this.lungeTarget = lock;
     if (lock) {
-      const p = this.player.position, go = Math.hypot(lock.position.x - p.x, lock.position.z - p.z) - targetRadius(lock) - this.profile.lunge.stop;
-      this.player.dashTo(lock.position.x, lock.position.z, targetRadius(lock) + this.profile.lunge.stop, THREE.MathUtils.clamp(go / this.profile.lunge.speed, this.profile.lunge.minTime, this.profile.lunge.maxTime));
+      // the dash onto it (sweptLunge, the law the headless runtimes hand to SimHost.dashTo)
+      const p = this.player.position, dash = sweptLunge(this.profile.lunge, heavy, lock.position.x - p.x, lock.position.z - p.z, targetRadius(lock));
+      if (dash !== null) this.player.dashTo(lock.position.x, lock.position.z, dash.stopAt, dash.time);
     }
     this.arms?.play(move.name);
     this.onSwingStart(move);
     this.onFire?.();
-    const heavy = move === this.mv.heavy;
     if (heavy) this.onHeavy?.();
     this.defaults.events.onSwing?.(heavy ? 1 : move === this.defaults.finisher ? 0.85 : 0.7, heavy, move.sweep > 0 ? -1 : 1);
   }

@@ -72,7 +72,9 @@ const entries = {
   entities: v.array(v.strictObject({ id, state: animal, motor: v.nullable(motor) })),
   player: v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
     fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
-    board: v.optional(v.strictObject({ velocity: vector, air: v.boolean(), bob: finite, ground: v.boolean() })) }),
+    board: v.optional(v.strictObject({ velocity: vector, air: v.boolean(), bob: finite, ground: v.boolean() })),
+    jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
+    dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) }),
   strikes: v.array(v.strictObject({ id, state: strike })), targets: v.array(v.tuple([id, id])),
   events: v.strictObject({ version, queue: v.array(v.strictObject({
     name: v.custom<SimSnapshot['events']['queue'][number]['name']>((input) => typeof input === 'string' && input.length > 0), payload: eventValue })),

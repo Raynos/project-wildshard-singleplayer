@@ -52,7 +52,11 @@ export interface SimSnapshot {
   player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
     fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined;
     /** SF72: the riding hoverboard (SimHost.playerBoard + boardVelocity); absent on foot, so a host that never boards keeps its bytes. */
-    board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined };
+    board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined;
+    /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), present once the
+     *  host has had a JUMP press; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
+    jump?: { ago: number | null; left: 0 | 1 } | undefined; dash?: { t: number; vx: number; vz: number } | undefined;
+    dodge?: { cd: number; t: number } | undefined };
   strikes: { id: string; state: ReturnType<StrikeRunner['snapshot']> }[];
   targets: readonly (readonly [string, string])[];
   events: { version: number; queue: { name: keyof EventMap; payload: EventValue }[]; frameCount: number; frameBound: boolean };
@@ -193,12 +197,21 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
       // likewise a player at rest on the ground (the fall law's canonical state) is omitted
       ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }),
       ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}),
-      ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}) },
+      ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}),
+      ...jumpFields(host) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
     ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host) };
+}
+
+/** The jump, dash and dodge state (SF72), each omitted while unused or at rest, so a host that never jumps or dodges keeps its bytes. */
+function jumpFields(host: SimHost): Pick<SimSnapshot['player'], 'jump' | 'dash' | 'dodge'> {
+  const jump = host.playerJump, dash = host.playerDash, dodge = host.playerDodge;
+  if (jump !== null && jump.left !== 0 && jump.left !== 1) throw new Error('Invalid player jump state');
+  return { ...(jump === null ? {} : { jump: { ago: Number.isFinite(jump.ago) ? jump.ago : null, left: jump.left === 0 ? 0 : 1 } }),
+    ...(dash.t > 0 ? { dash: { ...dash } } : {}), ...(dodge.cd > 0 || dodge.t > 0 ? { dodge: { ...dodge } } : {}) };
 }
 
 function sameIds(actual: readonly string[], expected: Iterable<string>): boolean {
@@ -225,6 +238,9 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       || (saved.player.fall !== undefined && (!Number.isFinite(saved.player.fall.vy) || (saved.player.fall.grounded && saved.player.fall.vy === 0)))
       || (saved.player.shove !== undefined && (![saved.player.shove.t, saved.player.shove.vx, saved.player.shove.vz].every(Number.isFinite) || saved.player.shove.t <= 0 || saved.player.shove.t > SHOVE_TIME))
       || (saved.player.board !== undefined && (saved.player.board.velocity.length !== 3 || ![...saved.player.board.velocity, saved.player.board.bob].every(Number.isFinite) || saved.player.fall !== undefined))
+      || (saved.player.dash !== undefined && (![saved.player.dash.t, saved.player.dash.vx, saved.player.dash.vz].every(Number.isFinite) || saved.player.dash.t <= 0))
+      || (saved.player.dodge !== undefined && (!(saved.player.dodge.cd >= 0 && saved.player.dodge.t >= 0) || saved.player.dodge.cd + saved.player.dodge.t === 0))
+      || (saved.player.jump !== undefined && ((saved.player.jump.ago !== null && !(saved.player.jump.ago >= 0)) || ![0, 1].includes(saved.player.jump.left)))
       || saved.boardColliders?.length === 0) throw new RangeError('Snapshot instance registrations do not match');
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
     host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
@@ -234,6 +250,10 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     const board = saved.player.board;
     Object.assign(host.playerBoard, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
     if (board === undefined) host.boardVelocity.set(0, 0, 0); else host.boardVelocity.fromArray(board.velocity);
+    const jump = saved.player.jump;
+    host.playerJump = jump === undefined ? null : { ago: jump.ago ?? Infinity, left: jump.left };
+    Object.assign(host.playerDash, saved.player.dash ?? { t: 0, vx: 0, vz: 0 });
+    Object.assign(host.playerDodge, saved.player.dodge ?? { cd: 0, t: 0 });
     host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);

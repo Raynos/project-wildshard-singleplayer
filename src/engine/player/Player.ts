@@ -17,6 +17,8 @@ import { floorBelow } from '../physics/query';
 import { addImpulse, decayImpulse } from './impulse';
 import { fallStep, groundedVelocity, hardLanding, landingCushion } from './fall';
 import { shoveHop, startShove, stepShove, type ShoveState } from './shove';
+import { COYOTE_MS, jump as jumpLaw, jumpClock, jumpSpeed, type JumpState } from './jump';
+import { DODGE_COOLDOWN, DODGE_TIME, DODGE_DIST, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from './dash';
 import type { Physics } from '../physics/Physics';
 
 /** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
@@ -35,7 +37,6 @@ const MAX_CLIMB_DEG = 40;              // steeper ground is a wall to walk into 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
 export const HOVER_TOP = 14;          // m/s cruise
 // the board's motion law and its tuning (accel, carve, ride height, spring, jump) are player/board.ts, shared with SimHost
-const DOUBLE_JUMP = 8.6;              // m/s second jump on foot (E120: 6.8 → 8.6, ~1.7 m on top of the first: wading beside the pier you clear its deck by ~0.2 m)
 const HOVER_ROLL = 6 * Math.PI / 180; // camera roll cap, reached at HOVER_ROLL_AT m/s sideways
 const HOVER_ROLL_AT = 7;
 const HOVER_PITCH = 0.03;             // rad nose-down at top speed
@@ -65,11 +66,8 @@ const SLOPE_SLIDE = 0.6;              // ground normal y below this (≈ 53°) u
 const SLIDE_SPEED = 3.2;              // m/s down the fall line while sliding …
 const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 // ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
-const DODGE_DIST = 3;                 // m …
-const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
+// the dash and dodge law (distance, time, cooldown, the pier-edge probe) is player/dash.ts, shared with SimHost
 const DODGE_FX_END = 700;              // ms: every dodge curve has settled
-const DODGE_COOLDOWN = 0.8;           // s from one dodge's start to the next (E59: 0.6 → 0.8, shown as a sweep on the DODGE disc)
-const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier
 const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the land-impulse spring brings it back)
 const DODGE_ROLL = 0.122;             // rad of camera lean into a fully sideways T dodge at its peak (7°, E63; 0.06 before)
 const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
@@ -105,7 +103,9 @@ export class Player {
   hoverLat = 0; hoverFwd = 0; hoverAccel = 0; hoverBob = 0;
   /** airborne after a board jump (spring disengaged); `hoverLanded` is a one-frame impulse (m/s) for the viewmodel */
   hoverAir = false; hoverLanded = 0; hoverJumpKick = 0;
-  private jumpWasDown = false; private jumpsLeft = 0;
+  private jumpWasDown = false;
+  /** the on-foot jump's clocks (player/jump.ts, the law SimHost shares): ms since grounded, air jumps left */
+  private readonly jumpState: JumpState = { ago: Infinity, left: 0 };
   onHoverChange?: (on: boolean) => void;
   // ── water ──
   /** height of the water surface under the player (app.world.water: the sea, a pond / river, a creek); null on dry land */
@@ -147,8 +147,7 @@ export class Player {
   private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private climbCooldown = 0; private entryKeep = 0.3;
   private readonly waterLine: WaterLineView;
   /** Ground grace window, authored by the active level. */
-  coyoteMs = 100;
-  private groundedAgo = Infinity;
+  coyoteMs = COYOTE_MS;
   private eyeOffset = EYE;
   private landImpulse = 0;
   private roll = 0; private pitchLean = 0;
@@ -190,8 +189,11 @@ export class Player {
   onLunge?: () => void;
   /** degrees to widen the view by: kicked by a dodge / lunge, held while the dash runs, eased out after — Sword.ts adds it to its FOV */
   fovKick = 0;
-  private dashT = 0; private dashVx = 0; private dashVz = 0; private dodgeCd = 0;
+  /** the running dodge / lunge burst and the dodge's clocks (player/dash.ts, the law SimHost shares) */
+  private readonly dashState: DashState = { t: 0, vx: 0, vz: 0 };
+  private readonly dodgeState: DodgeState = { cd: 0, t: 0 };
   private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
+  private readonly dodgeDir = { x: 0, z: 0 };
   private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
   /** a creature hit's knockback (player/shove.ts): it overrides the walk input and fades, through the controller */
   private readonly shoveState: ShoveState = { t: 0, vx: 0, vz: 0 };
@@ -214,14 +216,13 @@ export class Player {
   /** The current frame's one capsule/controller; replacement is committed by bindFrame. */
   get motor(): CharacterMotor { return this.currentMotor; }
   /** true while a dodge / lunge burst is carrying the player */
-  get dashing(): boolean { return this.dashT > 0; }
+  get dashing(): boolean { return this.dashState.t > 0; }
   /** the dodge cooldown still to run, 1 → 0 (0 = ready) — the touch DODGE disc's clock sweep (E59) */
-  get dodgeCooldown(): number { return this.dodgeCd / (DODGE_COOLDOWN * this.dodgeCooldownScale); }
+  get dodgeCooldown(): number { return this.dodgeState.cd / (DODGE_COOLDOWN * this.dodgeCooldownScale); }
   /** E314 sea glass charm II: the dodge's cooldown × this (1 = DODGE_COOLDOWN; src/shards/driftwood-isle/loot/perks.ts) */
   dodgeCooldownScale = 1;
   /** true while a DODGE's burst carries you (not a lunge) — the boar tusk's i-frames (src/shards/driftwood-isle/loot/perks.ts) */
-  get dodging(): boolean { return this.dodgeT > 0; }
-  private dodgeT = 0;
+  get dodging(): boolean { return this.dodgeState.t > 0; }
 
   public camera: THREE.PerspectiveCamera;
   private physics: Physics;
@@ -292,7 +293,7 @@ export class Player {
     this.yaw = yaw; this.pitch = 0;
     this.velocity.set(0, 0, 0);
     this.impulseVelocity.set(0, 0, 0);
-    this.dashT = 0;
+    this.dashState.t = 0;
     this.setSwimming(false); this.inWater = false; this.depth = 0; this.wading = false;
   }
 
@@ -302,15 +303,12 @@ export class Player {
   private get canDash(): boolean { return !this.hover && !this.swimming && !this.sliding; }
   /** a dash: move at (vx, vz) m/s for `time` s, whatever the input says (gravity, collisions and the pier-edge probe still apply) */
   dash(vx: number, vz: number, time: number): boolean {
-    if (!this.canDash || time <= 0) return false;
-    this.dashVx = vx; this.dashVz = vz; this.dashT = time;
-    return true;
+    if (!this.canDash) return false;
+    return startDash(this.dashState, vx, vz, time);
   }
   /** the sword's lunge: dash toward (x, z) and stop `stopAt` m short of it, over `time` s. False (nothing happens) when already that close. */
   dashTo(x: number, z: number, stopAt: number, time: number): boolean {
-    const dx = x - this.position.x, dz = z - this.position.z, d = Math.hypot(dx, dz), go = d - stopAt;
-    if (go < 0.15) return false;
-    if (!this.dash(dx / d * go / time, dz / d * go / time, time)) return false;
+    if (!this.canDash || !dashToward(this.dashState, this.position.x, this.position.z, x, z, stopAt, time)) return false;
     this.fovKick = Math.max(this.fovKick, LUNGE_FOV_KICK);
     this.onLunge?.();
     return true;
@@ -318,12 +316,12 @@ export class Player {
   /** DODGE (Left Alt / the DODGE disc): DODGE_DIST m in DODGE_TIME s toward the move input, a backstep with none;
    *  DODGE_COOLDOWN s between. The feel is E63's T "lean + smear" — the user locked it in and V was deleted (E82) */
   dodge(): boolean {
-    if (this.dodgeCd > 0 || !this.canDash) return false;
+    if (this.dodgeState.cd > 0 || !this.canDash) return false;
     const move = this.moveInput(), fwd = move.y, str = move.x;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
-    let mx = -sin * fwd + cos * str, mz = -cos * fwd - sin * str;
-    const len = Math.hypot(mx, mz);
-    if (len < 0.2) { mx = sin; mz = cos; } else { mx /= len; mz /= len; } // no input: straight back
+    const heading = this.dodgeDir;
+    const len = dodgeHeading(-sin * fwd + cos * str, -cos * fwd - sin * str, this.yaw, heading); // no input: straight back
+    let mx = heading.x, mz = heading.z;
     const v = DODGE_DIST / DODGE_TIME;
     // locked on (E50 §2.4): the dodge is relative to the target — sideways = a side-hop of DODGE_DIST m of ARC round it (the
     // radius kept), forward = a short close-in dash that stops at lunge distance, back / none = the backstep, straight away
@@ -347,8 +345,7 @@ export class Player {
     }
     ok ??= this.dash(mx * v, mz * v, DODGE_TIME);
     if (!ok) return false;
-    this.dodgeCd = DODGE_COOLDOWN * this.dodgeCooldownScale;
-    this.dodgeT = DODGE_TIME;
+    startDodge(this.dodgeState, this.dodgeCooldownScale);
     // feel (E63): the camera / viewmodel / screen curves run off one clock — see the camera block in update()
     const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, mx * cos - mz * sin)); // + = the dodge goes right (view space)
     this.dodgeClock = 0;
@@ -368,7 +365,7 @@ export class Player {
   shove(fromX: number, fromZ: number, speed: number): void {
     if (this.hover || this.swimming) return;
     startShove(this.shoveState, this.position.x, this.position.z, fromX, fromZ, this.yaw, speed);
-    this.dashT = 0;
+    this.dashState.t = 0;
     if (this.onGround) { this.velocity.y = shoveHop(this.velocity.y); this.onGround = false; }
   }
   /** deep water at (x, z) with no deck over it — where a dash must not carry you */
@@ -499,9 +496,8 @@ export class Player {
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
     this.diveHeld = swim && command.dive;
     this.surfaceHeld = swim && command.surface;
-    this.dodgeCd = Math.max(0, this.dodgeCd - dt);
-    this.dodgeT = this.dashT > 0 ? Math.max(0, this.dodgeT - dt) : 0; // a shove / the water ends the burst: the guard with it
-    if (hover || swim) this.dashT = 0;
+    stepDodge(this.dodgeState, this.dashState.t > 0, dt); // a shove / the water ends the burst: the guard with it
+    if (hover || swim) this.dashState.t = 0;
 
     // ground for the hover spring, the swim float and the water depth: terrain, or a deck / floor / stair platform we
     // are at or above (step up ≤ 0.5 m). Walking collides through the motor; this is the P2 bridge for the platforms
@@ -644,23 +640,19 @@ export class Player {
         // knocked back: the shove overrides the input and fades out; the motor below stops it at a wall
         const k2 = stepShove(shove, dt);
         this.velocity.x = shove.vx * k2; this.velocity.z = shove.vz * k2;
-      } else if (this.dashT > 0) {
-        // dash (dodge / lunge): the burst overrides the input; deep water just ahead (off a pier edge, no deck) ends it on the spot
-        this.dashT -= dt;
-        const dl = Math.hypot(this.dashVx, this.dashVz) || 1;
-        if (this.deepAt(this.position.x + this.dashVx / dl * DASH_PROBE, this.position.z + this.dashVz / dl * DASH_PROBE)) { this.dashT = 0; this.velocity.x = this.velocity.z = 0; }
-        else if (this.dashT > 0) { this.velocity.x = this.dashVx; this.velocity.z = this.dashVz; }
-        else { this.velocity.x = this.dashVx * 0.25; this.velocity.z = this.dashVz * 0.25; } // the last step: brake, so a lunge stops where it aimed
+      } else if (this.dashState.t > 0) {
+        // dash (dodge / lunge): the burst overrides the input; deep water just ahead (off a pier edge, no deck) ends it on
+        // the spot; the last step brakes, so a lunge stops where it aimed
+        stepDash(this.dashState, dt, this.position.x, this.position.z, (x, z) => this.deepAt(x, z), this.velocity);
       } else {
         this.velocity.x += (wx - this.velocity.x) * Math.min(1, accel * dt);
         this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
       }
 
-      this.groundedAgo = this.onGround ? 0 : this.groundedAgo + dt * 1000;
-      if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
-      const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
-      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.commandJumpUsed = true; this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
-      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.commandJumpUsed = true; this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; app.events.emit('player.jump', true); this.onJump?.(); } // double jump
+      // the jump (player/jump.ts): on the ground or in the coyote window, else the double jump; wading saps the push-off
+      jumpClock(this.jumpState, this.onGround, dt);
+      const jumped = jump ? jumpLaw(this.jumpState, this.onGround, this.velocity.y, this.coyoteMs, this.crouching || this.sliding, jumpSpeed(wadeT)) : null;
+      if (jumped !== null) { this.commandJumpUsed = true; this.velocity.y = jumped; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
       this.velocity.y = fallStep(this.velocity.y, dt);
 
       // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes
@@ -671,7 +663,7 @@ export class Player {
       if (riding && this.velocity.y + impulse.y <= 0) want.y = 0;
       const r = this.motor.move(this.position, want, false);
       // a dash that runs into a wall ends there, not grinding along it
-      if (this.dashT > 0 && r.horizontalFreedom < 0.3) { this.dashT = 0; this.velocity.x *= 0.25; this.velocity.z *= 0.25; }
+      dashBlocked(this.dashState, r.horizontalFreedom, this.velocity);
       // the P2 bridge: decks, floors and stairs are still floor functions — stand on one we are on or just under
       let grounded = r.grounded;
       this.onPlatform = false;
@@ -737,7 +729,7 @@ export class Player {
     this.eyeOffset += (targetEye - this.eyeOffset) * Math.min(1, dt * 10);
     this.landImpulse *= Math.exp(-dt * 9);
     // dodge / lunge feel: the lean eases out, the FOV kick holds while the dash runs and eases out after
-    if (this.dashT <= 0) this.fovKick *= Math.exp(-dt * 8);
+    if (this.dashState.t <= 0) this.fovKick *= Math.exp(-dt * 8);
     // the dodge feel (E63 T, project/archive/2026-09-29-dodge-feel.md): leans 7° into the side, leads 4 cm, dips 7 cm, +5° FOV, all on the
     // shared envelope; a backstep pitches up instead of leaning
     let dodgeDip = 0, dodgeLead = 0, dodgePitch = 0; this.dashRoll = 0;
