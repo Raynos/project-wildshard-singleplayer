@@ -4,9 +4,10 @@
  * The Ridge's face was the heightfield with a rock splat: smooth grey slopes. Now a kit of jointed granite built in
  * Blender (scripts/blender/pine-hollow/crags/build_crags.py → public/assets/models/pine-hollow-crags/crags.glb: cliff bands, a
  * buttress, an exfoliation slab, two tors, three boulders, two scree patches, each a LOD0 + LOD1 with Cycles vertex AO)
- * is placed over it by `placeCrags` (pure, seeded — the navmesh bake runs the same code): cliff modules on every steep
- * face of the Ridge, the pass and the Den's walls, fronts turned down the slope and sunk into it; tors along the crest;
- * talus below each cliff where the slope eases — boulders and scree fans. The cave (build_cave.py → cave.glb) is one
+ * is placed over it at build time (G285: ../generators/crags.ts `placeCrags`, baked to ../data/crags.json with the face
+ * skin's tiles, read through ./cragBake.ts): cliff modules on every steep face of the Ridge, the pass and the Den's walls,
+ * fronts turned down the slope and sunk into it; tors along the crest; talus below each cliff where the slope eases —
+ * boulders and scree fans. The cave (build_cave.py → cave.glb) is one
  * merged interior behind the hero arch at the Den's mouth: an antechamber, a squeeze, the bear's room with its bedding
  * and bones, drips, and a crack in the roof whose shaft of light falls on the floor; its hood is the rock over its first
  * metres where the passage runs shallower than the slope.
@@ -24,32 +25,29 @@
  * the lamps stay), wet, rock / tint).
  *
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
- *   await crags.build(placeCrags({ trees }), registry, macrotask);  scene.add(crags.group);  // the modules register themselves
+ *   await crags.prepareSkin(macrotask);                             // the baked face skin's tiles
+ *   await crags.build(CRAG_ROWS.places, registry, macrotask);  scene.add(crags.group);  // the modules register themselves
  *   cutTerrain(physics, crags.terrainCuts()); terrain.punch(crags.holeTest());  game.onUpdate(() => crags.update(t))
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import {
-  BEAR_CAVE, DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ,
-} from '../layout';
 import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
+import { CAVE_FRAME, SKIN_TILE, caveLocal, caveWorld, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
+import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import { PATCH_ORDER, patchShader, setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { normalAt, trailDistance, cabinMask, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -57,331 +55,15 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 
 /*
- * E322 F-L2 (Jake picked B; the old crags and their Debug ▸ Look ▸ Crags row went): the face skin's ledges stepped
- * outward (true risers and treads; the old skin folded back on itself) and textured by their facets, not their smoothed
- * normals (the old projection laid the ledge's top texture on its face: the stretch); the big modules fused and weathered
- * (crags-b.glb over crags.glb), turned, rolled and sunk more freely, boulders in their joints, the lookout's hero crag;
- * paler granite (F-L1).
+ * E322 F-L2 (Jake picked B): the face skin is textured by its facets, not its smoothed normals (the old projection laid
+ * the ledge's top texture on its face: the stretch); paler granite (F-L1). Its shapes: ../generators/crags.ts.
  */
-
-/** the kit's modules (nodes `<id>` and `<id>-lod1`: the cliff bands, buttress and slab in crags-b.glb, the rest in crags.glb) */
-export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
-/** crags-b.glb's own module: the lookout's hero crag */
-export const CRAG_HERO = 'hero';
-export type KitId = (typeof CRAG_IDS)[number];
-export type CragId = KitId | typeof CRAG_HERO;
-/** every module's footprint; the hero's only when crags-b.glb loaded */
-export type CragSizes = Record<KitId, CragSize> & Partial<Record<typeof CRAG_HERO, CragSize>>;
-/**
- * The hero crag: a ~21 m granite tower on the Ridge's crest 80 m east of the fire lookout, the landmark of its east
- * catwalk's view and on the skyline over the face from the Hollow's trails; its front turned toward the tower
- */
-export const CRAG_HERO_SPOT = { x: -42, z: 227, sink: 2.5 };
-const CLIFFS: readonly CragId[] = ['cliff-a', 'cliff-b', 'cliff-c', 'cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab'];
-const TORS: readonly CragId[] = ['tor-a', 'tor-b'];
-const BOULDERS: readonly CragId[] = ['boulder-a', 'boulder-b', 'boulder-c'];
-const SCREES: readonly CragId[] = ['scree-a', 'scree-b'];
-
-/** a module's footprint in its own frame (metres, before the placement's scale): half width (x), half depth (z), height */
-export interface CragSize { hw: number; hd: number; h: number }
-/** one placed module: position (its base centre), a turn about +Y (its front, local +Z, faces (sin yaw, cos yaw)), a tilt */
-export interface CragPlace { id: CragId; x: number; y: number; z: number; yaw: number; scale: number; tiltX: number; tiltZ: number }
-
-// ─────────────────────────────── placement (pure: the game and the navmesh bake run it) ───────────────────────────────
-
-const ss = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
-
-/** the cave's frame: its mouth at BEAR_CAVE, local +Z into the rock (the mouth faces local −Z), y is world height */
-export const CAVE_FRAME = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, yaw: BEAR_CAVE.rot };
-/** world (x, z) → cave-local (lx, lz) */
-export function caveLocal(x: number, z: number): [number, number] {
-  const c = Math.cos(CAVE_FRAME.yaw), s = Math.sin(CAVE_FRAME.yaw), dx = x - CAVE_FRAME.x, dz = z - CAVE_FRAME.z;
-  return [dx * c - dz * s, dx * s + dz * c];
-}
-/** cave-local (lx, lz) → world (x, z) */
-export function caveWorld(lx: number, lz: number): [number, number] {
-  const c = Math.cos(CAVE_FRAME.yaw), s = Math.sin(CAVE_FRAME.yaw);
-  return [CAVE_FRAME.x + lx * c + lz * s, CAVE_FRAME.z - lx * s + lz * c];
-}
-
-/** metres from (x, z) to the segment a–b */
-function segDist(x: number, z: number, a: XZ, b: XZ): number { return nearestOnPolyline([a, b], x, z).d; }
-
-/**
- * Where nothing of the kit may stand (a footprint of radius `r` centred at x, z): the trails, the lookout and the zipline
- * under its cable, the waterfall and the stream that feeds it, the pond, the cabins, the Den's floor, the cave's hood,
- * the slab's edge.
- */
-function blocked(x: number, z: number, r: number, trailPad: number): boolean {
-  if (!inChunk(x, z, 4 + r * 0.5)) return true;
-  if (trailDistance(x, z) < r * 0.75 + trailPad) return true;
-  if (Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z) < LOOKOUT.r + 10 + r * 0.6) return true;
-  if (z > 120 && segDist(x, z, [ZIPLINE.from.x, ZIPLINE.from.z], [ZIPLINE.to.x, ZIPLINE.to.z]) < 7 + r * 0.6) return true;
-  if (segDist(x, z, [WATERFALL.lip.x, WATERFALL.lip.z], [WATERFALL.foot.x, WATERFALL.foot.z]) < 12 + r * 0.6) return true;
-  if (nearestOnPolyline(RIDGE_STREAM, x, z).d < 7 + r * 0.6) return true;
-  if (Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r * 0.5) return true;
-  for (const c of CABIN_SITES) if (Math.hypot(x - c.x, z - c.z) < 16 + r * 0.5) return true;
-  if (cabinMask(x, z) > 0.05) return true;
-  if (Math.hypot(x - DEN.x, z - DEN.z) < DEN.r - 6) return true;
-  const [lx, lz] = caveLocal(x, z);
-  if (lz > -9 - r && lz < 20 + r && Math.abs(lx) < 10 + r) return true;
-  return false;
-}
-
-/** the crag country: the Ridge from a little below its foot, the pass, and the Den's walls */
-function cragCountry(x: number, z: number): boolean {
-  if (z > ridgeFootZ(x) - 12) return true;
-  return Math.hypot(x - DEN.x, z - DEN.z) < DEN.r + 40 && (z > DEN.z + 4 || x > DEN.x + 4);
-}
-
-/** the terrain's slope angle (radians) at (x, z) and its downhill heading (the yaw whose front faces down the slope) */
-function slopeAt(x: number, z: number): { a: number; yaw: number } {
-  const [nx, ny, nz] = normalAt(x, z, 1.5);
-  return { a: Math.acos(Math.min(1, Math.max(-1, ny))), yaw: Math.atan2(nx, nz) };
-}
-
-export interface PlaceOpts {
-  sizes: CragSizes;
-  /** the forest's trunks: nothing is set on one (the kit steps round them) */
-  trees?: readonly { x: number; z: number }[];
-  seed?: number;
-}
-
-/**
- * The kit over the heightfield. Cliffs on every steep face of the crag country (greedy, steepest first, spaced by their
- * footprints), their fronts down the slope, their base sunk ~1 m below the ground at the front so the back is buried in
- * the slope; tors on the crest; under each cliff a talus fan: boulders and scree where the slope below it eases.
- */
-export function placeCrags(o: PlaceOpts): CragPlace[] {
-  const rng = new Rng(o.seed ?? 0x5ca1ab1e);
-  const out: CragPlace[] = [];
-  const trees = o.trees ?? [];
-  const treeGrid = new Map<string, { x: number; z: number }[]>();
-  for (const t of trees) { const k = `${Math.floor(t.x / 8)},${Math.floor(t.z / 8)}`; const l = treeGrid.get(k) ?? []; l.push(t); treeGrid.set(k, l); }
-  const treeNear = (x: number, z: number, r: number): boolean => {
-    for (let i = Math.floor((x - r) / 8); i <= Math.floor((x + r) / 8); i++) for (let j = Math.floor((z - r) / 8); j <= Math.floor((z + r) / 8); j++) {
-      for (const t of treeGrid.get(`${i},${j}`) ?? []) if ((t.x - x) ** 2 + (t.z - z) ** 2 < r * r) return true;
-    }
-    return false;
-  };
-  const size = (id: CragId): CragSize => (id === CRAG_HERO ? o.sizes.hero ?? { hw: 10, hd: 7, h: 24 } : o.sizes[id]);
-  const big: { x: number; z: number; r: number }[] = [];
-  const clear = (x: number, z: number, r: number, k: number): boolean => big.every((b) => Math.hypot(b.x - x, b.z - z) > (b.r + r) * k);
-
-  // ── the hero crag first (the cliffs keep clear of it) ──
-  if (o.sizes.hero) {
-    const hs = size(CRAG_HERO), { x, z, sink } = CRAG_HERO_SPOT;
-    const [nx, , nz] = normalAt(x, z, 6);
-    // its front half-way between down the slope and toward the lookout
-    const down = Math.atan2(nx, nz), look = Math.atan2(LOOKOUT.x - x, LOOKOUT.z - z);
-    const yaw = down + Math.atan2(Math.sin(look - down), Math.cos(look - down)) * 0.5;
-    const scale = 1.0;
-    out.push({ id: CRAG_HERO, x, y: heightAt(x, z) - sink, z, yaw, scale, tiltX: -0.08, tiltZ: 0.03 });
-    big.push({ x, z, r: Math.hypot(hs.hw, hs.hd) * scale * 0.8 });
-  }
-
-  // ── cliffs on the steep faces ──
-  const cands: { x: number; z: number; a: number; yaw: number; w: number }[] = [];
-  const step = 3.2;
-  for (let x = -CHUNK_HALF + 6; x < CHUNK_HALF - 6; x += step) for (let z = 110; z < CHUNK_HALF - 6; z += step) {
-    const jx = x + rng.range(-1.2, 1.2), jz = z + rng.range(-1.2, 1.2);
-    if (!cragCountry(jx, jz)) continue;
-    const s = slopeAt(jx, jz);
-    if (s.a < 0.62) continue;                                      // ≥ 35.5°: a face
-    cands.push({ x: jx, z: jz, a: s.a, yaw: s.yaw, w: s.a + rng.range(0, 0.35) });
-  }
-  cands.sort((p, q) => q.w - p.w);
-  for (const c of cands) {
-    // the plateau behind the crest is rugged, not a cliff: only its steepest knuckles take a module, spaced wider
-    const plateau = c.z > ridgeFootZ(c.x) + RIDGE.climb + 4 && Math.hypot(c.x - DEN.x, c.z - DEN.z) > DEN.r + 30;
-    if (plateau && (c.a < 0.8 || rng.next() < 0.45)) continue;
-    const id = CLIFFS[rng.int(0, CLIFFS.length - 1)] ?? 'cliff-a';
-    const sz = size(id);
-    const scale = plateau ? rng.range(0.8, 1.2) : rng.range(1.0, 1.9);
-    const r = Math.hypot(sz.hw, sz.hd) * scale;
-    // turned well off the fall line: at ±0.22 rad, side by side, the modules showed the same face in a row (the blocks)
-    const yaw = c.yaw + rng.range(-0.55, 0.55);
-    // on a steep face the module leans back with the slope (a little less than it: the columns stand steeper than the
-    // ground, the top buried, the foot out) and sits into the face along its normal — a vertical box on a 55° face was
-    // buried to the eaves or hung its base over the drop
-    const lean = plateau ? 0 : Math.min(0.8, Math.max(0, c.a - 0.32));
-    const [nx, ny, nz] = normalAt(c.x, c.z, 2.5);
-    const sink = (plateau ? 0.6 : 2.1) * scale;
-    const x = c.x - nx * sink, z = c.z - nz * sink;
-    if (!clear(x, z, r, plateau ? 0.8 : 0.75)) continue;
-    if (blocked(x, z, r, 5)) continue;
-    if (treeNear(x, z, r * 0.5)) continue;
-    const y = heightAt(c.x, c.z) - ny * sink - (plateau ? 0.4 : 1.7) * scale;
-    // rolled too (the bands don't run level from module to module), its lean varied
-    out.push({ id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.12, 0.08), tiltZ: rng.range(-0.16, 0.16) });
-    big.push({ x, z, r });
-  }
-  const cliffs = out.length;
-
-  // ── tors on the crest and the plateau behind it ──
-  for (let x = -CHUNK_HALF + 14; x < 150; x += rng.range(24, 40)) {
-    const z = ridgeFootZ(x) + RIDGE.climb + rng.range(-4, 16);
-    if (!inChunk(x, z, 10)) continue;
-    const s = slopeAt(x, z);
-    if (s.a > 0.5) continue;
-    const id = TORS[rng.int(0, 1)] ?? 'tor-a';
-    const sz = size(id), scale = rng.range(0.9, 1.4), r = Math.hypot(sz.hw, sz.hd) * scale;
-    if (!clear(x, z, r, 0.8) || blocked(x, z, r, 6) || treeNear(x, z, r * 0.6)) continue;
-    out.push({ id, x, y: heightAt(x, z) - 0.6 * scale, z, yaw: rng.range(0, Math.PI * 2), scale, tiltX: rng.range(-0.05, 0.05), tiltZ: rng.range(-0.05, 0.05) });
-    big.push({ x, z, r });
-  }
-
-  // ── talus: below each cliff, where the slope eases ──
-  const small: { x: number; z: number; r: number }[] = [];
-  // a boulder half-buried in the joint between two neighbouring cliffs (their seam, where two modules meet)
-  for (let i = 0; i < cliffs; i++) for (let j = i + 1; j < cliffs; j++) {
-    const a = out[i], b = out[j];
-    if (!a || !b || a.id === CRAG_HERO || b.id === CRAG_HERO) continue;
-    const ra = Math.hypot(size(a.id).hw, size(a.id).hd) * a.scale, rb = Math.hypot(size(b.id).hw, size(b.id).hd) * b.scale;
-    const d = Math.hypot(a.x - b.x, a.z - b.z);
-    if (d > (ra + rb) * 1.1) continue;
-    const t = ra / (ra + rb), x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t;
-    const id = BOULDERS[rng.int(0, 2)] ?? 'boulder-a';
-    const scale = rng.range(1.0, 1.6), r = Math.hypot(size(id).hw, size(id).hd) * scale;
-    if (blocked(x, z, r, 2.5) || !small.every((q) => Math.hypot(q.x - x, q.z - z) > (q.r + r) * 0.8)) continue;
-    out.push({ id, x, y: heightAt(x, z) - 0.45 * scale, z, yaw: rng.range(0, Math.PI * 2), scale, tiltX: rng.range(-0.3, 0.3), tiltZ: rng.range(-0.3, 0.3) });
-    small.push({ x, z, r });
-  }
-  for (let i = 0; i < cliffs; i++) {
-    const c = out[i];
-    if (!c || c.id === CRAG_HERO) continue;
-    const sz = size(c.id);
-    const n = rng.int(2, 4);
-    for (let k = 0; k < n; k++) {
-      const yaw = c.yaw + rng.range(-0.6, 0.6);
-      const fx = Math.sin(yaw), fz = Math.cos(yaw);
-      // walk down the fall line from the cliff's front until the ground eases below ~34°
-      let d = sz.hd * c.scale + rng.range(0.5, 2.5), x = c.x + fx * d, z = c.z + fz * d;
-      for (let g = 0; g < 14 && slopeAt(x, z).a > 0.6; g++) { d += 1.6; x = c.x + fx * d; z = c.z + fz * d; }
-      d += rng.range(0, 5); x = c.x + fx * d; z = c.z + fz * d;
-      const scree = rng.next() < 0.45;
-      const id = scree ? (SCREES[rng.int(0, 1)] ?? 'scree-a') : (BOULDERS[rng.int(0, 2)] ?? 'boulder-a');
-      const bs = size(id), scale = scree ? rng.range(0.8, 1.25) : rng.range(0.7, 1.3), r = Math.hypot(bs.hw, bs.hd) * scale;
-      if (slopeAt(x, z).a > 0.72) continue;
-      if (blocked(x, z, r, scree ? 1.5 : 2.5) || treeNear(x, z, scree ? 0.9 : r * 0.7)) continue;
-      if (!small.every((b) => Math.hypot(b.x - x, b.z - z) > (b.r + r) * 0.7) || !clear(x, z, r, 0.45)) continue;
-      const s = slopeAt(x, z);
-      // scree lies with the ground (its fan down the fall line); a boulder settles with a little of the slope
-      const lie = scree ? 1 : 0.35, tilt = s.a * lie;
-      out.push({ id, x, y: heightAt(x, z) - (scree ? 0.05 : 0.25 * scale), z, yaw: scree ? s.yaw : rng.range(0, Math.PI * 2), scale, tiltX: tilt, tiltZ: 0 });
-      small.push({ x, z, r });
-      if (scree) out[out.length - 1] = { ...(out[out.length - 1] as CragPlace), yaw: s.yaw };
-    }
-  }
-  return out;
-}
 
 /** a placement's matrix: yaw about +Y, then the tilt (a scree patch lies with the slope: tiltX pitches its front down) */
 export function cragMatrix(p: CragPlace, out = new THREE.Matrix4()): THREE.Matrix4 {
   const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(p.tiltX, p.yaw, p.tiltZ, 'YXZ'));
   return out.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(p.scale, p.scale, p.scale));
 }
-
-// ───────────────────────────────────── the face skin (the heightfield's steep faces as granite) ─────────────────────────
-
-const fract = (v: number): number => v - Math.floor(v);
-const hash1 = (n: number): number => fract(Math.sin(n * 127.1 + 311.7) * 43758.5453);
-function vnoise2(x: number, z: number): number {
-  const ix = Math.floor(x), iz = Math.floor(z), fx = x - ix, fz = z - iz, ux = fx * fx * (3 - 2 * fx), uz = fz * fz * (3 - 2 * fz);
-  const h = (a: number, b: number): number => hash1(a * 57 + b * 113);
-  return (h(ix, iz) * (1 - ux) + h(ix + 1, iz) * ux) * (1 - uz) + (h(ix, iz + 1) * (1 - ux) + h(ix + 1, iz + 1) * ux) * uz;
-}
-
-/** how much of the face skin covers (x, z): 0 on gentle ground, 1 on the crag country's steep faces (from ~38° to ~46°) */
-export function skinWeight(x: number, z: number): number {
-  if (!cragCountry(x, z) || !inChunk(x, z, 3)) return 0;
-  const s = slopeAt(x, z);
-  let w = ss(0.64, 0.8, s.a);
-  if (w <= 0) return 0;
-  // not over the trails (the lookout's graded traverse, the N road's pass), the lookout's pad, the waterfall's lip, the cave's hood
-  w *= ss(3, 7, trailDistance(x, z));
-  w *= ss(LOOKOUT.r + 3, LOOKOUT.r + 8, Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z));
-  w *= ss(5, 10, segDist(x, z, [WATERFALL.lip.x, WATERFALL.lip.z], [WATERFALL.foot.x, WATERFALL.foot.z]));
-  const [lx, lz] = caveLocal(x, z);
-  if (lz > -8 && lz < 18 && Math.abs(lx) < 9) w *= ss(9, 6, Math.abs(lx)) < 1 ? 1 - ss(9, 6, Math.abs(lx)) * ss(-8, -4, lz) * ss(18, 14, lz) : 0;
-  return w;
-}
-
-/**
- * One tile of the face skin: the heightfield's steep faces re-drawn in granite at `step` m, pushed out along the slope's
- * horizontal normal into stepped bands — each band a near-vertical riser over a flat tread (the ledges: the moss and the
- * grit settle there), the bands' heights and offsets varying column by column (the vertical joints), a slow noise over
- * it all — and diving back under the ground where the slope eases, so the skin comes out of the terrain without an edge.
- * Null when the tile has no face.
- */
-export function skinTile(x0: number, z0: number, size: number, step: number): THREE.BufferGeometry | null {
-  const n = Math.round(size / step) + 1;
-  const w = new Float32Array(n * n);
-  let any = false;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const v = skinWeight(x0 + i * step, z0 + j * step); w[j * n + i] = v; if (v > 0) any = true; }
-  if (!any) return null;
-  const pos = new Float32Array(n * n * 3), cd = new Float32Array(n * n * 4), keep = new Int32Array(n * n).fill(-1);
-  const idx: number[] = [];
-  const used = new Uint8Array(n * n);
-  for (let j = 0; j + 1 < n; j++) for (let i = 0; i + 1 < n; i++) {
-    const a = j * n + i;
-    if ((w[a] ?? 0) + (w[a + 1] ?? 0) + (w[a + n] ?? 0) + (w[a + n + 1] ?? 0) <= 0) continue;
-    used[a] = used[a + 1] = used[a + n] = used[a + n + 1] = 1;
-  }
-  let k = 0;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-    const a = j * n + i;
-    if (!used[a]) continue;
-    const x = x0 + i * step, z = z0 + j * step, h = heightAt(x, z), ww = w[a] ?? 0;
-    const [nx, ny, nz] = normalAt(x, z, 2.5);
-    const hl = Math.hypot(nx, nz) || 1, ox = nx / hl, oz = nz / hl;
-    const tan = Math.max(0.9, hl / Math.max(0.15, ny));
-    // the column (a joint every ~3–5 m along the contour) sets its bands' height and phase
-    const along = x * -oz + z * ox;
-    const col = Math.floor(along / 5.5 + vnoise2(x * 0.06, z * 0.06) * 1.4);
-    const H = 3.0 + hash1(col) * 3.5;
-    // the column's phase, within 0.4 of a band (the joints step, they don't fold the skin)
-    const t = fract((h + hash1(col + 7.3) * H * 0.4) / H + (vnoise2(x * 0.2, z * 0.2) - 0.5) * 0.1);
-    const rough = (vnoise2(x * 0.22, z * 0.22 + h * 0.1) - 0.5) * 0.45 + (vnoise2(x * 0.9 + h * 0.5, z * 0.9) - 0.5) * 0.12;
-    // the band's points pushed OUT along the downhill normal as they climb (t·k·H/tan cancels the slope's own run), so
-    // each band is a riser ~80° steep standing on the slope, its foot on the ground, and the wrap (t 1 → 0) a tread
-    // stepping back into the slope: a staircase that stays outside the terrain. The old skin pushed by (0.5 − t): its
-    // bands ran at half the slope and folded back under themselves at the wrap (9.8 % of the skin's area faced back
-    // into the slope; this 3.5 %). The wrap is a tread 40 % of a band wide (a hard wrap aliases on the grid and folds),
-    // and the columns' phases stay within 0.4 of a band. Coarse steps (the far level) alias the bands into noise: there
-    // the steps flatten toward their mean.
-    const tw = 0.4, f = t < 1 - tw ? t / (1 - tw) : (1 - t) / tw;
-    const kk = 0.8 * (1 - tw), amp = step > 1.5 ? 0.3 : 1, mean = 0.5 * kk * (H / tan);
-    const riser = mean + (f * kk * (H / tan) - mean) * amp;
-    const out = ww * (0.4 + riser + rough + hash1(col + 3.1) * 0.25) - (1 - ww) * 0.5;
-    pos[k * 3] = x + ox * out; pos[k * 3 + 1] = h - (1 - ww) * 0.15; pos[k * 3 + 2] = z + oz * out;
-    // AO: the foot of each riser (under the tread above) darker, the treads open
-    cd.set([0.5 + 0.45 * Math.min(1, t * 1.6), 1, 0, 1], k * 4);
-    keep[a] = k++;
-  }
-  for (let j = 0; j + 1 < n; j++) for (let i = 0; i + 1 < n; i++) {
-    const a = keep[j * n + i] ?? -1, b = keep[(j + 1) * n + i] ?? -1, c = keep[(j + 1) * n + i + 1] ?? -1, d = keep[j * n + i + 1] ?? -1;
-    if (a < 0 || b < 0 || c < 0 || d < 0) continue;
-    const wa = (w[j * n + i] ?? 0) + (w[(j + 1) * n + i] ?? 0) + (w[(j + 1) * n + i + 1] ?? 0) + (w[j * n + i + 1] ?? 0);
-    if (wa <= 0) continue;
-    idx.push(a, b, d, b, c, d);
-  }
-  if (idx.length === 0) return null;
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos.slice(0, k * 3), 3));
-  g.setAttribute('cdata', new THREE.BufferAttribute(cd.slice(0, k * 4), 4));
-  // ctint.y = 1 marks the skin for the material's facet projection (rock ignores ctint: its tint path needs rock = 0)
-  const ct = new Float32Array(k * 2);
-  for (let i = 0; i < k; i++) ct[i * 2 + 1] = 1;
-  g.setAttribute('ctint', new THREE.BufferAttribute(ct, 2));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  g.computeBoundingBox(); g.computeBoundingSphere();
-  return g;
-}
-
-/** the skin's tiles (m) and its two resolutions (m): phone / desktop */
-const SKIN_TILE = 64, SKIN_STEP = TIER === 'phone' ? [1.0, 2.6] : [0.7, 2.0];
 
 // ───────────────────────────────────────────────── the cave's data ─────────────────────────────────────────────────
 
@@ -635,14 +317,14 @@ export class PineCrags {
   private under = false;
   private skin: [THREE.BufferGeometry, THREE.BufferGeometry][] = [];
 
-  private constructor(private sky: Sky | null, private kit: Map<string, THREE.BufferGeometry>, private caveGeo: Map<string, THREE.BufferGeometry>, private caveMeta: CaveMeta | null, private mat: THREE.Material | null) {
+  private constructor(private sky: Sky | null, private kit: Map<string, THREE.BufferGeometry>, private caveGeo: Map<string, THREE.BufferGeometry>, private caveMeta: CaveMeta | null, private mat: THREE.Material | null, private skinBake: CragSkin | null) {
     this.group.name = 'pine-crags';
   }
 
-  /** the kit, the cave and their textures; null when the kit is not in this build. `sky` null: geometry only (the bake) */
+  /** the kit, the cave, their textures and this tier's baked face skin; null when the kit is not in this build. `sky` null: geometry only */
   static async load(sky: Sky | null): Promise<PineCrags | null> {
     try {
-      const [kit, kitB, caveGeo, caveMeta, tex] = await Promise.all([
+      const [kit, kitB, caveGeo, caveMeta, tex, skin] = await Promise.all([
         // the kit is two files: crags.glb the tors, boulders and scree; crags-b.glb (E322 F-L2) the fused, weathered cliff
         // bands, buttress and slab and the hero crag (E350 F-X1 dropped A's big modules from crags.glb, so both are required)
         loadNodes(`${CRAG_DIR}/crags.glb`),
@@ -651,37 +333,21 @@ export class PineCrags {
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), Promise.all([loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))])
           .then(([map, normalMap]) => ({ map, normalMap }))]) : Promise.resolve(null), // G180 B1: only the grit samplers the shader uses; an eagerly uploaded unused ARM has no owner.
+        sky ? loadCragSkin(TIER) : Promise.resolve(null), // only drawn builds need the skin (G285: ./cragBake.ts)
       ]);
       const mat = sky && tex ? cragMaterial(sky, tex[0], tex[1]) : null;
       for (const [name, g] of kitB) kit.set(name, g);
-      return new PineCrags(sky, kit, caveGeo, caveMeta, mat);
+      return new PineCrags(sky, kit, caveGeo, caveMeta, mat, skin);
     } catch (e: unknown) {
       console.warn('[crags] the kit did not load', e);
       return null;
     }
   }
 
-  /** every module's footprint (its LOD0's box, in its own frame) */
-  sizes(): CragSizes {
-    const of = (id: CragId): CragSize => {
-      const b = this.kit.get(id)?.boundingBox ?? new THREE.Box3(new THREE.Vector3(-4, 0, -3), new THREE.Vector3(4, 8, 3));
-      return { hw: Math.max(-b.min.x, b.max.x), hd: Math.max(-b.min.z, b.max.z), h: b.max.y };
-    };
-    const out = {} as CragSizes;
-    for (const id of CRAG_IDS) out[id] = of(id);
-    if (this.kit.has(CRAG_HERO)) out.hero = of(CRAG_HERO);
-    return out;
-  }
-
-  /** draw (when a material exists) and collide the placements and the cave */
-  /** the face skin's tiles (both resolutions), a tile per task (~130 ms of phone CPU in all); only drawn builds need it */
+  /** the face skin's tiles (both resolutions) from this tier's bake, a tile per task; only drawn builds need it */
   async prepareSkin(yieldTask: () => Promise<void>): Promise<void> {
-    if (!this.mat) return;
-    for (let tz = 96; tz < CHUNK_HALF; tz += SKIN_TILE) for (let tx = -CHUNK_HALF; tx < CHUNK_HALF; tx += SKIN_TILE) {
-      const g0 = skinTile(tx, tz, SKIN_TILE, SKIN_STEP[0] ?? 1), g1 = skinTile(tx, tz, SKIN_TILE, SKIN_STEP[1] ?? 2.6);
-      if (g0 && g1) this.skin.push([g0, g1]);
-      await yieldTask();
-    }
+    if (!this.mat || !this.skinBake) return;
+    this.skin = await this.skinBake.tiles(yieldTask);
   }
 
   /**
@@ -1003,6 +669,3 @@ function trimeshOf(g: THREE.BufferGeometry, m: THREE.Matrix4): ColliderDesc {
   const indices = idx ? Uint32Array.from({ length: idx.count }, (_v, i) => idx.getX(i)) : Uint32Array.from({ length: pos.count }, (_v, i) => i);
   return { kind: 'trimesh', x: o.x, y: o.y, z: o.z, vertices: verts, indices, surface: 'rock' };
 }
-
-/** pure helpers for the tests */
-export const _cragTest = { slopeAt, blocked, cragCountry, ss };

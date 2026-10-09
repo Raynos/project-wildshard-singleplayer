@@ -53,7 +53,8 @@ import { fireLookout, fireLookoutFacts } from '../models/fireLookout';
 import { ziplineLanding, ziplineLandingFacts } from '../models/ziplineLanding';
 import { creekFootbridge, creekFootbridgeFacts } from '../models/creekFootbridge';
 import { zipCable } from '../models/zipCable';
-import { PineCrags, placeCrags } from './crags';
+import { PineCrags } from './crags';
+import { CRAG_ROWS } from './cragBake';
 
 type V3 = THREE.Vector3;
 const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
@@ -166,10 +167,10 @@ export class PineLandmarks implements PineLandmarksHandle {
   constructor(private sky: Sky) { this.group.name = 'pine-landmarks'; }
 
   /**
-   * `trees`: the forest's trunks (the crags step round them; the navmesh bake passes the same list). `registry`: where the
-   * placed models register (null: the bake — they are only built, and drawn under `group`)
+   * `registry`: where the placed models register (null: only built, and drawn under `group`). The crags stand where their
+   * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
    */
-  async build(cabins: Cabins | null, trees: readonly { x: number; z: number }[] = [], registry: WorldRegistry | null = null): Promise<this> {
+  async build(cabins: Cabins | null, registry: WorldRegistry | null = null): Promise<this> {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const ctx = pineModels(this.sky);
     await loadTimber(ctx);
@@ -200,7 +201,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     if (this.crags) {
       // PH-B2: the kit over the Ridge, and the cave behind the arch
       await this.crags.prepareSkin(macrotask);
-      await this.crags.build(placeCrags({ sizes: this.crags.sizes(), trees }), registry, macrotask); // the modules are models: they register themselves
+      await this.crags.build(CRAG_ROWS.places, registry, macrotask); // the modules are models: they register themselves
       this.group.add(this.crags.group);
     }
     return this;
@@ -362,8 +363,8 @@ export class PineLandmarks implements PineLandmarksHandle {
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
-export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
-  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the models register themselves (E315 M2)
+export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; }): Promise<PineLandmarks> {
+  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.registry); // the models register themselves (E315 M2)
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/world/landmarks.ts', object: lm.group });
   // PH-B2: the crags' modules registered themselves (models, 90 hulls a task); the cave's shell + the ground over it

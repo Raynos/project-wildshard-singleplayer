@@ -2,7 +2,9 @@
 // the bear cave's data (scripts/blender/pine-hollow/crags/build_cave.py) is self-consistent in its frame.
 import { describe, expect, it } from 'vitest';
 import { setActiveChunk } from '../../../src/game/shard/registry';
-import { placeCrags, caveLocal, caveWorld, skinWeight, skinTile, CRAG_IDS, CRAG_HERO, type CragId, type CragSize, type CaveMeta } from '../../../src/shards/pine-hollow/world/crags';
+import { placeCrags, skinWeight, skinTile } from '../../../src/shards/pine-hollow/generators/crags';
+import { caveLocal, caveWorld, skinGeometry, CRAG_IDS, CRAG_HERO, type CragId, type CragSize } from '../../../src/shards/pine-hollow/world/cragBake';
+import type { CaveMeta } from '../../../src/shards/pine-hollow/world/crags';
 import { trailDistance, normalAt } from '../../../src/engine/world/Heightfield';
 import { DEN, LOOKOUT } from '../../../src/shards/pine-hollow/layout';
 import kitJson from '../../../public/assets/models/pine-hollow-crags/crags.json?raw';
@@ -40,7 +42,7 @@ describe('the granite kit', () => {
   });
 
   const a = placeCrags({ sizes: sizes() });
-  it('places the same set every time (the navmesh bake runs the same code)', () => {
+  it('places the same set every time (the bake is deterministic)', () => {
     expect(placeCrags({ sizes: sizes() })).toEqual(a);
     expect(a.length).toBeGreaterThan(80);
   });
@@ -91,7 +93,7 @@ describe('the crags Jake picked (E322 F-L2 B)', () => {
     const folded = (): number => {
       let area = 0, back = 0;
       for (const [x0, z0] of [[-64, 160], [0, 160], [-128, 160]] as const) {
-        const g = skinTile(x0, z0, 64, 1);
+        const blocks = skinTile(x0, z0, 64, 1), g = blocks ? skinGeometry(blocks.pos, blocks.ao, blocks.index) : null;
         const p = g?.getAttribute('position'), idx = g?.getIndex();
         if (!p || !idx) continue;
         for (let i = 0; i < idx.count; i += 3) {

@@ -102,7 +102,7 @@ export class PineHollow extends ShardPlugin {
             return on;
           } });
       }
-      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { installPineLandmarkUpdate(ctx, game, fn); }, trees: forest.trees });
+      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { installPineLandmarkUpdate(ctx, game, fn); } });
       if (landmarks.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); world.terrain.punch(landmarks.crags.holeTest()); }
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;
