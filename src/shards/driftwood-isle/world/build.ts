@@ -34,6 +34,7 @@ import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, ENTRY_LANDINGS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect, type EntryLanding } from './sea';
 import { deckPlacements, deckRects, deckSlabs, onDeck } from './entryDeck';
 import { entryDeck } from '../models/entryDeck';
+import { loadFixedGeometry } from '../boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 
@@ -77,7 +78,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress?: StepProgress): Promise<DriftwoodWorld> {
   const lowered = G164_LOWERED;
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield')]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry()]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
   // Jake's SF72 pick: each sea ramp flares from the full entry socket at the landing to its deck.
   const cut = lowered.pierStart, seaRamp = { seaRamp: { run: lowered.seaRamp, flare: ENTRY_WIDTH } };

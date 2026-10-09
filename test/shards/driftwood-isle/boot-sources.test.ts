@@ -5,6 +5,7 @@ import { registerGpuFiles } from '../../../src/engine/boot/gpuFiles';
 import { initializeTier, TIER } from '../../../src/engine/core/tier';
 import manifest from '../../../src/shards/driftwood-isle/manifest';
 import { GPU_FILES } from '../../../src/shards/driftwood-isle/ktx2.generated';
+import { FIXED_MODEL_FILES } from '../../../src/shards/driftwood-isle/data/modelFiles';
 
 const original = TIER;
 afterEach(() => { initializeTier(original); });
@@ -14,13 +15,16 @@ describe('Driftwood boot sources (E357 S4.1, 08 §6.1 step 7)', () => {
     initializeTier(tier);
     registerGpuFiles(GPU_FILES);
     const files = chunkFiles(manifest, tex);
-    // what the engine's open-water / low-poly branches gave (verified file for file against them when they moved here)
-    expect(files).toMatchObject({ sky: [], trees: [], cabins: [], props: [], art: [], music: [], sfx: [] });
+    expect(files).toMatchObject({ sky: [], trees: [], cabins: [], props: Object.values(FIXED_MODEL_FILES), art: [], music: [], sfx: [] });
+    expect(files.props).toEqual([
+      '/assets/driftwood-isle/baked/fixed-models/captain-hat.glb',
+      '/assets/driftwood-isle/baked/fixed-models/sea-glass-chime.glb',
+    ]);
     expect(files.terrain).toHaveLength(1);
     expect(files.terrain.every((url) => url.includes('/baked/driftwood-isle/terrain'))).toBe(true);
     expect(files.baked.length).toBeGreaterThan(0);
     expect(files.baked.every((url) => url.includes('/baked/driftwood-isle/tex/'))).toBe(true);
     expect(files.physics[0]).toBe('/assets/physics/rapier.wasm');
-    expect(bootFetches(manifest, files)).toEqual([...files.baked, ...files.terrain]);
+    expect(bootFetches(manifest, files)).toEqual([...files.baked, ...files.terrain, ...files.props]);
   });
 });

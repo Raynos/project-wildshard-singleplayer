@@ -1,0 +1,153 @@
+{
+  "build": "124b145-mv1ill1v",
+  "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+  "method": "original and baked geometry on actual native meshes; identical runtime materials, transforms and frozen clock",
+  "rows": [
+    {
+      "model": "captain-hat",
+      "count": null,
+      "side": -1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1344,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 30158
+    },
+    {
+      "model": "captain-hat",
+      "count": null,
+      "side": 1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1344,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 21026
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 0,
+      "side": -1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 4107
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 0,
+      "side": 1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 4051
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 5,
+      "side": -1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 8791
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 5,
+      "side": 1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 8755
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 10,
+      "side": -1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 13677
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 10,
+      "side": 1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 13219
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 15,
+      "side": -1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 17383
+    },
+    {
+      "model": "sea-glass-chime",
+      "count": 15,
+      "side": 1,
+      "width": 804,
+      "height": 1362,
+      "vertices": 1734,
+      "changedPixels": 0,
+      "maxChannelDifference": 0,
+      "visiblePixels": 17221
+    }
+  ],
+  "physics": {
+    "actors": 34,
+    "captainJoints": 16,
+    "solidColliders": 2067,
+    "registryPieces": 34,
+    "floor": [
+      255,
+      255
+    ],
+    "nativeRepeatedCaptureEquality": true,
+    "physicalAndPosePayloadsUnchanged": true
+  },
+  "assets": {
+    "captain-hat.glb": 65784,
+    "sea-glass-chime.glb": 84512,
+    "deterministicOriginalGeometryBytes": true,
+    "attributes": [
+      "position",
+      "normal",
+      "color",
+      "aSway"
+    ]
+  },
+  "validation": {
+    "focusedTests": 22,
+    "bootAndPhysicsTests": 9,
+    "strict": true,
+    "touchedLint": true,
+    "geometryBakeBothTiersByteIdentical": true,
+    "collisionChanged": false
+  },
+  "map": {
+    "rebaked": true,
+    "size": 1000,
+    "bytes": 99556
+  }
+}
