@@ -550,3 +550,11 @@ Relocations are serialized after the Pine combat landing, sp-x1's Nalati reins r
 ### Nalati relocation landed (2026-10-09)
 
 The two Nalati modules now live literally in `models/npc/`; all six primary author sites use them. Nalati's measured path drops 46 → 40, the original total 233 → 227. Driftwood's two planned sites are still pending. Historical game exports remain unchanged for the SF73 frozen inventory. Actual physics capture at `5fcdc794833524e4561549d0c0f99ecff8af164a` preserves every gameplay field; the map was genuinely rebaked and the exact model-support declaration retains rejection of undeclared siblings. See [the relocation receipt](../../../progress/shard-platform/kit-npc/nalati.md).
+
+### Primary NPC dissolution completed (2026-10-09)
+
+Nalati `accf09fb4` and Driftwood `af3fce29a` own all three literal implementations in their rendering folders. Six Nalati and two Driftwood author import sites are removed: the original inventory's 233 sites falls by eight to 225 before other lanes' changes. The dated per-file list above is historical; its NPC rows are completed, not remaining debt. Actual physics/map/quest-spot provenance is in the two [NPC receipts](../../../progress/shard-platform/kit-npc/).
+
+`wildshard/legacy-npc-imports` now hard-refuses the historical three NPC exports from every non-registered source file, including primary `runtime/`, game callers, relative/type/dynamic/re-export forms. Only exact frozen files recognized by the SF73 inventory may import them. An arbitrary `-legacy` sibling or manifest flag grants no allowance. The literal `figureMotion.ts` → `./figureRig` internal type dependency remains unchanged; a new game caller receives no exemption. The shared multi-shard `npcRig` remains available.
+
+All three historical definitions and package exports stay byte-identical pending the frozen-copy bootstrap and retirement. Delete each definition/export with its last registered frozen consumer's retirement, never replace it with an alias or rewrite frozen code. Input-only witness manifests now belong to serialized push regeneration (`ec89b2e60`); neither relocation carries them. Focused real-plugin fixtures, scoped strict and touched lint verify the new hard boundary; no builder full suite.

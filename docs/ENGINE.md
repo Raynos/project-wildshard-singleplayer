@@ -36,8 +36,12 @@ registers the four plus the default creature calls; the composition root calls i
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
 Nalati and Pine runtime world hooks lazily import these defining modules. The kit `lookApi` loaders are removed.
 
-`@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` (the merged NPC figure rig, its motion and the face
-heads), `@wildshard/game/systems/effects/install` (`installStarterEffects` and its status-icon row; trusted runtimes use
+The historical `@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` exports remain literally unchanged
+for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/{figureRig,figureMotion}` and Driftwood
+`npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
+kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
+
+`@wildshard/game/systems/effects/install` (`installStarterEffects` and its status-icon row; trusted runtimes use
 `@wildshard/sdk/runtime/effects`), `@wildshard/game/systems/items/declared` (`declaredKitItemFamilies`),
 `@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
@@ -1946,6 +1950,7 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 |---|---|---|
 | `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers | hard (`.oxlintrc.json`, E405 AG28) |
 | `wildshard/shard-game-imports` | shard game imports outside `runtime/`, including type/dynamic/re-export and relative forms; only exact SF73 inventory-registered frozen files are exempt. Engine imports remain G143/SF62 transition debt. | shrink-only ratchet seeded at 233 measured sites; promote to hard only at zero |
+| `wildshard/legacy-npc-imports` | historical `figureRig`, `figureMotion` or `faceHeads` imports from any non-registered source, including primary runtime, relative/type/dynamic/re-export forms; preserves only the literal historical internal type dependency | hard; exact SF73 registered files only, never folder suffixes |
 | `wildshard/public-index` | a cross-layer import names a module the layer's package does not export (`@wildshard/engine/x/y` does not resolve at all; a relative path into another layer is refused too); a module the layer's `package.json` `exports` lists is public | ratchet (per file) |
 | `wildshard/no-reexport` | `export … from` (or `export *`, or exporting an imported binding) of our own modules: no barrels; a third-party re-export (a bundler shim) passes | hard (`.oxlintrc.json`, E434) |
 | `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items, the word "shard") in engine code; comments are not counted. A wire contract's field may keep the name `shard` (telemetry tags, reports, the harness probe, a model id) only as a property name or key, only in the files `lint/ratchet.json` `allow['wildshard/engine-words']` lists with the reason (E405, Jake). Engine copy says "level" and the game supplies its word (`s_level_word`) | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |

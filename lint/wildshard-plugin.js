@@ -20,7 +20,7 @@ import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations } from './runtime-performance.mjs';
-import { shardGameImport } from './shard-imports.mjs';
+import { shardGameImport, legacyNpcImport } from './shard-imports.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -882,6 +882,18 @@ const shardGameImports = rule('Shard code outside runtime imports the SDK, not t
   };
 });
 
+// SF54/SF73: the unchanged historical implementations serve registered frozen copies only.
+const legacyNpcImports = rule('Historical NPC exports serve only registered frozen consumers', (context) => {
+  const filename = pathOf(context);
+  if (!filename.startsWith('src/') || legacySourcePath(filename) !== null) return {};
+  const check = (node, source) => {
+    // Preserve the historical implementation's one internal type dependency literally.
+    if (filename === 'src/game/systems/npc/figureMotion.ts' && source === './figureRig') return;
+    if (legacyNpcImport(context.filename, source)) report(context, node, `Historical NPC imports are for exact SF73 registered legacy files only; primary shards use their local implementation: ${source}`);
+  };
+  return { ...importsVisitor(node => { check(node, importPrefix(node.source)); }), TSImportType(node) { check(node, importPrefix(node.source)); } };
+});
+
 const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (context) => {
   if (!pathOf(context).startsWith('src/')) return {};
   const imported = new Set();
@@ -904,6 +916,7 @@ const plugin = {
   rules: {
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
+    'legacy-npc-imports': legacyNpcImports,
     'runtime-commons': runtimeCommons,
     'runtime-performance': runtimePerformance,
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
