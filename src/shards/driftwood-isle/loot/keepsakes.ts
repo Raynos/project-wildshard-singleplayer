@@ -44,6 +44,7 @@ import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
 import type { Adventure } from '../quest/adventure';
+import { ownEnteredTree } from '../quest/Spine';
 import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -117,11 +118,19 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   const floor = adv.place({ poi: 'hut', anchor: 'hut.door', x: 0, z: -2.7 }).y;
 
   // ── the chime and the plaques, placed models (the Model Explorer's world pieces; no colliders: they hang out of reach) ──
+  // SF57: each piece and its drawn object belong to the owner's entry, not the page (a re-entered borrowed home runs this again)
+  const scope = h.owner?.scope;
+  const entered = (placed: () => THREE.Object3D): THREE.Object3D => {
+    if (scope === undefined) return placed();
+    const object = scope.run(placed);
+    ownEnteredTree(object, scope);
+    return object;
+  };
   const c = adv.place({ poi: 'hut', x: CHIME.x, z: CHIME.z, y: floor + CHIME.up });
-  const chimeObj = place(seaGlassChime, [{ x: c.x, y: c.y, z: c.z, yaw: c.yaw, scale: CHIME.scale, params: { count: 0 } }], { ctx, draw: 'single', ...registry, piece: { id: 'sea-glass-chime', name: 'Sea glass wind chime' } }).object;
+  const chimeObj = entered(() => place(seaGlassChime, [{ x: c.x, y: c.y, z: c.z, yaw: c.yaw, scale: CHIME.scale, params: { count: 0 } }], { ctx, draw: 'single', ...registry, piece: { id: 'sea-glass-chime', name: 'Sea glass wind chime' } }).object);
   const chime = chimeObj instanceof SeaGlassChime ? chimeObj : null;
   const p = adv.place({ poi: 'hut', x: PLAQUES.x, z: PLAQUES.z, y: floor + PLAQUES.up, yaw: Math.PI });
-  const plaquesObj = place(trophyPlaques, [{ x: p.x, y: p.y, z: p.z, yaw: p.yaw, scale: PLAQUES.scale, params: { bear: false, boar: false } }], { ctx, draw: 'single', ...registry, piece: { id: 'trophy-plaques', name: 'Trophy plaques' } }).object;
+  const plaquesObj = entered(() => place(trophyPlaques, [{ x: p.x, y: p.y, z: p.z, yaw: p.yaw, scale: PLAQUES.scale, params: { bear: false, boar: false } }], { ctx, draw: 'single', ...registry, piece: { id: 'trophy-plaques', name: 'Trophy plaques' } }).object);
   const plaques = plaquesObj instanceof TrophyPlaques ? plaquesObj : null;
 
   // ── the charms: the found count → the chime's pieces and the charms owned ──
@@ -139,7 +148,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   };
   syncGlass(false);
   const offGlass = flags.onChange((f) => { if (f.startsWith(SEA_GLASS_FLAG)) syncGlass(true); });
-  h.owner?.scope.onDispose(offGlass);
+  scope?.onDispose(offGlass);
 
   // ── the worn things on the body shadow, built once when first worn ──
   let hat: THREE.Object3D | null = null, cape: THREE.Object3D | null = null;
@@ -162,7 +171,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   };
   apply();
   const offOwned = owned.onChange(apply);
-  h.owner?.scope.onDispose(offOwned);
+  scope?.onDispose(offOwned);
 
   // ── the trophy drops ──
   const drops = new Map<TrophyDropId, ItemPickup>();

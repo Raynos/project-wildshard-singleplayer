@@ -36,8 +36,10 @@ it('owns a lazily built home barrel through two entries and page unload without 
       expect(barrel.alive).toBe(false); expect(bodies.list).toHaveLength(0);
       expect(physics.world.bodies.len()).toBe(0); expect(physics.world.colliders.len()).toBe(0);
       expect(prompts).toHaveLength(0); expect(registry.pieces).toHaveLength(0);
-      // Batch resources belong to the drawn scene capture in production, not the kit's native disposal.
-      for (const batch of batches) batch.dispose();
+      // SF57: the batches belong to the entry that built them: off the scene and freed once, never kept for the page.
+      expect(batches).toHaveLength(2);
+      for (const batch of batches) { expect(batch.parent).toBeNull(); expect(Reflect.get(batch, '_matricesTexture')).toBeNull(); }
+      expect(scene.children.some((object) => object instanceof BatchedMesh)).toBe(false);
     }
     expect(page.census.bodies).toBe(0); expect(page.census.colliders).toBe(0);
   } finally {

@@ -9,6 +9,7 @@
  */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
+import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import { boxInFrame } from '@wildshard/engine/physics/box';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { NpcTalk, type LiveMarker } from '@wildshard/engine/quest/view';
@@ -35,6 +36,10 @@ export interface Spine {
 
 const TALK_R = 3.2;
 
+/** SF57: a subtree one home entry built belongs to that entry's scope: it leaves the scene and frees what it alone holds
+ *  when the entry ends (a re-entered borrowed home runs its installs again; the page scene must not keep every copy). */
+export function ownEnteredTree(object: THREE.Object3D, scope: Parameters<typeof ownSceneTree>[1]): void { ownSceneTree(object, scope, app.assets); }
+
 export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ShardContext, facts: RuntimeFacts): Spine {
   const { flags, kit, place } = adv;
   const quest = bindRuntimeQuest(ctx, source, DRIFTWOOD_QUEST.id, { flags, facts, place: marker => DRIFTWOOD_MARKERS[marker.id] }).state;
@@ -59,8 +64,12 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const npc = castawayRig(w.sky, feet, fire), castaway = npc.model;
   w.scope?.onDispose(() => { npc.dispose(); });
+  // SF57: Wendell, his piece and its body belong to this entry, not the page (a re-entered borrowed home builds him again)
+  const entry = w.scope;
   w.game.scene.add(castaway.group);
-  (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group, 'wood', false)], follows: castaway.group, followRotation: false });
+  const wendell = (): void => { (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group, 'wood', false)], follows: castaway.group, followRotation: false }); };
+  if (entry === undefined) wendell();
+  else { ownEnteredTree(castaway.group, entry); entry.run(wendell); }
   castaway.group.updateMatrixWorld(true);
   const talkAt = castaway.headWorld(new THREE.Vector3());
   let waved = false, stowed = false;

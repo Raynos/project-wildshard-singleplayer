@@ -17,7 +17,7 @@ import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
 import { Cove } from '../world/Cove';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from './interactables';
 import { installAdventureInteractables } from './interactLifetime';
-import { installSpine, type Spine } from './Spine';
+import { installSpine, ownEnteredTree, type Spine } from './Spine';
 import { installTrader, type TraderStall } from './TraderStall';
 import { bindDriftwoodFacts } from './facts';
 import declaration from '../shard.config';
@@ -126,7 +126,8 @@ export function adventureGame(game: AdventureWorld['game'], onUpdate: AdventureW
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
   const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
-  const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
+  const scope = ctx.scope;
+  const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
@@ -156,7 +157,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     return { x, z, y: p.y ?? floorAt(x, z) + (p.dy ?? 0), yaw };
   };
 
-  const kit = await installAdventureInteractables(ctx.scope, { scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts });
+  const kit = await installAdventureInteractables(scope, { scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts });
   kit.onEvent = (e) => onInteract(e);
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
 
@@ -216,8 +217,12 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }).build();
     // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
     // E315 M1: the zipline model (src/shards/driftwood-isle/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
-    if (w.registry) { zip.place(w.registry); w.game.scene.add(zip.group); }
+    // SF57: the piece, its deck colliders and the group belong to this entry (after an await the ambient owner is the page's,
+    // and a re-entered borrowed home runs this install again)
+    const registry = w.registry;
+    if (registry) { scope.run(() => zip.place(registry)); w.game.scene.add(zip.group); }
     else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
+    ownEnteredTree(zip.group, scope);
     w.prompts.push(zip.prompt);
     zip.onRide = (on) => {
       w.player.carried = on; // the cable owns the position while riding (PHYSICS P2: the fixed step leaves it alone)
