@@ -5,7 +5,7 @@ import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGri
 
 const cells = [{instance:'driftwood-isle',slug:'driftwood-isle',cell:[0,0] as const},
   {instance:'template-2',slug:'_template',cell:[1,1] as const}];
-const witness = (): PublicGridWitness => ({developer:false,savedDeveloper:false,runtimeLevel:'driftwood-isle',homeResidency:{instance:'driftwood-isle',bytes:1000},
+const witness = (): PublicGridWitness => ({developer:false,savedDeveloper:false,runtimeLevel:'platform.grid',homeResidency:{instance:'driftwood-isle',bytes:1000},
   refusals:{},state:{home:'driftwood-isle',inside:'driftwood-isle',cells,
     live:{crossing:{phase:'settled',issue:null},live:{current:'driftwood-isle',worldFeet:{x:0,y:.55,z:0},crossings:0,transitions:[],residents:['driftwood-isle'],gameplayReady:true}}}});
 

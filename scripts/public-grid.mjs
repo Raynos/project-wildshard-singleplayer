@@ -43,8 +43,8 @@ export function readPublicGridWitness() {
 export function publicGridWitnessFailures(witness, requireTemplate) {
   const failures = [], state = witness.state;
   if (witness.developer || witness.savedDeveloper !== false) failures.push('Developer is not saved and effective OFF');
-  if (state.home !== 'driftwood-isle' || witness.runtimeLevel !== 'driftwood-isle') failures.push('Public home is not borrowed Driftwood');
-  if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Borrowed home has no positive admitted residency claim');
+  if (state.home !== 'driftwood-isle' || witness.runtimeLevel !== 'platform.grid') failures.push('Public grid is not the owned platform shell');
+  if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Grid home has no positive admitted residency claim');
   if (state.cells.some(row => !['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach'].includes(row.slug))) failures.push('Developer-only region is present in the public catalogue');
   if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template','pine-hollow','nalati-grasslands','far-reach'].includes(row.slug)))) failures.push('An unlisted region became a runtime resident');
   if (requireTemplate && !state.cells.some(row => row.slug === '_template' && row.instance === state.inside
