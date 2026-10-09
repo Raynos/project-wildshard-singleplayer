@@ -1,51 +1,40 @@
 # Handoff: sf72-signal-gen (SF72, Signal Dunes' code-built world → offline bake), 2026-10-09
 
-Status: unfinished (the 90-minute lane ended). Nothing landed in the game; the first slice is an **unlanded candidate at
-`refs/wip/sf72-signal-gen`** (`ef5a05797`, parent `cd97d8c40`). Inventory and move list:
-`progress/shard-platform/m3-status/signal-8020.md`.
+Status: unfinished. Landed so far (lane sf72-signal-gen2):
 
-## The slice in the candidate (rocks + dead buttes)
+- `9fb0cca1d`: SF57 fix in `src/game/grid/pageResidency.ts`. `composerCover()` covers the composer only while (other
+  covered bytes + composer) ≤ the measured home; otherwise the composer is charged uncovered. This was the rocks
+  candidate's "Runtime cache coverage exceeds its measured bytes" blocker, and Signal was red on main with it (70 MB phone
+  composer against a 49 MB home already 48 MB covered by commons). It was never the GLB, so no runtime-cost re-measure.
+- `ac389a949`: the boot smoke boots Developer Signal standalone (`bootCase(..., developer)`).
+- `c075fbb21`: the rocks slice (`generators/rocks.ts` → `public/assets/sunscar-dunes/baked/rocks.glb` + `data/rocks.json`,
+  `world/baked.ts`, dead `world/buttes.ts` dropped) with the native physics rebake and the map rebake.
+  Share 4.3 → 5.8 % (public 247 / custom 3989); runtime + trusted 855 / 965. Graph `shards/sunscar-dunes → sdk` 12 → 13.
 
-- `generators/rocks.ts`: `world/rocks.ts` moved to build time, unchanged shapes; `bakeSignalRocks()` bakes the ridges
-  (30 instances, one `EXT_mesh_gpu_instancing` node, one draw) with `@wildshard/sdk/bake/glb` on the manifest's own
-  field (`signalDunesField()`, now exported by `generators/tiles.ts`; tiles bytes unchanged). The empty boulder
-  InstancedMesh (`SCATTER.boulders = 0`) is not baked.
-- `scripts/bake-signal-world.mjs` (`node --import ./scripts/bake-loader.mjs …`; the sim loader refuses the renderer
-  deps) writes `public/assets/sunscar-dunes/baked/rocks.glb` (11,552 B) and `data/rocks.json` (content hash, kinds with
-  colour / roughness, the 30 box colliders exactly as `boxDesc` made them, same key order).
-- `world/baked.ts` (client): `loadBakedWorld()` beside `preloadDuneMeshes()` in the plugin's `world` hook; `bakedRocks()`
-  makes the InstancedMesh with the runtime's own material and registers the baked colliders. Colliders never wait on
-  the GLB (the Node contract test, which refuses fetch, still registers `sunscar.rocks`).
-- `world/buttes.ts` deleted: dead since E399 (`void buildButtes`, no caller, no Debug row).
-- `test/shards/sunscar-dunes/world-bake.test.ts`: byte-exact stale gate; the GLB's TRS round trip is within 1e-5 of the
-  builder's matrices (float32 noise; pixel parity not yet measured).
-- `scripts/signal-physics-inputs.mjs` walks `generators/` too (the colliders now come from there).
-- The URL is a literal in `boot/files.ts` (`BAKED_ROCKS_URL`): a template URL trips `shard-sandbox`, and importing
-  `world/baked.ts` from `boot/files.ts` pushed the manifest closure 33 → 41 (AG10).
+## The invariant recipe that worked (one slice, about 45 min)
 
-Share with the candidate (`node scripts/shard-platform.mjs --json`): public 185 → 247 / custom 4139 → 3989
-(4.3 % → 5.8 %); runtime + trusted 854 → 855 / 965.
+1. Candidate: private index from HEAD + the slice, `git commit-tree` (no ref), `scripts/serve-build.sh --rev <cand>`;
+   the before build is `--rev HEAD`. One preview at a time.
+2. Pixels: `node scripts/parity.mjs --url=<preview> --shards=sunscar-dunes --tiers=phone,desktop --only=fingerprint+poses
+   --out=<dir>` on both builds (the m5 baselines are stale, so compare before vs after). Each out dir has `run-1/` and
+   `retry/` shots: the run-to-run diff of each build is the noise floor (phone quest about 8,600 px from the fire).
+3. Colliders: `scripts/browser-lane.sh node scripts/bake-signal-physics.mjs --url=<preview> --revision=<full sha>`.
+   Run it **from a clean export of the candidate** (`git archive` + `scripts/link-node-modules.mjs` + `pnpm gen`): the
+   script hashes its inputs from its own root, so a working-tree run writes the wrong `inputs`. A before-build run
+   proves the before is fresh (only revision / build differ).
+4. Walk: `scripts/browser-lane.sh node scripts/physics-baseline.mjs --mode=walk --shard=sunscar-dunes --url=<preview>`
+   (it writes `progress/physics/p0-*.json`: move it out, don't commit it).
+5. Map: `node scripts/bake-maps.mjs --url=<preview> --shards=sunscar-dunes` from the same export, then copy
+   `look/map.baked.json` + `public/assets/sunscar-dunes/map/top.webp` into the landing index.
+6. `node scripts/parity/boot-smoke.mjs --url=<preview>` (now includes Developer Signal); `node
+   scripts/test-facade-instancing.mjs --url=<preview>`.
+7. In the export: `node scripts/generated-files.mjs --write`, `pnpm typecheck`, oxlint, ratchet, shard-coupling, then
+   `python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run`. Land with commit-tree + `update-ref NEW OLD`, then
+   sync the shared index and disk copies of the landed paths (GIT.md).
 
-## Blocker found (must be solved before it lands)
+## Next, in order
 
-The candidate build refuses Signal's boot: **"Runtime cache coverage exceeds its measured bytes"**
-(`src/game/grid/allocator.ts` `validateCoverage`, via `reserveClaim` → `reservePageComponent` at the `finish` stage).
-The new `loadRigFile` GLB is a page component covered by the measured whole-page claim (`SIGNAL_DUNES_RUNTIME_COST`),
-and the covered components already sit at that bound. Next: read `coverRuntimeAssets` / `reservePageComponent` to see
-what the GLB is charged as. Either load it outside the cached-asset path (it is tiny, and the scene owns the geometry),
-or re-measure the runtime cost (a Simulator + GL census, `progress/memory/…`), which the brief's memory check wants anyway.
-
-## Clean-export suite on the candidate (before the blocker fix)
-
-Green except the expected ones: `physics-bake.test.ts` (rebake natively: `scripts/bake-signal-physics.mjs --url=<candidate>`),
-`baked-maps` (rebake: `scripts/bake-maps.mjs --shards=sunscar-dunes`), and AG7 **`shards/sunscar-dunes → sdk 12 → 13`**
-(the generator's `@wildshard/sdk/bake/glb` import, which the brief names as the pattern; it needs the coordinator's
-approval). The engine edge went back to 126 by reusing `signalDunesField`. Not yet run: parity poses, physics walk
-(0 stuck), boot smoke, memory / cold load before and after, frame floor, the facade test.
-
-## After the blocker, in order
-
-1. Land rocks with the native physics rebake and the map rebake in the same commit.
-2. `dressing.ts` (static scatter part; its `tick` stays), `tower.ts`, `places.ts` (caravan / well / brazier: animated
-   sub-parts as named GLB nodes; `models/gear.ts` builds them for the Model Explorer, so it moves to the bake too).
-3. The `species/` rigs → baked GLBs; the look tables (`minimap`, `far`, `dusk`, `families`) → `data/` rows.
+1. `world/dressing.ts` (297 lines): the static scatter part to `generators/`; its `tick` stays in the client.
+2. `world/tower.ts` (117), then `world/places.ts` (294: caravan, well, brazier); animated sub-parts as named GLB nodes;
+   `models/gear.ts` builds them for the Model Explorer, so it moves to the bake too.
+3. The `species/` rigs (288) → baked GLBs; the look tables (`minimap`, `far`, `dusk`, `families`) → `data/` rows.
