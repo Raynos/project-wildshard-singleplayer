@@ -53,7 +53,7 @@ function bake(arg) {
   });
   const fog = scene.fog, bg = scene.background; scene.fog = null;
   const cam0 = g.camera, side = Math.min(arg.tile, gl.drawingBufferWidth, gl.drawingBufferHeight), ratio = r.getPixelRatio(), half = arg.metres / 2;
-  const near = 1, far = arg.clipBelow === null ? arg.height + 400 : arg.height - arg.clipBelow;
+  const near = arg.clipAbove === null ? 1 : arg.height - arg.clipAbove, far = arg.clipBelow === null ? arg.height + 400 : arg.height - arg.clipBelow;
   const pass = () => {
     const out = document.createElement('canvas'); out.width = side * 2; out.height = side * 2; const ctx = out.getContext('2d');
     r.setRenderTarget(null); r.setScissorTest(false); r.setViewport(0, 0, side / ratio, side / ratio);
@@ -123,7 +123,7 @@ try {
       await page.goto(`${base}?chunk=${encodeURIComponent(slug)}&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && !document.querySelector('.ws-load')), null, { timeout: 180_000, polling: 250 });
       await page.waitForTimeout(6000); // late streamed pieces and models
-      const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, clipBelow: settings.clipBelow });
+      const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove });
       const colourPng = join(work, `colour-${slug}.png`), heightPng = join(work, `height-${slug}.png`), stylePath = join(work, `style-${slug}.json`);
       writeFileSync(colourPng, Buffer.from(out.colour.slice(out.colour.indexOf(',') + 1), 'base64'));
       if (out.height !== null) writeFileSync(heightPng, Buffer.from(out.height.slice(out.height.indexOf(',') + 1), 'base64'));

@@ -11,7 +11,8 @@ Three kinds of world:
           colour, with an optional faint glow of the colour pass ("glow", 0 = none)
   ground  any other ground: every pixel takes the flat fill of the table's class whose `match` colour is nearest the
           (smoothed) colour pass; raised things (trees, roofs) take a raised class with an edge and a cast shadow;
-          optional water by height and rock by slope
+          optional water by height and rock by slope; an optional "void" (floors over nothing, Nine Dragon): where nothing
+          was drawn is a flat colour or "transparent", with a cast shadow veil ("shadow") and an optional "rim" round the floors
 
 Run: uv run --with numpy --with scipy --with pillow python scripts/map-stylize.py <colour.png> <height.png> <style.json> <out.webp> [size]
 The height pass encodes y in metres as (y + 100) / 400 over 16 bits in R, G; B marks where anything was drawn.
@@ -209,6 +210,21 @@ else:  # ground
             C[reg] = hex3(c['fill'])
             C[reg] *= (0.78 + 0.3 * rshade[reg])[:, None]
             C[outline(reg)] = hex3(c['edge'])
+
+    if 'void' in S:  # a world of floors over nothing (Nine Dragon's stack): undrawn pixels are the void, a flat colour or see-through
+        drawn = drop_small(ndi.binary_opening(mask, iterations=1), 12)
+        sh = ndi.shift(drawn.astype(np.float32), (4, 4), order=0) > 0.5
+        cast = sh & ~drawn
+        if S['void'] == 'transparent':
+            A = np.zeros(C.shape[:2], np.float32)
+            A[cast] = float(S.get('shadow', 0.35))
+            A[drawn] = 1.0
+            C[cast] = 0.0
+        else:
+            C[~drawn] = hex3(S['void'])
+            C[cast] *= 1.0 - float(S.get('shadow', 0.35))
+        if 'rim' in S:
+            C[outline(drawn, 1)] = hex3(S['rim'])
 
 rgb = (np.clip(C, 0, 1) * 255).astype(np.uint8)
 if A is not None:

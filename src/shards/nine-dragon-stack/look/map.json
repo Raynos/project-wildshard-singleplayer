@@ -1,0 +1,71 @@
+{
+  "why": "Nine Dragon's map as its floors seen from above (G252, Jake's pick B): the stack's towers rise far over the playable levels and from straight up their roofs and the bridge blocks hide the square, the stair-street and the street, so the bake clips everything above 153 m (just over the deck at Y0 + 24) and the cut towers drop out; what is left is granite floors in cool greys, the plaza's cinnabar neon picked out, every change of level inked, the Well's drop dark with a blue lip, and the void transparent so the map's own dark frame shows through (as Sky Reach)",
+  "clipAbove": 153,
+  "style": {
+    "kind": "ground",
+    "smooth": 7,
+    "shade": 0.35,
+    "classes": [
+      {
+        "match": "#77839b",
+        "fill": "#c3c8d0"
+      },
+      {
+        "match": "#5e6878",
+        "fill": "#a9b0bb"
+      },
+      {
+        "match": "#9e9ca6",
+        "fill": "#d6d2cb"
+      },
+      {
+        "match": "#54352f",
+        "fill": "#b8553e"
+      },
+      {
+        "match": "#212022",
+        "fill": "#5b6372"
+      },
+      {
+        "match": "#111314",
+        "fill": "#4b5261"
+      },
+      {
+        "match": "#282c34",
+        "fill": "#4a505e"
+      },
+      {
+        "match": "#393b43",
+        "fill": "#5a6070"
+      },
+      {
+        "match": "#46474b",
+        "fill": "#6a6f7c"
+      },
+      {
+        "match": "#4d525d",
+        "fill": "#737a89"
+      },
+      {
+        "match": "#575c68",
+        "fill": "#7f8696"
+      },
+      {
+        "match": "#6a7383",
+        "fill": "#8d95a3"
+      }
+    ],
+    "steep": {
+      "slope": 2.0,
+      "fill": "#1d2029"
+    },
+    "water": {
+      "below": 100,
+      "fill": "#141822",
+      "edge": "#3d5a7a"
+    },
+    "void": "transparent",
+    "shadow": 0.4,
+    "rim": "#14161d"
+  }
+}
