@@ -3,9 +3,9 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring player tape, Captain continuation and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "0fa4315e5f05ce34fb2bedd3f6fdd560547a0f88b3438cfbdd92a5f2db475c2c",
+  "inputs": "8d11660a38976c9ebfeaaf9c9df699dae77afc5d96bbb2e1569bce2d5029b696",
   "open": [
-    "Animated page rig hit volumes used by pushout and weapon contacts are not reproduced by the native dimension-only body ports.",
+    "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
     "The reward camera/player carry, zipline and every optional treasure/sea-glass path are not covered by this tape.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "13ec54bf2cf5bccd8e2f178448e1eb0bc72640fc9ec3eb1959a78c76a1a3fef9",
+    "hash": "33cb5622e58abb81f5e02f6f126051076a34bccf1a617fbba3566e5767d322c4",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -65,8 +65,8 @@
   },
   "replay": {
     "status": "passed",
-    "resumedFrom": "tick-10000",
-    "prefixTicks": 8339,
+    "resumedFrom": "captain",
+    "prefixTicks": 0,
     "checkpointCaptured": true,
     "checkpointTick": 18339,
     "hp": 190,
@@ -89,8 +89,8 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 916,
-    "hash": "fa2b089d032e1c94b5560b77ae8ed55dc2f568df72a054e67e19de11edd2113c",
-    "replayHash": "fa2b089d032e1c94b5560b77ae8ed55dc2f568df72a054e67e19de11edd2113c",
+    "hash": "1b128f9464f0f6fb18e492a1c0bd3da85dcadd4c96879a31d2626d9797b4b2f8",
+    "replayHash": "1b128f9464f0f6fb18e492a1c0bd3da85dcadd4c96879a31d2626d9797b4b2f8",
     "effects": [
       {
         "tick": 19120,

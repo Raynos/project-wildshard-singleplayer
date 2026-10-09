@@ -7,7 +7,7 @@ export function pinePhysicsInputs(root) {
   const paths = ['layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/fauna.ts']
     .map(path => `src/shards/pine-hollow/${path}`);
   // the shared creature rows Pine's herds derive their simulation fields from, the manager and the hunting brain that roll them
-  paths.push('scripts/bake-pine-physics.mjs', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
+  paths.push('scripts/bake-pine-physics.mjs', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/animalPose.ts', 'src/engine/entities/animalRig.ts', 'src/engine/entities/species/rigs.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   // The trusted owner identity capture depends on the actual tag writer and readonly probe, not geometry guesses.
   paths.push('src/engine/physics/surface.ts', 'src/engine/physics/pieces.ts', 'src/engine/world/registry.ts', 'src/engine/debug/probe.ts');
   const walk = (dir, accept) => {

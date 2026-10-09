@@ -29,7 +29,15 @@ than synthetic facts. `record` writes `compatibility.json` from executing these 
 the scoped gameplay proofs pass, but **whole-shard compatibility remains false** while `open` lists the page laws and
 optional gameplay not covered here. This is not a claim of browser parity for every contact/rig/camera/optional quest.
 
-The sailor nonvisual rise/sink/deck continuation is copied only in the trusted body callback. Its executable native
-oracle runs the actual shipping source block (hash-fenced) for 10k 30/60-Hz frames and an interrupted/restored rise.
-Moving the shipping block would change a physics-bake input, so page rig/animation and bakes stay untouched.
+Living creature head/body/fore volumes now use the actual baked rig rest chains and the shipping scalar/custom
+pose laws. The browser baker checks each chain against the loaded skeleton inverse binds. Contacts read the previous
+published pose, while body updates advance current locals; snapshots preserve both. The source-hashed native oracle
+covers each living rig for 10k frames and a restored suffix, including 60 / 30 / 20 Hz and paused scheduling.
+Rendered ragdoll bodies remain outside the witness.
+
+The sailor rise/sink/deck transition has one pure defining function, called by the page animation and the trusted body
+callback. Visual rig work stays on the page. Actual Driftwood and Pine browser captures retain every earlier gameplay
+field; Driftwood adds 35 captured pose recipes. The re-recorded tape stays at 19,255 ticks, with the living Captain at
+18,339 (190 HP), the same fact ticks and the same 916-tick fight/reward suffix. Its new checkpoint payloads include the
+pose continuations. Exact original/restored state, 60 SDK-worker ticks and durable/refused-write ledger proofs pass.
 Jake picked flared pier ramps (plan ca6e4631e); they are the only path. The straight variant and Debug row are removed.

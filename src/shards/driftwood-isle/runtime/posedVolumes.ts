@@ -83,6 +83,8 @@ export class DriftwoodPosedVolumes {
     this.published = new Float64Array(this.joints.length * 10);
     // Factory bind matrices exist before an actor's first rendered placement; no body, clocks or RNG run here.
     this.publish(); this.root.scale.setScalar(actor.scale);
+    // AnimalView.place changes root locals immediately; its bind matrices remain cached until the first scene publication.
+    this.root.position.copy(actor.position); this.root.rotation.y = actor.yaw;
   }
   /** Body animation phase only; contacts keep the previous publication until publish(). */
   advance(dt: number, t: number, near: boolean): void {
@@ -142,4 +144,13 @@ export class DriftwoodPosedVolumes {
     this.fk.solve(this.frame);
     this.joints.forEach((j, n) => { read(j, local, n * 10); }); read(this.root, local, this.joints.length * 10);
   }
+}
+
+/** One-time native spawn attachment, after the trusted roster has admitted its actual baked recipe. */
+export function attachDriftwoodPose(actor: AnimalSim, recipe: DriftwoodPoseRecipe, animate?: (context: AnimalRigContext) => void): {
+  readonly pose: DriftwoodPosedVolumes; readonly body: AnimalSim & { hidden: boolean; sampleTerrain: () => void };
+} {
+  const pose = new DriftwoodPosedVolumes(actor, recipe, animate);
+  actor.bindVolumes(pose);
+  return { pose, body: Object.assign(actor, { hidden: false, sampleTerrain: (): void => { pose.sampleTerrain(); } }) };
 }

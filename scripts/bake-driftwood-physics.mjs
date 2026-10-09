@@ -45,10 +45,30 @@ try {
     const hunt = animals.hunt;
     // the manager's list at load, in its own order; `at` is where the manager placed it (its legacy brain's first goal,
     // which a self-thinking species never moves), not where it has walked since
+    const poseOf = a => {
+      const model = a.model;
+      if (!model?.bones || !a.bones) throw new Error(`Missing actual Driftwood rig: ${a.entityId}`);
+      const defs = model.bones;
+      if (defs.length === 0 || defs.length > 32) throw new Error(`Unbounded native rig: ${a.entityId}`);
+      const joints = defs.map((def, index) => {
+        const parent = def.parent === null ? -1 : defs.findIndex(row => row.name === def.parent);
+        if (parent >= index || (def.parent !== null && parent < 0) || !a.bones[def.name]) throw new Error(`Invalid actual rig chain: ${a.entityId}:${def.name}`);
+        const p = parent < 0 ? [0, 0, 0] : defs[parent].pos;
+        const position = [def.pos[0] - p[0], def.pos[1] - p[1], def.pos[2] - p[2]];
+        const skeleton = a.mesh.skeleton, bone = a.bones[def.name], actual = skeleton.bones.indexOf(bone), inverse = skeleton.boneInverses[actual];
+        if (!inverse) throw new Error(`Missing actual inverse bind: ${a.entityId}:${def.name}`);
+        const local = inverse.clone().invert();
+        if (parent >= 0) { const ancestor = a.bones[defs[parent].name], parentInverse = skeleton.boneInverses[skeleton.bones.indexOf(ancestor)]; if (!parentInverse) throw new Error('Missing actual parent inverse bind'); local.premultiply(parentInverse); }
+        const e = local.elements, expected = [1,0,0,0,0,1,0,0,0,0,1,0,...position,1];
+        if (e.some((value, k) => Math.abs(value - expected[k]) > 1e-12)) throw new Error(`Actual rig rest differs from its model: ${a.entityId}:${def.name}`);
+        return { name: def.name, parent, position, order: 'XYZ', scale: [1, 1, 1] };
+      });
+      return { joints, custom: model.species.rig === 'custom', ...(model.species.gait === undefined ? {} : { gait: copy(model.species.gait) }), ...(model.species.pose === undefined ? {} : { pose: copy(model.species.pose) }) };
+    };
     const actors = animals.animals.map(a => {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
       const b = hunt.memory(a);
-      return { id: a.entityId, kind: a.kind, variant: a.variant, herd: a.herd, spec: copy(a.simSpec), seed: a.seed, scale: a.scale,
+      return { id: a.entityId, kind: a.kind, variant: a.variant, herd: a.herd, spec: copy(a.simSpec), seed: a.seed, scale: a.scale, pose: poseOf(a),
         at: b === undefined ? null : { x: b.tx, z: b.tz } };
     });
     // herd centres are not placement facts (the manager recentres them as members move): only kind and membership
@@ -109,7 +129,20 @@ try {
       const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;
       adv.flags.set('used:altar');
       const a = adv.finale.captain(); if (!a?.simSpec) throw new Error('Missing the captain after the altar');
-      return { spec: structuredClone(a.simSpec), pool: { x: a.mem.poolX, z: a.mem.poolZ, yaw: a.yaw }, arena: a.mem.arena };
+      const defs = a.model.bones;
+      const pose = { joints: defs.map((def, index) => {
+        const parent = def.parent === null ? -1 : defs.findIndex(row => row.name === def.parent), p = parent < 0 ? [0, 0, 0] : defs[parent].pos;
+        if (parent >= index || (def.parent !== null && parent < 0) || !a.bones[def.name]) throw new Error(`Invalid actual captain rig: ${def.name}`);
+        const position = [def.pos[0] - p[0], def.pos[1] - p[1], def.pos[2] - p[2]];
+        const skeleton = a.mesh.skeleton, bone = a.bones[def.name], actual = skeleton.bones.indexOf(bone), inverse = skeleton.boneInverses[actual];
+        if (!inverse) throw new Error(`Missing actual inverse bind: ${a.entityId}:${def.name}`);
+        const local = inverse.clone().invert();
+        if (parent >= 0) { const ancestor = a.bones[defs[parent].name], parentInverse = skeleton.boneInverses[skeleton.bones.indexOf(ancestor)]; if (!parentInverse) throw new Error('Missing actual parent inverse bind'); local.premultiply(parentInverse); }
+        const e = local.elements, expected = [1,0,0,0,0,1,0,0,0,0,1,0,...position,1];
+        if (e.some((value, k) => Math.abs(value - expected[k]) > 1e-12)) throw new Error(`Actual rig rest differs from its model: ${a.entityId}:${def.name}`);
+        return { name: def.name, parent, position, order: 'XYZ', scale: [1, 1, 1] };
+      }), custom: a.model.species.rig === 'custom' };
+      return { spec: structuredClone(a.simSpec), pose, pool: { x: a.mem.poolX, z: a.mem.poolZ, yaw: a.yaw }, arena: a.mem.arena };
     });
     const again = await page.evaluate(() => {
       const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;

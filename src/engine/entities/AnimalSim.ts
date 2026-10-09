@@ -16,6 +16,14 @@ export interface AnimalMotor {
   move: (feet: Vector3, want: { x: number; y: number; z: number }, ignoreGround: boolean) => void;
   dispose: () => void;
 }
+/** Trusted collision-pose owner. It reads only the last published joints, never advances a body or pose.
+ * The installer snapshots/restores its publication history through the host adapter alongside this actor. */
+export interface AnimalVolumePort {
+  readonly entityId: string;
+  headWorld: (out: Vector3) => void;
+  bodyCapsule: (rear: Vector3, front: Vector3) => void;
+  foreCapsule?: (rear: Vector3, front: Vector3) => boolean;
+}
 /** Per-host world height, time, random stream and optional damage pipeline. */
 export interface AnimalSimPorts {
   heightAt: (x: number, z: number) => number;
@@ -89,6 +97,7 @@ export class AnimalSim {
   readonly entityId: string;
   protected readonly simSpec: AnimalSimSpec;
   protected readonly simPorts: AnimalSimPorts;
+  private volumePort: AnimalVolumePort | null = null;
   private elapsed = 0;
   private readonly moveWant = { x: 0, y: 0, z: 0 };
 
@@ -169,7 +178,6 @@ export class AnimalSim {
   cancelAttack(): void { this.attackT = -1; }
   get stunned(): boolean { return this.stunT > 0; }
   damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist, this.simPorts.random); }
-  /** Head and body perception defaults use authored dimensions; a client view can supply posed hit volumes. */
   /** Shared scalar pose clocks after one scheduled body move. Does not move, decide, publish matrices or draw.
    * `advanceAttack` is true only for legacy views that moved through stepMotion rather than step. */
   advancePose(law: AnimalPoseLaw, dt: number, t: number, near: boolean, advanceAttack = false,
@@ -192,8 +200,25 @@ export class AnimalSim {
     i.groundY = this.groundY; i.tiltRollT = this.tiltRollT; i.levelGround = this.levelGround; i.flying = this.flight !== null;
     i.advanceAttack = advanceAttack; i.desiredSpeed = this.desiredSpeed; i.debugGait = debugGait;
   }
-  headWorld(out: Vector3): Vector3 { return out.set(this.position.x + Math.sin(this.yaw) * this.dims.bodyHalfLen * this.scale, this.position.y + this.dims.bodyY * this.scale, this.position.z + Math.cos(this.yaw) * this.dims.bodyHalfLen * this.scale); }
+  /** Bind one trusted posed-volume owner before restoring the host. Actor clocks stay with this actor;
+   * publication/restore cadence stays with the installer. No callback executes during binding. */
+  bindVolumes(port: AnimalVolumePort): void {
+    if (this.volumePort !== null || port.entityId !== this.entityId || typeof port.headWorld !== 'function'
+      || typeof port.bodyCapsule !== 'function' || (port.foreCapsule !== undefined && typeof port.foreCapsule !== 'function')) {
+      throw new Error('Incompatible creature volume binding');
+    }
+    this.volumePort = port;
+  }
+  /** Head and body defaults use authored dimensions until a trusted installer binds published posed volumes. */
+  headWorld(out: Vector3): Vector3 {
+    if (this.volumePort !== null) { this.volumePort.headWorld(out); return out; }
+    return out.set(this.position.x + Math.sin(this.yaw) * this.dims.bodyHalfLen * this.scale,
+      this.position.y + this.dims.bodyY * this.scale, this.position.z + Math.cos(this.yaw) * this.dims.bodyHalfLen * this.scale);
+  }
+  /** The optional fore volume is absent until its trusted pose owner supplies one. */
+  foreCapsule(rear: Vector3, front: Vector3): boolean { return this.volumePort?.foreCapsule?.(rear, front) ?? false; }
   bodyCapsule(a: Vector3, b: Vector3): void {
+    if (this.volumePort !== null) { this.volumePort.bodyCapsule(a, b); return; }
     const d = this.dims, half = d.bodyHalfLen * this.scale;
     const x = d.capsuleAxis === 'y' ? 0 : Math.sin(this.yaw) * half, y = d.capsuleAxis === 'y' ? half : 0, z = d.capsuleAxis === 'y' ? 0 : Math.cos(this.yaw) * half;
     const cy = this.position.y + d.bodyY * this.scale;

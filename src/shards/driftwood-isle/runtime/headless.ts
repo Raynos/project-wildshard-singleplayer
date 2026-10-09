@@ -115,5 +115,6 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
       waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
+    host.onStep('driftwood.poses', island.publishPoses, undefined, 'afterBodies');
   } };
 };

@@ -1,5 +1,5 @@
 {
-  "inputs": "89ab83332412ce58007d4e7cd59f7dee15f862035cffc7e4e578dd5660f05dcf",
+  "inputs": "8d11660a38976c9ebfeaaf9c9df699dae77afc5d96bbb2e1569bce2d5029b696",
   "tape": "2cfc3356171e68cb146109fef67ceef1ece208f1dcf67b2f76e9f1d2fa457128",
   "ticks": 19255,
   "effects": [
@@ -112,15 +112,15 @@
     {
       "name": "spawn",
       "tick": 0,
-      "sha": "1a46bc7e5c8a3c08a5f05892a79fa4d5214d4983d1625ba1c9847a261eb3d9ff",
-      "digest": "e3b8eb07689989c54c57752bcadcc550f00840149f806da38829f18f48ff4c25",
+      "sha": "974635d6a4cbcf2c9a535b45544953541f42c6395348b816fca48eb631e7b85d",
+      "digest": "dd14327e36b2feec4fe69dfc697f9bf6ea58aa86bccd733bd52f49337f4e90e5",
       "profile": []
     },
     {
       "name": "tick-10000",
       "tick": 10000,
-      "sha": "9cc8b5e6a033a46a98345f00333626443f8c21ade34253006dcb765891b1c7e0",
-      "digest": "13ec54bf2cf5bccd8e2f178448e1eb0bc72640fc9ec3eb1959a78c76a1a3fef9",
+      "sha": "fb193c95174030e91dcd8b0e4578a5117067e9300e78199a70af36eda3d3ad86",
+      "digest": "33cb5622e58abb81f5e02f6f126051076a34bccf1a617fbba3566e5767d322c4",
       "profile": [
         [
           "wildshard.save.v2.device",
@@ -139,8 +139,8 @@
     {
       "name": "captain",
       "tick": 18339,
-      "sha": "f1f090b3d647dad8f36ff7f813c2da92dc603967c01dfe2341c1e7d6dc4d9655",
-      "digest": "a3f13c78b77d2c7d532fa2b295807662e50e8a67f2fc85417072b191ecf09c9c",
+      "sha": "e1fbd21b670970b1f0dd2db478d8f05426d25af163036f28fd4694161fa56cd1",
+      "digest": "eeb8f43fbed707a0685d860a09ace1749ca7a62262a7d309d686a500de6f768b",
       "profile": [
         [
           "wildshard.save.v2.device",
@@ -157,5 +157,5 @@
       ]
     }
   ],
-  "endDigest": "427d5e21bff298702ab36ae3604e52f9ce82254e52e8faccbd5c6f8854ee08bb"
+  "endDigest": "af2c14a74fd3cac55b11e4508690bb1aaa34a5040ccf051ee8f492c410325c51"
 }

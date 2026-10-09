@@ -1,3 +1,8 @@
+import { attachDriftwoodPose, type DriftwoodPosedVolumes, type DriftwoodPoseRecipe } from './posedVolumes';
+import { animateCrab } from '../species/crabPose';
+import { animateMonkey } from '../species/monkeyPose';
+import { animateSailor } from '../species/sailorPose';
+import { animateCaptain } from '../species/captainPose';
 import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -19,7 +24,7 @@ import { MONKEY_VARIANTS } from '../species/monkeyVariants';
 import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { placeEnemies, PRACTICE_AT } from './placement';
-import { enemyBrain, stepSailorMotion, type EnemyBrain } from './enemyBrains';
+import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake } from './baked';
 import { RespawnQueue, RESPAWN } from './ecology';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
@@ -50,7 +55,7 @@ const ENEMIES = new Map<string, readonly { readonly id: string; readonly weight:
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
 const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
-const HUNT_BODY = { hidden: false, sampleTerrain: (): void => undefined };
+const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey], ['sailor', animateSailor], ['captain', animateCaptain]]);
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody {
@@ -83,11 +88,11 @@ const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), 
 /** a coconut collider's owner tag (plain data: the host's snapshot encodes collider owners) */
 const COCONUT_OWNER = { kind: 'coconut' } as const;
 const Respawn = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite, due: finite, night: v.boolean(), id: v.string() });
-const Saved = v.strictObject({ version: v.literal(7), rng: Stream, ecology: v.strictObject({ now: finite, check: finite, pending: v.pipe(v.array(Respawn), v.maxLength(ROSTER)) }),
+const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.strictObject({ now: finite, check: finite, pending: v.pipe(v.array(Respawn), v.maxLength(ROSTER)) }),
   coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])),
-  bodies: v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, live: v.boolean(), policy: v.nullable(v.string()) })),
-  captain: v.nullable(v.strictObject({ id: v.string(), policy: v.boolean() })),
+  bodies: v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, live: v.boolean(), pose: v.nullable(v.string()), policy: v.nullable(v.string()) })),
+  captain: v.nullable(v.strictObject({ id: v.string(), pose: v.string(), policy: v.boolean() })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 
 /** HuntMemory as plain data: every field, the path's corners as points. */
@@ -150,6 +155,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   staggered: (a: AnimalSim, strength: number, running: boolean) => void;
   /** On restore, reinstall the bodies spawned in play after every other install-time registration (no-op when fresh). */
   settle: () => void;
+  /** Publish only after body contacts and equipment, at the page render boundary. */
+  publishPoses: () => void;
 } {
   // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
   const NO_RECIPE = new Error('Missing native Driftwood recipe');
@@ -157,7 +164,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const NO_VARIANT = new Error('Driftwood ecology has no variant');
   const NO_SLOT = new Error('Driftwood ecology has no recipe slot');
   const NO_SCALE = new Error('Missing Driftwood ecology scale');
-  const byId = new Map<string, IslandBody>();
+  const byId = new Map<string, IslandBody>(), poses = new Map<string, DriftwoodPosedVolumes>();
   const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
   // the page's distance bands (AnimalManager.tickRate): 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`,
   // the fauna's default), 'always' while a crab sidesteps, the creature manager's 'legacy' for the captain (a self-thinking
@@ -220,13 +227,18 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     return hit === null || !under.structure ? terrain : hit.point.y;
   };
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? floor(x, z, fromY);
-  const recipes = new Map<string, Map<string, AnimalSimSpec>>();
+  const recipes = new Map<string, Map<string, AnimalSimSpec>>(), poseRecipes = new Map<string, Map<string, DriftwoodPoseRecipe>>();
+  bake.actors.forEach(row => { let group = poseRecipes.get(row.kind); if (group === undefined) { group = new Map(); poseRecipes.set(row.kind, group); } group.set(row.variant, row.pose); });
   specs.forEach(known => { let group = recipes.get(known.kind); if (group === undefined) { group = new Map(); recipes.set(known.kind, group); } group.set(known.variant, known); });
   const spec = (kind: string, variant: string): AnimalSimSpec => {
     const known = recipes.get(kind)?.get(variant); if (known === undefined) throw NO_RECIPE; return known;
   };
   const materialize = (body: IslandBody, recipe: SimSpawn, structure: boolean): void => {
-    const a = Object.assign(host.spawn(recipe), HUNT_BODY);
+    const rig = body.kind === 'captain' ? bake.captain.pose : poseRecipes.get(body.kind)?.get(body.variant);
+    if (rig === undefined) throw NO_RECIPE;
+    const actor = host.spawn(recipe);
+    const attached = attachDriftwoodPose(actor, rig, POSE_CALLBACKS.get(body.kind));
+    poses.set(body.id, attached.pose); const a = attached.body;
     a.levelGround = structure; if (structure) a.groundHeight = body.kind === 'sailor' ? holdFloor : floor;
     // a melee shard caps every creature's turn while it attacks (AnimalManager.spawnAnimal)
     a.attackTurnCap = ATTACK_TURN;
@@ -311,7 +323,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** Enemies.placePracticeCrab: a fresh small crab in the practice slot at the pier's foot, facing down the path, a herd of
    *  one, under the manager's next entity id. */
   const replacePractice = (body: IslandBody): void => {
-    byId.delete(body.id); host.retire(body.id);
+    byId.delete(body.id); host.retire(body.id); poses.delete(body.id);
     body.id = entityIds.allocate(); body.recipe.id = body.id;
     const old = hunt.herds[body.herd]; if (old !== undefined) old.members.length = 0;
     body.herd = hunt.addHerd('crab', PRACTICE_AT.x, PRACTICE_AT.z);
@@ -388,17 +400,17 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       if (old?.actor !== null && old?.actor !== undefined && !old.actor.alive) {
         const members = hunt.herds[old.herd]?.members, at = members?.indexOf(old.actor) ?? -1;
         if (at >= 0) members?.splice(at, 1);
-        byId.delete(old.id); host.retire(old.id); old.actor = null; old.brain = null;
+        byId.delete(old.id); host.retire(old.id); poses.delete(old.id); old.actor = null; old.brain = null;
       }
       pendingIds.delete(entry); bodies.push(body);
     }
   };
-  let sailorNear = false; // recomputed before each sailor body; never continuation state
+  let poseNear = false; // recomputed before each body; never continuation state
   host.useBodyStep({
     before: (id, actor, dt) => {
       const body = byId.get(id); if (body === undefined || body.actor !== actor) return;
       const a = body.actor;
-      if (body.kind === 'sailor') sailorNear = a.position.distanceToSquared(player) < ANIM_LOD * ANIM_LOD;
+      poseNear = a.position.distanceToSquared(player) < ANIM_LOD * ANIM_LOD;
       if (!a.alive || a.stunned) return;
       if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, dt, player); }
       else body.brain.move(dt);
@@ -407,7 +419,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       const body = byId.get(id); if (body === undefined || body.actor !== actor) return;
       const a = body.actor;
       // AnimalView.update moves first, then animateSailor advances its root offset, including dead/stunned bodies within the page animation range.
-      if (body.kind === 'sailor' && sailorNear) stepSailorMotion(a, dt);
+      poses.get(id)?.advance(dt, host.clock.now, poseNear);
       if (a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, player);
       if (body.brain === null && a.alive && a.position.distanceToSquared(player) < 36) clearBody(a, player);
     },
@@ -447,14 +459,14 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
-    snapshot: () => ({ version: 7, rng: { ...rng.snapshot() }, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
+    snapshot: () => ({ version: 8, rng: { ...rng.snapshot() }, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) },
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
         memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight] },
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
-      bodies: bodies.map(b => ({ id: b.id, kind: b.kind, variant: b.variant, herd: b.herd, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
-      captain: captain === null ? null : { id: captain.id, policy: v.parse(v.boolean(), captain.brain?.snapshot()) } }),
+      bodies: bodies.map(b => ({ id: b.id, kind: b.kind, variant: b.variant, herd: b.herd, live: b.actor !== null, pose: b.actor === null ? null : poses.get(b.id)?.snapshot() ?? null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
+      captain: captain === null ? null : { id: captain.id, pose: poses.get(captain.id)?.snapshot() ?? '', policy: v.parse(v.boolean(), captain.brain?.snapshot()) } }),
     restore: value => {
       const state = v.parse(Saved, value);
       if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length
@@ -468,6 +480,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
+      state.bodies.forEach(b => { if ((b.pose !== null) !== b.live) throw new Error('Missing Driftwood pose continuation'); if (b.pose !== null) poses.get(b.id)?.restore(b.pose); });
+      if (state.captain !== null) poses.get(state.captain.id)?.restore(state.captain.pose);
       state.bodies.forEach((b, i) => { if (b.policy !== null) bodies[i]?.brain?.restore(v.parse(v.string(), JSON.parse(b.policy))); });
       if (state.captain !== null) captain?.brain?.restore(state.captain.policy);
       // the hunting brain's world clock from 0 (its path re-plan timers run on it), the speed meter, sight and memories
@@ -499,7 +513,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const body = bodies.find(b => b.actor === a && b.brain === null)?.actor ?? null;
     if (body !== null) hunt.staggered(body, strength, running);
   };
-  const island = { bodies: () => bodies, hunt, captain: () => captain?.actor ?? null, spawnCaptain, alarm, staggered };
+  const publishPoses = (): void => {
+    for (let i = 0; i < ROSTER; i++) { const body = rosterAt(i); if (body !== null && body.actor !== null) poses.get(body.id)?.publish(); }
+  };
+  const island = { publishPoses, bodies: () => bodies, hunt, captain: () => captain?.actor ?? null, spawnCaptain, alarm, staggered };
   if (saved === undefined) { keep(); return { ...island, settle: () => undefined }; }
 
   const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === ISLAND_STEP)?.state);

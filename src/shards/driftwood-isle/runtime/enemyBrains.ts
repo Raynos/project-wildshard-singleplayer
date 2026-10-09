@@ -9,7 +9,8 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { skirmisher, guardian, perchHunter } from '@wildshard/sdk/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../data/brains';
 import { CrabBrain } from '../species/crab';
-import { SailorBrain, RISE_T } from '../species/sailor';
+import { SailorBrain } from '../species/sailor';
+import { stepSailorRise } from '../species/sailorPose';
 import { MonkeyBrain, pickPerch, setPerch } from '../species/monkeyPolicy';
 import { CaptainBrain } from '../species/captainPolicy';
 
@@ -38,15 +39,7 @@ export interface EnemyBrainPorts {
 
 /** The shipping animateSailor's body-continuation lines: rise/sink and the deck-relative
  * root offset are gameplay, even without a renderer. Bone poses remain on the page. */
-export function stepSailorMotion(actor: Pick<HuntBody, 'mem' | 'yOffset'>, dt: number): void {
-  const m = actor.mem;
-  if (m['rising']) { m['rise'] = Math.min(1, (m['rise'] ?? 0) + dt / RISE_T); if (m['rise'] >= 1) m['rising'] = 0; }
-  if (m['sinking']) { m['rise'] = Math.max(0, (m['rise'] ?? 0) - dt / RISE_T); if (m['rise'] <= 0) m['sinking'] = 0; }
-  const t = Math.max(0, Math.min(1, m['rise'] ?? 0)), up = m['init'] ? t * t * (3 - 2 * t) : 0;
-  const floor = m['floor'] ?? 0;
-  m['floorS'] = (m['floorS'] ?? floor) + (floor - (m['floorS'] ?? floor)) * Math.min(1, dt * 6);
-  actor.yOffset = (1 - up) * (m['floorS'] - 2.3) + up * m['floorS'];
-}
+export function stepSailorMotion(actor: Pick<HuntBody, 'mem' | 'yOffset'>, dt: number): void { stepSailorRise(actor, dt); }
 
 /**
  * The shipping policy for one Driftwood enemy (runtime/brains.ts `declaredCreatureRows`): the crab's skirmisher in its

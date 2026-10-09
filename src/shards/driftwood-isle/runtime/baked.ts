@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import type { DriftwoodPoseRecipe } from './posedVolumes';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** The baked floor's lattice (Rapier's own heightfield as the page built it, scripts/bake-driftwood-physics.mjs). */
@@ -11,7 +12,10 @@ const BakedSpec = v.strictObject({ kind: v.string(), label: v.string(), variant:
   hp: finite, aggressive: v.boolean(), lockable: v.optional(v.boolean()),
   dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite, capsuleAxis: v.optional(v.picklist(['z', 'y'])) }),
   mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }) });
-const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, seed: finite, scale: finite, at: v.nullable(xz) });
+const Pose = v.strictObject({ joints: v.pipe(v.array(v.strictObject({ name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)), parent: v.pipe(finite, v.integer(), v.minValue(-1), v.maxValue(31)),
+  position: v.tuple([finite, finite, finite]), order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), scale: v.tuple([finite, finite, finite]) })), v.minLength(1), v.maxLength(32)), custom: v.boolean(),
+  gait: v.exactOptional(v.strictObject({ trot: finite, gallop: finite })), pose: v.exactOptional(v.strictObject({ grazeNeck: finite, gallopTail: finite })) });
+const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, pose: Pose, seed: finite, scale: finite, at: v.nullable(xz) });
 const Solid = v.strictObject({ shape: v.picklist([1, 2, 9]), groups: finite, friction: finite, at: v.tuple([finite, finite, finite]), rot: v.tuple([finite, finite, finite, finite]),
   half: v.optional(v.tuple([finite, finite, finite])), halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()) });
 const Bake = v.object({ version: v.literal(1),
@@ -20,12 +24,12 @@ const Bake = v.object({ version: v.literal(1),
   habitat: v.object({ perches: v.array(xyz), perchBases: v.array(xyz), crabSites: v.array(xz), practice: v.string(),
     hold: v.strictObject({ x: finite, z: finite, r: finite, guardR: finite, step: finite, floor: v.array(v.nullable(finite)) }) }),
   // the finale's captain after `used:altar`: his native spec, his pool (the spawn point and yaw) and his arena radius
-  captain: v.strictObject({ spec: BakedSpec, pool: v.strictObject({ x: finite, z: finite, yaw: finite }), arena: finite }) });
+  captain: v.strictObject({ spec: BakedSpec, pose: Pose, pool: v.strictObject({ x: finite, z: finite, yaw: finite }), arena: finite }) });
 
 /** One baked fixed WORLD collider: a cuboid (half extents), a capsule (half height, radius) or a convex hull (vertices). */
 export type DriftwoodSolid = v.InferOutput<typeof Solid> & { readonly points?: Float32Array };
 /** A baked body: the manager's spawn order, kind / variant, herd slot, native spec, seed, scale and spawn point. */
-export interface DriftwoodBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number; readonly at: { readonly x: number; readonly z: number } | null }
+export interface DriftwoodBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly pose: DriftwoodPoseRecipe; readonly seed: number; readonly scale: number; readonly at: { readonly x: number; readonly z: number } | null }
 /** The trusted browser bake, parsed strictly once. */
 export interface DriftwoodBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
@@ -34,7 +38,7 @@ export interface DriftwoodBake {
   readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
   readonly habitat: v.InferOutput<typeof Bake>['habitat'];
   /** The Drowned Captain as the finale spawns him: his native spec, his pool (spawn point, spawn yaw) and arena radius (m). */
-  readonly captain: { readonly spec: AnimalSimSpec; readonly pool: { readonly x: number; readonly z: number; readonly yaw: number }; readonly arena: number };
+  readonly captain: { readonly spec: AnimalSimSpec; readonly pose: DriftwoodPoseRecipe; readonly pool: { readonly x: number; readonly z: number; readonly yaw: number }; readonly arena: number };
   /** The baked floor anywhere, on Rapier's own triangle split (physics/terrain.ts). */
   readonly floorAt: (x: number, z: number) => number;
   /** The wreck hold's deck / hull floor (Wreck.floorHeightAt), the baked 0.5 m lattice's nearest vertex; undefined off it. */
@@ -77,7 +81,7 @@ export function driftwoodBake(): DriftwoodBake {
   if (bake.captain.spec.kind !== 'captain' || bake.captain.spec.variant !== 'captain') throw new Error('Divergent baked Driftwood captain spec');
   const solids = bake.solids.map((solid): DriftwoodSolid => solid.vertices === undefined ? solid : { ...solid, points: floats(solid.vertices) });
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at },
-    solids, actors, herds: bake.herds, habitat: bake.habitat, captain: { spec: specOf(bake.captain.spec), pool: bake.captain.pool, arena: bake.captain.arena }, floorAt, holdFloorAt };
+    solids, actors, herds: bake.herds, habitat: bake.habitat, captain: { spec: specOf(bake.captain.spec), pose: bake.captain.pose, pool: bake.captain.pool, arena: bake.captain.arena }, floorAt, holdFloorAt };
   return parsed;
 }
 

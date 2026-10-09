@@ -11,8 +11,8 @@ import { RISE_T } from '../../../src/shards/driftwood-isle/species/sailor';
 import { stepSailorMotion } from '../../../src/shards/driftwood-isle/runtime/enemyBrains';
 
 it('matches the actual shipping rise/sink and deck smoothing for 10k body frames, including a restored rise', () => {
-  const source = readFileSync('src/shards/driftwood-isle/species/sailor.ts', 'utf8');
-  const start = source.indexOf('  if (m.rising)'), body = source.slice(start, source.indexOf('  const rise =', start));
+  const source = readFileSync('src/shards/driftwood-isle/species/sailorPose.ts', 'utf8');
+  const start = source.indexOf('  if (m.rising)'), body = source.slice(start, source.indexOf('  return up;', start));
   expect(createHash('sha256').update(body).digest('hex')).toBe('a3f1d56c75d2f18ded5d5fa8093729800724d2900c15d983e974416c4d94a60a');
   const script = new Script(`(() => { ${body} })()`);
   const native = { mem: { init: 1, rise: 0, rising: 1, sinking: 0, floor: 0.6 } as Record<string, number>, yOffset: -2.3 };
@@ -39,5 +39,5 @@ it('keeps the renderer-free rise transition inside the shipping animation distan
   const keeper = readFileSync('src/shards/driftwood-isle/runtime/keeper.ts', 'utf8');
   const distance = /const ANIM_LOD = (\d+);/u.exec(page)?.[1];
   expect(distance).toBeDefined(); expect(keeper).toContain(`const ANIM_LOD = ${String(distance)};`);
-  expect(keeper).toContain("if (body.kind === 'sailor' && sailorNear) stepSailorMotion(a, dt);");
+  expect(keeper).toContain("poses.get(id)?.advance(dt, host.clock.now, poseNear);");
 });
