@@ -11,6 +11,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { GENERATED_FILES, generatedIncreases, generatedPart, increaseTrailers, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
 import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
+import { bakeOutcome, isRecordedBake } from './bake-input-hashes.mjs';
 
 const text = (root, args, input, env = process.env) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, input, env }).trim();
 /**
@@ -67,6 +68,20 @@ async function refreshWitnessManifests(root, scratch) {
   if (code !== 0) throw new Error(stderr.trim() || `witness-manifests exited ${String(code)}`);
   return JSON.parse(readFileSync(result, 'utf8'));
 }
+/**
+ * Re-record the input hashes of the export's recorded bakes (scripts/bake-input-hashes.mjs, SF74 W22) in a child process
+ * with the TS loader, beside the generators. Rejects, naming the bake, when more than its input hashes changed.
+ */
+async function refreshRecordedBakes(scratch) {
+  const script = resolve(scratch, 'scripts/bake-input-hashes.mjs'), result = resolve(scratch, 'bake-input-hashes.result.json');
+  if (!existsSync(script) || !existsSync(resolve(scratch, 'scripts/bake-loader.mjs'))) return {};
+  const child = spawn(process.execPath, ['--import', './scripts/bake-loader.mjs', script, '--refresh', scratch, result], { cwd: scratch, stdio: ['ignore', 'inherit', 'pipe'] });
+  let stderr = '';
+  child.stderr.on('data', (chunk) => { stderr += String(chunk); });
+  const [code] = await once(child, 'close');
+  if (code !== 0) throw new Error(stderr.trim() || `bake-input-hashes exited ${String(code)}`);
+  return JSON.parse(readFileSync(result, 'utf8'));
+}
 export async function regenerateCommitted(root, approvalFile) {
   for (let attempt = 0; attempt < 12; attempt++) {
     const base = text(root, ['rev-parse', 'HEAD']);
@@ -74,7 +89,7 @@ export async function regenerateCommitted(root, approvalFile) {
     let witnesses = Promise.resolve({});
     try {
       committedExport(root, base, scratch);
-      witnesses = refreshWitnessManifests(root, scratch);
+      witnesses = Promise.all([refreshWitnessManifests(root, scratch), refreshRecordedBakes(scratch)]).then(([manifests, bakes]) => ({ ...manifests, ...bakes }));
       witnesses.catch(() => undefined); // awaited below; never an unhandled rejection while the generators run
       const { generatedFiles } = await import(pathToFileURL(resolve(scratch, 'scripts/generated-files.mjs')).href);
       const candidate = generatedFiles(scratch), increases = generatedIncreases(measurement(root, base), candidate.measurement);
@@ -102,7 +117,7 @@ export async function regenerateCommitted(root, approvalFile) {
           throw new Error(`Generated pre-commit failed: ${hook.stderr.length > 0 ? hook.stderr : hook.stdout}`);
         }
       }
-      const refreshed = Object.keys(witnessOutputs).map((file) => file.split('/')[2]).join(', ');
+      const refreshed = Object.keys(witnessOutputs).map((file) => isRecordedBake(file) ? file : file.split('/')[2]).join(', ');
       const witnessNote = refreshed === '' ? '' : `Witness inputs re-recorded on clean HEAD, payloads byte-identical: ${refreshed}\n\n`;
       const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\n${witnessNote}Generated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\n`;
       const messageFile = resolve(scratch, 'message'); writeFileSync(messageFile, message);
@@ -162,10 +177,14 @@ export async function checkCommitted(root, sha) {
     const generatedChanged = changed.filter((file) => GENERATED_FILES.includes(file) && generatedPart(file, committedText(root, parent, file) ?? '') !== generatedPart(file, committedText(root, sha, file) ?? ''));
     if (generatedChanged.length > 0 && !message.split('\n').includes(`Generated-Source: ${parent}`)) throw new Error('Generated edits require a serialized regeneration commit naming its exact source parent');
     if (message.split('\n').some((line) => line.startsWith('Generated-Source: '))) {
-      if (!message.split('\n').includes(`Generated-Source: ${parent}`) || changed.some((file) => !GENERATED_FILES.includes(file) && !isWitnessManifest(file))) throw new Error('Regeneration commit may only touch generated outputs of its exact parent');
+      if (!message.split('\n').includes(`Generated-Source: ${parent}`) || changed.some((file) => !GENERATED_FILES.includes(file) && !isWitnessManifest(file) && !isRecordedBake(file))) throw new Error('Regeneration commit may only touch generated outputs of its exact parent');
       for (const file of changed.filter(isWitnessManifest)) {
         const before = committedText(root, parent, file), after = committedText(root, sha, file);
         if (before === null || after === null || manifestOutcome(before) !== manifestOutcome(after)) throw new Error(`Regeneration may only refresh the inputs hash of ${file}, never its payload records`);
+      }
+      for (const file of changed.filter(isRecordedBake)) {
+        const before = committedText(root, parent, file), after = committedText(root, sha, file);
+        if (before === null || after === null || bakeOutcome(before) !== bakeOutcome(after)) throw new Error(`Regeneration may only refresh the input hashes of ${file}, never its baked output`);
       }
       if (!isDeepStrictEqual(replaceDebt(measurement(root, parent).ratchet, {}), replaceDebt(measurement(root, sha).ratchet, {}))) throw new Error('Regeneration cannot modify ratchet policy inputs');
     }

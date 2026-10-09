@@ -57,6 +57,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   regeneration commit only when every payload and recorded outcome is byte-identical. Any other byte fails the push,
   naming the shard and payload: a behaviour change rebakes on purpose (`run.mjs checkpoints`) with its source.
   Pre-commit refuses a builder's input-only manifest refresh; a locally stale `fresh` test is the pusher's to fix.
+  The same holds for committed bakes that record their input hashes (`scripts/bake-input-hashes.mjs`, SF74 W22: the King
+  collision bake): the pusher re-runs the bake on the clean export and commits new hashes only when nothing else changed.
 - **Policy is source, never generated.** Ratchet allow lists, budgets and Debug-row caps require the coordinator's
   reviewed source commit. SF2 `lint/shard-coupling.json` and historical allowances remain shrink-only. Debt and
   graph reductions regenerate automatically; increases warn in pre-commit and require the coordinator's exact
