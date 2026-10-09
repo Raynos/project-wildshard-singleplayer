@@ -745,7 +745,9 @@
     "phone": {
       "img": {
         "sky": [],
-        "baked": [],
+        "baked": [
+          "/assets/baked/common/cloud-field.bin"
+        ],
         "terrain": [
           "/assets/baked/nalati-grasslands/terrain.bin"
         ],
@@ -811,7 +813,9 @@
       },
       "ktx2": {
         "sky": [],
-        "baked": [],
+        "baked": [
+          "/assets/baked/common/cloud-field.bin"
+        ],
         "terrain": [
           "/assets/baked/nalati-grasslands/terrain.bin"
         ],
@@ -879,7 +883,9 @@
     "desktop": {
       "img": {
         "sky": [],
-        "baked": [],
+        "baked": [
+          "/assets/baked/common/cloud-field.bin"
+        ],
         "terrain": [
           "/assets/baked/nalati-grasslands/terrain.bin"
         ],
@@ -945,7 +951,9 @@
       },
       "ktx2": {
         "sky": [],
-        "baked": [],
+        "baked": [
+          "/assets/baked/common/cloud-field.bin"
+        ],
         "terrain": [
           "/assets/baked/nalati-grasslands/terrain.bin"
         ],
