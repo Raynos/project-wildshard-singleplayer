@@ -39,7 +39,8 @@ export class SkirmisherBrain<A extends AnimalSim> {
   restore(saved: SimValue): void { if (saved !== this.contract) throw new Error('Incompatible skirmisher continuation'); }
   /** One caller-owned AI tick; strike clocks and collision motors remain separate fixed-step authorities. */
   think(c: SkirmisherPorts<A>): void {
-    if (!Number.isFinite(c.dt) || c.dt <= 0 || c.dt > 1) throw new Error('Invalid skirmisher step');
+    // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+    if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) throw new Error('Invalid skirmisher step');
     const a = this.actor;
     const m = a.mem as SkirmisherMemory, rng = c.rng;
     if (!m.init) { m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.st = ST_IDLE; m.tm = rng.range(1, 3); m.sd = rng.next() < 0.5 ? -1 : 1; m.cd = 0; m.hitT = 0; m.shy = 0; m.scat = 0; }

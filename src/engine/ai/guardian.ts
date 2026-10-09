@@ -41,7 +41,8 @@ export class GuardianBrain<A extends AnimalSim> {
   restore(saved: SimValue): void { if (saved !== this.contract) throw new Error('Incompatible guardian continuation'); }
   /** Run one host-scheduled decision against the same floor, reach and completion observations as native recipes. */
   think(c: GuardianPorts<A>): void {
-    if (!Number.isFinite(c.dt) || c.dt <= 0 || c.dt > 1) throw new Error('Invalid guardian step');
+    // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+    if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) throw new Error('Invalid guardian step');
     const a = this.actor;
   const m = a.mem as GuardianMemory, H = c.world.hold;
   if (!m.init) {

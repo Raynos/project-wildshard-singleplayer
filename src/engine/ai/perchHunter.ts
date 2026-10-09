@@ -42,7 +42,8 @@ export class PerchHunterBrain<A extends AnimalSim> {
   restore(saved: SimValue): void { if (saved !== this.contract) throw new Error('Incompatible perch hunter continuation'); }
   /** One host-scheduled decision; native body recipes publish drop/climb completion in numeric actor memory. */
   think(c: PerchHunterPorts<A>): void {
-    if (!Number.isFinite(c.dt) || c.dt <= 0 || c.dt > 1) throw new Error('Invalid perch hunter step');
+    // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
+    if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) throw new Error('Invalid perch hunter step');
     const a = this.actor;
   const m = a.mem as PerchMemory, rng = c.rng;
   if (!m.init) {
