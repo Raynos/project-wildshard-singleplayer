@@ -49,8 +49,15 @@ url="$("${deploy[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
 echo "deploy-admin: $url"
 
 live="https://wildshard-admin.vercel.app"
-build="$(curl -fsS "$live/version.json" | sed -E 's/.*"build":"([^"]+)".*/\1/')"
-case "$build" in
-  "$sha"*) echo "deploy-admin: live at $live (build $build)" ;;
-  *) echo "deploy-admin: $live reports build $build, not $sha" >&2; exit 1 ;;
-esac
+# The production alias can briefly serve the preceding deployment after Vercel reports Ready.
+# Verify the exact pin with uncached reads; never mark a different build green.
+for attempt in {1..12}; do
+  build="$(curl -fsS -H 'Cache-Control: no-cache' "$live/version.json" | sed -E 's/.*"build":"([^"]+)".*/\1/' || true)"
+  if [ "$build" = "$sha" ]; then
+    echo "deploy-admin: live at $live (build $build)"
+    exit 0
+  fi
+  sleep 5
+done
+echo "deploy-admin: $live reports build $build, not $sha" >&2
+exit 1
