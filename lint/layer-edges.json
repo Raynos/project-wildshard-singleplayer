@@ -2,12 +2,12 @@
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
     "commons → sdk": 3,
-    "game → engine": 896,
+    "game → engine": 898,
     "root → engine": 19,
     "root → game": 25,
     "root → sdk": 2,
     "sdk → engine": 31,
-    "sdk → game": 73,
+    "sdk → game": 74,
     "shards/_template → engine": 7,
     "shards/_template → game": 1,
     "shards/_template → sdk": 9,
@@ -17,18 +17,18 @@
     "shards/driftwood-isle → sdk": 15,
     "shards/far-reach → engine": 133,
     "shards/far-reach → game": 42,
-    "shards/far-reach → sdk": 25,
-    "shards/nalati-grasslands → engine": 817,
+    "shards/far-reach → sdk": 29,
+    "shards/nalati-grasslands → engine": 820,
     "shards/nalati-grasslands → game": 76,
     "shards/nalati-grasslands → sdk": 29,
-    "shards/nine-dragon-stack → engine": 190,
+    "shards/nine-dragon-stack → engine": 193,
     "shards/nine-dragon-stack → game": 27,
     "shards/nine-dragon-stack → sdk": 6,
-    "shards/pine-hollow → engine": 630,
+    "shards/pine-hollow → engine": 632,
     "shards/pine-hollow → game": 113,
     "shards/pine-hollow → sdk": 15,
     "shards/sunscar-dunes → engine": 117,
     "shards/sunscar-dunes → game": 38,
-    "shards/sunscar-dunes → sdk": 36
+    "shards/sunscar-dunes → sdk": 44
   }
 }
