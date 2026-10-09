@@ -98,3 +98,40 @@ it('releases both calibrated renderer components if composer observation fails d
   expect(page.allocator.entries()).toEqual([]); expect(page.allocator.cost().playing).toBe(before);
   renderer.dispose(); page.dispose();
 });
+
+it('charges cache overflow normally and admits a transfer before dropping its old live coverage', () => {
+  const allocator = new ResidencyAllocator();
+  const first = new Scope('large'), second = new Scope('small');
+  const large = allocator.reserve({ id: 'sim:large', category: 'sim', owner: 'large', bytes: 1000, distance: 0, needed: true });
+  const small = allocator.reserve({ id: 'sim:small', category: 'sim', owner: 'small', bytes: 100, distance: 0, needed: true });
+  if (large === null || small === null) throw new Error('fixture admission');
+  const identity = {}, measured = new AssetResidencyBridge(allocator, () => [{ identity, bytes: 800, kind: 'cpu' }]);
+  measured.cover(first, large); measured.cover(second, small);
+  const cache = measured.register('source', { dispose: () => undefined }, first);
+  expect(allocator.cost().accounted).toBe(1100);
+  cache.observe(second);
+  expect(allocator.cost().accounted).toBe(1900);
+  expect(allocator.entries().filter(row => row.category === 'commons')).toMatchObject([{ bytes: 800, accountedBytes: 800 }]);
+  expect(allocator.entries().some(row => row.coveredBy !== undefined)).toBe(false);
+  cache.release(); first.dispose(); second.dispose(); large.release(); small.release(); measured.dispose();
+  expect(allocator.entries()).toEqual([]);
+});
+
+it('refuses overflow at the shared cap without losing the prior covered allocation', () => {
+  const allocator = new ResidencyAllocator({ playing: new ResidencyAllocator().cost().playing + 2000 }), first = new Scope('large'), second = new Scope('small');
+  const large = allocator.reserve({ id: 'sim:large', category: 'sim', owner: 'large', bytes: 1000, distance: 0, needed: true });
+  const small = allocator.reserve({ id: 'sim:small', category: 'sim', owner: 'small', bytes: 100, distance: 0, needed: true });
+  if (large === null || small === null) throw new Error('fixture admission');
+  const bridge = new AssetResidencyBridge(allocator, () => [{ identity: {}, bytes: 800, kind: 'gpu' }]);
+  bridge.cover(first, large); bridge.cover(second, small);
+  const cache = bridge.register('source', { dispose: () => undefined }, first), before = allocator.entries();
+  expect(() => cache.observe(second)).toThrow('shared budget'); expect(allocator.entries()).toEqual(before);
+  expect(() => bridge.register('overflow', { dispose: () => undefined }, first)).toThrow('shared budget');
+  expect(allocator.entries()).toEqual(before);
+  // Once the former parent retires the allocation is already charged; clearing its stale coverage adds no bytes.
+  large.release(); cache.observe(second);
+  expect(allocator.cost().accounted).toBe(900);
+  expect(allocator.entries().find(row => row.category === 'commons')?.coveredBy).toBeUndefined();
+  cache.release(); first.dispose(); second.dispose(); small.release(); bridge.dispose();
+  expect(allocator.entries()).toEqual([]);
+});

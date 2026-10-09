@@ -6,7 +6,7 @@ type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
 export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
 interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; retired: boolean }
-interface Allocation { readonly lease: ResidencyLease; refs: number; covering: string | undefined }
+interface Allocation { lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; refs: number; covering: string | undefined }
 const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
 
 /** One page's retained allocation bridge: CPU backing stores, GPU attributes and texture source/sampler pairs are
@@ -52,6 +52,21 @@ export class AssetResidencyBridge implements AssetPort {
   private covering(scope: Scope | null): string | undefined {
     const owner = this.runtimeOwner(scope); return owner === undefined ? undefined : this.owners.get(owner);
   }
+  // The dated native measurement is a coverage ceiling, not a bound on concrete storage. Larger caches
+  // remain visible, independently charged allocations and must pass the normal shared admission policy.
+  private coverage(bytes: number, preferred: string | undefined, id?: string): string | undefined {
+    if (preferred === undefined) return undefined;
+    const entries = this.allocator.entries(), parent = entries.find(entry => entry.id === preferred);
+    if (parent?.category !== 'sim') return undefined;
+    const used = entries.reduce((sum, entry) => sum + (entry.id !== id && entry.coveredBy === preferred ? entry.bytes : 0), 0);
+    return used + bytes <= parent.bytes ? preferred : undefined;
+  }
+  private reserve(bytes: number, kind: 'cpu' | 'gpu', covering: string | undefined): ResidencyLease {
+    const lease = this.allocator.reserve({ id: `commons:retained:${String(++this.sequence)}:${kind}`, category: 'commons', owner: 'platform',
+      bytes, distance: 0, needed: true, ...(covering === undefined ? {} : { coveredBy: covering }) });
+    if (lease === null) throw new Error('Retained cache admission deferred by the shared budget');
+    return lease;
+  }
   private evictUnused(consumer: CacheConsumer): void {
     for (const user of consumer.users) if (user.disposed) consumer.users.delete(user);
     if (consumer.retired && consumer.users.size === 0) consumer.evict?.();
@@ -63,10 +78,8 @@ export class AssetResidencyBridge implements AssetPort {
       for (const row of this.readAllocations(resource)) {
         let entry = this.allocations.get(row.identity);
         if (entry === undefined) {
-          const lease = this.allocator.reserve({ id: `commons:retained:${String(++this.sequence)}:${row.kind}`, category: 'commons', owner: 'platform',
-            bytes: row.bytes, distance: 0, needed: true, ...(covering === undefined ? {} : { coveredBy: covering }) });
-          if (lease === null) throw new Error('Retained cache admission deferred by the shared budget');
-          entry = { lease, refs: 0, covering }; this.allocations.set(row.identity, entry);
+          const actualCoverage = this.coverage(row.bytes, covering), lease = this.reserve(row.bytes, row.kind, actualCoverage);
+          entry = { lease, bytes: row.bytes, kind: row.kind, refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
         }
         entry.refs++; held.push(entry);
       }
@@ -74,18 +87,26 @@ export class AssetResidencyBridge implements AssetPort {
     let live = true;
     const consumer: CacheConsumer = { users: new Set(), evict, retired: false };
     const initialOwner = this.runtimeOwner(owner ?? this.readOwner());
-    if (initialOwner !== undefined) consumer.users.add(initialOwner);
     this.consumers.add(consumer);
     const observe = (scope: Scope | null): void => {
       if (!live) return;
       const runtime = this.runtimeOwner(scope);
-      if (runtime !== undefined) consumer.users.add(runtime);
-      else if (scope !== null && !scope.disposed) consumer.users.add(scope); // A real page/kit draw keeps its shared resource alive.
+      const user = runtime ?? (scope !== null && !scope.disposed ? scope : undefined);
+      if (user !== undefined && consumer.users.has(user)) return; // Draws repeat; admission/coverage runs once per consumer.
       const next = this.covering(scope);
-      if (next === undefined) return; // Parent retirement itself exposes the bytes; a page draw cannot hide them.
-      for (const entry of held) if (entry.covering !== next) {
-        entry.lease.update({ coveredBy: next }); entry.covering = next;
+      // Parent retirement itself exposes the bytes; a page draw cannot hide them.
+      if (next !== undefined) for (const entry of held) {
+        if (entry.covering === next) continue;
+        const actualCoverage = this.coverage(entry.bytes, next, entry.lease.id);
+        if (entry.covering === actualCoverage) continue;
+        if (actualCoverage === undefined && entry.covering !== undefined && this.allocator.has(entry.covering)) {
+          // Admit the new charge before releasing the old covered reference: a refusal leaves it intact.
+          const replacement = this.reserve(entry.bytes, entry.kind, undefined);
+          entry.lease.release(); entry.lease = replacement;
+        } else entry.lease.update({ coveredBy: actualCoverage ?? null });
+        entry.covering = actualCoverage;
       }
+      if (user !== undefined) consumer.users.add(user);
     };
     try { observe(initialOwner ?? null); }
     catch (error) { live = false; this.consumers.delete(consumer); this.release(held); throw error; }

@@ -2,6 +2,9 @@ import { expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { app } from '../../../src/engine/app/runtime';
+import { PageResidency } from '../../../src/game/grid/pageResidency';
+import { coverRuntimeAssets } from '../../../src/game/grid/assetResidency';
+import { cachedResourceAllocations } from '../../../src/engine/render/textureBytes';
 import { Scope } from '../../../src/engine/app/scope';
 import { ownSceneTree, SceneOwnership } from '../../../src/engine/app/sceneOwnership';
 import { preloadDuneMeshes, duneHd, duneMesh } from '../../../src/shards/sunscar-dunes/world/meshes';
@@ -18,10 +21,21 @@ it('keeps live Dunes model users valid and reconstructs evicted source caches on
   let previous: Texture | undefined;
   try {
     for (let visit = 0; visit < 3; visit++) {
+      // Exercise both borrowed standalone coverage and an admitted grid runtime. Concrete caches exceed
+      // this deliberately small measured claim; the horse must load with the excess charged independently.
+      const page = new PageResidency(), renderer = new Scope('renderer'), level = renderer.child('level');
+      page.admitHome('home', 512);
+      page.bindAssets(app.assets, renderer, visit === 0 ? level : null, () => level, cachedResourceAllocations);
+      const regional = visit === 0 ? null : page.allocator.reserve({ id: 'sim:dunes', owner: 'dunes', category: 'sim', bytes: 512, distance: 0, needed: true });
+      if (visit !== 0 && regional === null) throw new Error('fixture regional admission');
+      if (regional !== null) coverRuntimeAssets(page.allocator, level, regional);
       await preloadDuneMeshes();
       const count = loaded.mock.calls.length;
       await preloadDuneMeshes(); expect(loaded).toHaveBeenCalledTimes(count);
       expect(count).toBe((visit + 1) * (DUNE_MESHES.length + DUNE_HD.length));
+      expect(page.allocator.cost().input.commons).toBeGreaterThan(0);
+      const covered = page.allocator.entries().filter(row => row.coveredBy !== undefined);
+      expect(covered.reduce((sum, row) => sum + row.bytes, 0)).toBeLessThanOrEqual(512);
       const hero = duneHd('horse-hd', { size: 2, by: 'height' }), faceted = duneMesh('caravan');
       if (hero === null || faceted === null) throw new Error('Missing parsed Signal Dunes models');
       let map: Texture | undefined;
@@ -40,6 +54,8 @@ it('keeps live Dunes model users valid and reconstructs evicted source caches on
       for (const row of app.assets.retained()) if (!initial.has(row.key)) expect(app.assets.evictCached(row.key)).toBe(true);
       expect(duneMesh('caravan')).toBeNull();
       expect(app.assets.retained().map(row => row.key)).toEqual([...initial]);
+      level.dispose(); regional?.release(); page.dispose(); renderer.dispose();
+      expect(page.allocator.entries()).toEqual([]);
     }
   } finally {
     loaded.mockRestore();
