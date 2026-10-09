@@ -1,4 +1,5 @@
 import { Vector3, MathUtils } from 'three';
+import type { AnimalPoseLaw } from './animalPose';
 import { FlightMotion, type SpeciesFlight } from '../ai/flight';
 import type { Actor, DamageRequest, DamageDealt } from '../combat/pipeline';
 import type { AnimalDims, Rarity, VariantMods } from './species/registry';
@@ -169,6 +170,28 @@ export class AnimalSim {
   get stunned(): boolean { return this.stunT > 0; }
   damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist, this.simPorts.random); }
   /** Head and body perception defaults use authored dimensions; a client view can supply posed hit volumes. */
+  /** Shared scalar pose clocks after one scheduled body move. Does not move, decide, publish matrices or draw.
+   * `advanceAttack` is true only for legacy views that moved through stepMotion rather than step. */
+  advancePose(law: AnimalPoseLaw, dt: number, t: number, near: boolean, advanceAttack = false,
+    debugGait?: { gait: string; phase: number }): void {
+    this.readPoseInputs(law, advanceAttack, debugGait); law.advance(dt, t, near);
+    const input = law.input;
+    this.speed = input.speed; this.desiredSpeed = input.desiredSpeed; this.attackT = input.attackT;
+    this.flinch = input.flinch; this.brace = input.brace; this.deathT = input.deathT;
+  }
+  /** The existing owner chooses terrain-sampling cadence; this only updates the shared pose targets. */
+  samplePoseTerrain(law: AnimalPoseLaw): void {
+    this.readPoseInputs(law, false); law.sampleTerrain(this.simPorts.heightAt); this.tiltRollT = law.input.tiltRollT;
+  }
+  private readPoseInputs(law: AnimalPoseLaw, advanceAttack: boolean, debugGait?: { gait: string; phase: number }): void {
+    const i = law.input;
+    i.speed = this.speed; i.strafe = this.strafe; i.scale = this.scale; i.seed = this.seed; i.state = this.state; i.alive = this.alive;
+    i.position = this.position; i.lookTarget = this.lookTarget; i.yaw = this.yaw; i.lookWeight = this.lookWeight;
+    i.flinch = this.flinch; i.flinchRoll = this.flinchRoll; i.flinchPitch = this.flinchPitch; i.brace = this.brace; i.stunT = this.stunT;
+    i.deathT = this.deathT; i.deathSide = this.deathSide; i.attackT = this.attackT; i.attackDur = this.attackDur;
+    i.groundY = this.groundY; i.tiltRollT = this.tiltRollT; i.levelGround = this.levelGround; i.flying = this.flight !== null;
+    i.advanceAttack = advanceAttack; i.desiredSpeed = this.desiredSpeed; i.debugGait = debugGait;
+  }
   headWorld(out: Vector3): Vector3 { return out.set(this.position.x + Math.sin(this.yaw) * this.dims.bodyHalfLen * this.scale, this.position.y + this.dims.bodyY * this.scale, this.position.z + Math.cos(this.yaw) * this.dims.bodyHalfLen * this.scale); }
   bodyCapsule(a: Vector3, b: Vector3): void {
     const d = this.dims, half = d.bodyHalfLen * this.scale;
