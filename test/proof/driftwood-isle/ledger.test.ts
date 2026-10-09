@@ -1,11 +1,9 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import { driftwoodWitness } from './native';
 
-it('proves only the real declared ledger rows survive refusal, retry, reload and duplicate ingress', () => {
-  const result = nativeCompatibility('driftwood-isle', 'ledger');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
-  const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ compatible: false, declarations: { sourceLoaded: true, ordinarySpawns: 0 },
-    ledger: { status: 'partial', rules: 10, durableReload: true, refusedWriteRetried: true,
-      duplicateStable: true, gameplayEmissionProven: false } });
-});
+for (const name of ['spawn', 'tick-10000', 'captain']) it(`persists only actual native gameplay grants from ${name}, with refusal/retry/reload/dedupe`, () => {
+  const result = driftwoodWitness(`ledger-${name}`);
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ compatible: false, ledger: { status: 'passed', rules: 10,
+    durableReload: true, refusedWriteRetried: true, duplicateStable: true, gameplayEmissionProven: true } });
+}, 60_000);

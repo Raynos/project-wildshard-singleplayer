@@ -35,6 +35,8 @@ const MAX_COMMANDS = 1024;
 export function driftwoodNavmesh(): Navmesh {
   const bytes = Uint8Array.from(atob(navmeshBaked.bytes), c => c.codePointAt(0) ?? 0), nav = parseNavmesh(bytes.buffer);
   if (nav === null) throw new Error('Driftwood navmesh copy does not parse');
+  // Baked points already include the island's world height; Node has no active page level.
+  nav.datum = () => 0;
   return nav;
 }
 

@@ -9,7 +9,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { skirmisher, guardian, perchHunter } from '@wildshard/sdk/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../data/brains';
 import { CrabBrain } from '../species/crab';
-import { SailorBrain } from '../species/sailor';
+import { SailorBrain, RISE_T } from '../species/sailor';
 import { MonkeyBrain, pickPerch, setPerch } from '../species/monkeyPolicy';
 import { CaptainBrain } from '../species/captainPolicy';
 
@@ -34,6 +34,18 @@ export interface EnemyBrainPorts {
   readonly world: EnemyWorld;
   readonly heightAt: (x: number, z: number) => number;
   readonly waterLevel: number;
+}
+
+/** The shipping animateSailor's body-continuation lines: rise/sink and the deck-relative
+ * root offset are gameplay, even without a renderer. Bone poses remain on the page. */
+export function stepSailorMotion(actor: Pick<HuntBody, 'mem' | 'yOffset'>, dt: number): void {
+  const m = actor.mem;
+  if (m['rising']) { m['rise'] = Math.min(1, (m['rise'] ?? 0) + dt / RISE_T); if (m['rise'] >= 1) m['rising'] = 0; }
+  if (m['sinking']) { m['rise'] = Math.max(0, (m['rise'] ?? 0) - dt / RISE_T); if (m['rise'] <= 0) m['sinking'] = 0; }
+  const t = Math.max(0, Math.min(1, m['rise'] ?? 0)), up = m['init'] ? t * t * (3 - 2 * t) : 0;
+  const floor = m['floor'] ?? 0;
+  m['floorS'] = (m['floorS'] ?? floor) + (floor - (m['floorS'] ?? floor)) * Math.min(1, dt * 6);
+  actor.yOffset = (1 - up) * (m['floorS'] - 2.3) + up * m['floorS'];
 }
 
 /**
@@ -69,7 +81,7 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
   type Ports = typeof ports;
   const wrap = (brain: { think: (c: Ports) => void; act: (c: Ports) => void }, policy: { snapshot: () => SimValue; restore: (value: SimValue) => void }): EnemyBrain => ({
     decide: dt => { ports.dt = dt; ports.t = host.clock.now; brain.think(ports); },
-    move: dt => { ports.dt = dt; ports.t = host.clock.now; brain.act(ports); },
+    move: dt => { ports.dt = dt; ports.t = host.clock.now; brain.act(ports); if (kind === 'sailor') stepSailorMotion(actor, dt); },
     snapshot: () => policy.snapshot(),
     restore: value => { policy.restore(value); },
   });

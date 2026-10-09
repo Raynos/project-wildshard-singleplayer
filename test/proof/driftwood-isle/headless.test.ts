@@ -1,10 +1,14 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from '../compatibility/native';
+import { driftwoodWitness } from './native';
 
-it('fails closed on the real trusted entry without executing an empty data proxy', () => {
-  const result = nativeCompatibility('driftwood-isle', 'headless');
-  expect(result.status).toBe(1); expect(result.stderr).toBe('');
-  const report: unknown = JSON.parse(result.stdout);
-  expect(report).toMatchObject({ slug: 'driftwood-isle', compatible: false,
-    headless: { status: 'blocked', ticksExecuted: 0, dependency: 'TypeScript parameter property is not supported in strip-only mode' } });
-});
+it('walks and interacts for 10k ticks in the real native island and proves all four flared entries', () => {
+  const result = driftwoodWitness('headless');
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ slug: 'driftwood-isle', compatible: false,
+    headless: { status: 'passed', ticksExecuted: 10_000, alive: true, entries: { lanes: 92 } } });
+}, 60_000);
+for (const name of ['tick-10000', 'tick-20000']) it(`continues the actual gameplay tape from ${name} within 10k ticks`, () => {
+  const result = driftwoodWitness(`slice-${name}`);
+  expect(result.stderr).toBe(''); expect(result.status).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ [`slice-${name}`]: { status: 'passed', ...(name === 'tick-20000' ? { complete: true } : {}) } });
+}, 60_000);

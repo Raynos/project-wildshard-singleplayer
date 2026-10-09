@@ -3,8 +3,9 @@ import { nativeCompatibility } from './native';
 import { signalWitness } from '../sunscar-dunes/native';
 import { skyWitness } from '../far-reach/native';
 import { pineWitness } from '../pine-hollow/native';
+import { driftwoodWitness } from '../driftwood-isle/native';
 
-it.each(['driftwood-isle', 'nalati-grasslands'])(
+it.each(['nalati-grasslands'])(
   '%s reports identical fail-closed results in independent native processes', slug => {
     const first = nativeCompatibility(slug), second = nativeCompatibility(slug);
     expect(first.status).toBe(1); expect(first.stderr).toBe(''); expect(second).toEqual(first);
@@ -12,6 +13,13 @@ it.each(['driftwood-isle', 'nalati-grasslands'])(
     expect(report).toMatchObject({ compatible: false, headless: { ticksExecuted: 0 }, replay: { checkpointCaptured: false } });
   },
 );
+
+// Whole Driftwood remains refused; compare two real 10k native gameplay slices without running the 22k tape twice.
+it('driftwood-isle reports identical real gameplay slices in independent native processes', () => {
+  const first = driftwoodWitness('headless'), second = driftwoodWitness('headless');
+  expect(first.stderr).toBe(''); expect(first.status).toBe(0); expect(second).toEqual(first);
+  expect(JSON.parse(first.stdout)).toMatchObject({ compatible: false, headless: { status: 'passed', ticksExecuted: 10_000, entries: { lanes: 92 } } });
+}, 60_000);
 
 // Whole Pine compatibility remains refused, but its real phase-II replay now runs. Keep this CI test below 10k ticks.
 it('pine-hollow reports identical King phase-II replays in independent native processes', () => {

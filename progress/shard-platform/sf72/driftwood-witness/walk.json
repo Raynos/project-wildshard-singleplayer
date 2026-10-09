@@ -1,0 +1,232 @@
+{
+  "label": "sf72-driftwood-witness",
+  "build": "28922ee-mv11tbr8",
+  "tier": "phone",
+  "date": "2026-10-09T14:19:32.428Z",
+  "cpu": 4,
+  "walkCpu": 1,
+  "frames": 300,
+  "poses": [],
+  "walk": [
+    {
+      "shard": "driftwood-isle",
+      "name": "pier",
+      "frames": 708,
+      "seconds": 23.6,
+      "end": {
+        "x": -19.716,
+        "y": 0.531,
+        "z": -150.682
+      },
+      "expectY": 1.325,
+      "maxY": 1.23,
+      "groundSpeedP50": 4.21,
+      "airFrames": 11,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "hut",
+      "frames": 306,
+      "seconds": 10.2,
+      "end": {
+        "x": -22,
+        "y": 18.911,
+        "z": -64.537
+      },
+      "expectY": 19.691,
+      "maxY": 18.91,
+      "groundSpeedP50": 4.24,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "bridge",
+      "frames": 366,
+      "seconds": 12.2,
+      "end": {
+        "x": 35.314,
+        "y": 12.289,
+        "z": 33.283
+      },
+      "expectY": 12.13,
+      "maxY": 12.29,
+      "groundSpeedP50": 4.2,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 1,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "lookout",
+      "frames": 123,
+      "seconds": 4.1,
+      "end": {
+        "x": 93.801,
+        "y": 40.529,
+        "z": 93.706
+      },
+      "expectY": 41.154,
+      "maxY": 40.53,
+      "groundSpeedP50": 3.66,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "wreck",
+      "frames": 128,
+      "seconds": 4.3,
+      "end": {
+        "x": 151.306,
+        "y": 3.805,
+        "z": 7.642
+      },
+      "expectY": 4.587,
+      "maxY": 3.81,
+      "groundSpeedP50": 4.15,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "cave",
+      "frames": 140,
+      "seconds": 4.7,
+      "end": {
+        "x": 142.006,
+        "y": 0.42,
+        "z": 18.58
+      },
+      "expectY": 1.2,
+      "maxY": 0.57,
+      "groundSpeedP50": 4.3,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "shrine",
+      "frames": 141,
+      "seconds": 4.7,
+      "end": {
+        "x": -96.898,
+        "y": 10.218,
+        "z": 106.495
+      },
+      "expectY": 10.998,
+      "maxY": 10.22,
+      "groundSpeedP50": 4.21,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "boat",
+      "frames": 67,
+      "seconds": 2.2,
+      "end": {
+        "x": -4.331,
+        "y": 0.292,
+        "z": -202.307
+      },
+      "expectY": 1.12,
+      "maxY": 1.22,
+      "groundSpeedP50": 4.26,
+      "airFrames": 9,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    }
+  ],
+  "grid": [],
+  "gridFailures": [],
+  "physics": {
+    "driftwood-isle": {
+      "colliders": 2178
+    }
+  },
+  "activation": {
+    "driftwood-isle": {
+      "systems": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input",
+        "physics.bodies.pre",
+        "shard.driftwood.movers",
+        "physics.movers",
+        "physics.step",
+        "physics.bodies.post",
+        "player.step",
+        "shard.driftwood.bridge.capture",
+        "player.update",
+        "main.2",
+        "shard.driftwood.cover",
+        "shard.driftwood.blenderIsland",
+        "shard.driftwood.ocean",
+        "shard.driftwood.palms",
+        "shard.driftwood.gulls",
+        "shard.driftwood.bridge.pose",
+        "shard.driftwood.seabed",
+        "shard.driftwood.cove",
+        "shard.driftwood.shrine",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "engine.effects",
+        "main.6",
+        "shard.driftwood.dusk",
+        "shard.driftwood.adventure",
+        "shard.driftwood-isle.installSpine",
+        "shard.driftwood-isle.installTrader",
+        "shard.driftwood.adventure.2",
+        "shard.driftwood-isle.installGullGuide",
+        "shard.driftwood-isle.installComplete",
+        "shard.driftwood-isle.installFinale",
+        "shard.driftwood-isle.installEcology",
+        "shard.driftwood.adventure.3",
+        "shard.driftwood.adventure.4",
+        "game.loot",
+        "body-shadow",
+        "keepsakes",
+        "hud.combat",
+        "last place",
+        "shard.driftwood.firstMinutes",
+        "first hints",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "shard.driftwood.shrineHum",
+        "shard.driftwood.ambience",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud",
+        "engine.input.trace",
+        "engine.input.edges",
+        "shard.driftwood.blenderIsland.instances",
+        "engine.hud.pins"
+      ]
+    }
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "walkErrors": []
+}

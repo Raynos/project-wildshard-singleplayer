@@ -24,3 +24,19 @@ canonical checkpoints / loaded-input freshness, 10k gameplay, captain replay, ga
 compatibility.json. Default flared ramps only; the flared/straight Debug pick stays untouched.
 
 Only wildshard-new pushes. Private CURRENT-HEAD index, own hunks, CAS, clean-export full suite, all touched lint.
+
+Step 2 defining SHA: 734a516e47151b27ff26506c0ee7eeb25023d809.
+Step 3 lands with this handoff: real 22,794-tick continuous Driftwood gameplay, four committed checkpoints,
+loaded-input/tape freshness, 10k CI slices, Captain 190HP/916-tick exact continuous restore and 60 SDK-worker ticks,
+actual gameplay ledger refusal/retry/reload/dedupe and recorded compatible=false with honest whole-shard gaps.
+Receipt: progress/shard-platform/sf72/driftwood-witness/README.md. Page/rig/bake unchanged; graph zero.
+No pending browser/Simulator/preview resources after verification; only coordinator pushes.
+
+Step 3 verification: continuous 22,794 ticks; Captain tick21,878/190HP, exact916-tick suffix and60 SDK-worker
+ticks. Actual facts persist/refuse/retry/reload/dedupe; only earned thresholds are claimed. Boot2/2 and walk8/8
+zero stuck on diagnostic28922ee (muted phone browser), finally closed; preview4401 stopped. Page/bakes unchanged,
+graph zero. Whole-shard compatibility remains false: contact/update phase, camera prompt laws, optional treasures,
+reward camera/zipline and unbounded ecology remain open. Exact next step is coordinator review of that open list,
+not an invented whole-shard pass. The current checkpoint inputs include sp-x5 spots provenance8d672a17c.
+
+Final full clean1069:1,068files/5,890tests/14skip104.20s, after stale aggregate consumer repair.
