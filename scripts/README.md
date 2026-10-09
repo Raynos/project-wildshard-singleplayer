@@ -31,6 +31,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-pine-coats.json](./bake-pine-coats.json)
 - [bake-pine-physics.mjs](./bake-pine-physics.mjs)
 - [bake-signal-physics.mjs](./bake-signal-physics.mjs)
+- [bake-signal-world.mjs](./bake-signal-world.mjs)
 - [bake-sky-keys.mjs](./bake-sky-keys.mjs)
 - [bake-sky-physics.mjs](./bake-sky-physics.mjs)
 - [bake-sky.mjs](./bake-sky.mjs)
