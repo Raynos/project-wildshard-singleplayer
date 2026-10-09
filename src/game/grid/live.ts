@@ -98,6 +98,9 @@ export class LiveGridHost {
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
   private fixedTick = 0;
+  private previousFeet: GridPoint | undefined;
+  /** A refused speculative retirement remains charged until an explicit durability retry. */
+  private readonly roadRetirementRefused = new Set<string>();
   private readonly homeLease: ResidencyLease | undefined;
   private initialHomePending: boolean;
   private readonly highwayLease: ResidencyLease;
@@ -299,7 +302,7 @@ export class LiveGridHost {
     }
     finally { this.requests.delete(instance); }
   }
-  private distance(cell: GridCell): number { const p = this.worldFeet(); return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
+  private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
   /** Automatic retirement uses a wider release radius and a continuous five-second dwell; explicit durable departure
    * still retires an exclusive runtime immediately before another foundation can allocate. */
   private retireColdRegions(): void {
@@ -322,6 +325,7 @@ export class LiveGridHost {
   retry(instance: string): void {
     if (this.requests.has(instance) || this.productRequests.has(instance)) throw new Error('Live admission is still pending');
     this.coldUnloadRefused.delete(instance);
+    this.roadRetirementRefused.delete(instance);
     // A quota-refused unload kept a complete native region: retry must not invalidate its valid readiness ticket.
     if (this.residents.has(instance)) return;
     this.issues.delete(instance); this.refusals.delete(instance); this.readiness.invalidate(instance);
@@ -332,27 +336,40 @@ export class LiveGridHost {
   beforeFixed(): void {
     if (this.disposed) return;
     this.fixedTick++;
+    const feet = this.worldFeet(), previous = this.previousFeet;
+    this.previousFeet = feet;
     // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
     // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
     // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
     // Borrowed home remains allocated; an active non-home world also occupies a resident slot.
     // Owned-mode prefetch prepares products without allocating worlds, so it needs no such reservation.
     const reserved = this.ports.home.mode === 'owned' ? 0 : 1 + (this.active !== null && !this.borrowedHome(this.active) ? 1 : 0);
-    const nearby = this.assembly.cells.filter((cell) => !this.borrowedHome(cell.instance) && cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
-      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, Math.max(0, this.limit - reserved));
+    const candidates = this.assembly.cells.filter((cell) => !this.borrowedHome(cell.instance) && cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
+      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance));
+    const nearby = candidates.slice(0, Math.max(0, this.limit - reserved));
     // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.prefetch([cell.instance]).catch(() => undefined);
     }
-    // In owned mode prefetch never constructs a world. On the neutral road, start the one destination just before
-    // its radius-adjusted readiness wall; otherwise the wall stops the feet before target() can reach its 6m band.
-    // Source departure/disposal and the whole claim must already be complete. Frame commit thresholds stay 6/10m.
-    if (this.ports.home.mode === 'owned' && this.active === null && this.residents.size === 0) {
-      const approach = nearby[0];
-      const reach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
-      if (approach !== undefined && this.distance(approach) <= reach && !this.issues.has(approach.instance)) void this.ensure(approach.instance).catch(() => undefined);
+    // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
+    // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
+    // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
+    if (this.ports.home.mode === 'owned' && this.active === null && this.requests.size === 0) {
+      const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
+      const moving = previous === undefined ? undefined : candidates.find(cell => this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
+      const approach = moving ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
+      if (approach !== undefined && !this.issues.has(approach.instance)) {
+        const reach = moving === undefined ? wallReach : Math.max(wallReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance);
+        if (this.distance(approach, feet) <= reach) {
+          // A U-turn can replace a speculative world only after its normal durable disposal succeeds. Never overlap
+          // opaque worlds, retry a failed save each tick, or discard a reservation held by an in-flight crossing.
+          for (const [instance, resident] of this.residents) if (instance !== approach.instance && resident.exclusiveRuntime
+            && !this.roadRetirementRefused.has(instance) && !this.unload(instance)) this.roadRetirementRefused.add(instance);
+          if (this.residents.size === 0) void this.ensure(approach.instance).catch(() => undefined);
+        }
+      }
     }
     const walls = this.ports.home.mode !== 'owned' && this.active === this.ports.home.instance ? this.ports.home.walls
       : this.active === null ? this.highway.walls : this.region(this.active)?.walls;

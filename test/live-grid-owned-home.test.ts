@@ -12,7 +12,7 @@ import { PageResidency } from '../src/game/grid/pageResidency';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const noop = (): void => undefined;
-async function open(admit?: (instance: string, fallback: () => LiveGridAdmission) => Promise<LiveGridAdmission>, pause?: () => Promise<void>) {
+async function open(admit?: (instance: string, fallback: () => LiveGridAdmission) => Promise<LiveGridAdmission>, pause?: () => Promise<void>, stallSeconds = 0.01) {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const assembly = new GridAssembly({ developer: true, devserver: false });
   const shell = createSimHost({ ...SIM_LEVEL, id: 'neutral.shell', entities: [], quests: [], ground: { size: 2400, height: 0 } }, { rapier });
@@ -50,7 +50,7 @@ async function open(admit?: (instance: string, fallback: () => LiveGridAdmission
     ...(pause === undefined ? {} : { pause }),
     save: () => true, gameplayReady: () => gameplay,
     bindFrame: frame => { frames.push(frame.instance); expect(frame.physics.world.getCollider(frame.motor.collider.handle)).toBe(frame.motor.collider); },
-    readiness: { link: { speed: 15, linkBitsPerSecond: 1_000_000, requestLatencySeconds: 0.01, maxStallSeconds: 0.01 },
+    readiness: { link: { speed: 15, linkBitsPerSecond: 1_000_000, requestLatencySeconds: 0.01, maxStallSeconds: stallSeconds },
       bundle: () => ({ criticalWireBytes: 100, hybridWireBytes: 100, decodeSeconds: 0, runtimeParseSeconds: 0 }) },
   });
   const finish = (): void => { failDispose.clear(); registry.dispose(); owner.dispose(); player.motor.dispose(); shell.dispose(); };
@@ -173,6 +173,66 @@ it('materializes only the approached road destination before its capsule reaches
     const prepared = await f.registry.prepare(null, 'pine-hollow'); prepared.commit();
     expect(f.registry.current()).toBe('pine-hollow');
     expect(f.owner.allocator.has('sim:nalati-grasslands')).toBe(false);
+  } finally { f.finish(); }
+});
+
+it('uses the network approach bound after source disposal, without rebuilding the closer source behind the traveller', async () => {
+  const f = await open(undefined, undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    const entered = await f.registry.prepare(null, 'driftwood-isle'); entered.commit();
+    const road = await f.registry.prepare('driftwood-isle', null); road.commit();
+    expect(f.registry.unload('driftwood-isle')).toBe(true);
+    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle']); // No speculative world while stationary, 30 m before Pine.
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow']);
+    expect(f.registry.current()).toBeNull(); expect(f.registry.target(f.registry.worldFeet())).toBeNull();
+    expect(f.registry.ready('pine-hollow')).toBe(true);
+    expect(f.frames.at(-1)).toBeNull(); // The road's physics/frame still owns the traveller.
+    expect(f.owner.allocator.has('sim:driftwood-isle')).toBe(false);
+    expect(f.owner.allocator.entries().find(row => row.id === 'sim:pine-hollow')).toMatchObject({ bytes: 20_000_000, refs: 1 });
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.disposals).toEqual(['driftwood-isle', 'pine-hollow']);
+    expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow', 'driftwood-isle']);
+    expect(f.hosts.size).toBe(1); expect(f.registry.current()).toBeNull();
+  } finally { f.finish(); }
+});
+
+it('holds a refused speculative retirement and its full claim across a road U-turn until durability retry', async () => {
+  const f = await open(undefined, undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle(); expect(f.creates).toEqual(['pine-hollow']);
+    const before = f.owner.allocator.cost(); f.quota(true);
+    for (let tick = 0; tick < 3; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.25 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.creates).toEqual(['pine-hollow']); expect(f.disposals).toEqual([]);
+    expect(f.owner.allocator.cost()).toEqual(before); expect(f.registry.current()).toBeNull();
+    f.quota(false); f.registry.retry('pine-hollow');
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.disposals).toEqual(['pine-hollow']); expect(f.creates).toEqual(['pine-hollow', 'driftwood-isle']);
+    expect(f.hosts.size).toBe(1);
+  } finally { f.finish(); }
+});
+
+it('refuses an approach world before allocation when its unchanged whole-runtime claim exceeds the page cap', async () => {
+  const f = await open((_id, fallback) => Promise.resolve({ ...fallback(), bytes: 2_000_000_000 }), undefined, 10);
+  try {
+    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed();
+    for (let i = 0; i < 40; i++) await Promise.resolve();
+    expect(f.creates).toEqual([]); expect(f.registry.ready('pine-hollow')).toBe(false);
+    expect(f.registry.state().issues['pine-hollow']).toContain('shared budget');
+    expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false); expect(f.registry.current()).toBeNull();
   } finally { f.finish(); }
 });
 
