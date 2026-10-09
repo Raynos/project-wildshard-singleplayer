@@ -14,7 +14,7 @@
     "shards/driftwood-isle → engine": 550,
     "shards/driftwood-isle → game": 72,
     "shards/driftwood-isle → sdk": 12,
-    "shards/far-reach → engine": 112,
+    "shards/far-reach → engine": 118,
     "shards/far-reach → game": 29,
     "shards/far-reach → sdk": 14,
     "shards/nalati-grasslands → engine": 747,
@@ -26,7 +26,7 @@
     "shards/pine-hollow → engine": 551,
     "shards/pine-hollow → game": 101,
     "shards/pine-hollow → sdk": 14,
-    "shards/sunscar-dunes → engine": 119,
+    "shards/sunscar-dunes → engine": 124,
     "shards/sunscar-dunes → game": 28,
     "shards/sunscar-dunes → sdk": 12
   }

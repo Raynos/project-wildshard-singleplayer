@@ -2007,7 +2007,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2256 exports, grouped by the module to import them from.
+2271 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2020,6 +2020,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/ai/GroupBrain`: `GroupBrain`, `GroupMember`
 - `@wildshard/engine/ai/guardian`: `GuardianBrain`, `GuardianPorts`, `GuardianSpec`
 - `@wildshard/engine/ai/herd`: `HerdBrain`, `HerdContext`, `HerdMode`, `HerdPorts`, `HerdSpec`, `StallionState`
+- `@wildshard/engine/ai/hunt`: `ATTACK_TURN`, `BOAR_TUNING`, `CHARGE_ARC`, `DEER_TUNING`, `fallbackSound`, `HuntBody`, `HuntBrain`, `HuntConfig`, `HuntGround`, `HuntHerd`, `HuntMemory`, `HuntNav`, `HuntPorts`, `HuntTree`, `HuntTuning`, `HURT_ARC`, `spawnRolls`, `SpawnRolls`
 - `@wildshard/engine/ai/inspect`: `brainInspection`, `BrainInspection`, `brainPinned`, `inspectBrain`, `inspectTick`, `pinBrain`
 - `@wildshard/engine/ai/orbitDiver`: `OrbitDiverBrain`, `OrbitDiverHome`, `OrbitDiverPorts`, `OrbitDiverSpec`
 - `@wildshard/engine/ai/pack`: `PackBrain`, `PackContext`, `PackPhase`, `PackPorts`, `PackPrey`, `PackSpec`
@@ -2156,7 +2157,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/core/time`: `worldTime`
 - `@wildshard/engine/debug/probe`: `CombatTarget`, `compiledProgramHash`, `createProbeNav`, `EngineProbe`, `Fingerprint`, `GameplayState`, `GpuBytes`, `HarnessPins`, `installProbe`, `LeakCensus`, `LeakResult`, `ProbeApp`, `ProbeDeps`, `ProbeNav`, `ProbePose`, `ProbeWorld`, `programHash`, `ResourceCounts`, `Saves`, `SoundLog`, `Vec3`, `WalkLeg`, `WalkResult`
 - `@wildshard/engine/entities/AnimalFactory`: `AnimalFactory`, `AnimalKind`, `AnimalMaterial`, `AnimalModel`, `AnimalRig`, `AnimalStyle`, `AnimalVariant`, `DEFAULT_CREATURE_RENDER`, `SHELL_LAYERS`
-- `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BOAR_TUNING`, `BodyClearable`, `clearBody`, `DEER_TUNING`, `Herd`, `HuntTuning`, `WanderGoalQuery`
+- `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BodyClearable`, `clearBody`, `Herd`, `WanderGoalQuery`
 - `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalPoseSample`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
 - `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/eliteBrain`: `eliteAct`, `eliteDamageMul`, `eliteThink`, `setEliteAct`, `setEliteBrain`, `setEliteDamage`

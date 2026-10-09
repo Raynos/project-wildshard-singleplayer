@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2273 members; 836 without a doc line (—).
+2288 members; 843 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -54,6 +54,24 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HerdPorts` | interface | @wildshard/engine/ai/herd | Native sensing, terrain, pass-through, contact and shared-RNG recipes; no renderer or app singleton. |
 | `HerdSpec` | interface | @wildshard/engine/ai/herd | Declared guarded-herd tuning, independent of any particular species rig. |
 | `StallionState` | type | @wildshard/engine/ai/herd | Guard animal decisions; riding and taming remain host-owned recipes. |
+| `ATTACK_TURN` | const | @wildshard/engine/ai/hunt | — |
+| `BOAR_TUNING` | const | @wildshard/engine/ai/hunt | — |
+| `CHARGE_ARC` | const | @wildshard/engine/ai/hunt | melee shards: the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking (rad/s) |
+| `DEER_TUNING` | const | @wildshard/engine/ai/hunt | — |
+| `fallbackSound` | const | @wildshard/engine/ai/hunt | a species with no `sounds`: the installed default call / hurt for its temperament (installKitSpecies); none installed: '' |
+| `HuntBody` | interface | @wildshard/engine/ai/hunt | What the brain drives: the native body plus the two view facts it reads (a hidden rig, the 10 Hz slope sample). |
+| `HuntBrain` | class | @wildshard/engine/ai/hunt | The herds' hunting brain over host ports (see the header). One per manager; it owns the memories, herds and tokens. |
+| `HuntConfig` | interface | @wildshard/engine/ai/hunt | — |
+| `HuntGround` | interface | @wildshard/engine/ai/hunt | The ground, water and trees the brain reads. Every query is live: the host decides what world answers it. |
+| `HuntHerd` | interface | @wildshard/engine/ai/hunt | — |
+| `HuntMemory` | interface | @wildshard/engine/ai/hunt | One animal's hunting-brain memory. |
+| `HuntNav` | type | @wildshard/engine/ai/hunt | — |
+| `HuntPorts` | interface | @wildshard/engine/ai/hunt | — |
+| `HuntTree` | interface | @wildshard/engine/ai/hunt | a tree as the brain sees it (Forest's TreeInstance has these) |
+| `HuntTuning` | interface | @wildshard/engine/ai/hunt | One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. |
+| `HURT_ARC` | const | @wildshard/engine/ai/hunt | — |
+| `spawnRolls` | function | @wildshard/engine/ai/hunt | — |
+| `SpawnRolls` | interface | @wildshard/engine/ai/hunt | A spawn's rolls on the shared stream, in order: the variant (when rolled), the scale, the rig seed and the body seed. |
 | `brainInspection` | function | @wildshard/engine/ai/inspect | — |
 | `BrainInspection` | interface | @wildshard/engine/ai/inspect | — |
 | `brainPinned` | function | @wildshard/engine/ai/inspect | — |
@@ -870,12 +888,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `AnimalHit` | interface | @wildshard/engine/entities/AnimalManager | AnimalManager — spawns the chunk's huntable wildlife (the active ShardManifest's `fauna` herd plans), |
 | `AnimalManager` | class | @wildshard/engine/entities/AnimalManager | E322 F-L4: the grass a body parts (m, the trample's radius) |
 | `AnimalSound` | type | @wildshard/engine/entities/AnimalManager | a species' own sound id (SpeciesDef.sounds); the engine names none (E405) |
-| `BOAR_TUNING` | const | @wildshard/engine/entities/AnimalManager | — |
 | `BodyClearable` | interface | @wildshard/engine/entities/AnimalManager | What `clearBody` needs of an animal (Animal implements it). |
 | `clearBody` | function | @wildshard/engine/entities/AnimalManager | E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than its |
-| `DEER_TUNING` | const | @wildshard/engine/entities/AnimalManager | — |
-| `Herd` | interface | @wildshard/engine/entities/AnimalManager | — |
-| `HuntTuning` | interface | @wildshard/engine/entities/AnimalManager | One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. |
+| `Herd` | type | @wildshard/engine/entities/AnimalManager | — |
 | `WanderGoalQuery` | interface | @wildshard/engine/entities/AnimalManager | — |
 | `AnimalMotor` | interface | @wildshard/engine/entities/AnimalSim | Collision-only displacement port; the creature retains its own feet position. |
 | `AnimalPoseSample` | interface | @wildshard/engine/entities/AnimalSim | Mutable presentation sample. A view owns this buffer; sampling never advances authoritative state. |

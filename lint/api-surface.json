@@ -278,6 +278,114 @@
         "from": "@wildshard/engine/ai/herd"
       },
       {
+        "name": "ATTACK_TURN",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "BOAR_TUNING",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "CHARGE_ARC",
+        "kind": "const",
+        "doc": "melee shards: the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking (rad/s)",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "DEER_TUNING",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "fallbackSound",
+        "kind": "const",
+        "doc": "a species with no `sounds`: the installed default call / hurt for its temperament (installKitSpecies); none installed: ''",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntBody",
+        "kind": "interface",
+        "doc": "What the brain drives: the native body plus the two view facts it reads (a hidden rig, the 10 Hz slope sample).",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntBrain",
+        "kind": "class",
+        "doc": "The herds' hunting brain over host ports (see the header). One per manager; it owns the memories, herds and tokens.",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntConfig",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntGround",
+        "kind": "interface",
+        "doc": "The ground, water and trees the brain reads. Every query is live: the host decides what world answers it.",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntHerd",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntMemory",
+        "kind": "interface",
+        "doc": "One animal's hunting-brain memory.",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntNav",
+        "kind": "type",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntPorts",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntTree",
+        "kind": "interface",
+        "doc": "a tree as the brain sees it (Forest's TreeInstance has these)",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HuntTuning",
+        "kind": "interface",
+        "doc": "One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s.",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "HURT_ARC",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "spawnRolls",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
+        "name": "SpawnRolls",
+        "kind": "interface",
+        "doc": "A spawn's rolls on the shared stream, in order: the variant (when rolled), the scale, the rig seed and the body seed.",
+        "from": "@wildshard/engine/ai/hunt"
+      },
+      {
         "name": "brainInspection",
         "kind": "function",
         "doc": "",
@@ -5183,12 +5291,6 @@
         "from": "@wildshard/engine/entities/AnimalManager"
       },
       {
-        "name": "BOAR_TUNING",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/engine/entities/AnimalManager"
-      },
-      {
         "name": "BodyClearable",
         "kind": "interface",
         "doc": "What `clearBody` needs of an animal (Animal implements it).",
@@ -5201,21 +5303,9 @@
         "from": "@wildshard/engine/entities/AnimalManager"
       },
       {
-        "name": "DEER_TUNING",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/engine/entities/AnimalManager"
-      },
-      {
         "name": "Herd",
-        "kind": "interface",
+        "kind": "type",
         "doc": "",
-        "from": "@wildshard/engine/entities/AnimalManager"
-      },
-      {
-        "name": "HuntTuning",
-        "kind": "interface",
-        "doc": "One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s.",
         "from": "@wildshard/engine/entities/AnimalManager"
       },
       {
