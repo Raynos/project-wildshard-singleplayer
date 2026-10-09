@@ -92,11 +92,11 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B4 Blackpaw swipe rejects cover and retains22 in the open', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
-    const path = 'src/shards/pine-hollow/combat/elites.ts', globals = { canReach, headingTo, inArc, pineContact, PINE_STRIKES, blackpawGoal, THREE, voice: noop, _v: new THREE.Vector3() };
-    const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineElite', globals);
+    const path = 'src/shards/pine-hollow/combat/eliteScripts.ts', globals = { canReach, headingTo, inArc, pineContact, PINE_STRIKES, blackpawGoal, THREE, _v: new THREE.Vector3() };
+    const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineEliteScript', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
     const hurt = vi.fn(noop), fight = legacyActor(proto, { ports: { player: { position: new THREE.Vector3(0, 0, -1.2) } }, mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,
-      env: { reach: (actor: Animal, point: THREE.Vector3) => canReach(actor, point, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop }, ring: { setTime: noop, hide: noop } });
+      env: { reach: (actor: Animal, point: THREE.Vector3) => canReach(actor, point, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop, voice: noop }, ring: { setTime: noop, hide: noop } });
     invokeLegacy(fight, 'fight', a, 0.02, 0); expect(hurt).not.toHaveBeenCalled();
     setActivePhysics(null); Reflect.set(fight, 'swipeT', 0.01);
     invokeLegacy(fight, 'fight', a, 0.02, 1); expect(hurt).toHaveBeenCalledExactlyOnceWith(a, 22, false);

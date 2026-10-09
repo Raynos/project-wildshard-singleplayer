@@ -6,6 +6,7 @@ import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake } from './baked';
 import { installPineRoster } from './roster';
+import { installPineElites } from './elites';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
  *  brain's ground, the bodies' ground follow) and the navmesh (the brain's paths). Pine's shardfile admits no assets. */
@@ -44,8 +45,9 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * (the terrain heightfield as Rapier built it and every solid WORLD collider; `ground: false`), the page's terrain grid as the
  * height query (the ground the herds read and walk), and the creature manager's 164 load-time bodies with their stream,
  * herds, decisions, hit reactions and charges (runtime/roster.ts), restored exactly by an identical install (the roster is
- * the stream's, the same every boot) before the host restores. Not yet owned (fail-closed, see the SF72 handoff): the
- * elites' fights, the Antler King, the player's weapons, the quest and its facts, and the entry proof; `finish` refuses.
+ * the stream's, the same every boot) before the host restores, and the four named elites' fights under the game's elite rules
+ * (runtime/elites.ts: the page's own scripts). Not yet owned (fail-closed, see the SF72 handoff): the Imperial Bull's rivals and
+ * an elite's respawn (live spawns), the Antler King, the player's weapons, the quest and its facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
@@ -61,6 +63,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   return { level, ports: { ground: false, heightAt }, install: host => {
     // the roster's creature floor casts into this world at install, restoring too (the saved physics then replaces it)
     addPineWorld(host, bake);
-    installPineRoster(host, { bake, grid, nav });
+    // the elites' step first (the page's elites tick before its creature manager), on the roster's lair bodies
+    let roster: ReturnType<typeof installPineRoster> | null = null;
+    const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? [], heightAt });
+    roster = installPineRoster(host, { bake, grid, nav });
+    elites.initialize();
   } };
 };

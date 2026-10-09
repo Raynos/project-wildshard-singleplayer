@@ -13,14 +13,13 @@ import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { ROSTER_STEP } from '../../../src/shards/pine-hollow/runtime/roster';
+import { ELITES_STEP } from '../../../src/shards/pine-hollow/runtime/elites';
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
-import { canReach } from '../../../src/engine/ai/reach';
 import type { HuntBody } from '../../../src/engine/ai/hunt';
-import { ironhideGoal } from '../../../src/shards/pine-hollow/combat/EliteGoals';
 import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
 import { PINE_LEVEL_SEED, pineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
-import { Lane } from '../../../src/shards/pine-hollow/combat/lane';
 import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
+import { BEAR_CAVE } from '../../../src/shards/pine-hollow/layout';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
@@ -80,7 +79,8 @@ it('turns the four lair elites by the level seed\'s own streams, as the page doe
   const host = boot();
   try {
     const elites = bake.actors.filter(a => a.scripted).map(a => host.entities.get(a.id));
-    expect(elites.map(a => a?.yaw)).toEqual(Object.keys(PINE_ELITE_DEFS).map(id => pineEliteStreams(id).spawn.next() * Math.PI * 2));
+    // (Old Blackpaw then lurks in his cave, turned out of its mouth, as the page's script places him on spawn)
+    expect(elites.map(a => a?.yaw)).toEqual(Object.keys(PINE_ELITE_DEFS).map(id => id === 'blackpaw' ? BEAR_CAVE.rot + Math.PI : pineEliteStreams(id).spawn.next() * Math.PI * 2));
     // two boots of a seed draw the same fight; another seed draws another
     const a = pineEliteStreams('ironhide'), b = pineEliteStreams('ironhide'), c = pineEliteStreams('ironhide', 7);
     const rolls = (r: typeof a): number[] => Array.from({ length: 4 }, () => r.fight.next());
@@ -88,28 +88,95 @@ it('turns the four lair elites by the level seed\'s own streams, as the page doe
   } finally { host.dispose(); }
 });
 
-it('runs Old Ironhide\'s gore charge renderer-free: the goal over the bare lane on his roster body, one blow through the host', () => {
+/** The elites' continuation, as the host snapshots it (runtime/elites.ts). */
+interface ElitesState { entries: { id: string; state: string; phase2: boolean; timer: number }[]; scripts: { id: string; mode: string; fields: Record<string, number | boolean | null> }[] }
+const elitesState = (host: SimHost): ElitesState => {
+  const adapter = host.adapters.get(ELITES_STEP);
+  if (adapter === undefined) throw new Error('no elites continuation');
+  const state: unknown = adapter.snapshot();
+  return state as ElitesState;
+};
+const entryOf = (host: SimHost, id: string): ElitesState['entries'][number] => { const e = elitesState(host).entries.find(x => x.id === id); if (e === undefined) throw new Error(id); return e; };
+/** Stand the player `d` m east of a named elite's body, on the ground. */
+function standByElite(host: SimHost, variant: string, d: number): HuntBody {
+  const body = [...host.entities.values()].find(a => a.scripted && a.variant === variant);
+  if (body === undefined) throw new Error(`no elite ${variant}`);
+  const at = new Vector3(body.position.x + d, heightAt(body.position.x + d, body.position.z) + 0.3, body.position.z);
+  host.player.motor.resetAt(at); host.player.position.copy(at);
+  return Object.assign(body, { hidden: false, sampleTerrain: (): void => undefined });
+}
+const still = { moveX: 0, moveZ: 0, yaw: 0 };
+
+it('runs the four elites under the game\'s elite rules renderer-free: Old Ironhide engages, gore-charges and lands one blow through the host', () => {
   const host = boot();
   try {
-    const def = PINE_ELITE_DEFS['ironhide'], body = [...host.entities.values()].find(a => a.kind === 'boar' && a.variant === 'ironhide');
-    if (def === undefined || body === undefined) throw new Error('no Old Ironhide');
-    const boar: HuntBody = Object.assign(body, { hidden: false, sampleTerrain: (): void => undefined });
-    const at = new Vector3(boar.position.x + 12, heightAt(boar.position.x + 12, boar.position.z) + 0.3, boar.position.z);
-    host.player.motor.resetAt(at); host.player.position.copy(at);
-    const streams = pineEliteStreams('ironhide'), hits: number[] = [], states = new Set<string>();
-    const reach = (a: HuntBody, p: { x: number; y: number; z: number }): boolean => canReach(a, p, host.physics);
-    const h = { env: { reach, player: host.player, trauma: (): void => undefined, god: false, dusk: () => 0, night: () => 0, stun: (): void => undefined },
-      def, mode: 'idle', modeT: 0, p2: false, again: false, lane: new Lane<HuntBody>(PINE_LANES.ironhide, reach),
-      toPlayer: (a: HuntBody) => { const p = host.player.position; return { d: Math.hypot(p.x - a.position.x, p.z - a.position.z), yaw: Math.atan2(p.x - a.position.x, p.z - a.position.z) }; },
-      setMode: (mode: string): void => { h.mode = mode; h.modeT = 0; }, sig: (): void => undefined, voice: (): void => undefined, next: () => streams.fight.next(),
-      hurt: (a: HuntBody, amount: number): void => { hits.push(amount); host.combat.hit({ source: 'env', sourceTags: ['creature.boar', 'feel.blow', 'cover.checked'], target: host.player.health, amount, point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } }); } };
-    host.onStep('test.ironhide', dt => { h.modeT += dt; ironhideGoal(h, boar, dt, host.clock.now); states.add(`${h.mode}.${h.lane.state}`); });
-    const before = host.player.health.attributes.health;
-    for (let tick = 0; tick < 600 && hits.length === 0; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
-    expect(states).toContain('circle.none'); expect(states).toContain('charge.tell'); expect(states).toContain('charge.run');
-    expect(hits).toEqual([PINE_LANES.ironhide.damage]); expect(host.player.health.attributes.health).toBeLessThan(before);
+    expect(elitesState(host).entries.map(e => [e.id, e.state])).toEqual([['ironhide', 'idle'], ['ghost-stag', 'idle'], ['blackpaw', 'idle'], ['imperial-bull', 'idle']]);
+    // Blackpaw lurks in his cave: hidden at its mouth from his first spawn, as on the page
+    expect(elitesState(host).scripts.find(s => s.id === 'blackpaw')?.mode).toBe('lurk');
+    standByElite(host, 'ironhide', 20);
+    const states = new Set<string>(), before = host.player.health.attributes.health;
+    for (let tick = 0; tick < 900 && host.player.health.attributes.health === before; tick++) {
+      host.step(still);
+      const e = entryOf(host, 'ironhide'), s = elitesState(host).scripts[0];
+      states.add(`${e.state}.${s?.mode ?? ''}`);
+    }
+    expect(states).toContain('engaged.circle'); expect(states).toContain('engaged.charge');
+    expect(host.player.health.attributes.health).toBe(before - PINE_LANES.ironhide.damage);
   } finally { host.dispose(); }
 });
+
+it('takes Old Ironhide to phase 2 at half health (the 1 s beat holds his hp) and the kill sleeps his lair 20 minutes', () => {
+  const host = boot();
+  try {
+    const boar = standByElite(host, 'ironhide', 20);
+    const hit = (amount: number): void => { host.combat.hit({ source: host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: boar.combatActor(), amount, point: boar.position.clone(), dir: new Vector3() }); };
+    host.step(still);
+    expect(entryOf(host, 'ironhide')).toMatchObject({ state: 'engaged', phase2: false });
+    boar.hp = boar.maxHp * 0.45; host.step(still);
+    expect(entryOf(host, 'ironhide')).toMatchObject({ state: 'engaged', phase2: true });
+    expect(elitesState(host).scripts[0]?.fields['p2']).toBe(true);
+    const locked = boar.hp; boar.hp -= 5; host.step(still);
+    expect(boar.hp).toBe(locked); // the beat: invulnerable for a second
+    for (let tick = 0; tick < 70; tick++) host.step(still);
+    hit(boar.maxHp * 10); host.step(still);
+    expect(boar.alive).toBe(false);
+    expect(entryOf(host, 'ironhide')).toMatchObject({ state: 'dead' });
+    expect(entryOf(host, 'ironhide').timer).toBeGreaterThan(20 * 60 - 1);
+  } finally { host.dispose(); }
+});
+
+it('fades the Ghost Stag when the player walks up on it, and it comes back facing them two seconds later', () => {
+  const host = boot();
+  try {
+    const stag = standByElite(host, 'ghost', 8), modes = new Set<string>();
+    let hidden = false;
+    // its fade cools down 3 s from its spawn; a blow after that fades it wherever it stands
+    for (let tick = 0; tick < 400; tick++) {
+      if (tick === 200) host.combat.hit({ source: host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: stag.combatActor(), amount: 1, point: stag.position.clone(), dir: new Vector3() });
+      host.step(still); modes.add(elitesState(host).scripts[1]?.mode ?? ''); hidden ||= stag.hidden;
+    }
+    expect(modes).toContain('faded'); expect(hidden).toBe(true); expect(modes).toContain('stare');
+  } finally { host.dispose(); }
+});
+
+it('restores exactly mid-fight with an elite: Old Ironhide mid-charge, the Ghost Stag faded', () => {
+  for (const [variant, at] of [['ironhide', 170], ['ghost', 230]] as const) {
+    const original = boot(); let restored: SimHost | undefined;
+    try {
+      const body = standByElite(original, variant, variant === 'ghost' ? 8 : 20);
+      for (let tick = 0; tick < at; tick++) {
+        if (tick === 200) original.combat.hit({ source: original.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: body.combatActor(), amount: 1, point: body.position.clone(), dir: new Vector3() });
+        original.step(still);
+      }
+      const mode = elitesState(original).scripts.find(s => s.id === (variant === 'ghost' ? 'ghost-stag' : 'ironhide'))?.mode;
+      expect(mode).toBe(variant === 'ghost' ? 'faded' : 'charge');
+      restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+      expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+      for (let tick = 0; tick < 300; tick++) { original.step(still); restored.step(still); }
+      expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    } finally { restored?.dispose(); original.dispose(); }
+  }
+}, 60_000);
 
 it('walks 10k ticks up the trail: the herds graze, wander and notice the player; everything stays finite on the ground', () => {
   const host = boot(), states = new Set<string>();

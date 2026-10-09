@@ -8,6 +8,9 @@ export interface LaneBody extends StrikeActor {
   readonly seed: number; readonly lastHitT: number; readonly state: string;
 }
 
+/** A lane's saved state: its tell length and its strike runner's. */
+export interface LaneState { tellT: number; runner: ReturnType<StrikeRunner['snapshot']> }
+
 /** The authored lane's legacy options (the tuning table's rows), or a lane StrikeSpec (strikes.ts PINE_LANES). */
 export interface LaneOptions { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number }
 
@@ -56,6 +59,10 @@ export class Lane<B extends LaneBody = LaneBody> {
     inspectBrain(a, () => ({ state: this.runner.busy ? `charge.${this.runner.state}` : a.state, picks: [{ id: spec.id, score: 1 }], brainHz: 60, pinned: false }));
   }
   cancel(): void { this.runner.cancel(); }
+  /** The runner's state for a renderer-free continuation (the tell length rides beside it). */
+  snapshot(): LaneState { return { tellT: this.tellT, runner: this.runner.snapshot() }; }
+  /** Back to a saved state: the running strike is this lane's own spec at the saved tell length. */
+  restore(saved: LaneState): void { this.tellT = saved.tellT; this.runner.restore(saved.runner, [{ ...this.spec, windup: saved.tellT }]); }
   recoverNow(): void { this.runner.recoverNow(); }
   /** One body-clock step (`t`, the frame's time, is the decal's alone). */
   update(a: B, dt: number, t: number, player: Vector3, hurt: (dmg: number) => void): void {

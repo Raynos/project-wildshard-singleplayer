@@ -33,6 +33,7 @@
     "./grid/live": "./grid/live.ts",
     "./Boss": "./Boss.ts",
     "./Elite": "./Elite.ts",
+    "./eliteSystem": "./eliteSystem.ts",
     "./Inventory": "./Inventory.ts",
     "./Progress": "./Progress.ts",
     "./achievements": "./achievements.ts",

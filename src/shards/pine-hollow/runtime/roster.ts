@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { HuntBrain, spawnRolls, type HuntBody, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
@@ -18,13 +18,16 @@ import type { PineBake } from './baked';
 export const ROSTER_STEP = 'pine.roster';
 /** The manager's list at load (160 herd bodies and the 4 lair elites): every keeper loop is bounded by it. */
 const BODY_COUNT = 164;
-/** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
-const HUNT_BODY = { hidden: false, sampleTerrain: (): void => undefined };
+/** What a renderer-free body adds for the hunting brain: not hidden (no view; a fight may hide it), no ground tilt to sample. */
+const HUNT_BODY: { hidden: boolean; sampleTerrain: () => void } = { hidden: false, sampleTerrain: (): void => undefined };
 /** combat/ctx.ts SCRIPTED: the state a fight's own animal holds (the manager's loop leaves it alone). */
 const SCRIPTED = 'sidestep';
 
+/** A renderer-free body as the hunting brain and the elites' scripts drive it: the host's body, never drawn (`hidden` is a fight's
+ *  own flag: the Ghost Stag's fade, Blackpaw in his cave). */
+export type PineHuntBody = AnimalSim & { hidden: boolean; sampleTerrain: () => void };
 /** One manager body: its id and kind, the live host actor, and whether a fight scripts it (an elite). */
-export interface PineBody { readonly id: string; readonly kind: string; readonly actor: HuntBody; readonly scripted: boolean }
+export interface PineBody { readonly id: string; readonly kind: string; readonly actor: PineHuntBody; readonly scripted: boolean }
 /** A parked prewarm body (runtime/antlerKing.ts `prewarm`): its id and rolled recipe, no host body until the King's script calls it. */
 export interface PineParked { readonly id: string; readonly kind: string; readonly variant: string; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number }
 export interface PineRosterPorts {
@@ -81,9 +84,9 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * filed as the page's PlayerHurt.creature files it (`feel.blow`: the host knocks the player back). The player's noise is the
  * manager's smoothed ground speed (the headless player never sprints).
  *
- * Not yet owned (fail-closed, progress/shard-platform/handoffs/sf72-pine.md): the elites' fights (EliteGoals and the bare
- * lane run renderer-free; the headless EliteScripts and the elite system's engage / leash / phase / respawn do not yet), the
- * Antler King and the rain's wander goals.
+ * The four elites' fights run beside it (runtime/elites.ts), on these bodies. Not yet owned (fail-closed,
+ * progress/shard-platform/handoffs/sf72-pine.md): live spawns (the Imperial Bull's rivals, an elite's respawn), the Antler King
+ * and the rain's wander goals.
  */
 export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: HuntBrain<HuntBody>;
@@ -134,9 +137,9 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     return { id, spec: row.spec, seed: r.seed, scale: r.scale, variant: r.variant.id };
   };
   /** AnimalManager.spawnAnimal: the shared stream's rolls, the creature floor from a metre over the ground, the brain's memory. */
-  const spawn = (kind: string, x: number, z: number, yaw: number, variant: string | string[] | undefined): HuntBody => {
+  const spawn = (kind: string, x: number, z: number, yaw: number, variant: string | string[] | undefined): PineHuntBody => {
     const r = rolls(kind, variant), at = creatureFloor(x, z, heightAt(x, z) + 1);
-    const a: HuntBody = Object.assign(host.spawn({ id: r.id, spec: r.spec, seed: r.seed, scale: r.scale, at: { x, y: at.y, z }, yaw }), HUNT_BODY);
+    const a: PineHuntBody = Object.assign(host.spawn({ id: r.id, spec: r.spec, seed: r.seed, scale: r.scale, at: { x, y: at.y, z }, yaw }), HUNT_BODY);
     a.levelGround = at.structure;
     if (at.structure) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
     a.herd = -1;

@@ -76,13 +76,14 @@ describe('private Nalati elite strikes executed from their production class meth
 
 describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
   function pine(name: string, fields: Record<string, unknown>) {
-    const f = creature('crab', 'small'), hits: number[] = [], path = 'src/shards/pine-hollow/combat/elites.ts';
+    const f = creature('crab', 'small'), hits: number[] = [], path = 'src/shards/pine-hollow/combat/eliteScripts.ts';
     const globals = { THREE, Math, canReach, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, blackpawGoal, ghostGoal, ironhideGoal, imperialGoal, heightAt: () => 0,
       inChunk: () => true, voice: (): void => undefined, _v: new THREE.Vector3() };
-    const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineElite', globals);
+    const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineEliteScript', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
     const env = { reach: () => true, player: { position: f.ctx.player, yaw: 0 }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
-      puffs: { burst: noOp }, trauma: noOp, stun: vi.fn(noOp), god: false, animals: {} };
+      trauma: noOp, stun: vi.fn(noOp), god: false, voice: noOp, show: noOp, heightAt: () => 0, inChunk: () => true,
+      fx: { fade: noOp, reappear: noOp, burstOut: noOp, roar: noOp } };
     const actor = legacyActor(proto, { env, ports: { player: env.player, random: Math.random }, p2: false, modeT: 0, sig: noOp, def: { lair: { x: 0, z: 0 }, leashR: 110 }, ...fields });
     return { ...f, actor, env, hits };
   }

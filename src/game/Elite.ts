@@ -8,6 +8,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { EliteCore, type EliteCoreEntry, type EliteCoreRule, type EliteCoreScript } from './eliteSystem';
 
 /**
  * Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites
@@ -36,7 +37,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
  *   · TELLS — `GroundTell`: a pooled, terrain-draped ring / lane decal (one FX program) for the signature move's tell.
  */
 
-export type EliteRule = 'always' | 'dusk' | 'night' | 'storm';
+export type EliteRule = EliteCoreRule;
 
 export interface EliteDef {
   id: string;
@@ -59,31 +60,13 @@ export interface EliteDef {
   drop: { skin: string | null; skinName: string; weapon: string; blurb: string; trophyName?: string };
 }
 
-export interface EliteScript {
+/** One elite's brain on the page: the rules' script (eliteSystem.ts `EliteCoreScript`) over an Animal, plus its bar and drop. */
+export interface EliteScript extends EliteCoreScript<Animal> {
   readonly def: EliteDef;
-  /** the elite's animal while it is out (null otherwise) */
-  readonly animal: Animal | null;
-  /** place it at the lair (the rule holds and no timer runs) */
-  spawn: () => void;
-  /** take it out of the world (its rule ended, unengaged) */
-  despawn: () => void;
-  /** per frame while it is out: its AI glue. `engaged` = the fight is on; `leashing` = walking home */
-  tick: (dt: number, t: number, engaged: boolean, leashing: boolean) => void;
-  enterPhase2: () => void;
-  /** the fight reset (leash): back to phase 1 */
-  reset: () => void;
   /** the bar's fill 0..1 (default hp / maxHp) — Argymaq's reads 0 at BROKEN */
   barFrac?: () => number;
-  /** beaten, not killed (Argymaq: BROKEN) — the system treats it as the end of the fight */
-  broken?: () => boolean;
   /** the drop orb's display model */
   dropModel: () => THREE.Object3D;
-  /** a trophy into the pack (every kill) */
-  trophy: () => void;
-  /** won for good (the once elite, tamed): the lair retires */
-  retired?: () => boolean;
-  /** an extra spawn condition on top of the rule (Qara Batyr: five ghost riders killed tonight) */
-  canSpawn?: () => boolean;
 }
 
 export interface EliteHost {
@@ -105,23 +88,9 @@ export interface EliteHost {
   canSee?: (from: THREE.Vector3, to: THREE.Vector3) => boolean;
 }
 
-type State = 'absent' | 'idle' | 'aware' | 'engaged' | 'leash' | 'dead' | 'broken' | 'retired';
-interface Entry {
-  script: EliteScript; state: State;
-  /** seconds of play left before it may spawn again */
-  timer: number;
-  /** a dusk / night elite waits for the NEXT dusk after its timer */
-  waitDusk: boolean;
-  discovered: boolean; bannerArmed: boolean; farT: number;
-  phase2: boolean; beatT: number; lockHp: number;
-  seenSig: boolean; leashT: number; lastHit: number;
-  drop: WeaponPickup | null;
-  /** dev-spawned (`?elite=`): out whatever its rule */
-  forced: boolean;
-}
+type Entry = EliteCoreEntry<EliteScript>;
 
-
-const BANNER_R = 80, DISCOVER_R = 60, REARM_T = 60, LEASH_HOME_T = 12, SIGHT_EVERY = 0.2;
+const SIGHT_EVERY = 0.2;
 const _h = new THREE.Vector3();
 
 /** Optional typed persistence for runtime-bound lairs; the default remains the legacy shard slot. */
@@ -130,124 +99,57 @@ export interface ElitePersistence {
   write: (value: ReturnType<typeof elitesSave.read>, slug: string) => void;
 }
 
+/** The named elite system on the page: the renderer-free rules (eliteSystem.ts `EliteCore`) plus the bar, banner, orb and skulls. */
 export class Elites {
   private readonly scope = resourceScope().child('Elites');
-  readonly entries: Entry[] = [];
-  private readonly slug: string;
-  private saved: ReturnType<typeof elitesSave.read>;
-  private saveT = 0;
-  private lastDusk = false;
+  private readonly core: EliteCore<EliteScript>;
+  /** the lairs' first-kill orbs while they float */
+  private readonly drops = new Map<Entry, WeaponPickup>();
   /** the elite whose bar is up (nearest aware / engaged) */
   focus: Entry | null = null;
   /** the focus's head in line of sight (re-cast every SIGHT_EVERY s while its bar floats over its head) */
   private seen = true; private sightT = 0;
 
-  constructor(private readonly host: EliteHost, private readonly bar: EliteBar, slug: string, private readonly persistence: ElitePersistence = elitesSave) { this.slug = slug; this.saved = persistence.read(slug); }
-
-  add(script: EliteScript): void {
-    const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
-    this.saved[script.def.id] = s;
-    this.entries.push({
-      script, state: s.retired ? 'retired' : 'absent', timer: s.timer, waitDusk: false, discovered: s.discovered, bannerArmed: true, farT: 0,
-      phase2: false, beatT: 0, lockHp: 0, seenSig: false, leashT: 0, lastHit: -Infinity, drop: null, forced: false,
-    });
+  constructor(private readonly host: EliteHost, private readonly bar: EliteBar, slug: string, persistence: ElitePersistence = elitesSave) {
+    this.core = new EliteCore<EliteScript>(host, {
+      spawned: (e) => { this.drops.delete(e); },
+      broken: (e, entering) => {
+        if (entering) { this.focus = e; this.bar.show(e.script.def.name, e.script.def.epithet); this.bar.caption('BROKEN'); }
+        const a = e.script.animal; if (a === null) return;
+        a.headWorld(_h); _h.y += 0.55 * a.scale;
+        this.bar.set(0, 'pinned', _h, this.host.camera, false, true);
+      },
+      banner: (e) => { this.bar.banner(e.script.def.name, e.script.def.epithet); this.host.sting?.('banner'); },
+      phase2: (e) => { if (this.focus === e) this.bar.caption(e.script.def.phase2); this.host.sting?.('phase2'); },
+      signature: (e) => { if (this.focus === e) this.bar.caption(e.script.def.signature); },
+      fell: (e, firstSkin) => {
+        const a = e.script.animal;
+        this.host.sting?.('kill');
+        if (firstSkin && a && e.script.def.drop.skin !== null) this.dropSkin(e, a.position);
+        if (this.focus === e) { this.bar.set(0, 'pinned', null, this.host.camera, false); this.focus = null; this.scope.timeout(1600, () => { if (this.focus === null) this.bar.hide(); }); }
+      },
+      // Argymaq: no skin, the horse is the prize
+      won: (e, firstSkin) => { const skin = e.script.def.drop.skin; if (firstSkin && skin !== null) this.host.ownSkin?.(skin); },
+      retired: (e) => { if (this.focus === e) { this.focus = null; this.bar.hide(); } },
+    }, slug, persistence);
   }
 
+  get entries(): readonly Entry[] { return this.core.entries; }
+  add(script: EliteScript): void { this.core.add(script); }
   /** Materialize eligible lair actors before restoring a rebuilt world, without advancing AI, timers or rewards. */
-  initialize(): void {
-    for (const entry of this.entries) {
-      if (entry.state !== 'absent' || entry.timer > 0 || entry.waitDusk || entry.script.retired?.() === true
-        || !this.host.condition(entry.script.def.rule) || entry.script.canSpawn?.() === false) continue;
-      entry.script.spawn(); entry.state = 'idle';
-    }
-  }
-
-  entry(id: string): Entry | undefined { return this.entries.find((e) => e.script.def.id === id); }
-  owned(id: string): boolean { return this.saved[id]?.skinTaken ?? false; }
-
+  initialize(): void { this.core.initialize(); }
+  entry(id: string): Entry | undefined { return this.core.entry(id); }
+  owned(id: string): boolean { return this.core.owned(id); }
   /** dev: spawn it now next to (x, z) whatever its rule (`?elite=`) */
-  devSpawn(id: string): Animal | null {
-    const e = this.entry(id);
-    if (!e || e.state === 'retired') return null;
-    if (e.script.animal === null || !e.script.animal.alive) { e.timer = 0; e.script.spawn(); }
-    e.state = 'idle'; e.discovered = true; e.forced = true;
-    return e.script.animal;
-  }
-
-  private save(): void {
-    for (const e of this.entries) { const s = this.saved[e.script.def.id]; if (s) { s.timer = e.timer; s.discovered = e.discovered; } }
-    this.persistence.write(this.saved, this.slug);
-  }
-
+  devSpawn(id: string): Animal | null { return this.core.devSpawn(id); }
   /** the script says this elite moved its signature move now: flash its name the first time */
-  signature(id: string): void {
-    const e = this.entry(id);
-    if (!e || e.seenSig) return;
-    e.seenSig = true;
-    if (this.focus === e) this.bar.caption(e.script.def.signature);
-  }
+  signature(id: string): void { this.core.signature(id); }
+  /** a once elite won for good (Argymaq tamed): the trophy + the "skin" (the horse is the reward), the lair retires */
+  won(id: string): void { this.core.won(id); }
 
   update(dt: number, t: number): void {
     const p = this.host.player.position;
-    const dusk = this.host.condition('dusk');
-    const duskEdge = dusk && !this.lastDusk; this.lastDusk = dusk;
-    let best: Entry | null = null, bestD = Infinity;
-    for (const e of this.entries) {
-      const def = e.script.def;
-      const dl = Math.hypot(p.x - def.lair.x, p.z - def.lair.z);
-      if (!e.discovered && dl < DISCOVER_R) { e.discovered = true; this.save(); }
-      if (e.state === 'retired') continue;
-      if (e.script.retired?.() === true) { this.retire(e); continue; }
-      // ── timers and the spawn rule ──
-      if (e.state === 'dead' || e.state === 'absent') {
-        if (e.timer > 0) { e.timer = Math.max(0, e.timer - dt); if (e.timer === 0 && (def.rule === 'dusk' || def.rule === 'night')) e.waitDusk = true; }
-        if (e.waitDusk && duskEdge) e.waitDusk = false;
-        if (e.timer <= 0 && !e.waitDusk && this.host.condition(def.rule) && e.script.canSpawn?.() !== false) {
-          e.script.spawn(); e.state = 'idle'; e.phase2 = false; e.seenSig = false; e.drop = null;
-        } else continue;
-      }
-      const a = e.script.animal;
-      if (a === null) { e.state = 'absent'; continue; }
-      // ── the end of the fight: dead — or BROKEN (beaten, not killed: the taming takes over; thrown, he fights on) ──
-      if (!a.alive) { this.fell(e); continue; }
-      const broken = e.script.broken?.() === true;
-      if (broken) {
-        if (e.state !== 'broken') { e.state = 'broken'; this.focus = e; this.bar.show(e.script.def.name, e.script.def.epithet); this.bar.caption('BROKEN'); }
-        a.headWorld(_h); _h.y += 0.55 * a.scale;
-        this.bar.set(0, 'pinned', _h, this.host.camera, false, true);
-        continue;
-      }
-      if (e.state === 'broken') e.state = 'engaged';
-      // ── the rule ended: it leaves (never mid-fight) ──
-      if (e.state === 'idle' && !e.forced && !this.host.condition(def.rule)) { e.script.despawn(); e.state = 'absent'; continue; }
-      const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-      const hit = a.lastHitT > e.lastHit; if (hit) e.lastHit = a.lastHitT;
-      // ── aware / engaged / leash ──
-      if (e.state === 'idle' && (d < def.awareR || hit)) { e.state = 'aware'; e.discovered = true; }
-      if ((e.state === 'aware' || e.state === 'idle') && (d < def.engageR || hit)) e.state = 'engaged';
-      if (e.state === 'aware' && d > def.awareR * 1.3) e.state = 'idle';
-      if ((e.state === 'engaged' || e.state === 'aware') && dl > def.leashR) { e.state = 'leash'; e.leashT = 0; e.script.reset(); e.phase2 = false; }
-      if (e.state === 'leash') {
-        e.leashT += dt;
-        a.hp = Math.min(a.maxHp, a.hp + a.maxHp * dt / LEASH_HOME_T);
-        if (e.leashT > LEASH_HOME_T || (Math.hypot(a.position.x - def.lair.x, a.position.z - def.lair.z) < def.lair.r * 0.5 && a.hp >= a.maxHp)) { a.hp = a.maxHp; e.state = 'idle'; }
-      }
-      // ── the banner, once per approach ──
-      if (e.bannerArmed && (e.state === 'aware' || e.state === 'engaged' || dl < def.lair.r) && d < BANNER_R) {
-        e.bannerArmed = false; this.bar.banner(def.name, def.epithet); this.host.sting?.('banner');
-      }
-      if (!e.bannerArmed) { if (dl > def.leashR) { e.farT += dt; if (e.farT > REARM_T) { e.bannerArmed = true; e.farT = 0; } } else e.farT = 0; }
-      // ── phase 2 at 50 % ──
-      if (!e.phase2 && e.state === 'engaged' && a.hp <= a.maxHp * 0.5) {
-        e.phase2 = true; e.beatT = 1; e.lockHp = a.hp;
-        e.script.enterPhase2();
-        if (this.focus === e) this.bar.caption(def.phase2);
-        this.host.sting?.('phase2');
-      }
-      if (e.beatT > 0) { e.beatT -= dt; if (a.hp < e.lockHp) a.hp = e.lockHp; }
-      e.script.tick(dt, t, e.state === 'engaged', e.state === 'leash');
-      if ((e.state === 'aware' || e.state === 'engaged') && d < bestD) { best = e; bestD = d; }
-    }
+    const best = this.core.update(dt, t);
     // ── the bar: the nearest aware / engaged elite ──
     if (best !== this.focus) {
       this.focus = best; this.sightT = 0;
@@ -264,56 +166,25 @@ export class Elites {
         this.bar.set(e.script.barFrac?.() ?? a.hp / a.maxHp, pinned ? 'pinned' : 'head', _h, this.host.camera, e.beatT > 0, false, !this.seen);
       }
     }
-    this.bar.skulls(this.entries.map((e) => ({
+    this.bar.skulls(this.core.entries.map((e) => ({
       x: e.script.def.lair.x, z: e.script.def.lair.z, shown: e.discovered && e.state !== 'retired',
       dead: e.state === 'dead', engaged: e.state === 'engaged', countdown: e.state === 'dead' ? e.timer / (e.script.def.respawnMin * 60) : 0,
     })), p);
-    for (const e of this.entries) if (e.drop) { e.drop.update(dt, t, this.host.renderer, this.host.camera); if (e.drop.group.parent === null) e.drop = null; }
+    for (const [e, drop] of this.drops) { drop.update(dt, t, this.host.renderer, this.host.camera); if (drop.group.parent === null) this.drops.delete(e); }
     this.bar.update(dt);
-    this.saveT += dt;
-    if (this.saveT > 10) { this.saveT = 0; this.save(); }
-  }
-
-  private fell(e: Entry): void {
-    const def = e.script.def, s = this.saved[def.id], a = e.script.animal;
-    if (!s) return;
-    s.kills++;
-    e.script.trophy();
-    this.host.sting?.('kill');
-    if (!s.skinTaken && a && def.drop.skin !== null) this.dropSkin(e, a.position);
-    e.state = 'dead'; e.forced = false;
-    e.timer = def.respawnMin * 60; e.waitDusk = false;
-    if (this.focus === e) { this.bar.set(0, 'pinned', null, this.host.camera, false); this.focus = null; this.scope.timeout(1600, () => { if (this.focus === null) this.bar.hide(); }); }
-    this.save();
-  }
-
-  /** a once elite won for good (Argymaq tamed): the trophy + the "skin" (the horse is the reward), the lair retires */
-  won(id: string): void {
-    const e = this.entry(id), s = this.saved[id];
-    if (!e || !s || e.state === 'retired') return;
-    s.kills++; e.script.trophy();
-    const skin = e.script.def.drop.skin;
-    if (!s.skinTaken) { s.skinTaken = true; if (skin !== null) this.host.ownSkin?.(skin); } // Argymaq: no skin, the horse is the prize
-    this.retire(e);
-  }
-
-  private retire(e: Entry): void {
-    e.state = 'retired';
-    const s = this.saved[e.script.def.id]; if (s) s.retired = true;
-    if (this.focus === e) { this.focus = null; this.bar.hide(); }
-    this.save();
   }
 
   private dropSkin(e: Entry, at: THREE.Vector3): void {
-    const def = e.script.def, s = this.saved[def.id], skin = def.drop.skin;
+    const def = e.script.def, skin = def.drop.skin;
     if (skin === null) return;
     const drop = new WeaponPickup({ scene: this.host.scene, item: e.script.dropModel(), position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, scale: 1.4 });
-    e.drop = drop;
+    this.drops.set(e, drop);
     this.host.addInteractable(drop.interactable);
     drop.onNear = (inside) => this.host.pickupHum?.(inside);
     drop.onPickup = () => {
+      const s = this.core.record(def.id);
       if (s) s.skinTaken = true;
-      this.save();
+      this.core.save();
       this.host.ownSkin?.(skin);
       this.host.removeInteractable(drop.interactable);
       this.host.pickupHum?.(false);
