@@ -14,12 +14,13 @@ import source from '../../../src/shards/far-reach/shard.config';
 import baked from '../../../src/shards/far-reach/runtime/physics.baked.json';
 import { CROWN, GOATS, ROC, VANES } from '../../../src/shards/far-reach/layout';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { FAN_ACT, FAN_ACTOR, FAN_STEP } from '../../../src/shards/far-reach/runtime/fan';
+import { FAN_ACT, FAN_ACTOR, FAN_AIM, FAN_STEP } from '../../../src/shards/far-reach/runtime/fan';
 import { FAN_ID } from '../../../src/shards/far-reach/weapons/fanStrikes';
 import { FAN_GUST, FAN_SWING, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
 import { FAN_ROW } from '../../../src/shards/far-reach/weapons/rows';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { ROC_STEP } from '../../../src/shards/far-reach/runtime/roc';
+import { PHASES } from '../../../src/shards/far-reach/runtime/rocEncounter';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
 import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/headless';
@@ -132,45 +133,63 @@ function run(host: SimHost, commands: HeadlessCommand[]): void {
   host.step(player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw, ...(player.attack === undefined ? {} : { attack: player.attack }) } : undefined);
   tape = [];
 }
+/** The fight's player stays this far inside the crown's rim (CROWN.r 20: its kerb stands at the edge). */
+const CROWN_REACH = 17;
 /**
- * Face the Roc and swing the War Fan at it every tick (its own cooldown gates the swings), heavy and gust in turn. The SimHost
- * player has no gravity yet (sf72-host adds it): a gale wall's lift floats the player off the crown, out of the fan's reach
- * of a Roc sweeping its storm, so a direct chip still carries the fight past its flying phases. The fan's own contacts on
- * the Roc are counted separately (fanOnRoc).
+ * Real War Fan play, and nothing else: the player starts on the crown (this test only: the winch bridge is a mover, and the
+ * played host installs the movers only after the engine's restore-parent fix), faces the Roc, aims at it and every tick
+ * asks for a light SWING at it and a GUST at its pitch (the fan's own cooldowns gate both). While the Roc flies the player
+ * holds the crown's middle, so its gale-wall stand-off (14 m) stays over the crown; while it hangs still (a gale wall's
+ * long active hold) or walks the dais the player goes under it, never past CROWN_REACH. Every point of damage the Roc
+ * takes is a fan contact (the encounter test counts them).
  */
 function crownFight(host: SimHost, at: number): void {
   if (at === 0) host.player.position.set(CROWN.x, CROWN.y, CROWN.z + 6);
   const roc = host.entities.get('far.roc'), p = host.player.position;
   if (roc === undefined) throw new Error('missing Roc');
-  if (roc.alive && at > 400 && at % 240 === 0)
-    host.combat.hit({ source: host.player.health, sourceTags: ['actor.player'], target: roc.combatActor(), amount: 60, point: roc.position.clone(), dir: new Vector3(0, 0, 1), moveId: 'test.chip' });
+  const rx = roc.position.x - CROWN.x, rz = roc.position.z - CROWN.z, out = Math.hypot(rx, rz);
+  const grounded = roc.position.y < CROWN.y + 3, follow = grounded || roc.speed < 0.5, k = !follow ? 0 : out > CROWN_REACH ? CROWN_REACH / out : 1;
+  const gx = CROWN.x + rx * k - p.x, gz = CROWN.z + rz * k - p.z, g = Math.hypot(gx, gz), near = grounded ? 2 : 1;
+  const moveX = g > near ? gx / g : 0, moveZ = g > near ? gz / g : 0;
   const yaw = Math.atan2(p.x - roc.position.x, p.z - roc.position.z);
-  run(host, [{ kind: 'player', moveX: 0, moveZ: 0, yaw, attack: { targetId: 'far.roc' } }, { kind: 'script', actorId: FAN_ACTOR, value: at % 2 === 0 ? FAN_ACT.heavy : FAN_ACT.gust }]);
+  const pitch = Math.atan2(roc.position.y - (p.y + 1.68), Math.hypot(roc.position.x - p.x, roc.position.z - p.z));
+  run(host, [{ kind: 'player', moveX, moveZ, yaw, attack: { targetId: 'far.roc' } }, { kind: 'script', actorId: FAN_AIM, value: pitch }, { kind: 'script', actorId: FAN_ACTOR, value: FAN_ACT.gust }]);
 }
 it('runs the Storm Roc encounter: intro on the crown, phases at 66 % and 33 %, one fact and purse on its first fall', () => {
   const effects: HeadlessEffect[] = [], host = boot(fed(effects)), states = new Set<string>(), phases = new Set<number>();
-  let lowest = host.player.health.attributes.health, fanOnRoc = 0, fanInIntro = 0, current = 'armed';
-  host.events.on('damage.dealt', ({ req }) => {
-    if (req.weaponId !== FAN_ID || req.target !== host.entities.get('far.roc')?.combatActor()) return;
-    fanOnRoc++; if (current === 'intro') fanInIntro++;
+  let lowest = host.player.health.attributes.health, fanOnRoc = 0, fanInIntro = 0, current = 'armed', rocDamage = 0, fanDamage = 0;
+  const fanMoves = new Set<string>();
+  host.events.on('damage.dealt', ({ req, dealt }) => {
+    if (req.target !== host.entities.get('far.roc')?.combatActor()) return;
+    rocDamage += dealt; if (req.weaponId !== FAN_ID) return;
+    // the phase a contact lands in, from the Roc's HP before it (the encounter's thresholds, 66 % and 33 %)
+    const roc = host.entities.get('far.roc'), before = roc === undefined ? 0 : (roc.hp + dealt) / roc.maxHp;
+    fanOnRoc++; fanDamage += dealt; fanMoves.add(`${before > PHASES[1] ? '0' : before > PHASES[2] ? '1' : '2'}:${req.moveId ?? ''}`); if (current === 'intro') fanInIntro++;
   }, host.scope);
   try {
     step(host);
     expect(snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state).toContain('"state":"armed"'); // armed at install, waiting at the crown
-    for (let tick = 0; tick < 6000 && !host.flags.has(FLAGS.roc); tick++) {
-      crownFight(host, tick);
-      const encounter = snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state;
+    let ticks = 0;
+    for (; ticks < 45_000 && !host.flags.has(FLAGS.roc); ticks++) {
+      crownFight(host, ticks);
+      // the encounter's state every tick through its intro, then every 15th (a beat holds 1.5 s; victory ends the loop)
+      const encounter = ticks < 200 || ticks % 15 === 0 || host.flags.has(FLAGS.roc) ? snapshotSimHost(host).adapters.find(adapter => adapter.id === ROC_STEP)?.state : undefined;
       if (typeof encounter === 'string') { const parsed: unknown = JSON.parse(encounter); if (typeof parsed === 'object' && parsed !== null && 'boss' in parsed && typeof parsed.boss === 'object' && parsed.boss !== null && 'state' in parsed.boss && 'phase' in parsed.boss) { current = String(parsed.boss.state); states.add(current); phases.add(Number(parsed.boss.phase)); } }
       lowest = Math.min(lowest, host.player.health.attributes.health);
+      expect(host.player.position.y).toBeGreaterThan(CROWN.y - 1); // the gale walls never shove the player off the crown
     }
     expect(host.flags.has(FLAGS.roc)).toBe(true);
     expect([...states]).toEqual(expect.arrayContaining(['intro', 'fight', 'beat', 'victory']));
     expect([...phases]).toEqual(expect.arrayContaining([0, 1, 2]));
     expect(lowest).toBeLessThan(host.player.health.attributes.maxHealth); // the Roc's own strikes landed through the fight
     expect(effects).toEqual([{ kind: 'fact', name: 'far-reach.roc', actorId: 'far.roc' }, { kind: 'coins', amount: 25, actorId: 'far.roc' }]);
-    expect(fanOnRoc).toBeGreaterThan(0); expect(fanInIntro).toBe(0); // the fan's own contacts land when it stoops, never through the intro
+    // every point of the Roc's 420 HP fell to the War Fan, in all three phases (its swings as it stoops, its gusts at the
+    // gale-wall hover and on the dais), never through the intro
+    expect(fanDamage).toBe(rocDamage); expect(rocDamage).toBeGreaterThanOrEqual(420); expect(fanInIntro).toBe(0);
+    expect([...fanMoves]).toEqual(expect.arrayContaining(['0:far.fan.light', '1:far.fan.gust', '2:far.fan.gust']));
+    expect(ticks).toBeGreaterThan(fanOnRoc);
   } finally { host.dispose(); }
-});
+}, 900_000);
 
 it('restores the Roc encounter mid-fight exactly, its victory paying once on the restored host', () => {
   for (const checkpoint of [900, 2000]) {

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
+import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { addPiece } from '@wildshard/engine/physics/pieces';
@@ -16,8 +16,10 @@ import { GALE_WISP } from '../species/galeWisp';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
 import { ROC_ID } from './rocEncounter';
-import { FAN_ACT, FAN_ACTOR, installSkyFan, type FanCommand } from './fan';
-import { installSkyMovers, verifiedMoverModules } from './headlessMovers';
+import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
+import { installSkyMovers, verifiedMoverModules, type SkyMovers } from './headlessMovers';
+import { installSkyQuest, skyWinchPermission } from './quest';
+import { WINCH_BRIDGE } from './moverRows';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -66,14 +68,24 @@ export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]>
  * fallen crown bridge, stay out), with the host's layered WORLD floor queries for flight and falls. Owns the 13 declared
  * bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
  * fact and purse) and the War Fan (runtime/fan.ts: the browser fan's own move recipe; a `player.attack` is its light
- * SWING, `far.fan` script commands its HEAVY and GUST; locked through the Roc's intro). Not yet owned (fail-closed, see the
- * SF72 handoff): the movers in the played host (islet lifts, winch bridge: a native restore re-parents every parentless
- * static collider to rigid body 0, Rapier's `coParent` miss, so a capsule on a static deck anchors to the first mover
- * body; the engine fix is the handoff's), so the crown is not yet reachable by play, and the quest and its facts.
- * `finish` proves all four Rising Islet entries by a real capsule traversal on fresh hosts of this world with the movers
- * on their admitted modules (runtime/headlessMovers.ts).
+ * SWING, `far.fan` script commands its HEAVY and GUST at the `far.fan.aim` pitch; locked through the Roc's intro) and the
+ * quest (runtime/quest.ts: its four steps, its fact and 10 coins once). Not yet owned (fail-closed, see the SF72 handoff):
+ * the movers in the played host (islet lifts, winch bridge: a native restore re-parents every parentless static collider
+ * to rigid body 0, Rapier's `coParent` miss, so a capsule on a static deck anchors to the first mover body; the engine fix
+ * is the handoff's), so the crown is not yet reachable by play and the quest's winch step never completes there; a fresh
+ * (never restored) host runs the same assembly with the movers (`prepareSkyRuntime(...).installWithMovers`). `finish`
+ * proves all four Rising Islet entries by a real capsule traversal on fresh hosts of this world with the movers on their
+ * admitted modules (runtime/headlessMovers.ts).
  */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, rapier }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (input) => (await prepareSkyRuntime(input)).plan;
+
+/** Sky's prepared runtime: the SDK plan, and the same install with the movers for fresh (never restored) hosts. */
+export interface SkyRuntime {
+  readonly plan: HeadlessRuntimePlan;
+  /** The played install plus the islet and winch movers (the quest's winch drives the bridge); refuses a restore until the engine's restore-parent fix. */
+  readonly installWithMovers: (host: SimHost, context: HeadlessRuntimeInstallation) => SkyMovers;
+}
+export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRuntimePreparation): Promise<SkyRuntime> {
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
   // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
   const modules = await verifiedMoverModules(assets);
@@ -94,9 +106,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     });
   };
   const ports = { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR } as const;
-  return { level, ports, install: (host, context) => {
+  const play = (host: SimHost, context: HeadlessRuntimeInstallation, withMovers: boolean): SkyMovers | null => {
     if (!context.restoring) colliders(host);
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
+    const movers = withMovers ? installSkyMovers(host, modules, context.restoring, () => skyWinchPermission(host.flags)) : null;
     const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
     const roc = flock.bodies().find(body => body.id === ROC_ID), body = roc?.brain?.roc ?? null;
     if (roc?.actor === null || roc?.actor === undefined || body === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
@@ -105,11 +118,23 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput)
     installSkyFan(host, () => encounter.locked() ? [] : context.commands().flatMap((command): FanCommand[] => {
       if (command.kind === 'player') return command.attack === undefined ? [] : [{ kind: 'swing', targetId: command.attack.targetId }];
+      if (command.kind === 'script' && command.actorId === FAN_AIM) return [{ kind: 'aim', pitch: command.value }];
       if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return [];
       return command.value === FAN_ACT.heavy ? [{ kind: 'heavy' }] : command.value === FAN_ACT.gust ? [{ kind: 'gust' }] : [];
     }));
+    installSkyQuest(host, { quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+      coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); },
+      commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
+      winch: movers === null ? null : { command: () => { movers.runtime.command(WINCH_BRIDGE, 1); }, raised: () => movers.runtime.pose(WINCH_BRIDGE).enabled } });
     flock.land();
-  }, proveEntries: () => {
+    return movers;
+  };
+  const installWithMovers = (host: SimHost, context: HeadlessRuntimeInstallation): SkyMovers => {
+    if (context.restoring) throw new Error('Sky Reach restores its movers only after the engine restore-parent fix');
+    const movers = play(host, context, true); if (movers === null) throw new Error('Sky Reach movers were not installed');
+    return movers;
+  };
+  const plan: HeadlessRuntimePlan = { level, ports, install: (host, context) => { play(host, context, false); }, proveEntries: () => {
     // Every Rising Islet entry on a fresh host of this same world (the baked colliders, the movers), plus what the grid
     // adds around a cell: the road's entry socket decks and the shardfile's declared landing / gate-isle colliders. The
     // platform's socket-lift proof walks a real capsule in from the road, boards, rides, walks the onward route, calls both
@@ -129,7 +154,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     });
     return { lanes, steps, liftRides, liftCalls };
   } };
-};
+  return { plan, installWithMovers };
+}
 const SURFACES: readonly Material[] = ['wood', 'metal', 'stone', 'grass'];
 function surface(value: string): Material {
   const known = SURFACES.find(name => name === value); if (known === undefined) throw new Error(`Unknown baked surface ${value}`); return known;
