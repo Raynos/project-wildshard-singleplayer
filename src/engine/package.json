@@ -300,6 +300,7 @@
     "./world/groundField": "./world/groundField.ts",
     "./world/interact/Interactables": "./world/interact/Interactables.ts",
     "./world/interact/pickup": "./world/interact/pickup.ts",
+    "./world/interact/prompts": "./world/interact/prompts.ts",
     "./world/interact/barrel": "./world/interact/barrel.ts",
     "./world/interact/flags": "./world/interact/flags.ts",
     "./world/interact/kit": "./world/interact/kit.ts",

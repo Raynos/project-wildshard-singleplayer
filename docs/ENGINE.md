@@ -1698,6 +1698,12 @@ pickup hosts: strict 1.1 m horizontal radius and 2.2 m vertical separation, with
 actual world collision (0.3 m target slack). The caller owns visibility, taken flags, events and inventory admission.
 A null physics world retains the pre-physics page behavior; an admitted headless world supplies its native physics.
 
+`@wildshard/engine/world/interact/prompts` defines `PromptPoint`, `PromptTarget`, `PromptSight`, `pickPrompt`,
+`promptVisible` and `setPromptSight` without a renderer or view dependency. Picking preserves strict eye-distance
+reach, first-row equal-distance ties and strong-before-weak priority. Visibility queries the actual native world;
+a first hit on the target's exact registered or reconstructed owner also counts as visible. The owner association
+is weakly held by the prompt. A null boot world retains distance-only picking; admitted native hosts supply physics.
+
 The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
 `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk` (load the quest views lazily with `import('@wildshard/engine/quest/view')`)
 (all `@wildshard/engine`). The template's quest:
