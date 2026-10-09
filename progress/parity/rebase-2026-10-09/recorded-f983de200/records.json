@@ -1,0 +1,1096 @@
+{
+  "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+  "rows": [
+    {
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "camp": 1,
+        "bridge": 0.9999999308893409,
+        "plains": 0.9999981560730951
+      },
+      "spread": {
+        "boot.playMs": 1240.3000001907349,
+        "boot.stepMs.renderer": 4,
+        "boot.stepMs.sky": 68,
+        "boot.stepMs.terrain": 61,
+        "boot.stepMs.cards": 13,
+        "boot.stepMs.forest": 12,
+        "boot.stepMs.physics": 2,
+        "boot.stepMs.edge": 9,
+        "boot.stepMs.grass": 30,
+        "boot.stepMs.props": 311,
+        "boot.stepMs.animals": 25,
+        "boot.stepMs.menu": 4,
+        "boot.stepMs.shaders": 39,
+        "boot.stepMs.firstFrame": 22,
+        "boot.stepMs.audio": 150,
+        "boot.heapMB": 137.42144775390625,
+        "poses.camp.fps": 46.6349638741342,
+        "poses.camp.frameP95Ms": 3.200000286102295,
+        "poses.camp.cpuP50Ms": 1.8000001907348633,
+        "poses.camp.cpuP95Ms": 3.0999999046325684,
+        "poses.bridge.fps": 53.26587151372138,
+        "poses.bridge.frameP95Ms": 3.499999523162842,
+        "poses.bridge.cpuP50Ms": 2.299999713897705,
+        "poses.bridge.cpuP95Ms": 3.299999713897705,
+        "poses.plains.fps": 51.45512922152899,
+        "poses.plains.frameP95Ms": 3.4000000953674316,
+        "poses.plains.cpuP50Ms": 2.6999998092651367,
+        "poses.plains.cpuP95Ms": 3.200000286102295,
+        "walk.legs.road-camp.seconds": 1.3855583347321954e-13,
+        "walk.legs.leopard-cave.seconds": 2.7000623958883807e-13
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ],
+          "combatAmbient": [
+            "steppe.herd",
+            "steppe.marmot"
+          ]
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ],
+          "combatAmbient": [
+            "steppe.herd",
+            "steppe.marmot"
+          ]
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ],
+          "combatAmbient": [
+            "steppe.herd",
+            "steppe.marmot"
+          ]
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "desktop",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "camp": 1,
+        "bridge": 1,
+        "plains": 1
+      },
+      "spread": {
+        "boot.playMs": 1982.0000004768372,
+        "boot.stepMs.renderer": 8,
+        "boot.stepMs.sky": 70,
+        "boot.stepMs.terrain": 60,
+        "boot.stepMs.cards": 16,
+        "boot.stepMs.forest": 13,
+        "boot.stepMs.physics": 2,
+        "boot.stepMs.edge": 10,
+        "boot.stepMs.grass": 28,
+        "boot.stepMs.props": 748,
+        "boot.stepMs.animals": 49,
+        "boot.stepMs.menu": 5,
+        "boot.stepMs.shaders": 205,
+        "boot.stepMs.firstFrame": 50,
+        "boot.stepMs.audio": 152,
+        "boot.heapMB": 57.132102966308594,
+        "poses.camp.fps": 43.677528727059425,
+        "poses.camp.frameP95Ms": 6.099999904632568,
+        "poses.camp.cpuP50Ms": 5.300000190734863,
+        "poses.camp.cpuP95Ms": 6,
+        "poses.bridge.fps": 36.348661340173116,
+        "poses.bridge.frameP95Ms": 7.300000190734863,
+        "poses.bridge.cpuP50Ms": 5.799999713897705,
+        "poses.bridge.cpuP95Ms": 7,
+        "poses.plains.fps": 38.275935122825445,
+        "poses.plains.frameP95Ms": 6.5,
+        "poses.plains.cpuP50Ms": 5.200000286102295,
+        "poses.plains.cpuP95Ms": 6.300000190734863,
+        "walk.legs.road-camp.seconds": 1.0658141036401503e-13,
+        "walk.legs.leopard-cave.seconds": 3.907985046680551e-13
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ],
+          "combatAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ]
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ],
+          "combatAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ]
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ],
+          "combatAmbient": [
+            "steppe.eagle",
+            "steppe.herd",
+            "steppe.marmot"
+          ]
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "tier": "phone",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "spawn": 0.9999734377648661,
+        "whip": 0.9999712710830001,
+        "ray": 0.9999546475070868,
+        "quest": 0.9994098286827666
+      },
+      "spread": {
+        "boot.playMs": 412.80000019073486,
+        "boot.stepMs.renderer": 3,
+        "boot.stepMs.sky": 4,
+        "boot.stepMs.terrain": 132,
+        "boot.stepMs.cards": 4,
+        "boot.stepMs.forest": 1,
+        "boot.stepMs.physics": 13,
+        "boot.stepMs.edge": 8,
+        "boot.stepMs.props": 4,
+        "boot.stepMs.animals": 1,
+        "boot.stepMs.menu": 7,
+        "boot.stepMs.shaders": 40,
+        "boot.stepMs.firstFrame": 10,
+        "boot.stepMs.audio": 1,
+        "boot.heapMB": 24.317764282226562,
+        "poses.spawn.fps": 43.41142800207518,
+        "poses.spawn.frameP95Ms": 0.3000001907348633,
+        "poses.spawn.cpuP50Ms": 0.9000000953674316,
+        "poses.spawn.cpuP95Ms": 0.3000001907348633,
+        "poses.whip.fps": 7.571658226812701,
+        "poses.whip.frameP95Ms": 0.10000038146972656,
+        "poses.whip.cpuP50Ms": 0.09999990463256836,
+        "poses.whip.cpuP95Ms": 0.10000038146972656,
+        "poses.ray.fps": 1.6907912043790247,
+        "poses.ray.frameP95Ms": 0.09999990463256836,
+        "poses.ray.cpuP50Ms": 0.09999990463256836,
+        "poses.ray.cpuP95Ms": 4.76837158203125e-7,
+        "poses.quest.fps": 13.007466342692112,
+        "poses.quest.frameP95Ms": 0.5,
+        "poses.quest.cpuP50Ms": 0.20000028610229492,
+        "poses.quest.cpuP95Ms": 0.19999980926513672
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [],
+          "combatAmbient": []
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [],
+          "combatAmbient": []
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [],
+          "combatAmbient": []
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "tier": "desktop",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "spawn": 0.9999924545060784,
+        "whip": 0.9999927660542267,
+        "ray": 0.9999744293759832,
+        "quest": 0.9999858148006481
+      },
+      "spread": {
+        "boot.playMs": 75.89999961853027,
+        "boot.stepMs.renderer": 3,
+        "boot.stepMs.sky": 8,
+        "boot.stepMs.terrain": 44,
+        "boot.stepMs.cards": 1,
+        "boot.stepMs.physics": 3,
+        "boot.stepMs.edge": 6,
+        "boot.stepMs.props": 7,
+        "boot.stepMs.menu": 7,
+        "boot.stepMs.shaders": 60,
+        "boot.stepMs.firstFrame": 20,
+        "boot.heapMB": 38.53104019165039,
+        "poses.spawn.fps": 11.039272234065066,
+        "poses.spawn.frameP95Ms": 0.3000006675720215,
+        "poses.spawn.cpuP50Ms": 0.3000001907348633,
+        "poses.spawn.cpuP95Ms": 0.20000028610229492,
+        "poses.whip.fps": 6.415522394498311,
+        "poses.whip.frameP95Ms": 0.40000009536743164,
+        "poses.whip.cpuP50Ms": 0.3000001907348633,
+        "poses.whip.cpuP95Ms": 0.19999980926513672,
+        "poses.ray.fps": 4.69279378660994,
+        "poses.ray.frameP95Ms": 0.5,
+        "poses.ray.cpuP50Ms": 0.19999980926513672,
+        "poses.ray.cpuP95Ms": 0.2999997138977051,
+        "poses.quest.fps": 13.580268094607675,
+        "poses.quest.frameP95Ms": 0.5,
+        "poses.quest.cpuP50Ms": 0.20000028610229492,
+        "poses.quest.cpuP95Ms": 0.09999990463256836
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [],
+          "combatAmbient": []
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [],
+          "combatAmbient": []
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [],
+          "combatAmbient": []
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "gate": 0.9999997660464653,
+        "cabin": 1,
+        "pond": 0.9998041856700087
+      },
+      "spread": {
+        "boot.playMs": 1790.0999999046326,
+        "boot.stepMs.renderer": 4,
+        "boot.stepMs.sky": 175,
+        "boot.stepMs.terrain": 163,
+        "boot.stepMs.cards": 200,
+        "boot.stepMs.forest": 8,
+        "boot.stepMs.physics": 2,
+        "boot.stepMs.edge": 10,
+        "boot.stepMs.grass": 9,
+        "boot.stepMs.cabins": 148,
+        "boot.stepMs.props": 13,
+        "boot.stepMs.animals": 48,
+        "boot.stepMs.weapon": 1,
+        "boot.stepMs.menu": 5,
+        "boot.stepMs.shaders": 160,
+        "boot.stepMs.firstFrame": 86,
+        "boot.stepMs.audio": 92,
+        "boot.heapMB": 93.78792190551758,
+        "poses.gate.fps": 36.00688595319313,
+        "poses.gate.frameP95Ms": 7.900000095367432,
+        "poses.gate.cpuP50Ms": 6.199999809265137,
+        "poses.gate.cpuP95Ms": 7.700000286102295,
+        "poses.cabin.fps": 33.36492067687693,
+        "poses.cabin.frameP95Ms": 8.900000095367432,
+        "poses.cabin.cpuP50Ms": 6.700000286102295,
+        "poses.cabin.cpuP95Ms": 8.400000095367432,
+        "poses.pond.fps": 32.595344014352364,
+        "poses.pond.frameP95Ms": 6.5,
+        "poses.pond.cpuP50Ms": 5.300000190734863,
+        "poses.pond.cpuP95Ms": 6,
+        "walk.legs.cabin-porch.seconds": 4.050093593832571e-13,
+        "walk.legs.lookout-climb.stuck": [],
+        "walk.legs.lookout-climb.end.x": 0,
+        "walk.legs.lookout-climb.end.y": 0,
+        "walk.legs.lookout-climb.end.z": 0,
+        "walk.legs.lookout-climb.maxY": 0,
+        "walk.legs.lookout-climb.out": 0,
+        "walk.legs.lookout-climb.seconds": 0
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": {
+            "end": {
+              "x": 34.926,
+              "y": 57.477,
+              "z": 211.28
+            },
+            "maxY": 57.48,
+            "stuck": []
+          },
+          "walkAmbient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ],
+          "combatAmbient": [
+            "forest.thrall",
+            "pineLife.woodpecker"
+          ]
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": {
+            "end": {
+              "x": 34.926,
+              "y": 57.477,
+              "z": 211.28
+            },
+            "maxY": 57.48,
+            "stuck": []
+          },
+          "walkAmbient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ],
+          "combatAmbient": [
+            "forest.thrall",
+            "pineLife.woodpecker"
+          ]
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": {
+            "end": {
+              "x": 34.926,
+              "y": 57.477,
+              "z": 211.28
+            },
+            "maxY": 57.48,
+            "stuck": []
+          },
+          "walkAmbient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ],
+          "combatAmbient": [
+            "forest.thrall",
+            "pineLife.woodpecker"
+          ]
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "gate": 1,
+        "cabin": 1,
+        "pond": 0.9999441459325824
+      },
+      "spread": {
+        "boot.playMs": 3664.2000002861023,
+        "boot.stepMs.renderer": 1,
+        "boot.stepMs.sky": 14,
+        "boot.stepMs.terrain": 8,
+        "boot.stepMs.cards": 6,
+        "boot.stepMs.edge": 3,
+        "boot.stepMs.grass": 5,
+        "boot.stepMs.cabins": 13,
+        "boot.stepMs.props": 1,
+        "boot.stepMs.animals": 3073,
+        "boot.stepMs.menu": 1,
+        "boot.stepMs.shaders": 227,
+        "boot.stepMs.firstFrame": 61,
+        "boot.stepMs.audio": 38,
+        "boot.heapMB": 130.79397583007812,
+        "poses.gate.fps": 11.130188669714506,
+        "poses.gate.frameP95Ms": 11,
+        "poses.gate.cpuP50Ms": 10.399999618530273,
+        "poses.gate.cpuP95Ms": 10.900000095367432,
+        "poses.cabin.fps": 9.945654938418098,
+        "poses.cabin.frameP95Ms": 9.599999904632568,
+        "poses.cabin.cpuP50Ms": 9.900000095367432,
+        "poses.cabin.cpuP95Ms": 9.499999523162842,
+        "poses.pond.fps": 4.335196247524635,
+        "poses.pond.frameP95Ms": 6.799999713897705,
+        "poses.pond.cpuP50Ms": 2.4000000953674316,
+        "poses.pond.cpuP95Ms": 6.900000095367432,
+        "walk.legs.cabin-porch.seconds": 1.4210854715202004e-14,
+        "walk.legs.lookout-climb.stuck": [],
+        "walk.legs.lookout-climb.end.x": 0,
+        "walk.legs.lookout-climb.end.y": 0,
+        "walk.legs.lookout-climb.end.z": 0,
+        "walk.legs.lookout-climb.maxY": 0,
+        "walk.legs.lookout-climb.out": 0,
+        "walk.legs.lookout-climb.seconds": 0,
+        "walk.legs.creek-bridge.seconds": 1.3677947663381929e-12
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": {
+            "end": {
+              "x": 34.916,
+              "y": 57.477,
+              "z": 211.286
+            },
+            "maxY": 57.478,
+            "stuck": []
+          },
+          "walkAmbient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ],
+          "combatAmbient": [
+            "forest.thrall"
+          ]
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": {
+            "end": {
+              "x": 34.916,
+              "y": 57.477,
+              "z": 211.286
+            },
+            "maxY": 57.478,
+            "stuck": []
+          },
+          "walkAmbient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ],
+          "combatAmbient": []
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "walkStuck": 0,
+          "lookout": {
+            "end": {
+              "x": 34.916,
+              "y": 57.477,
+              "z": 211.286
+            },
+            "maxY": 57.478,
+            "stuck": []
+          },
+          "walkAmbient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ],
+          "combatAmbient": [
+            "forest.thrall"
+          ]
+        }
+      ]
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "phone",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "spawn-rail": 1,
+        "well-edge": 1,
+        "stair-street": 0.9997966343743062
+      },
+      "spread": {
+        "boot.playMs": 352.800000667572,
+        "boot.stepMs.renderer": 2,
+        "boot.stepMs.sky": 15,
+        "boot.stepMs.edge": 3,
+        "boot.stepMs.grass": 2,
+        "boot.stepMs.props": 161,
+        "boot.stepMs.animals": 1,
+        "boot.stepMs.weapon": 3,
+        "boot.stepMs.menu": 7,
+        "boot.stepMs.shaders": 84,
+        "boot.stepMs.firstFrame": 5,
+        "boot.heapMB": 16.59880828857422,
+        "poses.spawn-rail.fps": 58.17652051741646,
+        "poses.spawn-rail.frameP95Ms": 1.5000004768371582,
+        "poses.spawn-rail.cpuP50Ms": 1.299999713897705,
+        "poses.spawn-rail.cpuP95Ms": 1.4000000953674316,
+        "poses.well-edge.fps": 39.7963280401122,
+        "poses.well-edge.frameP95Ms": 1.0999994277954102,
+        "poses.well-edge.cpuP50Ms": 0.7000002861022949,
+        "poses.well-edge.cpuP95Ms": 1,
+        "poses.stair-street.fps": 5.4168399431543435,
+        "poses.stair-street.frameP95Ms": 0.09999990463256836,
+        "poses.stair-street.cpuP50Ms": 0.09999990463256836,
+        "poses.stair-street.cpuP95Ms": 0.3000001907348633,
+        "walk.legs.stair-street.seconds": 3.907985046680551e-14
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "nd.audio.tick",
+            "nd.hum.lantern"
+          ],
+          "combatAmbient": [
+            "nd.audio.tick"
+          ]
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "nd.audio.tick",
+            "nd.hum.lantern"
+          ],
+          "combatAmbient": [
+            "nd.audio.tick"
+          ]
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "nd.audio.tick",
+            "nd.hum.lantern"
+          ],
+          "combatAmbient": [
+            "nd.audio.tick"
+          ]
+        }
+      ]
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "desktop",
+      "pin": "f983de200b2b54ccde9cb551cc41188c24445222",
+      "verdict": "green",
+      "selfMin": {
+        "spawn-rail": 1,
+        "well-edge": 1,
+        "stair-street": 1
+      },
+      "spread": {
+        "boot.playMs": 761.7000002861023,
+        "boot.stepMs.renderer": 3,
+        "boot.stepMs.sky": 30,
+        "boot.stepMs.forest": 1,
+        "boot.stepMs.physics": 1,
+        "boot.stepMs.edge": 5,
+        "boot.stepMs.props": 375,
+        "boot.stepMs.weapon": 9,
+        "boot.stepMs.menu": 3,
+        "boot.stepMs.shaders": 134,
+        "boot.stepMs.firstFrame": 22,
+        "boot.stepMs.audio": 25,
+        "boot.heapMB": 426.6887512207031,
+        "poses.spawn-rail.fps": 16.757517137120686,
+        "poses.spawn-rail.frameP95Ms": 1.200000286102295,
+        "poses.spawn-rail.cpuP50Ms": 1.2000007629394531,
+        "poses.spawn-rail.cpuP95Ms": 1.299999713897705,
+        "poses.well-edge.fps": 30.84405736905825,
+        "poses.well-edge.frameP95Ms": 2.5999999046325684,
+        "poses.well-edge.cpuP50Ms": 2.1999998092651367,
+        "poses.well-edge.cpuP95Ms": 2.6999998092651367,
+        "poses.stair-street.fps": 36.310775616188025,
+        "poses.stair-street.frameP95Ms": 2.6999998092651367,
+        "poses.stair-street.cpuP50Ms": 2.3000001907348633,
+        "poses.stair-street.cpuP95Ms": 2.6000003814697266,
+        "walk.legs.stair-street.seconds": 8.526512829121202e-14,
+        "walk.legs.escape-square-balustrade.seconds": 1.6786572132332367e-13
+      },
+      "runs": [
+        {
+          "run": 1,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "nd.audio.tick",
+            "nd.hum.lantern"
+          ],
+          "combatAmbient": [
+            "nd.audio.tick"
+          ]
+        },
+        {
+          "run": 2,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "nd.audio.tick",
+            "nd.hum.lantern"
+          ],
+          "combatAmbient": [
+            "nd.audio.tick"
+          ]
+        },
+        {
+          "run": 3,
+          "leak": {
+            "textures": 0,
+            "programs": 0,
+            "geometries": 0,
+            "bodies": 0,
+            "colliders": 0
+          },
+          "weather": null,
+          "walkStuck": 0,
+          "lookout": null,
+          "walkAmbient": [
+            "nd.audio.tick",
+            "nd.hum.lantern"
+          ],
+          "combatAmbient": [
+            "nd.audio.tick"
+          ]
+        }
+      ]
+    }
+  ],
+  "latestSignal": [
+    {
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "spawn",
+          "ssim": 0.9999997872223583
+        },
+        {
+          "name": "whip",
+          "ssim": 0.9999977726452384
+        },
+        {
+          "name": "ray",
+          "ssim": 0.9999758987881632
+        },
+        {
+          "name": "quest",
+          "ssim": 0.9973236098809402
+        }
+      ],
+      "leak": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      }
+    },
+    {
+      "tier": "desktop",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "spawn",
+          "ssim": 0.9999854133299623
+        },
+        {
+          "name": "whip",
+          "ssim": 0.9999726789274985
+        },
+        {
+          "name": "ray",
+          "ssim": 0.9999837236799862
+        },
+        {
+          "name": "quest",
+          "ssim": 0.9999871088961322
+        }
+      ],
+      "leak": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      }
+    }
+  ]
+}

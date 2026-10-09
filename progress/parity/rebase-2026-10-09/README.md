@@ -1,4 +1,8 @@
 # Parity rebase 2026-10-09: every red on HEAD explained, only the explained re-recorded (SHARD-PLATFORM, E435)
+## Completion (2026-10-09, sp-x2)
+
+The two leaks are fixed and all four remaining M5 records are landed: Nalati `513b95f14`, Signal `ca8e97149`, Pine `ac9d055a1`, Nine `a12e1a3db`. Three captures per tier are green; every old-to-new red is classified. [Completed record receipt](recorded-f983de200/README.md) covers the commits after the original pin and the latest Signal species extraction. [Leak proof](leak-fixes/README.md) has five zero-leak unloads each, boot smoke and the full clean suite. The original triage below is retained as dated evidence; its render-target and RNG hypotheses are corrected by those receipts.
+
 
 Lane `parity-rebase`. Parity run on `77772d696` (then HEAD; M5, phone + desktop, all seven shards,
 `node scripts/parity.mjs --export=77772d696… --lane=m5 --shards=all --tiers=phone,desktop --jobs=1 --retry=0`),
@@ -14,10 +18,10 @@ Driftwood at `16728f1c6` (= `780f71006` + an SF50 grid-only change); Signal Dune
 | `driftwood-isle` | none (both tiers green) | nothing to record |
 | `_template` | mesh +1, programs +1, `programKeys`; phone `current` SSIM .947 | all explained + intended → **re-recorded** |
 | `far-reach` (Sky Reach) | colliders +40, registry, instanced / instances, `scene.named`, `programKeys`, buffers +4.5 KB, pose calls +1 / tris +480 | all explained + intended → **re-recorded** |
-| `nalati-grasslands` | `boot.saves.read` / `boot.saves.written` / `combat.loot.written` | all explained + intended; **not yet re-recorded** (record stopped, Claude usage cap) |
-| `sunscar-dunes` (Signal) | mesh, instanced, geometries, programs, textures, buffers, pose calls / tris, `systems.update` | all explained + intended (bisected, below); **not yet re-recorded** (record stopped) |
-| `nine-dragon-stack` | phone pose SSIM ×3 (minimap only); phone `leak.programs` 1 (intermittent) | **not re-recorded**: the leak is a bug (class D, not a baseline field) |
-| `pine-hollow` | colliders −4, registry, buffers −64 B, desktop instances −1, gate tris; walk `lookout-climb` end ±1 cm; phone `combat.sounds.ambient`; phone `leak.textures` / `leak.weather.textures` | **not re-recorded**: a leak bug, and two unclaimed side effects of `77772d696` |
+| `nalati-grasslands` | `boot.saves.read` / `boot.saves.written` / `combat.loot.written` | all explained + intended → **re-recorded `513b95f14`** |
+| `sunscar-dunes` (Signal) | mesh, instanced, geometries, programs, textures, buffers, pose calls / tris, `systems.update` | all explained + intended → **re-recorded `ca8e97149`** |
+| `nine-dragon-stack` | phone pose SSIM ×3 (minimap only); phone `leak.programs` 1 (intermittent) | leak fixed and proved → **re-recorded `a12e1a3db`** |
+| `pine-hollow` | colliders −4, registry, buffers −64 B, desktop instances −1, gate tris; walk `lookout-climb` end ±1 cm; phone `combat.sounds.ambient`; phone `leak.textures` / `leak.weather.textures` | leak fixed; side effects explained → **re-recorded `ac9d055a1`** |
 
 ## Explained and intended
 
@@ -40,7 +44,7 @@ Driftwood at `16728f1c6` (= `780f71006` + an SF50 grid-only change); Signal Dune
 | phone poses `spawn-rail` .984, `well-edge` .984, `stair-street` .982 | Nine phone | `f9a2e7493` (G252 Nine's baked map B, stylized) / `fce37c222` (map rebake) | the diff images are black but the minimap disc |
 | colliders 2421 → 2417, registry, buffers −64 B, desktop instances −1, gate tris −1,270 / −23,054 | Pine, both | `77772d696` (SF72 entry canyons) | the four lane-blocking solids leave; at `8c4271064` (its parent) none of these fields is red |
 
-## Bugs (not re-recorded)
+## Originally observed bugs (fixed / explained in the completion receipts)
 
 | Field | Shard / tier | Commit | Evidence |
 |---|---|---|---|
@@ -49,10 +53,9 @@ Driftwood at `16728f1c6` (= `780f71006` + an SF50 grid-only change); Signal Dune
 | `walk.legs.lookout-climb.end` / `maxY` ±1 cm (34.916 ↔ 34.926, 211.286 ↔ 211.28, 57.478 ↔ 57.48) | Pine, both | `77772d696` | at `8c4271064` both tiers match the baseline (unchanged since `cea89b855`); on `77772d696` desktop lands on the phone's old end (2/2) and phone flips between the two (1 of 2). Removing four colliders ~200 m away re-orders Rapier's collider set, and the climb's contact resolution has two end states. Unclaimed by the commit; the walk itself is fine (0 stuck) |
 | `combat.sounds.ambient` loses `pineLife.drum` | Pine phone | `77772d696` | green at `8c4271064`; the ambient schedulers' seeded timings shift with the physics change, so no drum lands in the combat window. Unclaimed side effect |
 
-The two `77772d696` side effects are harmless in play, but no commit claims them, so Pine keeps its baselines until the
-coordinator accepts them (with the leak fixed, a 3-run Pine record would also capture the walk's two end states as its band).
+The two `77772d696` side effects were subsequently source-checked and measured in the completion receipt. Pine is now re-recorded with its actual three-run spread; no artificial contact or audio tolerance was added.
 
-## Left (handed to Codex, 2026-10-09)
+## Original handoff (completed, 2026-10-09)
 
 - Re-record Nalati and Signal Dunes on M5 from `77772d696` (every red explained above):
   `node scripts/parity.mjs --record --runs=3 --lane=m5 --shards=<slug> --tiers=phone,desktop --export=77772d6969a3f9ec52ba63f476b7d9aec3803b2a --jobs=1 --retry=0 --timeout=400`
@@ -66,6 +69,4 @@ coordinator accepts them (with the leak fixed, a 3-run Pine record would also ca
 
 - The gh-macos15 (CI runner) phone baselines: recorded only by a `gpu-gate` record dispatch on a pushed SHA
   (`gh workflow run gpu-gate -f record=true -f sha=<sha>`), left to the coordinator.
-- Commits after `77772d696` (`ac189becd` Signal skitterer bake, `fd32b3203` Nalati groups on the host's clocks,
-  `8f982a5a4` Pine navmesh rebake, `950eecdf9` quest ledger key): the records are pinned to `77772d696`; anything those
-  move shows red against these baselines, which is the harness doing its job.
+- The completed receipt now covers the commits after `77772d696` on the `f983de200` record pin; Signal's later `741b37a06` species extraction also passes a fresh both-tier comparison on `306f6e958`.
