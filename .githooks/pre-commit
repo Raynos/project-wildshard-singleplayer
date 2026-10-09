@@ -29,6 +29,18 @@ EOF
   exit 1
 fi
 
+# No raw soak / census / receipt archives in git (Jake, 2026-10-09, process audit progress/process/audit-2026-10-09/,
+# docs/process/MACHINE.md): 74 MB of .gz / .br soak logs crossed the uplink in 12 h and do not delta. New files only.
+raw="$(git diff --cached --name-only --diff-filter=A -- 'progress/*.gz' 'progress/*.br' 'progress/*.zst' 'progress/*.jsonl' | sed 's/^/  /')"
+if [ -n "$raw" ]; then
+  cat >&2 <<EOF
+BLOCKED by .githooks/pre-commit: raw soak / census / receipt archives stay out of git (MACHINE.md). Keep them in your
+scratchpad (or a CI artifact) and commit the summary and the numbers (summary.json, a CSV, a board, the verdict line).
+$raw
+EOF
+  exit 1
+fi
+
 if [ -n "$bad" ]; then
   cat >&2 <<EOF
 BLOCKED by .githooks/pre-commit: progress/ images over 500 KB — every push crawls over a slow shared uplink.
@@ -43,8 +55,7 @@ fi
 node scripts/precommit-generated.mjs || exit 1
 # E362 AG7: increases warn for exact coordinator approval; reach and cycle checks stay fatal.
 node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) || exit 1
-# E423: a staged ask file follows the ask rules (docs/process/ASKS.md: Status vocabulary, folds name a target,
-# one live Handoff per lane, none once closed).
+# E423: a staged ask file follows the ask rules (docs/process/ASKS.md: Status vocabulary, folds name a target).
 node scripts/asks.mjs check || exit 1
 # E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
 node scripts/precommit-guards.mjs || exit 1

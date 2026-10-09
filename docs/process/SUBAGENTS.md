@@ -14,9 +14,9 @@ after a longer wait the whole context is re-cached at full price.
   SHARD-PLATFORM builder, relayed by his plan agent: *"Tell the builder I green light 5 opus subagent slots"*).
 - **One job per subagent**, then it reports and ends. **Caps: 400k context, 90 min wall clock, ~200 turns**,
   whichever comes first. Put all three in the brief: "stop at 400k context, 90 min or ~200 turns. Commit what is done,
-  update your Handoff, report what is left." The parent starts a **fresh** subagent for what is left.
-- **Reports are 40 lines at most.** The detail goes in the Handoff ([ASKS.md → Handoffs](ASKS.md)): one live
-  `## Handoff (<lane>)` section, overwritten at every commit (Done, Next, Owns, Learned, Done when).
+  report what is left." The parent starts a **fresh** subagent for what is left.
+- **Reports are 40 lines at most**, with the SHAs; the commit messages carry the detail. **No per-lane handoff files**
+  (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): the coordinator's `docs/plans/<plan>/STATE.md` is the restart record.
 - **Never recycle a finished subagent** with a new job; spawn a new one with a short brief. **No forks.**
 - **Long waits belong to the main agent.** A subagent whose next step queues longer than ~4 min (a model batch, a
   capture, a CI or deploy run) commits, reports "queued: <exact command>" and ends. The main agent runs it with
@@ -25,7 +25,7 @@ after a longer wait the whole context is re-cached at full price.
   capture as the phone, start previews from the scratchpad, and the rules of [GIT.md](GIT.md).
 - **Shard build-out lines** (Jake, 2026-10-01): when a shard agent hits an engine gap it keeps building other rows and
   sends the request over herdr to the agent that owns the engine; it is never thrown away and restarted from scratch
-  to prove a zero-gap run. Continue the same agent while its context allows; else its successor reads its Handoff.
+  to prove a zero-gap run. Continue the same agent while its context allows; else its successor starts from its last report and commits.
 
 ## Codex and Opus: who gets the work (Jake, 2026-10-08)
 
@@ -42,11 +42,11 @@ running out of Claude with Codex to spare is worse.
   - Claude may spend `weekly.remaining − 10` points before its reset.
   - Codex may spend all of its `weekly.remaining` before its reset.
   - Divide by the hours to each reset to get a burn rate per hour per provider.
-  - When a provider burns faster than its rate, give it fewer lanes / no new tasks (its lanes finish the commit in flight, write a
-    handoff, go idle).
+  - When a provider burns faster than its rate, give it fewer lanes / no new tasks (its lanes finish the commit in flight, report over
+    herdr, go idle).
   - When it burns slower, give it more of the non-graphical work.
   - When in doubt, lean on Codex: a slightly early Codex zero is fine; touching Claude's reserve is not.
 - **Re-check at least every few hours and at every new batch of work.** Record the reading and the lane split in the plan's §9 / State
   line when it changes.
-- **A lane going idle writes `progress/shard-platform/handoffs/<lane>.md`:** done, open, the exact next step, SHAs, scratch worth
-  keeping, owned previews to stop. Whoever picks the work up (Opus or Codex) starts from it.
+- **A lane going idle reports over herdr** (done, open, the exact next step, SHAs, owned previews to stop); no handoff file
+  (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`). The coordinator folds it into STATE.md; whoever picks the work up starts from that.

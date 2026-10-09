@@ -3,7 +3,7 @@
 Jake's rules from the E423 audit (2026-10-03; the decisions are numbered in
 [docs/tasks/asks/E423.md](../tasks/asks/E423.md)). The audit found 133 open asks, 86 of them finished, dead or
 duplicated, because the old process filed every leftover as an ask and nothing ever expired.
-`scripts/asks.mjs` enforces the rules: in `.githooks/pre-commit`, in `.githooks/commit-msg` and in the session brief.
+`scripts/asks.mjs` enforces the rules: in `.githooks/pre-commit` and in the session brief.
 
 ## An ask is a receipt; plans are the queue
 
@@ -50,18 +50,20 @@ ask.** A plan can't archive while it has open rows.
 **Superseded (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): no per-lane handoff files; lanes report landings over herdr and the coordinator's
 `docs/plans/<plan>/STATE.md` (≤ 3 KB) is the restart record.** Historical rule: one live `## Handoff (<lane>)` section per lane, overwritten in place at every commit: Done, Next, Owns, Learned,
 Done when. It is deleted when the work closes; the commits are the history. Old append-only logs live in
-`project/archive/handoffs/<ID>.md`. The pre-commit check refuses two sections with the same lane, and any Handoff in a
-closed ask.
+`project/archive/handoffs/<ID>.md`. No hook checks Handoff sections any more.
 
-## Plans stay true by commit
+## Plan status lives in STATE.md
 
-A commit whose message names a live plan (`docs/plans/<NAME>.md`) also touches that plan: tick the row, or rewrite the
-State line. When the plan really is unchanged, add the trailer `Plan-State: unchanged`. The brief flags a plan whose
-State date is older than its newest commit naming it.
+**No `Plan-State` trailer and no commit-msg plan check** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): a plan's live status is one
+`docs/plans/<plan>/STATE.md` (≤ 3 KB, the plan's lower-case folder), overwritten by that plan's coordinator once per
+landing batch; nobody else writes it. The plan file keeps the decisions and the rows. The session brief shows the
+STATE.md line when the file exists, else the plan's State line (and flags one older than the newest commit naming it).
+Historical rule (E423 decision 16): a commit naming a live plan touched it or said `Plan-State: unchanged`.
 
 ## Plans and their State line
 
-- A plan is a `docs/plans/<NAME>.md` with a row table. Line 3 is its **State** line:
+- A plan is a `docs/plans/<NAME>.md` with a row table. Line 3 is its **State** line (for a plan with a STATE.md,
+  the live status lives there):
   `**State:** \`<state>\` <YYYY-MM-DD> — <one line: what landed, what is open, who or what it waits on>`. Rewrite it
   (don't append) whenever the state or the open work changes.
 - States:

@@ -20,8 +20,8 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
 ## Start here
 
 1. Read AGENTS.md (the repo's rules) and this file.
-2. Read the **last `## Handoff`** for your shard in `docs/tasks/asks/E374.md`. It is where the previous builder stopped,
-   with the exact next steps. Continue from it; never rebuild from scratch (Jake, P25).
+2. Read the lead's last report for your shard (the plan's STATE.md, else `docs/tasks/asks/E374.md`'s last Handoff, now
+   historical). It is where the previous builder stopped. Continue from it; never rebuild from scratch (Jake, P25).
 3. Your plan: `docs/plans/SIGNAL-DUNES.md` or `docs/plans/SKY-REACH.md` (polish rows P1–P6). Your style bible:
    `docs/design/sunscar-dunes/style-bible.md` ("Last Light") or the far-reach one ("Gilded Air"). Your review:
    `docs/design/<slug>/review-2026-10-01.md`. The method: `docs/design/LOOK-LOOP.md`.
@@ -61,8 +61,7 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
    cameras are `art/<slug>/progress/cameras.json`; keep them fixed.
 3. A board per loop in `art/<slug>/round-<n>-<label>/` (JPEG, before / after / target), and a short message to the lead
    with the board path and the SHAs.
-4. Keep your own `## Handoff (<date> <time>, <slug> agent)` section in `docs/tasks/asks/E374.md` current at every commit
-   (Done / Next / Owns / Learned / Done when).
+4. Report each landing to the lead over herdr with its SHAs; no Handoff section or handoff file (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`).
 
 ## Done
 
@@ -71,4 +70,4 @@ shard against the other four on the same views. You loop on their findings until
 their level. Jake is asleep and asked for no questions: decisions you'd want from him go to the lead (herdr) with your
 recommended answer. If Jake talks to you directly over Remote Control, his word overrides this brief.
 
-When your context gets large, write a full Handoff, tell the lead, and stop; the lead starts a fresh session on it.
+When your context gets large, commit, send the lead a full report (done / next / SHAs), and stop; the lead starts a fresh session on it.

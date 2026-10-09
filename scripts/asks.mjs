@@ -1,8 +1,10 @@
 // asks.mjs — the ask and plan rules (E423, docs/process/ASKS.md), one parser for the brief and the git hooks.
 //
-//   node scripts/asks.mjs brief           what is open: unanswered asks, expired claims, picks to ask Jake, stale plan State lines
+//   node scripts/asks.mjs brief           what is open: unanswered asks, expired claims, picks to ask Jake, each live plan's state
 //   node scripts/asks.mjs check           pre-commit: every staged docs/tasks/asks/*.md follows the rules
-//   node scripts/asks.mjs commit-msg <f>  commit-msg: a commit that names a live plan also touches that plan
+//
+// No commit-msg Plan-State check and no Handoff rules (Jake, 2026-10-09, process audit progress/process/audit-2026-10-09/):
+// a plan's status lives in docs/plans/<plan>/STATE.md, written only by its coordinator; lanes keep no handoff files.
 //
 // An ask is a receipt of Jake's words (decision 1). Its Status is one of the STATES below; follow-up work is a plan row.
 import { spawnSync } from 'node:child_process';
@@ -32,7 +34,6 @@ export function parseAsk(text) {
   const target = state === 'folded into' || state === 'superseded by'
     ? /^(?:folded into|superseded by) +([A-Z][A-Z0-9_-]*)/iu.exec(status)?.[1] ?? null
     : null;
-  const handoffs = [...text.matchAll(/^## Handoff\b(.*)$/gmu)].map((m) => m[1].trim());
   return {
     title: /^# (\S+)/u.exec(text)?.[1] ?? null,
     status,
@@ -41,7 +42,6 @@ export function parseAsk(text) {
     date,
     target,
     ask: /^\*\*Ask:\*\* *(.*)$/mu.exec(text)?.[1]?.trim() ?? '',
-    handoffs,
   };
 }
 
@@ -73,14 +73,6 @@ export function checkAsk(id, text, exists = inTree) {
     const found = t !== null && [`${ASKS}/${t}.md`, `${PLANS}/${t}.md`].some((path) => exists(path));
     if (!found) out.push(`"${a.state}" must name an existing ask (E123) or plan (NINE-DRAGON-STACK)`);
   }
-  const seen = new Set();
-  for (const h of a.handoffs) {
-    if (seen.has(h)) out.push(`two "## Handoff ${h}" sections: one live handoff per lane, overwritten in place`);
-    seen.add(h);
-  }
-  if (a.closed && a.handoffs.length > 0) {
-    out.push('a closed ask keeps no Handoff: delete it (the commits are the history; old logs live in project/archive/handoffs/)');
-  }
   return out;
 }
 
@@ -102,26 +94,6 @@ function check() {
 
 const livePlans = () => readdirSync(resolve(ROOT, PLANS)).filter((f) => f.endsWith('.md')).map((f) => basename(f, '.md'));
 
-/** The live plans a commit message names but the commit doesn't touch (decision 16); [] when it may pass. */
-export function planVerdict(message, changed, plans) {
-  const msg = message.split('\n').filter((l) => !l.startsWith('#')).join('\n');
-  if (/^Plan-State: unchanged$/mu.test(msg)) return [];
-  const touched = new Set(changed);
-  return plans.filter((name) => new RegExp(`(^|[^A-Za-z0-9_-])${name}([^A-Za-z0-9_-]|$)`, 'u').test(msg)
-    && !touched.has(`${PLANS}/${name}.md`));
-}
-
-function commitMsg(file) {
-  const changed = git('diff', '--cached', '--name-only', '-z').split('\0').filter(Boolean);
-  const missing = planVerdict(readFileSync(file, 'utf8'), changed, livePlans());
-  if (missing.length === 0) return;
-  console.error(`BLOCKED by scripts/asks.mjs commit-msg (E423 decision 16): the message names ${missing.join(', ')}
-but the commit does not touch ${missing.map((n) => `${PLANS}/${n}.md`).join(', ')}.
-Tick the row / rewrite the State line in the same commit, or, when the plan really is unchanged, add the trailer
-    Plan-State: unchanged`);
-  process.exitCode = 1;
-}
-
 function brief() {
   const now = Date.now();
   const rows = [];
@@ -141,24 +113,31 @@ function brief() {
   console.log('-- asks still unanswered (docs/tasks/asks/: receipts of Jake\'s words; the work queue is docs/plans/) --');
   console.log(rows.length > 0 ? rows.join('\n') : '(none)');
   console.log('');
-  console.log('-- live plans (docs/plans/*.md State line) --');
+  console.log('-- live plans (docs/plans/<plan>/STATE.md, else the plan\'s State line) --');
   const log = git('log', '--since=30.days', '--format=%cs%x09%h%x09%s');
   for (const name of livePlans()) {
+    // The coordinator's STATE.md (≤ 3 KB) is the plan's status once it exists; it is refreshed per landing batch, not per
+    // commit. Plan folders are lower-case (docs/plans/shard-platform/ beside SHARD-PLATFORM.md).
+    const stateFile = [name.toLowerCase(), name].map((dir) => `${PLANS}/${dir}/STATE.md`).find((p) => existsSync(resolve(ROOT, p)));
+    if (stateFile !== undefined) {
+      const line = readFileSync(resolve(ROOT, stateFile), 'utf8').split('\n').map((l) => l.trim()).find((l) => l !== '' && !l.startsWith('#')) ?? '(empty)';
+      console.log(`${name} | ${stateFile}: ${line.slice(0, 220)}`);
+      continue;
+    }
     const text = readFileSync(resolve(ROOT, PLANS, `${name}.md`), 'utf8');
     const state = /^\*\*State:\*\* *(.*)$/mu.exec(text)?.[1] ?? '(no State line: add one, see docs/process/ASKS.md)';
     const stateDate = /(\d{4}-\d{2}-\d{2})/u.exec(state)?.[1] ?? '0000-00-00';
     const re = new RegExp(`(^|[^A-Za-z0-9_-])${name}([^A-Za-z0-9_-]|$)`, 'u');
     const newer = log.split('\n').find((l) => re.test(l.split('\t')[2] ?? '') && (l.split('\t')[0] ?? '') > stateDate);
-    const flag = newer ? ` !! State older than ${newer.split('\t')[1]} (${newer.split('\t')[0]}): rewrite it` : '';
+    const flag = newer ? ` !! State older than ${newer.split('\t')[1]} (${newer.split('\t')[0]}): its coordinator rewrites it` : '';
     console.log(`${name} | ${state.slice(0, 220)}${flag}`);
   }
 }
 
-const [mode, arg] = process.argv.slice(2);
+const [mode] = process.argv.slice(2);
 if (mode === 'check') check();
-else if (mode === 'commit-msg' && arg) commitMsg(arg);
 else if (mode === 'brief') brief();
 else if (import.meta.url === `file://${process.argv[1]}`) {
-  console.error('usage: node scripts/asks.mjs brief | check | commit-msg <file>');
+  console.error('usage: node scripts/asks.mjs brief | check');
   process.exitCode = 2;
 }

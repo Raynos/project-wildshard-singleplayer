@@ -9,8 +9,6 @@ export interface Ask {
   date: string | null;
   target: string | null;
   ask: string;
-  handoffs: string[];
 }
 export function parseAsk(text: string): Ask;
 export function checkAsk(id: string, text: string, exists?: (path: string) => boolean): string[];
-export function planVerdict(message: string, changed: string[], plans: string[]): string[];

@@ -92,7 +92,7 @@ export async function regenerateCommitted(root, approvalFile) {
       }
       const refreshed = Object.keys(witnessOutputs).map((file) => file.split('/')[2]).join(', ');
       const witnessNote = refreshed === '' ? '' : `Witness inputs re-recorded on clean HEAD, payloads byte-identical: ${refreshed}\n\n`;
-      const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\n${witnessNote}Generated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\nPlan-State: unchanged\n`;
+      const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\n${witnessNote}Generated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\n`;
       const messageFile = resolve(scratch, 'message'); writeFileSync(messageFile, message);
       if (existsSync(resolve(root, '.githooks/commit-msg'))) execFileSync(resolve(root, '.githooks/commit-msg'), [messageFile], { cwd: root, env, stdio: 'inherit' });
       const sha = text(root, ['commit-tree', text(root, ['write-tree'], undefined, env), '-p', base], message, env);

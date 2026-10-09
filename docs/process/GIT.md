@@ -71,7 +71,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   test-setup change, a deleted module and `GATE_FULL=1` run everything; CI always does (2026-10-09: 277 s → 57 s).
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and
-  the plan-State check ([ASKS.md](ASKS.md)). Claude hooks live in `.claude/settings.json` and take effect on restart.
+  the legacy-shard check (no plan-State check since 2026-10-09, [ASKS.md](ASKS.md)). The pre-commit hook refuses new raw
+  soak / receipt archives under `progress/` (`.gz` / `.br` / `.zst` / `.jsonl`, [MACHINE.md](MACHINE.md)). Claude hooks live in `.claude/settings.json` and take effect on restart.
 - **Never open a shared file for writing before you've read it.** `open(p, 'w').write(f(open(p).read()))` truncates
   first and reads nothing: it emptied 16 files once (src/main.ts with others' WIP, lost) and wiped the ASKS table once.
   Read into a variable, check it is non-empty, then write. Append with `>>` or Edit, never `>` onto a shared file.

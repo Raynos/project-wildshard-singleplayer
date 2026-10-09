@@ -2,6 +2,6 @@
 # commit-msg: the E357 lock check (GAME-NORMALIZATION F0). Refuses a commit outside the lock unless it carries
 # the trailer `E357-Lead: yes` or stays inside a reopened shard's allowlist (.github/lock.json).
 node scripts/check-lock.mjs "$1" || exit 1
-node scripts/legacy-shards.mjs --commit-message "$1" || exit 1
-# E423 decision 16: a commit that names a live plan (docs/plans/<NAME>.md) also touches it, or says `Plan-State: unchanged`.
-exec node scripts/asks.mjs commit-msg "$1"
+# No Plan-State trailer check (Jake, 2026-10-09, process audit progress/process/audit-2026-10-09/): a plan's status lives
+# in docs/plans/<plan>/STATE.md, written by its coordinator, not in every commit.
+exec node scripts/legacy-shards.mjs --commit-message "$1"
