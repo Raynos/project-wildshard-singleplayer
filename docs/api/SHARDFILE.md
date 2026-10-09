@@ -6,7 +6,7 @@ The source of truth is `src/game/shardfile/schema.ts`, the schema exports in `sr
 
 Paths start at `$` for the compiled shardfile; `$sdk["./module"].Schema` names a public SDK schema, including build-only input. `[]` is an array member, `[n]` a tuple slot, `{key}` / `{value}` a record, and `<n>` a union branch. Optionality and nullability apply at the listed path. Branch-local required fields are conditional on selecting that branch. Function defaults and custom checks are explicitly opaque; the author guide explains their semantics. This is metadata coverage, not an assertion that custom predicate internals have a Valibot shape.
 
-Coverage: 5269/5269 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
+Coverage: 5283/5283 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
 
 ## Fields
 
@@ -683,7 +683,7 @@ Coverage: 5269/5269 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $.files[].draws | number | required | integer [function; not executed]; min_value 0; max_value 9007199254740991 |
 | $.files[].gpu | number | required | integer [function; not executed]; min_value 0; max_value 9007199254740991 |
 | $.files[].hash | string | required | regex /^[a-f0-9]{64}$/u |
-| $.files[].kind | picklist "glb", "ktx2", "audio", "json", "wasm", "binary" | required |  |
+| $.files[].kind | picklist "glb", "ktx2", "audio", "json", "wasm", "binary", "image" | required |  |
 | $.files[].triangles | number | required | integer [function; not executed]; min_value 0; max_value 9007199254740991 |
 | $.hooks | strict_object | optional; default {"conditions":[],"scenes":[]} |  |
 | $.hooks.conditions | array | required | max_length 256 |
@@ -1427,6 +1427,13 @@ Coverage: 5269/5269 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $.plumbing.knobs[].id | custom | required | custom predicate; not executed |
 | $.plumbing.knobs[].phone | number | required | integer [function; not executed]; min_value 0; max_value 10000 |
 | $.plumbing.namespace | string | required | regex /^[a-z][a-z0-9-]*$/u; max_length 64 |
+| $.presentation | strict_object | exact_optional; default undefined |  |
+| $.presentation.biome | string | required | min_length 1; max_length 128 |
+| $.presentation.blurb | string | required | min_length 1; max_length 512 |
+| $.presentation.card | strict_object | required |  |
+| $.presentation.card.landscape | string | required | regex /^[a-f0-9]{64}$/u |
+| $.presentation.card.portrait | string | required | regex /^[a-f0-9]{64}$/u |
+| $.presentation.card.thumb | string | required | regex /^[a-f0-9]{64}$/u |
 | $.props | strict_object | optional; default null; nullable; default undefined | check [function; not executed] "JSON-only props"; check [function; not executed] "unique props addresses and ids" |
 | $.props.colliders | array | optional; default [] | max_length 1024 |
 | $.props.colliders[] | strict_object | required |  |
@@ -3576,7 +3583,7 @@ Coverage: 5269/5269 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $sdk["./shardfile"].ShardfileSchema.files[].draws | number | required | integer [function; not executed]; min_value 0; max_value 9007199254740991 |
 | $sdk["./shardfile"].ShardfileSchema.files[].gpu | number | required | integer [function; not executed]; min_value 0; max_value 9007199254740991 |
 | $sdk["./shardfile"].ShardfileSchema.files[].hash | string | required | regex /^[a-f0-9]{64}$/u |
-| $sdk["./shardfile"].ShardfileSchema.files[].kind | picklist "glb", "ktx2", "audio", "json", "wasm", "binary" | required |  |
+| $sdk["./shardfile"].ShardfileSchema.files[].kind | picklist "glb", "ktx2", "audio", "json", "wasm", "binary", "image" | required |  |
 | $sdk["./shardfile"].ShardfileSchema.files[].triangles | number | required | integer [function; not executed]; min_value 0; max_value 9007199254740991 |
 | $sdk["./shardfile"].ShardfileSchema.hooks | strict_object | optional; default {"conditions":[],"scenes":[]} |  |
 | $sdk["./shardfile"].ShardfileSchema.hooks.conditions | array | required | max_length 256 |
@@ -4320,6 +4327,13 @@ Coverage: 5269/5269 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $sdk["./shardfile"].ShardfileSchema.plumbing.knobs[].id | custom | required | custom predicate; not executed |
 | $sdk["./shardfile"].ShardfileSchema.plumbing.knobs[].phone | number | required | integer [function; not executed]; min_value 0; max_value 10000 |
 | $sdk["./shardfile"].ShardfileSchema.plumbing.namespace | string | required | regex /^[a-z][a-z0-9-]*$/u; max_length 64 |
+| $sdk["./shardfile"].ShardfileSchema.presentation | strict_object | exact_optional; default undefined |  |
+| $sdk["./shardfile"].ShardfileSchema.presentation.biome | string | required | min_length 1; max_length 128 |
+| $sdk["./shardfile"].ShardfileSchema.presentation.blurb | string | required | min_length 1; max_length 512 |
+| $sdk["./shardfile"].ShardfileSchema.presentation.card | strict_object | required |  |
+| $sdk["./shardfile"].ShardfileSchema.presentation.card.landscape | string | required | regex /^[a-f0-9]{64}$/u |
+| $sdk["./shardfile"].ShardfileSchema.presentation.card.portrait | string | required | regex /^[a-f0-9]{64}$/u |
+| $sdk["./shardfile"].ShardfileSchema.presentation.card.thumb | string | required | regex /^[a-f0-9]{64}$/u |
 | $sdk["./shardfile"].ShardfileSchema.props | strict_object | optional; default null; nullable; default undefined | check [function; not executed] "JSON-only props"; check [function; not executed] "unique props addresses and ids" |
 | $sdk["./shardfile"].ShardfileSchema.props.colliders | array | optional; default [] | max_length 1024 |
 | $sdk["./shardfile"].ShardfileSchema.props.colliders[] | strict_object | required |  |

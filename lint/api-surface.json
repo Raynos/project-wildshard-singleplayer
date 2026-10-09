@@ -13660,9 +13660,21 @@
         "from": "@wildshard/engine/world/shadowFade"
       },
       {
+        "name": "installPlaneBiasShadowFilter",
+        "kind": "function",
+        "doc": "Patch the receiver-plane bias into three's 5-tap PCF (once, at boot, before any material compiles). The tent",
+        "from": "@wildshard/engine/world/shadowFilter"
+      },
+      {
         "name": "installShadowFilter",
         "kind": "function",
         "doc": "Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map",
+        "from": "@wildshard/engine/world/shadowFilter"
+      },
+      {
+        "name": "planeBiasShadowFilterOn",
+        "kind": "function",
+        "doc": "three's PCF carries the receiver-plane bias (node materials get the same: render/nodes/planeBiasShadowFilter.ts); off under the tent",
         "from": "@wildshard/engine/world/shadowFilter"
       },
       {
@@ -18036,6 +18048,24 @@
         "from": "@wildshard/game/shardfile/preflight"
       },
       {
+        "name": "Presentation",
+        "kind": "type",
+        "doc": "Data-only card metadata accepted by the full shardfile schema.",
+        "from": "@wildshard/game/shardfile/presentation"
+      },
+      {
+        "name": "presentationCard",
+        "kind": "function",
+        "doc": "Resolve the three admitted image hashes once per distinct file, without fetching or installing a service.",
+        "from": "@wildshard/game/shardfile/presentation"
+      },
+      {
+        "name": "PresentationSchema",
+        "kind": "const",
+        "doc": "Optional immutable SHARD SELECT content; images are local, charged library hashes, never author URLs.",
+        "from": "@wildshard/game/shardfile/presentation"
+      },
+      {
         "name": "admitProduct",
         "kind": "function",
         "doc": "Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance.",
@@ -18516,6 +18546,12 @@
         "from": "@wildshard/game/shardfile/socketLiftProof"
       },
       {
+        "name": "sourceManifest",
+        "kind": "function",
+        "doc": "Pure catalogue/level mapping from parsed data and already admitted immutable image bytes.",
+        "from": "@wildshard/game/shardfile/sourceManifest"
+      },
+      {
         "name": "checkTileMaterialNames",
         "kind": "function",
         "doc": "The props GLB material-name check with a splat terrain. Without one, `checkPropMaterialNames` as before (named materials",
@@ -18568,6 +18604,30 @@
         "kind": "function",
         "doc": "Check a splat terrain against the admitted files: every layer file is a KTX2 dependency of a declared props tile GLB, one",
         "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "parseStillImage",
+        "kind": "function",
+        "doc": "Admit PNG (up to 8-bit), 8-bit JPEG or single-frame WebP; reject SVG, animation and oversized payloads.",
+        "from": "@wildshard/game/shardfile/stillImage"
+      },
+      {
+        "name": "STILL_IMAGE_LIMITS",
+        "kind": "const",
+        "doc": "Bounded inert SHARD SELECT images. These limits apply before a browser decoder sees any bytes.",
+        "from": "@wildshard/game/shardfile/stillImage"
+      },
+      {
+        "name": "StillImage",
+        "kind": "interface",
+        "doc": "Byte-derived image envelope and conservative CPU/data-URL and compositor residency.",
+        "from": "@wildshard/game/shardfile/stillImage"
+      },
+      {
+        "name": "stillImageUrl",
+        "kind": "function",
+        "doc": "Resolve verified immutable bytes to a MIME-sniffed inert URL; never accept an authored URL or SVG.",
+        "from": "@wildshard/game/shardfile/stillImage"
       },
       {
         "name": "ShardTerrain",

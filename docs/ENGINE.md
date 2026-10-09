@@ -2125,7 +2125,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2355 exports, grouped by the module to import them from.
+2357 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2503,7 +2503,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/pondGrid`: `pondGrid`
 - `@wildshard/engine/world/registry`: `activeRegistry`, `boxDesc`, `ColliderDesc`, `DrawnAs`, `installWorldRegistry`, `ModelCategory`, `ModelEntry`, `ModelFacts`, `Piece`, `PieceCategory`, `Pipeline`, `RegisteredModel`, `RegisteredPick`, `RegisteredSet`, `SetPlacement`, `WorldRegistry`
 - `@wildshard/engine/world/shadowFade`: `installShadowFadeChunk`, `ShadowFade`, `sunFadeUniform`
-- `@wildshard/engine/world/shadowFilter`: `installShadowFilter`, `SOFT_RADII`, `tentShadowFilterOn`
+- `@wildshard/engine/world/shadowFilter`: `installPlaneBiasShadowFilter`, `installShadowFilter`, `planeBiasShadowFilterOn`, `SOFT_RADII`, `tentShadowFilterOn`
 - `@wildshard/engine/world/skyRig`: `shadowRig`, `ShadowRig`, `SkyRig`
 - `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`, `WindState`
 - `@wildshard/engine/world/Terrain`: `canopyChannel`, `SPLAT_ATTRIBUTES`, `SplatGround`, `SplatLayers`, `splatTerrainMaterial`, `Terrain`, `terrainChunkGeometry`
@@ -2524,7 +2524,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-906 exports, grouped by the module to import them from.
+914 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2635,6 +2635,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/portalLinkProof`: `PortalLinkProof`, `provePortalLinks`
 - `@wildshard/game/shardfile/portalTraversal`: `createPortalTraversal`, `PortalTransfer`, `portalTransitioning`, `PortalTraversalPorts`
 - `@wildshard/game/shardfile/preflight`: `preflightShardfile`
+- `@wildshard/game/shardfile/presentation`: `Presentation`, `presentationCard`, `PresentationSchema`
 - `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductProgress`, `ProductVersions`
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`
 - `@wildshard/game/shardfile/quests`: `parseQuestData`, `QuestData`, `questDataRules`, `QuestDataSchema`
@@ -2651,7 +2652,9 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`
 - `@wildshard/game/shardfile/socketLift`: `parseSocketLift`, `SocketLift`, `socketLiftEntries`, `SocketLiftEntry`, `socketLiftRules`, `SocketLiftSchema`
 - `@wildshard/game/shardfile/socketLiftProof`: `commandSocketLift`, `proveShardfileEntries`, `proveSocketLift`, `SocketLiftProof`, `SocketLiftProofPorts`
+- `@wildshard/game/shardfile/sourceManifest`: `sourceManifest`
 - `@wildshard/game/shardfile/splatTerrain`: `checkTileMaterialNames`, `SPLAT_CHANNELS`, `SPLAT_ROLES`, `SplatRole`, `SplatTerrain`, `splatTerrainOf`, `SplatTerrainSchema`, `splatTextureRefs`, `validateSplatTerrain`
+- `@wildshard/game/shardfile/stillImage`: `parseStillImage`, `STILL_IMAGE_LIMITS`, `StillImage`, `stillImageUrl`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`

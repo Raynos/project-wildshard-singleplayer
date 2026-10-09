@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-906 members; 159 without a doc line (—).
+914 members; 159 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -635,6 +635,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `portalTransitioning` | function | @wildshard/game/shardfile/portalTraversal | Checkpoint owners refuse every write while a portal is validating or committing a transfer in this physics world. |
 | `PortalTraversalPorts` | interface | @wildshard/game/shardfile/portalTraversal | Existing player/capsule ports; a transfer cannot allocate a second player or physics world. |
 | `preflightShardfile` | function | @wildshard/game/shardfile/preflight | Check collection, JSON source and distinct declared wire bounds without reading any immutable asset. |
+| `Presentation` | type | @wildshard/game/shardfile/presentation | Data-only card metadata accepted by the full shardfile schema. |
+| `presentationCard` | function | @wildshard/game/shardfile/presentation | Resolve the three admitted image hashes once per distinct file, without fetching or installing a service. |
+| `PresentationSchema` | const | @wildshard/game/shardfile/presentation | Optional immutable SHARD SELECT content; images are local, charged library hashes, never author URLs. |
 | `admitProduct` | function | @wildshard/game/shardfile/product | Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. |
 | `AdmittedProduct` | interface | @wildshard/game/shardfile/product | Admitted owned wire bytes; callers release this map when decoded resources take over. |
 | `boundedResponse` | function | @wildshard/game/shardfile/product | Stream bounded wire bytes, including responses without a trustworthy Content-Length header. |
@@ -715,6 +718,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `proveSocketLift` | function | @wildshard/game/shardfile/socketLiftProof | Walk, command, ride and return through actual collision. Feet are initialized once; every later move comes from the motor. |
 | `SocketLiftProof` | interface | @wildshard/game/shardfile/socketLiftProof | Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return. |
 | `SocketLiftProofPorts` | interface | @wildshard/game/shardfile/socketLiftProof | Trusted admission world: advance the existing one host/runtime/world fixed step before moving the real capsule. |
+| `sourceManifest` | function | @wildshard/game/shardfile/sourceManifest | Pure catalogue/level mapping from parsed data and already admitted immutable image bytes. |
 | `checkTileMaterialNames` | function | @wildshard/game/shardfile/splatTerrain | The props GLB material-name check with a splat terrain. Without one, `checkPropMaterialNames` as before (named materials |
 | `SPLAT_CHANNELS` | const | @wildshard/game/shardfile/splatTerrain | The GLB application channels a splat tile primitive carries, the attribute the material reads and its components. |
 | `SPLAT_ROLES` | const | @wildshard/game/shardfile/splatTerrain | The texture-array roles and the read each takes: colour is sRGB, normal and ARM numeric data. |
@@ -724,6 +728,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `SplatTerrainSchema` | const | @wildshard/game/shardfile/splatTerrain | `props.splat`: the splat terrain material the props tiles' terrain primitives draw with. |
 | `splatTextureRefs` | function | @wildshard/game/shardfile/splatTerrain | Every layer file in role order (colour ×4, normal ×4, ARM ×4). |
 | `validateSplatTerrain` | function | @wildshard/game/shardfile/splatTerrain | Check a splat terrain against the admitted files: every layer file is a KTX2 dependency of a declared props tile GLB, one |
+| `parseStillImage` | function | @wildshard/game/shardfile/stillImage | Admit PNG (up to 8-bit), 8-bit JPEG or single-frame WebP; reject SVG, animation and oversized payloads. |
+| `STILL_IMAGE_LIMITS` | const | @wildshard/game/shardfile/stillImage | Bounded inert SHARD SELECT images. These limits apply before a browser decoder sees any bytes. |
+| `StillImage` | interface | @wildshard/game/shardfile/stillImage | Byte-derived image envelope and conservative CPU/data-URL and compositor residency. |
+| `stillImageUrl` | function | @wildshard/game/shardfile/stillImage | Resolve verified immutable bytes to a MIME-sniffed inert URL; never accept an authored URL or SVG. |
 | `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
 | `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |

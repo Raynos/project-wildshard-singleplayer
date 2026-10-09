@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2375 members; 842 without a doc line (—).
+2377 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -2281,7 +2281,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installShadowFadeChunk` | function | @wildshard/engine/world/shadowFade | Patch the CSM light loop (three r186 CSMShader, CSM_FADE branch) once, before anything compiles: the loop skips the |
 | `ShadowFade` | class | @wildshard/engine/world/shadowFade | — |
 | `sunFadeUniform` | const | @wildshard/engine/world/shadowFade | the fade's progress, 0 = the old direction … 1 = the new (settled); every CSM material shares it |
+| `installPlaneBiasShadowFilter` | function | @wildshard/engine/world/shadowFilter | Patch the receiver-plane bias into three's 5-tap PCF (once, at boot, before any material compiles). The tent |
 | `installShadowFilter` | function | @wildshard/engine/world/shadowFilter | Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map |
+| `planeBiasShadowFilterOn` | function | @wildshard/engine/world/shadowFilter | three's PCF carries the receiver-plane bias (node materials get the same: render/nodes/planeBiasShadowFilter.ts); off under the tent |
 | `SOFT_RADII` | const | @wildshard/engine/world/shadowFilter | [near cascade, far cascade] `shadow.radius`: the 7×7 tent near, the 5×5 beyond (E138, the user: "do the shadows |
 | `tentShadowFilterOn` | function | @wildshard/engine/world/shadowFilter | the tent is installed (the TSL back-end gives node materials the same filter: render/nodes/tentShadowFilter.ts) |
 | `shadowRig` | function | @wildshard/engine/world/skyRig | The shadow rig for this tier and the level's shadow style. The phone's portrait camera (94° vertical FOV) makes a cascade's square far |
