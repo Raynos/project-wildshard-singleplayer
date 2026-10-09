@@ -45,10 +45,19 @@ export interface PanelNode {
   readonly props?: readonly (readonly [string, string])[];
   /** text content; wins over children */
   readonly text?: string;
-  readonly children?: readonly PanelNode[];
+  readonly children?: readonly PanelChild[];
   /** a name the view's verbs reach this element by; unique among live refs */
   readonly ref?: string;
 }
+
+/** an inline SVG element (an icon drawn as data): its tag, attributes in order and children, in the SVG namespace */
+export interface PanelSvg {
+  readonly svg: 'svg' | 'path' | 'circle' | 'g' | 'rect' | 'line' | 'polyline' | 'polygon' | 'ellipse';
+  readonly attrs?: readonly (readonly [string, string])[];
+  readonly children?: readonly PanelSvg[];
+}
+/** a panel element's child: an element or an SVG icon */
+export type PanelChild = PanelNode | PanelSvg;
 
 /** the live panel: its root and the verbs content drives it with ('' names the root) */
 export interface PanelView {
@@ -71,7 +80,7 @@ export interface PanelView {
   /** listen on a ref for the scope's life */
   on: <K extends keyof HTMLElementEventMap>(ref: string, type: K, fn: (event: HTMLElementEventMap[K]) => void, scope: Scope, opts?: AddEventListenerOptions) => void;
   /** replace a ref's children with declared nodes; the old children's refs leave, the new ones join */
-  fill: (ref: string, nodes: readonly PanelNode[]) => void;
+  fill: (ref: string, nodes: readonly PanelChild[]) => void;
   /** an input ref's current value */
   value: (ref: string) => string;
   focus: (ref: string) => void;
@@ -100,13 +109,22 @@ function build(d: PanelNode, refs: Map<string, HTMLElement>): HTMLElement {
   if (d.style) Object.assign(el.style, d.style);
   for (const [k, v] of d.props ?? []) el.style.setProperty(k, v);
   if (d.text !== undefined) el.textContent = d.text;
-  for (const c of d.children ?? []) el.append(build(c, refs));
+  for (const c of d.children ?? []) el.append(child(c, refs));
   if (d.ref !== undefined) {
     if (refs.has(d.ref)) throw new Error(`Panel: duplicate ref ${d.ref}`);
     refs.set(d.ref, el);
   }
   return el;
 }
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svg(d: PanelSvg): SVGElement {
+  const el = document.createElementNS(SVG_NS, d.svg);
+  for (const [k, v] of d.attrs ?? []) el.setAttribute(k, v);
+  for (const c of d.children ?? []) el.append(svg(c));
+  return el;
+}
+function child(c: PanelChild, refs: Map<string, HTMLElement>): Element { return 'svg' in c ? svg(c) : build(c, refs); }
 
 /** Build a declared panel (detached); mount its root with the HUD's own verbs. */
 export function declarePanel(spec: PanelNode): PanelView {
@@ -137,7 +155,7 @@ export function declarePanel(spec: PanelNode): PanelView {
     fill: (ref, nodes) => {
       const host = node(ref);
       for (const c of host.children) forget(c);
-      host.replaceChildren(...nodes.map((n) => build(n, refs)));
+      host.replaceChildren(...nodes.map((n) => child(n, refs)));
     },
     value: (ref) => input(ref).value,
     focus: (ref) => { node(ref).focus(); },

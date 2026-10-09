@@ -1,7 +1,7 @@
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { UiHandle } from '@wildshard/engine/ui/layers';
-import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
+import { declarePanel, mountPanel, panelScope, type PanelNode, type PanelView } from '@wildshard/sdk/panels';
 import './ride.css';
 import { cleanHorseName, HORSE_NAME_MAX } from './horseNames';
 
@@ -13,68 +13,65 @@ import { cleanHorseName, HORSE_NAME_MAX } from './horseNames';
  * (the Journal's rule, E328) — and the E that opened it is not typed into the field (input in its first 150 ms is
  * dropped); Enter saves, Esc cancels. The field is focused
  * in the tap / key that opened it, so iOS raises its keyboard. Its font is 16 px: iOS zooms the page on a smaller field.
+ * A declared panel (SHARD-PLATFORM SF28): `nameBox` is its content as data.
  *
  *   const prompt = new HorseNamePrompt();
  *   prompt.open('Camp horse', (name) => mount.rename(horse, name))   // `name` is cleaned (horseNames.ts), never empty
  *   prompt.isOpen
  */
+export function nameBox(current: string): PanelNode {
+  return { cls: 'ws-glass ws-ride-namebox', children: [
+    { cls: 'ws-ride-namecap', text: 'Name your horse' },
+    { tag: 'input', cls: 'ws-ride-nameinput', ref: 'input',
+      input: { type: 'text', maxLength: HORSE_NAME_MAX, value: current, autocomplete: 'off', spellcheck: false },
+      attrs: [['autocapitalize', 'words'], ['enterkeyhint', 'done'], ['aria-label', 'Horse name']] },
+    { cls: 'ws-ride-namebtns', children: [
+      { tag: 'button', button: 'button', cls: 'ws-ride-namebtn', text: 'Cancel', ref: 'cancel' },
+      { tag: 'button', button: 'button', cls: 'ws-ride-namebtn ok', text: 'Save', ref: 'save' },
+    ] },
+  ] };
+}
+
 export class HorseNamePrompt {
   private viewScope: Scope | null = null;
   private layer: UiHandle | null = null;
-  private root: HTMLElement | null = null;
+  private view: PanelView | null = null;
   get isOpen(): boolean { return this.layer?.active === true; }
 
   open(current: string, onSave: (name: string) => void): void {
     this.close();
-    const scope = uiScope('horseName'); this.viewScope = scope;
-    const root = document.createElement('div');
-    root.className = 'ws-glass ws-ride-namebox';
-    const cap = document.createElement('div');
-    cap.className = 'ws-ride-namecap'; cap.textContent = 'Name your horse';
-    const input = document.createElement('input');
-    input.className = 'ws-ride-nameinput'; input.type = 'text'; input.maxLength = HORSE_NAME_MAX; input.value = current;
-    input.autocomplete = 'off'; input.spellcheck = false;
-    input.setAttribute('autocapitalize', 'words'); input.setAttribute('enterkeyhint', 'done'); input.setAttribute('aria-label', 'Horse name');
-    const row = document.createElement('div');
-    row.className = 'ws-ride-namebtns';
-    const cancel = document.createElement('button'), save = document.createElement('button');
-    cancel.type = 'button'; save.type = 'button';
-    cancel.className = 'ws-ride-namebtn'; save.className = 'ws-ride-namebtn ok';
-    cancel.textContent = 'Cancel'; save.textContent = 'Save';
-    row.append(cancel, save);
-    root.append(cap, input, row);
+    const scope = panelScope('horseName'); this.viewScope = scope;
+    const view = declarePanel(nameBox(current));
     const done = (ok: boolean): void => {
-      const name = cleanHorseName(input.value);
+      const name = cleanHorseName(view.value('input'));
       this.close();
       if (ok && name.length > 0) onSave(name);
     };
     for (const t of ['keydown', 'keypress'] as const) {
-      scope.listen(root, t, (e) => {
+      view.on('', t, (e) => {
         e.stopPropagation();
         if (t !== 'keydown' || !(e instanceof KeyboardEvent)) return;
-        if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); done(true); } 
-      });
+        if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); done(true); }
+      }, scope);
     }
     // the USE key that opened the box lands its character in the field it focused: drop what arrives in the first 150 ms
     const opened = performance.now();
-    scope.listen(input, 'beforeinput', (e) => { if (performance.now() - opened < 150) e.preventDefault(); });
-    for (const t of ['pointerdown', 'touchstart', 'mousedown'] as const) scope.listen(root, t, (e) => { e.stopPropagation(); });
-    scope.listen(cancel, 'click', () => { done(false); });
-    scope.listen(save, 'click', () => { done(true); });
-    mountUi(root, scope);
-    this.layer = app.ui.push('modal', { root, order: -20, back: () => { done(false); } }, scope);
-    this.root = root;
-    input.focus();
-    input.select();
+    view.on('input', 'beforeinput', (e) => { if (performance.now() - opened < 150) e.preventDefault(); }, scope);
+    for (const t of ['pointerdown', 'touchstart', 'mousedown'] as const) view.on('', t, (e) => { e.stopPropagation(); }, scope);
+    view.on('cancel', 'click', () => { done(false); }, scope);
+    view.on('save', 'click', () => { done(true); }, scope);
+    mountPanel(view, scope);
+    this.layer = app.ui.push('modal', { root: view.root, order: -20, back: () => { done(false); } }, scope);
+    this.view = view;
+    view.select('input');
   }
 
   close(): void {
-    const r = this.root;
-    this.root = null;
-    if (r === null) return;
-    const f = document.activeElement;
-    if (f instanceof HTMLElement && r.contains(f)) f.blur();
+    const v = this.view;
+    this.view = null;
+    if (v === null) return;
+    v.blur();
     this.layer?.dispose(); this.layer = null; this.viewScope?.dispose(); this.viewScope = null;
-    r.remove();
+    v.remove();
   }
 }
