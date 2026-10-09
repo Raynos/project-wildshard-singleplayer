@@ -3,7 +3,8 @@ import { PackBrain } from '../../../src/engine/ai/pack';
 import { HerdBrain } from '../../../src/engine/ai/herd';
 import { app } from '../../../src/engine/app/runtime';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
-import { Pack, HorseHerd } from '../../../src/shards/nalati-grasslands/runtime/groupRegistry';
+import { Pack, HorseHerd, bindFallbackGroupHost } from '../../../src/shards/nalati-grasslands/runtime/groupRegistry';
+import { APP_GROUP_HOST } from '../../../src/shards/nalati-grasslands/runtime/groupHost';
 import { packForThink, herdForThink, thinkHorse } from '../../../src/shards/nalati-grasslands/runtime/groupDispatch';
 import { Pack as ShippingPack } from '../../fixtures/nalati-group-oracle/pack';
 import { HorseHerd as ShippingHorseHerd } from '../../fixtures/nalati-group-oracle/herd';
@@ -12,6 +13,8 @@ import { creature } from '../../fake/creature';
 
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(terrain);
+// the page binds the app's group host when its creatures attach (runtime/state.ts)
+afterAll(bindFallbackGroupHost(APP_GROUP_HOST));
 function fixture(kind: 'wolf' | 'horse'): { members: ReturnType<typeof manager>['manager']['animals']; context: ReturnType<typeof creature>['ctx'] } {
   app.rng.seed(357);
   const world = manager(), context = creature('crab', 'small').ctx;

@@ -40,6 +40,8 @@ import { wireWeather, type NalatiWeather } from '../world/installWeather';
 
 import type { NalatiLoadout } from '../weapons/loadout';
 import { nalatiWetAt } from '../wet';
+import { bindFallbackGroupHost } from './groupRegistry';
+import { APP_GROUP_HOST } from './groupHost';
 import { wireNightEnemies } from '../combat/night';
 import { installStealth, type Stealth } from '../stealth';
 import { wireSound, type NalatiSound } from './audio/sound';
@@ -307,6 +309,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     skins: new NalatiSkinLocker(persistence === undefined ? undefined : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
     attachAnimals(animals) {
       attachedAnimals = animals;
+      plugin.scope.onDispose(bindFallbackGroupHost(APP_GROUP_HOST)); // the manager-only fallback groups' decision stream and director
       animals.wetAt = nalatiWetAt;
       animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
       declaredCrowds = crowdVariant ? createNativeFlocks(sky, ctx.chunk.seed) : null;

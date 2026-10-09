@@ -42,8 +42,8 @@ import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, ty
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { PaintKit, M, v3 } from '../world/paint';
 import { pole, blob } from '@wildshard/engine/world/geometryKit';
-import { EAGLE_ROCK, CRAG_CAVE } from '../world/layout';
-import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../layout';
+import { ARGYMAQ as ARGYMAQ_KIND, argymaqDefinition, eliteRuleHolds, NALATI_ELITE_DEFS } from './eliteRoster';
+import { EAGLE_ROCK } from '../world/layout';
 
 /**
  * Nalati's five NAMED ELITES (plan NALATI.md row B12; design docs/design/nalati/elites-and-bosses.md §1 "The five Nalati
@@ -83,41 +83,6 @@ import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../layout';
  *   Dev: `?elite=aqbars|kokbori|qyran|qara-batyr|argymaq` spawns it (whatever its rule) and puts you 30–45 m from it (`&from=<m>` to stand farther);
  *   `window.__elites`.
  */
-
-// ─────────────────────────────── the defs ───────────────────────────────
-
-// the lairs (layout v2, src/shards/nalati-grasslands/layout.ts): Kokbori's den on the rocky NE rim above the kurgan field, Qara
-// Batyr's burial cairn on the bowl's south rim, Argymaq's high pasture on a bench of the Crags (+52)
-
-export const ELITE_DEFS: Record<string, EliteDef> = {
-  aqbars: {
-    id: 'aqbars', name: 'Aqbars the Pale', epithet: 'Irbis of the Crags', lair: { x: CRAG_CAVE.x, z: CRAG_CAVE.z, r: 14 },
-    awareR: 60, engageR: 25, leashR: 90, rule: 'always', respawnMin: 20, signature: 'POUNCE', phase2: 'ENRAGED',
-    drop: { skin: 'irbis-sabre', skinName: 'IRBIS', weapon: 'sabre', blurb: 'pale frost steel, rosette damascus, a snow-leopard grip' },
-  },
-  kokbori: {
-    id: 'kokbori', name: 'Kokbori', epithet: 'Mother of the Pack', lair: { x: KOKBORI_DEN.x, z: KOKBORI_DEN.z, r: 16 },
-    awareR: 80, engageR: 50, leashR: 120, rule: 'dusk', respawnMin: 20, signature: 'PACK HOWL', phase2: 'THE PACK FALLS BACK',
-    drop: { skin: 'sky-wolf-bow', skinName: 'SKY-WOLF', weapon: 'bow', blurb: 'blue-grey horn limbs, wolf-fang nocks, a silver string' },
-  },
-  qyran: {
-    id: 'qyran', name: 'Qyran the Storm-Wing', epithet: 'Berkut of the High Wind', lair: { x: EAGLE_ROCK.x, z: EAGLE_ROCK.z, r: 20 },
-    awareR: 110, engageR: 75, leashR: 150, rule: 'storm', respawnMin: 20, signature: 'STOOP', phase2: 'INTO THE STORM',
-    drop: { skin: 'storm-wing-arrows', skinName: 'STORM-WING', weapon: 'arrow', blurb: 'golden fletching, a gold streak behind every arrow' },
-  },
-  'qara-batyr': {
-    id: 'qara-batyr', name: 'Qara Batyr the Unburied', epithet: 'Captain of the Night Riders', lair: { x: QARA_CAIRN.x, z: QARA_CAIRN.z, r: 18 },
-    awareR: 90, engageR: 60, leashR: 150, rule: 'night', respawnMin: 20, signature: 'DEATH CHARGE', phase2: 'THE DEAD RIDE',
-    drop: { skin: 'night-rider-mount', skinName: 'NIGHT RIDER', weapon: 'mount', blurb: 'black barding, a spectral mane that glows at night' },
-  },
-  argymaq: {
-    id: 'argymaq', name: 'Argymaq the Unbroken', epithet: 'Stallion of the High Crags', lair: { x: ARGYMAQ_PASTURE.x, z: ARGYMAQ_PASTURE.z, r: 22 },
-    awareR: 80, engageR: 40, leashR: 100, rule: 'always', respawnMin: 20, once: true, signature: 'TRAMPLE', phase2: 'HE RUNS',
-    // no skin: the horse himself is the prize (docs/design/nalati/elites-and-bosses.md, and Jake's Bag pick C — FINDS says
-    // "Your horse"). The id used to be 'argymaq', which no skin list has, so it was silently dropped (E314)
-    drop: { skin: null, skinName: 'ARGYMAQ', weapon: 'horse', blurb: 'the best horse in Nalati' },
-  },
-};
 
 /** the elites' voices (src/engine/audio/Audio.ts animal sounds) */
 export type EliteSound = 'wolf_howl' | 'leopard_growl' | 'horse_squeal' | 'eagle_cry';
@@ -738,14 +703,15 @@ function riderModel(sky: Sky): THREE.Group {
 
 // ─────────────────────────────── E4a · Argymaq the Unbroken ───────────────────────────────
 
-export const ARGYMAQ = 'argymaq';
+/** Argymaq's kind (combat/eliteRoster.ts, the renderer-free roster's), as the models and tests name it. */
+export const ARGYMAQ = ARGYMAQ_KIND;
 export function registerArgymaq(): void {
   if (hasNalatiSpecies(ARGYMAQ) || !hasNalatiSpecies('horse')) return;
   const H = speciesDef('horse');
   const base = H.variants.find((v) => v.id === 'stallion') ?? H.variants[0];
   if (base === undefined) return;
   // his own kind, the horse's rig + the HERD's brain (he leads his herd): variant id 'stallion' so HorseHerd reads him so
-  registerNalatiDefinition({ ...H, kind: ARGYMAQ, label: 'Argymaq', variants: [{ ...base, id: 'stallion', label: 'Argymaq the Unbroken', weight: 1, rarity: 'legendary', scale: [1.3, 1.3], hp: 750, traits: { ...base.traits, mane: 2.2, scar: 1 } }] });
+  registerNalatiDefinition(argymaqDefinition(H, base));
 }
 
 class Argymaq extends Base {
@@ -886,10 +852,7 @@ export class NalatiElites {
     const { game, sky, player } = this.ctx;
     const bar = new EliteBar();
     this.bar = bar;
-    const condition = (rule: EliteRule): boolean => {
-      const ph = this.ctx.phase();
-      return rule === 'always' ? true : rule === 'storm' ? this.ctx.storm() : rule === 'night' ? ph === 'night' : ph === 'dusk' || ph === 'night';
-    };
+    const condition = (rule: EliteRule): boolean => eliteRuleHolds(rule, this.ctx.phase(), this.ctx.storm());
     const elites = new Elites({
       scene: game.scene, camera: game.camera, renderer: game.renderer, player, condition,
       addInteractable: (it) => { play.interactables.push(it); },
@@ -911,11 +874,11 @@ export class NalatiElites {
       sound: (name, at) => { play.sound?.(name, at); },
     };
     this.scripts = [
-      new Aqbars(ELITE_DEFS['aqbars'] ?? fail('aqbars'), env),
-      new Kokbori(ELITE_DEFS['kokbori'] ?? fail('kokbori'), env),
-      new Qyran(ELITE_DEFS['qyran'] ?? fail('qyran'), env),
-      new QaraBatyr(ELITE_DEFS['qara-batyr'] ?? fail('qara-batyr'), env),
-      new Argymaq(ELITE_DEFS['argymaq'] ?? fail('argymaq'), env),
+      new Aqbars(NALATI_ELITE_DEFS['aqbars'] ?? fail('aqbars'), env),
+      new Kokbori(NALATI_ELITE_DEFS['kokbori'] ?? fail('kokbori'), env),
+      new Qyran(NALATI_ELITE_DEFS['qyran'] ?? fail('qyran'), env),
+      new QaraBatyr(NALATI_ELITE_DEFS['qara-batyr'] ?? fail('qara-batyr'), env),
+      new Argymaq(NALATI_ELITE_DEFS['argymaq'] ?? fail('argymaq'), env),
     ];
     for (const s of this.scripts) { app.encounters.elite(s.def.id, s, game.levelScope); elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
     // build the new rigs' models now (a first spawn mid-hunt must not stall a frame)

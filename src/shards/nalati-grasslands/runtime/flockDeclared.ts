@@ -3,7 +3,8 @@ import { flock } from '@wildshard/sdk/crowds';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
 import { Flock, type FlockOpts, dogWolves } from '../creatures/flock';
-import { NALATI_WILDLIFE, type WildlifeOpts } from '../creatures/wildlife';
+import type { WildlifeOpts } from '../creatures/wildlife';
+import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
 import { wildEnv } from '../creatures/env';
 import { NALATI_FLOCK } from '../data/crowds';
 

@@ -47,6 +47,8 @@ export const COLLIE_TINT: Record<string, RGB> = {
   back: [0.06, 0.06, 0.065], side: [0.08, 0.075, 0.08], cream: [0.93, 0.92, 0.89], leg: [0.92, 0.91, 0.88],
   dark: [0.05, 0.05, 0.05], earIn: [0.30, 0.22, 0.20], eye: [0.30, 0.18, 0.08],
 };
+/** The camp's sheepdog's one variant (species/sheepdog.ts): here, beside its tint, so the spawn rolls read it renderer-free. */
+export const SHEEPDOG_VARIANTS: VariantDef[] = [{ id: 'collie', label: engineString('s_062ffea0e911'), weight: 1, rarity: 'common', scale: [0.7, 0.72], hp: 60, tint: COLLIE_TINT, traits: { dog: 1, ruff: 1.1 } }];
 
 function canidPaint(v: VariantDef): Paint {
   const P = paletteColors(WOLF, v.tint);

@@ -7,7 +7,7 @@ import { nalatiPhysicsInputs } from '../../../scripts/nalati-physics-inputs.mjs'
 import * as v from 'valibot';
 import bakedJson from '../../../src/shards/nalati-grasslands/runtime/physics.baked.json';
 import { nalatiBake, NALATI_GROUND_RES, NALATI_GROUND_SIZE } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_WILDLIFE } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
+import { NALATI_WILDLIFE } from '../../../src/shards/nalati-grasslands/creatures/wildPlacement';
 import { TERRAIN } from '../../../src/shards/nalati-grasslands/world/terrain';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { GROUP } from '../../../src/engine/physics/groups';

@@ -2,6 +2,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Vector3 } from 'three';
+import type { NativeGroupHost } from './groupPorts';
 
 /** Native flock or actor prey; decisions and tuning live in the declared engine policy. */
 export interface PackPrey {
@@ -30,3 +31,18 @@ export const HorseHerd = {
   of(actor: Animal): HerdController | null { return herdOf.get(actor) ?? null; },
   register(controller: HerdController): void { for (const actor of controller.members) herdOf.set(actor, controller); },
 };
+
+let fallbackHost: NativeGroupHost | null = null;
+/**
+ * Bind the group services a manager-only fallback group asks (runtime/groupDispatch.ts): the page binds the app's
+ * (runtime/groupHost.ts) when its creatures attach, a trusted Node host its own. Returns the unbind for the caller's scope.
+ */
+export function bindFallbackGroupHost(host: NativeGroupHost): () => void {
+  fallbackHost = host;
+  return () => { if (fallbackHost === host) fallbackHost = null; };
+}
+/** The bound fallback group host; an unbound one refuses rather than inventing a decision stream. */
+export function fallbackGroupHost(): NativeGroupHost {
+  if (fallbackHost === null) throw new Error('Nalati fallback group has no bound host');
+  return fallbackHost;
+}

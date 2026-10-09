@@ -15,8 +15,8 @@ import { APP_GROUP_HOST } from '../runtime/groupHost';
 import { Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
+import { NALATI_WILDLIFE, placeDog, placeHerd, placePack, type WildlifeLayout, type WildPlacer } from './wildPlacement';
 import { HITCH_HORSE_SPOTS } from '../world/layout';
-import { KOKBORI_DEN, HORSE_PLAINS, PASTURE } from '../layout';
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild
@@ -39,28 +39,6 @@ import { KOKBORI_DEN, HORSE_PLAINS, PASTURE } from '../layout';
  * Draw cost (painterly): each wolf / horse / the dog is ONE skinned draw (fur + hooves + eyes share a material), plus
  * its shadow draw inside TIER_CONFIG.animalShadowDist; a flock is one instanced draw + one shadow draw.
  */
-
-export interface WildlifeLayout {
-  packs: { x: number; z: number; variants: string[] }[];
-  herds: { x: number; z: number; mares: number; foals: number; stallion: boolean }[];
-  flocks: { x: number; z: number; count: number; dog: boolean; range?: number }[];
-  /** marmot burrows: `sites` seeded inside the box (ambient; one instanced draw for all) */
-  marmots?: { sites: number; box: { x0: number; x1: number; z0: number; z1: number } };
-  /** the camp's saddled horses tied at the hitching rail (HITCH_HORSE_SPOTS, src/shards/nalati-grasslands/world/layout.ts) */
-  campHorses?: boolean;
-}
-
-/** layout v2 (src/shards/nalati-grasslands/layout.ts): the pack below Kokbori's den on the NE rim, the AI herd on the horse plains
- *  (the hundreds round it are the instanced far herds), the flock on the pasture */
-export const NALATI_WILDLIFE: WildlifeLayout = {
-  packs: [{ x: KOKBORI_DEN.x + 22, z: KOKBORI_DEN.z - 30, variants: ['alpha', 'grey', 'tawny', 'grey', 'scout'] }],
-  herds: [{ x: HORSE_PLAINS.x, z: HORSE_PLAINS.z, mares: 11, foals: 3, stallion: true }],
-  flocks: [{ x: PASTURE.x, z: PASTURE.z, count: 40, dog: true, range: PASTURE.r }],
-  marmots: { sites: 7, box: { x0: -160, x1: 170, z0: -30, z1: 95 } },   // the Sky Grassland's bowl
-  campHorses: true,
-};
-
-const MARE_VARIANTS = ['bay', 'chestnut', 'bay', 'dun', 'chestnut', 'grey', 'bay', 'black', 'dun', 'bay', 'chestnut', 'grey'];
 
 /** Group policy factories leave placement, prey, mounts and unique elites in their shipping native recipes. */
 export interface WildlifeControllers {
@@ -120,28 +98,16 @@ export class Wildlife {
     return this;
   }
 
-  /** a free spot near (x, z) within r: dry, in the chunk, not steep, not on top of another animal */
-  private spot(x: number, z: number, r: number): [number, number] {
-    for (let i = 0; i < 40; i++) {
-      const a = this.rng.range(0, Math.PI * 2), d = Math.sqrt(this.rng.next()) * r;
-      const px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d;
-      if (!inChunk(px, pz, 15) || normalAt(px, pz)[1] < 0.78 || heightAt(px, pz) < waterLevel() + 0.3 || wildEnv.wetAt?.(px, pz) === true) continue;
-      let clash = false;
-      for (const o of this.animals.animals) if (Math.abs(o.position.x - px) < 2 && Math.abs(o.position.z - pz) < 2) { clash = true; break; }
-      if (!clash) return [px, pz];
-    }
-    return [x, z];
+  /** the shared placement (wildPlacement.ts) over this world: Wildlife's stream, the page's ground, the manager's bodies */
+  private placer(): WildPlacer<Animal> {
+    return { rng: this.rng, bodies: () => this.animals.animals,
+      ground: { normalY: (x, z) => normalAt(x, z)[1], heightAt, waterLevel, wetAt: (x, z) => wildEnv.wetAt?.(x, z) === true },
+      spawn: (kind, x, z, yaw, variant) => this.animals.spawn(kind, x, z, yaw, variant), place: (a, x, z, yaw) => { a.place(x, z, yaw); } };
   }
 
   spawnPack(x: number, z: number, variants: string[]): PackController {
     const herd = this.animals.addHerd('wolf', x, z);
-    const members: Animal[] = [];
-    for (const v of variants) {
-      const [px, pz] = this.spot(x, z, 8);
-      const w = this.animals.spawn('wolf', px, pz, this.rng.range(0, Math.PI * 2), v);
-      w.herd = herd; this.animals.herds[herd]?.members.push(w);
-      members.push(w); this.wolves.push(w);
-    }
+    const members = placePack(this.placer(), x, z, variants, w => { w.herd = herd; this.animals.herds[herd]?.members.push(w); this.wolves.push(w); });
     const pack = this.controllers.pack(members, x, z);
     pack.findPrey = (px, pz, r) => this.nearestFoal(px, pz, r);
     this.packs.push(pack);
@@ -150,23 +116,7 @@ export class Wildlife {
 
   spawnHerd(x: number, z: number, mares: number, foals: number, stallion: boolean): HerdController {
     const herd = this.animals.addHerd('horse', x, z);
-    const members: Animal[] = [];
-    const add = (v: string, r: number): Animal => {
-      const [px, pz] = this.spot(x, z, r);
-      const h = this.animals.spawn('horse', px, pz, this.rng.range(0, Math.PI * 2), v);
-      h.herd = herd; this.animals.herds[herd]?.members.push(h);
-      members.push(h);
-      return h;
-    };
-    const start = this.rng.int(0, MARE_VARIANTS.length - 1);
-    const mareList: Animal[] = [];
-    for (let i = 0; i < mares; i++) mareList.push(add(MARE_VARIANTS[(start + i) % MARE_VARIANTS.length] ?? 'bay', 11));
-    for (let i = 0; i < foals; i++) {
-      const mom = mareList[i % Math.max(1, mareList.length)];
-      const f = add(i % 2 === 0 ? 'foal-bay' : 'foal-chestnut', 3);
-      if (mom !== undefined) f.place(mom.position.x + this.rng.range(-2, 2), mom.position.z + this.rng.range(-2, 2), mom.yaw);
-    }
-    if (stallion) { const s = add('stallion', 4); s.place(x + 16, z + 4, 0); }
+    const members = placeHerd(this.placer(), x, z, mares, foals, stallion, h => { h.herd = herd; this.animals.herds[herd]?.members.push(h); });
     const h = this.controllers.herd(members);
     h.findWolf = (px, pz, r) => this.nearestWolf(px, pz, r);
     this.herds.push(h);
@@ -179,8 +129,7 @@ export class Wildlife {
     this.opts.scene.add(f.mesh);
     f.onSound = (name, sx, sz) => { this._v.set(sx, heightAt(sx, sz) + 0.6, sz); this.onSound?.(name, this._v); };
     if (dog) {
-      const [px, pz] = this.spot(x + 14, z, 4);
-      const d = this.animals.spawn('sheepdog', px, pz, 0, 'collie');
+      const d = placeDog(this.placer(), x, z);
       d.herd = this.animals.addHerd('sheepdog', x, z);
       f.setDog(d);
     }
@@ -280,4 +229,3 @@ export class Wildlife {
   get livingWolves(): readonly Animal[] { return dogWolves; }
 }
 
-function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }
