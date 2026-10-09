@@ -133,7 +133,7 @@ for name in "${steps[@]}"; do
   elif [ "$rc" = skipped ]; then echo "  - $name (not reached)"
   else echo "  ✗ $name ($(cat "$work/$name.sec") s)"; failed+=("$name"); fi
 done
-for name in "${failed[@]}"; do echo "── $name ──" >&2; tail -40 "$work/$name.log" >&2; done
+for name in ${failed[@]+"${failed[@]}"}; do echo "── $name ──" >&2; tail -40 "$work/$name.log" >&2; done
 [ ${#failed[@]} -eq 0 ] || fail "${failed[*]}"
 [ -f "$work/shard-platform.log" ] && sed 's/^/    /' "$work/shard-platform.log"
 echo "vercel-gate: $short gates took $((SECONDS - gate_t0)) s wall"
