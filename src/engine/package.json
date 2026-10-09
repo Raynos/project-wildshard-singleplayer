@@ -338,6 +338,7 @@
     "./script/effects": "./script/effects.ts",
     "./script/queries": "./script/queries.ts",
     "./ui/declared": "./ui/declared.ts",
+    "./ui/panel": "./ui/panel.ts",
     "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts",
     "./sim": "./sim.ts",
     "./sim/bands": "./sim/bands.ts",

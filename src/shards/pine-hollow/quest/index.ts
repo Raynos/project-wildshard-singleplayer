@@ -487,7 +487,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const questChip = new QuestChip({ chip: () => quest.chip(), markers: () => quest.markers().map((m) => ({ id: m.id, label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z })) });
   const objective = questChip.line;
   const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');
-  ui.retainRoot(objective.root, () => { objective.root.classList.remove('ws-quest-hide'); });
+  ui.retainRoot(objective.root, () => { objective.hide(false); });
   ui.retainRoot(reward.root, () => { reward.show(false); });
   let ff: { from: number; span: number; t: number; dur: number; to: number } | null = null;
   const fastForward = (to: number, dur: number): void => {
@@ -501,9 +501,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     else if (event === 'dawn.start') hud.toast('The Antler King falls. In the east, the sky is going grey');
     else if (event === 'dawn.sunrise') fastForward(PINE_PHASES.sunrise + 0.012, value);
     else if (event === 'dawn.lanterns') { for (const f of LANTERN_FLAGS) flags.set(f); if (lm) for (const id of ['pond', 'ridge', 'den'] as const) lm.setLit(id, true); h.music.sting('dawn'); }
-    else if (event === 'dawn.caption') { reward.show(true); objective.root.classList.add('ws-quest-hide'); }
+    else if (event === 'dawn.caption') { reward.show(true); objective.hide(true); }
     else {
-      reward.show(false); objective.root.classList.remove('ws-quest-hide');
+      reward.show(false); objective.hide(false);
       inventory.add('amber-resin', 4); // was 2 amber heartwood, which nothing used (E314 C)
       hud.toast("Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep");
       flags.set('seen:dawn');

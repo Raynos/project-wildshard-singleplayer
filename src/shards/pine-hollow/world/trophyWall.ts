@@ -1,6 +1,6 @@
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { AnimalFactory } from '@wildshard/engine/entities/AnimalFactory';
-import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
+import { declarePanel, mountPanel, panelScope, type PanelView } from '@wildshard/sdk/panels';
 /**
  * The trophy wall (PINE-HOLLOW-REMASTER PH-C4, board B4 wall = C: art/pine-hollow/round-4-journal-ui/C-wall-chalk-outlines.jpg).
  * A wall of mount slots from the shard's compendium (`ShardCompendium.trophies`): a slot whose entry is TAKEN shows the
@@ -143,7 +143,7 @@ function mountGeometry(factory: AnimalFactory, kind: string, variant: string): T
 }
 
 export class TrophyWall {
-  readonly scope = uiScope('trophyWall');
+  readonly scope = panelScope('trophyWall');
   readonly group = new THREE.Group();
   /** one prompt for the whole wall: it moves to the slot you look at ("[E] Examine Old Ironhide"), radius 0 otherwise */
   readonly interactable: { position: THREE.Vector3; radius: number; label: string; onInteract: () => void };
@@ -155,7 +155,7 @@ export class TrophyWall {
   private chalkMat: THREE.MeshStandardMaterial | null = null;
   private chalkImg: HTMLImageElement | null = null;
   private looked: Placed | null = null;
-  private tip: HTMLElement | null = null;
+  private tip: PanelView | null = null;
   private readonly ray = new THREE.Ray();
   private readonly inv = new THREE.Matrix4();
   private readonly tmp = new THREE.Vector3();
@@ -174,9 +174,8 @@ export class TrophyWall {
     });
     this.interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: 'Examine', onInteract: () => { if (this.looked) this.onExamine?.(this.looked.slot.entry); } };
     if (opts.hud) {
-      this.tip = document.createElement('div');
-      this.tip.className = 'ws-cmp-tip';
-      mountUi(this.tip, this.scope, opts.hud);
+      this.tip = declarePanel({ cls: 'ws-cmp-tip' });
+      mountPanel(this.tip, this.scope, opts.hud);
     }
     this.group.name = 'trophy-wall';
     opts.anchor.add(this.group);
@@ -312,14 +311,12 @@ export class TrophyWall {
     const tip = this.tip;
     if (!tip) return;
     const p = this.looked;
-    tip.classList.toggle('show', p !== null);
+    tip.flag('', 'show', p !== null);
     if (!p) return;
     const e = this.opts.state.entry(p.slot.entry), st = this.opts.state.state(p.slot.entry);
     const name = st !== 'unknown' && e ? e.name : '???';
-    tip.replaceChildren();
-    const top = document.createElement('span'), sub = document.createElement('small');
-    if (st === 'taken') { top.textContent = name; sub.textContent = p.slot.title; } else { top.textContent = 'Not yet taken'; sub.textContent = name; }
-    tip.append(top, sub);
+    const [top, sub] = st === 'taken' ? [name, p.slot.title] : ['Not yet taken', name];
+    tip.fill('', [{ tag: 'span', text: top }, { tag: 'small', text: sub }]);
   }
 
   /** after a take: re-mount, re-chalk, re-read the tip */

@@ -1,5 +1,6 @@
 /**
- * The lodge's contract board and the collectibles' counter (PINE-HOLLOW-REMASTER PH-C6 / C8) — DOM in `#hud`, styled
+ * The lodge's contract board and the collectibles' counter (PINE-HOLLOW-REMASTER PH-C6 / C8) — declared panels the
+ * platform draws in `#hud` (SHARD-PLATFORM SF28: each panel's content is data, `@wildshard/sdk/panels`), styled
  * by src/shards/pine-hollow/quest/pinehollow.css (prefix ws-ph-):
  *
  *   BoardPanel  the lodge's contract board: three paper notices pinned to pine boards — the heading, the job, a tally,
@@ -13,13 +14,9 @@
 import './pinehollow.css';
 import { Scope } from '@wildshard/engine/app/scope';
 import { listenPage } from '@wildshard/engine/input/dom';
+import { declarePanel, mountPanel, type PanelNode, type PanelView } from '@wildshard/sdk/panels';
 import { isFilled, type Board, type Contract } from './contracts';
 import { itemName } from './trades';
-
-const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
-const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement, text?: string): HTMLElementTagNameMap[K] => {
-  const e = document.createElement(tag); e.className = cls; if (text !== undefined) e.textContent = text; parent?.append(e); return e;
-};
 
 /** what a contract pays, as the notice says it */
 export function rewardLine(c: Contract): string {
@@ -28,9 +25,18 @@ export function rewardLine(c: Contract): string {
   return parts.join(' · ');
 }
 
+/** a lodge panel: the frame, its kicker and title, the body the content fills, CLOSE */
+const panelFrame = (cls: string, kicker: string, title: string): PanelNode => ({ cls: `ws-ph-panel ${cls}`, children: [
+  { cls: 'ws-ph-frame', children: [
+    { cls: 'ws-ph-head', children: [{ cls: 'ws-ph-kicker', text: kicker }, { cls: 'ws-ph-title', text: title }] },
+    { cls: 'ws-ph-body', ref: 'body' },
+  ] },
+  { tag: 'button', cls: 'ws-ph-close', button: 'button', text: 'Close', ref: 'close' },
+] });
+
 abstract class Panel {
-  readonly root: HTMLDivElement;
-  protected readonly body: HTMLDivElement;
+  readonly root: HTMLElement;
+  protected readonly view: PanelView;
   onOpen?: () => void;
   onClose?: () => void;
   private open_ = false;
@@ -38,44 +44,71 @@ abstract class Panel {
   private rows: Scope | null = null;
   constructor(cls: string, title: string, kicker: string, scope: Scope) {
     this.scope = scope;
-    this.root = el('div', `ws-ph-panel ${cls}`);
-    const frame = el('div', 'ws-ph-frame', this.root);
-    const head = el('div', 'ws-ph-head', frame);
-    el('div', 'ws-ph-kicker', head, kicker);
-    el('div', 'ws-ph-title', head, title);
-    this.body = el('div', 'ws-ph-body', frame);
-    const close = el('button', 'ws-ph-close', this.root, 'Close');
-    close.type = 'button';
-    scope.listen(close, 'click', (e) => { e.stopPropagation(); this.close(); });
-    scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); });
+    this.view = declarePanel(panelFrame(cls, kicker, title));
+    this.root = this.view.root;
+    this.view.on('close', 'click', (e) => { e.stopPropagation(); this.close(); }, scope);
+    this.view.on('', 'pointerdown', (e) => { e.stopPropagation(); }, scope);
     listenPage(scope, 'keydown', (event) => {
       const e = event;
       if (!this.open_ || e.repeat) return;
       if (e.code === 'Escape' || e.code === 'KeyE') { e.preventDefault(); e.stopPropagation(); this.close(); }
     }, { capture: true, on: 'document' });
-    hudRoot().append(this.root);
-    scope.onDispose(() => { this.open_ = false; this.root.remove(); });
+    mountPanel(this.view, scope);
+    scope.onDispose(() => { this.open_ = false; });
   }
   get isOpen(): boolean { return this.open_; }
-  protected renderScope(): Scope {
+  /** replace the body with declared rows; listeners bound through the returned scope leave with the next render */
+  protected renderRows(nodes: readonly PanelNode[]): Scope {
     this.rows?.dispose();
-    this.body.replaceChildren();
+    this.view.fill('body', nodes);
     this.rows = this.scope.child('rows');
     return this.rows;
   }
   open(): void {
     if (this.open_ || this.scope.disposed) return;
     this.open_ = true; this.render();
-    this.root.classList.add('show');
+    this.view.flag('', 'show', true);
     this.onOpen?.();
   }
   close(): void {
     if (!this.open_) return;
     this.open_ = false;
-    this.root.classList.remove('show');
+    this.view.flag('', 'show', false);
     this.onClose?.();
   }
   abstract render(): void;
+}
+
+const NOTE_TILT = [-1.2, 0.8, -0.5] as const;
+const noteKind = (c: Contract): string => c.kind === 'species' ? 'Game' : c.kind === 'rarity' ? 'Rare coat' : c.kind === 'elite' ? 'Wanted' : 'Cull';
+
+/** the board's body as data: the tally, one pinned notice per slot (refs `claim.<i>` / `tear.<i>`), the foot */
+export function boardRows(b: Board): PanelNode[] {
+  return [
+    { cls: 'ws-ph-tally', children: [
+      { tag: 'span', cls: '', text: `Claimed ${b.claimed}` },
+      { tag: 'span', cls: '', text: `In a row ${b.streak}` },
+      { tag: 'span', cls: '', text: `Best ${b.best}` },
+    ] },
+    ...b.slots.map((c, i): PanelNode => ({
+      cls: `ws-ph-note${isFilled(c) ? ' filled' : ''}`, props: [['--tilt', `${NOTE_TILT[i] ?? 0}deg`]], children: [
+        { tag: 'i', cls: 'ws-ph-pin' },
+        { cls: 'ws-ph-note-kind', text: noteKind(c) },
+        { cls: 'ws-ph-note-title', text: c.title },
+        { cls: 'ws-ph-note-goal', text: c.goal },
+        { cls: 'ws-ph-note-bar', children: [
+          ...Array.from({ length: c.need }, (_, k): PanelNode => ({ tag: 'i', cls: k < c.have ? 'on' : '' })),
+          { tag: 'b', cls: 'ws-ph-note-count', text: `${c.have} / ${c.need}` },
+        ] },
+        { cls: 'ws-ph-note-pay', text: `Pays ${rewardLine(c)}` },
+        { cls: 'ws-ph-note-row', children: [
+          ...(isFilled(c) ? [{ tag: 'button', cls: 'ws-ph-seal', button: 'button', text: 'Claim', ref: `claim.${i}` } satisfies PanelNode] : []),
+          { tag: 'button', cls: 'ws-ph-tear', button: 'button', text: 'Tear down', ref: `tear.${i}` },
+        ] },
+      ],
+    })),
+    { cls: 'ws-ph-foot', text: 'A filled notice is claimed here. Tearing one down posts the next and ends your run.' },
+  ];
 }
 
 export class BoardPanel extends Panel {
@@ -84,56 +117,38 @@ export class BoardPanel extends Panel {
   constructor(private readonly board: () => Board, scope = new Scope('quest.board')) { super('ws-ph-board', 'Contracts', 'The hunting lodge', scope); }
   render(): void {
     const b = this.board();
-    const scope = this.renderScope();
-    const tally = el('div', 'ws-ph-tally', this.body);
-    el('span', '', tally, `Claimed ${b.claimed}`);
-    el('span', '', tally, `In a row ${b.streak}`);
-    el('span', '', tally, `Best ${b.best}`);
-    b.slots.forEach((c, i) => {
-      const card = el('div', `ws-ph-note${isFilled(c) ? ' filled' : ''}`, this.body);
-      card.style.setProperty('--tilt', `${[-1.2, 0.8, -0.5][i] ?? 0}deg`);
-      el('i', 'ws-ph-pin', card);
-      el('div', 'ws-ph-note-kind', card, c.kind === 'species' ? 'Game' : c.kind === 'rarity' ? 'Rare coat' : c.kind === 'elite' ? 'Wanted' : 'Cull');
-      el('div', 'ws-ph-note-title', card, c.title);
-      el('div', 'ws-ph-note-goal', card, c.goal);
-      const bar = el('div', 'ws-ph-note-bar', card);
-      for (let k = 0; k < c.need; k++) el('i', k < c.have ? 'on' : '', bar);
-      el('b', 'ws-ph-note-count', bar, `${c.have} / ${c.need}`);
-      el('div', 'ws-ph-note-pay', card, `Pays ${rewardLine(c)}`);
-      const row = el('div', 'ws-ph-note-row', card);
-      if (isFilled(c)) {
-        const claim = el('button', 'ws-ph-seal', row, 'Claim');
-        claim.type = 'button';
-        scope.listen(claim, 'click', (e) => { e.stopPropagation(); this.onClaim?.(i); this.render(); });
-      }
-      const tear = el('button', 'ws-ph-tear', row, 'Tear down');
-      tear.type = 'button';
-      scope.listen(tear, 'click', (e) => { e.stopPropagation(); this.onReroll?.(i); this.render(); });
+    const scope = this.renderRows(boardRows(b));
+    b.slots.forEach((_c, i) => {
+      if (this.view.has(`claim.${i}`)) this.view.on(`claim.${i}`, 'click', (e) => { e.stopPropagation(); this.onClaim?.(i); this.render(); }, scope);
+      this.view.on(`tear.${i}`, 'click', (e) => { e.stopPropagation(); this.onReroll?.(i); this.render(); }, scope);
     });
-    el('div', 'ws-ph-foot', this.body, 'A filled notice is claimed here. Tearing one down posts the next and ends your run.');
   }
 }
 
+/** "AMBER RESIN 4 / 30" under the quest chip */
+const COUNT_CHIP: PanelNode = { cls: 'ws-ph-count', children: [
+  { tag: 'span', cls: 'ws-ph-count-label', ref: 'label' },
+  { tag: 'b', cls: 'ws-ph-count-n', ref: 'n' },
+] };
+
 export class CountChip {
-  readonly root = el('div', 'ws-ph-count');
-  private label = el('span', 'ws-ph-count-label', this.root);
-  private n = el('b', 'ws-ph-count-n', this.root);
+  private readonly view = declarePanel(COUNT_CHIP);
+  readonly root = this.view.root;
   private readonly scope: Scope;
   private timer: Scope | null = null;
   constructor(scope = new Scope('quest.count')) {
     this.scope = scope;
-    hudRoot().append(this.root);
-    scope.onDispose(() => { this.root.remove(); });
+    mountPanel(this.view, scope);
   }
   show(label: string, n: number, of: number): void {
     if (this.scope.disposed) return;
-    this.label.textContent = label;
-    this.n.textContent = `${n} / ${of}`;
-    this.root.classList.remove('show'); void this.root.offsetWidth; this.root.classList.add('show');
-    this.root.classList.toggle('full', n >= of);
+    this.view.text('label', label);
+    this.view.text('n', `${n} / ${of}`);
+    this.view.restart('', 'show');
+    this.view.flag('', 'full', n >= of);
     this.timer?.dispose();
     const timer = this.scope.child('hide');
     this.timer = timer;
-    timer.timeout(3600, () => { this.root.classList.remove('show'); timer.dispose(); });
+    timer.timeout(3600, () => { this.view.flag('', 'show', false); timer.dispose(); });
   }
 }

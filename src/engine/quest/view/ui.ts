@@ -58,6 +58,9 @@ export class ObjectiveLine {
     this.root.classList.toggle('show', label !== '');
   }
 
+  /** hide the chip while a caption has the screen (`ws-quest-hide`); it keeps its place and its goal */
+  hide(on: boolean): void { this.root.classList.toggle('ws-quest-hide', on); }
+
   /** the nearest marker: short name, metres, and its bearing relative to the view (radians, 0 = straight ahead, + = right) */
   setNav(name: string | null, metres: number, rel: number): void {
     if (name === null) {

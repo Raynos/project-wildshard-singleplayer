@@ -35,6 +35,7 @@
     "./migrations": "./migrations.ts",
     "./brains": "./brains.ts",
     "./accent": "./accent.ts",
+    "./panels": "./panels.ts",
     "./groupBrains": "./groupBrains.ts",
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
