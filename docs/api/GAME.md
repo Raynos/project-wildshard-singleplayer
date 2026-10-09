@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-901 members; 159 without a doc line (—).
+902 members; 159 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -42,6 +42,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `clipHitTime` | function | @wildshard/game/combat/clipTiming | Contact time in the caller's simulation clock; independent of rendering or a view's animation mixer. |
 | `CollisionJoint` | interface | @wildshard/game/combat/collisionPose | Ordered collision joints only: parent precedes child, -1 attaches to the supplied world frame. |
 | `CollisionPose` | class | @wildshard/game/combat/collisionPose | Collision-only FK. It never constructs a scene node, skeleton, vertex buffer or skinned mesh. |
+| `CollisionTransform` | interface | @wildshard/game/combat/collisionPose | Absolute local transform from a trusted numeric rig; Euler order can change when the pose sets it. |
 | `CompendiumHost` | interface | @wildshard/game/compendium/install | — |
 | `CompendiumWallPort` | interface | @wildshard/game/compendium/install | — |
 | `installCompendium` | function | @wildshard/game/compendium/install | — |
