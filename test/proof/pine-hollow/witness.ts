@@ -17,7 +17,7 @@ import { QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow'
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { LEVER_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLever';
-import { AIM_COMMAND } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { AIM_COMMAND, AIM_RIBS } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { canonicalSimDigest } from '../../fake/simState';
 
 /**
@@ -236,12 +236,12 @@ const LeverRow = v.object({ tube: v.number(), chambered: v.boolean(), phase: v.s
 const lever = (host: SimHost): v.InferOutput<typeof LeverRow> => v.parse(LeverRow, host.adapters.get(LEVER_STEP)?.snapshot());
 /** the King's band: out of his antlers' sweep (7.1 m) and short of the stones' soft wall (27.5 m round the clearing) */
 const NEAR = 10, FAR = 15, RING = 21, JUMP_AHEAD = 2.4;
-/** his ribcage's share along his body capsule (runtime/king.ts onRibs) */
-const RIBS = 0.75;
+/** Aim at the native cage point; the ordinary ray still chooses the first collision surface. */
+const RIBS = AIM_RIBS;
 /**
  * The King by weapon play, a tick at a time from what the player sees: into the stones; then a band round him (out of his
  * sweep, inside the ring), circling so his lanes miss; a jump over each root ring as it reaches the player; the lever-action
- * fired at him (a thrall that closes in first) only when a round is chambered and the action idle, the crossbow once its
+ * fired at him (a thrall that closes in first) while the action is idle (an empty trigger reloads), the crossbow once its
  * rounds are spent.
  */
 function kingPlay(host: SimHost): HeadlessCommand[] {
@@ -274,8 +274,9 @@ function kingPlay(host: SimHost): HeadlessCommand[] {
   const held = v.parse(LoadoutRow, host.adapters.get(LOADOUT_STEP)?.snapshot()).held, want = spent ? PINE_WEAPON.crossbow : PINE_WEAPON.lever;
   if (held !== want) commands.push({ kind: 'script', actorId: WEAPON_COMMAND, value: want });
   // the King only into his open ribcage (×3; shut ×0.6, the bark ×0.25), aimed at it; a thrall at its middle
-  const ready = spent || (gun.chambered && gun.phase === 'idle'), onKing = target.id === king.entityId;
-  const fire = ready && (!onKing || row.fight.open > 0.5);
+  const ready = spent || gun.phase === 'idle', onKing = target.id === king.entityId;
+  // An empty trigger starts the page's reload; waiting for a chambered round would deadlock the tape.
+  const fire = ready && (!onKing || !gun.chambered || row.fight.open > 0.5);
   if (fire && onKing) commands.push({ kind: 'script', actorId: AIM_COMMAND, value: RIBS });
   commands.push({ kind: 'player', moveX: mx / m, moveZ: mz / m, yaw, ...(fire ? { attack: { targetId: target.id } } : {}), ...(jump && host.playerFall.grounded ? { jump: true } : {}) });
   return commands;
@@ -307,12 +308,11 @@ export function pineTape(plan: HeadlessRuntimePlan, from?: TapeState): PineTape 
 
 const facts = (effects: readonly HeadlessEffect[]): string[] => effects.flatMap(effect => effect.kind === 'fact' ? [`${effect.name}/${effect.actorId}`] : []);
 
-/** the ticks the tape fights the King before it reports (his rib hitbox is unreachable headless: see the handoff) */
-const KING_PROBE = 1800;
+/** Bound a failed fight separately from the whole walk. The current tape wins in 3,122 fight ticks. */
+const KING_PROBE = 5000;
 /**
  * The tape from the spawn: the day's legs to the den's lantern, Hale's watch till dark, the Ghost Stag's walk into the
- * stones, and `KING_PROBE` ticks of the Antler King's fight by weapon play (2026-10-09: the spawn to the stag's last bend in
- * 25,853 ticks, the quest on `king`). `at-king`: the tape reached his fight and the player stands; `walked`: every leg,
+ * stones, the Antler King's fight by weapon play, and dawn. `KING_PROBE` bounds a failed fight. `at-king`: the tape reached his fight and the player stands; `walked`: every leg,
  * the dawn included.
  */
 export async function tapeProof(rapier: Rapier, limit = 60_000): Promise<object> {

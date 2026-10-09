@@ -9,6 +9,7 @@ import { AntlerKingCore, kingDormant, kingPresence, type KingCoreEnv } from '../
 import { Lane } from '../combat/lane';
 import { PINE_LANES } from '../combat/strikes';
 import type { PineHuntBody, PineParked } from './roster';
+import { pineBake } from './baked';
 
 type BossBrain = ReturnType<typeof installBossRow>['boss'];
 type BossDefinition = Parameters<typeof installBossRow>[1]['definition'];
@@ -40,9 +41,8 @@ export interface PineKingPorts {
   readonly fact?: (name: string, entity: string) => void;
 }
 
-/** models/antlerKing.ts RIB_R: the ribcage basket's radius (m, before his scale) */
-const KING_RIB_R = 0.36;
-const RIB_A = new Vector3(), RIB_B = new Vector3();
+/** Scratch for the page-rig cage centre. */
+const RIB_POINT = new Vector3();
 const silentTell = { setTime: (): void => undefined, ring: (): void => undefined, hide: (): void => undefined };
 
 /** The shared fight (combat/kingFight.ts) on the host's bodies, its views silent. */
@@ -88,13 +88,11 @@ class HeadlessKing extends AntlerKingCore<PineHuntBody> {
     return a;
   }
   protected override retireKing(k: PineHuntBody): void { this.ports.retire(k); }
-  /** the ribcage without his rig: a ball on his chest (halfway from his body's centre to its front, at its height), the
-   *  page's ribcage radius (models/antlerKing.ts RIB_R 0.36 × his scale × 1.15); the page's rides his chest bone */
+  /** The page's cage test and radius, on its browser-baked rest chest. Animated pose displacement remains an explicit
+   *  headless limitation; neither the capsule surface nor the weak-point volume is fabricated for the tape. */
   protected override onRibs(p: Vector3): boolean {
     const k = this.king;
-    if (k === null) return false;
-    k.bodyCapsule(RIB_A, RIB_B);
-    return p.distanceTo(RIB_A.lerp(RIB_B, 0.75)) < KING_RIB_R * k.scale * 1.15;
+    return k?.ribsWorld !== undefined && p.distanceTo(k.ribsWorld(RIB_POINT)) < pineBake().kingHit.radius * k.scale;
   }
   protected override parkKing(k: PineHuntBody): void { k.hidden = true; }
   protected override unparkKing(k: PineHuntBody): void { k.hidden = false; }
@@ -147,7 +145,7 @@ function kingDefinition(): BossDefinition {
  * a parked King stays hidden across a restore.
  *
  * His damage rule is the page's (`damageMul` at the pipeline's order 50: bark ×0.25, the ribcage ×3 open / ×0.6 shut, the
- * beat ×0.01); the ribcage is a ball on his chest (no rig headless).
+ * beat ×0.01); the ribcage uses the page-rig baked rest chest and radius (animated displacement remains open).
  *
  * Not yet owned (progress/shard-platform/handoffs/sf72-pine.md): the re-fight's three amber resin (no item effect).
  */

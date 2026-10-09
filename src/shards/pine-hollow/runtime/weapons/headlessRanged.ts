@@ -10,6 +10,11 @@ export interface BodyHit { body: AnimalSim | null; head: boolean; distance: numb
 /** The most bodies a shot is tested against (the roster's live cap). */
 const MAX_BODIES = 512;
 
+type ForeBody = AnimalSim & { foreCapsule: (a: Vector3, b: Vector3) => boolean };
+type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
+const hasFore = (body: AnimalSim): body is ForeBody => 'foreCapsule' in body && typeof body.foreCapsule === 'function';
+const hasRibs = (body: AnimalSim): body is RibBody => 'ribsWorld' in body && typeof body.ribsWorld === 'function';
+
 const _ap = new Vector3(), _ab = new Vector3(), _ao = new Vector3(), _a = new Vector3(), _b = new Vector3();
 /** The distance along the unit ray (origin, dir) to a ball, within `max`, or Infinity (0 from inside it, as Rapier's solid cast). */
 function raySphere(origin: Vector3, dir: Vector3, centre: Vector3, r: number, max: number): number {
@@ -44,7 +49,7 @@ function rayCapsule(origin: Vector3, dir: Vector3, a: Vector3, b: Vector3, r: nu
 
 const hitResult: BodyHit = { body: null, head: false, distance: 0, point: new Vector3() };
 /**
- * A shot against the creatures' hitboxes (physics/creatures.ts CreatureBodies: a head ball and a body capsule per live,
+ * A shot against the creatures' hitboxes (physics/creatures.ts CreatureBodies: a head ball, main capsule and optional chest capsule per live,
  * unhidden body: the Ghost Stag's fade and a parked King take none), from the host body's own head and body capsule
  * (AnimalSim.headWorld / bodyCapsule): the nearest along the ray within `max`, or null.
  */
@@ -60,8 +65,13 @@ export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, dir: Vect
     const th = raySphere(origin, dir, body.headWorld(_a), d.headRadius * s, bestT);
     body.bodyCapsule(_a, _b);
     const tb = rayCapsule(origin, dir, _a, _b, d.bodyRadius * s, Math.min(bestT, th));
-    const t = Math.min(th, tb);
-    if (t < bestT) { bestT = t; found = true; hitResult.body = body; hitResult.head = th <= tb; hitResult.distance = t; hitResult.point.copy(origin).addScaledVector(dir, t); }
+    const fore = d.fore;
+    let tf = Infinity;
+    if (fore !== undefined && hasFore(body) && body.foreCapsule(_a, _b)) {
+      tf = rayCapsule(origin, dir, _a, _b, fore.radius * s, Math.min(bestT, th, tb));
+    }
+    const t = Math.min(th, tb, tf);
+    if (t < bestT) { bestT = t; found = true; hitResult.body = body; hitResult.head = th <= Math.min(tb, tf); hitResult.distance = t; hitResult.point.copy(origin).addScaledVector(dir, t); }
   }
   return found ? hitResult : null;
 }
@@ -81,10 +91,12 @@ export function worldHit(host: SimHost, a: Vector3, b: Vector3, radius: number):
 /** The `script` command that says where on the body the tick's shots are aimed: its value is the share along the target's
  *  body capsule, from its rear end (0) to its front end (1; a King's ribcage is at 0.75); no command, its middle. */
 export const AIM_COMMAND = 'pine.aim';
+/** Explicit point aim at a body's declared ribcage (the camera can aim at it on the page); never a damage override. */
+export const AIM_RIBS = 2;
 /** The aim's share along the body when the tick names none: the capsule's middle. */
 export const AIM_MIDDLE = 0.5;
 /** A tick's aim share, clamped to the body (a non-finite value is the middle). */
-export const aimShare = (value: number): number => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : AIM_MIDDLE);
+export const aimShare = (value: number): number => (value === AIM_RIBS ? AIM_RIBS : Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : AIM_MIDDLE);
 
 /** The player's eye (`eye`) and the unit aim line from it to the point `along` the target's body capsule (`fwd`; its middle by
  *  default): the tape aims at a point of a body where the page aims along the camera. */
@@ -93,7 +105,8 @@ export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vecto
   eye.set(p.x, p.y + EYE, p.z);
   target.bodyCapsule(_a, _b);
   // the middle in its own arithmetic (the half-sum), so a tape that names no aim flies exactly as before
-  if (along === AIM_MIDDLE) fwd.addVectors(_a, _b).multiplyScalar(0.5);
+  if (along === AIM_RIBS && hasRibs(target)) target.ribsWorld(fwd);
+  else if (along === AIM_MIDDLE) fwd.addVectors(_a, _b).multiplyScalar(0.5);
   else fwd.copy(_a).lerp(_b, along);
   fwd.sub(eye).normalize();
 }

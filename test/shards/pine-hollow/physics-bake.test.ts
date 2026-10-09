@@ -20,6 +20,7 @@ const Bake = v.object({ version: v.literal(1), revision: v.string(), inputs: v.r
     halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()), indices: v.optional(v.string()) })),
   actors: v.array(v.object({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, scale: finite, seed: finite, scripted: v.boolean(),
     spec: v.object({ kind: v.string(), variant: v.string(), hp: finite, dims: v.object({ bodyRadius: finite }) }) })),
+  kingHit: v.object({ head: v.tuple([finite, finite, finite]), body: v.array(v.tuple([finite, finite, finite])), fore: v.array(v.tuple([finite, finite, finite])), ribs: v.tuple([finite, finite, finite]), radius: finite }),
   herds: v.array(v.object({ kind: v.string(), members: v.array(v.string()) })),
   // the forest's trunk circles (x, z, r) the herds' placement reads (runtime/herds.ts; herd-placement.test.ts proves the rolls)
   trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])) });
@@ -85,4 +86,18 @@ it('rebuilds every baked solid world collider natively: trunks, rocks, crags, ca
     expect(shapes.get(2)).toBeGreaterThan(900); // the forest's trunk capsules
     expect(shapes.get(9)).toBeGreaterThan(500); // rocks and crag hulls
   } finally { world.free(); }
+});
+
+
+it('captures the loaded King chest and cage in rest model space, outside the old main-capsule axis', () => {
+  const row = baked.kingHit;
+  expect(row.radius).toBeCloseTo(0.36 * 1.15, 14);
+  expect(row.body).toHaveLength(2); expect(row.fore).toHaveLength(2);
+  const left = row.fore[0], right = row.fore[1], front = row.body[1];
+  if (left === undefined || right === undefined || front === undefined) throw new Error('Missing King volumes');
+  expect(left[0]).toBeLessThan(right[0]);
+  expect(row.ribs[2]).toBeGreaterThan(front[2]);
+  expect(row.ribs[1]).toBeGreaterThan(1);
+  expect(baked.inputs['src/engine/entities/AnimalView.ts']).toBeDefined();
+  expect(baked.inputs['scripts/bake-pine-physics.mjs']).toBeDefined();
 });

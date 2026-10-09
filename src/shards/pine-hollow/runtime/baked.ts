@@ -17,9 +17,10 @@ const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.stri
 const Parked = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), spec: BakedSpec, seed: finite, scale: finite });
 const Solid = v.strictObject({ shape: v.picklist([1, 2, 6, 9]), groups: finite, friction: finite, body: v.nullable(finite), at: triple, rot: v.tuple([finite, finite, finite, finite]),
   half: v.exactOptional(triple), halfHeight: v.exactOptional(finite), radius: v.exactOptional(finite), vertices: v.exactOptional(v.string()), indices: v.exactOptional(v.string()) });
+const KingHit = v.strictObject({ head: triple, body: v.tuple([triple, triple]), fore: v.tuple([triple, triple]), ribs: triple, radius: v.pipe(finite, v.minValue(0.001)) });
 const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(PINE_GROUND_RES - 1), cols: v.literal(PINE_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
-  solids: v.array(Solid), actors: v.array(Actor), parked: v.array(Parked), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
+  kingHit: KingHit, solids: v.array(Solid), actors: v.array(Actor), parked: v.array(Parked), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
 
 /** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
 export interface PineSolid {
@@ -33,6 +34,8 @@ export interface PineBakedActor { readonly id: string; readonly kind: string; re
 /** The trusted browser bake (scripts/bake-pine-physics.mjs), parsed strictly and decoded once. */
 export interface PineBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
+  /** Page-rig rest-space head/main/chest hit volumes and ribcage, measured from the native inverse binds. */
+  readonly kingHit: v.InferOutput<typeof KingHit>;
   readonly solids: readonly PineSolid[];
   readonly actors: readonly PineBakedActor[];
   /** the Antler King's prewarm (his body, an elk thrall, a boar thrall): spawned at boot, parked out of the manager's list */
@@ -57,7 +60,7 @@ export function pineBake(): PineBake {
     if ((rest.shape === 6 || rest.shape === 9) !== (vertices !== undefined) || (rest.shape === 6) !== (indices !== undefined)) throw new Error('Unbuildable baked Pine collider');
     return { ...rest, ...(vertices === undefined ? {} : { points: floats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(bytesOf(indices).buffer) }) };
   });
-  parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
+  parsed = { kingHit: bake.kingHit, ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
     actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })),
     parked: bake.parked.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds };
   return parsed;

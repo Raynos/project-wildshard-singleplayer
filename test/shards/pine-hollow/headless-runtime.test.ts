@@ -479,7 +479,15 @@ it('takes the King\'s bark at ×0.25 and his ribcage at ×0.6 shut, and a bolt p
     const a = new Vector3(), b = new Vector3();
     body.bodyCapsule(a, b);
     expect(hit(a.clone())).toBe(25); // the haunch: bark
-    expect(hit(a.clone().lerp(b, 0.75))).toBe(60); // the chest: the ribcage, shut
+    if (body.ribsWorld === undefined) throw new Error('no baked cage');
+    const cage = body.ribsWorld(new Vector3());
+    expect(hit(cage)).toBe(60); // the chest: the ribcage, shut
+    const front = cage.clone().add(new Vector3(Math.sin(body.yaw) * 10, 0, Math.cos(body.yaw) * 10));
+    const chestHit = bodyHit([body], front, cage.clone().sub(front).normalize(), 20);
+    if (chestHit === null) throw new Error('Page chest capsule was not hit');
+    expect(chestHit.point.distanceTo(cage)).toBeLessThan(parts.bake.kingHit.radius * body.scale);
+    expect(hit(chestHit.point)).toBe(60); // an actual ray surface reaches the same closed ribcage rule
+
     // the bodyHit test skips a hidden body (the Ghost Stag's fade, a parked King)
     const from = new Vector3(b.x + 10, b.y, b.z), dir = new Vector3(-1, 0, 0);
     expect(bodyHit([body], from, dir, 30)?.body).toBe(body);

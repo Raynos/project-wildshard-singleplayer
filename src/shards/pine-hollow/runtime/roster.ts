@@ -28,7 +28,7 @@ const SCRIPTED = 'sidestep';
 
 /** A renderer-free body as the hunting brain and the elites' scripts drive it: the host's body, never drawn (`hidden` is a fight's
  *  own flag: the Ghost Stag's fade, Blackpaw in his cave). */
-export type PineHuntBody = AnimalSim & { hidden: boolean; sampleTerrain: () => void };
+export type PineHuntBody = AnimalSim & { hidden: boolean; sampleTerrain: () => void; foreCapsule?: (a: Vector3, b: Vector3) => boolean; ribsWorld?: (out: Vector3) => Vector3 };
 /** One manager body: its id and kind, the live host actor, and whether a fight scripts it (an elite). */
 export interface PineBody { readonly id: string; readonly kind: string; readonly actor: PineHuntBody; readonly scripted: boolean }
 /** A parked prewarm body (runtime/antlerKing.ts `prewarm`): its id and rolled recipe, no host body until the King's script calls it. */
@@ -182,6 +182,17 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     const { x, z } = recipe.at, at = creatureFloor(x, z, Math.max(ports.spawnY, heightAt(x, z)) + 1);
     recipe.at.y = at.y;
     const a: PineHuntBody = Object.assign(host.spawn(recipe), { ...HUNT_BODY });
+    if (kind === PINE_KING_KIND) {
+      const kingPoint = (out: Vector3, local: readonly [number, number, number]): Vector3 => {
+        const c = Math.cos(a.yaw), s = Math.sin(a.yaw), scale = a.scale;
+        return out.set(a.position.x + (local[0] * c + local[2] * s) * scale,
+          a.position.y + local[1] * scale, a.position.z + (local[2] * c - local[0] * s) * scale);
+      };
+      a.headWorld = out => kingPoint(out, bake.kingHit.head);
+      a.bodyCapsule = (rear, front) => { kingPoint(rear, bake.kingHit.body[0]); kingPoint(front, bake.kingHit.body[1]); };
+      a.foreCapsule = (left, right) => { kingPoint(left, bake.kingHit.fore[0]); kingPoint(right, bake.kingHit.fore[1]); return true; };
+      a.ribsWorld = out => kingPoint(out, bake.kingHit.ribs);
+    }
     a.levelGround = at.structure;
     if (at.structure) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
     a.herd = -1;

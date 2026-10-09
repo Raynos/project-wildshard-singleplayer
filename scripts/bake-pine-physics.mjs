@@ -50,6 +50,34 @@ try {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
       return { id: a.entityId, kind: a.kind, variant: a.variant, spec: copy(a.simSpec), seed: a.seed, scale: a.scale };
     });
+    // Rest-space hit volumes from the actual loaded King rig, never the stand-in dimensions alone. Inverse binds
+    // retain the authored rest even after the parked body's animation has advanced. The cage offset is read from the
+    // page's dressAntlerKing instance, then placed on that same rest chest.
+    const king = fight.king, skeleton = king.mesh.skeleton;
+    const V = king.position.constructor;
+    const rest = name => {
+      const i = skeleton.bones.findIndex(b => b.name === name), inv = skeleton.boneInverses[i];
+      if (i === -1 || !inv) throw new Error(`King rig has no rest ${name}`);
+      return inv.clone().invert();
+    };
+    const local = (at, matrix) => new V(...at).applyMatrix4(matrix).toArray();
+    const capsule = (matrix, at, axis, pitch, half) => {
+      const c = new V(...at), d = axis === 'x' ? new V(half, 0, 0) : new V(0, -Math.sin(pitch) * half, Math.cos(pitch) * half);
+      return [c.clone().sub(d).applyMatrix4(matrix).toArray(), c.add(d).applyMatrix4(matrix).toArray()];
+    };
+    const dims = king.dims, fore = dims.fore, chest = king.mesh.getObjectByName('chest'), look = fight.look;
+    if (!fore || !chest || !look) throw new Error('King has no authored chest/cage');
+    chest.updateWorldMatrix(true, false);
+    const cageWorld = look.ribcageWorld(new V());
+    const cage = chest.children.find(child => child.getWorldPosition(new V()).distanceToSquared(cageWorld) < 1e-20);
+    if (!cage) throw new Error('King cage is not attached to its chest');
+    const cageAt = cage.position.toArray();
+    const kingHit = {
+      head: local(dims.headAt ?? [0, 0, 0], rest('head')),
+      body: capsule(rest('body'), dims.bodyAt ?? [0, 0, 0], 'z', dims.bodyPitch ?? 0, dims.bodyHalfLen),
+      fore: capsule(rest(fore.bone), fore.at, 'x', 0, fore.halfLen),
+      ribs: local(cageAt, rest('chest')), radius: look.ribcageRadius / king.scale,
+    };
     // herd membership is a placement fact; positions and herd centres are not (the page ticks and recentres between
     // captures): the members' placement draws are the next step's (progress/shard-platform/handoffs/sf72-pine.md)
     const herds = w.animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
@@ -92,7 +120,7 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, parked, herds, trees, pieces, grounds, solids };
+    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, parked, kingHit, herds, trees, pieces, grounds, solids };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -104,7 +132,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Pine bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, parked: first.parked, herds: first.herds, trees: first.trees, pieces: first.pieces };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, parked: first.parked, kingHit: first.kingHit, herds: first.herds, trees: first.trees, pieces: first.pieces };
     writeFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-pine-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }
