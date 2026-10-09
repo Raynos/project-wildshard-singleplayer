@@ -1,0 +1,32 @@
+[
+  {
+    "file": "captain.snap.gz",
+    "bytes": 1765347,
+    "sha256": "e96d0a9881f9b06b61b274ef1b79314be690cf9df0cf5c7d8a6537784ecaca1a",
+    "identical": true
+  },
+  {
+    "file": "commands.json.gz",
+    "bytes": 471215,
+    "sha256": "c10f826f681d7acdef18324337440a5e4f1672d0b2a64c5dcc1c26d9838d8026",
+    "identical": true
+  },
+  {
+    "file": "spawn.snap.gz",
+    "bytes": 1684626,
+    "sha256": "831a8bc0b4286e37675590a15af06262b6768107d0bbfa70cfee1e377f20cd4c",
+    "identical": true
+  },
+  {
+    "file": "tick-10000.snap.gz",
+    "bytes": 1764872,
+    "sha256": "bc01b3afdad48fa636ed61271a3ac861f2f86409cd77e172615fb65b66931ea7",
+    "identical": true
+  },
+  {
+    "file": "tick-20000.snap.gz",
+    "bytes": 1764076,
+    "sha256": "f3d925465bf387d9f2c5aa266e2c090555babd66b366c1dd78e1dc2b40d08df7",
+    "identical": true
+  }
+]

@@ -29,3 +29,7 @@ Clean export, pnpm gen, all three native checkpoint bakes, export-only central g
 Focused fixtures cover actual Rapier capture/restore with and without basis, exact wire, byte subview mutation after first pause, interleaved/cancelled jobs, byte bounds, staged no-write-until-end, quota refusal/retry, frozen worlds/re-entry and durable-only ownership with no cache. Real muted phone-profile boot smoke passes Driftwood(3.806 s), Pine(11.143 s), Signal Dunes(3.856 s) and grid(8.984 s), all faults0. Raw JSONs/logs/source-mapped profiles and exact diagnostic patch are retained here.
 
 Next: coordinator pushes the source, then ONE qualifying shipped-layout cells + road invocation on that pushed SHA, catalogue route, light observer/raw OFF, footprint-only/no per-pose vmmap. Record the tool's verdict; do not regrade to close SF57.
+
+## Driftwood witness forward
+
+Source95ea6414d landed concurrently with the new Driftwood witness75beed778. Rebuilt on the typed-byte source: four snapshot archives and commands.json.gz are byte-identical (driftwood-byte-proof.json); only manifest.inputs changes. Freshness test1/1 passes. No gameplay baseline or tape changes.
