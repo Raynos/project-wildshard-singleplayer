@@ -25,7 +25,8 @@ import { bindSignalFacts } from '../../../src/shards/sunscar-dunes/runtime/persi
 import { saves } from '../../../src/engine/saves/runtime';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { DUNE_RAY, DUNE_RAY_LOOK, SWOOP } from '../../../src/shards/sunscar-dunes/species/duneRay';
+import { DUNE_RAY, SWOOP } from '../../../src/shards/sunscar-dunes/runtime/species/duneRay';
+import { DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 import { DUSK, setDusk } from '../../../src/shards/sunscar-dunes/look/dusk';

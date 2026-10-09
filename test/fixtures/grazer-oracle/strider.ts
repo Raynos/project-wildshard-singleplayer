@@ -3,7 +3,7 @@ import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
-import { slot } from '../../../src/shards/sunscar-dunes/species/skitterer';
+import { slot } from '../../../src/shards/sunscar-dunes/runtime/species/skitterer';
 
 /** The strider's numbers (metres, m/s, seconds). */
 export const STRIDE = { notice: 24, charge: 17, walk: 1.1, approach: 2.4, homeR: 16, lose: 40, face: 0.7 } as const;

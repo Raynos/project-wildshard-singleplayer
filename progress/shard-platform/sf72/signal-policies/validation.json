@@ -1,0 +1,45 @@
+{
+  "candidate": "a2e0d1f059897ce8ffa129dc70c6a9d8175d3132",
+  "tree": "49339e59a65ddf31e26da570f997337e4a1efe86",
+  "parent": "454811f1a7fbaba67c8a9e66c68ce93e9e9c085b",
+  "full": {
+    "files": 988,
+    "passed": 5504,
+    "skipped": 14,
+    "onlyFailure": "AG7 approved Sunscar engine92->100",
+    "wallSeconds": 90.76
+  },
+  "regeneratedGuardTests": 111,
+  "strict": true,
+  "rootLint": true,
+  "ratchet": true,
+  "focusedPolicyTests": 5,
+  "browserRun": false,
+  "completeCompatibilityWitness": false,
+  "logs": {
+    "full.log": {
+      "sha256": "60dc7f76c1fd5f409fcb719a93b7c1dcdddbf602b9963e4886c1b40d3f7978b7",
+      "bytes": 78581
+    },
+    "full-final.log": {
+      "sha256": "40c1f07a48f6e4531e0c2d6191a5c87988995cf16be590fbaa64195ad10d6ef8",
+      "bytes": 67094
+    },
+    "guards-final.log": {
+      "sha256": "18b9cde95f11301cdaf074e8b3dd05f5546c57167fc9db1a5bc9ae2c8b708ff1",
+      "bytes": 663
+    },
+    "strict-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "ratchet-final.log": {
+      "sha256": "73dd2a8b9cb88b994b0ff0d7d905dad815d7799f4eca82359037a4c828cc582e",
+      "bytes": 54
+    }
+  }
+}

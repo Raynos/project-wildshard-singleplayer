@@ -3,9 +3,10 @@ import { PatrolDiverBrain } from '@wildshard/engine/ai/patrolDiver';
 import { challengeGrazer } from '@wildshard/sdk/grazers';
 import { patrolDiver } from '@wildshard/sdk/flyers';
 import { STRIDER_BRAIN, RAY_BRAIN } from '../data/brains';
-import { DUNE_STRIDER, CHARGE, HORNS } from '../species/strider';
-import { DUNE_RAY, SWOOP } from '../species/duneRay';
-import { SAND_SKITTERER, slot } from '../species/skitterer';
+import { DUNE_STRIDER, CHARGE, HORNS } from './species/strider';
+import { DUNE_RAY, SWOOP } from './species/duneRay';
+import { SAND_SKITTERER } from '../species/skitterer';
+import { slot } from './species/skitterer';
 import { DUNE_MATRIARCH } from '../species/matriarch';
 import { RAY_HOME } from '../layout';
 

@@ -24,9 +24,11 @@ import { installCreatures } from '../../../src/shards/sunscar-dunes/combat/creat
 import { RESPAWN } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { installMatriarch } from '../../../src/shards/sunscar-dunes/combat/matriarch';
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { DUNE_RAY, DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
+import { DUNE_RAY } from '../../../src/shards/sunscar-dunes/runtime/species/duneRay';
+import { DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from '../../../src/shards/sunscar-dunes/species/skitterer';
-import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/species/strider';
+import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/runtime/species/strider';
+import { DUNE_STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from '../../../src/shards/sunscar-dunes/species/matriarch';
 import { MemoryStorage } from '../../setup';
 import { fakeWorld } from '../../fake/world';

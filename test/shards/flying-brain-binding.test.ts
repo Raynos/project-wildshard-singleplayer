@@ -7,8 +7,10 @@ import { declaredDuneRows } from '../../src/shards/sunscar-dunes/runtime/brains'
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
 import { GALE_WISP, GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
-import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
-import { DUNE_RAY, DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
+import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/runtime/species/strider';
+import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
+import { DUNE_RAY } from '../../src/shards/sunscar-dunes/runtime/species/duneRay';
+import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
 import { setHome, bindPlayerPush, homeOf } from '../../src/shards/far-reach/species/rig';
 import { creature } from '../fake/creature';
 import { SkyGoatBrain } from '../fixtures/grazer-oracle/goat';
