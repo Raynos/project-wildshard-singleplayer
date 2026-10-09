@@ -12,12 +12,12 @@
 | Shard | Share | Runtime / ceiling | Compatible |
 |---|---|---|---|
 | Template 1 | 90.4 % | — | ✓ |
-| Signal | 20.9 % (25.4 % candidate) | 806/965 | ✓ |
-| Sky | 18.5 % (`124b14522`) | 1288/1377 | ✓ |
-| Pine | 3.1 % | 5317/4339 | ✗ |
+| Signal | 26.5 % (`f6691ec7c`) | 806/965 | ✓ |
+| Sky | 20.5 % (`8cb7aabaa`) | 1288/1377 | ✓ |
+| Pine | 8.0 % (`e22cf02a0`) | 5659/4339 | ✗ |
 | Driftwood | 1.0 % | 5868/3753 | ✗ |
 | Nalati | 0.4 % | 9583/6618 | ✗ |
-| Nine | 0.2 % | 722/5033 | ✗ |
+| Nine | 0.3 % | 739/5033 | ✓ (`6192187069`) |
 
 Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned bake, effect/look rows, boss/quest rows.
 
@@ -41,12 +41,11 @@ Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned b
 **Opus lanes:**
 - **op-signal2:** Signal SDK look-family rows, whip view, species clips (Signal at 26.5 %, `f6691ec7c`).
 - **op-loading2:** SF67 slicing land + benchmark.
-- **op-pinebake:** Pine cabin + static builders.
-- **op-nine:** Nine ledger + bakes.
-- **op-skin:** SDK offline skinned-model bake.
+- **op-pineperf:** Pine desktop GPU/CPU headroom.
+- **op-nine2:** Nine whole-layout bake.
+- **op-pinebake2:** Pine crags/trees/homestead.
 
 **Unowned:**
-- **NEXT Opus slot:** Pine desktop headroom. The quiet floor at c7de9850e FAILED (spawn median 30 fps, p95 33.4 ms, main-thread work p95 22–29 ms) at load ~43 that quiet can't remove (non-platform ffmpeg); op-floor passed it at load 5–7. GPU 16.8 ms at the vsync edge (N8AO 3.8, shadow PCF +0.6–1.0). Need ≥ 2 ms GPU + CPU headroom with no look change.
 - **M2 memory:** the Simulator can't model phone memory (forced-compressed mixes Basis RGBA; SF57 peak 1,756 MB), so M2's memory verdict = Jake's G269 phone runs (`4f1f6772e`).
 - SF36 weapon rows;
 - SF34 player modes;
