@@ -187,7 +187,12 @@ for name in "${steps[@]}"; do
   elif [ "$rc" = skipped ]; then echo "  - $name (not reached)"
   else echo "  ✗ $name ($(cat "$work/$name.sec") s)"; failed+=("$name"); fi
 done
-for name in ${failed[@]+"${failed[@]}"}; do echo "── $name ──" >&2; tail -40 "$work/$name.log" >&2; done
+# Every failing test first (vitest prints one ' FAIL ' line per failed test; the 40-line tail alone hid most of them).
+for name in ${failed[@]+"${failed[@]}"}; do
+  echo "── $name ──" >&2
+  grep -E '^ *FAIL ' "$work/$name.log" | sort -u >&2
+  tail -40 "$work/$name.log" >&2
+done
 [ ${#failed[@]} -eq 0 ] || fail "${failed[*]}"
 [ -f "$work/shard-platform.log" ] && sed 's/^/    /' "$work/shard-platform.log"
 echo "vercel-gate: $short gates took $((SECONDS - gate_t0)) s wall ($([ "$full" = 1 ] && echo full || echo cached))"
