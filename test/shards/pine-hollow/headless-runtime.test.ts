@@ -291,6 +291,30 @@ function exactAfter(parts: PineInstall, original: SimHost, ticks: number, level:
   } finally { restored.dispose(); }
 }
 
+it('reinstalls the immutable recipe of an ordinary live spawn exactly after a world step', () => {
+  const parts = pineParts(), { host, roster } = bootWith(parts);
+  try {
+    host.step(still);
+    const ordinary = roster.bodies().find(body => body.kind === 'deer' && !body.scripted)?.actor;
+    if (ordinary?.variant === undefined) throw new Error('Missing ordinary deer recipe');
+    const deer = roster.spawn('deer', -161, -114, 0, ordinary.variant);
+    const saved = snapshotSimHost(host);
+    const originalRecipe = saved.adapters.find(adapter => adapter.id === `runtime.actor.${deer.entityId}`)?.state;
+    let restoredRecipe: unknown;
+    const ports = { ...plan.ports, rapier };
+    const restored = restoreSimHost(plan.level, ports, saved, fresh => {
+      fresh.setHeightQuery(heightAt); installPine(fresh, { ...parts, saved });
+      restoredRecipe = fresh.adapters.get(`runtime.actor.${deer.entityId}`)?.snapshot();
+      expect(restoredRecipe).toEqual(originalRecipe);
+    });
+    try {
+      expectSameSimSnapshot(snapshotSimHost(restored), saved);
+      for (let i = 0; i < 120; i++) { host.step(still); restored.step(still); }
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(host));
+    } finally { restored.dispose(); }
+  } finally { host.dispose(); }
+}, 60_000);
+
 it('respawns a felled elite as a live spawn: the manager\'s next entity id (168), the stream\'s draws, scripted at its lair; restore reinstalls it', () => {
   const parts = pineParts(), { host, elites, roster } = bootWith(parts);
   try {

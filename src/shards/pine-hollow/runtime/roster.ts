@@ -45,7 +45,7 @@ export interface PineRosterPorts {
   /** the level's authored spawn height (shard.config.ts `spawn.y`): the manager's spawn ray starts a metre over it or the ground */
   readonly spawnY: number;
   /** a restoring host's decoded continuation (SimSnapshot's adapters and entities): its live spawns are reinstalled, in the host's order, after the roster's step */
-  readonly saved?: { readonly adapters: readonly { readonly id: string; readonly state: unknown }[]; readonly entities: readonly { readonly id: string }[] } | undefined;
+  readonly saved?: { readonly adapters: readonly { readonly id: string; readonly state: unknown }[]; readonly entities: readonly { readonly id: string; readonly state: { readonly flags: { readonly levelGround: boolean } } }[] } | undefined;
 }
 
 const finite = v.pipe(v.number(), v.finite());
@@ -183,12 +183,15 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   };
   const seen: boolean[] = [];
   /** the host body of a recipe on the creature floor a metre over the spawn height or the ground, out of any herd */
-  const materialize = (recipe: SimSpawn, kind: string, listed = true): PineHuntBody => {
+  const materialize = (recipe: SimSpawn, kind: string, listed = true, immutableHeight = false): PineHuntBody => {
     const { x, z } = recipe.at, at = creatureFloor(x, z, Math.max(ports.spawnY, heightAt(x, z)) + 1);
-    recipe.at.y = at.y;
+    // A dynamic recipe's height was resolved in its original WORLD query frame. A fresh, unstepped install can
+    // see a different deck hit; restore must reinstall the immutable recipe, then restore the saved moving pose.
+    if (!immutableHeight) recipe.at.y = at.y;
     const a: PineHuntBody = Object.assign(host.spawn(recipe), { ...HUNT_BODY });
-    a.levelGround = at.structure;
-    if (at.structure) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
+    const savedGround = ports.saved?.entities.find(entity => entity.id === recipe.id)?.state.flags.levelGround;
+    a.levelGround = savedGround ?? at.structure;
+    if (a.levelGround) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
     if (kind === PINE_KING_KIND) kingPose.attach(a);
     a.herd = -1;
     made.set(recipe.id, a);
@@ -297,7 +300,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
       if (typeof contract !== 'string') throw new Error(`Missing saved Pine body ${id}`);
       const checked = v.parse(Recipe, JSON.parse(contract)), b = kept.get(id), kind = b?.kind ?? checked.spec.kind;
       if (checked.id !== id) throw new Error(`Incompatible saved Pine body ${id}`);
-      const a = materialize({ id, spec: recipeOf(kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, kind, b !== undefined);
+      const a = materialize({ id, spec: recipeOf(kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, kind, b !== undefined, true);
       if (b !== undefined) hunt.adopt(a, checked.at.x, checked.at.z); // its memory: the continuation overwrites it and the stream it drew from
     });
     if (keeper.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible Pine roster continuation');
