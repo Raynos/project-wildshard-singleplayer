@@ -1,7 +1,7 @@
 # Plan: MARKETING-SITE — the home of Project Wildshard (E465)
 
 **State:** `in progress` 2026-10-09 — Jake's picks are in (§7): key + ritual, the name is **Project Wildshard**, the
-author door is waitlist + Discord + mail, public from day one. Now: **MS2, the mockup series** (Jake: *"make a series
+author door is waitlist + Discord + mail, public from day one. Now (Jake: "start building and more mockups in parallel"): **MS4 the scaffold + a public v1 from round 2**, and **MS2 rounds 3 (desktop) and 4 (logo)**; before that, **MS2, the mockup series** (Jake: *"make a series
 of mock-ups for me to review with you so that we can actually figure that out and build it together"*). Open: which
 domain(s) to buy (MS9, Jake's; the shortlist is in the row). Nothing built yet.
 
@@ -145,3 +145,5 @@ plans (SHARD-PLATFORM Part B, then the MMO's). The site only describes them and 
 |---|---|---|---|
 | 1 · direction | `art/marketing-site/round-1-direction/` | A The Lattice (the world map at night, the game's UI language), B The Atlas (an explorer's atlas, shards as plates), C The Prompt (a Claude Code terminal, the world opening out of a prompt). Real HTML pages (`<x>/index.html`), first screens `<x>-hero.jpg`, whole pages `<x>-full-<n>.jpg`, `board.jpg` | **C's layout and content with A's colour theme** (Jake, 2026-10-09); borrow C's prompt on each shard card, C's terminal for How a shard is made, B's inked grid map |
 | 2 · merge | `art/marketing-site/round-2-merge/` | C's page in A's Lattice palette and UI language, B's map redrawn as a glowing lattice; three accent variants for the action colour (A cyan, B violet, C hot pink on navy), plus Jake's yes-ideas laid in (MS11, MS13–MS19, MS21). `index.html`, `<x>-hero.jpg`, `a-full-<n>.jpg`, `board.jpg` | **B · Violet** (Jake, 2026-10-09). The 18 September trailer stays ("Old trailer is fine"): MS11 uses it |
+| 3 · desktop | `art/marketing-site/round-3-desktop/` | Three desktop layouts of the round-2 page (violet). **Desktop boards are an exception to the portrait-only rule for this site** (Jake, 2026-10-09: "Show me desktop boards") | open |
+| 4 · logo | `art/marketing-site/round-4-logo/` | Three wordmark / mark directions for Project Wildshard as SVG (needed by the favicon, share cards and press kit, MS8 / MS20) | open |
