@@ -1,6 +1,18 @@
+import * as v from 'valibot';
 import type { Rng } from '../core/rng';
 import type { Scope } from '../app/scope';
 import type { DayCycleClock } from './dayCycle';
+
+const finite = v.pipe(v.number(), v.finite());
+const uint32 = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff));
+const WeatherSavedSchema = v.strictObject({
+  version: v.literal(1), state: v.string(), mode: v.string(), hold: v.boolean(),
+  phaseT: v.pipe(finite, v.minValue(0)), phaseLen: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+  n: v.pipe(v.record(v.string(), finite), v.check((values) => Object.keys(values).length <= 256)),
+  rng: v.strictObject({ version: v.literal(1), state: uint32, initial: uint32, scrambledFork: v.boolean() }),
+});
+/** Exact base weather continuation; content-owned extra state has its own continuation. */
+export type WeatherSaved = v.InferOutput<typeof WeatherSavedSchema>;
 
 declare module '../events/maps' {
   interface AskMap {
@@ -54,6 +66,31 @@ export class Weather<S extends string = string, N extends WeatherNumbers = Weath
     // Both original machines draw the first length even for a degenerate range.
     this.phaseLen = this.rng.range(firstLength[0], firstLength[1]);
   }
+  /** Detached RNG, clock and numeric output state; captures without stepping or emitting events. */
+  captureWeather(): WeatherSaved {
+    return v.parse(WeatherSavedSchema, {
+      version: 1, state: this.state, mode: this.mode, hold: this.hold,
+      phaseT: this.phaseT, phaseLen: this.phaseLen, n: this.n, rng: this.rng.snapshot(),
+    });
+  }
+  /** Validate the whole continuation before returning a silent commit. Held clocks may exceed their phase length. */
+  prepareWeatherRestore(value: unknown): () => void {
+    const saved = v.parse(WeatherSavedSchema, value);
+    const state = this.profile.states.find((candidate) => candidate === saved.state);
+    const initial = this.rng.snapshot();
+    const keys = Object.keys(this.n), restoredKeys = Object.keys(saved.n);
+    if (state === undefined || !Object.hasOwn(this.profile.modes, saved.mode)
+      || saved.rng.initial !== initial.initial || saved.rng.scrambledFork !== initial.scrambledFork
+      || keys.length !== restoredKeys.length || keys.some((key) => !Object.hasOwn(saved.n, key))) {
+      throw new RangeError('Incompatible weather continuation');
+    }
+    return () => {
+      this.rng.restore(saved.rng); this.state = state; this.mode = saved.mode; this.hold = saved.hold;
+      this.phaseT = saved.phaseT; this.phaseLen = saved.phaseLen; Object.assign(this.n, saved.n);
+    };
+  }
+  /** Restore base weather state without phase callbacks, outputs or random draws. */
+  restoreWeather(value: unknown): void { this.prepareWeatherRestore(value)(); }
   get overcast(): number { return this.n.overcast; }
   get rain(): number { return this.n.rain; }
   get wet(): number { return this.n.wet; }
