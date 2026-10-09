@@ -56,7 +56,7 @@ export type SkinRows = CragRows['skin'][Tier];
 /** the bake's rows, parsed strictly once */
 export const CRAG_ROWS: CragRows = v.parse(CragRowsSchema, cragJson);
 /** the bake's binary for a tier (`scripts/bake-pine-crags.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const cragBakeUrl = (tier: Tier): string => `/assets/pine-hollow/baked/crags.${tier}.bin`;
+export const cragBakeUrl = (tier: Tier): string => (tier === 'phone' ? '/assets/pine-hollow/baked/crags.phone.bin' : '/assets/pine-hollow/baked/crags.desktop.bin');
 
 const pad4 = (bytes: number): number => Math.ceil(bytes / 4) * 4;
 /** a geometry's bytes in the binary */
