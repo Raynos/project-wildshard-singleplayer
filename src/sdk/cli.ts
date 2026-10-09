@@ -15,6 +15,7 @@ const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
   const report = performanceReport(shard, observed, policy);
   for (const line of performanceReportLines(report)) console.info(line);
+  if (observed.scripts.samples > 0) console.info('script CPU estimate: 60 warm-up ticks; minimum p95 of three 60-tick windows; raw maxima and all fuel retained');
   if (!report.pass) throw new Error('Performance report refused this shard');
 }
 async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse'): Promise<void> {

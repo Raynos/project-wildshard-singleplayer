@@ -32,7 +32,7 @@ it('validates the built template simulation and all 92 native entry lanes throug
   const info = vi.spyOn(console, 'info');
   try {
     await runWildshard(['validate', join(output, 'shard.json')]);
-    expect(info).toHaveBeenCalledWith(expect.stringMatching(/60 sim ticks, 92 edge lanes, \d+ capsule steps/u));
+    expect(info).toHaveBeenCalledWith(expect.stringMatching(/240 sim ticks, 92 edge lanes, \d+ capsule steps/u));
   } finally { info.mockRestore(); }
 // The native entry walk has a separate phase budget rather than sharing a cumulative build/refusal deadline.
 }, 60_000);

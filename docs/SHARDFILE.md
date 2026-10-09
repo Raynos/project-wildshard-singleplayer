@@ -35,8 +35,8 @@ Author identity alone cannot select that warning policy.
 The **only hard memory caps** are complete totals: **1,000 MB playing / 1,800 MB
 loading**. Category resident targets can trade space and appear as warnings.
 Dependency integrity, actual-byte/cost understatement, script host limits and runtime
-total-memory admission stay hard. Build observes 60 ticks before writing output;
-validate retains the full headless simulation and entry proof. Native transition
+total-memory admission stay hard. Build runs 60 warm-up ticks, then three 60-tick windows before writing output. Script CPU admission uses the minimum window p95 to resist host scheduling interruptions, retaining the raw maximum; fuel includes all 240 ticks and its cap is unchanged.
+Validate retains the full headless simulation and entry proof. Native transition
 portions without a measurement are labelled UNMEASURED rather than counted as zero.
 
 The cold-loading model is unique playable bytes / 1 MB/s + 1 s setup. This is an

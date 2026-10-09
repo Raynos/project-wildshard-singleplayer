@@ -141,7 +141,7 @@ Performance first: run wildshard build and wildshard validate after each content
 
 - Complete worst-grid memory: 1,000 MB playing / 1,800 MB loading are the only hard memory caps. Category resident targets are tradeable warnings.
 - New/outside projects refuse wire/render target overages: critical 2 MB, library 8 MB; fine/coarse tiles 0.3/0.2 MB, 8/2 draws, 40,000/10,000 triangles; far proxy 1 MB, 1 draw, 8,000 triangles.
-- Check SF59 graph cost and measured script CPU/fuel. Build observes 60 ticks; validate runs the full simulation/entry proof.
+- Check SF59 graph cost and measured script CPU/fuel. Build uses 60 warm-up ticks then three 60-tick CPU windows (minimum window p95, raw max and all fuel retained); validate runs the full simulation/entry proof.
 - Custom runtime: no per-frame allocation, raw renderer/scene/WebGL, DOM, timers, fetch or unbounded loops.
 - Both-surface frame floor: desktop 60 fps / Simulator 30 fps; shard CPU p95 at most 4.167 / 8.333 ms per frame.
 - Estimated playable time is unique playable bytes at 1 MB/s + 1 s setup, not a phone reading. Measure cold fetch/decode/compile/admission/first frame.

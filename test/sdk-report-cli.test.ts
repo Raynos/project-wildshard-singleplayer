@@ -16,7 +16,7 @@ it('build prints the complete measured card and refuses an outside target overfl
     await runCli(['build', project, output, '--product-only']);
     expect(existsSync(join(output, 'shard.json'))).toBe(true);
     const text = messages.join('\n');
-    for (const field of ['PERFORMANCE REPORT report-fixture: PASS', 'memory near player', 'worst grid memory', 'draws', 'triangles', 'graphs:', 'measured scripts (60 ticks)', 'fuel', 'critical', 'tiles', 'library', 'estimated playable']) expect(text).toContain(field);
+    for (const field of ['PERFORMANCE REPORT report-fixture: PASS', 'memory near player', 'worst grid memory', 'draws', 'triangles', 'graphs:', 'measured scripts (180 ticks)', 'fuel', 'critical', 'tiles', 'library', 'estimated playable']) expect(text).toContain(field);
     writeFileSync(join(project, 'shard.config.ts'), "import { emptyShardfile } from '@wildshard/sdk/author'; const s=emptyShardfile({slug:'pine-hollow',name:'Borrowed',author:'Fixture',revision:1,seed:1}); s.budgets.library.compressed=8000001; export default s;\n");
     const refused = join(root, 'refused');
     await expect(runCli(['build', project, refused, '--product-only'])).rejects.toThrow('PERFORMANCE REPORT pine-hollow: REFUSED');
