@@ -18,18 +18,22 @@ it.each([-Infinity, Infinity])('round-trips the exact %s logical sentinel throug
   try {
     const creature = first.entities.get('boar:1'); if (creature === undefined) throw new Error('missing real creature');
     creature.mem['deadline'] = sentinel;
+    const install = (host: SimHost, until: number) => {
+      const memory = { until };
+      host.onStep('fixture.infinity', () => undefined, { snapshot: () => ({ ...memory }), restore: value => { memory.until = v.parse(v.strictObject({ until: v.number() }), value).until; } });
+      return memory;
+    };
+    install(first, sentinel);
+    first.slots.scriptMemory['nested'] = { deadlines: [sentinel, 0, -0] };
     const saved = snapshotSimHost(first);
-    // Custom logical values use the same general transport, without a species-specific exception.
-    saved.slots.scriptMemory['nested'] = { deadlines: [sentinel, 0, -0] };
-    saved.adapters.push({ id: 'fixture.infinity', state: { until: sentinel } });
     const wire = serializeSimSnapshot(saved), decoded = decodeSimSnapshot(wire);
     expect(decoded).toEqual(saved);
     expect(wire).toContain(sentinel === Infinity ? '{"$sim.number":"infinity"}' : '{"$sim.number":"-infinity"}');
     expect(decoded.entities[0]?.state.mem['deadline']).toBe(sentinel);
-    // The artificial adapter/slot above prove only the transport. The native restore uses the unchanged real actor.
-    saved.adapters.pop(); delete saved.slots.scriptMemory['nested'];
-    decoded.adapters.pop(); delete decoded.slots.scriptMemory['nested'];
-    restored = restoreSimHost(SIM_LEVEL, { rapier }, decoded);
+    let restoredMemory: { until: number } | undefined;
+    restored = restoreSimHost(SIM_LEVEL, { rapier }, decoded, host => { restoredMemory = install(host, 0); });
+    expect(restoredMemory?.until).toBe(sentinel);
+    expect(restored.slots.scriptMemory['nested']).toEqual({ deadlines: [sentinel, 0, -0] });
     expectSameSimSnapshot(snapshotSimHost(restored), saved);
     for (let tick = 0; tick < 30; tick++) { first.step(fightCommand(tick)); restored.step(fightCommand(tick)); }
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(first));
@@ -40,6 +44,9 @@ it.each([-Infinity, Infinity])('round-trips the exact %s logical sentinel throug
 it('refuses NaN, reserved authored keys, malformed tags and non-finite native coordinates', () => {
   const host = createSimHost(SIM_LEVEL, { rapier });
   try {
+    host.slots.scriptGlobals['deadline'] = Number.NaN;
+    expect(() => snapshotSimHost(host)).toThrow('Simulation slots refuse NaN');
+    delete host.slots.scriptGlobals['deadline'];
     const saved = snapshotSimHost(host), animal = saved.entities[0];
     if (animal === undefined) throw new Error('missing snapshot actor');
     animal.state.mem['deadline'] = Number.NaN;

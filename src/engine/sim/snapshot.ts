@@ -142,7 +142,8 @@ function decode(value: EventValue, host: SimHost): unknown {
   }
 }
 function cloneValue(value: SimValue): SimValue {
-  if (typeof value === 'number' && !Number.isFinite(value)) throw new RangeError('Simulation slots require finite JSON values');
+  // Logical clocks use +/-Infinity sentinels; the transport tags them reversibly. NaN is never a continuation.
+  if (typeof value === 'number' && Number.isNaN(value)) throw new RangeError('Simulation slots refuse NaN');
   if (Array.isArray(value)) return value.map(cloneValue);
   if (value !== null && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue(item)]));
   return value;
