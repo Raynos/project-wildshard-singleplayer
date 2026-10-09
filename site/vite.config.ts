@@ -1,6 +1,7 @@
 // The marketing site's build (MARKETING-SITE MS4, E465): its own root, its own public/, its own output. Nothing from
 // the game's src/ or vite plugins: the sites share the repo, not a bundle (as drafts/, J15).
 //   pnpm build:site   → dist-site/
+// Every word on the page comes from site/COPY.md (site/tools/copy.ts fills the {{…}} slots; Jake edits that file).
 // It emits /version.json (site/tools/deploy.sh reads it back) and fills the page's generated blocks from the build, so
 // they can't drift from the plans and the game:
 //   <!--gen:road-->       the road strip, from SHARD-PLATFORM's State line at the built commit (MS6)
@@ -13,6 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fillCopy, inline, parseCopy, unusedCopy } from './tools/copy.ts';
 
 const root = import.meta.dirname;
 const GAME = 'https://wildshard-singleplayer.vercel.app';
@@ -36,8 +38,10 @@ function atBuild(path: string): string | null {
 // ---- MS6 · the road ------------------------------------------------------------------------------------------------
 type RoadState = 'done' | 'now' | 'next';
 interface RoadItem { readonly label: string; readonly state: RoadState; readonly note: string }
+/** a COPY.md entry by heading (marks it used) */
+type Words = (name: string) => string;
 
-export function roadFrom(plan: string | null, archived: boolean, planned: (name: string) => boolean): RoadItem[] {
+export function roadFrom(plan: string | null, archived: boolean, planned: (name: string) => boolean, words: Words): RoadItem[] {
   let m1 = 100, m2 = 100, ready = 7, total = 7;
   if (!archived) {
     const state = plan?.split('\n').find((l) => l.startsWith('**State:**')) ?? '';
@@ -47,30 +51,29 @@ export function roadFrom(plan: string | null, archived: boolean, planned: (name:
     m1 = Number(pct[1]); m2 = Number(pct[2]); ready = Number(share[1]); total = Number(share[2]);
   }
   const by = (pct: number): RoadState => (pct >= 100 ? 'done' : 'now');
-  const later = (name: string): RoadItem => ({ label: name, state: planned(name) ? 'now' : 'next', note: planned(name) ? 'planned' : '' });
+  const plannedWord = words('Road · planned');
+  const later = (planName: string, name: string): RoadItem => ({ label: words(name), state: planned(planName) ? 'now' : 'next', note: planned(planName) ? plannedWord : '' });
+  const progress = words('Road · data progress').replaceAll('{ready}', String(ready)).replaceAll('{total}', String(total));
   return [
-    { label: 'Seven single-player shards on one engine', state: 'done', note: '' },
-    { label: 'The shard package', state: by(m1), note: m1 >= 100 ? '' : `${m1} %` },
-    { label: 'The grid: seamless travel between shards', state: by(m2), note: m2 >= 100 ? '' : `${m2} %` },
-    { label: 'Every shard as data', state: ready >= total ? 'done' : 'now', note: ready >= total ? '' : `${ready} of ${total} shards` },
-    later('Multiplayer'),
-    later('Upload'),
-    later('The 25-shard world'),
+    { label: words('Road · seven shards'), state: 'done', note: '' },
+    { label: words('Road · shard package'), state: by(m1), note: m1 >= 100 ? '' : `${m1} %` },
+    { label: words('Road · the grid'), state: by(m2), note: m2 >= 100 ? '' : `${m2} %` },
+    { label: words('Road · every shard as data'), state: ready >= total ? 'done' : 'now', note: ready >= total ? '' : progress },
+    later('MULTIPLAYER', 'Road · multiplayer'),
+    later('UPLOAD', 'Road · upload'),
+    later('MMO', 'Road · the 25-shard world'),
   ];
 }
 
-function roadHtml(): string {
+function roadHtml(words: Words): string {
   const plan = atBuild('docs/plans/SHARD-PLATFORM.md');
   const archive = git(repo, ['ls-tree', '--name-only', sha, 'project/archive/']);
   const archived = plan === null && /SHARD-PLATFORM/iu.test(archive);
   if (plan === null && !archived) throw new Error('site road: docs/plans/SHARD-PLATFORM.md is missing and not archived');
   const plans = git(repo, ['ls-tree', '--name-only', sha, 'docs/plans/']);
-  const planned = (name: string): boolean => {
-    const key = { Multiplayer: 'MULTIPLAYER', Upload: 'UPLOAD', 'The 25-shard world': 'MMO' }[name] ?? name;
-    return new RegExp(`docs/plans/${key}[^/]*\\.md`, 'u').test(plans);
-  };
-  return roadFrom(plan, archived, planned)
-    .map((i) => `<li class="${i.state}">${esc(i.label)}${i.note ? ` <span class="pct">${esc(i.note)}</span>` : ''}</li>`).join('');
+  const planned = (key: string): boolean => new RegExp(`docs/plans/${key}[^/]*\\.md`, 'u').test(plans);
+  return roadFrom(plan, archived, planned, words)
+    .map((i) => `<li class="${i.state}">${inline(i.label)}${i.note ? ` <span class="pct">${esc(i.note)}</span>` : ''}</li>`).join('');
 }
 
 // ---- MS14 · the devlog ---------------------------------------------------------------------------------------------
@@ -126,9 +129,21 @@ async function shardfileHtml(): Promise<string> {
 function generated(): Plugin {
   return {
     name: 'site-generated',
-    async transformIndexHtml(html) {
+    async transformIndexHtml(template) {
+      // the words first: every {{…}} slot from COPY.md, then the road's own entries; any heading left over is a typo
+      const copy = parseCopy(readFileSync(join(root, 'COPY.md'), 'utf8'));
+      const { html, used } = fillCopy(template, copy);
+      const words: Words = (name) => {
+        const v = copy.get(name);
+        if (v === undefined) throw new Error(`site/COPY.md has no entry for "## ${name}"`);
+        used.add(name);
+        return v;
+      };
+      const road = roadHtml(words);
+      const unused = unusedCopy(copy, used);
+      if (unused.length > 0) throw new Error(`site/COPY.md: no slot on the page uses ${unused.map((u) => `"## ${u}"`).join(', ')} (renamed or misspelled?)`);
       const media = JSON.stringify(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8'))).replaceAll('</', String.raw`<\/`);
-      const out = html.replace('<!--gen:media-->', media).replace('<!--gen:road-->', roadHtml()).replace('<!--gen:devlog-->', devlogHtml()).replace('<!--gen:shardfile-->', await shardfileHtml());
+      const out = html.replace('<!--gen:media-->', media).replace('<!--gen:road-->', road).replace('<!--gen:devlog-->', devlogHtml()).replace('<!--gen:shardfile-->', await shardfileHtml());
       if (out.includes('<!--gen:')) throw new Error('site: a <!--gen:…--> block was left unfilled');
       return out;
     },

@@ -1,6 +1,6 @@
 # Project Wildshard — the marketing site
 
-**Status:** `unread` 2026-10-09 — the finished site, phone and desktop: read every section's words and look; your notes become edits to `site/index.html`
+**Status:** `unread` 2026-10-09 — the finished site, phone and desktop: read every section's words and look; rewrite any words yourself in `site/COPY.md`
 **Link:** https://wildshard.io
 **Plan:** MARKETING-SITE (MS1)
 **Made by:** E465, the marketing agent (wildshard-y)
