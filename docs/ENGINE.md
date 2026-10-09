@@ -2414,7 +2414,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-856 exports, grouped by the module to import them from.
+859 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2551,10 +2551,10 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/systems/effects/starter`: `STARTER_EFFECTS`
 - `@wildshard/game/systems/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
 - `@wildshard/game/systems/looks/fogProgram`: `fogGLSL`
-- `@wildshard/game/systems/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassFieldLayout`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`
+- `@wildshard/game/systems/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassField`, `GrassFieldLayout`, `GrassFieldPorts`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`
 - `@wildshard/game/systems/looks/particles`: `makeMistTexture`, `Particles`
 - `@wildshard/game/systems/looks/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
-- `@wildshard/game/systems/looks/trample`: `grassHeightAt`, `GrassTrample`, `MAX_MOVERS`, `RECOVER`, `trample`, `TRAMPLE_GLSL`
+- `@wildshard/game/systems/looks/trample`: `grassHeightAt`, `GrassTrample`, `MAX_MOVERS`, `RECOVER`, `trample`, `TRAMPLE_GLSL`, `TrampleField`
 - `@wildshard/game/systems/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`
 - `@wildshard/game/systems/npc/figureMotion`: `NpcFigureMotionProfile`, `npcFigurePose`, `NpcFigureState`, `stepNpcFigure`
 - `@wildshard/game/systems/npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigure`, `NpcFigureBones`, `NpcFigureFrame`, `NpcFigureRig`, `packNpcAtlases`

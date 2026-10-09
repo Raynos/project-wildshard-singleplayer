@@ -18188,7 +18188,7 @@
       {
         "name": "grassBaseHeightAt",
         "kind": "function",
-        "doc": "Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it",
+        "doc": "Grass height before trampling, metres (0 = no grass), on the page's field (GrassField.baseHeightAt). `td` =",
         "from": "@wildshard/game/systems/looks/grassField"
       },
       {
@@ -18198,9 +18198,21 @@
         "from": "@wildshard/game/systems/looks/grassField"
       },
       {
+        "name": "GrassField",
+        "kind": "class",
+        "doc": "One grass field over its samplers: the 4 m lattice (126 corners a side over a 500 m chunk), filled lazily and bilinearly",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
         "name": "GrassFieldLayout",
         "kind": "interface",
         "doc": "Authored meadow geography is supplied by the level plugin.",
+        "from": "@wildshard/game/systems/looks/grassField"
+      },
+      {
+        "name": "GrassFieldPorts",
+        "kind": "interface",
+        "doc": "The samplers a grass field reads (SF72): the page binds the installed terrain (the baked grid's height, normal and splat, the",
         "from": "@wildshard/game/systems/looks/grassField"
       },
       {
@@ -18224,7 +18236,7 @@
       {
         "name": "trailGrass",
         "kind": "function",
-        "doc": "trails: a bare bed (1.6 m half-width, the authored meadow's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m",
+        "doc": "trails: the page field's bare bed and verge (GrassField.trailGrass)",
         "from": "@wildshard/game/systems/looks/grassField"
       },
       {
@@ -18291,6 +18303,12 @@
         "name": "TRAMPLE_GLSL",
         "kind": "const",
         "doc": "GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir)",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
+        "name": "TrampleField",
+        "kind": "class",
+        "doc": "The trample map's state and law without the GPU (SF72): the 256² flatten amount and lie angle over the 128 m window that",
         "from": "@wildshard/game/systems/looks/trample"
       },
       {

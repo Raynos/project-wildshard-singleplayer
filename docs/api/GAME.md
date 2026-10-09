@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-856 members; 157 without a doc line (—).
+859 members; 157 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -735,13 +735,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `configureGrassField` | function | @wildshard/game/systems/looks/grassField | — |
 | `flowerPatchAt` | function | @wildshard/game/systems/looks/grassField | 0..1 flower-drift strength |
 | `flowerSpeciesAt` | function | @wildshard/game/systems/looks/grassField | 0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts) |
-| `grassBaseHeightAt` | function | @wildshard/game/systems/looks/grassField | Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it |
+| `grassBaseHeightAt` | function | @wildshard/game/systems/looks/grassField | Grass height before trampling, metres (0 = no grass), on the page's field (GrassField.baseHeightAt). `td` = |
 | `grassBloomAt` | function | @wildshard/game/systems/looks/grassField | 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/shards/level/look/grass.ts) |
+| `GrassField` | class | @wildshard/game/systems/looks/grassField | One grass field over its samplers: the 4 m lattice (126 corners a side over a 500 m chunk), filled lazily and bilinearly |
 | `GrassFieldLayout` | interface | @wildshard/game/systems/looks/grassField | Authored meadow geography is supplied by the level plugin. |
+| `GrassFieldPorts` | interface | @wildshard/game/systems/looks/grassField | The samplers a grass field reads (SF72): the page binds the installed terrain (the baked grid's height, normal and splat, the |
 | `grassToneAt` | function | @wildshard/game/systems/looks/grassField | 0 = fresh valley green … 1 = plateau gold |
 | `groundColorAt` | function | @wildshard/game/systems/looks/grassField | the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled |
 | `TALL_GRASS` | const | @wildshard/game/systems/looks/grassField | tall-grass height of the stealth fields (m) |
-| `trailGrass` | function | @wildshard/game/systems/looks/grassField | trails: a bare bed (1.6 m half-width, the authored meadow's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m |
+| `trailGrass` | function | @wildshard/game/systems/looks/grassField | trails: the page field's bare bed and verge (GrassField.trailGrass) |
 | `makeMistTexture` | function | @wildshard/game/systems/looks/particles | Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only. |
 | `Particles` | class | @wildshard/game/systems/looks/particles | — |
 | `rainCurtain` | function | @wildshard/game/systems/looks/rainCurtain | Camera-local, world-anchored streak quads. Both authored programs retain their exact source. |
@@ -753,6 +755,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RECOVER` | const | @wildshard/game/systems/looks/trample | seconds a fully flattened patch takes to stand back up (design: 20 s) |
 | `trample` | const | @wildshard/game/systems/looks/trample | the world's trample map (a singleton — movers anywhere push into it) |
 | `TRAMPLE_GLSL` | const | @wildshard/game/systems/looks/trample | GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) |
+| `TrampleField` | class | @wildshard/game/systems/looks/trample | The trample map's state and law without the GPU (SF72): the 256² flatten amount and lie angle over the 128 m window that |
 | `faceHead` | function | @wildshard/game/systems/npc/faceHeads | — |
 | `FaceHead` | interface | @wildshard/game/systems/npc/faceHeads | — |
 | `loadFaceHead` | function | @wildshard/game/systems/npc/faceHeads | — |
