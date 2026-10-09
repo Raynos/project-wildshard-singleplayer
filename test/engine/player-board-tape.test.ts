@@ -11,15 +11,20 @@ import { Physics } from '../../src/engine/physics/Physics';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import { groups } from '../../src/engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
+import { installPortableMath } from '../fake/portableMath';
 
+// Platform-stable (ci-green): V8's native sin / cos / atan2… round differently on arm64 and x64 (CI), so the file runs on
+// test/fake/portableMath; the prints were re-recorded that way on 3d68396a2 and match on arm64 and x64.
+const restoreMath = installPortableMath();
+afterAll(() => { restoreMath(); });
 // A gently rolling dry terrain through the terrain port (E422), so the ride-height spring has work on every step.
 const restoreTerrain = overrideTerrain({ heightAt: (x, z) => 0.4 * Math.sin(x * 0.11) + 0.25 * Math.cos(z * 0.07) });
 afterAll(restoreTerrain);
 
-/** Recorded on Player.ts before the extraction (3d68396a2). */
+/** Recorded on Player.ts before the extraction (3d68396a2), under the portable Math. */
 const TAPE = {
-  standalone: { events: [4, 6, 1], print: 'f74664a1:16800' },
-  capped: { events: [4, 6, 2], print: 'e0346b0e:16800' },
+  standalone: { events: [4, 6, 1], print: '60284a38:16800' },
+  capped: { events: [4, 6, 2], print: 'f13ac6cb:16800' },
 };
 
 /** FNV-1a over every recorded float's bytes: one number for the whole tape. */
