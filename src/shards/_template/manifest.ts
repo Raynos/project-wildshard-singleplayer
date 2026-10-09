@@ -1,7 +1,5 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { SPAWN } from './data/spawn';
-import { TEMPLATE_TEXT } from './data/text';
-import { ENCOUNTERS } from './data/encounters';
 import { BUDGETS } from './budgets';
 import { GREY_CARD, EXPLORE } from './explore/art';
 
@@ -20,8 +18,10 @@ export const TEMPLATE: ShardManifest = {
   // the full map's places (SF66; test/map-coverage.test.ts holds every trigger, interaction, marker and arena on one): the
   // hut and the two teaching fights' arenas
   pois: [
-    { id: 'hut', name: TEMPLATE_TEXT.hut, x: 0, z: -9, r: 6 },
-    ...ENCOUNTERS.map(({ entity, name, arena }) => ({ id: entity, name, x: arena.at[0] ?? 0, z: arena.at[2] ?? 0, r: arena.radius })),
+    // Literal on purpose: importing data/text or data/encounters here pulls template gameplay into the shard-list chunk (SF16).
+    { id: 'hut', name: 'Grey hut', x: 0, z: -9, r: 6 },
+    { id: 'greyback', name: 'Greyback', x: 15, z: -12, r: 15 },
+    { id: 'big-blob', name: 'Big blob', x: -15, z: -20, r: 8 },
   ],
   assetGlobs: ['public/assets/_template/map/**'],
   // Start above the sampled collision floor: the analytic trail bed is lower between grid vertices.
