@@ -77,7 +77,12 @@ it('boots public Pine through real SHARD SELECT as well as Driftwood, Developer 
 it('keeps hourly/manual promotion and reuses only an exact successful push-CI proof', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   const job = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
-  expect(job).not.toContain('gh workflow run deploy');
+  // G284: a green boot smoke dispatches the release only when the hourly slot is free and production lacks the SHA.
+  const release = job.slice(job.indexOf('\n  release:'));
+  expect(release).toContain("if: github.event_name == 'workflow_run' && needs.boot-smoke.result == 'success'");
+  expect(release.indexOf('node scripts/deploy-version.mjs check')).toBeLessThan(release.indexOf('gh workflow run deploy.yml'));
+  expect(release.indexOf('node scripts/deploy-pin.mjs release-slot')).toBeLessThan(release.indexOf('gh workflow run deploy.yml'));
+  expect(job.slice(0, job.indexOf('\n  release:'))).not.toContain('gh workflow run deploy');
   expect(workflow).toContain('cron: \'17 * * * *\'');
   // SF74 W15: a CI-green pin skips typecheck, lint and the Test step; an unproven pin still runs all three.
   for (const step of ['Typecheck', 'Lint', 'Test']) {

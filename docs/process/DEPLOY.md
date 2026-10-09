@@ -55,6 +55,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **Any agent may kick the release by hand, at most once an hour** (Jake, 2026-10-09: *"If the hourly cron is not working … agents are allowed to get it deployed out at most once an hour by just kicking it off manually"*): when `version.json` lags the newest proven main
   and no `deploy` release run (schedule or dispatch) started in the last 60 minutes, run `gh workflow run deploy`; never
   a second dispatch inside the hour, and never while a release run is queued or in progress.
+  **boot-smoke does the same by itself** (SF74 W16, G284): its `release` job runs after a green exact-SHA smoke of main and
+  dispatches `deploy` only when `node scripts/deploy-pin.mjs release-slot` says the hour is free and `version.json` does
+  not already serve that SHA; otherwise it does nothing and the cron, the backstop or a hand dispatch picks the pin up.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
   slow"). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run on their own. A red CI
   run is fixed by whoever sees it. If the game needs an immediate release, `gh workflow run deploy` (no need to watch it).

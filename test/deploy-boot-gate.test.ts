@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, productionLive } from '../scripts/deploy-pin.mjs';
+import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, productionLive, releaseSlot } from '../scripts/deploy-pin.mjs';
 
 const a = 'a'.repeat(40), b = 'b'.repeat(40), c = 'c'.repeat(40);
 function fixture(statuses: Record<string, string>, candidates = `${a}\n${b}\n${c}`) {
@@ -90,4 +90,19 @@ it('reuses complete push CI only for an exact main SHA, refusing missing or neig
   expect(ciGreen(a, query(a))).toBe(true);
   for (const result of ['', b, 'not-a-sha']) expect(ciGreen(a, query(result))).toBe(false);
   expect(() => ciGreen('main', query(a))).toThrow('exact 40-hex SHA');
+});
+
+it('frees the hourly release slot only when no release run started in the last hour and none is live (G284)', () => {
+  const now = Date.parse('2026-10-09T21:00:00Z');
+  const slot = (rows: Record<string, string>) => releaseSlot(now, (args: string[]): string => {
+    const endpoint = args[0] ?? '';
+    expect(endpoint).toMatch(/actions\/workflows\/deploy\.yml\/runs\?event=(schedule|workflow_dispatch)&per_page=10$/u);
+    return rows[endpoint.includes('event=schedule') ? 'schedule' : 'dispatch'] ?? '';
+  });
+  expect(slot({ schedule: '1\tcompleted\t2026-10-09T19:17:00Z', dispatch: '2\tcompleted\t2026-10-09T19:40:00Z' }).free).toBe(true);
+  expect(slot({}).free).toBe(true);
+  expect(slot({ schedule: '1\tcompleted\t2026-10-09T20:17:00Z' })).toEqual({ free: false, why: 'schedule run 1 started 43 min ago' });
+  expect(slot({ dispatch: '2\tqueued\t2026-10-09T18:00:00Z' })).toEqual({ free: false, why: 'workflow_dispatch run 2 is queued' });
+  expect(slot({ dispatch: '2\tin_progress\t2026-10-09T19:30:00Z' }).free).toBe(false);
+  expect(() => slot({ schedule: 'garbage' })).toThrow('unreadable run row');
 });

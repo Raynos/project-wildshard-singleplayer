@@ -8,3 +8,5 @@ export function logProvesProduction(sha: string, log: string): boolean;
 export function productionLive(sha: string, query?: (args: string[]) => string): boolean;
 /** Whether this exact commit already passed the complete main push-CI workflow. */
 export function ciGreen(sha: string, query?: (args: string[]) => string): boolean;
+/** Whether the hourly release slot is free: no release run started in the last hour and none is queued or running (G284). */
+export function releaseSlot(now?: number, query?: (args: string[]) => string, windowMs?: number): { free: boolean, why: string };
