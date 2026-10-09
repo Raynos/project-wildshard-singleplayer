@@ -33,7 +33,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
-import { buildNomadCamp } from './NomadCamp';
+import { nomadCampSteps } from './NomadCamp';
 import { buildBridge } from './Bridge';
 import { buildRoadFurniture } from './RoadFurniture';
 import { buildSummerCamp } from './SummerCamp';
@@ -91,15 +91,23 @@ export class NalatiPOIs {
 
   private *steps(): Generator<void, void> {
     const ctx: PoiCtx = { sky: this.sky, ground: this.ground, flutter: this.flutter, smoke: this.smoke };
-    const run = (name: string, f: (c: PoiCtx) => PoiPiece) => {
-      const t0 = performance.now();
-      const p = f(ctx);
-      this.timings[name] = Math.round(performance.now() - t0);
+    const add = (name: string, p: PoiPiece, ms: number) => {
+      this.timings[name] = Math.round(ms);
       this.pieces.push(p);
       this.group.add(p.object);
       this.colliders.push(...p.colliders);
     };
-    run('camp', buildNomadCamp);
+    const run = (name: string, f: (c: PoiCtx) => PoiPiece) => { const t0 = performance.now(); const p = f(ctx); add(name, p, performance.now() - t0); };
+    {
+      // the camp a part a task (SF67): its own build time, the yields left out
+      const camp = nomadCampSteps(ctx);
+      let ms = 0;
+      for (;;) {
+        const t0 = performance.now(), step = camp.next(); ms += performance.now() - t0;
+        if (step.done === true) { add('camp', step.value, ms); break; }
+        yield;
+      }
+    }
     yield;
     run('bridge', buildBridge);
     yield;

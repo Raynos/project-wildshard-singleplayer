@@ -36,6 +36,21 @@ export interface Statics {
 }
 
 export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Statics {
+  const steps = staticsSteps(sky, plan, flutter);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildStatics`, a task apart whenever `due` says the task is over budget (SF67: one ~360 ms task at 4× CPU); the same
+ *  props from the same rng stream in the same order, so the region meshes and colliders are the one-task build's */
+export async function buildStaticsSliced(sky: Sky, plan: DressPlan, flutter: Flutter, due: () => Promise<void> | null): Promise<Statics> {
+  const steps = staticsSteps(sky, plan, flutter);
+  for (;;) {
+    const step = steps.next(); if (step.done === true) return step.value;
+    const pause = due(); if (pause !== null) await pause;
+  }
+}
+
+function* staticsSteps(sky: Sky, plan: DressPlan, flutter: Flutter): Generator<void, Statics> {
   const regions = new Map<number, THREE.BufferGeometry[]>();
   const put = (x: number, z: number, g: THREE.BufferGeometry) => {
     const k = (x < 0 ? 0 : 1) + (z > 60 ? 2 : 0);
@@ -54,6 +69,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     const made = set.into(kit).paint(fallenLog, on(e.at.x, e.at.z), { ...e.ends, r: l.r, drift: l.drift, rng });
     descs.push(...(made.descs ?? []));
     put((l.ax + l.bx) / 2, (l.az + l.bz) / 2, kit.finish({ ground, aoH: 0.3, aoMin: 0.6, ao: false }));
+    yield;
   }
 
   // ── stumps ──
@@ -61,6 +77,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     const kit = new PaintKit(rng.int(1, 1e6));
     set.into(kit).paint(stump, on(s.x, s.z), { s: s.s, rng });
     put(s.x, s.z, kit.finish({ ground, aoH: 0.35, ao: false }));
+    yield;
   }
 
   // ── ovoo cairns: a stone heap, a lashed pole bundle, ribbons ──
@@ -69,6 +86,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     const made = set.into(kit).paint(ovoo, on(o.x, o.z), { s: o.s, rng });
     descs.push(...(made.descs ?? []));
     put(o.x, o.z, kit.finish({ ground, aoH: 0.4, ao: { strength: 0.5 } }));
+    yield;
   }
 
   // ── lone ribbon poles ──
@@ -76,6 +94,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     const kit = new PaintKit(rng.int(1, 1e6));
     set.into(kit).paint(viewpointPole, on(p.x, p.z), { rng });
     put(p.x, p.z, kit.finish({ ground, aoH: 0.3, ao: false }));
+    yield;
   }
 
   // ── the sky road's guard fences (the split-rail fence) + the gateway on the rim ──
@@ -88,11 +107,13 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     const g = kit.finishTextured({ ground, aoH: 0.3, ao: false }, 'rock');
     if (g) woodGeos.push(g);
     if (!kit.empty) { const mid = run[Math.floor(run.length / 2)] ?? [0, 0]; put(mid[0], mid[1], kit.finish({ ground, aoH: 0.3, ao: false })); }
+    yield;
   }
   for (const g of plan.gates) {
     const kit = new PaintKit(rng.int(1, 1e6));
     set.into(kit).paint(skyGateway, on(g.x, g.z, g.yaw), { rng });
     put(g.x, g.z, kit.finish({ ground, aoH: 0.4, ao: false }));
+    yield;
   }
 
   const meshes: THREE.Mesh[] = [];
@@ -107,6 +128,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     m.castShadow = true; m.receiveShadow = true;
     meshes.push(m);
     tris += geo.getAttribute('position').count / 3;
+    yield;
   }
   if (woodGeos.length > 0) {
     const geo = mergeGeometries(woodGeos, false);
@@ -126,12 +148,29 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
  * POI agent's set pieces among them), so nothing lands inside a stove, a cart or a rug rack. Each group is the camp
  * clutter model (src/shards/nalati-grasslands/models/dressingProps.ts), placed drawnInto the mesh (`set`).
  */
-export function buildCampClutter(sky: Sky, avoid: readonly Collider[]): { mesh: THREE.Mesh | null; colliders: Collider[]; tris: number; spots: number; set: NalatiSet } {
+export interface CampClutter { mesh: THREE.Mesh | null; colliders: Collider[]; tris: number; spots: number; set: NalatiSet }
+export function buildCampClutter(sky: Sky, avoid: readonly Collider[]): CampClutter {
+  const steps = campClutterSteps(sky, avoid);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildCampClutter`, a task apart whenever `due` says the task is over budget (SF67); the same groups from the same rng
+ *  stream in the same order */
+export async function buildCampClutterSliced(sky: Sky, avoid: readonly Collider[], due: () => Promise<void> | null): Promise<CampClutter> {
+  const steps = campClutterSteps(sky, avoid);
+  for (;;) {
+    const step = steps.next(); if (step.done === true) return step.value;
+    const pause = due(); if (pause !== null) await pause;
+  }
+}
+
+function* campClutterSteps(sky: Sky, avoid: readonly Collider[]): Generator<void, CampClutter> {
   const rng = new Rng(0xc1a7);
   const kit = new PaintKit(0xc1a8);
   const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
   const spots = campClutterSpots(avoid);
-  for (const s of spots) set.paint(campClutter, { x: s.x, y: ground(s.x, s.z), z: s.z, yaw: s.yaw }, { kind: s.kind, rng });
+  yield;
+  for (const s of spots) { set.paint(campClutter, { x: s.x, y: ground(s.x, s.z), z: s.z, yaw: s.yaw }, { kind: s.kind, rng }); yield; }
   if (kit.empty) return { mesh: null, colliders: set.boxes, tris: 0, spots: 0, set };
   const mesh = kit.mesh(sky, { ground, aoH: 0.35, ao: { strength: 0.45 } });
   mesh.name = 'nalati-dress-camp-clutter';

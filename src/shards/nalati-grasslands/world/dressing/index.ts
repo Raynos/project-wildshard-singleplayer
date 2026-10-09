@@ -25,6 +25,7 @@
  * scaled down on the phone tier.
  */
 import * as THREE from 'three';
+import { slicer } from '@wildshard/engine/boot/plan';
 import { TIER } from '@wildshard/engine/core/tier';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
@@ -38,7 +39,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';
-import { buildStatics, buildCampClutter } from './statics';
+import { buildStaticsSliced, buildCampClutter, buildCampClutterSliced, type CampClutter } from './statics';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../glbPaint';
 import type { NalatiSet } from '../painted';
@@ -190,7 +191,7 @@ export class NalatiDressing {
     await yieldTask();
     t0 = performance.now();
 
-    const st = buildStatics(this.sky, plan, this.flutter);
+    const st = await buildStaticsSliced(this.sky, plan, this.flutter, slicer(30).due); // SF67: ~30 ms a task, the same props
     this.props = st.meshes;
     this.propTris = st.tris;
     this.staticsSet = st.set;
@@ -200,17 +201,29 @@ export class NalatiDressing {
     this.colliders = [...plan.colliders, ...st.colliders];
     this.descs.push(...st.descs);
     lap('props');
+    await yieldTask();
+    t0 = performance.now();
 
     this.life = new DressLife(this.sky, plan.drifts).build();
     this.group.add(this.life.group);
     lap('life');
+    await yieldTask();
     return this;
   }
 
   /** into the scene; the camps' clutter keeps clear of `avoid` (the POIs' boxes, the outcrops') */
   addTo(scene: THREE.Object3D, avoid: readonly Collider[]): void {
     scene.add(this.group);
-    const cl = buildCampClutter(this.sky, avoid);
+    this.addClutter(buildCampClutter(this.sky, avoid));
+  }
+
+  /** `addTo`, the clutter a task apart whenever `due` says the task is over budget (SF67); the same clutter */
+  async addToSliced(scene: THREE.Object3D, avoid: readonly Collider[], due: () => Promise<void> | null): Promise<void> {
+    scene.add(this.group);
+    this.addClutter(await buildCampClutterSliced(this.sky, avoid, due));
+  }
+
+  private addClutter(cl: CampClutter): void {
     if (cl.mesh) { this.group.add(cl.mesh); this.props.push(cl.mesh); this.propTris += cl.tris; this.clutter = { set: cl.set, mesh: cl.mesh }; }
     this.colliders.push(...cl.colliders);
     if (import.meta.env.DEV) Object.assign(window, { __nalatiDressing: this }); // dev: stats / poking from the console

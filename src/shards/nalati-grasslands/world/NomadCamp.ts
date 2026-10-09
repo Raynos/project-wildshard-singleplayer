@@ -41,6 +41,13 @@ const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?
 ];
 
 export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
+  const steps = nomadCampSteps(ctx);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildNomadCamp` with a yield between its parts (SF67: one ~450 ms task at 4× CPU): each yurt, each group of props,
+ *  the yard decal and each merged layer. The same pieces in the same order from the same rng stream. */
+export function* nomadCampSteps(ctx: PoiCtx): Generator<void, PoiPiece> {
   const { sky, ground, smoke } = ctx;
   const kit = new PaintKit(0x7a17);
   const set = new NalatiSet(kit, ctx);
@@ -63,6 +70,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     // a pennant at the crown of every other yurt
     set.paint(yurt, { x, y: gy, z, yaw: rot }, { r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base, pennant: y.pal !== 2 });
     doors.push({ x, z, rot, r: y.r });
+    yield;
   }
 
   // ── the ribbon pole in the yard; the eagle perch, the eagle facing the road (east) ──
@@ -72,6 +80,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     set.paint(eaglePerch, at, {});
     set.instance(perchedEagle, { x: at.x + 0.05, y: at.y + EAGLE_PERCH_H + 0.12, z: at.z, rot: Math.PI / 2 + 0.35 }, {});
   }
+  yield;
 
   // ── cooking: the stove and the kazan in the yard, smoking; the woodpile; a low bench by the kazan ──
   set.paint(stove, on(cx + 4.5, cz - 5.5, 0.4), {});
@@ -90,6 +99,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     }
   }
   set.paint(campBench, on(cx - 3.2, cz - 9.0, 0.1), {});
+  yield;
 
   // ── rugs: a rack of drying felts, two rugs laid out at doors ──
   set.paint(rugRack, on(cx + 6.5, cz + 4.5, -0.5), { pals: [0, 1, 2] });
@@ -99,11 +109,13 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     const fx = -Math.sin(d.rot), fz = -Math.cos(d.rot), rx = d.x + fx * (d.r + 1.4), rz = d.z + fz * (d.r + 1.4);
     set.paint(feltRug, on(rx, rz, d.rot), { w: 1.5, h: 2.2, pal: k });
   }
+  yield;
 
   // ── props round the yard ──
   set.paint(cart, on(cx - 11, cz - 11, 2.3), {});
   for (const [bx, bz] of [[cx + 6.8, cz - 1.2], [cx + 6.3, cz - 0.3], [cx - 1.5, cz + 10.5]] as const) set.paint(barrel, on(bx, bz), { s: rng.range(0.9, 1.05) });
   for (const [hx, hz, hyaw] of [[cx + 0.6, cz + 9.4, 0.2], [cx - 9.5, cz - 4.5, 1.8]] as const) set.instance(chest, { x: hx, y: ground(hx, hz), z: hz, rot: hyaw }, {});
+  yield;
 
   // ── the hitching rail (road side, runs north–south) + the water trough + the saddle rack ──
   {
@@ -112,6 +124,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     set.paint(waterTrough, on(x + 1.3, z - L / 2 - 1.2), {});
     set.paint(saddleRack, on(x + 2.2, z + L / 2 + 1.4, 0.3), {});
   }
+  yield;
 
   // ── the corral: round pole fence, gate open toward the yard (east, −x); a hay pile and a feed trough inside ──
   {
@@ -120,6 +133,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     set.paint(hayPile, on(x + 3, z + 2, 0.4), {});
     set.paint(feedTrough, on(x - 2.5, z + 5, 0.9), {});
   }
+  yield;
 
   // the kumis corner by the big yurt: a churn by the yurt, a bigger one 1.1 m east of it
   {
@@ -137,6 +151,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   set.paint(choppingBlock, on(cx + 9.5, cz - 5.5), {});
   for (const [sx, sz, syaw] of [[HITCHING_RAIL.x + 2.8, HITCHING_RAIL.z - 2.2, 1.9], [HITCHING_RAIL.x + 3.2, HITCHING_RAIL.z + 1.2, 0.6]] as const) set.instance(groundSaddle, { x: sx, y: ground(sx, sz), z: sz, rot: syaw }, {});
   set.paint(milkCans, on(cx + 5.2, cz + 8.4), {});
+  yield;
 
   const group = new THREE.Group();
   group.name = 'nalati-camp';
@@ -151,8 +166,11 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     }
     group.add(buildYardDecal(sky, ground, { x: cx + 6, z: cz + 3, half: 28 }, (x, z) => { let m = 0; for (const w of wear) { const v = w(x, z); if (v > m) m = v; } return m; }));
   }
+  yield;
   const felt = kit.texturedMesh(sky, 'felt', { ground });
+  yield;
   const mesh = kit.mesh(sky, { ground });
+  yield;
   group.add(mesh);
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { felt.name = 'nalati-camp-felt'; group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }

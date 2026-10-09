@@ -181,7 +181,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
   const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
-  dressing.addTo(game.scene, [...pois.colliders, ...outcrops.colliders, ...crags.colliders]);   // the clutter keeps clear of these
+  await dressing.addToSliced(game.scene, [...pois.colliders, ...outcrops.colliders, ...crags.colliders], slicer(30).due);   // the clutter keeps clear of these (SF67: ~30 ms a task)
   const dressPlaced = await dressing.place(plugin.app.registry, macrotask);
   // every named place is a set (E315 M12): the models placed in it — the POIs', the rocks', the dressing's
   await registerNalatiPlaces({ registry: plugin.app.registry, pois: pois.placed, others: [...rockPlaced, ...dressPlaced], yieldTask: macrotask });
