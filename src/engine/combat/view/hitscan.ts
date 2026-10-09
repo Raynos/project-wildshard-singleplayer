@@ -4,6 +4,7 @@ import { worldHit, impactSurfaceOf } from './ranged';
 import { sstep } from '../../player/viewmodelTextures';
 import type { Targets, TargetHit } from '../types';
 import type { ImpactSurface } from '../Weapon';
+import { instantSpreadDegrees, shotSpread } from '../shotSpread';
 
 export interface HitscanProfile { range: number; damageScale: number; spreadAds: number; spreadHip: number; spreadRadius: 'linear' | 'sqrt'; movingSpread: number; movingAimReduction: number }
 export interface HitscanResult { point: THREE.Vector3; direction: THREE.Vector3; surface: ImpactSurface | null; hit: TargetHit | null; killed: boolean }
@@ -12,10 +13,9 @@ export function hitscan(aim: (origin: THREE.Vector3, direction: THREE.Vector3) =
   profile: HitscanProfile, adsBlend: number, bloom: number, speedFactor: number): HitscanResult {
   aim(origin, direction);
   const a = sstep(0, 1, adsBlend);
-  const spread = THREE.MathUtils.degToRad(profile.spreadAds + (1 - a) * profile.spreadHip + bloom * (1 - a * 0.7) + speedFactor * profile.movingSpread * (1 - a * profile.movingAimReduction));
-  transverse.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(direction).normalize();
-  const radius = gameplayRandom();
-  direction.addScaledVector(transverse, Math.tan(spread * (profile.spreadRadius === 'sqrt' ? Math.sqrt(radius) : radius))).normalize();
+  const spread = THREE.MathUtils.degToRad(instantSpreadDegrees(profile.spreadAds, profile.spreadHip, a, bloom,
+    speedFactor, profile.movingSpread, profile.movingAimReduction));
+  shotSpread(direction, spread, gameplayRandom, { radius: profile.spreadRadius, axisScale: 1 }, transverse);
   let dist = profile.range, surface: ImpactSurface | null = null;
   const wall = worldHit(origin, end.copy(origin).addScaledVector(direction, profile.range), 0);
   if (wall) { dist = wall.distance; surface = impactSurfaceOf(wall.material); }

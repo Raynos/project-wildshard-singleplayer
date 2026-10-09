@@ -11,6 +11,7 @@ import type { TargetAnimal, TargetHit, Targets, TargetFrame } from '../types';
 import { floorBelow, sticksIn } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';
 import { projectileFlightStep } from '../projectileFlight';
+import { projectileBury, projectileContactTip, projectileDrop, projectileGlance, projectileRest, projectileWithinReach } from '../projectileContact';
 
 
 
@@ -73,6 +74,8 @@ const ARROW_RADIUS = 0.02;
 const GLANCE_LIFT = 0.03, GLANCE_KEEP = 0.35, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9;
 const RECOVER_R = 1.25; // m, horizontal reach from the feet
 const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
+const RECOVER_REACH = { radius: RECOVER_R, up: RECOVER_UP, down: 1.2 };
+const GLANCE = { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX };
 const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
 const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _nrm = new THREE.Vector3();
@@ -242,8 +245,7 @@ export class Projectiles {
       const s = this.stuck[i];
       if (s === undefined || s.animal !== null || !s.recoverable) continue;
       // the shaft's middle: tip + dir·(−length/2) (dir points along the flight, into the surface)
-      const mx = s.pos.x - s.dir.x * this.kind.length * 0.5, my = s.pos.y - s.dir.y * this.kind.length * 0.5, mz = s.pos.z - s.dir.z * this.kind.length * 0.5;
-      if (Math.hypot(mx - p.x, mz - p.z) > RECOVER_R || my - p.y > RECOVER_UP || my - p.y < -1.2) continue;
+      if (!projectileWithinReach(s.pos, s.dir, this.kind.length, p, RECOVER_REACH)) continue;
       if (!this.canRecover()) return;
       this.removeStuck(i);
       this.onRecover?.(gameplayRandom() < this.kind.recover); // seeded (09 §3.5)
@@ -292,7 +294,7 @@ export class Projectiles {
     if (f.glanced) { this.rest(f, at, n); return true; } // a spent arrow lies where it lands
     if (sticksIn(wall.material)) {
       // the ball touches one radius off the surface: the tip carries on along the flight to it
-      at.addScaledVector(_dir, r / Math.max(0.25, -n.dot(_dir)));
+      projectileContactTip(at, _dir, n, r);
       this.stop(f, at, _dir, surface, null, true);
       return true;
     }
@@ -300,10 +302,7 @@ export class Projectiles {
     if (this.kind.puffs !== false) this.puffs.emit(at, _dir, surface);
     this.onImpact?.(surface, at);
     if (this.kind.stick === false) { this.endFlying(f); return true; }
-    at.addScaledVector(n, GLANCE_LIFT);
-    const vn = f.vel.dot(n);
-    f.vel.addScaledVector(n, -vn).multiplyScalar(GLANCE_KEEP).addScaledVector(n, -vn * GLANCE_BOUNCE);
-    if (f.vel.length() > GLANCE_MAX) f.vel.setLength(GLANCE_MAX);
+    projectileGlance(at, f.vel, n, GLANCE);
     f.pos.copy(at);
     f.glanced = true;
     return false;
@@ -311,11 +310,9 @@ export class Projectiles {
 
   /** a spent (glanced) arrow comes to rest lying on what it fell onto: along its travel, flat to the surface */
   private rest(f: Flying, at: THREE.Vector3, n: THREE.Vector3): void {
-    const along = _v1.copy(_dir).addScaledVector(n, -_dir.dot(n));
-    if (along.lengthSq() < 1e-6) along.crossVectors(n, Math.abs(n.y) < 0.9 ? Y_AXIS : X_AXIS);
-    along.normalize();
+    const along = _v1;
     // the tip half a shaft ahead of the contact, so the shaft lies across it
-    at.addScaledVector(n, -(this.kind.radius ?? ARROW_RADIUS) * 0.8).addScaledVector(along, this.kind.length * 0.5);
+    projectileRest(at, _dir, n, this.kind.radius ?? ARROW_RADIUS, this.kind.length, along, Y_AXIS, X_AXIS);
     this.endFlying(f);
     if (this.stuck.length >= this.kind.maxStuck) this.removeStuck(0);
     const slot = this.freeStuckSlots.pop();
@@ -335,7 +332,7 @@ export class Projectiles {
     const slot = this.freeStuckSlots.pop();
     if (slot === undefined) return;
     const bury = surface === 'flesh' ? this.kind.bury * 2.2 : this.kind.bury;
-    const pos = new THREE.Vector3().copy(point).addScaledVector(dir, bury);
+    const pos = projectileBury(point, dir, bury, new THREE.Vector3());
     const s: Stuck = { slot, pos, dir: dir.clone(), roll, animal, local: new THREE.Vector3(), localDir: new THREE.Vector3(), frame: null, recoverable: true };
     const frame = animal?.stuckFrame?.(point) ?? null;
     if (frame !== null) {
@@ -360,8 +357,7 @@ export class Projectiles {
   private dropToGround(s: Stuck): void {
     s.animal = null; s.frame = null;
     const g = floorUnder(s.pos.x, s.pos.y, s.pos.z);   // the ground, a deck, a rock — whatever it hangs over
-    s.dir.set(s.dir.x * 0.35, -1, s.dir.z * 0.35).normalize();
-    s.pos.set(s.pos.x, g, s.pos.z).addScaledVector(s.dir, this.kind.bury * 1.5);
+    projectileDrop(s.pos, s.dir, g, this.kind.bury);
     s.recoverable = true;
     this.writeStuck(s);
   }

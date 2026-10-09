@@ -26,6 +26,7 @@ import * as THREE from 'three';
 
 
 import { BowDraw, DRAW_TIME, RENOCK_TIME } from '../bowDraw';
+import { drawnSpreadDegrees, shotSpread } from '../shotSpread';
 
 import type { BowProfile, BowView } from './bowProfile';
 
@@ -184,11 +185,11 @@ export class Bow<Style extends string = string> extends Weapon {
   private loose(): void {
     const p = 1;
     this.aimRay(_v1, _fwd);
-    const spreadDeg = 0.3 * (1 - (1 - this.profile.aimSpread) * this.aimBlend) + 0.6 * this.player.speedFactor + this.extraSpreadDeg + this.mountSpread;
+    const spreadDeg = drawnSpreadDegrees(0.3, this.profile.aimSpread, this.aimBlend, 0.6,
+      this.player.speedFactor, this.extraSpreadDeg, this.mountSpread);
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
-    _v2.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(_fwd).normalize();
-    _dir.addScaledVector(_v2, Math.tan(spread * Math.sqrt(gameplayRandom()))).normalize();
+    shotSpread(_dir, spread, gameplayRandom, { radius: 'sqrt', axisScale: 1 }, _v2);
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
     this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier });
     this.state.bolts--;

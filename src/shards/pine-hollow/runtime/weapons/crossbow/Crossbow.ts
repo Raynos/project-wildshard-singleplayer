@@ -17,6 +17,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../../weapons/hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import { boltFlightStep } from '../../../weapons/crossbow/flight';
+import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 
 
 
@@ -667,8 +668,7 @@ export class Crossbow extends Weapon {
     // spread: tight at ADS, a touch wider from the hip
     const spread = THREE.MathUtils.degToRad(0.15 + (1 - a) * 0.6);
     _dir.copy(_fwd);
-    _v1.set((gameplayRandom() - 0.5) * 2, (gameplayRandom() - 0.5) * 2, (gameplayRandom() - 0.5) * 2).cross(_fwd).normalize();
-    _dir.addScaledVector(_v1, Math.tan(spread * gameplayRandom())).normalize();
+    shotSpread(_dir, spread, gameplayRandom, { radius: 'linear', axisScale: 2 }, _v1);
     // Simulation launches from command data; the drawn bolt never chooses a shot's origin.
     b.pos.copy(_v3).addScaledVector(_fwd, 0.35);
     b.vel.copy(_dir).multiplyScalar(this.profile.speed);

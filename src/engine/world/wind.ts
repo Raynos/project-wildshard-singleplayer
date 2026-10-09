@@ -10,6 +10,7 @@
  */
 import * as THREE from 'three';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { clockGust, fieldGustAt } from './windField';
 
 export const windUniforms = { uWindTime: { value: 0 }, uGust: { value: 0.5 } };
 /** 0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/shards/pine-hollow/world/weather.ts); 0 = the wind exactly as before */
@@ -18,10 +19,7 @@ export const windBoost = { value: 0 };
 /** advance the wind clock and the gust (a few incommensurate sines: long lulls, a stronger puff every half-minute or so) */
 export function updateWind(dt: number): void {
   const t = (windUniforms.uWindTime.value += dt);
-  let g = 0.5 + 0.28 * Math.sin(t * 0.11) + 0.16 * Math.sin(t * 0.37 + 1.3) + 0.08 * Math.sin(t * 1.3 + 0.4);
-  const b = windBoost.value;
-  if (b > 0) g += b * (0.45 - 0.25 * g); // the lulls fill in more than the puffs grow
-  windUniforms.uGust.value = Math.min(1, Math.max(0, g));
+  windUniforms.uGust.value = clockGust(t, windBoost.value);
 }
 
 /** the prevailing wind (from the sea in the south-east), unit xz */
@@ -116,17 +114,8 @@ export function patchWindField(shader: { uniforms: Record<string, THREE.IUniform
   shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>\n${WIND_FIELD_GLSL}`);
 }
 
-const fract = (v: number): number => v - Math.floor(v);
-function windFront(s: number): number {
-  const f = fract(s), w = f + 0.12 * (1 - Math.cos(TAU * f)), c = 0.5 + 0.5 * Math.cos(TAU * w);
-  return c * c;
-}
+const CPU_FIELD = { x: WX, z: WZ, frontLength: FRONT_LEN, frontSpeed: FRONT_SPEED, secondaryLength: FRONT2_LEN };
 /** CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust` */
 export function windGustAt(x: number, z: number, t = windUniforms.uWindTime.value, gust = windUniforms.uGust.value): number {
-  const along = x * WX + z * WZ, across = -x * WZ + z * WX;
-  const bend = 22 * Math.sin(across * 0.021 + t * 0.043) + 9 * Math.sin(across * 0.057 - t * 0.031);
-  const s = along + bend - t * FRONT_SPEED;
-  const f = 0.75 * windFront(s / FRONT_LEN) + 0.25 * windFront(s / FRONT2_LEN + 0.37);
-  const patchy = 0.62 + 0.38 * Math.sin(across * 0.025 + along * 0.004 - t * 0.05);
-  return (0.3 + 0.7 * gust) * (0.3 + 0.9 * f * patchy);
+  return fieldGustAt(x, z, t, gust, CPU_FIELD);
 }
