@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/far-reach/shard.config';
@@ -33,8 +34,8 @@ function run(host: SimHost, commands: HeadlessCommand[] = []): void {
 }
 const interact = (value: number): HeadlessCommand => ({ kind: 'script', actorId: SKY_INTERACT, value });
 /**
- * Stage the player standing at (x, z) on a deck (the islands' traversal, bridges and Rising Islets, is the full witness's,
- * once the played host owns the movers): set down a little above it, then a second of steps so the fall law lands it.
+ * Stage the player standing at (x, z) on a deck (the islands' traversal, bridges and Rising Islets, is the full witness's):
+ * set down a little above it, then a second of steps so the fall law lands it.
  */
 function stand(host: SimHost, x: number, y: number, z: number, yaw = 0): void {
   host.player.position.set(x, y + 0.2, z); host.player.yaw = yaw;
@@ -42,11 +43,11 @@ function stand(host: SimHost, x: number, y: number, z: number, yaw = 0): void {
   expect(host.player.position.y).toBeCloseTo(y, 0);
 }
 
-it('plays the crown bridge quest on a fresh host with the movers: four steps, the fact and 10 coins once', () => {
+it('plays the crown bridge quest on the played host with its movers: four steps, the fact and 10 coins once', () => {
   const effects: HeadlessEffect[] = [], host = createSimHost(sky.plan.level, { ...sky.plan.ports, rapier });
   let movers: SkyMovers | undefined;
   try {
-    movers = sky.installWithMovers(host, { restoring: false, commands: () => tape, emit: effect => { effects.push(effect); } });
+    movers = sky.installSky(host, { restoring: false, commands: () => tape, emit: effect => { effects.push(effect); } });
     const raised = (): boolean => movers?.runtime.pose(WINCH_BRIDGE).enabled === true, fanKills = new Set<unknown>();
     host.events.on('damage.dealt', ({ req, killed }) => { if (killed && req.weaponId === FAN_ID) fanKills.add(req.target); }, host.scope);
     run(host); // the goats land
@@ -106,17 +107,24 @@ it('plays the crown bridge quest on a fresh host with the movers: four steps, th
   } finally { host.dispose(); }
 }, 600_000);
 
-it('keeps the played host fail-closed: without movers the winch never raises, and a restore refuses the movers', () => {
-  const effects: HeadlessEffect[] = [], host = createSimHost(sky.plan.level, { ...sky.plan.ports, rapier });
+it('restores mid-raise exactly: the winch bridge resumes on its mover and the quest pays once, on the restored host only after the checkpoint', () => {
+  const paid: HeadlessEffect[] = [], resumed: HeadlessEffect[] = [], original = createSimHost(sky.plan.level, { ...sky.plan.ports, rapier });
+  let restored: SimHost | undefined;
   try {
-    sky.plan.install(host, { restoring: false, commands: () => tape, emit: effect => { effects.push(effect); } });
-    run(host);
-    for (const flag of [FLAGS.notes, FLAGS.roost, FLAGS.vanes]) host.flags.set(flag);
-    stand(host, WINCH.x, WINCH.y, WINCH.z + 2);
-    for (let i = 0; i < 600; i++) run(host, [interact(SKY_ACT.winch)]);
-    expect(host.flags.has(FLAGS.raised)).toBe(false); expect(effects).toEqual([]);
-    const other = createSimHost(sky.plan.level, { ...sky.plan.ports, rapier });
-    try { expect(() => { sky.installWithMovers(other, { restoring: true, commands: () => [], emit: () => undefined }); }).toThrow('restore-parent'); }
-    finally { other.dispose(); }
-  } finally { host.dispose(); }
-});
+    sky.installSky(original, { restoring: false, commands: () => tape, emit: effect => { paid.push(effect); } });
+    run(original);
+    // staged: steps 1-3 are the test above's play; here the winch is unlocked and turned, and the checkpoint lands mid-raise
+    for (const flag of [FLAGS.notes, FLAGS.roost, ...VANES.map(vane => vaneFlag(vane.id))]) original.flags.set(flag);
+    stand(original, WINCH.x, WINCH.y, WINCH.z + 2);
+    run(original, [interact(SKY_ACT.winch)]);
+    for (let i = 0; i < 30; i++) run(original);
+    expect(original.flags.has(FLAGS.raised)).toBe(false); expect(paid).toEqual([]);
+    const decoded = decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(original))), ports = { ...sky.plan.ports, rapier };
+    restored = restoreSimHost(sky.plan.level, ports, decoded, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); sky.plan.install(fresh, { restoring: true, snapshot: decoded, commands: () => tape, emit: effect => { resumed.push(effect); } }); });
+    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(original));
+    for (let i = 0; i < 3000; i++) { run(original); run(restored); }
+    expect(original.flags.has(FLAGS.complete)).toBe(true);
+    expect(serializeSimSnapshot(snapshotSimHost(restored))).toBe(serializeSimSnapshot(snapshotSimHost(original)));
+    expect(resumed).toEqual(paid); expect(paid).toHaveLength(2);
+  } finally { restored?.dispose(); original.dispose(); }
+}, 600_000);

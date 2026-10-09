@@ -38,8 +38,8 @@ export interface SkyQuestPorts {
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
-  /** The winch bridge's mover; null while the played host has no movers (the step then never completes). */
-  readonly winch: SkyWinch | null;
+  /** The winch bridge's mover. */
+  readonly winch: SkyWinch;
 }
 
 /** The winch's permission bits, as the browser hands its mover (runtime/index.ts): the roost quiet 1, the vanes turning 2. */
@@ -67,7 +67,7 @@ export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQu
   const act = (value: number): void => {
     if (value === SKY_ACT.talk) { if (near(PROMPTS[SKY_ACT.talk]) && !flags.has(FLAGS.notes)) flags.set(FLAGS.notes); return; }
     if (value === SKY_ACT.notes) { if (near(PROMPTS[SKY_ACT.notes])) flags.set(FLAGS.notes); return; }
-    if (value !== SKY_ACT.winch || !near(PROMPTS[SKY_ACT.winch]) || ports.winch === null || ports.winch.raised()) return;
+    if (value !== SKY_ACT.winch || !near(PROMPTS[SKY_ACT.winch]) || ports.winch.raised()) return;
     // the browser toasts "locked" otherwise; nothing moves
     if (flags.has(FLAGS.roost) && flags.has(FLAGS.vanes)) ports.winch.command();
   };
@@ -89,7 +89,7 @@ export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQu
     }
     if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && roostDown()) flags.set(FLAGS.roost);
     if (!flags.has(FLAGS.vanes) && vanesTurned()) flags.set(FLAGS.vanes);
-    if (ports.winch !== null && !flags.has(FLAGS.raised) && ports.winch.raised()) flags.set(FLAGS.raised);
+    if (!flags.has(FLAGS.raised) && ports.winch.raised()) flags.set(FLAGS.raised);
   });
   return quests;
 }

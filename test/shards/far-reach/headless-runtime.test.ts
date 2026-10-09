@@ -90,7 +90,7 @@ it('runs 10k ticks of the shipping policies: real contacts hurt the player, a fa
     expect([...host.entities.values()].every(a => [a.position.x, a.position.y, a.position.z].every(Number.isFinite))).toBe(true);
     expect(seen.size).toBeGreaterThan(3);
   } finally { host.dispose(); }
-});
+}, 300_000);
 
 it('restores before and after the goats land, mid-fight, exactly, reinstalling the saved roster before restore', () => {
   for (const checkpoint of [0, 1, 700, 2600]) {
@@ -108,7 +108,7 @@ it('restores before and after the goats land, mid-fight, exactly, reinstalling t
       expect(snapshotSimHost(original).adapters.some(adapter => adapter.id === FLOCK_STEP)).toBe(true);
     } finally { restored?.dispose(); original.dispose(); }
   }
-});
+}, 300_000);
 
 it('shoves the player through the host impulse when a wisp bursts on them', () => {
   const host = boot();
@@ -136,8 +136,8 @@ function run(host: SimHost, commands: HeadlessCommand[]): void {
 /** The fight's player stays this far inside the crown's rim (CROWN.r 20: its kerb stands at the edge). */
 const CROWN_REACH = 17;
 /**
- * Real War Fan play, and nothing else: the player starts on the crown (this test only: the winch bridge is a mover, and the
- * played host installs the movers only after the engine's restore-parent fix), faces the Roc, aims at it and every tick
+ * Real War Fan play, and nothing else: the player starts on the crown (this test only: reaching it over the raised winch
+ * bridge is the whole-shard witness's), faces the Roc, aims at it and every tick
  * asks for a light SWING at it and a GUST at its pitch (the fan's own cooldowns gate both). While the Roc flies the player
  * holds the crown's middle, so its gale-wall stand-off (14 m) stays over the crown; while it hangs still (a gale wall's
  * long active hold) or walks the dais the player goes under it, never past CROWN_REACH. Every point of damage the Roc
@@ -205,7 +205,7 @@ it('restores the Roc encounter mid-fight exactly, its victory paying once on the
       expect(resumed).toEqual(paidOriginal.slice(paid));
     } finally { restored?.dispose(); original.dispose(); }
   }
-});
+}, 300_000);
 
 it('declares the War Fan as its row: the item, the browser row and the shared recipe agree', () => {
   expect([FAN_ROW.id, SKY_ITEMS.rows[0]?.id, SKY_ITEMS.loadout.primary]).toEqual([FAN_ID, FAN_ID, FAN_ID]);

@@ -1,61 +1,48 @@
-# Handoff (sf72-sky) — 2026-10-08, SF72 Sky Reach headless, part 3 (sf72-sky3, 90-min cap)
+# Handoff (sf72-sky) — 2026-10-09, SF72 Sky Reach headless, part 4 (sf72-sky4, 90-min cap)
 
 Coordinator `wildshard-new` pushes. Landed locally with a private index + old-value CAS. Sky's canonical witness
-(`test/proof/far-reach/`) is UNCHANGED and still fails closed: the played headless host owns the 13 bodies, the Roc
-encounter and the War Fan, but not yet the movers, the quest or the ledger's quest fact. `finish` now has a real proof.
+(`test/proof/far-reach/`) is UNCHANGED and still fails closed. The played headless host now owns the 13 bodies, the Roc
+encounter, the War Fan, the quest and the movers (islets, road gates, winch bridge), all exact across a native restore.
 
 ## Landed
 
-- Part 1: `defff10d1`, `66330c07b`, `3361c50c3`. Part 2: `43d7928cd` (War Fan).
-- Part 3 (this commit), step 1 movers + step 3 entry proof:
-  - `behaviour/bridges.as` is admitted: `shard.config.ts` `files` + `critical` hold both modules (hash order: bridge
-    `1371d895…`, islet `f8f90ba2…`), `budgets.sim.compressed` is the sum; `data/bridgeModule.ts` is the generated
-    constant (`scripts/bake/movers.mjs` now emits it beside `liftModule.ts`; the bake was NOT rerun whole, Driftwood's
-    `data/movers.ts` untouched). Official Sky map rebake in the same commit (pixels equal but for rim noise).
-  - Grid double fetch fixed: `MoverInstallation.admitted?` (game/shardfile/moverRuntime.ts, additive, approved) is read
-    before any URL; Sky passes `runtimeProduct(source).assets.retained`, the cell admission's verified bytes. Contract
-    test: standalone fetches each module once, a provided product fetches none and the islets still ride on it;
-    grid-discovery already pins the admission's one fetch per file.
-  - `runtime/moverRows.ts`: `SKY_MOVERS` moved out of `runtime/movers.ts` (that one imports the browser loader) so the
-    headless runtime can read it.
-  - `runtime/headlessMovers.ts`: hash-checked modules in the async `prepare`, a synchronous per-host `ScriptHost` +
-    `MoverRuntime` without adoption over every row but the static ropes (they stay the baked `far.rope.*` pieces),
-    a `far.movers` step (`beginTick`, the winch permission map, `capture`) and an exact continuation adapter (script
-    checkpoint, mover entity fields, pending + handles, `reconnect` after the native restore).
-  - `proveEntries`: each socketLift entry on a fresh host of the trusted world (baked colliders + entry socket decks +
-    the shardfile's `landing.*` / `gate-isle.*` props + the movers), the platform `proveSocketLift` on real host steps:
-    92 lanes, 8 rides, 8 calls, zero script failures.
+- Parts 1-3: `defff10d1`, `66330c07b`, `3361c50c3`, `43d7928cd`, `0d9ed5741` (see git log).
+- Part 4, slice 1 `08c95025f`: the Roc falls to War Fan play alone (the labelled chip is gone); `runtime/quest.ts` (four
+  steps on `DeclaredQuests`, `far-reach.quest` + 10 coins once) tested on a fresh host with movers.
+  - `runtime/fan.ts`: HEAVY / GUST aim along the yaw at the tick's `far.fan.aim` pitch (script command, radians, clamped
+    to the Player's ±1.45; the browser aims them along the camera ray). Without it the gale-wall phase is unwinnable:
+    the Roc hovers at CROWN.y + 7, 5.3 m above the eye, out of every level move's reach.
+- Part 4, slice 2 (this commit): the movers in the played host (the engine fix `91e1ad4b7`); `prepareSkyRuntime` returns
+  `{ plan, installSky }` (installSky returns the host's `SkyMovers`). Quest test plays all four steps on the played host and
+  restores mid-raise byte-exactly (paid once, on both hosts). headless-runtime 14/14 incl. restores at 0/1/700/2600 and
+  mid-Roc 900/2000 with the movers installed.
 
-## Blocker found (routed by the coordinator to the engine host lane)
+## Blockers / findings (for the coordinator)
 
-Rapier `World.restoreSnapshot` re-parents every parentless collider (all static pieces) to rigid body 0: the JS
-`Collider.finalizeDeserialization` does `bodies.get(raw.coParent(handle))`, `coParent` is undefined, the Coarena index of
-NaN is 0. Once a mover body exists, a restored capsule standing on a static piece anchors to it (`CharacterMotor.pin`)
-and the restored run diverges on its first step. So the movers are NOT installed in the played host yet (only in the
-entry proof's fresh hosts). Isolated repro: one parentless cuboid + one kinematic body, snapshot, restore,
-`getCollider(h).parent()?.isKinematic() === true`.
+1. **The full traversal needs the hoverboard.** The roost (`far.hover.roost`), the keeper isle (`far.hover.keeper`) and the
+   high step (`far.updraft`, the winch and the crown bridge's foot) are reachable only on the board: hover decks and the
+   updraft collide only in board mode (runtime/index.ts `board()`), and the headless world leaves them out (inactive in
+   the bake). The SimHost player has no board mode. So the whole-shard witness can't walk spawn → crown by tick commands
+   until the SDK / host owns a board mode (mode command, hover deck colliders gated on it, the updraft's lift) — an
+   engine/SDK seam, the coordinator's call. The quest test stages the player onto each deck (`stand`) and says so.
+2. **The Roc's gale wall holds still 27 s** (browser too): `GALE_WALL` is a `lane` strike with no `motion`, and
+   `StrikeRunner` treats every lane as a charge, so `active` lasts length 26 / max(1, speed 0) + 1.2 = 27.2 s. Phase 2 by
+   pure fan play takes ~20k ticks because of it. Not changed (behaviour change, Jake's call).
 
-## Exact next steps (in order)
+## Exact next steps
 
-1. When the restore-parent fix lands: add `installSkyMovers(host, modules, context.restoring, permission)` to
-   `install` (after `colliders`), and check the headless restore tests (they caught it: checkpoints 0 / 1 / 700 / 2600).
-2. **Quest**: `DeclaredQuests(host, shard.quests, { fact, coins })` (Signal's `runtime/quest.ts`); interactions as
-   `script` commands at the browser radii from the eye (keeper talk: head `KEEPER_AT` at DECK + 1.8, r 3.5 → `far.notes`;
-   lectern `NOTES` + 1.3, r 2.6 → `far.notes`; winch `WINCH` + 1.2, r 3 → bridge command 1 when unlocked; islet
-   RIDE / CALL at `world/risingIslet.ts isletCalls` positions → `commandSocketLift`; that file imports three, so lift
-   the positions into a view-free helper). Roost: the three `far.roost.*` dead after `far.notes` → `far.roost`; all
-   three vane flags → `far.vanes`; bridge raised → `far.bridge`. The winch permission is `roost + vanes*2`; completion
-   pays REWARD 10 + fact `far-reach.quest` once.
-3. **Traversal + witness**: drop the Roc test's labelled chip for real fan play (the fall law and knockback are in
-   main), a four-entrance traversal into the crown, then flip `test/proof/far-reach/run.mjs` through the trusted
-   runtime (headless 10k, replay mid-Roc, ledger both facts).
+1. Board mode in the host (above), then the witness tape: spawn → keeper (talk) → windmill / grove rope bridges → board to
+   the roost (fan the three rays) → vanes (gust each, `far.fan.aim`) → updraft to the step → winch → walk the raised
+   bridge → crown fight (copy `crownFight` from headless-runtime.test.ts). Copy Signal's `test/proof/sunscar-dunes/witness.ts`
+   shape (boot / restore / step / FactIngress / worker cross-check); entry `runtime/headless.ts`.
+2. Replay: checkpoint in the gale-wall phase (`phase 1`, state `fight`), byte-exact restore, suffix to victory, the
+   shipping worker 60 ticks. Ledger: both facts (`far-reach.quest`, `far-reach.roc`) granted once, durable, no re-emit.
+3. Flip `test/proof/far-reach/{run.mjs,headless,replay,ledger}.test.ts` and `compatibility.json` from that real run.
 
-## Proof receipts (this commit)
+## Proof receipts (slice 2)
 
-- Clean export of `79687f85b` + these files: strict tsc, oxlint, ratchet, coupling green; graph far-reach → engine
-  120 → 126, → game 29 → 35, → sdk 14 → 15 (approved). Sky tests incl. contract 10/10, headless-runtime 14/14,
-  grid-entry-native, entries, grid-discovery.
-- Browser on that export's build (muted Chromium, iPhone 16 Pro): boot smoke 3/3 PASS, grid included; physics-baseline
-  `--mode=walk --shard=far-reach` 10 legs, 0 stuck, 0 walk errors; bake-maps loaded Sky and rebaked it.
+- Clean export of `ba527e920` + these files: strict tsc, oxlint, ratchet, coupling green; check-graph: none new or rising
+  (slice 1's far-reach → game 35 → 37, → engine 126 → 127 approved). Sky tests: headless-runtime 14/14, headless-quest 2/2.
+- No browser-reachable module changed (runtime/{fan,quest,headless}.ts are imported only by the headless entry and tests).
 
 Plan-State: unchanged.
