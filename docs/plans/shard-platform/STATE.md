@@ -39,8 +39,8 @@ Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned b
 - **sp-x6:** Driftwood static bakes (`38df10ae3` modelGeometry).
 
 **Opus lanes:**
-- **op-signal:** Signal SDK effect/look rows.
-- **op-bfill:** fill the Blender cell (G220).
+- **op-signal2:** Signal SDK look-family rows, whip view, species clips (Signal at 26.5 %, `f6691ec7c`).
+- **op-loading2:** SF67 slicing land + benchmark.
 - **op-pinebake:** Pine cabin + static builders.
 - **op-nine:** Nine ledger + bakes.
 - **op-skin:** SDK offline skinned-model bake.
@@ -59,3 +59,4 @@ Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned b
 - G269: three phone runs.
 - G260: Blender board.
 - Sky's playable isles are per-session random; baking them fixes one look (pick).
+- **Pick:** the public Pine and Nalati cards boot the FROZEN legacy copies (entries.public='legacy'), so every SF67 loading fix reaches only the shardfile entry (Developer). Public Nalati cold-loads in 68.9 s with a 10.4 s freeze (op-loading2, 72aaeaa2e). Recommendation: flip the public entries to shardfile per shard once its SHARDFILE entry passes boot, walk and parity.
