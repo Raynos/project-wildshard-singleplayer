@@ -12,6 +12,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-cards.mjs](./bake-cards.mjs)
 - [bake-check.mjs](./bake-check.mjs)
 - [bake-chunk.mjs](./bake-chunk.mjs)
+- [bake-cloud-field.mjs](./bake-cloud-field.mjs)
 - [bake-coats.mjs](./bake-coats.mjs)
 - [bake-driftwood-fixed-models.mjs](./bake-driftwood-fixed-models.mjs)
 - [bake-driftwood-navmesh.mjs](./bake-driftwood-navmesh.mjs)
