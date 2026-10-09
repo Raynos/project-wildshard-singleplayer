@@ -40,7 +40,7 @@ import { CRAG_LOD, useCragKit } from './cragKit';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { loadPBR, type PBRSet } from '@wildshard/engine/core/assets';
+import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -420,7 +420,7 @@ const CAVE_FILL = { value: 1.0 };
  * dark rain streaks down the faces, and a tint path for the cave's bedding and bones. The vertex `cdata` = (AO, sun reach,
  * wet, rock): AO multiplies the indirect light, sun reach the directional lights only.
  */
-function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardMaterial {
+function cragMaterial(sky: Sky, rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 });
   const u = {
     tRockD: { value: rock.map }, tRockN: { value: rock.normalMap }, tRockA: { value: rock.armMap },
@@ -649,7 +649,8 @@ export class PineCrags {
         loadNodes(`${CRAG_DIR}/crags-b.glb`),
         loadNodes(`${CRAG_DIR}/cave.glb`).catch((e: unknown) => { console.warn('[crags] no cave.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
-        sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), loadPBR('rock_ground')]) : Promise.resolve(null), // G180 B1 (rock_ground stays shared with the terrain slab's)
+        sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), Promise.all([loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))])
+          .then(([map, normalMap]) => ({ map, normalMap }))]) : Promise.resolve(null), // G180 B1: only the grit samplers the shader uses; an eagerly uploaded unused ARM has no owner.
       ]);
       const mat = sky && tex ? cragMaterial(sky, tex[0], tex[1]) : null;
       for (const [name, g] of kitB) kit.set(name, g);
