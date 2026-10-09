@@ -19,19 +19,21 @@ we get prod deployed and unstuck?"* Source: the 12-hour process audit `progress/
 
 ## Rows
 
+**Owner (Jake, 2026-10-09):** the plan agent runs SF74 with an Opus subagent; the coordinator pushes its commits through the serialized pusher. **Deploy cadence stays hourly** (Jake: *"Hourly is fine"*); W0 fixes the stuck path, not the schedule.
+
 | # | Change | Owner | Needs Jake | Status |
 |---|---|---|---|---|
-| W0 | **Prod unstuck**: a red push CI blocks every release (deploy ships the newest CI-green main). Fix the red test first, always; the coordinator checks `version.json` against origin hourly and runs `gh workflow run deploy` when they differ. **The deploy job re-runs the whole `pnpm test` on a commit whose push CI already passed** (`.github/workflows/deploy.yml` "Test": 20+ min on 2026-10-09 19:59): skip it for a CI-green pin and keep only the build + chunk check + production verify | coordinator | no | in flight 2026-10-09 |
-| W1 | Lanes land on quick checks of what they touched; the push gate is the only full suite (reach the Codex briefs too: 14 lane suites ran the hour after the cut) | coordinator | no | landed in the coordinator's brief; Codex briefs pending |
-| W2 | Take regeneration off the push lock: generated files (api-surface, docs/api, ENGINE.md appendix, layer-edges, debt counts) are built in gen / CI, not committed; drop the gate's duplicate 88 s check | coordinator | no | open |
-| W3 | Cache gate steps by content hash; affected-only tests at push (bake-check only when bake inputs change); a full suite every Nth push or nightly | coordinator | no | open |
-| W4 | The push gate gets its own lease, separate from the lanes' test / build leases | coordinator | no | open |
-| W5 | No polling: one detached proof runner writes its result and pings the lane | coordinator | no | open |
-| W6 | Lanes commit directly after quick checks: no 0.7 GB clean exports or private-index landings per lane; the push re-records stale checkpoints itself | coordinator | no | checkpoint re-record in flight (Opus lane) |
-| W7 | Fix the sim-lane reaper (~2,000 failed quit attempts in 12 h from every Stop / SubagentStop hook) | coordinator | no | open |
-| W8 | Heavy proofs (soak, frame floor, boot smoke, Simulator) per milestone and before a grid-changing deploy; the physics walk only after collider changes | coordinator | **G273 yes** | rule landed `4b391c109` |
-| W9 | gpu-gate nightly + milestones, not per push; lanes stop local parity re-runs | coordinator | **G274 yes** | rule landed `4b391c109`; CI workflow change open |
-| W10 | Paperwork: one ≤ 3 KB `docs/plans/SHARD-PLATFORM/STATE.md` written only by the coordinator; no Plan-State trailer check; no per-lane handoff files; no raw soak / receipt archives in git | coordinator | **G275 yes** | rule landed `4b391c109`; `scripts/asks.mjs` change open |
+| W0 | **Prod unstuck**: a red push CI blocks every release (deploy ships the newest CI-green main). Fix the red test first, always; the coordinator checks `version.json` against origin hourly and runs `gh workflow run deploy` when they differ. **The deploy job re-runs the whole `pnpm test` on a commit whose push CI already passed** (`.github/workflows/deploy.yml` "Test": 20+ min on 2026-10-09 19:59): skip it for a CI-green pin and keep only the build + chunk check + production verify | plan agent (Opus) | no | in flight 2026-10-09 |
+| W1 | Lanes land on quick checks of what they touched; the push gate is the only full suite (reach the Codex briefs too: 14 lane suites ran the hour after the cut) | plan agent (Opus) | no | landed in the coordinator's brief; Codex briefs pending |
+| W2 | Take regeneration off the push lock: generated files (api-surface, docs/api, ENGINE.md appendix, layer-edges, debt counts) are built in gen / CI, not committed; drop the gate's duplicate 88 s check | plan agent (Opus) | no | open |
+| W3 | Cache gate steps by content hash; affected-only tests at push (bake-check only when bake inputs change); a full suite every Nth push or nightly | plan agent (Opus) | no | open |
+| W4 | The push gate gets its own lease, separate from the lanes' test / build leases | plan agent (Opus) | no | open |
+| W5 | No polling: one detached proof runner writes its result and pings the lane | plan agent (Opus) | no | open |
+| W6 | Lanes commit directly after quick checks: no 0.7 GB clean exports or private-index landings per lane; the push re-records stale checkpoints itself | plan agent (Opus) | no | checkpoint re-record in flight (Opus lane) |
+| W7 | Fix the sim-lane reaper (~2,000 failed quit attempts in 12 h from every Stop / SubagentStop hook) | plan agent (Opus) | no | open |
+| W8 | Heavy proofs (soak, frame floor, boot smoke, Simulator) per milestone and before a grid-changing deploy; the physics walk only after collider changes | plan agent (Opus) | **G273 yes** | rule landed `4b391c109` |
+| W9 | gpu-gate nightly + milestones, not per push; lanes stop local parity re-runs | plan agent (Opus) | **G274 yes** | rule landed `4b391c109`; CI workflow change open |
+| W10 | Paperwork: one ≤ 3 KB `docs/plans/SHARD-PLATFORM/STATE.md` written only by the coordinator; no Plan-State trailer check; no per-lane handoff files; no raw soak / receipt archives in git | plan agent (Opus) | **G275 yes** | rule landed `4b391c109`; `scripts/asks.mjs` change open |
 | W11 | Fleet ceiling: at most 5 Opus and 5 Codex live; Codex paced by openusage to last to its reset | coordinator | yes (Jake's rule) | landed `33bfc2f28` |
 
 ## Done when
