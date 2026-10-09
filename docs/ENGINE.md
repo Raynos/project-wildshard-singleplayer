@@ -1840,6 +1840,16 @@ The keeper must register its own respawn clocks/generation counters through `onS
 must not advance them. A missing roster or changed recipe refuses exact restoration. Pending strikes
 resolve through `strikeSpecifications(id)` against those installed recipes, including dynamic actors.
 
+**Body bands (SF72).** By default a host steps and collides every body every tick. A native shard's headless runtime
+calls `useBodyBands({ rates?, rate?, physics? })` once, in its install (before restore), to run its bodies as the page's
+creature manager does: each body updates on its tick rate (§12; `rate(body)` names it, default `'always'` for a driven
+or `'sidestep'` body, else `'ai'`; `'legacy'` is the manager's self-thinking rate), and with `physics` (default on) a
+body holds a creature motor in the page's capsule only within 45 m of the player, released past 55 m. `bodyDt(id)` is
+the tick's update step (0 while paused or on the off tick of `'half'`) and `brainDt(id, urgent?)` takes the decision
+step on the same clocks, so a runtime's brains need no copy of the scheduler. The page's `TickScheduler` and
+`CreatureBodies` run on the same functions (`src/engine/sim/bands.ts`). The clocks ride `SimSnapshot.bands`, absent
+for a host without bands.
+
 `@wildshard/engine/sim/snapshot` exports `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost(host)`
 and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps; the versioned JSON state
 includes entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,
