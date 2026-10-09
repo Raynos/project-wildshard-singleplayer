@@ -1,6 +1,18 @@
-# sp-x3 handoff — 2026-10-08, plain SF57 soak completed
+# sp-x3 handoff — 2026-10-08, public SF57 soak preparing
 
-## Latest result and exact next step
+## Active step — PUBLIC / shipped plain30
+
+Coordinator GO pin **`0f82dbeb8106ee950383ae196e74ef3525fc5034`** (origin/main). Build ONE queued preview and run ONE 30-minute `--layouts=shipped --legs=cells --route-scope=catalogue` soak; the first circuit includes the road tour. Driftwood home + template-1…5, no omitted catalogue cells. Developer OFF. Light/coalesced journal, raw OFF, kernel footprint only, no vmmap/heap probes. Simulator was free at GO. No new multi-hour task.
+
+Preparation is running in exec session **11361**, command `node scripts/soak/soak.mjs --prepare --rev=0f82dbeb8106ee950383ae196e74ef3525fc5034 --out=/private/tmp/claude-501/sp-builders/sp-x3/sf57-0f82dbeb8-shipped30 --layouts=shipped --legs=cells --route-scope=catalogue`. Scratch contains run.log; wait for manifest.json, verify HTTP/disk exact version, flags and one shipped base. Then create scratch/GO (coordinator authorization already given), retaining the parent. Existing driver queues/boots/cleans via sim-lane and stops its own preview in finally. Do NOT launch another preview or Inspector connection. No started Simulator yet as of this handoff.
+
+Exact next step: verify prepared manifest then GO. Preserve any failure; after completion RELEASE immediately, archive raw losslessly, calculate peak WC + labelled GL with separate GPU-process/accounted values and settled per-circuit growth, commit receipt by current-HEAD private index/hooks/CAS, notify coordinator (it pushes). Reuse offline analysis from `progress/memory/sf57/b13614a6e-plain30/analyse.mjs`, replacing dev-cells with shipped-cells. Keep original grader unchanged. If interrupted, inspect run.log/result and recorded session before doing anything; never duplicate the active run.
+
+Nalati `4f9b5809e` import switch verified ancestor and exact SDK constructor facades; original app.combat injection preserved for Spear, native bound objects/legacy slots unchanged. Working binding+soak fixtures15/15 green; constructor suite blocked by FOREIGN sdk/package.json WIP removing starter profile exports. Clean committed-export focused verification running session77977, export `/private/tmp/claude-501/sp-builders/sp-x3/nalati-import-verify`; logs in parent `nalati-import-verify-tests.log`, source pin in export/pin. Finish/check this proof and delete only the completed export by literal path. No edits to foreign WIP.
+
+Codex weekly budget3% notice: finish current authorized run, keep this handoff current after each step so Opus can take over. No further assignment started. Prior completed results follow.
+
+## Prior Developer result (completed)
 
 Plain30 on pushed `b13614a6e7bb218f691a5f3b7040510de13cb7e8`: **functional PASS / memory RED**, 1814.495 s, seven complete circuits, 48 route witnesses, all 16 crossroads, errors / GPU losses / disposal errors 0. All 15 scope counters zero, before/after retained census identical. Raw/analysis: `progress/memory/sf57/b13614a6e-plain30/`.
 
