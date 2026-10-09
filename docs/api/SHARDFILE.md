@@ -6,7 +6,7 @@ The source of truth is `src/game/shardfile/schema.ts`, the schema exports in `sr
 
 Paths start at `$` for the compiled shardfile; `$sdk["./module"].Schema` names a public SDK schema, including build-only input. `[]` is an array member, `[n]` a tuple slot, `{key}` / `{value}` a record, and `<n>` a union branch. Optionality and nullability apply at the listed path. Branch-local required fields are conditional on selecting that branch. Function defaults and custom checks are explicitly opaque; the author guide explains their semantics. This is metadata coverage, not an assertion that custom predicate internals have a Valibot shape.
 
-Coverage: 5265/5265 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
+Coverage: 5269/5269 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete or stale entries fail the reference check.
 
 ## Fields
 
@@ -1928,8 +1928,10 @@ Coverage: 5265/5265 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $.runtime.cost.imagesFirst.engineBaseMB | number | required | finite [function; not executed]; min_value 0 |
 | $.runtime.cost.imagesFirst.evidence | string | required | regex /^progress\/memory\/[a-zA-Z0-9/_-]+\.json$/u |
 | $.runtime.cost.imagesFirst.glMB | number | required | finite [function; not executed]; min_value 0 |
+| $.runtime.cost.imagesFirst.residentBaseMB | number | exact_optional; default undefined | finite [function; not executed]; min_value 0 |
 | $.runtime.cost.imagesFirst.rev | string | required | regex /^[a-f0-9]{9,40}$/u |
 | $.runtime.cost.imagesFirst.webContentMB | number | required | finite [function; not executed]; min_value 0 |
+| $.runtime.cost.residentBaseMB | number | exact_optional; default undefined | finite [function; not executed]; min_value 0 |
 | $.runtime.cost.rev | string | required | regex /^[a-f0-9]{9,40}$/u |
 | $.runtime.cost.webContentMB | number | required | finite [function; not executed]; min_value 0 |
 | $.runtime.entry | string | required | max_length 160; regex /^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u |
@@ -4819,8 +4821,10 @@ Coverage: 5265/5265 schema paths; 16/16 ABI calls. Missing, duplicate, obsolete 
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.imagesFirst.engineBaseMB | number | required | finite [function; not executed]; min_value 0 |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.imagesFirst.evidence | string | required | regex /^progress\/memory\/[a-zA-Z0-9/_-]+\.json$/u |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.imagesFirst.glMB | number | required | finite [function; not executed]; min_value 0 |
+| $sdk["./shardfile"].ShardfileSchema.runtime.cost.imagesFirst.residentBaseMB | number | exact_optional; default undefined | finite [function; not executed]; min_value 0 |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.imagesFirst.rev | string | required | regex /^[a-f0-9]{9,40}$/u |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.imagesFirst.webContentMB | number | required | finite [function; not executed]; min_value 0 |
+| $sdk["./shardfile"].ShardfileSchema.runtime.cost.residentBaseMB | number | exact_optional; default undefined | finite [function; not executed]; min_value 0 |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.rev | string | required | regex /^[a-f0-9]{9,40}$/u |
 | $sdk["./shardfile"].ShardfileSchema.runtime.cost.webContentMB | number | required | finite [function; not executed]; min_value 0 |
 | $sdk["./shardfile"].ShardfileSchema.runtime.entry | string | required | max_length 160; regex /^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u |
