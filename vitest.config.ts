@@ -5,6 +5,7 @@
 import { defineConfig } from 'vitest/config';
 import { rapierAlias } from './vite/rapier';
 import { assertVitestLane } from './scripts/vitest-lane';
+import { DurationSequencer } from './scripts/vitest-shard';
 
 assertVitestLane();
 
@@ -30,6 +31,8 @@ export default defineConfig({
     // ran past vitest's 5 s default and failed main's runs one after another (each passes in ~2 s locally); 20 s is the floor
     testTimeout: 20_000,
     environment: 'node',
+    // SF74 W23: --shard=i/n packs files by recorded duration (test/durations.json), not by path hash (141-354 s shards)
+    sequence: { sequencer: DurationSequencer },
     // These real subprocess/worker proofs keep their deadlines, after the main pool has drained.
     projects: [
       // Vite merges inherited arrays by concatenation: keep include out of the parent or integration runs all files.
