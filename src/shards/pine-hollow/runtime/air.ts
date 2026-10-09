@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { TickScheduler } from '@wildshard/engine/app/scheduler';
+import type { SimHost } from '@wildshard/engine/sim';
 import { PineWeather, type PineWeatherMode } from '../world/weatherProfile';
 import { PineGustClock } from './weapons/gustClock';
 
@@ -49,4 +50,14 @@ export class PineAir {
     return () => { weather(); wind(); this.cadence = cadence; this.publishedBoost = saved.boost; };
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
+}
+
+/** Native ownership boundary: one weather/gust continuation, stepped after quest clock changes and before weapons.
+ * The caller registers it in that order. Restoring is silent and validates the whole continuation before committing. */
+export function installPineAir(host: SimHost, dayPhase: () => number, mode?: PineWeatherMode): PineAir {
+  const air = new PineAir({ seed: host.level.seed, ...(mode === undefined ? {} : { mode }) });
+  host.onStep('pine.air', dt => { air.step(dt, dayPhase()); }, {
+    snapshot: () => air.snapshot(), restore: saved => { air.restore(saved); },
+  });
+  return air;
 }
