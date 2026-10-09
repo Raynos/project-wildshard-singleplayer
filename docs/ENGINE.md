@@ -1397,6 +1397,10 @@ The starter set (`@wildshard/game/systems/effects/starter`) is `effect.poison`, 
 `makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `installRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,
 `AmmoId`, `AmmoRow`, `ProjectileModification`, and the shared viewmodel helpers in `./combat/view/ranged`
 (`Puffs`, `worldHit`, `FOV_HIP`, `FOV_ADS`, `viewmodelMaterial`, `TRACER_ORDER` … listed in the appendix).
+Renderer-free numeric ranged laws are defined by `./combat/shotSpread` (`shotSpread`, `ShotCone`,
+`drawnSpreadDegrees`, `instantSpreadDegrees`) and `./world/windField` (`clockGust`, `fieldGustAt`, `WindFieldSpec`).
+Cones consume exactly four caller-supplied gameplay draws; wind reads only its explicit clock, gust and front policy.
+Callers own scratch vectors, easing, tuning and continuation; neither law reads the page or installs a service.
 **Melee view ports**: `Move`, `Key`, `Trail`, `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`.
 **Arms ports**: `ARM_PAL`, `gloveFist`, `riderArm`, `placeArm`, `forearm` (Nalati's arms, waiting to move);
 `buildHoverboard` (the hoverboard's geometry).
