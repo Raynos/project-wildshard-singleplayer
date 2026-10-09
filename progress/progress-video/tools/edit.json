@@ -1,0 +1,95 @@
+{
+ "music": "music-edit.wav",
+ "musicStart": 0,
+ "fade": 1.6,
+ "xfade": 0.35,
+ "segments": [
+  {
+   "dir": "shot-pine-d01",
+   "from": 0,
+   "dur": 3.0,
+   "cards": [
+    {
+     "png": "title",
+     "in": 0.1,
+     "out": 2.55
+    }
+   ]
+  },
+  {
+   "dir": "shot-d01a",
+   "from": 0,
+   "dur": 6.15,
+   "cards": [
+    {
+     "png": "day1",
+     "in": 0.35,
+     "out": 5.6
+    }
+   ]
+  },
+  {
+   "dir": "shot-drift-d08",
+   "from": 0,
+   "dur": 3.1,
+   "cards": [
+    {
+     "png": "week1",
+     "in": 0.15,
+     "out": 2.65
+    }
+   ]
+  },
+  {
+   "dir": "shot-nalati-d08",
+   "from": 0.3,
+   "dur": 2.9
+  },
+  {
+   "dir": "shot-nine-d15",
+   "from": 0,
+   "dur": 3.1,
+   "cards": [
+    {
+     "png": "week2",
+     "in": 0.15,
+     "out": 2.55
+    }
+   ]
+  },
+  {
+   "dir": "shot-pine-d15",
+   "from": 0,
+   "dur": 3.0
+  },
+  {
+   "dir": "shot-sky-d22",
+   "from": 0,
+   "dur": 3.1,
+   "cards": [
+    {
+     "png": "week3",
+     "in": 0.15,
+     "out": 2.65
+    }
+   ]
+  },
+  {
+   "dir": "shot-dunes-d22",
+   "from": 0.3,
+   "dur": 2.9
+  },
+  {
+   "dir": "endbg",
+   "from": 0,
+   "dur": 2.0,
+   "cards": [
+    {
+     "png": "end",
+     "in": 0.05,
+     "out": 5
+    }
+   ]
+  }
+ ]
+}
