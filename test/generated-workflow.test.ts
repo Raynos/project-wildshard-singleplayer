@@ -14,6 +14,7 @@ import { checkShardfileReference } from '../scripts/docs/gen-shardfile-reference
 import { checkCommitted, regenerateCommitted } from '../scripts/regenerate-committed.mjs';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { precommitGenerated } from '../scripts/precommit-generated.mjs';
+import { manifestOutcome, refreshWitnesses, withInputs } from '../scripts/witness-manifests.mjs';
 
 function fixture(run: (root: string, put: (file: string, value: string) => void, git: (args: string[]) => string) => void | Promise<void>, reference = true): Promise<void> {
   const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'sf6b-fixture-')));
@@ -22,7 +23,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   return (async () => {
     try {
       cpSync('lint', resolve(root, 'lint'), { recursive: true });
-      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
+      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/witness-manifests.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
         mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
@@ -179,4 +180,84 @@ describe('SF6b clean committed regeneration', () => {
       await expect(checkCommitted(root, git(['rev-parse', 'HEAD']))).rejects.toThrow('serialized regeneration');
     });
   }, 30_000);
+});
+
+// A stand-in witness: inputs.txt plays the loaded-module hash, payload.txt and ticks.txt the recorded behaviour.
+const FAKE_WITNESS = `import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
+const at = (file) => new URL(file, import.meta.url), read = (file) => readFileSync(at(file), 'utf8').trim();
+const inputs = read('inputs.txt'), manifest = JSON.parse(read('checkpoints/manifest.json'));
+if (process.argv[2] === 'fresh') { console.info(JSON.stringify({ status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs })); process.exitCode = manifest.inputs === inputs ? 0 : 1; }
+else if (process.argv[2] === 'checkpoints') {
+  appendFileSync(at('recordings.log'), 'x');
+  writeFileSync(at('checkpoints/a.snap.gz'), read('payload.txt'));
+  writeFileSync(at('checkpoints/manifest.json'), JSON.stringify({ inputs, ticks: Number(read('ticks.txt')) }, null, 2) + '\\n');
+} else throw new Error('mode');
+`;
+const fakeManifest = (inputs: string, ticks = 7): string => `${JSON.stringify({ inputs, ticks }, null, 2)}\n`;
+function fakeWitness(put: (file: string, value: string) => void, inputs = 'aa'): void {
+  put('test/proof/fake/run.mjs', FAKE_WITNESS); put('test/proof/fake/inputs.txt', inputs); put('test/proof/fake/payload.txt', 'p1'); put('test/proof/fake/ticks.txt', '7');
+  put('test/proof/fake/checkpoints/a.snap.gz', 'p1'); put('test/proof/fake/checkpoints/manifest.json', fakeManifest(inputs));
+}
+describe('SF6b witness manifests re-recorded at the serialized push', () => {
+  it('blanks only the top-level inputs hash', () => {
+    const text = '{\n  "inputs": "aa",\n  "nested": {\n    "inputs": "zz"\n  }\n}\n';
+    expect(manifestOutcome(text)).toBe('{\n  "inputs": "",\n  "nested": {\n    "inputs": "zz"\n  }\n}\n');
+    expect(withInputs(text, 'bb')).toBe(text.replace('"aa"', '"bb"'));
+    expect(() => manifestOutcome('{\n  "ticks": 1\n}\n')).toThrow('single top-level');
+  });
+  it('refreshes input-only staleness, remembers the verified triple and names every changed payload', async () => {
+    const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'witness-fixture-'))), cache = resolve(root, 'cache');
+    const put = (file: string, value: string): void => { mkdirSync(dirname(resolve(root, file)), { recursive: true }); writeFileSync(resolve(root, file), value); };
+    const recordings = (): number => { try { return readFileSync(resolve(root, 'test/proof/fake/recordings.log'), 'utf8').length; } catch { return 0; } };
+    try {
+      put('scripts/sim-node-loader.mjs', ''); fakeWitness(put);
+      await expect(refreshWitnesses(root, cache)).resolves.toEqual({});
+      expect(recordings()).toBe(0);
+      put('test/proof/fake/inputs.txt', 'bb');
+      await expect(refreshWitnesses(root, cache)).resolves.toEqual({ 'test/proof/fake/checkpoints/manifest.json': fakeManifest('bb') });
+      expect(recordings()).toBe(1);
+      put('test/proof/fake/checkpoints/manifest.json', fakeManifest('aa')); // a retried export of the same commit
+      await expect(refreshWitnesses(root, cache)).resolves.toEqual({ 'test/proof/fake/checkpoints/manifest.json': fakeManifest('bb') });
+      expect(recordings()).toBe(1);
+      put('test/proof/fake/checkpoints/manifest.json', fakeManifest('aa')); put('test/proof/fake/inputs.txt', 'cc'); put('test/proof/fake/payload.txt', 'p2');
+      await expect(refreshWitnesses(root, cache)).rejects.toThrow(/fake: the re-record on clean HEAD changed a\.snap\.gz;/u);
+      put('test/proof/fake/checkpoints/manifest.json', fakeManifest('aa')); put('test/proof/fake/checkpoints/a.snap.gz', 'p1'); put('test/proof/fake/payload.txt', 'p1'); put('test/proof/fake/ticks.txt', '8');
+      await expect(refreshWitnesses(root, cache)).rejects.toThrow('fake: the re-record on clean HEAD changed manifest.json (recorded outcome)');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  }, 30_000);
+  it('commits refreshed input hashes in the regeneration commit and refuses a changed payload without touching HEAD', async () => {
+    await fixture(async (root, put, git) => {
+      fakeWitness(put); git(['add', '--', 'test']); git(['commit', '-qm', 'witness', '--', 'test']);
+      const fresh = git(['rev-parse', 'HEAD']);
+      expect(await regenerateCommitted(root)).toBe(fresh);
+      put('test/proof/fake/inputs.txt', 'bb'); git(['commit', '-qm', 'a loaded module changed', '--', 'test/proof/fake/inputs.txt']);
+      const source = git(['rev-parse', 'HEAD']), sha = await regenerateCommitted(root);
+      expect(git(['show', `${sha}:test/proof/fake/checkpoints/manifest.json`])).toBe(fakeManifest('bb').trim());
+      expect(git(['diff-tree', '--no-commit-id', '--name-only', '-r', sha])).toBe('test/proof/fake/checkpoints/manifest.json');
+      expect(git(['show', '-s', '--format=%B', sha])).toContain(`payloads byte-identical: fake\n\nGenerated-Source: ${source}`);
+      expect(readFileSync(resolve(root, 'test/proof/fake/checkpoints/manifest.json'), 'utf8')).toBe(fakeManifest('bb'));
+      await expect(checkCommitted(root, sha)).resolves.toBeUndefined();
+      put('test/proof/fake/inputs.txt', 'cc'); put('test/proof/fake/payload.txt', 'p2');
+      git(['commit', '-qm', 'behaviour changed without a rebake', '--', 'test/proof/fake/inputs.txt', 'test/proof/fake/payload.txt']);
+      const behaviour = git(['rev-parse', 'HEAD']);
+      await expect(regenerateCommitted(root)).rejects.toThrow(/payloads changed; the push refuses them:\n {2}fake: the re-record on clean HEAD changed a\.snap\.gz/u);
+      expect(git(['rev-parse', 'HEAD'])).toBe(behaviour);
+      put('test/proof/fake/checkpoints/manifest.json', `${JSON.stringify({ inputs: 'cc', ticks: 9 }, null, 2)}\n`);
+      git(['commit', '-qm', `forged\n\nGenerated-Source: ${behaviour}`, '--', 'test/proof/fake/checkpoints/manifest.json']);
+      await expect(checkCommitted(root, git(['rev-parse', 'HEAD']))).rejects.toThrow('never its payload records');
+    });
+  }, 60_000);
+  it('refuses a builder commit that only refreshes a witness input hash, but admits a deliberate rebake', () => {
+    const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'witness-precommit-')));
+    const put = (file: string, value: string): void => { mkdirSync(dirname(resolve(root, file)), { recursive: true }); writeFileSync(resolve(root, file), value); };
+    const git = (args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+    try {
+      git(['init', '-q', '-b', 'main']); git(['config', 'user.name', 'fixture']); git(['config', 'user.email', 'fixture@example.invalid']);
+      fakeWitness(put); git(['add', '--', 'test']); git(['commit', '-qm', 'witness']);
+      put('test/proof/fake/checkpoints/manifest.json', fakeManifest('bb')); git(['add', '--', 'test']);
+      expect(() => { precommitGenerated(root); }).toThrow('Builders leave witness input hashes to scripts/push-main.sh');
+      put('test/proof/fake/checkpoints/manifest.json', fakeManifest('bb', 8)); put('test/proof/fake/checkpoints/a.snap.gz', 'p2'); git(['add', '--', 'test']);
+      expect(() => { precommitGenerated(root); }).not.toThrow();
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
 });

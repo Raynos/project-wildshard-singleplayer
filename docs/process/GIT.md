@@ -34,6 +34,12 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   before the gate. Working and staged edits from another builder stay untouched; never hand-merge these outputs.
   Write JSDoc and manual API explanations with the source. The gate checks the complete committed docs before
   Vercel filters them out, and refuses stale bytes or generated edits outside the regeneration commit.
+- **Witness input hashes are the pusher's too.** `scripts/witness-manifests.mjs` re-records every stale
+  `test/proof/<slug>/checkpoints/manifest.json` with its real recorder on the same clean export, beside the generators
+  (~12–18 s, hidden behind them; verified triples cached in `.git/witness-verified/`), and puts the new `inputs` in the
+  regeneration commit only when every payload and recorded outcome is byte-identical. Any other byte fails the push,
+  naming the shard and payload: a behaviour change rebakes on purpose (`run.mjs checkpoints`) with its source.
+  Pre-commit refuses a builder's input-only manifest refresh; a locally stale `fresh` test is the pusher's to fix.
 - **Policy is source, never generated.** Ratchet allow lists, budgets and Debug-row caps require the coordinator's
   reviewed source commit. SF2 `lint/shard-coupling.json` and historical allowances remain shrink-only. Debt and
   graph reductions regenerate automatically; increases warn in pre-commit and require the coordinator's exact

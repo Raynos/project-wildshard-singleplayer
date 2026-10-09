@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SF6b: called only by the serialized pusher; builders leave generated parts alone.
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -9,6 +10,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { GENERATED_FILES, generatedIncreases, generatedPart, increaseTrailers, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
+import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
 
 const text = (root, args, input, env = process.env) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, input, env }).trim();
 /** Materialize committed input only, with each workspace link pointing inside this export. */
@@ -30,12 +32,30 @@ function committedText(root, sha, file) {
   const listed = execFileSync('git', ['ls-tree', '--name-only', sha, '--', file], { cwd: root, encoding: 'utf8' }).trim();
   return listed === '' ? null : execFileSync('git', ['show', `${sha}:${file}`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
+/**
+ * Re-record the export's stale witness manifests in a child process, beside the synchronous generators (a commit
+ * without scripts/witness-manifests.mjs has none). Rejects, naming each shard and payload, when a payload changed.
+ */
+async function refreshWitnessManifests(root, scratch) {
+  const script = resolve(scratch, 'scripts/witness-manifests.mjs'), result = resolve(scratch, 'witness-manifests.result.json');
+  if (!existsSync(script)) return {};
+  const cache = resolve(text(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']), 'witness-verified');
+  const child = spawn(process.execPath, [script, '--refresh', scratch, cache, result], { cwd: scratch, stdio: ['ignore', 'inherit', 'pipe'] });
+  let stderr = '';
+  child.stderr.on('data', (chunk) => { stderr += String(chunk); });
+  const [code] = await once(child, 'close');
+  if (code !== 0) throw new Error(stderr.trim() || `witness-manifests exited ${String(code)}`);
+  return JSON.parse(readFileSync(result, 'utf8'));
+}
 export async function regenerateCommitted(root, approvalFile) {
   for (let attempt = 0; attempt < 12; attempt++) {
     const base = text(root, ['rev-parse', 'HEAD']);
     const scratch = realpathSync(mkdtempSync(resolve(tmpdir(), 'wildshard-generated-')));
+    let witnesses = Promise.resolve({});
     try {
       committedExport(root, base, scratch);
+      witnesses = refreshWitnessManifests(root, scratch);
+      witnesses.catch(() => undefined); // awaited below; never an unhandled rejection while the generators run
       const { generatedFiles } = await import(pathToFileURL(resolve(scratch, 'scripts/generated-files.mjs')).href);
       const candidate = generatedFiles(scratch), increases = generatedIncreases(measurement(root, base), candidate.measurement);
       let trailers = '';
@@ -45,7 +65,10 @@ export async function regenerateCommitted(root, approvalFile) {
         trailers = increaseTrailers(approval.increases, approval.approver);
         verifyIncreaseTrailers(increases, trailers);
       }
-      const changed = Object.entries(candidate.outputs).filter(([file, content]) => committedText(root, base, file) !== content);
+      let witnessOutputs;
+      const waitFrom = performance.now();
+      try { witnessOutputs = await witnesses; console.log(`generated-files: witness manifests waited ${((performance.now() - waitFrom) / 1000).toFixed(1)} s after the generators`); } catch (error) { if (text(root, ['rev-parse', 'HEAD']) !== base) continue; throw error; }
+      const changed = Object.entries({ ...candidate.outputs, ...witnessOutputs }).filter(([file, content]) => committedText(root, base, file) !== content);
       if (text(root, ['rev-parse', 'HEAD']) !== base) continue;
       if (changed.length === 0) { console.log(`generated-files: ${base.slice(0, 9)} already current`); return base; }
       const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base };
@@ -59,7 +82,9 @@ export async function regenerateCommitted(root, approvalFile) {
           throw new Error(`Generated pre-commit failed: ${hook.stderr.length > 0 ? hook.stderr : hook.stdout}`);
         }
       }
-      const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\nGenerated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\nPlan-State: unchanged\n`;
+      const refreshed = Object.keys(witnessOutputs).map((file) => file.split('/')[2]).join(', ');
+      const witnessNote = refreshed === '' ? '' : `Witness inputs re-recorded on clean HEAD, payloads byte-identical: ${refreshed}\n\n`;
+      const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\n${witnessNote}Generated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\nPlan-State: unchanged\n`;
       const messageFile = resolve(scratch, 'message'); writeFileSync(messageFile, message);
       if (existsSync(resolve(root, '.githooks/commit-msg'))) execFileSync(resolve(root, '.githooks/commit-msg'), [messageFile], { cwd: root, env, stdio: 'inherit' });
       const sha = text(root, ['commit-tree', text(root, ['write-tree'], undefined, env), '-p', base], message, env);
@@ -98,7 +123,10 @@ export async function regenerateCommitted(root, approvalFile) {
       }
       console.log(`generated-files: committed ${sha} from ${base} (${changed.length} outputs)`);
       return sha;
-    } finally { rmSync(scratch, { recursive: true, force: true }); }
+    } finally {
+      await witnesses.catch(() => undefined);
+      rmSync(scratch, { recursive: true, force: true });
+    }
   }
   throw new Error('Generated regeneration source changed 12 times; retry after the source commit burst settles');
 }
@@ -113,7 +141,11 @@ export async function checkCommitted(root, sha) {
     const generatedChanged = changed.filter((file) => GENERATED_FILES.includes(file) && generatedPart(file, committedText(root, parent, file) ?? '') !== generatedPart(file, committedText(root, sha, file) ?? ''));
     if (generatedChanged.length > 0 && !message.split('\n').includes(`Generated-Source: ${parent}`)) throw new Error('Generated edits require a serialized regeneration commit naming its exact source parent');
     if (message.split('\n').some((line) => line.startsWith('Generated-Source: '))) {
-      if (!message.split('\n').includes(`Generated-Source: ${parent}`) || changed.some((file) => !GENERATED_FILES.includes(file))) throw new Error('Regeneration commit may only touch generated outputs of its exact parent');
+      if (!message.split('\n').includes(`Generated-Source: ${parent}`) || changed.some((file) => !GENERATED_FILES.includes(file) && !isWitnessManifest(file))) throw new Error('Regeneration commit may only touch generated outputs of its exact parent');
+      for (const file of changed.filter(isWitnessManifest)) {
+        const before = committedText(root, parent, file), after = committedText(root, sha, file);
+        if (before === null || after === null || manifestOutcome(before) !== manifestOutcome(after)) throw new Error(`Regeneration may only refresh the inputs hash of ${file}, never its payload records`);
+      }
       if (!isDeepStrictEqual(replaceDebt(measurement(root, parent).ratchet, {}), replaceDebt(measurement(root, sha).ratchet, {}))) throw new Error('Regeneration cannot modify ratchet policy inputs');
       const beforeDoc = text(root, ['show', `${parent}:docs/ENGINE.md`]), afterDoc = text(root, ['show', `${sha}:docs/ENGINE.md`]);
       const manual = (doc) => doc.replace(generatedPart('docs/ENGINE.md', doc), '');

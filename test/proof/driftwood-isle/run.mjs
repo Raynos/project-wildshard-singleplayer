@@ -27,7 +27,7 @@ function inputs() {
 const mode = process.argv.at(2) ?? 'all';
 const freshness = () => { const result = witness.checkpointsFresh(inputs()); if (result.status !== 'fresh') throw new Error(`Stale Driftwood checkpoints: ${JSON.stringify(result)}`); return result; };
 if (mode === 'checkpoints') console.info(JSON.stringify(await witness.recordGameplay(await witness.driftwoodRapier(), inputs())));
-else if (mode === 'fresh') console.info(JSON.stringify(freshness()));
+else if (mode === 'fresh') { const result = witness.checkpointsFresh(inputs()); console.info(JSON.stringify(result)); process.exitCode = result.status === 'fresh' ? 0 : 1; }
 else {
   freshness(); const rapier = await witness.driftwoodRapier();
   /** @type {Record<string, unknown>} */
