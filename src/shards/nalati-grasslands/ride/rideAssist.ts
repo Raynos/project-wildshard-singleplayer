@@ -13,6 +13,8 @@
  *        adds speed (up to +12 %); an off-beat or mashed tap breaks the streak.
  */
 
+import * as v from 'valibot';
+
 export type RoadXZ = readonly [number, number];
 
 /** m from a road's centre line the horse still counts as on it (the trails' beds are ~5–7 m wide) */
@@ -81,6 +83,9 @@ const SPUR_LATCH = 1.35;
 export const SPUR_MAX_STREAK = 3, SPUR_BOOST_PER = 0.04;
 
 export type SpurTap = 'good' | 'early' | 'off';
+const SpurState = v.strictObject({ version: v.literal(1), streak: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(SPUR_MAX_STREAK)),
+  latchT: v.pipe(v.number(), v.finite(), v.minValue(0)), good: v.pipe(v.number(), v.integer(), v.minValue(0)), lastTap: v.pipe(v.number(), v.finite()) });
+export type RhythmSpurState = v.InferOutput<typeof SpurState>;
 
 export class RhythmSpur {
   /** good taps in a row (0..SPUR_MAX_STREAK) */
@@ -109,6 +114,10 @@ export class RhythmSpur {
   }
 
   reset(): void { this.streak = 0; this.latchT = 0; this.lastTap = -1e9; }
+
+  /** Exact rhythm continuation, including the previous press that makes a rapid repeat count as mashing. */
+  snapshot(): RhythmSpurState { return v.parse(SpurState, { version: 1, streak: this.streak, latchT: this.latchT, good: this.good, lastTap: this.lastTap }); }
+  restore(value: unknown): void { const s = v.parse(SpurState, value); this.streak = s.streak; this.latchT = s.latchT; this.good = s.good; this.lastTap = s.lastTap; }
 
   /** the rhythm is holding the gallop */
   get latched(): boolean { return this.latchT > 0; }

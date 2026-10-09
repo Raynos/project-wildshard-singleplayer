@@ -18,7 +18,8 @@ import { wildEnv } from '../creatures/env';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Sabre, type MountState } from '../runtime/weapons/Sabre';
 import { Spear } from '../runtime/weapons/Spear';
-import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';
+import type { RoadXZ } from './rideAssist';
+import { MountedReins, type ReinsFrame } from '../runtime/rideReins';
 import type { NalatiRecord } from '../runtime/persistence';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 
@@ -97,7 +98,7 @@ interface Mountable { a: Animal; name: string; it: Interactable; restT: number; 
 const EYE = 2.3;                      // rider eye over the ground at horse scale 1 (withers 1.45 + a seated rider)
 const LOOK_LIMIT = THREE.MathUtils.degToRad(140), BREAK_LOOK = THREE.MathUtils.degToRad(35);
 const MOUNT_T = 0.55;                 // s: the swing up / down
-const STEED_MAX = 100, STEED_GALLOP = 12, STEED_WALK = 15, STEED_CANTER = 5, STEED_RESUME = 25;
+const STEED_MAX = 100, STEED_GALLOP = 12, STEED_WALK = 15, STEED_CANTER = 5;
 const BOLT_AT = 0.2, REST_TIME = 180, WHISTLE_RANGE = 150;
 // R2: the horse's body — a capsule lying along it (nose to rump, girth), its step, its climb limit by speed, the jump
 const BODY = { length: 2.4, radius: 0.42, step: 0.45, snap: 0.5, kg: 450 };
@@ -107,12 +108,8 @@ const JUMP_APEX_T = JUMP_V / GRAVITY;     // s to the top of the arc (the auto j
 // R3: the herd against a rider
 const JOSTLE_CD = 0.45, UNSEAT_CLOSING = 9, THROWN_DAMAGE = 10;
 // N17 (docs/design/nalati/riding-research.md "The Wildshard design"): the reins steer in the horse's frame, the view rides it
-const SECTOR = 0.38;                 // the stick's forward / back sectors: |y| > 0.38 × its length (~67° either side of up / down)
-const PIVOT_SPEED = 0.6, BACK_SPEED = 1.1;   // m/s: the stick beside you from a stand (a turn on the spot), reining back
 /** rad/s turn at full rein per gait (between them it blends by speed) — at a gallop 0.62 rad/s = a ~21 m radius */
-const TURN = { stand: 1.5, walk: 1.35, trot: 1.1, canter: 0.85, gallop: 0.62 };
 const TURN_EASE = 4.5;               // 1/s: the turn's rate eases toward the rein (~0.22 s) — no snap, and the head leads it
-const DRAW_TURN = 0.6;               // the rein's turn while you draw (a steadier line to shoot from)
 const ACCEL = 3.6, ACCEL_HI = 2.2, COAST = 3.2, REIN = 8;   // m/s²: speeding up (the gallop's last gear slower), letting go, reining back
 /** the free look's return: after `delay` s without a look (slow → gallop), toward the ears at `rate` + `perMs` × speed per s */
 const RECENTRE = { delaySlow: 1.2, delayFast: 0.8, rate: 1.1, perMs: 0.14, pitch: 0 };
@@ -122,25 +119,24 @@ const ROLL_PER_RATE = 0.05;          // rad of roll per rad/s of turn (scaled by
 const TILT_FOLLOW = 0.3;             // the share of the horse's slope pitch / roll the rider's view takes (a rider balances upright)
 const SEAT_TILT = 0.13;
 // B1: the skid stop, the rhythm spur's STEED, the panic
-const SKID_MIN = 7, SKID = 16, SKID_TIME = 1.2, SKID_TURN = 1.6, SKID_REAR = 0.28;   // m/s it starts from, m/s² it stops at, s at most, the pivot's rein ×
+const SKID = 16, SKID_REAR = 0.28;   // m/s it starts from, m/s² it stops at, s at most, the pivot's rein ×
 const STEED_RHYTHM = 2;              // STEED/s a gallop held by the rhythm costs (a held GALLOP: STEED_GALLOP)
-const PANIC_REAR = 0.5, PANIC_SPEED = 9.5, PANIC_TURN = 2, PANIC_REAR_POSE = 0.45;   // s the horse rears first (from a walk or a stand), m/s it bolts at, its whirl (rein ×), the rear knob (higher lifts its neck into the rider's eye)
-const ROAD_TURN = 2.2;               // the rein per radian off the road's line ahead
+const PANIC_REAR = 0.5, PANIC_REAR_POSE = 0.45;   // s the horse rears first (from a walk or a stand), m/s it bolts at, its whirl (rein ×), the rear knob (higher lifts its neck into the rider's eye)
 const FORD_DEPTH = 0.95;             // m of water a horse wades before it swims (its back stays dry)               // rad the saddle view looks down past the player's pitch
 const _e = new THREE.Euler(0, 0, 0, 'YXZ'), _seat = new THREE.Vector3(), _tilt = new THREE.Euler(0, 0, 0, 'YXZ');
 const _from = { x: 0, y: 0, z: 0 }, _dir = { x: 0, y: 0, z: 0 }, _want = { x: 0, y: 0, z: 0 };
 const angDiff = (a: number, b: number): number => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
-export class Mount {
+export class Mount extends MountedReins {
   /** the horse under you (null on foot) */
   horse: Animal | null = null;
   input: InputService | null = null;
   equipment: (() => EquipmentService | null) | null = null;
   get mounted(): boolean { return this.horse !== null; }
   /** STEED stamina 0..100 */
-  steed = STEED_MAX;
+
   /** gallop exhausted: no gallop until STEED_RESUME */
-  winded = false;
+
   /** 'walk' | 'trot' | 'canter' | 'gallop' | 'stand' — for the HUD / audio */
   gait: 'stand' | 'walk' | 'trot' | 'canter' | 'gallop' = 'stand';
   /** leaning low over the neck (full gallop, not drawing) */
@@ -148,7 +144,7 @@ export class Mount {
   /** the GALLOP disc (touch, RideHUD) */
   touchGallop = false;
   /** the bucking mini-game (Taming.ts) owns the horse: no rider control, it sets `breakRoll` / `breakShake` */
-  breaking = false;
+
   breakRoll = 0; breakShake = 0;
   /** MOUNT prompts for main's interactable list (one per mountable; label follows the state) */
   readonly interactables: Interactable[] = [];
@@ -159,13 +155,13 @@ export class Mount {
 
   onPanic?: ((horse: Animal, secs: number) => void) | undefined;
   /** B1: the rhythm spur (its streak / good taps), the beat now (the GALLOP disc pulses), a counter bumped per good tap */
-  readonly spur = new RhythmSpur();
-  beat = false;
-  spurFlash = 0;
+
+
+
   /** B1: keeping to a road with the stick let go (for the HUD / tests); skidding (s left); panicking (s left) */
-  onRoad = false;
-  skidT = 0;
-  panicT = 0;
+
+
+
 
   /** R3: jostles taken this ride (the stampede against the rider) and what threw you last ('stampede'), for the HUD / tests */
   jostles = 0;
@@ -174,39 +170,57 @@ export class Mount {
   private readonly player: Player;
   private swingT = 0; private swingDir = 0;
   private readonly swingFrom = new THREE.Vector3();
-  private heading = 0;
-  private speed = 0;
-  private wUp = 0;               // keyboard W held time (trot → canter)
+
+
+
   private yawRate = 0;           // rad/s the heading turns (eased toward the rein's rate)
   private camYaw = 0; private camPitch = 0;   // the view as pose() left it (a change since = the player looked)
   private lookIdle = 0;          // s since the player last looked (the free-look clock)
   private sway = 0;
   private bobPh = 0; private bobY = 0; private rock = 0; private roll = 0;
   private eyeY = 0;
-  private jumpWas = false; private jumpQueued = false;
+
   private readonly vel = new THREE.Vector3();
   // ── the reins as drive() read them (input phase), for the fixed steps ──
-  private target = 0; private rateIn = 0; private turnIn = 0; private sector = 2;
-  private galloping = false; private drawing = false;
+
+
   // ── the body (R2): the feet on the horse's motor, stepped at 60 Hz; the last step's pose for the interpolation ──
   private motor: CharacterMotor | null = null;
   private readonly feet = new THREE.Vector3();
   private readonly prevFeet = new THREE.Vector3();
   private prevHeading = 0; private poseHeading = 0;
   private vy = 0;
-  private grounded = true; private onDeck = false; private swimming = false;
+  private onDeck = false; private swimming = false;
   private airT = -1; private blockedT = 0;             // s since take-off (−1 = on the ground): the jump's rear / kick poses
   // ── R3: the herd's shove (m/s, fading) and the view's jolt ──
-  private shoveX = 0; private shoveZ = 0; private jostleCd = 0; private jolt = 0;
+  private shoveX = 0; private shoveZ = 0; private jostleCd = 0;
   // ── B1: the gait kept on a road, the GALLOP press edge + the stride's clock, the reins' last sector, the panic's way ──
-  private cruise = 0;
-  private gallopWas = false; private tapQueued = false; private clock = 0; private lastPhase = 0; private strideHz = 2;
-  private sectorWas = 2; private skidDip = 0;
-  private panicYaw = 0; private panicRear = 0;
 
+
+  private skidDip = 0;
+
+
+  private readonly reinsFrame: ReinsFrame;
   constructor(private opts: MountOpts) {
+    super(HORSE_SPEED);
     this.player = opts.player;
-
+    const p = this.player;
+    const makeFrame = (m: Mount): ReinsFrame => {
+      const held = (action: 'move.forward' | 'move.back' | 'move.left' | 'move.right', key: string): number => (m.input ? m.input.held(action) : p.keys.has(key)) ? 1 : 0;
+      return {
+      get forward() { return held('move.forward', 'KeyW') - held('move.back', 'KeyS'); },
+      get turn() { return held('move.right', 'KeyD') - held('move.left', 'KeyA'); },
+      get touchX() { return p.touchMove.x; }, get touchY() { return p.touchMove.y; },
+      get gallop() { return m.input ? m.input.held('ride.gallop') : p.keys.has('ShiftLeft') || p.keys.has('ShiftRight') || m.touchGallop; },
+      get jump() { return p.keys.has('Space') || p.touchJump; },
+      get drawing() { return m.opts.isDrawing?.() ?? false; }, get moveScale() { return p.moveScale; },
+      get phase() { return m.horse?.gaitPhase ?? 0; }, feet: m.feet,
+      get roads() { return m.roadsOverride ?? m.opts.roads; }, inBounds: inChunk,
+      refuses: (x, z) => m.refuse?.(x, z) === true,
+      get wet() { return wildEnv.wetAt?.(m.feet.x, m.feet.z) === true || heightAt(m.feet.x, m.feet.z) < waterLevel() - 0.2; },
+      };
+    };
+    this.reinsFrame = makeFrame(this);
   }
 
   /** B1: a GALLOP press (the disc's press, a Shift keydown) — counted even when the tap is shorter than a frame */
@@ -404,96 +418,14 @@ export class Mount {
     const a = this.horse, p = this.player;
     if (a === null) { p.ride = null; return; }
     if (!a.alive || a.hidden) { this.dismount(true); return; }
-    const k = p.keys;
-    const drawing = this.opts.isDrawing?.() ?? false;
     // ── the look the player gave since last frame (mouse, a LOOK drag, the aim assist): it restarts the free-look clock ──
     if (Math.abs(angDiff(p.yaw, this.camYaw)) > 1e-4 || Math.abs(p.pitch - this.camPitch) > 1e-4) this.lookIdle = 0;
     else this.lookIdle += dt;
     // ── input, in the HORSE's frame (never the camera's): forward / back = the reins' speed, left / right = turn ──
-    const held = (action: 'move.forward' | 'move.back' | 'move.left' | 'move.right', key: string): number => (this.input ? this.input.held(action) : k.has(key)) ? 1 : 0;
-    const fwdK = held('move.forward', 'KeyW') - held('move.back', 'KeyS'), strK = held('move.right', 'KeyD') - held('move.left', 'KeyA');
-    const tx = p.touchMove.x, ty = p.touchMove.y, stick = Math.hypot(tx, ty);
-    const turnIn = THREE.MathUtils.clamp(strK + tx, -1, 1);
-    const gallopKey = this.input ? this.input.held('ride.gallop') : k.has('ShiftLeft') || k.has('ShiftRight') || this.touchGallop;
-    this.wUp = fwdK > 0 ? this.wUp + dt : 0;
-    // the stick's sector (8 ways): ahead (within ~67° of up) = go, the gait by how far it is pushed; beside = a collected
-    // turn (at most a trot; a pivot on the spot from a stand); behind = rein in, then back up
-    const sector = stick > 0.1 ? (ty > SECTOR * stick ? 1 : ty < -SECTOR * stick ? -1 : 0) : fwdK !== 0 ? fwdK : strK !== 0 ? 0 : 2;
-    let target = 0;
-    if (sector === 1) target = stick > 0.1 ? (stick < 0.45 ? HORSE_SPEED.walk : stick < 0.85 ? HORSE_SPEED.trot : HORSE_SPEED.canter) : this.wUp < 0.9 ? HORSE_SPEED.trot : HORSE_SPEED.canter;
-    else if (sector === 0) target = THREE.MathUtils.clamp(this.speed, PIVOT_SPEED, HORSE_SPEED.trot);
-    else if (sector === -1) target = this.speed > 0.5 ? 0 : -BACK_SPEED * (stick > 0.1 ? Math.min(1, -ty / 0.8) : 1);
-    if (sector === 1) this.cruise = target; else if (sector === -1) this.cruise = 0;   // B1: the gait a road keeps
-    if (this.steed <= 0) this.winded = true;
-    if (this.winded && this.steed >= STEED_RESUME) this.winded = false;
-    // ── B1: the rhythm spur — a GALLOP press scored against the stride (the horse's gait phase; 0 = the downbeat) ──
-    this.clock += dt;
-    const ph = a.gaitPhase, dph = (ph - this.lastPhase + 1) % 1;
-    if (dt > 0 && dph < 0.5) this.strideHz += (dph / dt - this.strideHz) * Math.min(1, dt * 6);
-    this.lastPhase = ph;
-    const canSpur = this.speed > 6 && sector !== -1 && !this.winded && !this.breaking && this.panicT <= 0;
-    const press = this.tapQueued || (gallopKey && !this.gallopWas);
-    this.tapQueued = false;
-    this.gallopWas = gallopKey;
-    this.spur.update(dt);
-    if (!canSpur && this.speed < 5) this.spur.reset();
-    if (press && canSpur && this.spur.tap(this.clock, ph, 1 / Math.max(0.5, this.strideHz)) === 'good') this.spurFlash++;
-    this.beat = canSpur && Math.min(ph, 1 - ph) < SPUR_WINDOW;
-    const galloping = (gallopKey || this.spur.latched) && sector !== -1 && !this.winded && !this.breaking;
-    if (galloping) target = HORSE_SPEED.gallop * this.spur.boost;
-    // ── B1: the skid stop — the reins pulled back at a canter or faster ──
-    if (sector === -1 && this.sectorWas !== -1 && this.speed > SKID_MIN && this.grounded && !this.breaking) {
-      this.skidT = SKID_TIME; this.jolt = Math.max(this.jolt, 0.35);
-    }
-    if (sector !== -1) this.skidT = 0;
-    this.sectorWas = sector;
-    // ── B1: keep to the road — the stick let go on a road: the gait held (GALLOP gallops it), the reins along the road ──
-    let turnSteer = turnIn;
-    this.onRoad = false;
-    const roads = this.roadsOverride ?? this.opts.roads;
-    if (roads !== undefined && sector === 2 && !this.breaking && p.moveScale !== 0 && (this.speed > HORSE_SPEED.walk * 0.8 || galloping)) {
-      const r = roadSteer(roads, this.feet.x, this.feet.z, this.heading, 5 + Math.abs(this.speed) * 0.9);
-      if (r !== null) {
-        this.onRoad = true;
-        if (!galloping) target = Math.max(this.cruise, HORSE_SPEED.walk);
-        turnSteer = THREE.MathUtils.clamp(-angDiff(r.yaw, this.heading) * ROAD_TURN, -1, 1);
-      }
-    }
-    // ── B1: the panic — rear (from a stand), then bolt away from the scare, deaf to the reins ──
-    if (this.panicT > 0) {
-      this.panicT = Math.max(0, this.panicT - dt); this.panicRear = Math.max(0, this.panicRear - dt);
-      target = this.panicRear > 0 ? 0 : PANIC_SPEED;
-      turnSteer = THREE.MathUtils.clamp(-angDiff(this.panicYaw, this.heading) * 2.5, -1, 1);
-    }
-    if (this.breaking || p.moveScale === 0) target = 0;                       // the bucking rounds; a boss intro locks the reins
-    // (steep ground is the motor's: the horse's climb limit by gait, in step)
-    const ahead = 2 + this.speed * 0.4;
-    const ax = this.feet.x + Math.sin(this.heading) * ahead, az = this.feet.z + Math.cos(this.heading) * ahead;
-    if (!inChunk(ax, az, 6)) target = Math.min(target, 0);
-    // a line the horse will not cross (the Storm Titan's grass fire): it stops dead and shies
-    if (target > 0 && this.refuse?.(ax, az) === true) target = 0;
-    // fording: in the river / the brook the horse wades at a walk-trot, swimming (held at FORD_DEPTH) where it is deeper
-    const wet = wildEnv.wetAt?.(this.feet.x, this.feet.z) === true || heightAt(this.feet.x, this.feet.z) < waterLevel() - 0.2;
-    if (wet) target = Math.sign(target) * Math.min(Math.abs(target), HORSE_SPEED.walk * 1.6);
-    // the jump is an edge: queued until a fixed step takes it
-    const jumpDown = k.has('Space') || p.touchJump; p.touchJump = false;
-    if (jumpDown && !this.jumpWas && !this.breaking) this.jumpQueued = true;
-    this.jumpWas = jumpDown;
-    this.target = target; this.turnIn = turnSteer; this.sector = sector; this.galloping = galloping; this.drawing = drawing;
-    // the rein's turn (rad/s at full rein by speed, in step): stick right = heading down (animal yaw)
-    this.rateIn = this.breaking ? 0 : -turnSteer * (drawing && this.panicT <= 0 ? DRAW_TURN : 1) * (this.skidT > 0 ? SKID_TURN : this.panicT > 0 ? PANIC_TURN : 1);
-    // the head leads the turn: the neck swings to the rein first (eased in horse.ts), the body's turn follows it
-    a.mem['turnLead'] = THREE.MathUtils.clamp(this.rateIn * this.maxRate() / TURN.stand, -1, 1);
+    this.read(dt, this.reinsFrame);
+    p.touchJump = false;
+    a.mem['turnLead'] = this.turnLead;
     a.lookWeight = 0;   // no alert look-at under a rider (a stale one from the wait at the rail pulled the neck aside)
-  }
-
-  /** rad/s at full rein for the speed now: a pivot 86°/s → a gallop's 37°/s (a ~20 m radius) */
-  private maxRate(): number {
-    const sp = Math.abs(this.speed);
-    return sp < HORSE_SPEED.walk ? THREE.MathUtils.lerp(TURN.stand, TURN.walk, sp / HORSE_SPEED.walk)
-      : sp < HORSE_SPEED.trot ? THREE.MathUtils.lerp(TURN.walk, TURN.trot, (sp - HORSE_SPEED.walk) / (HORSE_SPEED.trot - HORSE_SPEED.walk))
-      : sp < HORSE_SPEED.canter ? THREE.MathUtils.lerp(TURN.trot, TURN.canter, (sp - HORSE_SPEED.trot) / (HORSE_SPEED.canter - HORSE_SPEED.trot))
-      : THREE.MathUtils.lerp(TURN.canter, TURN.gallop, Math.min(1, (sp - HORSE_SPEED.canter) / (HORSE_SPEED.gallop - HORSE_SPEED.canter)));
   }
 
   // ── one fixed step (Player.step, 60 Hz): the horse's body moves ───────────────────────────────────────────────────

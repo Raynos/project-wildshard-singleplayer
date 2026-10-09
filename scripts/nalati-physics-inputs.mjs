@@ -6,7 +6,7 @@ import { join, relative } from 'node:path';
 export function nalatiPhysicsInputs(root) {
   const paths = ['layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'edge.ts', 'wet.ts', 'outcrops.ts', 'cragRock.ts', 'terrainSurface.ts', 'water.ts', 'kokpar.ts',
     'runtime/index.ts', 'runtime/state.ts', 'runtime/groupDeclared.ts', 'runtime/groupDispatch.ts', 'runtime/groupPorts.ts', 'runtime/groupRegistry.ts', 'runtime/flockDeclared.ts', 'runtime/aqbarsKeeper.ts', 'runtime/argymaqKeeper.ts',
-    'look/grassFieldLayout.ts']
+    'runtime/rideReins.ts', 'look/grassFieldLayout.ts']
     .map(path => `src/shards/nalati-grasslands/${path}`);
   // the manager, the hunting brain and the group policies that roll and drive the bodies, the shared floor recipe
   paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/pack.ts', 'src/engine/ai/herd.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
