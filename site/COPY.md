@@ -47,7 +47,7 @@ build me a bright island with a pier, a wreck and a shrine
 
 ## Hero · image description
 
-Driftwood Isle from the air in the game
+Driftwood Isle in the game: a long pier into a turquoise sea under a ringed planet
 
 ## Hero · image tag
 

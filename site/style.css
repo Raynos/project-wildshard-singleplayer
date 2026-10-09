@@ -108,7 +108,7 @@
     .hero .ask { font-size: 13.5px; line-height: 1.45; }
     .hero .out { margin-top: 6px; font-size: 10.5px; line-height: 1.6; }
     .world { height: clamp(150px, 26svh, 260px); }
-    .world img { object-position: 50% 45%; }
+    .world img { object-position: 50% 62%; } /* Jake's pick A: the pier under the ringed planet */
     .world .tag { top: 8px; }
     .masthead { margin-top: -26px; }
     .kicker { font-size: 11px; }
@@ -308,7 +308,7 @@
     .hero .ask { font-size: 18px; }
     .hero .out { font-size: 12.5px; margin-top: 12px; }
     .world { grid-area: world; height: auto; }
-    .world img { position: absolute; inset: 0; object-position: 50% 90%; }
+    .world img { position: absolute; inset: 0; object-position: 50% 50%; }
     .masthead { grid-area: mast; margin: 0; padding: 0 40px 0 72px; align-self: center; }
     .kicker { font-size: 14px; }
     h1 { font-size: 122px; }
