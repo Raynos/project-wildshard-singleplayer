@@ -36,8 +36,8 @@ export interface TrophyWallOptions {
   /** wall width the slots spread over (m) and each row's centre height above the anchor */
   width: number;
   rowY: readonly number[];
-  /** the HUD root for the look-at tip */
-  hud?: HTMLElement;
+  /** draw the look-at tip on the HUD (a declared panel) */
+  tip?: boolean;
 }
 
 interface Placed { slot: TrophySlot; x: number; y: number; w: number; h: number }
@@ -173,9 +173,9 @@ export class TrophyWall {
       }
     });
     this.interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: 'Examine', onInteract: () => { if (this.looked) this.onExamine?.(this.looked.slot.entry); } };
-    if (opts.hud) {
+    if (opts.tip === true) {
       this.tip = declarePanel({ cls: 'ws-cmp-tip' });
-      mountPanel(this.tip, this.scope, opts.hud);
+      mountPanel(this.tip, this.scope);
     }
     this.group.name = 'trophy-wall';
     opts.anchor.add(this.group);
