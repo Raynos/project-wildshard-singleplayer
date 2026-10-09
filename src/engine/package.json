@@ -333,6 +333,7 @@
     "./ui/declared": "./ui/declared.ts",
     "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts",
     "./sim": "./sim.ts",
+    "./sim/bands": "./sim/bands.ts",
     "./sim/snapshot": "./sim/snapshot.ts",
     "./script/state": "./script/state.ts",
     "./script/lane": "./script/lane.ts",

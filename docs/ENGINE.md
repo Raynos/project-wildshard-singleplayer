@@ -1859,6 +1859,10 @@ step on the same clocks, so a runtime's brains need no copy of the scheduler. Th
 `CreatureBodies` run on the same functions (`src/engine/sim/bands.ts`). The clocks ride `SimSnapshot.bands`, absent
 for a host without bands.
 
+`@wildshard/engine/sim/bands` is the defining pure module for the shared decision/body clocks and creature capsule LOD.
+Trusted deferred-spawn installers use `creatureBodyDistance`, `keepsCreatureBody` and `creatureBodyShape` to synchronize
+a new native body at the same frame position as the page; callers do not duplicate its thresholds or shape law.
+
 `@wildshard/engine/sim/snapshot` exports `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost(host)`
 and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps; the versioned JSON state
 includes entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,
