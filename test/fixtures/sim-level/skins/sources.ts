@@ -12,10 +12,10 @@ import { mergeAnimalGeometry } from '../../../../src/engine/models/animalGeometr
 import { facetGeometry, lowPolyMaterials, oneMaterial } from '../../../../src/engine/entities/lowpoly';
 import { Rng } from '../../../../src/engine/core/rng';
 import { BOAR } from '../../../../src/kit/species/boar';
-import { BOAR_LOOK } from '../../../../src/kit/species/view/boar';
+import { BOAR_LOOK } from '../../../../src/game/systems/species/view/boar';
 import { GREY_BLOB_SOURCE, GREY_BLOB_SOURCE_LOOK } from './greyBlobSource';
 import { rigLegs } from '../../../../src/shards/pine-hollow/quest/npcRig';
-import { legBones, legPose } from '../../../../src/kit/npc/npcRig';
+import { legBones, legPose } from '../../../../src/game/systems/npc/npcRig';
 import { MeshStandardMaterial as StandardMaterial } from 'three';
 import type { ClipName } from '../../../../src/engine/anim/rig';
 

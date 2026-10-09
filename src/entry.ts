@@ -116,7 +116,7 @@ async function startSelected(): Promise<void> {
     retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
     retried(() => import('./game/models/pickups')), retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
-    retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
+    retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));

@@ -8,7 +8,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { rigLegs } from '../../../src/shards/pine-hollow/quest/npcRig';
-import { footPlan, legBones, legPose, LEG_BONE_NAMES, WALK, type LegBuilt } from '../../../src/kit/npc/npcRig';
+import { footPlan, legBones, legPose, LEG_BONE_NAMES, WALK, type LegBuilt } from '../../../src/game/systems/npc/npcRig';
 import type { NpcKind } from '../../../src/shards/pine-hollow/models/people';
 
 const DIR = new URL('../../../public/assets/pine-hollow/npcs/', import.meta.url);

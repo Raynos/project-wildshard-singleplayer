@@ -1,7 +1,7 @@
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { speciesDef } from '@wildshard/engine/entities/species/registry';
-import { BEAR_LOOK } from '@wildshard/kit/species/view/bear';
-import { BOAR_LOOK } from '@wildshard/kit/species/view/boar';
+import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
+import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
 import { PINE_BOAR, PINE_BEAR } from './rows';
 import { preloadPineCreatures, skinPineHull } from './hulls';
 import { ELK_THRALL_TINT, THRALL_TRAITS, thrallPose } from './thrall';

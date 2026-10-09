@@ -1,5 +1,5 @@
 // The authored profiles belong to Pine; the hull rig is shared kit content.
-import { rigLegs as build, legRigOf as cached, type LegBuilt } from '@wildshard/kit/npc/npcRig';
+import { rigLegs as build, legRigOf as cached, type LegBuilt } from '@wildshard/game/systems/npc/npcRig';
 import type { BufferGeometry } from 'three';
 import type { NpcKind } from '../models/people';
 import { NPC_RIGS } from './npcProfiles';

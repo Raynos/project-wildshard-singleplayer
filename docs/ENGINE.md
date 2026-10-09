@@ -19,6 +19,11 @@ import the game modules until their -p port. Nothing installs on import.
 geometry they are built from, moved unchanged from the kit (SF54). The composition root calls `installKitProps` /
 `installKitPickups`; nothing installs on import. Their baked commons entries are SF54 step 4.
 
+`@wildshard/game/systems/species/view/{boar,bear}` define the lofted boar and bear looks (`BOAR_LOOK`, `BEAR_LOOK`, the
+palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg rig (`NpcRig`, `rigLegs`, `legPose`, `WALK`).
+Both moved unchanged from the kit (SF54); shard files outside `runtime/` import them directly. They stay runtime
+builders until their baked commons entries (SF54 step 4) replace the procedural path.
+
 `@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;

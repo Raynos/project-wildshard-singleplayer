@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, Vector3 } from 'three';
-import { NpcRig } from '../../src/kit/npc/npcRig';
+import { NpcRig } from '../../src/game/systems/npc/npcRig';
 
 describe('NPC row lifecycle', () => {
   it('freezes distant poses and culls companions before updating', () => {

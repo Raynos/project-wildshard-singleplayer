@@ -7,8 +7,8 @@ import { SpeciesService, speciesWithLook } from '../../src/engine/entities/speci
 import { Scope } from '../../src/engine/app/scope';
 import { BOAR } from '../../src/kit/species/boar';
 import { BEAR } from '../../src/kit/species/bear';
-import { BOAR_LOOK } from '../../src/kit/species/view/boar';
-import { BEAR_LOOK } from '../../src/kit/species/view/bear';
+import { BOAR_LOOK } from '../../src/game/systems/species/view/boar';
+import { BEAR_LOOK } from '../../src/game/systems/species/view/bear';
 import { PINE_BOAR, PINE_BEAR } from '../../src/shards/pine-hollow/species/rows';
 import { ISLAND_BOAR, ISLAND_BOARS } from '../../src/shards/driftwood-isle/creatures/species';
 

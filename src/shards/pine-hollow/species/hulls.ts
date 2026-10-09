@@ -25,8 +25,8 @@ import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { pineCoatUrl, pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './rigs';
 import { adoptPineCoat, pineCoatAtlas, type CoatSpec } from './coats';
 import { DEER_PALETTE, ELK_PALETTE } from './palettes';
-import { BEAR_PALETTE } from '@wildshard/kit/species/view/bear';
-import { BOAR_PALETTE } from '@wildshard/kit/species/view/boar';
+import { BEAR_PALETTE } from '@wildshard/game/systems/species/view/bear';
+import { BOAR_PALETTE } from '@wildshard/game/systems/species/view/boar';
 import { BEAR_FIX_COATS, BEAR_FIX_FUR, BEAR_TAIL_TRIM, trimTail } from './bearFix';
 
 

@@ -26,7 +26,7 @@ import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
 import { legRigOf } from './npcRig';
-import { legBones, legPose } from '@wildshard/kit/npc/npcRig';
+import { legBones, legPose } from '@wildshard/game/systems/npc/npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
