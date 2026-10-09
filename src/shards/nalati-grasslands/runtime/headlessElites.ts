@@ -13,9 +13,11 @@ import { ArgymaqKeeper, type ArgymaqHerd } from './argymaqKeeper';
 /** One per host: the manager keeps the sole body-step installer; elite callbacks and engaged pins are injected. */
 export interface NalatiEliteBindings {
   readonly pinned: Set<AnimalSim>;
+  /** Wildlife retains retired pack members; they own no active body or cadence. */
+  readonly absent: Set<AnimalSim>;
   readonly brains: Map<AnimalSim, { readonly think: (a: AnimalSim, c: AqbarsContext<AnimalSim>) => void; readonly act: (a: AnimalSim) => void }>;
 }
-export function nalatiEliteBindings(): NalatiEliteBindings { return { pinned: new Set(), brains: new Map() }; }
+export function nalatiEliteBindings(): NalatiEliteBindings { return { pinned: new Set(), absent: new Set(), brains: new Map() }; }
 const finite = v.pipe(v.number(), v.finite());
 const RecordValue = v.strictObject({ timer: finite, discovered: v.boolean(), skinTaken: v.boolean(), kills: finite, retired: v.boolean() });
 const Entry = v.strictObject({ id: v.picklist(['aqbars', 'argymaq']), state: v.picklist(['absent', 'idle', 'aware', 'engaged', 'leash', 'dead', 'broken', 'retired']),
