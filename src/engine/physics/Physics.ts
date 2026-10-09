@@ -14,6 +14,23 @@ import { currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { untagCollider } from './surface';
 
+/**
+ * SF72: Rapier 0.21's `restoreSnapshot` wraps every collider with `bodies.get(raw.coParent(handle))`; for a parentless
+ * (static) collider that is `bodies.get(undefined)`, which the Coarena reads as index 0, so every static collider claims
+ * rigid body 0 as its parent and a capsule standing on static ground pins (`CharacterMotor.pin`) to that body. The native
+ * set is right; only the JS wrappers are wrong. Drop those wrappers and let Rapier rewrap them from the native parent
+ * (`mapNewColliders` reads `undefined` as no parent). Nothing native changes, so the world's bytes stay exact.
+ */
+function repairRestoredParents(world: World): World {
+  const stale: number[] = [];
+  world.forEachCollider((collider) => {
+    if (collider.parent() !== null && world.colliders.raw.coParent(collider.handle) === undefined) stale.push(collider.handle);
+  });
+  for (const handle of stale) world.colliders.unmap(handle);
+  world.colliders.mapNewColliders(world.bodies);
+  return world;
+}
+
 /** Owns one fixed-step collision world and its complete same-version continuation. */
 export class Physics {
   readonly world: World;
@@ -32,7 +49,7 @@ export class Physics {
   constructor(R: Rapier, snapshot?: Uint8Array, owner: Scope | null = null) {
     this.R = R;
     this.owner = owner;
-    this.world = snapshot === undefined ? new R.World({ x: 0, y: -9.81, z: 0 }) : R.World.restoreSnapshot(snapshot);
+    this.world = snapshot === undefined ? new R.World({ x: 0, y: -9.81, z: 0 }) : repairRestoredParents(R.World.restoreSnapshot(snapshot));
     this.world.timestep = FIXED_STEP;
     const bodies = this.bodyCaptures, colliders = this.colliderCaptures;
     const createBody = this.world.createRigidBody.bind(this.world), removeBody = this.world.removeRigidBody.bind(this.world);
