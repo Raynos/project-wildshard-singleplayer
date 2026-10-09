@@ -6,6 +6,7 @@
 //   <!--gen:road-->       the road strip, from SHARD-PLATFORM's State line at the built commit (MS6)
 //   <!--gen:devlog-->     site/devlog.json plus every commit with a `Devlog:` trailer (MS14)
 //   <!--gen:shardfile-->  the template's real shard.json, fetched from the live game (MS15)
+//   <!--gen:media-->      site/media.json: the trailer and shard loops on Blob (MS11, site/tools/publish-media.ts)
 // deploy.sh builds a clean export (no .git), so it passes SITE_REPO and SITE_BUILD_SHA; a local build uses this checkout.
 import { defineConfig, type Plugin } from 'vite';
 import { execFileSync } from 'node:child_process';
@@ -125,7 +126,8 @@ function generated(): Plugin {
   return {
     name: 'site-generated',
     async transformIndexHtml(html) {
-      const out = html.replace('<!--gen:road-->', roadHtml()).replace('<!--gen:devlog-->', devlogHtml()).replace('<!--gen:shardfile-->', await shardfileHtml());
+      const media = JSON.stringify(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8'))).replaceAll('</', String.raw`<\/`);
+      const out = html.replace('<!--gen:media-->', media).replace('<!--gen:road-->', roadHtml()).replace('<!--gen:devlog-->', devlogHtml()).replace('<!--gen:shardfile-->', await shardfileHtml());
       if (out.includes('<!--gen:')) throw new Error('site: a <!--gen:…--> block was left unfilled');
       return out;
     },
