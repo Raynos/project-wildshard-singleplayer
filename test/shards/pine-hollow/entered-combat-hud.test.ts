@@ -48,6 +48,24 @@ it('parks real combat widgets across two entries without losing captions, health
   hud.remove();
 });
 
+it('keeps a prepared attachment detached until entry and cancels it without ever mounting', () => {
+  const scope = app.engineScope.child('combat-hud-prepared');
+  const manifest = emptyShardfileSource(emptyShardfile({ slug: 'home', name: 'Home', author: 'Fixture', seed: 1, revision: 1 }));
+  const base = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const hooks = new RetainedRuntimeHooks(shardContext(base.context, manifest, { shard: manifest, rows: new Map(),
+    bag: { tab: () => () => undefined, fragment: () => () => undefined } }), { deferActivation: true });
+  const parent = document.createElement('div'), before = document.createElement('span'), root = document.createElement('div'), after = document.createElement('span');
+  parent.append(before, root, after); document.body.append(parent);
+  try {
+    installEnteredRuntimeAttachment(hooks.context, root);
+    expect(root.isConnected).toBe(false); expect([...parent.children]).toEqual([before, after]);
+    hooks.activate(); expect([...parent.children]).toEqual([before, root, after]);
+    hooks.deactivate(); expect(root.isConnected).toBe(false);
+    hooks.activate(); expect([...parent.children]).toEqual([before, root, after]);
+    scope.dispose(); expect([...parent.childNodes]).toEqual([before, after]);
+  } finally { scope.dispose(); parent.remove(); }
+});
+
 it('refuses an ordinary context and keeps lazy minimap marks inactive until explicitly resumed', () => {
   const scope = app.engineScope.child('combat-hud-lazy');
   const manifest = emptyShardfileSource(emptyShardfile({ slug: 'home', name: 'Home', author: 'Fixture', seed: 1, revision: 1 }));

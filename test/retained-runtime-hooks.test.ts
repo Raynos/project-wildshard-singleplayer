@@ -17,6 +17,28 @@ function preparedFixture() {
   return { app, scope, hooks: new RetainedRuntimeHooks(context, { deferActivation: true }) };
 }
 
+it('uses the existing input adapter only on entry and reverses it before every departure', () => {
+  const app = new App(), scope = app.engineScope.child('input.prepared');
+  const manifest = emptyShardfileSource(emptyShardfile({ slug: 'prepared', name: 'Prepared', author: 'Fixture', seed: 1, revision: 1 }));
+  let installs = 0, active = false;
+  const base = createLevelInstallation(app, scope, { inputContext: () => {
+    installs++; active = true; return () => { active = false; };
+  } }, () => ({ set: () => undefined, detail: () => undefined }));
+  const hooks = new RetainedRuntimeHooks(shardContext(base.context, manifest, { shard: manifest, rows: new Map(),
+    bag: { tab: () => () => undefined, fragment: () => () => undefined } }), { deferActivation: true });
+  try {
+    hooks.context.inputContext({ id: 'prepared.input', actions: ['attack'] });
+    expect(installs).toBe(0); expect(active).toBe(false);
+    for (let visit = 0; visit < 2; visit++) {
+      hooks.activate(); expect(installs).toBe(visit + 1); expect(active).toBe(true);
+      hooks.deactivate(); expect(active).toBe(false);
+    }
+    const unrelated = app.engineScope.child('unrelated');
+    expect(() => base.context.inputContext({ id: 'wrong.input', actions: [] }, unrelated)).toThrow('descendant');
+    expect(installs).toBe(2);
+  } finally { app.engineScope.dispose(); }
+});
+
 it('constructs a resident with entered services queued, then publishes them once and retires them on leave', async () => {
   const f = preparedFixture(), before = f.app.events.census();
   let service = 'road', installs = 0, ticks = 0, events = 0;

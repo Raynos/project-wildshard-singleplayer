@@ -71,8 +71,8 @@ export interface LevelContext {
   answer: <K extends keyof AskMap>(name: K, fn: (value: AskInput<K>) => AskOutput<K>, opts?: ListenerOptions) => void;
   /** register content rows the engine reads (species, looks, models, equipment …) for the level's life */
   readonly rows: EngineRows;
-  /** declare an input context (its actions and bindings), pushed while the level runs */
-  inputContext: (def: InputContextDef) => void;
+  /** Declare an input context. An explicit descendant owns its adapter inverse for entered-only activation. */
+  inputContext: (def: InputContextDef, owner?: Scope) => void;
   /** the level's verbs on the one shared HUD (slots, chips, prompts) */
   readonly hud: HudVerbs;
   /** register a static or moving thing with its colliders, surface and Explore model (the one world registry) */

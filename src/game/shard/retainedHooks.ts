@@ -60,7 +60,8 @@ export function installEnteredRuntimeAttachment(context: ShardContext, root: HTM
   if (parent === null) throw new Error('Entered attachment needs a mounted root');
   const anchor = root.ownerDocument.createComment('runtime.entered');
   root.before(anchor);
-  context.scope.onDispose(() => { anchor.remove(); });
+  root.remove();
+  context.scope.onDispose(() => { root.remove(); anchor.remove(); });
   installEnteredRuntimeService(context, (scope) => {
     if (anchor.parentNode !== parent) throw new Error('Entered attachment lost its resident slot');
     anchor.after(root);
@@ -108,6 +109,7 @@ export class RetainedRuntimeHooks {
       system: (spec) => { register((scope) => { base.app.addSystem(spec, scope); }); },
       on: (name, fn, options) => { register((scope) => { base.app.events.on(name, fn, scope, options); }); },
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
+      inputContext: (definition) => { register((scope) => { base.inputContext(definition, scope); }); },
       debug: { expose: (name, value) => { register((scope) => { scope.onDispose(base.app.debug.scopedExpose(name, value)); }); } },
     };
     enteredServices.set(this.context, register);

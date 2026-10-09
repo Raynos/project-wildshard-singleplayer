@@ -2182,7 +2182,7 @@ The list itself is generated at build time: [docs/api/EXPORTS.md](api/EXPORTS.md
 
 ### Scoped level installation
 
-`@wildshard/engine/level/installation` provides `createLevelInstallation(app, scope, adapters, progress)`. It constructs the same scope-bound context used by `LevelLoader`, without starting another load or changing the active level. `openKit()` and `closeKit()` delimit the row-registration window. The caller owns the supplied scope and disposes it to remove its systems, events, content rows, scene root and adapter contributions.
+`@wildshard/engine/level/installation` provides `createLevelInstallation(app, scope, adapters, progress)`. It constructs the same scope-bound context used by `LevelLoader`, without starting another load or changing the active level. `openKit()` and `closeKit()` delimit the row-registration window. The caller owns the supplied scope and disposes it to remove its systems, events, content rows, scene root and adapter contributions. `context.inputContext(definition, owner?)` defaults to that scope; an explicit live descendant owns the adapter inverse, letting an entered scope retire input before its resident world. Unrelated or disposed owners are refused.
 
 ### Allocation memory diagnostics (SF64)
 

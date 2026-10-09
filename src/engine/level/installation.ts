@@ -68,9 +68,10 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
           app.levelRegistrations.creatureLook(name, factory, scope);
         },
       },
-      inputContext: (def) => {
+      inputContext: (def, owner = scope) => {
         live(); const make = adapters.inputContext; if (make === undefined) throw new Error('Input context service is not installed');
-        own(withOwner(scope, () => make(def)));
+        if (owner.disposed || !owner.belongsTo(scope)) throw new Error('Input context requires a live descendant owner');
+        owner.onDispose(withOwner(owner, () => make(def)));
       },
       hud: {
         widget: (band, el, order) => own(hud().widget(band, el, order)),
