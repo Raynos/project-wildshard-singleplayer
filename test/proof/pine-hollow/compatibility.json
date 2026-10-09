@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "866ac669edc3f59527c6ae05194e491da7c944f9c94e7a5c4da528b99337ce7e",
+  "inputs": "511bee80987f122aee841a3652a7c8027e61bcd55c1bcbf53da3965ec768c079",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,7 +12,7 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "d2e318c30c7ea958fea604c6060f0db31153f906e69ca2c5ff1db00b79af385d",
+    "hash": "d0a8221c52308bc5fb3bbd3b4512ec2a21a8724641e19f80802a00de3ab095b9",
     "pack": {
       "counts": {
         "amber-resin": 2
@@ -540,8 +540,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 26652,
     "suffixTicksExecuted": 1200,
-    "hash": "11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb",
-    "replayHash": "11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb",
+    "hash": "fb0675b14220c6397d475e4b259cb8ae7978c4ebd48b221e3adeaacb3f21a217",
+    "replayHash": "fb0675b14220c6397d475e4b259cb8ae7978c4ebd48b221e3adeaacb3f21a217",
     "checkpoint": {
       "state": "fight",
       "phase": 1
@@ -757,7 +757,7 @@
   },
   "outcomeDifferences": [
     "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
-    "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
+    "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
     "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",
@@ -771,7 +771,7 @@
   ],
   "open": [
     "King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.",
-    "Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.",
+    "Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.",
     "Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.",
     "Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.",

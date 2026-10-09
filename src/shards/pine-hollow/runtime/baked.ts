@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import type { Material } from '@wildshard/engine/physics/surface';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it (crag cuts included). */
@@ -15,7 +16,13 @@ const BakedSpec = v.strictObject({ kind: v.string(), label: v.string(), variant:
   mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }) });
 const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, seed: finite, scale: finite, scripted: v.boolean() });
 const Parked = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), spec: BakedSpec, seed: finite, scale: finite });
+// Exhaustive against the defining engine union; no untagged solid acquires an invented material.
+const materials: Readonly<Record<Material, true>> = { sand: true, wetSand: true, grass: true, rock: true, planks: true, stone: true, water: true,
+  wood: true, metal: true, flesh: true, shell: true, ground: true, edge: true, felt: true, earth: true };
+const MaterialSchema = v.custom<Material>(input => typeof input === 'string' && Object.hasOwn(materials, input), 'Unknown baked Pine material');
 const Solid = v.strictObject({ shape: v.picklist([1, 2, 6, 9]), groups: finite, friction: finite, body: v.nullable(finite), at: triple, rot: v.tuple([finite, finite, finite, finite]),
+  material: v.exactOptional(MaterialSchema),
+  ownerId: v.exactOptional(v.pipe(v.string(), v.regex(/^(?:piece|declared):[^\r\n]{1,256}$/u))),
   half: v.exactOptional(triple), halfHeight: v.exactOptional(finite), radius: v.exactOptional(finite), vertices: v.exactOptional(v.string()), indices: v.exactOptional(v.string()) });
 const KingHit = v.strictObject({ head: triple, body: v.tuple([triple, triple]), fore: v.tuple([triple, triple]), ribs: triple, radius: v.pipe(finite, v.minValue(0.001)) });
 const Bake = v.object({ version: v.literal(1),
@@ -27,6 +34,10 @@ export interface PineSolid {
   readonly shape: 1 | 2 | 6 | 9; readonly groups: number; readonly friction: number;
   readonly at: readonly [number, number, number]; readonly rot: readonly [number, number, number, number];
   readonly half?: readonly [number, number, number]; readonly halfHeight?: number; readonly radius?: number;
+  /** Actual page query-owner provenance: registry object identity or declared string, never a geometric guess. */
+  readonly ownerId?: string;
+  /** Actual native collider material when tagged; absence retains the query's legacy wood fallback. */
+  readonly material?: Material;
   readonly points?: Float32Array; readonly indices?: Uint32Array;
 }
 /** A baked body at load: the manager's id, kind / variant, herd slot (−1: none), native spec, seed, scale; elites are `scripted`. */
@@ -50,16 +61,23 @@ function spec(row: v.InferOutput<typeof BakedSpec>, kind: string, variant: strin
   return row;
 }
 
+/** Decode one trusted native solid, preserving optional exact query-owner provenance. Unknown fields refuse. */
+export function parsePineSolid(input: unknown): PineSolid {
+  return decodeSolid(v.parse(Solid, input));
+}
+
+function decodeSolid({ vertices, indices, body: _body, ...rest }: v.InferOutput<typeof Solid>): PineSolid {
+  if ((rest.shape === 6 || rest.shape === 9) !== (vertices !== undefined) || (rest.shape === 6) !== (indices !== undefined)) throw new Error('Unbuildable baked Pine collider');
+  return { ...rest, ...(vertices === undefined ? {} : { points: floats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(bytesOf(indices).buffer) }) };
+}
+
 let parsed: PineBake | null = null;
 /** Pine Hollow's trusted native bake, strictly parsed and decoded once. */
 export function pineBake(): PineBake {
   if (parsed !== null) return parsed;
   const bake = v.parse(Bake, baked), heights = floats(bake.ground.heights);
   if (heights.length !== PINE_GROUND_RES ** 2 || bake.ground.scale.x !== PINE_GROUND_SIZE || bake.ground.scale.z !== PINE_GROUND_SIZE || bake.ground.scale.y !== 1) throw new Error('Pine baked floor is not its 256² lattice');
-  const solids = bake.solids.map(({ vertices, indices, body: _body, ...rest }): PineSolid => {
-    if ((rest.shape === 6 || rest.shape === 9) !== (vertices !== undefined) || (rest.shape === 6) !== (indices !== undefined)) throw new Error('Unbuildable baked Pine collider');
-    return { ...rest, ...(vertices === undefined ? {} : { points: floats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(bytesOf(indices).buffer) }) };
-  });
+  const solids = bake.solids.map(decodeSolid);
   parsed = { kingHit: bake.kingHit, ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
     actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })),
     parked: bake.parked.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds };

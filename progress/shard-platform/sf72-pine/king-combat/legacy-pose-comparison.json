@@ -1,0 +1,19 @@
+{
+  "ticks": 2400,
+  "bones": 22,
+  "comparisons": 844800,
+  "maxAbsMatrixDifference": 0,
+  "scalarStateExact": true,
+  "oldSourceSha256": "082d23d2306b49599d29cbf0be1795eb47ed325ab17d9aeb0219ab841bc7f2cd",
+  "oldSourceRevision": "06517374684aa0d7917ea04b27b70fc7d9ca59ae",
+  "coverage": [
+    "all authored debug clips",
+    "gait/charge",
+    "attack fade",
+    "flinch/brace",
+    "look",
+    "death",
+    "world scale/yaw/tilt"
+  ],
+  "actualFight": false
+}

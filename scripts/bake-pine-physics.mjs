@@ -62,7 +62,8 @@ try {
     };
     const local = (at, matrix) => new V(...at).applyMatrix4(matrix).toArray();
     const capsule = (matrix, at, axis, pitch, half) => {
-      const c = new V(...at), d = axis === 'x' ? new V(half, 0, 0) : new V(0, -Math.sin(pitch) * half, Math.cos(pitch) * half);
+      // Same positive-y pitch convention as the shipping AnimalView capsuleOn law.
+      const c = new V(...at), d = axis === 'x' ? new V(half, 0, 0) : new V(0, Math.sin(pitch) * half, Math.cos(pitch) * half);
       return [c.clone().sub(d).applyMatrix4(matrix).toArray(), c.add(d).applyMatrix4(matrix).toArray()];
     };
     const dims = king.dims, fore = dims.fore, chest = king.mesh.getObjectByName('chest'), look = fight.look;
@@ -83,6 +84,13 @@ try {
     const herds = w.animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
     // the forest's trunks as the hunting brain's placement reads them (HuntGround.trees: x, z, r), in the forest's order
     const trees = w.animals.forest.trees.map(t => [t.x, t.z, t.r]);
+    // The query tag is the authority: registry object identity and declared string ownership are distinct.
+    const ownerKeys = new Map(), ownerIds = new Set();
+    for (const piece of g.app.registry.pieceList()) {
+      const key = `piece:${piece.id}`;
+      if (typeof piece.id !== 'string' || piece.id.length === 0 || piece.id.length > 256 || /[\r\n]/u.test(piece.id) || ownerIds.has(key)) throw new Error('Ambiguous baked Pine piece owner');
+      ownerKeys.set(piece, key); ownerIds.add(key);
+    }
     const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: piece.colliders.length, active: piece.active?.() ?? true };
       if (piece.surface !== undefined) row.surface = piece.surface;
@@ -113,6 +121,13 @@ try {
       // projectiles and sensors are the runtime's own allocations, never baked world
       if (((groups >>> 16) & 1) === 0 || c.isSensor()) return;
       const row = { shape, groups, friction: c.friction(), body: c.parent()?.bodyType() ?? null, at: [t.x, t.y, t.z], rot: [r.x, r.y, r.z, r.w] };
+      const tag = window.__wildshard.colliderTag(c.handle), owner = tag?.owner;
+      if (tag !== undefined) row.material = tag.material;
+      if (owner !== null && owner !== undefined) {
+        const ownerId = typeof owner === 'string' ? `declared:${owner}` : ownerKeys.get(owner);
+        if (ownerId === undefined || !/^(?:piece|declared):[^\r\n]{1,256}$/u.test(ownerId)) throw new Error('Unidentified baked Pine collider owner');
+        row.ownerId = ownerId;
+      }
       if (shape === 1) { const h = c.halfExtents(); row.half = [h.x, h.y, h.z]; }
       else if (shape === 2) { row.halfHeight = c.halfHeight(); row.radius = c.radius(); }
       else if (shape === 0) row.radius = c.radius();

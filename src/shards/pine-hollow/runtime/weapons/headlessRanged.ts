@@ -2,6 +2,7 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { castSegment, sweepBall, type Hit } from '@wildshard/engine/physics/query';
+import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 
 /** The page Player's eye over its feet (player/Player.ts EYE): every aim line starts there. */
 export const EYE = 1.68;
@@ -9,6 +10,8 @@ export const EYE = 1.68;
 export interface BodyHit { body: AnimalSim | null; head: boolean; distance: number; point: Vector3 }
 /** The most bodies a shot is tested against (the roster's live cap). */
 const MAX_BODIES = 512;
+const SQRT_CONE = { radius: 'sqrt', axisScale: 1 } as const;
+const LINEAR_CONE = { radius: 'linear', axisScale: 1 } as const;
 
 type ForeBody = AnimalSim & { foreCapsule: (a: Vector3, b: Vector3) => boolean };
 type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
@@ -114,7 +117,5 @@ export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vecto
 /** The page's cone of fire (hitscan.ts, Bow.ts loose): a random axis across `dir` (three draws), turned by a random share of
  *  `spread` rad (a fourth draw; √ of it when `sqrt`), in place. */
 export function spreadInto(dir: Vector3, spread: number, random: () => number, sqrt: boolean, across: Vector3): void {
-  across.set(random() - 0.5, random() - 0.5, random() - 0.5).cross(dir).normalize();
-  const r = random();
-  dir.addScaledVector(across, Math.tan(spread * (sqrt ? Math.sqrt(r) : r))).normalize();
+  shotSpread(dir, spread, random, sqrt ? SQRT_CONE : LINEAR_CONE, across);
 }

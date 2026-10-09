@@ -495,7 +495,7 @@ export function gameplayProof(rapier: Rapier, from?: 'night'): ReturnType<typeof
 /** These omissions can change damage, inventory, quest/ledger outcomes or persistence relative to the browser. */
 export const OUTCOME_DIFFERENCES = [
   'King hit volumes use native rest geometry, not animated chest/root displacement: weak-point hits and damage can differ.',
-  'Still-air arrows and standing spread can change hit/miss outcomes; missing stuck-arrow recovery changes ammunition.',
+  'Still-air arrows and standing spread can change hit/miss outcomes; longbow recovery is hosted, but custom stopped crossbow bolts remain unhosted.',
   'Named prompt commands omit dialogue time and nearest/line-of-sight selection: interaction eligibility and quest timing can differ.',
   'Resin walk-in takes and the seven-kind pack are hosted; token/bench, secret/miller, journal and lodge/streak producers remain unhosted, so their ledger outcomes are absent.',
   'Night-roaming thralls, millrace and lodge are not hosted: their combat and quest outcomes are absent.',

@@ -8,6 +8,7 @@ export interface CollisionJoint {
 
 /** Collision-only FK. It never constructs a scene node, skeleton, vertex buffer or skinned mesh. */
 export class CollisionPose {
+  private readonly joints: readonly CollisionJoint[];
   private readonly local: Matrix4[];
   private readonly world: Matrix4[];
   private readonly rotation = new Euler(0, 0, 0, 'YXZ');
@@ -18,12 +19,13 @@ export class CollisionPose {
   private readonly axis = new Vector3();
   private readonly up = new Vector3();
 
-  constructor(private readonly joints: readonly CollisionJoint[]) {
+  constructor(joints: readonly CollisionJoint[]) {
     if (joints.length === 0 || joints.length > 32 || joints.some((joint, i) =>
       !Number.isInteger(joint.parent) || joint.parent < -1 || joint.parent >= i
       || !joint.position.every(Number.isFinite))) {
       throw new RangeError('Invalid collision joint chain');
     }
+    this.joints = joints;
     this.local = joints.map(joint => new Matrix4().makeTranslation(...joint.position));
     this.world = joints.map(() => new Matrix4());
   }

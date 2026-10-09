@@ -3,6 +3,8 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
+import { shotSpread } from '@wildshard/engine/combat/shotSpread';
+import { smoothstep } from '@wildshard/engine/core/noise';
 import { sticksIn } from '@wildshard/engine/physics/query';
 import { CROSSBOW_PROFILE } from '../../weapons/crossbow/profiles';
 import { boltFlightStep, PLAIN_FLIGHT } from '../../weapons/crossbow/flight';
@@ -14,6 +16,7 @@ export const CROSSBOW_STEP = 'pine.crossbow';
 const MUZZLE = 0.35, SUBSTEPS = 4, MAX_AGE = 12, BOUND = 250 + 60, FLOOR = -150;
 /** Crossbow.ts's glance off a hard surface: lift off it, keep a little of the speed, a small bounce, a speed cap. */
 const GLANCE_LIFT = 0.02, GLANCE_KEEP = 0.25, GLANCE_BOUNCE = 0.15, GLANCE_MAX = 6;
+const CONE = { radius: 'linear', axisScale: 2 } as const;
 
 /** One bolt slot (Crossbow.ts's pool of `maxFlying`): in flight while `active`. */
 interface Bolt { active: boolean; pos: Vector3; vel: Vector3; age: number; glanced: boolean }
@@ -33,6 +36,7 @@ export interface PineCrossbowPorts {
   readonly bodies: () => readonly AnimalSim[];
   /** the tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
   readonly aim?: () => number;
+  readonly adsBlend?: () => number;
 }
 
 /**
@@ -59,9 +63,9 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     state.loaded = false; state.quiver = Math.max(0, state.quiver - 1); state.cooldown = p.cooldown; state.sinceFire = 0;
     aimAt(host, target, eye, fwd, ports.aim?.());
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
-    const spread = (0.15 + 0.6) * Math.PI / 180;
-    side.set((random() - 0.5) * 2, (random() - 0.5) * 2, (random() - 0.5) * 2).cross(fwd).normalize();
-    dir.copy(fwd).addScaledVector(side, Math.tan(spread * random())).normalize();
+    const spread = (0.15 + (1 - smoothstep(0, 1, ports.adsBlend?.() ?? 0)) * 0.6) * (Math.PI / 180);
+    dir.copy(fwd);
+    shotSpread(dir, spread, random, CONE, side);
     // a free slot, else the oldest bolt's (Crossbow.ts spawnBolt)
     let b: Bolt | undefined;
     for (let i = 0; i < MAX_FLYING; i++) {

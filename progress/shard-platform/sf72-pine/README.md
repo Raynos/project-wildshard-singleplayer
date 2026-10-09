@@ -17,8 +17,8 @@ Plain Node, no DOM or renderer shim, real terrain/navmesh/Rapier. Tick commands 
 | Dawn quest fact | 30,014 |
 | Tape complete | 30,015 |
 
-Full canonical digest: `d2e318c30c7ea958fea604c6060f0db31153f906e69ca2c5ff1db00b79af385d`.
-Phase-II replay after 1,200 identical command ticks: `11f0b8feea05e0b66951bb745ec6b7a27637a1cb1061dd3926cd67d38ee447fb`, both worlds equal, no restore emissions. arm64 and Rosetta x64 full JSON results are exactly equal.
+Full canonical digest: `d0a8221c52308bc5fb3bbd3b4512ec2a21a8724641e19f80802a00de3ab095b9`.
+Phase-II replay after 1,200 identical command ticks: `fb0675b14220c6397d475e4b259cb8ae7978c4ebd48b221e3adeaacb3f21a217`, both worlds equal, no restore emissions. arm64 and Rosetta x64 full JSON results are exactly equal.
 
 Fourteen gameplay submissions become thirteen durable ledger identities, including the duplicate quest ingress and two actual resin takes. The real tape now files one bear, one elk, one boar and two summoned thrall deaths, alongside the lanterns, zipline, King and dawn. Four achievements are earned: lanterns, zipline, King, quest. An actual storage refusal stays non-durable; retry succeeds; reopened state matches; repeated identities remain duplicates. The CI ledger continuation runs 6,015 ticks from night and proves the King/dawn facts. The full receipt retains all emitted gameplay facts.
 
@@ -32,7 +32,7 @@ Regenerate using `node --import ./scripts/sim-node-loader.mjs test/proof/pine-ho
 
 ## Why compatibility stays false
 
-Known outcome differences, rather than missing tapes, keep Pine refused: rest-pose King volumes omit animated chest/root motion (weak-point hits/damage); still-air arrows and standing spread change hit/miss, and absent arrow recovery changes ammunition; named prompts omit dialogue time and nearest/LOS eligibility; token/bench, journal, lodge and miller producers still omit ledger outcomes (resin takes are now hosted); unhosted night-roaming thralls, millrace and lodge omit combat/quest outcomes; King victory resin (including refights) has no item reward, and the first bow is granted before the page pickup; rain wander goals change creature positions. Browser `pine.bosses` versus host flags additionally leaves save/refight interoperability unproved.
+Known outcome differences, rather than missing tapes, keep Pine refused: rest-pose King volumes omit animated chest/root motion (weak-point hits/damage); still-air arrows and standing spread change hit/miss, and unhosted custom stopped crossbow bolts change ammunition; named prompts omit dialogue time and nearest/LOS eligibility; token/bench, journal, lodge and miller producers still omit ledger outcomes (resin takes are now hosted); unhosted night-roaming thralls, millrace and lodge omit combat/quest outcomes; King victory resin (including refights) has no item reward, and the first bow is granted before the page pickup; rain wander goals change creature positions. Browser `pine.bosses` versus host flags additionally leaves save/refight interoperability unproved.
 
 Coverage gaps are separate: alternate routes, other elite encounters and repeat fights lack uninterrupted tapes, and the recorded quest tape is standalone. The separate native grid-entry proof removes walls; it is not a recorded grid quest tape. These gaps alone do not establish a different outcome in an already-hosted rule. The real compatibility receipt lists both categories explicitly.
 
@@ -63,3 +63,7 @@ quota retry, reopened durable state and duplicate refusal still pass. Inputs: `1
 The five checkpoints and real compatibility receipt are regenerated; arm64 and x64 full JSON outputs are exactly equal.
 The King/dawn timing stays 29,295 / 30,015; the canonical state changes because flags, counts and pack are now retained.
 Six focused files / 17 checks pass under coverage. The new native walk/restore is 5.33 s under coverage (<20 s, one third of its 60 s timeout). Clean source candidate f34d63baa passes 1,067 files / 5,887 checks / 14 skipped in 139.07 s, with its sole generated AG7 refusal regenerated inside the export and the 111-check arch-guard file re-run green in 23.30 s. Strict, root-config touched lint, paths and ratchet pass. Approved measured edges are Pine → engine +1 and Pine → game +1; generated working-tree outputs remain untouched.
+
+## King pose and ranged continuation
+
+The fresh actual bake, source hashes, owner/material reconstruction, native longbow recovery and bounded real rendered-fight FK oracle are recorded in [king-combat/README.md](king-combat/README.md). FK hit queries remain unactivated until pre-render hit-delivery timing is proved. Whole-Pine compatibility remains false.

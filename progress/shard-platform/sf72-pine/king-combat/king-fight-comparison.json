@@ -1,0 +1,27 @@
+{
+  "build": "d4ba445-mv16c3u5",
+  "actualFight": true,
+  "samples": 1080,
+  "modes": [
+    "dormant",
+    "intro",
+    "stalk",
+    "sweep",
+    "stomp",
+    "waves",
+    "open",
+    "call",
+    "stalk3"
+  ],
+  "samplePoint": "scene.onBeforeRender after scene matrix propagation",
+  "epsilonMetres": 1e-10,
+  "maxErrorMetres": {
+    "head": 1.7763568394002505e-15,
+    "body": 0,
+    "fore": 0,
+    "ribs": 3.972054645195637e-15
+  },
+  "pass": true,
+  "firstFailures": [],
+  "limitation": "Render-time old live volumes only; pre-render hit-delivery matrix-cache timing is not covered and FK queries remain unactivated."
+}

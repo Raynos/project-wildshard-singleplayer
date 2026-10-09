@@ -1,9 +1,11 @@
 import type { Vector3 } from 'three';
 import type { BrainPoint } from '@wildshard/engine/ai/strikes';
+import { clipHitReached } from '@wildshard/game/combat/clipTiming';
 import type { Lane, LaneBody } from '../combat/lane';
 import type { PhShot } from './audio/sfx';
 import { headingTo } from '../combat/combatMath';
 import { pineContact, PINE_STRIKES } from '../combat/strikes';
+import { KING_ATTACK_TIMING } from '../combat/kingTiming';
 
 interface GoalTell { setTime: (t: number) => void; ring: (x: number, z: number, radius: number, alpha: number) => void; hide: () => void }
 /** What the King's goals read of the world, renderer-free (the page's PineCtx satisfies it over its Animal). */
@@ -47,16 +49,16 @@ export abstract class AntlerKingGoals<B extends LaneBody> {
     switch (this.mode) {
       case 'stalk': {
         k.setMotion(yaw, d > STALK_NEAR ? (this.phase === 1 ? 2.8 : 2.3) : 0, 1.4);
-        if (this.phase >= 1 && this.callCd <= 0 && this.aliveThralls() < 3) { this.setMode('call'); this.action(k, 'roar'); k.startAttack(1.6); this.ctx.shot('king_bells', k.position); break; }
-        if (d < SWEEP_REACH && this.sweepCd <= 0) { this.setMode('sweep'); this.action(k, 'sweep'); k.startAttack(0.9); break; }
-        if (this.stompCd <= 0 && this.modeT > 1) { this.setMode('stomp'); this.action(k, 'strike'); k.startAttack(1.0); }
+        if (this.phase >= 1 && this.callCd <= 0 && this.aliveThralls() < 3) { this.setMode('call'); this.action(k, 'roar'); k.startAttack(KING_ATTACK_TIMING.roar.duration); this.ctx.shot('king_bells', k.position); break; }
+        if (d < SWEEP_REACH && this.sweepCd <= 0) { this.setMode('sweep'); this.action(k, 'sweep'); k.startAttack(KING_ATTACK_TIMING.sweep.duration); break; }
+        if (this.stompCd <= 0 && this.modeT > 1) { this.setMode('stomp'); this.action(k, 'strike'); k.startAttack(KING_ATTACK_TIMING.strike.duration); }
         break;
       }
       case 'sweep': {
         k.setMotion(yaw, 0, 1.2);
-        const kk = Math.min(1, this.modeT / 0.9);
+        const kk = Math.min(1, this.modeT / KING_ATTACK_TIMING.sweep.duration);
         this.tellRing.ring(k.position.x, k.position.z, SWEEP_R, 0.3 + 0.6 * kk * (0.75 + 0.25 * Math.sin(t * 24)));
-        if (this.modeT >= 0.9) {
+        if (clipHitReached(this.modeT, KING_ATTACK_TIMING.sweep)) {
           this.tellRing.hide();
           pineContact(k, p, PINE_STRIKES.sweep, (damage) => { this.ctx.hurt(k, damage); this.ctx.trauma(0.45); }, () => this.ctx.reach(k, p));
           this.ctx.trauma(0.15);
@@ -66,9 +68,9 @@ export abstract class AntlerKingGoals<B extends LaneBody> {
       }
       case 'stomp': {
         k.setMotion(yaw, 0, 1.2);
-        const kk = Math.min(1, this.modeT / 1.0);
+        const kk = Math.min(1, this.modeT / KING_ATTACK_TIMING.strike.duration);
         this.tellRing.ring(k.position.x, k.position.z, STOMP_R + kk, 0.4 + 0.5 * kk * (0.7 + 0.3 * Math.sin(t * 26)));
-        if (this.modeT >= 1.0) { this.tellRing.hide(); this.stompNow(k); this.setMode('waves'); }
+        if (clipHitReached(this.modeT, KING_ATTACK_TIMING.strike)) { this.tellRing.hide(); this.stompNow(k); this.setMode('waves'); }
         break;
       }
       case 'waves': {
@@ -83,7 +85,7 @@ export abstract class AntlerKingGoals<B extends LaneBody> {
       }
       case 'call': {
         k.setMotion(yaw, 0, 1);
-        if (this.modeT >= 1.6) { this.callThralls(2); this.callCd = 20; this.setMode('stalk'); }
+        if (clipHitReached(this.modeT, KING_ATTACK_TIMING.roar)) { this.callThralls(2); this.callCd = 20; this.setMode('stalk'); }
         break;
       }
       case 'stalk3': {
@@ -95,7 +97,7 @@ export abstract class AntlerKingGoals<B extends LaneBody> {
           break;
         }
         k.setMotion(yaw, d > 18 ? 2.4 : 0, 1.6);
-        if (this.stompCd <= 0 && d < 14) { this.setMode('stomp'); this.action(k, 'strike'); k.startAttack(1.0); break; }
+        if (this.stompCd <= 0 && d < 14) { this.setMode('stomp'); this.action(k, 'strike'); k.startAttack(KING_ATTACK_TIMING.strike.duration); break; }
         if (this.modeT > 1.2) { this.action(k, 'brace'); this.lane.start(k, p.x, p.z, 1.1); this.roar(k); }
         break;
       }

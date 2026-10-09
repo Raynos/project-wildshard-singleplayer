@@ -102,7 +102,14 @@ const TAU = Math.PI * 2;
 // ─────────────────────────────── the rest measure ───────────────────────────────
 
 /** the rig's rest, read once off its bones (their local positions are the rest offsets; rest rotations are identity) */
-export interface KingRest {
+export interface KingPoseRest {
+  /** Rest anchors measured from the actual rig, also readable without constructing bones. */
+  at: Readonly<Record<string, Readonly<{ x: number; y: number; z: number }>>>;
+  rootPos: Readonly<{ x: number; y: number; z: number }>;
+  H: number; walkStride: number; chargeStride: number;
+}
+
+export interface KingRest extends KingPoseRest {
   bones: Record<string, THREE.Bone>;
   names: string[];
   /** model-space rest position per bone name */
@@ -165,7 +172,7 @@ function gaitFoot(ph: number, stance: number, stroke: number, lift: number, out:
 }
 const _g: [number, number, number] = [0, 0, 0];
 
-function clipIdle(p: KingPose, r: KingRest, t: number): void {
+function clipIdle(p: KingPose, r: KingPoseRest, t: number): void {
   const H = r.H, br = Math.sin(t * TAU * 0.22);
   p.rootY = 0.006 * H * br;
   p.chestPitch = -0.02 * br;
@@ -181,7 +188,7 @@ const WALK_OFF = [0.25, 0.75, 0.0, 0.5], WALK_STANCE = 0.64;
 /** where each limb's stroke is centred, as a share of the stroke from its rest hoof (+ = forward): his forehooves stand
  *  ahead of the shoulders and his hind hooves behind the hips, so the strokes swing under him */
 const STROKE_AT = [-0.25, -0.25, 0.3, 0.3];
-function clipWalk(p: KingPose, r: KingRest, ph: number): void {
+function clipWalk(p: KingPose, r: KingPoseRest, ph: number): void {
   const H = r.H, stroke = r.walkStride * WALK_STANCE;
   for (let l = 0; l < 4; l++) {
     gaitFoot(ph + (WALK_OFF[l] ?? 0), WALK_STANCE, stroke, (FORE[l] ? 0.14 : 0.09) * H, _g);
@@ -203,7 +210,7 @@ function clipWalk(p: KingPose, r: KingRest, ph: number): void {
 const RUN_OFF = [0.55, 0.66, 0.0, 0.1], RUN_STANCE = 0.34;
 /** the gaits' timing (the gate reads the stance windows off it) */
 export const KING_GAITS = { walk: { off: WALK_OFF, stance: WALK_STANCE }, charge: { off: RUN_OFF, stance: RUN_STANCE } } as const;
-function clipCharge(p: KingPose, r: KingRest, ph: number): void {
+function clipCharge(p: KingPose, r: KingPoseRest, ph: number): void {
   const H = r.H, stroke = r.chargeStride * RUN_STANCE;
   for (let l = 0; l < 4; l++) {
     gaitFoot(ph + (RUN_OFF[l] ?? 0), RUN_STANCE, stroke, (FORE[l] ? 0.14 : 0.1) * H, _g);
@@ -220,7 +227,7 @@ function clipCharge(p: KingPose, r: KingRest, ph: number): void {
 }
 
 /** the rearing strike, a 0..1: rise → up (the roar at the top) → the slam, contact at 1 */
-function clipStrike(p: KingPose, r: KingRest, a: number, slam: boolean): void {
+function clipStrike(p: KingPose, r: KingPoseRest, a: number, slam: boolean): void {
   const H = r.H;
   const rise = step(a, 0.0, 0.5);
   const down = slam ? step(a, 0.78, 0.97) : step(a, 0.8, 1.0);
@@ -260,7 +267,7 @@ function clipStrike(p: KingPose, r: KingRest, a: number, slam: boolean): void {
  *  right to 15° left of his heading (scripts/e350-king-measure.mjs --sweepmap; the fight's SWEEP_* numbers; the look is
  *  held off while he dives). The pitch is split so the rig gate's edge stretch stays
  *  ≤ 1.99 on both hulls (the neck's share stretches the chest under the beard, the head's the rack's base) */
-function clipSweep(p: KingPose, r: KingRest, a: number): void {
+function clipSweep(p: KingPose, r: KingPoseRest, a: number): void {
   const H = r.H;
   const wind = step(a, 0, 0.55), swing = step(a, 0.62, 0.95);
   const yaw = 0.42 * wind - 0.95 * swing;
@@ -274,7 +281,7 @@ function clipSweep(p: KingPose, r: KingRest, a: number): void {
 }
 
 /** a lane's tell: head down, the rack forward, a forehoof pawing back twice */
-function clipBrace(p: KingPose, r: KingRest, a: number, t: number): void {
+function clipBrace(p: KingPose, r: KingPoseRest, a: number, t: number): void {
   const H = r.H, k = step(a, 0, 0.3);
   p.rootY = -0.05 * H * k; p.rootPitch = 0.06 * k;
   p.chestPitch = 0.1 * k; p.neckPitch = 0.2 * k; p.headPitch = 0.45 * k;
@@ -283,7 +290,7 @@ function clipBrace(p: KingPose, r: KingRest, a: number, t: number): void {
 }
 
 /** the recoil (flinch 1 at the blow, decaying): the chest thrown back, the head tossed */
-function clipHit(p: KingPose, r: KingRest, f: number, t: number): void {
+function clipHit(p: KingPose, r: KingPoseRest, f: number, t: number): void {
   const H = r.H;
   p.rootPitch = -0.1 * f; p.rootY = 0.02 * H * f;
   p.chestPitch = -0.16 * f;
@@ -294,7 +301,7 @@ function clipHit(p: KingPose, r: KingRest, f: number, t: number): void {
 
 /** the collapse, d 0..1: the hind legs give, then the forequarters sink, the head goes down (the physics tips the body
  *  over, src/engine/physics/ragdoll.ts 'rigid'; the limbs only fold under him) */
-function clipDie(p: KingPose, r: KingRest, d: number): void {
+function clipDie(p: KingPose, r: KingPoseRest, d: number): void {
   const H = r.H, hind = step(d, 0, 0.6), fore = step(d, 0.25, 0.9);
   p.rootY = -0.22 * H * (0.55 * hind + 0.45 * fore);
   p.rootPitch = -0.08 * hind + 0.14 * fore;
@@ -307,7 +314,7 @@ function clipDie(p: KingPose, r: KingRest, d: number): void {
 }
 
 /** one clip, alone, at `x` (a phase for walk / charge, a 0..1 progress for the attacks, seconds for idle) into `p` */
-export function clipPose(p: KingPose, r: KingRest, clip: KingClip, x: number, t = 0): KingPose {
+export function clipPose(p: KingPose, r: KingPoseRest, clip: KingClip, x: number, t = 0): KingPose {
   zero(p);
   switch (clip) {
     case 'idle': clipIdle(p, r, x); break;
@@ -430,21 +437,27 @@ const _look = new THREE.Vector3();
  *  runW (the eased gait weights) */
 
 /** Animal.ts's per-frame call (SpeciesDef.animate) */
-export function animateKing(c: RigAnimCtx): void {
-  const r = kingRest(c.bones);
+export interface KingPoseInput {
+  dt: number; t: number; scale: number; speed: number; deathT: number;
+  flinch: number; brace: number; attack: number; lookWeight: number; yaw: number;
+  lookTarget: Readonly<{ x: number; y: number; z: number }>;
+  position: Readonly<{ x: number; y: number; z: number }>;
+  mem: Record<string, number>;
+}
+
+/** The shipping scalar blend and saved gait/held clocks. It reads no bones, vertices or skinning. */
+export function advanceKingPose(c: KingPoseInput, r: KingPoseRest, into: KingPose,
+  dbg?: { gait: string; phase: number }): KingPose {
   const m = c.mem;
-  const P = zero(_pose);
-  const dbg = c.animal.debugGait;
+  const P = zero(into);
   if (dbg !== undefined && (KING_CLIP_NAMES as readonly string[]).includes(dbg.gait)) {
     const clip = dbg.gait as KingClip;
     addScaled(P, clipPose(_clip, r, clip, clip === 'idle' ? c.t : dbg.phase, c.t), 1);
-    applyKingPose(r, P);
-    return;
+    return P;
   }
   if (c.deathT >= 0) {
     addScaled(P, clipPose(_clip, r, 'die', c.deathT, c.t), 1);
-    applyKingPose(r, P);
-    return;
+    return P;
   }
   // locomotion: walk ↔ charge by ground speed (model units: ÷ the mesh scale), the phase advanced by the stride
   const v = Math.abs(c.speed) / Math.max(1e-3, c.scale);
@@ -493,5 +506,11 @@ export function animateKing(c: RigAnimCtx): void {
     P.neckYaw += clamp(yaw, -1.0, 1.0) * 0.45 * k; P.headYaw += clamp(yaw, -1.0, 1.0) * 0.4 * k;
     P.headPitch -= pitch * 0.6 * k;
   }
-  applyKingPose(r, P);
+  return P;
+}
+
+/** Visual skinning stays live; collision adapters consume this exact same scalar pose. */
+export function animateKing(c: RigAnimCtx): void {
+  const r = kingRest(c.bones);
+  applyKingPose(r, advanceKingPose(c, r, _pose, c.animal.debugGait));
 }

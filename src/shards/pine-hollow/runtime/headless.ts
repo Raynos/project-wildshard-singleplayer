@@ -1,7 +1,7 @@
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { tagCollider } from '@wildshard/engine/physics/surface';
+import { tagCollider, tagOf } from '@wildshard/engine/physics/surface';
 import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
@@ -29,7 +29,15 @@ const buffer = (bytes: Uint8Array): ArrayBuffer => { const copy = new ArrayBuffe
 /** Install the browser-baked native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
  *  crag cave's cuts included) and the 2082 solid WORLD colliders the page built (cuboids, capsules, meshes, convex hulls).
  *  `skip` leaves solids out (the entry proof's grid world: the standalone page's four edge walls, `isPineEdgeWall`). */
-export function addPineWorld(host: SimHost, bake: PineBake, skip?: (solid: PineSolid) => boolean): void {
+export function addPineWorld(host: SimHost, bake: PineBake, skip?: (solid: PineSolid) => boolean): ReadonlyMap<string, object | string> {
+  // One native Piece identity spans all its colliders; declared string owners remain a separate namespace.
+  const owners = new Map<string, object | string>();
+  bake.solids.forEach(solid => {
+    const id = solid.ownerId;
+    if (skip?.(solid) === true || id === undefined || owners.has(id)) return;
+    if (!/^(?:piece|declared):[^\r\n]{1,256}$/u.test(id)) throw new Error('Invalid baked Pine world owner');
+    owners.set(id, id.startsWith('piece:') ? Object.freeze({ pineWorldOwner: id }) : id.slice('declared:'.length));
+  });
   const { R, world } = host.physics, g = bake.ground, n = PINE_GROUND_RES - 1;
   withOwner(host.scope, () => {
     const ground = world.createCollider(R.ColliderDesc.heightfield(n, n, g.heights, g.scale).setTranslation(g.at.x, g.at.y, g.at.z).setCollisionGroups(g.groups).setFriction(g.friction));
@@ -41,10 +49,29 @@ export function addPineWorld(host: SimHost, bake: PineBake, skip?: (solid: PineS
           : solid.shape === 6 && solid.points !== undefined && solid.indices !== undefined ? R.ColliderDesc.trimesh(solid.points, solid.indices)
             : solid.shape === 9 && solid.points !== undefined ? R.ColliderDesc.convexHull(solid.points) : null;
       if (desc === null) throw new Error(`Unbuildable baked Pine collider shape ${String(solid.shape)}`);
-      world.createCollider(desc.setTranslation(solid.at[0], solid.at[1], solid.at[2]).setRotation({ x: solid.rot[0], y: solid.rot[1], z: solid.rot[2], w: solid.rot[3] })
+      const collider = world.createCollider(desc.setTranslation(solid.at[0], solid.at[1], solid.at[2]).setRotation({ x: solid.rot[0], y: solid.rot[1], z: solid.rot[2], w: solid.rot[3] })
         .setCollisionGroups(solid.groups).setFriction(solid.friction));
+      const material = solid.material ?? 'wood'; // The page query's explicit legacy fallback for untagged old bakes.
+      tagCollider(collider, material, solid.ownerId === undefined ? null : owners.get(solid.ownerId));
     });
   });
+  // Generic snapshots copy plain owner records. Rebind to this host's exact shared identities after native restore;
+  // no collider allocation, handle inference, geometry lookup or gameplay step is used to recover ownership.
+  host.onStep('pine.world-tags', () => undefined, {
+    snapshot: () => 1,
+    restore: value => { if (value !== 1) throw new Error('Invalid Pine world-tag continuation'); },
+    physicsRestored: () => {
+      host.physics.world.forEachCollider(collider => {
+        const tag = tagOf(collider), owner = tag?.owner;
+        if (tag === undefined || owner === null || typeof owner !== 'object' || !('pineWorldOwner' in owner)) return;
+        const id = owner.pineWorldOwner;
+        if (typeof id !== 'string' || !owners.has(id)) throw new Error('Saved Pine world owner is missing');
+        tagCollider(collider, tag.material, owners.get(id));
+      });
+    },
+  });
+  host.scope.onDispose(() => { owners.clear(); });
+  return owners;
 }
 
 /** The page's terrain grid from its trusted bytes, refused unless it is Pine's own 256² lattice over the 500 m chunk. */

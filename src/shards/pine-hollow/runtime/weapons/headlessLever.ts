@@ -3,6 +3,8 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
+import { instantSpreadDegrees } from '@wildshard/engine/combat/shotSpread';
+import { smoothstep } from '@wildshard/engine/core/noise';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, TUBE_MAX, RESERVE_START, type LeverHooks } from '../../weapons/leverAction';
 import { aimAt, bodyHit, spreadInto, worldHit } from './headlessRanged';
 
@@ -28,6 +30,9 @@ export interface PineLeverPorts {
   readonly bodies: () => readonly AnimalSim[];
   /** the tick's aim share along the target's body (headlessRanged.ts `aimAt`; absent: its middle) */
   readonly aim?: () => number;
+  /** Actual page combat-input samples; absent retains the named standing/hip limitation. */
+  readonly adsBlend?: () => number;
+  readonly speedFactor?: () => number;
 }
 
 /**
@@ -46,10 +51,12 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
   const store = { reserve: RESERVE_START }, act = new LeverAction(store);
   let sinceEmpty = 99;
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), end = new Vector3();
-  const spread = (LEVER_PROFILE.spreadAds + LEVER_PROFILE.spreadHip) * Math.PI / 180;
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.lever', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir, headshot: false };
   const hitscan = (target: AnimalSim): void => {
     aimAt(host, target, eye, dir, ports.aim?.());
+    const a = smoothstep(0, 1, ports.adsBlend?.() ?? 0);
+    const spread = instantSpreadDegrees(LEVER_PROFILE.spreadAds, LEVER_PROFILE.spreadHip, a, 0,
+      ports.speedFactor?.() ?? 0, LEVER_PROFILE.movingSpread, LEVER_PROFILE.movingAimReduction) * (Math.PI / 180);
     spreadInto(dir, spread, random, LEVER_PROFILE.spreadRadius === 'sqrt', across);
     const wall = worldHit(host, eye, end.copy(eye).addScaledVector(dir, LEVER_PROFILE.range), 0);
     const hit = bodyHit(ports.bodies(), eye, dir, wall ? wall.distance : LEVER_PROFILE.range), body = hit?.body ?? null;
