@@ -91,6 +91,19 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
  */
 let sharedCtx: AudioContext | undefined;
 
+/**
+ * Create the page's one AudioContext now, without any shard's graph (SF67): the constructor is a ~130 ms native task at
+ * 4× CPU, so a boot that will call `resume()` straight away (an arrival entering the world) pays it in a task of its own
+ * instead of inside the first frame's. Nothing else changes: `graph()` builds its nodes on this context as before, and a
+ * context made outside a gesture starts suspended either way.
+ */
+export function primeAudioContext(): void {
+  if (sharedCtx !== undefined) return;
+  const w: { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext } = window; // old Safari: prefixed only
+  const AC = w.AudioContext ?? w.webkitAudioContext;
+  if (AC !== undefined) sharedCtx = new AC({ latencyHint: 'interactive' });
+}
+
 export class Audio extends PlayerVoices {
   private readonly scope = resourceScope().child('Audio');
   listenerYaw = 0;

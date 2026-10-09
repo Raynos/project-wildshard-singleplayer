@@ -37,6 +37,7 @@ import { tap, ambientTick } from '../core/harnessTap';
 // (the Driftwood shrine's −3 dB, src/shards/driftwood-isle/audio/shrineHum.ts).
 //
 import type { Audio } from './Audio';
+import type { Scope } from '../app/scope';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle as MusicGenre } from '../ui/Settings';
 import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { AacTrack } from './aacTrack';
@@ -518,6 +519,8 @@ export class Music {
   private failed = new Set<MusicGenre>();
   private _duck = 1;
   private source: ScoreSource | undefined;
+  /** silent scores asked for before the rig existed (`silence`): applied as `build` makes the music bus */
+  private readonly silences = new Set<Scope>();
   private sourceId: string | undefined;
 
   private audio: Audio;
@@ -536,8 +539,25 @@ export class Music {
     const engine = new Engine(ctx, out);
     const stemBus = ctx.createGain(); stemBus.connect(engine.bus); // through the engine's low-pass + chorus: underwater muffles the stems too
     this.rig = { ctx, out, duckGain, engine, stemBus };
+    for (const scope of this.silences) this.silenceNow(out, scope);
+    this.silences.clear();
     this.setState(this.pending);
     return this.rig;
+  }
+  /**
+   * A level's silent score (audio/declared.ts): the music bus at 0 for `scope`'s life, its value before restored on dispose.
+   * Before the rig exists it waits for `build` (SF67: building the bus here made the page's AudioContext, ~100 ms of a
+   * loading task at 4× CPU, before any gesture could play it).
+   */
+  silence(scope: Scope): void {
+    if (this.rig) { this.silenceNow(this.rig.out, scope); return; }
+    this.silences.add(scope);
+    scope.onDispose(() => { this.silences.delete(scope); });
+  }
+  private silenceNow(out: GainNode, scope: Scope): void {
+    if (scope.disposed) return;
+    const gain = out.gain, before = gain.value; gain.value = 0;
+    scope.onDispose(() => { gain.value = before; });
   }
   /**
    * E155: the score is the page's, the shards' Audio are their own (one AudioContext): the music bus follows the running

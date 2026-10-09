@@ -16,7 +16,7 @@ function fixture() {
     restartSynthBed: (id) => { beds.push(`restart:${id}`); },
     mkWind: (...args) => { winds.push(args.filter((arg): arg is number => arg !== undefined)); return { disconnect: () => { disconnected++; } }; },
   };
-  return { scope, cues, gain, calls, winds, beds, ports: { scope, cues, music: { out: { gain } }, voices, audio }, stop: () => stop?.(), disconnected: () => disconnected };
+  return { scope, cues, gain, calls, winds, beds, ports: { scope, cues, music: { silence: (owner: Scope) => { const before = gain.value; gain.value = 0; owner.onDispose(() => { gain.value = before; }); } }, voices, audio }, stop: () => stop?.(), disconnected: () => disconnected };
 }
 it('plays the declared template cue map through engine routing, starts matching forest winds and silences only the score', () => {
   const f = fixture(); installDeclaredAudio(TEMPLATE_AUDIO, f.ports);

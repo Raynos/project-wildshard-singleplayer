@@ -19,7 +19,8 @@ export interface DeclaredAudioPorts {
   audio: Pick<Audio, 'installSynthBed' | 'restartSynthBed' | 'installCues'> & { mkWind: (...args: Parameters<Audio['mkWind']>) => Pick<GainNode, 'disconnect'> };
   cues: CombatCues;
   voices: ReadonlyMap<string, (opts: CombatCueOpts) => void>;
-  music: { readonly out: { readonly gain: Pick<AudioParam, 'value'> } };
+  /** the score's silence for a scope (`Music.silence`): the music bus at 0 while it lives, restored after */
+  music: { silence: (scope: Scope) => void };
   scope: Scope;
   /** Trusted recipes consume bounded data; an unbound profile is refused before any sound changes. */
   profiles?: {
@@ -49,10 +50,7 @@ export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAud
   if (data.music !== undefined) ports.profiles?.music?.(data.music, ports.scope);
   if (data.samples !== undefined) ports.profiles?.samples?.(data.samples, ports.scope);
   if (data.zones !== undefined) ports.profiles?.zones?.(data.zones, ports.scope);
-  if (data.score === 'silent') {
-    const gain = ports.music.out.gain, before = gain.value; gain.value = 0;
-    ports.scope.onDispose(() => { gain.value = before; });
-  }
+  if (data.score === 'silent') ports.music.silence(ports.scope);
   if (data.ambience !== null) {
     const { bed, winds } = data.ambience; let sources: Pick<GainNode, 'disconnect'>[] = [];
     const stop = (): void => { for (const source of sources) source.disconnect(); sources = []; };

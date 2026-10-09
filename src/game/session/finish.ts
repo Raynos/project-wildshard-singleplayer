@@ -3,6 +3,7 @@ import { gridCells } from '../grid/boot';
 import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
+import { primeAudioContext } from '@wildshard/engine/audio/Audio';
 import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { startAudioPreload } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -74,6 +75,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (typeof finishPlan !== 'function') throw new Error('Boot plan cannot finish');
   Reflect.apply(finishPlan, plan, []); // throws unless both tracks are exactly 1
   releaseByteCounter();
+  // an arrival enters at once (`enter` below resumes the audio): the page's AudioContext in a task of its own first (SF67)
+  if (arrival?.mode === 'enter' || arrival?.mode === 'arena') { primeAudioContext(); await macrotask(); }
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
   if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
   const recoveryInstalledAt = performance.now();
