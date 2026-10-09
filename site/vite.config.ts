@@ -4,7 +4,7 @@
 // It emits /version.json (site/tools/deploy.sh reads it back) and fills the page's generated blocks from the build, so
 // they can't drift from the plans and the game:
 //   <!--gen:road-->       the road strip, from SHARD-PLATFORM's State line at the built commit (MS6)
-//   <!--gen:devlog-->     site/devlog.json plus every commit with a `Devlog:` trailer (MS14)
+//   <!--gen:devlog-->     site/devlog.json plus every commit with a `Devlog: <sentence>` line (MS14)
 //   <!--gen:shardfile-->  the template's real shard.json, fetched from the live game (MS15)
 //   <!--gen:media-->      site/media.json: the trailer and shard loops on Blob (MS11, site/tools/publish-media.ts)
 // deploy.sh builds a clean export (no .git), so it passes SITE_REPO and SITE_BUILD_SHA; a local build uses this checkout.
@@ -90,10 +90,11 @@ function devlogHtml(): string {
   const seed: unknown = JSON.parse(readFileSync(join(root, 'devlog.json'), 'utf8'));
   const { entries } = fields(seed) ?? {};
   const base: Entry[] = Array.isArray(entries) ? entries.flatMap(toEntry) : [];
-  const log = git(repo, ['log', sha, '-n', '4000', '--format=%h%x1f%cs%x1f%(trailers:key=Devlog,valueonly,separator=%x1e)%x1d']);
+  // any `Devlog:` line in a commit body counts, trailer block or not (a co-author block after it hides a git trailer)
+  const log = git(repo, ['log', sha, '-n', '4000', '--grep=^Devlog: ', '--format=%h%x1f%cs%x1f%B%x1d']);
   const fresh: Entry[] = log.split('\u001D').flatMap((rec) => {
-    const [h = '', date = '', trailer = ''] = rec.trim().split('\u001F');
-    return trailer.split('\u001E').map((t) => t.trim()).filter((t) => t !== '').map((text) => ({ date, text, sha: h }));
+    const [h = '', date = '', body = ''] = rec.trim().split('\u001F');
+    return body.split('\n').filter((l) => l.startsWith('Devlog: ')).map((l) => l.slice('Devlog: '.length).trim()).filter((t) => t !== '').map((text) => ({ date, text, sha: h }));
   });
   const all: Entry[] = [...fresh, ...base.filter((b) => !fresh.some((f) => f.sha === b.sha))].sort((a, b) => b.date.localeCompare(a.date));
   const day = (d: string): string => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
