@@ -6,7 +6,7 @@ import { CombatPipeline } from '../../src/engine/combat/pipeline';
 import { PlayerHealth } from '../../src/engine/combat/health';
 import { bindPlayerEffects, EffectService } from '../../src/engine/combat/effects/EffectService';
 import { harmfulEffect, type EffectDef } from '../../src/engine/combat/effects/types';
-import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 
 it('clears poison, slow and other harmful data without changing a timed buff or cosmetic', () => {
   const scope = new Scope('effects.safe'), events = new Events();

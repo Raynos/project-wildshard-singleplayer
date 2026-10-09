@@ -5,7 +5,6 @@
   "exports": {
     "./audio/forest": "./audio/forest.ts",
     "./effects/install": "./effects/install.ts",
-    "./effects/starter": "./effects/starter.ts",
     "./icons": "./icons.ts",
     "./models/creatures": "./models/creatures.ts",
     "./npc/faceHeads": "./npc/faceHeads.ts",

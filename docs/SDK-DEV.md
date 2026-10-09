@@ -91,6 +91,13 @@ periodic damage uses the supplied combat pipeline, and death/disposal cleanup en
 with the owner. It adds no HUD or visual policy; status-icon presentation stays
 separate. Importing the module installs nothing.
 
+`@wildshard/commons/packs/effects.starterEffectsPack({credit, licence})` emits the
+five existing status rows as immutable JSON. The normal boot-table generator
+expands that same pack into a literal game table. Trusted runtimes read it through
+`@wildshard/sdk/runtime/effects.STARTER_EFFECTS`; the engine checks the typed row
+contract, and neither import installs or applies an effect. Stun / burn / poison /
+bleed / slow tuning, damage cadence, stacking and cue/icon ids stay unchanged.
+
 ## Trusted renderer-free headless runtimes
 
 `HeadlessSimulation.create(source, assets, checkpoint, { trustedRuntime: { module: fileURL } })`

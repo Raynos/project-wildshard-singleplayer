@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed ratchet list.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { STARTER_EFFECTS } from '../src/kit/effects/starter';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import { compareRowFunctions, rowFunctions } from '../scripts/check-row-data.mjs';
 
 // SHARD-PLATFORM SP3: content rows become data (MMO-REQUIREMENTS R1, S6). lint/row-functions.json lists the row fields

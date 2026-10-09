@@ -21,7 +21,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import * as THREE from 'three';
 import { CABIN_SITES } from '../layout';
 import { installStarterEffects } from '@wildshard/kit/effects/install';
-import { STARTER_EFFECTS } from '@wildshard/kit/effects/starter';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow } from './weapons/crossbow/Crossbow';

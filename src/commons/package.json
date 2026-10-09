@@ -6,7 +6,8 @@
   "exports": {
     "./catalogue": "./catalogue.ts",
     "./scripts": "./scripts.ts",
-    "./packs/bag": "./packs/bag/pack.ts"
+    "./packs/bag": "./packs/bag/pack.ts",
+    "./packs/effects": "./packs/effects/pack.ts"
   },
   "dependencies": {
     "@wildshard/sdk": "workspace:*"

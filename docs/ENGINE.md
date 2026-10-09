@@ -29,6 +29,11 @@ builders until their baked commons entries (SF54 step 4) replace the procedural 
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
 Nalati and Pine runtime world hooks lazily import these defining modules. The kit `lookApi` loaders are removed.
 
+`@wildshard/game/systems/effects/starter.STARTER_EFFECTS` owns the typed runtime
+view of the build-only commons effects pack. The SDK exposes the same rows through
+`runtime/effects`; `pnpm gen` and direct Vite/native builds generate their literal
+table before compilation. Runtime imports hold no commons code and apply nothing.
+
 `@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
 as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
 status movement / periodic-damage / death bindings, with no second kit wrapper,

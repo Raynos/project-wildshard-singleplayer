@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Scope } from '../../src/engine/app/scope';
 import { EffectService } from '../../src/engine/combat/effects/EffectService';
-import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 
 it('detaches entered observers while preserving player statuses and restoring the parent callback', () => {
   const scope = new Scope('effects'), effects = new EffectService(STARTER_EFFECTS, scope);

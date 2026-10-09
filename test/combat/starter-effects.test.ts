@@ -5,8 +5,7 @@ import { EffectService } from '../../src/engine/combat/effects/EffectService';
 import { PlayerHealth } from '../../src/engine/combat/health';
 import { CombatPipeline, type Actor } from '../../src/engine/combat/pipeline';
 import { Events } from '../../src/engine/events/events';
-import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
-import { bindPlayerEffects } from '@wildshard/sdk/runtime/effects';
+import { STARTER_EFFECTS, bindPlayerEffects } from '@wildshard/sdk/runtime/effects';
 
 function setup() {
   const scope = new Scope('starter-test'), events = new Events(), combat = new CombatPipeline(events, scope);

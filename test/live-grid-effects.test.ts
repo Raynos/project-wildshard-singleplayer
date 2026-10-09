@@ -15,7 +15,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { STARTER_EFFECTS } from '../src/kit/effects/starter';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { MemoryStorage } from './setup';
 

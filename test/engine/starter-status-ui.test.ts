@@ -5,7 +5,7 @@ import { App } from '../../src/engine/app/app';
 import { Scope } from '../../src/engine/app/scope';
 import { EffectService } from '../../src/engine/combat/effects/EffectService';
 import { PlayerHealth } from '../../src/engine/combat/health';
-import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import { installStarterEffects } from '../../src/kit/effects/install';
 import { DialogueBox } from '../../src/engine/quest/view/ui';
 import { Flags } from '../../src/engine/world/interact/flags';
