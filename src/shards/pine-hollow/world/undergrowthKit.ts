@@ -9,8 +9,19 @@
 import * as THREE from 'three';
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
 import type { UnderPlacements } from '@wildshard/engine/world/forest/placement';
+import * as v from 'valibot';
 import type { UnderKind, UnderKindDraw } from './undergrowth';
+import underJson from '../data/undergrowth.json' with { type: 'json' };
 
+/** a kind's shape: its Float32 attributes and its triangles (G285: baked by ../generators/undergrowth.ts) */
+export interface UnderShape { position: number[]; normal: number[]; uv: number[]; index: number[] }
+export type UnderShapes = Record<UnderKind, UnderShape>;
+const num = v.pipe(v.number(), v.finite());
+const Shape = v.strictObject({ position: v.array(num), normal: v.array(num), uv: v.array(num), index: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))) });
+/** ../data/undergrowth.json's shape */
+export const UnderShapesSchema = v.strictObject({ ferns: Shape, shrubs: Shape, litter: Shape, stones: Shape, moss: Shape, reeds: Shape });
+/** each kind's shape, baked (G285: ../generators/undergrowth.ts → ../data/undergrowth.json): ./undergrowth.ts builds its geometry from it */
+export const UNDER_SHAPES: UnderShapes = v.parse(UnderShapesSchema, underJson);
 
 const KEY = 'pine-hollow/undergrowth';
 

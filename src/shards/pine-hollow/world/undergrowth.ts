@@ -12,6 +12,7 @@ import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Pl
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { patchWindField } from '@wildshard/engine/world/wind';
+import { UNDER_SHAPES, type UnderShape } from './undergrowthKit';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
@@ -111,12 +112,12 @@ export class Undergrowth {
     const place = yield* this.placements();
     this.layout = place;
     this.kinds = {
-      ferns: kindDraw(buildFernGeometry(), fernMat, true, fernTex, 0.35),
-      shrubs: kindDraw(buildShrubGeometry(), shrubMat, true, shrubTex, 0.25),
-      litter: kindDraw(buildLitterGeometry(1.4), litterMat, false),
-      stones: kindDraw(buildLitterGeometry(0.9), stoneMat, false),
-      moss: kindDraw(buildLitterGeometry(1.0), mossMat, false),
-      reeds: kindDraw(buildReedGeometry(), reedMat, true, reedTex, 0.5),
+      ferns: kindDraw(toGeometry(UNDER_SHAPES.ferns), fernMat, true, fernTex, 0.35),
+      shrubs: kindDraw(toGeometry(UNDER_SHAPES.shrubs), shrubMat, true, shrubTex, 0.25),
+      litter: kindDraw(toGeometry(UNDER_SHAPES.litter), litterMat, false),
+      stones: kindDraw(toGeometry(UNDER_SHAPES.stones), stoneMat, false),
+      moss: kindDraw(toGeometry(UNDER_SHAPES.moss), mossMat, false),
+      reeds: kindDraw(toGeometry(UNDER_SHAPES.reeds), reedMat, true, reedTex, 0.5),
     };
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
   }
@@ -227,104 +228,7 @@ function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record
 
 // ------------------------------------------------------------------ geometry
 
-function upNormal(x: number, z: number, out: number[]) {
-  const rl = Math.hypot(x, z) || 1;
-  const nx = (x / rl) * 0.45, nz = (z / rl) * 0.45;
-  const nl = Math.hypot(nx, 1, nz);
-  out.push(nx / nl, 1 / nl, nz / nl);
-}
-
-/** Rosette of 9 arched frond quads (4 rows each), pivot at the crown. Unit ≈ 0.9 m frond length. */
-function buildFernGeometry() {
-  const rng = new Rng(SEED + 606);
-  const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [];
-  const rows = 5;
-  const fronds = 9;
-  for (let f = 0; f < fronds; f++) {
-    const inner = f >= 6;
-    const yaw = (f / (inner ? 3 : 6)) * Math.PI * 2 + rng.range(-0.3, 0.3) + (inner ? 0.5 : 0);
-    const len = (inner ? 0.62 : 0.9) * rng.range(0.85, 1.15);
-    const width = len * 0.42;
-    const tiltUp = inner ? rng.range(0.9, 1.2) : rng.range(0.35, 0.6);   // radians above horizontal at the base
-    const droop = rng.range(0.9, 1.4);
-    const cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const base = verts.length / 3;
-    for (let r = 0; r < rows; r++) {
-      const t = r / (rows - 1);
-      // arch: leaves the crown at tiltUp, bends over with droop
-      const ang = tiltUp - droop * t * t;
-      // integrate a little along the curve for the profile
-      let px = 0, py = 0.05;
-      const steps = 6;
-      for (let s = 0; s < steps; s++) { const tt = (t * s) / steps; const a = tiltUp - droop * tt * tt; px += Math.cos(a) * (len * t) / steps; py += Math.sin(a) * (len * t) / steps; }
-      void ang;
-      for (let c = 0; c < 2; c++) {
-        const lx = (c - 0.5) * width * Math.sin(Math.min(1, t * 1.6 + 0.15) * Math.PI * 0.5 + 0.2);
-        const x = px * cy - lx * sy, z = px * sy + lx * cy;
-        verts.push(x, py, z);
-        upNormal(x, z, norms);
-        uvs.push(c, t);
-      }
-    }
-    for (let r = 0; r < rows - 1; r++) { const a = base + r * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
-  }
-  return toGeometry(verts, norms, uvs, idx);
-}
-
-/** 4 crossed quads, 0.95 m wide, 0.75 m tall. */
-function buildShrubGeometry() {
-  const rng = new Rng(SEED + 607);
-  const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [];
-  for (let q = 0; q < 4; q++) {
-    const yaw = (q / 4) * Math.PI + rng.range(-0.2, 0.2);
-    const cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const w = 0.95 * rng.range(0.85, 1.15), h = 0.75 * rng.range(0.85, 1.15);
-    const base = verts.length / 3;
-    for (let r = 0; r < 3; r++) {
-      const t = r / 2;
-      for (let c = 0; c < 2; c++) {
-        const lx = (c - 0.5) * w, lz = rng.range(-0.02, 0.02) + t * t * 0.08;
-        const x = lx * cy - lz * sy, z = lx * sy + lz * cy;
-        verts.push(x, t * h, z); upNormal(x, z, norms); uvs.push(c, t);
-      }
-    }
-    for (let r = 0; r < 2; r++) { const a = base + r * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
-  }
-  return toGeometry(verts, norms, uvs, idx);
-}
-
-/** One flat quad of `size` metres lying on the ground (pivot centre). */
-function buildLitterGeometry(size: number) {
-  const h = size / 2;
-  const verts = [-h, 0, -h, h, 0, -h, -h, 0, h, h, 0, h];
-  const norms = [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
-  const uvs = [0, 1, 1, 1, 0, 0, 1, 0];
-  return toGeometry(verts, norms, uvs, [0, 2, 1, 1, 2, 3]);
-}
-
-/** Reed / sedge clump: 3 crossed narrow quads, 1 m tall (scaled 0.8–1.2 per instance). */
-function buildReedGeometry() {
-  const rng = new Rng(SEED + 608);
-  const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [];
-  for (let q = 0; q < 3; q++) {
-    const yaw = (q / 3) * Math.PI + rng.range(-0.2, 0.2);
-    const cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const w = 0.3 * rng.range(0.85, 1.15), bend = rng.range(0.05, 0.12);
-    const base = verts.length / 3;
-    for (let r = 0; r < 4; r++) {
-      const t = r / 3;
-      for (let c = 0; c < 2; c++) {
-        const lx = (c - 0.5) * w, lz = bend * t * t;
-        const x = lx * cy - lz * sy, z = lx * sy + lz * cy;
-        verts.push(x, t, z); upNormal(x, z, norms); uvs.push(c, t);
-      }
-    }
-    for (let r = 0; r < 3; r++) { const a = base + r * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
-  }
-  return toGeometry(verts, norms, uvs, idx);
-}
-
-function toGeometry(verts: number[], norms: number[], uvs: number[], idx: number[]) {
+function toGeometry({ position: verts, normal: norms, uv: uvs, index: idx }: UnderShape): THREE.BufferGeometry {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
