@@ -62,7 +62,8 @@ def ended(path):
             # an API error (a usage limit, 2026-10-03) ends the agent too: it never writes an end_turn
             return rec.get("isApiErrorMessage") is True or (rec.get("message") or {}).get("stop_reason") == "end_turn"
         if t == "user":
-            return False
+            # a subagent that reports through the hand-back tool ends on its tool result, never on an end_turn
+            return str((rec.get("toolUseResult") or {}).get("message") or "") == "Report delivered to your caller."
     return False
 
 state = os.path.join(os.environ.get("SUBAGENT_CAP_STATE") or os.path.expanduser("~/.claude/state/subagent-cap"), sid)
