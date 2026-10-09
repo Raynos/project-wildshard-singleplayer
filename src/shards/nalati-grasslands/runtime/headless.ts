@@ -7,7 +7,8 @@ import { castRay } from '@wildshard/engine/physics/query';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, nalatiBake, type NalatiBake, type NalatiBakedActor } from './baked';
 import { nalatiBootRoster, type NalatiBootBody, type NalatiBootClock, type NalatiBootHerd } from './bootRoster';
-import { installNalatiCreatures } from './headlessCreatures';
+import { installNalatiElites, nalatiEliteBindings, type NalatiEliteBindings } from './headlessElites';
+import { installNalatiCreatures, type NalatiHostCreatures } from './headlessCreatures';
 import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
 import type { RngState } from '@wildshard/engine/core/rng';
 import { SEED, TERRAIN } from '../world/terrain';
@@ -236,11 +237,11 @@ export interface NalatiBody { readonly boot: NalatiBootBody; readonly baked: Nal
  * terrain itself when that is the ground's heightfield). The Golden King stays parked (no body), as the page parks him.
  * The host runs on the page's distance bands, installed before any spawn (and before a restoring host restores its clocks).
  */
-export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: NalatiBootClock }): {
+export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: NalatiBootClock; elites: NalatiEliteBindings }): {
   bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; stream: RngState; wildStream: RngState;
 } {
   const { bake } = ports, s = bakedSamplers(ports.grid);
-  host.useBodyBands();
+  host.useBodyBands({ rate: a => a.driven || a.state === 'sidestep' || ports.elites.pinned.has(a) ? 'always' : 'ai' });
   const roster = nalatiBootRoster({ normalY: (x, z) => s.normalAt(x, z)[1], heightAt: s.heightAt, waterLevel: () => TERRAIN.waterLevel(), wetAt: nalatiWetAt }, ports.clock);
   if (roster.bodies.length !== bake.actors.length || JSON.stringify(roster.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.id) }))) !== JSON.stringify(bake.herds))
     throw new Error('Nalati roster diverges from the page\'s list');
@@ -277,8 +278,8 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * restored exactly by an identical install before the host restores, the declared groups (runtime/groups.ts: the pack,
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati12.md): the elites' brains, the
- * the Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
+ * progress/shard-platform/handoffs/sf72-nalati12.md): the remaining dusk/night/storm elite brains, the
+ * Golden King and the Storm Titan, the mounted player and the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -294,7 +295,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     // the page's day clock, stepped at the start of every tick (restoring too: the host then restores its saved `day`); the
     // roster reads it at install, the boot's phase (the level's `day.start`, if any, moves both)
     const clock = host.useDayClock(nalatiDayClock());
-    const roster = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y, clock: nalatiBootClock(clock) }), bodies = roster.bodies, normal = bakedSamplers(grid).normalAt;
+    const bindings = nalatiEliteBindings();
+    const roster = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y, clock: nalatiBootClock(clock), elites: bindings }), bodies = roster.bodies, normal = bakedSamplers(grid).normalAt;
     // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
     const grass = nalatiGrassView(grid, shard.identity.seed);
     installNalatiTrample(host, grass.trample);
@@ -307,9 +309,17 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
       scare(x, z);
     } });
     const groups = installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass, env });
+    const installed: { creatures?: NalatiHostCreatures } = {};
+    const manager = (): NalatiHostCreatures => { const value = installed.creatures; if (value === undefined) throw new Error('Nalati elite used before manager install'); return value; };
+    // The page's elite rules run after weather and BEFORE Wildlife. Setup adopts the already rolled boot actors;
+    // a restoring install only reconnects saved identities after the manager has reinstalled its deferred roster.
+    const elites = installNalatiElites(host, { bindings, heightAt, ledges: bake.ledges, phase: () => clock.dayPhase, storm: () => env.storm,
+      bodies: () => installed.creatures?.bodies ?? bodies.map(b => b.actor), herd: () => groups.herds[1] ?? null,
+      spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    const creatures = installNalatiCreatures(host, { bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
-    scare = (x, z) => { creatures.scare(x, z, 60); };
+    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
+    scare = (x, z) => { manager().scare(x, z, 60); };
+    if (!context.restoring) elites.initialize();
   } };
 };

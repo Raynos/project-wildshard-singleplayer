@@ -93,9 +93,9 @@ it('seeds the pack, the wild herd and Argymaq\'s herd on the \'ai\' stream exact
     states.forEach((state, i) => { expect(state).toBe(bake.groups[i]?.state); });
     // every body's memory as the page held it at its tick 0, but for what this host does not own: the horses' pose easing
     // (`_rear`, `_graze`…: horse.ts horsePostPose, the rig's), the elites' bar flag (runtime/state.ts `noHeadBar`) and
-    // Aqbars' crouch (combat/elites.ts `low`: the elites are not modelled yet)
-    const sim = (id: string, mem: Readonly<Record<string, number>>): Record<string, number> => Object.fromEntries(Object.entries(mem)
-      .filter(([key]) => !key.startsWith('_') && key !== 'noHeadBar' && !(id === 'creature:25' && key === 'low')));
+    // Aqbars' crouch is now installed by the actual native elite keeper.
+    const sim = (_id: string, mem: Readonly<Record<string, number>>): Record<string, number> => Object.fromEntries(Object.entries(mem)
+      .filter(([key]) => !key.startsWith('_') && key !== 'noHeadBar'));
     bake.spawns.forEach(spawn => {
       const live = host.entities.get(spawn.id); if (live === undefined) throw new Error(`missing ${spawn.id}`);
       expect({ id: spawn.id, mem: live.mem }).toEqual({ id: spawn.id, mem: sim(spawn.id, spawn.mem) });
