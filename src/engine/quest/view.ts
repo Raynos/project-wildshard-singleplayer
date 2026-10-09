@@ -71,10 +71,10 @@ export class NpcTalk {
   private readonly o: NpcTalkOpts;
   constructor(o: NpcTalkOpts) {
     this.o = o;
-    const dialogue = o.dialogue, r = o.radius;
+    const r = o.radius; // The dialogue can be entry-owned: constructing the prompt must not read its getter.
     this.prompt = {
       position: o.at,
-      get radius() { return dialogue.isOpen ? 0 : r; },   // hidden while talking: the box has its own NEXT (E / a tap)
+      get radius() { return o.dialogue.isOpen ? 0 : r; },   // hidden while talking: the box has its own NEXT (E / a tap)
       label: o.label,
       onInteract: () => { this.talk(); },
     };

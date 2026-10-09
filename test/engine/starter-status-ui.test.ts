@@ -47,6 +47,25 @@ describe('scoped status and quest UI', () => {
     talk.talk(); dialogue.advance(); dialogue.advance(); expect(flags.has('talked')).toBe(true); expect(completed).toBe(1);
     talk.talk(); expect(completed).toBe(2); scope.dispose(); expect(document.body.children).toHaveLength(0);
   });
+  it('constructs an inactive talk without reading its entry-owned dialogue, then follows the current widget on re-entry', () => {
+    const resident = new Scope('talk.prepared'), flags = new Flags('npc.prepared', false), speaker = { talking: false };
+    let current: DialogueBox | undefined, reads = 0;
+    const talk = new NpcTalk({ get dialogue() {
+      reads++; if (current === undefined) throw new Error('Dialogue is not entered'); return current;
+    }, flags, at: new Vector3(), radius: 3.2, label: 'Talk', speaker,
+    npc: { id: 'person', name: 'Person', dialogue: [{ lines: ['A line'] }] } });
+    try {
+      expect(reads).toBe(0);
+      for (let entry = 0; entry < 2; entry++) {
+        const scope = resident.child('entry'); current = new DialogueBox(scope);
+        expect(talk.prompt.radius).toBe(3.2);
+        talk.prompt.onInteract(); expect(current.isOpen).toBe(true); expect(talk.prompt.radius).toBe(0);
+        talk.update(new Vector3(0, 0, 6)); expect(current.isOpen).toBe(false); expect(speaker.talking).toBe(false);
+        expect(talk.prompt.radius).toBe(3.2); scope.dispose(); current = undefined;
+        expect(document.body.children).toHaveLength(0);
+      }
+    } finally { resident.dispose(); }
+  });
   it('Pine board/trade listeners release with their owner, so a disposed panel cannot reopen', () => {
     const scope = new Scope('panels'), board = new BoardPanel(newBoard, scope);
     const trade = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods: [{ id: 'a', name: 'A', does: 'a', icon: 'star', price: 0 }], state: () => 'short', cost: () => [{ text: '1 hide (0)', have: false }], scope });
