@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { HuntTuning } from '@wildshard/engine/entities/AnimalManager';
+import type { HuntTuning } from '@wildshard/engine/ai/hunt';
 import { loft, tube, skinPlain, S, boneIndex, mix, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, BoneDef, VariantDef, SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import type { RGB } from '@wildshard/engine/level/data';

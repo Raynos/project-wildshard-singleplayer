@@ -1,4 +1,4 @@
-import type { HuntTuning } from '../entities/AnimalManager';
+import type { HuntTuning } from './hunt';
 import type { VariantMods, Rarity, ThinkCtx } from '../entities/species/registry';
 import type { Animal } from '../entities/AnimalView';
 import type { SpeciesFlight } from './flight';

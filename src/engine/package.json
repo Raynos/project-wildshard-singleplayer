@@ -374,6 +374,7 @@
     "./script/composition": "./script/composition.ts",
     "./ai/pack": "./ai/pack.ts",
     "./ai/herd": "./ai/herd.ts",
+    "./ai/hunt": "./ai/hunt.ts",
     "./combat/Firearm": "./combat/Firearm.ts",
     "./combat/Melee": "./combat/Melee.ts",
     "./combat/Thrown": "./combat/Thrown.ts",

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vites
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
-import { manager } from '../fake/manager';
+import { huntOf, manager } from '../fake/manager';
 import { pinBrain } from '../../src/engine/ai/inspect';
 import { Flock } from '../../src/shards/nalati-grasslands/creatures/flock';
 import { Marmots } from '../../src/shards/nalati-grasslands/creatures/marmots';
@@ -73,8 +73,7 @@ describe('distance-banded creature clocks', () => {
   });
   it('advances a charge wind-up on body frames between decision ticks', () => {
     const f = manager(), a = f.manager.spawn('boar', 0, 5, 0, 'boar');
-    const brains: unknown = Reflect.get(f.manager, 'brains'); if (!(brains instanceof Map)) throw new Error('brains moved');
-    const brain: unknown = brains.get(a); if (typeof brain !== 'object' || brain === null) throw new Error('missing brain');
+    const brain = huntOf(f.manager).memory(a); if (brain === undefined) throw new Error('missing brain');
     Object.assign(brain, { windup: 0.04, timer: 10 }); a.state = 'charge'; a.startAttack(0.04);
     const think = vi.fn<() => void>(); Reflect.set(f.manager, 'think', think);
     f.advance(1); expect(think).not.toHaveBeenCalled(); expect(Reflect.get(brain, 'windup')).toBeCloseTo(0.04 - 1 / 60);

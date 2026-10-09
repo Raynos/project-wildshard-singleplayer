@@ -7,7 +7,7 @@ import type { ChunkFiles } from '../boot/bytes';
 import type { LookStrategy } from '../render/look';
 import type { WaterBody } from '../world/water/body';
 import type { Tier } from '../core/tier';
-import type { HuntTuning } from '../entities/AnimalManager';
+import type { HuntTuning } from '../ai/hunt';
 import type { RosterEntry } from '../models/live';
 import type { InputContextDef } from './context';
 import type { SfxDecodePolicy } from '../audio/preload';

@@ -1,4 +1,5 @@
 import { AnimalManager } from '../../src/engine/entities/AnimalManager';
+import { HuntBrain } from '../../src/engine/ai/hunt';
 import { fakeWorld } from './world';
 import { TickScheduler, type TickActor } from '../../src/engine/app/scheduler';
 import type { Animal } from '../../src/engine/entities/AnimalView';
@@ -23,10 +24,13 @@ export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWor
   if (legacyClock) {
     const scheduler = new LegacyClock(), prev = f.player.position.clone();
     let initialized = false, speed = 0;
-    const think: unknown = Reflect.get(m, 'think'), charge: unknown = Reflect.get(m, 'advanceCharge');
+    // the decision tick is the manager's; the charge body clock is the hunting brain's (src/engine/ai/hunt.ts, SF72)
+    const hunt: unknown = Reflect.get(m, 'hunt');
+    if (!(hunt instanceof HuntBrain)) throw new Error('Manager hunting brain moved');
+    const think: unknown = Reflect.get(m, 'think'), charge: unknown = Reflect.get(hunt, 'advanceCharge');
     if (typeof think !== 'function' || typeof charge !== 'function') throw new Error('Manager decision/body hooks moved');
     Reflect.set(m, 'scheduler', scheduler);
-    Reflect.set(m, 'advanceCharge', () => undefined);
+    Reflect.set(hunt, 'advanceCharge', () => undefined);
     Reflect.set(m, 'interrupt', () => undefined);
     Reflect.set(m, 'think', (a: Animal, dt: number, player: typeof prev, sprinting: boolean) => {
       if (!initialized) { prev.copy(player); initialized = true; }
@@ -34,9 +38,18 @@ export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWor
       speed += (Math.min(moved / 0.1, 9) - speed) * 0.5; Reflect.set(m, 'playerSpeed', speed);
       const charging = a.state === 'charge';
       Reflect.apply(think, m, [a, dt, player, sprinting]);
-      if (charging && a.state === 'charge') Reflect.apply(charge, m, [a, dt, player]);
+      if (charging && a.state === 'charge') Reflect.apply(charge, hunt, [a, dt, player]);
     });
   }
   f.game.onUpdate((dt, t) => { m.update(dt, t, f.player.position); }, 'manager', true);
   return { ...f, manager: m, advance(n): void { for (let i = 0; i < n; i++) f.game.advance(1 / 60); if (f.game.dead) throw new Error('manager fixture faulted'); } };
 }
+
+/** The manager's hunting brain (src/engine/ai/hunt.ts, SF72): the herd animals' memories and charge body clock. */
+export function huntOf(m: AnimalManager): HuntBrain<Animal> {
+  const hunt: unknown = Reflect.get(m, 'hunt');
+  if (!isHunt(hunt)) throw new Error('Manager hunting brain moved');
+  return hunt;
+}
+/** the manager makes exactly one HuntBrain, over its Animals */
+function isHunt(value: unknown): value is HuntBrain<Animal> { return value instanceof HuntBrain; }

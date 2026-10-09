@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { StrikeRunner } from '../../src/engine/ai/strikes';
 import { PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
 import { inArc, ringCatches } from '../../src/shards/pine-hollow/combat/combatMath';
-import { manager } from '../fake/manager';
+import { huntOf, manager } from '../fake/manager';
 
 describe('authored Pine contacts on the goal clock', () => {
   it('preserves both measured sweep arcs at every sampled world point, independent of actor scale', () => {
@@ -31,8 +31,8 @@ describe('authored Pine contacts on the goal clock', () => {
     const f = manager(), a = f.manager.spawn('boar', 0, 0, 0, 'boar'), b = f.manager.spawn('boar', 1, 0, 0, 'boar');
     f.manager.retire(a); f.manager.retire(a);
     expect(f.manager.animals).toEqual([b]); expect(a.alive).toBe(false); expect(a.hidden).toBe(true); expect(a.mesh.parent).toBeNull();
-    const brains: unknown = Reflect.get(f.manager, 'brains');
-    expect(brains instanceof Map && brains.has(a)).toBe(false); expect(brains instanceof Map && brains.has(b)).toBe(true);
+    const hunt = huntOf(f.manager);
+    expect(hunt.memory(a)).toBeUndefined(); expect(hunt.memory(b)).toBeDefined();
     f.advance(1); expect(b.alive).toBe(true);
   });
 });

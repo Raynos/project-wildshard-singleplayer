@@ -25,7 +25,7 @@ import { groups } from '../../src/engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { damageTarget, legacyActor, invokeLegacy } from '../fake/legacyActor';
 import { fakeWorld } from '../fake/world';
-import { manager } from '../fake/manager';
+import { huntOf, manager } from '../fake/manager';
 
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
@@ -52,23 +52,21 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     ['boar', 'scarback', 32], ['boar', 'ironhide', 40], ['bear', 'black', 35], ['bear', 'black-blaze', 35],
     ['bear', 'brown', 45], ['bear', 'black-old', 42], ['bear', 'brown-old', 55]] as const)('B4 Pine %s/%s rejects cabin cover and retains%s in the open', (kind, variant, damage) => {
       setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn(kind, 0, -2.5, 0, variant);
-      const brains: unknown = Reflect.get(f.manager, 'brains'); if (!(brains instanceof Map)) throw new Error('brains moved');
-      const brain: unknown = brains.get(a); if (typeof brain !== 'object' || brain === null) throw new Error('brain missing');
+      const hunt = huntOf(f.manager), brain = hunt.memory(a); if (brain === undefined) throw new Error('brain missing');
       Object.assign(brain, { windup: 0, timer: 10 }); a.state = 'charge';
       const hits: number[] = []; f.manager.onCharge = (_animal, amount) => { hits.push(amount); };
-      invokeLegacy(f.manager, 'advanceCharge', a, 0.1, new THREE.Vector3(0, 0, -1.2));
+      hunt.advanceCharge(a, 0.1, new THREE.Vector3(0, 0, -1.2));
       expect(hits).toEqual([]);
-      setActivePhysics(null); invokeLegacy(f.manager, 'advanceCharge', a, 0.1, new THREE.Vector3(0, 0, -1.2));
+      setActivePhysics(null); hunt.advanceCharge(a, 0.1, new THREE.Vector3(0, 0, -1.2));
       expect(hits).toEqual([damage]);
     });
   it('S8 Driftwood charge contact already checks registered cover', () => {
     setActiveChunk('driftwood-isle'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
-    const brains: unknown = Reflect.get(f.manager, 'brains'); if (!(brains instanceof Map)) throw new Error('brains moved');
-    const brain: unknown = brains.get(a); if (typeof brain !== 'object' || brain === null) throw new Error('brain missing');
+    const hunt = huntOf(f.manager), brain = hunt.memory(a); if (brain === undefined) throw new Error('brain missing');
     Object.assign(brain, { windup: 0 }); a.state = 'charge';
     const hit = vi.fn(noop); f.manager.onCharge = hit;
-    invokeLegacy(f.manager, 'chargeContact', a, new THREE.Vector3(0, 0, -1.2)); expect(hit).not.toHaveBeenCalled();
-    setActivePhysics(null); invokeLegacy(f.manager, 'chargeContact', a, new THREE.Vector3(0, 0, -1.2));
+    hunt.chargeContact(a, new THREE.Vector3(0, 0, -1.2)); expect(hit).not.toHaveBeenCalled();
+    setActivePhysics(null); hunt.chargeContact(a, new THREE.Vector3(0, 0, -1.2));
     expect(hit).toHaveBeenCalledWith(a, 25);
   });
   it('B4 Pine elite lane rejects cover and retains30 after it opens', () => {

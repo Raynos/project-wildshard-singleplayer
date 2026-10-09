@@ -27,7 +27,7 @@ const tuning = [
   ['S4 sailor swing', `${island}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
   ['S5/S6 captain cuts', `${island}captainPolicy.ts`, { SWING_R: 2.3, HIT_R: 2.5, SWING_DMG: 24, WINDUP: [0, 0.7, 0.62, 0.5], COOLDOWN: [0, 1.4, 1.2, 0.8] }],
   ['S7 captain burst', `${island}captainPolicy.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
-  ['S8/S9 boar/bear charge', 'src/engine/entities/AnimalManager.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
+  ['S8/S9 boar/bear charge', 'src/engine/ai/hunt.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
   ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
   ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, SHOOT: 62, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
   ['S19 Golden King cuts', `${nalati}goldenKing.ts`, { STRIKE_DMG: [14, 14, 22, 22], REACH: 3 }],
@@ -55,7 +55,7 @@ describe('strike tuning from current production declarations', () => {
     expect(PINE_STRIKES.sweep.damage).toBe(24); expect(PINE_STRIKES.sweep.windup).toBe(0.9);
   });
   it.each(tuning)('%s', (_name, file, expected) => {
-    expect(legacyConstants(file, Object.keys(expected), { THREE })).toEqual(expected);
+    expect(legacyConstants(file, Object.keys(expected), { THREE, MathUtils: THREE.MathUtils })).toEqual(expected);
   });
 });
 

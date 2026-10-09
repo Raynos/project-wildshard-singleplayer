@@ -2,7 +2,7 @@ import type { TrustedRuntimeEntry } from '../shardfile/runtime';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';
-import type { HuntTuning } from '@wildshard/engine/entities/AnimalManager';
+import type { HuntTuning } from '@wildshard/engine/ai/hunt';
 import type { ExploreSpec } from '@wildshard/engine/level/data';
 import type { LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec } from '@wildshard/engine/level/spec';
 import type { RosterEntry } from '@wildshard/engine/models/live';
