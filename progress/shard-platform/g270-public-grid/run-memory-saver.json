@@ -1,0 +1,36 @@
+[
+  {
+    "k": "devRowBefore",
+    "v": {
+      "choices": [
+        "Off | ws-gmenu-segbtn active",
+        "On | ws-gmenu-segbtn"
+      ],
+      "card": "ws-gmenu-card debug fold folded",
+      "inDevTools": false
+    }
+  },
+  {
+    "k": "clickedOn",
+    "v": true
+  },
+  {
+    "k": "savedAfterPick",
+    "v": "on"
+  },
+  {
+    "k": "devRowAfter",
+    "v": {
+      "choices": [
+        "Off | ws-gmenu-segbtn",
+        "On | ws-gmenu-segbtn active"
+      ],
+      "card": "ws-gmenu-card debug fold folded",
+      "inDevTools": false
+    }
+  },
+  {
+    "k": "savedBefore",
+    "v": "on"
+  }
+]

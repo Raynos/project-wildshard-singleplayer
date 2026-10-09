@@ -1,0 +1,176 @@
+[
+  {
+    "k": "developer",
+    "v": {
+      "developer": false,
+      "savedDeveloper": false
+    }
+  },
+  {
+    "k": "cells",
+    "v": [
+      "pine-hollow@0,1",
+      "template-2@1,1",
+      "sunscar-dunes@-1,0",
+      "driftwood-isle@0,0",
+      "nalati-grasslands@1,0",
+      "far-reach@0,-1"
+    ]
+  },
+  {
+    "k": "plots",
+    "v": "{\"plots\":[{\"instance\":\"open-plot-nw\",\"visible\":true,\"entries\":{\"north\":{\"billboard\":\"sky-race\",\"demo\":\"alien-plain\"},\"east\":{\"billboard\":\"night-market\",\"demo\":\"desert-ruin\"},\"south\":{\"billboard\":\"frozen-lighthouse\",\"demo\":\"ink-valley\"},\"west\":{\"billboard\":\"canyon-railway\",\"demo\":\"sky-race\"}}},{\"instance\":\"open-plot-sw\",\"visible\":true,\"entries\":{\"north\":{\"billboard\":\"coral-reef\",\"demo\":\"night-marke"
+  },
+  {
+    "k": "publicFailures",
+    "v": []
+  },
+  {
+    "k": "textures",
+    "v": {
+      "mode": "ktx2",
+      "why": "auto: images-first playing estimate 1207003681 exceeds 1000000000",
+      "probe": {
+        "ran": true,
+        "note": "12 formats ok",
+        "families": {
+          "astc": true,
+          "etc2": true,
+          "bptc": true,
+          "s3tc": true
+        },
+        "formats": [
+          {
+            "family": "astc",
+            "format": "RGBA_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "astc",
+            "format": "SRGB8_ALPHA8_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "RGB8_ETC2",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ETC2",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "RGBA8_ETC2_EAC",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ALPHA8_ETC2_EAC",
+            "ok": true
+          },
+          {
+            "family": "bptc",
+            "format": "RGBA_BPTC_UNORM",
+            "ok": true
+          },
+          {
+            "family": "bptc",
+            "format": "SRGB_ALPHA_BPTC_UNORM",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "RGB_S3TC_DXT1",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "RGBA_S3TC_DXT5",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "SRGB_S3TC_DXT1",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "SRGB_ALPHA_S3TC_DXT5",
+            "ok": true
+          }
+        ],
+        "veto": null
+      }
+    }
+  },
+  {
+    "k": "settingsSaved",
+    "v": {
+      "tier": "phone"
+    }
+  },
+  {
+    "k": "plan template-interior",
+    "v": {
+      "failures": [],
+      "inside": "template-2",
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    }
+  },
+  {
+    "k": "plan template-return",
+    "v": {
+      "failures": [],
+      "inside": "driftwood-isle",
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    }
+  },
+  {
+    "k": "plan public-road",
+    "v": {
+      "failures": [],
+      "inside": null,
+      "current": null,
+      "residents": []
+    }
+  },
+  {
+    "k": "plan sun-road-entry",
+    "v": {
+      "failures": [],
+      "inside": "sunscar-dunes",
+      "current": "sunscar-dunes",
+      "residents": [
+        "sunscar-dunes"
+      ]
+    }
+  },
+  {
+    "k": "finalFailures",
+    "v": []
+  },
+  {
+    "k": "pageErrors",
+    "v": []
+  },
+  {
+    "k": "devRowFound",
+    "v": false
+  },
+  {
+    "k": "devRowBefore",
+    "v": []
+  },
+  {
+    "k": "savedBefore",
+    "v": null
+  }
+]
