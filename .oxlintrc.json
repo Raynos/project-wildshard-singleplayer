@@ -139,7 +139,7 @@
     },
     {
       // Node-side tooling: build scripts, the Vite configs and plugin, the Vercel functions in api/, the drafts site's tools.
-      "files": ["scripts/**", "vite/**", "vite.config.ts", "vitest.config.ts", "api/**", "api-tests/**", "lint/**", "drafts/tools/**", "drafts/test/**", "drafts/vite.config.ts", "admin/tools/**", "admin/test/**", "admin/vite.config.ts"],
+      "files": ["scripts/**", "vite/**", "vite.config.ts", "vitest.config.ts", "api/**", "api-tests/**", "lint/**", "drafts/tools/**", "drafts/test/**", "drafts/vite.config.ts", "admin/tools/**", "admin/test/**", "admin/vite.config.ts", "site/vite.config.ts"],
       "env": { "node": true },
       "rules": {
         "import/no-nodejs-modules": "off", // these run under node
@@ -193,7 +193,7 @@
       }
     },
     {
-      "files": ["vite.config.ts", "vitest.config.ts", "capacitor.config.ts", "drafts/vite.config.ts", "admin/vite.config.ts"],
+      "files": ["vite.config.ts", "vitest.config.ts", "capacitor.config.ts", "drafts/vite.config.ts", "admin/vite.config.ts", "site/vite.config.ts"],
       "rules": { "import/no-default-export": "off" } // Vite / Vitest / the Capacitor CLI read the default export
     },
     {

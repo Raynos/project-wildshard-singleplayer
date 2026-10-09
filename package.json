@@ -13,6 +13,8 @@
     "build:drafts": "python3 scripts/heavy-lane.py build -- bash -c 'vite build --config drafts/vite.config.ts'",
     "atlas": "node drafts/tools/atlas.ts",
     "deploy:drafts": "bash drafts/tools/deploy.sh",
+    "build:site": "python3 scripts/heavy-lane.py build -- bash -c 'vite build --config site/vite.config.ts'",
+    "deploy:site": "bash site/tools/deploy.sh",
     "build:admin": "vite build --config admin/vite.config.ts",
     "deploy:admin": "bash admin/tools/deploy.sh",
     "lint": "pnpm gen && oxlint",

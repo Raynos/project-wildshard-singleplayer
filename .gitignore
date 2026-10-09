@@ -5,6 +5,7 @@ dist
 .env*
 dist-native
 dist-drafts
+dist-site
 dist-admin
 .native-build
 # Claude-managed nested checkout; it has its own Git state and must not be nested in this repo.
