@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-859 members; 157 without a doc line (—).
+860 members; 157 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -756,6 +756,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `trample` | const | @wildshard/game/systems/looks/trample | the world's trample map (a singleton — movers anywhere push into it) |
 | `TRAMPLE_GLSL` | const | @wildshard/game/systems/looks/trample | GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) |
 | `TrampleField` | class | @wildshard/game/systems/looks/trample | The trample map's state and law without the GPU (SF72): the 256² flatten amount and lie angle over the 128 m window that |
+| `TrampleState` | interface | @wildshard/game/systems/looks/trample | A trample map's whole continuation as plain JSON values (TrampleField.snapshot / restore, SF72): every flattened texel as |
 | `faceHead` | function | @wildshard/game/systems/npc/faceHeads | — |
 | `FaceHead` | interface | @wildshard/game/systems/npc/faceHeads | — |
 | `loadFaceHead` | function | @wildshard/game/systems/npc/faceHeads | — |

@@ -18312,6 +18312,12 @@
         "from": "@wildshard/game/systems/looks/trample"
       },
       {
+        "name": "TrampleState",
+        "kind": "interface",
+        "doc": "A trample map's whole continuation as plain JSON values (TrampleField.snapshot / restore, SF72): every flattened texel as",
+        "from": "@wildshard/game/systems/looks/trample"
+      },
+      {
         "name": "faceHead",
         "kind": "function",
         "doc": "",
