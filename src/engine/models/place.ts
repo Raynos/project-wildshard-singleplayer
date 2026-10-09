@@ -23,7 +23,7 @@ import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
-import { currentOwner, enteredOwner } from '../app/ownership';
+import { currentOwner, enteredOwner, withOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { FrameCamera } from '../world/frameCamera';
@@ -455,7 +455,13 @@ function levelParts<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, para
 
 // ── merged: every copy welded into one mesh per material (per cell, per LOD level) ──
 
-function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
+/** Run a step generator to its end in this task. */
+function runSteps<T>(steps: Generator<void, T>): T {
+  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+}
+
+/** The merged draw, pausing (`yield`) after every copy built and every merged mesh (SF67: `placeSliced`). */
+function* drawMergedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Generator<void, Drawn> {
   const rng = new Rng(seedOf(def));
   const lodRngs = (def.lods ?? []).map((_, l) => new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)));
   const levels = levelsOf(def).length;
@@ -467,9 +473,9 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
   // a merged copy's geometry is posed in place: one a builder hands out twice (a shared GLB) is copied first
   const seen = new WeakSet<THREE.BufferGeometry>();
   const own = (g: THREE.BufferGeometry): THREE.BufferGeometry => { if (seen.has(g)) return g.clone(); seen.add(g); return g; };
-  pls.forEach((pl, i) => {
+  for (const [i, pl] of pls.entries()) {
     const pose = poses[i], p = params[i];
-    if (pose === undefined || p === undefined) return;
+    if (pose === undefined || p === undefined) continue;
     const parts = partsOf(buildModel(def, o, p, rng, [pl]), def.id, 'merged');
     const posed = parts.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; });
     collideCopy(def, p, pose, posed, posed, colliders, o.ctx);
@@ -496,7 +502,8 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
       const lp = partsOf(buildModel(def, o, p, lr, [pl], l + 1), def.id, o.draw);
       add(l + 1, lp, lp.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; }));
     });
-  });
+    yield;
+  }
   const objects: THREE.Object3D[] = [];
   const cellLevels: (THREE.Object3D | null)[][] = [];
   const centres: number[] = [];
@@ -511,6 +518,7 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
         const mesh = meshOf(part, geo);
         mesh.name = def.id;
         meshes.push(mesh);
+        yield;
       }
       drawnMeshes += meshes.length;
       perLevel.push(meshes);
@@ -1114,6 +1122,30 @@ export function rayCopy(p: Placed, ray: THREE.Ray, far: number): { box: THREE.Bo
 
 /** Place copies of a model (see the file header and ./model.ts's migration guide). */
 export function place<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions): Placed {
+  return runSteps(placeSteps(def, placements, o));
+}
+
+/**
+ * `place`, in slices (SF67, E461: a builder's one `place` call was a 0.1–0.6 s task at load): at every pause point (after each
+ * merged copy is built and each merged mesh is welded) it calls `due()` and awaits the promise it returns (the caller's
+ * clock decides; `slicer()`'s budget during loading). The result, the draw, the registration and the rng streams are
+ * exactly `place`'s: nothing is registered or added to the scene before the last slice. Only `draw: 'merged'` without a
+ * weld or `drawnInto` pauses today; every other draw runs in one task, as `place` does.
+ */
+export async function placeSliced<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions, due: () => Promise<void> | null): Promise<Placed> {
+  const steps = placeSteps(def, placements, o);
+  // every slice runs under the owner the call was made in, as one synchronous `place` would (SF57: an await drops it)
+  const entered = enteredOwner();
+  const next = (): IteratorResult<void, Placed> => (entered === null ? steps.next() : withOwner(entered, () => steps.next()));
+  for (;;) {
+    const r = next();
+    if (r.done === true) return r.value;
+    const pause = due();
+    if (pause !== null) await pause;
+  }
+}
+
+function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions): Generator<void, Placed> {
   const poses = placements.map((pl) => poseOf(pl));
   const params = placements.map((pl) => paramsOf(def, pl.variant, pl.params));
   const w = o.weld;
@@ -1126,7 +1158,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   const buildOptions: BuildOptions<P> = visitBuild === undefined ? o : { ...o, visitBuild };
   const drawn = o.drawnInto !== undefined ? drawnElsewhere(def, poses, params, o, o.drawnInto)
     : w !== undefined ? (o.draw === 'merged' ? drawWelded(def, placements, poses, params, buildOptions, w) : drawHosted(def, placements, poses, params, buildOptions, w))
-    : o.draw === 'merged' ? drawMerged(def, placements, poses, params, buildOptions)
+    : o.draw === 'merged' ? yield* drawMergedSteps(def, placements, poses, params, buildOptions)
     : o.draw === 'instanced' ? (o.culler ? drawHanded(def, placements, poses, params, buildOptions, o.culler) : drawInstanced(def, placements, poses, params, buildOptions))
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, buildOptions)
         : drawSingle(def, placements, poses, params, buildOptions);
