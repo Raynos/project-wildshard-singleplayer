@@ -1,3 +1,4 @@
+import { SignalInteractions } from '../runtime/interactions';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -59,25 +60,23 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   // E399: the mockups show low hazy dune ranges at the horizon, no mesas: the buttes stay built only for the Model
   // Explorer's sake when a debug row asks; the world shows none
   void buildButtes;
-  const interactables = ctx.game.runtime?.interactables;
+  const interactables = ctx.game.runtime?.interactables, interactions = new SignalInteractions(flags, BRAZIERS.length);
 
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.
   const logbook: Interactable = { label: STRINGS.readLog, position: caravan.logbookAt, radius: 2.4, onInteract: () => {
-    if (flags.has(FLAG.logbook)) return;
-    flags.set(FLAG.logbook); logbook.label = STRINGS.logRead; toast(ctx, STRINGS.logText);
+    if (!interactions.readLogbook()) return; logbook.label = STRINGS.logRead; toast(ctx, STRINGS.logText);
   } };
   if (flags.has(FLAG.logbook)) logbook.label = STRINGS.logRead;
 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
-  const lift = { t: flags.has(FLAG.oil) ? 1 : 0, raised: flags.has(FLAG.oil) };
+  const lift = { t: flags.has(FLAG.oil) ? 1 : 0 };
   const wellSpot: Interactable = { label: STRINGS.wellDown, position: wellParts.jarAt, radius: 2.6, onInteract: () => {
-    if (flags.has(FLAG.oil)) return;
-    if (!lift.raised) { toast(ctx, STRINGS.wellHint); return; }
-    flags.set(FLAG.oil); wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
+    const result = interactions.takeOil();
+    if (result === 'already') return;
+    if (result === 'unraised') { toast(ctx, STRINGS.wellHint); return; } wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
   } };
-  const well: SignalWorld['well'] = { ...wellParts, get raised() { return lift.raised; }, spot: wellSpot, pull: () => {
-    if (lift.raised) return false;
-    lift.raised = true; wellSpot.label = STRINGS.takeOil; return true;
+  const well: SignalWorld['well'] = { ...wellParts, get raised() { return interactions.raised; }, spot: wellSpot, pull: () => {
+    if (!interactions.pullWell()) return false; wellSpot.label = STRINGS.takeOil; return true;
   } };
   if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; wellParts.bucket.position.y = 1.85 - 0.5; wellParts.rope.scale.y = 0.2; }
 
@@ -86,16 +85,16 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const braziers: Brazier[] = BRAZIERS.map((b, i) => {
     const parts = buildBrazier(b.x, b.z, groundAt); ctx.root.add(parts.root);
     ctx.piece({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: file('places'), object: parts.root, colliders: parts.colliders, surface: 'stone' });
-    const brazier: Brazier = { parts, oiled: false, lit: false,
+    const state = interactions.braziers[i]; if (state === undefined) throw new Error('Missing signal brazier state');
+    const brazier: Brazier = { parts, get oiled() { return state.oiled; }, set oiled(value) { state.oiled = value; }, get lit() { return state.lit; }, set lit(value) { state.lit = value; },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it
       spot: { label: STRINGS.needOil, position: parts.bowlAt, radius: 3, onInteract: () => {
-        if (brazier.lit) return;
-        if (!flags.has(FLAG.oil)) { toast(ctx, STRINGS.needOilHint); return; }
-        if (!brazier.oiled) { brazier.oiled = true; parts.oil.visible = true; brazier.spot.label = STRINGS.crackToLight; toast(ctx, STRINGS.crackToLight); }
+        const result = interactions.pour(i);
+        if (result === 'missing') { toast(ctx, STRINGS.needOilHint); return; }
+        if (result === 'poured') { parts.oil.visible = true; brazier.spot.label = STRINGS.crackToLight; toast(ctx, STRINGS.crackToLight); }
       } },
       light: () => {
-        if (brazier.lit || !brazier.oiled) return false;
-        brazier.lit = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; flags.set(brazierFlag(i));
+        if (!interactions.light(i, () => { parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; })) return false;
         const n = braziers.filter((x) => x.lit).length; toast(ctx, n < braziers.length ? `${STRINGS.waymarkLit} · ${String(n)}/${String(braziers.length)}` : STRINGS.allLit);
         return true;
       } };
@@ -105,18 +104,18 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   });
   // the caravan's lantern lights its own wagon (the fourth firelight slot; always burning)
   fireLight(caravan.lampAt)(true, 0.22); // round 8 (the council: the whole canvas one even self-lit orange): a lantern, not a fire
-  const allLit = (): boolean => braziers.every((b) => b.lit);
+  const allLit = (): boolean => interactions.allLit;
 
   // The signal fire on the tower deck: lit by hand once the three waymarks burn.
-  const fire: SignalFire = { tower, lit: false, onLight: null,
+  const fire: SignalFire = { tower, get lit() { return interactions.fire; }, set lit(value) { interactions.fire = value; }, onLight: null,
     brazier: { label: STRINGS.light, position: tower.brazierAt, radius: 2.6, onInteract: () => {
       if (fire.lit) return;
       if (!allLit()) { toast(ctx, STRINGS.fireHint); return; }
       fire.light();
     } },
     light: () => {
-      if (fire.lit) return;
-      fire.lit = true; tower.fire.visible = true; tower.light.intensity = TOWER_LIGHT; fire.brazier.label = STRINGS.lit; flags.set(FLAG.lit); fire.onLight?.();
+      if (!interactions.lightFire(() => { tower.fire.visible = true; tower.light.intensity = TOWER_LIGHT; fire.brazier.label = STRINGS.lit; })) return;
+      fire.onLight?.();
     } };
   if (flags.has(FLAG.lit)) fire.light();
   interactables?.push(logbook, wellSpot, ...braziers.map((b) => b.spot), fire.brazier);
