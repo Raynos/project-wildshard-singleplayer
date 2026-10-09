@@ -11,6 +11,7 @@ import * as THREE from 'three';
 
 import type { PackController, PackPrey, HerdController } from '../runtime/groupRegistry';
 import { declaredGroupFactories } from '../runtime/groupDeclared';
+import { APP_GROUP_HOST } from '../runtime/groupHost';
 import { Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
@@ -92,7 +93,7 @@ export class Wildlife {
 
   private declaredControllers(): WildlifeControllers {
     return declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
-      resolveActor: id => this.animals.animals.find(actor => actor.entityId === id) ?? null });
+      resolveActor: id => this.animals.animals.find(actor => actor.entityId === id) ?? null }, APP_GROUP_HOST);
   }
 
   build(controllers = this.opts.controllers): this {

@@ -3,6 +3,7 @@ import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { MathUtils } from 'three';
 import { Pack, HorseHerd, type PackController, type HerdController } from './groupRegistry';
 import { declaredGroupFactories, memberGroupIdentity } from './groupDeclared';
+import { APP_GROUP_HOST } from './groupHost';
 
 /** Fallback spawns retain the shipping ordered roster and averaged den, using the declared policy. */
 export function packForThink(actor: Animal, context: ThinkCtx): PackController | null {
@@ -12,14 +13,14 @@ export function packForThink(actor: Animal, context: ThinkCtx): PackController |
   if (wolves.length === 0) return null;
   let x = 0, z = 0;
   for (const wolf of wolves) { x += wolf.position.x; z += wolf.position.z; }
-  return declaredGroupFactories(memberGroupIdentity(context.herd)).pack(wolves, x / wolves.length, z / wolves.length);
+  return declaredGroupFactories(memberGroupIdentity(context.herd), APP_GROUP_HOST).pack(wolves, x / wolves.length, z / wolves.length);
 }
 /** Unregistered wild horses use the declared policy; owned/taming bodies stay native. */
 export function herdForThink(actor: Animal, context: ThinkCtx): HerdController | null {
   const herd = HorseHerd.of(actor); if (herd !== null) return herd;
   if (context.herd === null) return null;
   const horses = context.herd.filter(member => member.kind === 'horse');
-  return horses.length === 0 ? null : declaredGroupFactories(memberGroupIdentity(context.herd)).herd(horses);
+  return horses.length === 0 ? null : declaredGroupFactories(memberGroupIdentity(context.herd), APP_GROUP_HOST).herd(horses);
 }
 export function thinkWolf(a: Animal, c: ThinkCtx): void {
   const p = packForThink(a, c);

@@ -11,6 +11,7 @@ import { Rng } from '../../src/engine/core/rng';
 import { HorseHerd, Pack } from '../../src/shards/nalati-grasslands/runtime/groupRegistry';
 import { HorseHerd as ShippingHorseHerd } from '../fixtures/nalati-group-oracle/herd';
 import { declaredGroupFactories } from '../../src/shards/nalati-grasslands/runtime/groupDeclared';
+import { APP_GROUP_HOST } from '../../src/shards/nalati-grasslands/runtime/groupHost';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius } from '../../src/shards/nalati-grasslands/creatures/env';
 import { NALATI_STRIKES, sampleStrike } from '../../src/shards/nalati-grasslands/combat/strikes';
 import { NALATI_HERD_BRAIN } from '../../src/shards/nalati-grasslands/data/brains';
@@ -47,7 +48,7 @@ function fixture(platform: boolean | 'bound', restoring = false): { policy: Ship
   };
   const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
   const policy = platform === 'bound' ? declaredGroupFactories({ preyIdentity: () => 'prey.none', resolvePrey: () => null,
-    resolveActor: id => members.find(actor => actor.entityId === id) ?? null }).herd(members)
+    resolveActor: id => members.find(actor => actor.entityId === id) ?? null }, APP_GROUP_HOST).herd(members)
     : platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports) : new ShippingHorseHerd(members);
   if (!(policy instanceof HerdBrain) && !(policy instanceof ShippingHorseHerd)) throw new Error('Missing fixture policy');
   const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };

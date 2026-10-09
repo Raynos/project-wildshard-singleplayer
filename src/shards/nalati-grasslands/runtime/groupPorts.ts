@@ -1,5 +1,4 @@
 import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
-import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import type { PackPorts } from '@wildshard/engine/ai/pack';
@@ -25,13 +24,22 @@ export function nativeContactContext(context: { player: THREE.Vector3 }): Pick<T
 function hasContact(context: { player: THREE.Vector3 }): context is Pick<ThinkCtx, 'player' | 'reach' | 'hurt'> {
   return 'reach' in context && typeof context.reach === 'function' && 'hurt' in context && typeof context.hurt === 'function';
 }
+/**
+ * The host services a declared group asks (SF72): the shared 'ai' decision stream and the aggression director's
+ * registration. The page binds the app's (runtime/groupHost.ts); a trusted Node host binds its own, so the declared
+ * policies load without the renderer.
+ */
+export interface NativeGroupHost {
+  readonly sharedRng: PackPorts<Animal>['sharedRng'];
+  readonly register: PackPorts<Animal>['register'];
+}
 /** Shipping sensing, token and strike recipes consume only a host-owned species context with native contact LOS. */
-export function nativePackPorts(): PackPorts<Animal> {
+export function nativePackPorts(host: NativeGroupHost): PackPorts<Animal> {
   return {
-    sharedRng: () => app.rng.stream('ai'), environment: () => wildEnv, visibility: playerVisibility,
+    sharedRng: host.sharedRng, environment: () => wildEnv, visibility: playerVisibility,
     hearing: (radii, player, speed) => hearingRadius([...radii], player, speed), downwind: downwindOf,
     inBounds: inChunk, normalY: (x, z) => normalAt(x, z)[1],
-    register: (actor, director) => { app.aggression.register(actor, director); },
+    register: host.register,
     bite: (actor, context, radius) => {
       const native = nativeContactContext(context);
       sampleStrike(NALATI_STRIKES.wolf, actor, native.player, () => { native.hurt(actor.mods.chargeDamage); },
@@ -41,9 +49,9 @@ export function nativePackPorts(): PackPorts<Animal> {
 }
 
 /** Shipping perception, ghost filter, kick/contact and shared RNG; taming and elite recipes retain their actors. */
-export function nativeHerdPorts(): HerdPorts<Animal> {
+export function nativeHerdPorts(host: NativeGroupHost): HerdPorts<Animal> {
   return {
-    sharedRng: () => app.rng.stream('ai'), environment: () => wildEnv, visibility: playerVisibility,
+    sharedRng: host.sharedRng, environment: () => wildEnv, visibility: playerVisibility,
     hearing: (radii, player, speed) => hearingRadius([...radii], player, speed), downwind: downwindOf,
     inBounds: inChunk, normalY: (x, z) => normalAt(x, z)[1],
     passThrough: (actor, through) => { actor.motor?.passThrough(through ? THROUGH_PLAYER : BLOCKED); },

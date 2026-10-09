@@ -11,6 +11,7 @@ import { Pack as ShippingPack } from '../../fixtures/nalati-group-oracle/pack';
 import { HorseHerd as ShippingHorseHerd } from '../../fixtures/nalati-group-oracle/herd';
 import { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
 import { declaredGroupFactories } from '../../../src/shards/nalati-grasslands/runtime/groupDeclared';
+import { APP_GROUP_HOST } from '../../../src/shards/nalati-grasslands/runtime/groupHost';
 import { manager } from '../../fake/manager';
 
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
@@ -21,7 +22,7 @@ function fixture(on?: boolean): { world: ReturnType<typeof manager>; wildlife: W
     layout: { packs: [{ x: 20, z: 0, variants: ['alpha', 'grey', 'scout'] }],
       herds: [{ x: -20, z: 0, mares: 2, foals: 1, stallion: true }], flocks: [{ x: 0, z: 20, count: 3, dog: false }] } });
   wildlife.build(on === undefined ? undefined : on ? declaredGroupFactories({ preyIdentity: prey => wildlife.preyIdentity(prey), resolvePrey: id => wildlife.resolvePrey(id),
-    resolveActor: id => world.manager.animals.find(actor => actor.entityId === id) ?? null }) : { pack: (members, x, z) => { const policy = new ShippingPack(members, x, z); Pack.register(policy); return policy; },
+    resolveActor: id => world.manager.animals.find(actor => actor.entityId === id) ?? null }, APP_GROUP_HOST) : { pack: (members, x, z) => { const policy = new ShippingPack(members, x, z); Pack.register(policy); return policy; },
     herd: members => { const policy = new ShippingHorseHerd(members); HorseHerd.register(policy); return policy; } });
   return { world, wildlife };
 }
