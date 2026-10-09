@@ -349,6 +349,7 @@ scope owns callbacks and resources without importing browser globals.
 | `pageScope`, `resourceScope()` | the page's scope, which outlives every level; `resourceScope()` is the current owner or else `pageScope` |
 | `ownedFacade(scope, service)` | the service with every method call run under `withOwner(scope)` (one level deep, the real service as `this`) |
 | `ownerTask(scope, fn)` | `withOwner` for an async build; while its promise is pending, `ownerCensus()` counts ambient owner reads |
+| `bindConstructionEnvironment(scope, enter)` | holds one admitted construction's reversible terrain/registry/selection bindings across awaits; unrelated scoped callbacks restore the page bindings, cancellation releases them, and concurrent ambient constructions refuse; it installs no input, systems or presentation and does not supply async-local ownership |
 | `ownerCensus()` | owned builds pending, ambient owner reads seen meanwhile and their newest stacks (the probe's `app.owners`) |
 
 A shard rarely needs these: every `ctx` verb already runs in its scope.

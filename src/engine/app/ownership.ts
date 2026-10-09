@@ -13,6 +13,17 @@ const loggedSites = new Set<string>();
 const dev = (import.meta as { env?: { DEV?: boolean } }).env?.DEV === true;
 /** One facade per (service, scope). */
 const facades = new WeakMap<object, WeakMap<Scope, object>>();
+interface ConstructionEnvironment { scope: Scope; enter: () => () => void; leave: (() => void) | null; changing: boolean }
+let construction: ConstructionEnvironment | null = null;
+function enterEnvironment(environment: ConstructionEnvironment): void {
+  environment.changing = true;
+  try { environment.leave = environment.enter(); } finally { environment.changing = false; }
+}
+function leaveEnvironment(environment: ConstructionEnvironment): void {
+  environment.changing = true;
+  const leave = environment.leave; environment.leave = null;
+  try { leave?.(); } finally { environment.changing = false; }
+}
 export function currentOwner(): Scope | null {
   if (entered === 0 && tasks.size > 0) strayRead();
   return owner;
@@ -26,8 +37,43 @@ export function enteredOwner(): Scope | null { return entered > 0 ? owner : null
 export function ownerOr(fallback: Scope): Scope | null { return entered > 0 ? owner : fallback; }
 export function enterOwner(next: Scope | null): void { owner = next; }
 export function withOwner<T>(scope: Scope | null, fn: () => T): T {
+  // A background construction's ambient frame is for its unwrapped await continuations. Road/UI callbacks carry
+  // explicit owners, so they temporarily restore the page frame instead of observing the construction's globals.
+  const environment = construction;
+  const suspend = environment !== null && !environment.changing && environment.leave !== null && scope?.belongsTo(environment.scope) !== true;
+  const resume = environment?.leave === null && !environment.changing && !environment.scope.disposed && scope?.belongsTo(environment.scope) === true;
+  if (suspend) leaveEnvironment(environment);
+  if (resume) enterEnvironment(environment);
   const previous = owner; owner = scope; entered++;
-  try { return fn(); } finally { owner = previous; entered--; }
+  try { return fn(); } finally {
+    owner = previous; entered--;
+    if (resume && construction === environment) leaveEnvironment(environment);
+    if (suspend && construction === environment && !environment.scope.disposed) enterEnvironment(environment);
+  }
+}
+
+/**
+ * Keep one explicitly admitted construction frame across asset awaits, without lending it to page callbacks.
+ * `enter` installs only reversible construction bindings (terrain/registry/selection), never input, systems or
+ * presentation. Every unrelated `withOwner` section suspends it until that callback returns. Native async work must
+ * carry captured services as usual; this is not async-local storage. Concurrent ambient constructions are refused.
+ * The returned leave is idempotent and the scope also owns cancellation. No environment is installed on import.
+ */
+export function bindConstructionEnvironment(scope: Scope, enter: () => () => void): () => void {
+  if (scope.disposed) throw new Error('Construction environment requires a live scope');
+  if (construction !== null) throw new Error('Leave the previous construction environment before preparing another');
+  const environment: ConstructionEnvironment = { scope, enter, leave: null, changing: false };
+  construction = environment;
+  try { enterEnvironment(environment); } catch (error) { construction = null; throw error; }
+  let forget = (): void => undefined;
+  const leave = (): void => {
+    forget();
+    if (construction !== environment) return;
+    construction = null;
+    leaveEnvironment(environment);
+  };
+  forget = scope.capture('disposers', leave);
+  return leave;
 }
 export function asShell<T>(fn: () => T): T { return withOwner(null, fn); }
 export function onOwnerDispose(fn: () => void): void { currentOwner()?.onDispose(fn); }
