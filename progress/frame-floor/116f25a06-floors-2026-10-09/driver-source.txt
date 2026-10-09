@@ -1,18 +1,30 @@
 import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
 import { loadavg } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { pathToFileURL } from 'node:url';
 const folder=import.meta.dirname, [surface,base,source,phase]=process.argv.slice(2);
 if(!['desktop','sim'].includes(surface)||!base||!source)throw new Error('Expected surface/base/source');
 const normalTasks=[{name:'shards-dev',developer:'on',shards:'driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack'},
  {name:'grid-public',developer:'off',shards:'grid',scenario:'template'}];
-const tasks=['pine-rerun','pine-low'].includes(phase) ? [1,2,3].map(n=>({name:`pine-${phase==='pine-low'?'low':'quiet'}-${n}`,developer:'on',shards:'pine-hollow'})) : phase==='public-rerun' ? [{name:'grid-public-entry',developer:'off',shards:'grid',scenario:'template'}] : normalTasks;
+const tasks=['pine-rerun','pine-low'].includes(phase) ? [1,2,3].map(n=>({name:`pine-${phase==='pine-low'?'low':'quiet'}-${n}`,developer:'on',shards:'pine-hollow'})) : ['public-rerun','public-post-sim','public-no-gl'].includes(phase) ? [{name:phase==='public-rerun'?'grid-public-entry':phase==='public-post-sim'?'grid-public-post-sim':'grid-public-no-gl',developer:'off',shards:'grid',scenario:'template'}] : normalTasks;
 for (const task of tasks) {
+ const pin=JSON.parse(readFileSync(join(folder,'pin.json'),'utf8'));
+ const version=await(await fetch(new URL('version.json',base))).json();
+ if(JSON.stringify(version)!==JSON.stringify(pin.version))throw new Error('Queued preview version changed');
+ if(surface==='sim') {
+  const script=readFileSync(join(source,'scripts/frame-floor.mjs'),'utf8');
+  const content=['ERROR_SCRIPT','CONSOLE_SCRIPT'].map(name=>{const match=script.match(new RegExp('const '+name+' = `([^`]+)`;'));if(!match)throw new Error(name);return match[1];}).join('');
+  const {GL_INIT}=await import(pathToFileURL(join(source,'scripts/parity/glbytes.mjs')).href);
+  const dist=join(dirname(source),'dist'), html=readFileSync(join(dist,'index.html'),'utf8');
+  const hooks=task.scenario&&task.scenario!=='baseline'?GL_INIT:'';
+  writeFileSync(join(dist,'frame-floor-safari.html'),html.replace('<head>',`<head><script>window.__wildshardHarness={seed:357,capture:null};${content}${hooks}</script>`));
+ }
  const id=`${surface}-${task.name}`, start=Date.now(), samples=[];
  const raw=join(folder,`${id}.json`), log=join(folder,`${id}.log`), events=[];
  const sample=()=>{ const row={when:new Date().toISOString(),ms:Date.now(),load:loadavg()}; samples.push(row); appendFileSync(join(folder,`${id}-load.jsonl`),`${JSON.stringify(row)}\n`);};
  sample(); const timer=setInterval(sample,1000);
- const args=[join(source,'scripts/frame-floor.mjs'),'--worker',`--surface=${surface}`,`--developer=${task.developer}`,`--base=${base}`,`--shards=${task.shards}`,`--grid-scenario=${task.scenario??'baseline'}`,'--frames=120','--settle=2',`--deadline=${start+600000}`,`--worker-out=${raw}`];
+ const args=[join(source,phase==='public-no-gl'?'scripts/frame-floor-no-gl-control.mjs':'scripts/frame-floor.mjs'),'--worker',`--surface=${surface}`,`--developer=${task.developer}`,`--base=${base}`,`--shards=${task.shards}`,`--grid-scenario=${task.scenario??'baseline'}`,'--frames=120','--settle=2',`--deadline=${start+600000}`,`--worker-out=${raw}`];
  writeFileSync(log,`Start ${new Date(start).toISOString()} load=${JSON.stringify(loadavg())}\nCommand node ${args.join(' ')}\n`);
  const child=spawn(process.execPath,args,{cwd:folder,stdio:['ignore','pipe','pipe']});
  let buffer='';

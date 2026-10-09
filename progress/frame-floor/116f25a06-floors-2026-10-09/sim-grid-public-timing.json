@@ -1,0 +1,90 @@
+{
+  "surface": "sim",
+  "task": {
+    "name": "grid-public",
+    "developer": "off",
+    "shards": "grid",
+    "scenario": "template"
+  },
+  "start": 1791550384929,
+  "end": 1791550471561,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=sim",
+    "--developer=off",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=grid",
+    "--grid-scenario=template",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791550984929",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/sim-grid-public.json"
+  ],
+  "events": [
+    {
+      "ms": 1791550416048,
+      "text": "sim grid spawn: 30.303 fps, p95 34 ms, p99 35 ms — PASS",
+      "load": [
+        7.24365234375,
+        26.00927734375,
+        30.72607421875
+      ]
+    },
+    {
+      "ms": 1791550422306,
+      "text": "sim grid grid-deck-east: 30.303 fps, p95 34 ms, p99 35 ms — PASS",
+      "load": [
+        7.4462890625,
+        25.4326171875,
+        30.4658203125
+      ]
+    },
+    {
+      "ms": 1791550428550,
+      "text": "sim grid grid-crossroads: 30.303 fps, p95 35 ms, p99 35 ms — PASS",
+      "load": [
+        7.73046875,
+        25.19287109375,
+        30.3515625
+      ]
+    },
+    {
+      "ms": 1791550440035,
+      "text": "sim grid public-road: travel 30.303 fps / 35 ms; interior 30.303 fps / 34 ms; residents=template-1,template-3,template-4",
+      "load": [
+        8.5849609375,
+        24.79296875,
+        30.1484375
+      ]
+    },
+    {
+      "ms": 1791550471533,
+      "text": "sim grid public-template: travel 30.303 fps / 36 ms; interior 30.303 fps / 34 ms; residents=template-1,template-2,template-3",
+      "load": [
+        9.357421875,
+        23.4775390625,
+        29.48779296875
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T12:53:04.929Z",
+    "ms": 1791550384929,
+    "load": [
+      7.421875,
+      28.00634765625,
+      31.57373046875
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T12:54:31.561Z",
+    "ms": 1791550471561,
+    "load": [
+      9.357421875,
+      23.4775390625,
+      29.48779296875
+    ]
+  }
+}

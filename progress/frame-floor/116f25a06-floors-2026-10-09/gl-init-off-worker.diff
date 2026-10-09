@@ -1,0 +1,11 @@
+--- pinned/scripts/frame-floor.mjs
++++ receipt-control/frame-floor-no-gl-control.mjs
+@@ -31,7 +31,7 @@
+ if (publicGrid && shards.length !== 1) throw new Error('Public grid requires its own floor run');
+ const gridScenario = flag('grid-scenario', 'baseline');
+ // Allocation hooks only for diagnostic travel runs; ordinary standing baselines remain uninstrumented.
+-const travelGl = gridScenario === 'baseline' ? '' : GL_INIT;
++const travelGl = ''; // Receipt-only control: omit diagnostic allocation hooks; app/route/floor unchanged.
+ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
+ if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
+ if (args.includes('--help')) {

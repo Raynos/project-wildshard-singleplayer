@@ -1,0 +1,11 @@
+{
+  "pin": "116f25a06426c1d35bc4084a0127875e2f338980",
+  "standardSha256": "51ce4a5e75074579a061fc37f7aceae195520f3636d1da34d7de782018837034",
+  "controlSha256": "4e1b660d47969025d39ab21a270c0156e4f680d110a346caf5d518b8b4fb51df",
+  "controlDiff": {
+    "before": "const travelGl = gridScenario === 'baseline' ? '' : GL_INIT;",
+    "after": "const travelGl = ''; // Receipt-only control: omit diagnostic allocation hooks; app/route/floor unchanged."
+  },
+  "application": "Compiled JS and assets unchanged. Receipt-only exported worker copy; no shared repository source edit.",
+  "purpose": "Separate GL_INIT observer from the same real public-template route after Simulator GPU activity closes."
+}

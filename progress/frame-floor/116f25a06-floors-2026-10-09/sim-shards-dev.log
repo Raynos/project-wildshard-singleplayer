@@ -1,5 +1,5 @@
-sim-lane: created floor-sp-x3-20261009 (816DBD49-A3DA-4460-A01D-AC74BB7F1221)
-sim-lane: 1 simulator(s) already booted, waiting … (scripts/sim-lane.sh status)
+Start 2026-10-09T12:48:15.812Z load=[84.0517578125,42.9140625,34.7578125]
+Command node /private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs --worker --surface=sim --developer=on --base=http://127.0.0.1:4402/ --shards=driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack --grid-scenario=baseline --frames=120 --settle=2 --deadline=1791550695812 --worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/sim-shards-dev.json
 sim driftwood-isle spawn: 30.303 fps, p95 35 ms, p99 35 ms — PASS
 sim driftwood-isle pier: 30.303 fps, p95 34 ms, p99 34 ms — PASS
 sim driftwood-isle wreck: 30.303 fps, p95 34 ms, p99 35 ms — PASS
@@ -20,10 +20,3 @@ sim _template spawn-reverse: 30.303 fps, p95 34 ms, p99 34 ms — PASS
 sim nine-dragon-stack spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS
 sim nine-dragon-stack spawn-rail: 30.303 fps, p95 34 ms, p99 34 ms — PASS
 sim nine-dragon-stack well-edge: 30.303 fps, p95 34 ms, p99 34 ms — PASS
-BATCH sim-shards-dev code=0 complete=true pass=true load=7.421875/28.00634765625/31.57373046875
-sim grid spawn: 30.303 fps, p95 34 ms, p99 35 ms — PASS
-sim grid grid-deck-east: 30.303 fps, p95 34 ms, p99 35 ms — PASS
-sim grid grid-crossroads: 30.303 fps, p95 35 ms, p99 35 ms — PASS
-sim grid public-road: travel 30.303 fps / 35 ms; interior 30.303 fps / 34 ms; residents=template-1,template-3,template-4
-sim grid public-template: travel 30.303 fps / 36 ms; interior 30.303 fps / 34 ms; residents=template-1,template-2,template-3
-BATCH sim-grid-public code=0 complete=true pass=false load=9.357421875/23.4775390625/29.48779296875

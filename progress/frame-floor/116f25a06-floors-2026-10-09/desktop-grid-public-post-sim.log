@@ -1,0 +1,7 @@
+Start 2026-10-09T12:56:59.362Z load=[9.35107421875,19.84326171875,27.16552734375]
+Command node /private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs --worker --surface=desktop --developer=off --base=http://127.0.0.1:4402/ --shards=grid --grid-scenario=template --frames=120 --settle=2 --deadline=1791551219362 --worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-grid-public-post-sim.json
+desktop grid spawn: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop grid pier: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop grid beach: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL
+desktop grid public-road: travel 59.88 fps / 33.4 ms; interior 59.88 fps / 33.3 ms; residents=template-1,template-3,template-4
+desktop grid public-template: travel 59.88 fps / 33.3 ms; interior 59.88 fps / 33.4 ms; residents=template-1,template-2,template-3

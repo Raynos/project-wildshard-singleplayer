@@ -1,0 +1,6 @@
+sim grid spawn: 30.303 fps, p95 35 ms, p99 35 ms — PASS
+sim grid grid-deck-east: 30.303 fps, p95 34 ms, p99 35 ms — PASS
+sim grid grid-crossroads: 30.303 fps, p95 34 ms, p99 35 ms — PASS
+sim grid public-road: travel 30.303 fps / 34 ms; interior 30.303 fps / 34 ms; residents=template-1,template-3,template-4
+sim grid public-template: travel 30.303 fps / 35 ms; interior 30.303 fps / 34 ms; residents=template-1,template-2,template-3
+BATCH sim-grid-public-entry code=0 complete=true pass=true load=12.79443359375/21.517578125/27.998046875

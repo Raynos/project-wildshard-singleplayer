@@ -1,0 +1,90 @@
+{
+  "surface": "desktop",
+  "task": {
+    "name": "grid-public-post-sim",
+    "developer": "off",
+    "shards": "grid",
+    "scenario": "template"
+  },
+  "start": 1791550619362,
+  "end": 1791550686917,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=desktop",
+    "--developer=off",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=grid",
+    "--grid-scenario=template",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791551219362",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/desktop-grid-public-post-sim.json"
+  ],
+  "events": [
+    {
+      "ms": 1791550638455,
+      "text": "desktop grid spawn: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL",
+      "load": [
+        8.68701171875,
+        19.0107421875,
+        26.6962890625
+      ]
+    },
+    {
+      "ms": 1791550643128,
+      "text": "desktop grid pier: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL",
+      "load": [
+        8.6318359375,
+        18.82763671875,
+        26.58642578125
+      ]
+    },
+    {
+      "ms": 1791550647750,
+      "text": "desktop grid beach: 59.88 fps, p95 33.4 ms, p99 33.4 ms — FAIL",
+      "load": [
+        8.5009765625,
+        18.630859375,
+        26.47119140625
+      ]
+    },
+    {
+      "ms": 1791550656696,
+      "text": "desktop grid public-road: travel 59.88 fps / 33.4 ms; interior 59.88 fps / 33.3 ms; residents=template-1,template-3,template-4",
+      "load": [
+        8.22021484375,
+        18.404296875,
+        26.34521484375
+      ]
+    },
+    {
+      "ms": 1791550686643,
+      "text": "desktop grid public-template: travel 59.88 fps / 33.3 ms; interior 59.88 fps / 33.4 ms; residents=template-1,template-2,template-3",
+      "load": [
+        7.8935546875,
+        17.35888671875,
+        25.6904296875
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T12:56:59.362Z",
+    "ms": 1791550619362,
+    "load": [
+      9.35107421875,
+      19.84326171875,
+      27.16552734375
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T12:58:06.917Z",
+    "ms": 1791550686917,
+    "load": [
+      7.66162109375,
+      17.1533203125,
+      25.56884765625
+    ]
+  }
+}

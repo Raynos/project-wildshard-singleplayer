@@ -1,0 +1,224 @@
+{
+  "surface": "sim",
+  "task": {
+    "name": "shards-dev",
+    "developer": "on",
+    "shards": "driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack"
+  },
+  "start": 1791550095812,
+  "end": 1791550384926,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=sim",
+    "--developer=on",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=driftwood-isle,pine-hollow,nalati-grasslands,far-reach,sunscar-dunes,_template,nine-dragon-stack",
+    "--grid-scenario=baseline",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791550695812",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/sim-shards-dev.json"
+  ],
+  "events": [
+    {
+      "ms": 1791550134888,
+      "text": "sim driftwood-isle spawn: 30.303 fps, p95 35 ms, p99 35 ms — PASS",
+      "load": [
+        108.8759765625,
+        56.109375,
+        40.06396484375
+      ]
+    },
+    {
+      "ms": 1791550141079,
+      "text": "sim driftwood-isle pier: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        100.9580078125,
+        55.34375,
+        39.8876953125
+      ]
+    },
+    {
+      "ms": 1791550147218,
+      "text": "sim driftwood-isle wreck: 30.303 fps, p95 34 ms, p99 35 ms — PASS",
+      "load": [
+        87.3798828125,
+        53.93359375,
+        39.5673828125
+      ]
+    },
+    {
+      "ms": 1791550194337,
+      "text": "sim pine-hollow spawn: 30.303 fps, p95 34 ms, p99 35 ms — PASS",
+      "load": [
+        45.80908203125,
+        47.5888671875,
+        37.96875
+      ]
+    },
+    {
+      "ms": 1791550200503,
+      "text": "sim pine-hollow cabin: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        43.26171875,
+        47.03076171875,
+        37.828125
+      ]
+    },
+    {
+      "ms": 1791550206695,
+      "text": "sim pine-hollow gate: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        37.69287109375,
+        45.71240234375,
+        37.4677734375
+      ]
+    },
+    {
+      "ms": 1791550230469,
+      "text": "sim nalati-grasslands spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        28.599609375,
+        43.10888671875,
+        36.724609375
+      ]
+    },
+    {
+      "ms": 1791550236638,
+      "text": "sim nalati-grasslands plains: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        24.96435546875,
+        41.853515625,
+        36.353515625
+      ]
+    },
+    {
+      "ms": 1791550242766,
+      "text": "sim nalati-grasslands bridge: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        23.125,
+        41.19140625,
+        36.15185546875
+      ]
+    },
+    {
+      "ms": 1791550269688,
+      "text": "sim far-reach spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        17.78271484375,
+        38.47802734375,
+        35.31884765625
+      ]
+    },
+    {
+      "ms": 1791550275821,
+      "text": "sim far-reach hover: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        16.8388671875,
+        37.9384765625,
+        35.14697265625
+      ]
+    },
+    {
+      "ms": 1791550282055,
+      "text": "sim far-reach spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        15.17822265625,
+        36.88671875,
+        34.80615234375
+      ]
+    },
+    {
+      "ms": 1791550303612,
+      "text": "sim sunscar-dunes spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        12.080078125,
+        34.77197265625,
+        34.09521484375
+      ]
+    },
+    {
+      "ms": 1791550309842,
+      "text": "sim sunscar-dunes spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        11.9931640625,
+        34.376953125,
+        33.95947265625
+      ]
+    },
+    {
+      "ms": 1791550316063,
+      "text": "sim sunscar-dunes ray: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        11.99365234375,
+        34.00537109375,
+        33.83056640625
+      ]
+    },
+    {
+      "ms": 1791550335938,
+      "text": "sim _template spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        9.603515625,
+        32.04248046875,
+        33.130859375
+      ]
+    },
+    {
+      "ms": 1791550342161,
+      "text": "sim _template spawn-reverse: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        8.8955078125,
+        31.1513671875,
+        32.8017578125
+      ]
+    },
+    {
+      "ms": 1791550372748,
+      "text": "sim nine-dragon-stack spawn: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        7.95751953125,
+        28.80712890625,
+        31.89404296875
+      ]
+    },
+    {
+      "ms": 1791550378777,
+      "text": "sim nine-dragon-stack spawn-rail: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        7.72021484375,
+        28.41162109375,
+        31.736328125
+      ]
+    },
+    {
+      "ms": 1791550384916,
+      "text": "sim nine-dragon-stack well-edge: 30.303 fps, p95 34 ms, p99 34 ms — PASS",
+      "load": [
+        7.421875,
+        28.00634765625,
+        31.57373046875
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T12:48:15.813Z",
+    "ms": 1791550095815,
+    "load": [
+      84.0517578125,
+      42.9140625,
+      34.7578125
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T12:53:04.926Z",
+    "ms": 1791550384926,
+    "load": [
+      7.421875,
+      28.00634765625,
+      31.57373046875
+    ]
+  }
+}

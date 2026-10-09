@@ -1,0 +1,7 @@
+Start 2026-10-09T12:55:03.281Z load=[16.833984375,23.36376953125,29.17919921875]
+Command node /private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs --worker --surface=sim --developer=off --base=http://127.0.0.1:4402/ --shards=grid --grid-scenario=template --frames=120 --settle=2 --deadline=1791551103281 --worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/sim-grid-public-entry.json
+sim grid spawn: 30.303 fps, p95 35 ms, p99 35 ms — PASS
+sim grid grid-deck-east: 30.303 fps, p95 34 ms, p99 35 ms — PASS
+sim grid grid-crossroads: 30.303 fps, p95 34 ms, p99 35 ms — PASS
+sim grid public-road: travel 30.303 fps / 34 ms; interior 30.303 fps / 34 ms; residents=template-1,template-3,template-4
+sim grid public-template: travel 30.303 fps / 35 ms; interior 30.303 fps / 34 ms; residents=template-1,template-2,template-3

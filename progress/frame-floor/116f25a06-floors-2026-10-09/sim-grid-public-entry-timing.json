@@ -1,0 +1,90 @@
+{
+  "surface": "sim",
+  "task": {
+    "name": "grid-public-entry",
+    "developer": "off",
+    "shards": "grid",
+    "scenario": "template"
+  },
+  "start": 1791550503281,
+  "end": 1791550588449,
+  "code": 0,
+  "args": [
+    "/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/serve/20261009-063548-4402/src/scripts/frame-floor.mjs",
+    "--worker",
+    "--surface=sim",
+    "--developer=off",
+    "--base=http://127.0.0.1:4402/",
+    "--shards=grid",
+    "--grid-scenario=template",
+    "--frames=120",
+    "--settle=2",
+    "--deadline=1791551103281",
+    "--worker-out=/private/tmp/claude-501/sp-builders/sp-x3/floors-2026-10-09/sim-grid-public-entry.json"
+  ],
+  "events": [
+    {
+      "ms": 1791550533103,
+      "text": "sim grid spawn: 30.303 fps, p95 35 ms, p99 35 ms — PASS",
+      "load": [
+        23.35546875,
+        24.68310546875,
+        29.47705078125
+      ]
+    },
+    {
+      "ms": 1791550539432,
+      "text": "sim grid grid-deck-east: 30.303 fps, p95 34 ms, p99 35 ms — PASS",
+      "load": [
+        21.88525390625,
+        24.35595703125,
+        29.33349609375
+      ]
+    },
+    {
+      "ms": 1791550545597,
+      "text": "sim grid grid-crossroads: 30.303 fps, p95 34 ms, p99 35 ms — PASS",
+      "load": [
+        20.85302734375,
+        24.1005859375,
+        29.2138671875
+      ]
+    },
+    {
+      "ms": 1791550556944,
+      "text": "sim grid public-road: travel 30.303 fps / 34 ms; interior 30.303 fps / 34 ms; residents=template-1,template-3,template-4",
+      "load": [
+        17.673828125,
+        23.244140625,
+        28.81884765625
+      ]
+    },
+    {
+      "ms": 1791550588439,
+      "text": "sim grid public-template: travel 30.303 fps / 35 ms; interior 30.303 fps / 34 ms; residents=template-1,template-2,template-3",
+      "load": [
+        12.79443359375,
+        21.517578125,
+        27.998046875
+      ]
+    }
+  ],
+  "before": {
+    "when": "2026-10-09T12:55:03.281Z",
+    "ms": 1791550503282,
+    "load": [
+      16.833984375,
+      23.36376953125,
+      29.17919921875
+    ]
+  },
+  "after": {
+    "when": "2026-10-09T12:56:28.448Z",
+    "ms": 1791550588448,
+    "load": [
+      12.79443359375,
+      21.517578125,
+      27.998046875
+    ]
+  }
+}

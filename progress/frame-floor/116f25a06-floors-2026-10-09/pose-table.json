@@ -133,6 +133,272 @@
     "error": null
   },
   {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 59.88,
+    "p95Ms": 16.7,
+    "workP95Ms": 7.2,
+    "pass": true,
+    "loadAtCompletion": [
+      5.50341796875,
+      15.24951171875,
+      24.43310546875
+    ],
+    "sampleEndMs": 1791550734169,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "beach",
+    "index": 1,
+    "medianFps": 59.88,
+    "p95Ms": 16.7,
+    "workP95Ms": 7,
+    "pass": true,
+    "loadAtCompletion": [
+      5.302734375,
+      15.0458984375,
+      24.30712890625
+    ],
+    "sampleEndMs": 1791550738352,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "wreck",
+    "index": 2,
+    "medianFps": 59.88,
+    "p95Ms": 16.7,
+    "workP95Ms": 6.1,
+    "pass": true,
+    "loadAtCompletion": [
+      5.1982421875,
+      14.8623046875,
+      24.18798828125
+    ],
+    "sampleEndMs": 1791550742540,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-road-travel",
+    "index": 3,
+    "medianFps": 59.88,
+    "p95Ms": 16.8,
+    "workP95Ms": 5.9,
+    "pass": true,
+    "loadAtCompletion": [
+      4.86181640625,
+      14.6318359375,
+      24.0517578125
+    ],
+    "sampleEndMs": 1791550751184,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-road",
+    "index": 4,
+    "medianFps": 59.88,
+    "p95Ms": 16.7,
+    "workP95Ms": 5.4,
+    "pass": true,
+    "loadAtCompletion": [
+      4.86181640625,
+      14.6318359375,
+      24.0517578125
+    ],
+    "sampleEndMs": 1791550751184,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-template-travel",
+    "index": 5,
+    "medianFps": 59.88,
+    "p95Ms": 16.7,
+    "workP95Ms": 5.6,
+    "pass": true,
+    "loadAtCompletion": [
+      5.85791015625,
+      13.94775390625,
+      23.47705078125
+    ],
+    "sampleEndMs": 1791550780515,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-no-gl",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-template",
+    "index": 6,
+    "medianFps": 59.88,
+    "p95Ms": 16.8,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      5.85791015625,
+      13.94775390625,
+      23.47705078125
+    ],
+    "sampleEndMs": 1791550780515,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 59.88,
+    "p95Ms": 33.4,
+    "workP95Ms": 22.8,
+    "pass": false,
+    "loadAtCompletion": [
+      8.68701171875,
+      19.0107421875,
+      26.6962890625
+    ],
+    "sampleEndMs": 1791550638455,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "pier",
+    "index": 1,
+    "medianFps": 59.88,
+    "p95Ms": 33.4,
+    "workP95Ms": 22,
+    "pass": false,
+    "loadAtCompletion": [
+      8.6318359375,
+      18.82763671875,
+      26.58642578125
+    ],
+    "sampleEndMs": 1791550643128,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "beach",
+    "index": 2,
+    "medianFps": 59.88,
+    "p95Ms": 33.4,
+    "workP95Ms": 21.2,
+    "pass": false,
+    "loadAtCompletion": [
+      8.5009765625,
+      18.630859375,
+      26.47119140625
+    ],
+    "sampleEndMs": 1791550647750,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-road-travel",
+    "index": 3,
+    "medianFps": 59.88,
+    "p95Ms": 33.4,
+    "workP95Ms": 20.7,
+    "pass": false,
+    "loadAtCompletion": [
+      8.22021484375,
+      18.404296875,
+      26.34521484375
+    ],
+    "sampleEndMs": 1791550656696,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-road",
+    "index": 4,
+    "medianFps": 59.88,
+    "p95Ms": 33.3,
+    "workP95Ms": 19.1,
+    "pass": false,
+    "loadAtCompletion": [
+      8.22021484375,
+      18.404296875,
+      26.34521484375
+    ],
+    "sampleEndMs": 1791550656696,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-template-travel",
+    "index": 5,
+    "medianFps": 59.88,
+    "p95Ms": 33.3,
+    "workP95Ms": 19.2,
+    "pass": false,
+    "loadAtCompletion": [
+      7.8935546875,
+      17.35888671875,
+      25.6904296875
+    ],
+    "sampleEndMs": 1791550686643,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "desktop-grid-public-post-sim",
+    "surface": "desktop",
+    "shard": "grid",
+    "pose": "grid-public-template",
+    "index": 6,
+    "medianFps": 59.88,
+    "p95Ms": 33.4,
+    "workP95Ms": 21,
+    "pass": false,
+    "loadAtCompletion": [
+      7.8935546875,
+      17.35888671875,
+      25.6904296875
+    ],
+    "sampleEndMs": 1791550686643,
+    "complete": true,
+    "error": null
+  },
+  {
     "batch": "desktop-grid-public",
     "surface": "desktop",
     "shard": "grid",
@@ -908,6 +1174,652 @@
       46.44384765625
     ],
     "sampleEndMs": 1791546050722,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 35,
+    "workP95Ms": 15,
+    "pass": true,
+    "loadAtCompletion": [
+      23.35546875,
+      24.68310546875,
+      29.47705078125
+    ],
+    "sampleEndMs": 1791550533103,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-deck-east",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 11,
+    "pass": true,
+    "loadAtCompletion": [
+      21.88525390625,
+      24.35595703125,
+      29.33349609375
+    ],
+    "sampleEndMs": 1791550539432,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-crossroads",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 12,
+    "pass": true,
+    "loadAtCompletion": [
+      20.85302734375,
+      24.1005859375,
+      29.2138671875
+    ],
+    "sampleEndMs": 1791550545597,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-road-travel",
+    "index": 3,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 12,
+    "pass": true,
+    "loadAtCompletion": [
+      17.673828125,
+      23.244140625,
+      28.81884765625
+    ],
+    "sampleEndMs": 1791550556944,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-road",
+    "index": 4,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 11,
+    "pass": true,
+    "loadAtCompletion": [
+      17.673828125,
+      23.244140625,
+      28.81884765625
+    ],
+    "sampleEndMs": 1791550556944,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-template-travel",
+    "index": 5,
+    "medianFps": 30.303,
+    "p95Ms": 35,
+    "workP95Ms": 16,
+    "pass": true,
+    "loadAtCompletion": [
+      12.79443359375,
+      21.517578125,
+      27.998046875
+    ],
+    "sampleEndMs": 1791550588439,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public-entry",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-template",
+    "index": 6,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 13,
+    "pass": true,
+    "loadAtCompletion": [
+      12.79443359375,
+      21.517578125,
+      27.998046875
+    ],
+    "sampleEndMs": 1791550588439,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 13,
+    "pass": true,
+    "loadAtCompletion": [
+      7.24365234375,
+      26.00927734375,
+      30.72607421875
+    ],
+    "sampleEndMs": 1791550416048,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-deck-east",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 11,
+    "pass": true,
+    "loadAtCompletion": [
+      7.4462890625,
+      25.4326171875,
+      30.4658203125
+    ],
+    "sampleEndMs": 1791550422306,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-crossroads",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 35,
+    "workP95Ms": 15,
+    "pass": true,
+    "loadAtCompletion": [
+      7.73046875,
+      25.19287109375,
+      30.3515625
+    ],
+    "sampleEndMs": 1791550428550,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-road-travel",
+    "index": 3,
+    "medianFps": 30.303,
+    "p95Ms": 35,
+    "workP95Ms": 14,
+    "pass": true,
+    "loadAtCompletion": [
+      8.5849609375,
+      24.79296875,
+      30.1484375
+    ],
+    "sampleEndMs": 1791550440035,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-road",
+    "index": 4,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 14,
+    "pass": true,
+    "loadAtCompletion": [
+      8.5849609375,
+      24.79296875,
+      30.1484375
+    ],
+    "sampleEndMs": 1791550440035,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-template-travel",
+    "index": 5,
+    "medianFps": 30.303,
+    "p95Ms": 36,
+    "workP95Ms": 19,
+    "pass": false,
+    "loadAtCompletion": [
+      9.357421875,
+      23.4775390625,
+      29.48779296875
+    ],
+    "sampleEndMs": 1791550471533,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-grid-public",
+    "surface": "sim",
+    "shard": "grid",
+    "pose": "grid-public-template",
+    "index": 6,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 14,
+    "pass": true,
+    "loadAtCompletion": [
+      9.357421875,
+      23.4775390625,
+      29.48779296875
+    ],
+    "sampleEndMs": 1791550471533,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "driftwood-isle",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 35,
+    "workP95Ms": 9,
+    "pass": true,
+    "loadAtCompletion": [
+      108.8759765625,
+      56.109375,
+      40.06396484375
+    ],
+    "sampleEndMs": 1791550134888,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "driftwood-isle",
+    "pose": "pier",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 7,
+    "pass": true,
+    "loadAtCompletion": [
+      100.9580078125,
+      55.34375,
+      39.8876953125
+    ],
+    "sampleEndMs": 1791550141079,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "driftwood-isle",
+    "pose": "wreck",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 8,
+    "pass": true,
+    "loadAtCompletion": [
+      87.3798828125,
+      53.93359375,
+      39.5673828125
+    ],
+    "sampleEndMs": 1791550147218,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "pine-hollow",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 8,
+    "pass": true,
+    "loadAtCompletion": [
+      45.80908203125,
+      47.5888671875,
+      37.96875
+    ],
+    "sampleEndMs": 1791550194337,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "pine-hollow",
+    "pose": "cabin",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 9,
+    "pass": true,
+    "loadAtCompletion": [
+      43.26171875,
+      47.03076171875,
+      37.828125
+    ],
+    "sampleEndMs": 1791550200503,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "pine-hollow",
+    "pose": "gate",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 8,
+    "pass": true,
+    "loadAtCompletion": [
+      37.69287109375,
+      45.71240234375,
+      37.4677734375
+    ],
+    "sampleEndMs": 1791550206695,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "nalati-grasslands",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 5,
+    "pass": true,
+    "loadAtCompletion": [
+      28.599609375,
+      43.10888671875,
+      36.724609375
+    ],
+    "sampleEndMs": 1791550230469,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "nalati-grasslands",
+    "pose": "plains",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 7,
+    "pass": true,
+    "loadAtCompletion": [
+      24.96435546875,
+      41.853515625,
+      36.353515625
+    ],
+    "sampleEndMs": 1791550236638,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "nalati-grasslands",
+    "pose": "bridge",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      23.125,
+      41.19140625,
+      36.15185546875
+    ],
+    "sampleEndMs": 1791550242766,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "far-reach",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      17.78271484375,
+      38.47802734375,
+      35.31884765625
+    ],
+    "sampleEndMs": 1791550269688,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "far-reach",
+    "pose": "hover",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      16.8388671875,
+      37.9384765625,
+      35.14697265625
+    ],
+    "sampleEndMs": 1791550275821,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "far-reach",
+    "pose": "spawn",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      15.17822265625,
+      36.88671875,
+      34.80615234375
+    ],
+    "sampleEndMs": 1791550282055,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "sunscar-dunes",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 5,
+    "pass": true,
+    "loadAtCompletion": [
+      12.080078125,
+      34.77197265625,
+      34.09521484375
+    ],
+    "sampleEndMs": 1791550303612,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "sunscar-dunes",
+    "pose": "spawn",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 4,
+    "pass": true,
+    "loadAtCompletion": [
+      11.9931640625,
+      34.376953125,
+      33.95947265625
+    ],
+    "sampleEndMs": 1791550309842,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "sunscar-dunes",
+    "pose": "ray",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 4,
+    "pass": true,
+    "loadAtCompletion": [
+      11.99365234375,
+      34.00537109375,
+      33.83056640625
+    ],
+    "sampleEndMs": 1791550316063,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "_template",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 4,
+    "pass": true,
+    "loadAtCompletion": [
+      9.603515625,
+      32.04248046875,
+      33.130859375
+    ],
+    "sampleEndMs": 1791550335938,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "_template",
+    "pose": "spawn-reverse",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 4,
+    "pass": true,
+    "loadAtCompletion": [
+      8.8955078125,
+      31.1513671875,
+      32.8017578125
+    ],
+    "sampleEndMs": 1791550342161,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "nine-dragon-stack",
+    "pose": "spawn",
+    "index": 0,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      7.95751953125,
+      28.80712890625,
+      31.89404296875
+    ],
+    "sampleEndMs": 1791550372748,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "nine-dragon-stack",
+    "pose": "spawn-rail",
+    "index": 1,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 6,
+    "pass": true,
+    "loadAtCompletion": [
+      7.72021484375,
+      28.41162109375,
+      31.736328125
+    ],
+    "sampleEndMs": 1791550378777,
+    "complete": true,
+    "error": null
+  },
+  {
+    "batch": "sim-shards-dev",
+    "surface": "sim",
+    "shard": "nine-dragon-stack",
+    "pose": "well-edge",
+    "index": 2,
+    "medianFps": 30.303,
+    "p95Ms": 34,
+    "workP95Ms": 5,
+    "pass": true,
+    "loadAtCompletion": [
+      7.421875,
+      28.00634765625,
+      31.57373046875
+    ],
+    "sampleEndMs": 1791550384916,
     "complete": true,
     "error": null
   }

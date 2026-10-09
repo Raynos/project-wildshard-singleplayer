@@ -1,0 +1,6 @@
+desktop grid spawn: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid beach: 59.88 fps, p95 16.7 ms, p99 16.8 ms — PASS
+desktop grid wreck: 59.88 fps, p95 16.7 ms, p99 16.7 ms — PASS
+desktop grid public-road: travel 59.88 fps / 16.8 ms; interior 59.88 fps / 16.7 ms; residents=template-1,template-3,template-4
+desktop grid public-template: travel 59.88 fps / 16.7 ms; interior 59.88 fps / 16.8 ms; residents=template-1,template-2,template-3
+BATCH desktop-grid-public-no-gl code=0 complete=true pass=true load=5.85791015625/13.94775390625/23.47705078125
