@@ -123,8 +123,8 @@ export const OPTION_VALUES = {
   // the saved settings
   tex: ['auto', 'ktx2', 'img'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
-  // The first value is the public default; OPTION_SPECS may supply a Developer default. A test / capture script sets one in the saved settings before the page loads ──
-  memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload
+  // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
+  memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
@@ -134,7 +134,7 @@ export const BOOT_OPTIONS: readonly OptionKey[] = ['tier', 'touch'];
 /** a debug-menu-only option (E162): no URL override; its default is its first value */
 const DEBUG_ONLY = { def: null, params: [], url: (): null => null } as const;
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
-const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; developerDefault?: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
+const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
@@ -142,7 +142,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; developerD
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   tex: { def: 'auto', params: [], url: () => null },
   
-  memorySaver: { ...DEBUG_ONLY, developerDefault: 'on' }, graphMaterials: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -194,9 +194,8 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const ctx = { saved, persist: (): void => { writer.persist(); }, search };
   // Music style is a player preference; SFX comparison stays in the registry. Neither has a URL override (E162).
   const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null, false, ctx);
-  const defaultOption = <K extends OptionKey>(k: K, inDeveloper = developer.enabled()): OptionValue<K> => {
-    const spec = OPTION_SPECS[k];
-    const value = (inDeveloper ? spec.developerDefault : undefined) ?? spec.def ?? OPTION_VALUES[k][0];
+  const defaultOption = <K extends OptionKey>(k: K): OptionValue<K> => {
+    const value = OPTION_SPECS[k].def ?? OPTION_VALUES[k][0];
     if (value === undefined) throw new Error(`Settings: option ${k} has no default`);
     return value;
   };
@@ -215,16 +214,13 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
-    for (const k of OPTION_KEYS) {
-      // A mode-dependent default must not become an override when an unrelated preference is saved.
-      if (OPTION_SPECS[k].developerDefault === undefined || options[k].hasSavedPick) picks[k] = options[k].stored;
-    }
+    for (const k of OPTION_KEYS) picks[k] = options[k].stored;
     try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, ...picks })); } catch { /* not persisted this session */ }
   };
   writer.persist = persist;
   const readOption = <K extends OptionKey>(key: K): OptionValue<K> => {
     if (developer.enabled() || !DEVELOPER_OPTIONS.includes(key) || options[key].fromUrl) return options[key].value;
-    return defaultOption(key, false);
+    return defaultOption(key);
   };
   const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
   const numListeners = new Map<NumberKey, Set<(v: number) => void>>();

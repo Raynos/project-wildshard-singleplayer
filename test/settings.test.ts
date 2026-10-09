@@ -11,14 +11,14 @@ const STORE = 'settings';
 function fresh(): Promise<Settings> { return Promise.resolve(createSettings(saveStorage('global'))); }
 
 describe('Settings', () => {
-  it.each([false, true])('defaults Memory saver by Developer mode (%s) without saving the default', (enabled) => {
+  it.each([false, true])('defaults Memory saver OFF whatever the Developer mode (%s) (G271)', (enabled) => {
     const mode = { enabled: () => enabled };
     const s = createSettings(saveStorage('global'), () => '', mode);
-    expect(s.setting('memorySaver')).toBe(enabled ? 'on' : 'off');
-    expect(s.savedSetting('memorySaver')).toBe(enabled ? 'on' : 'off');
+    expect(s.setting('memorySaver')).toBe('off');
+    expect(s.savedSetting('memorySaver')).toBe('off');
     s.setNumber('volume', 0.5);
-    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('memorySaver');
-    expect(createSettings(saveStorage('global'), () => '', { enabled: () => !enabled }).setting('memorySaver')).toBe(enabled ? 'off' : 'on');
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ memorySaver: 'off' });
+    expect(createSettings(saveStorage('global'), () => '', { enabled: () => !enabled }).setting('memorySaver')).toBe('off');
   });
   it.each(['off', 'on'] as const)('preserves the explicit Memory saver %s override, fenced off publicly', (pick) => {
     fixtures.setItem(STORE, JSON.stringify({ memorySaver: pick }));
@@ -31,7 +31,7 @@ describe('Settings', () => {
     expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ memorySaver: pick });
     expect(createSettings(saveStorage('global'), () => '', { enabled: () => true }).setting('memorySaver')).toBe(pick);
   });
-  it('notifies Developer defaults and overrides without freezing an implicit default', () => {
+  it('turns Memory saver on only through a Developer pick, notifying mode changes and overrides (G271)', () => {
     let enabled = false;
     const changed = new Set<() => void>();
     const s = createSettings(saveStorage('global'), () => '', { enabled: () => enabled,
@@ -39,21 +39,23 @@ describe('Settings', () => {
     const seen: string[] = [];
     const off = s.onSettingChange('memorySaver', v => { seen.push(v); });
     enabled = true; for (const fn of changed) fn();
+    expect(s.setting('memorySaver')).toBe('off');
+    s.saveSetting('memorySaver', 'on');
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ memorySaver: 'on' });
     s.overrideSetting('memorySaver', 'off');
     s.overrideSetting('memorySaver', null);
     enabled = false; for (const fn of changed) fn();
     enabled = true; for (const fn of changed) fn();
-    expect(seen).toEqual(['on', 'off', 'on', 'off', 'on']);
-    // Saving the current default is an explicit pick, retained across mode changes and reloads.
-    s.saveSetting('memorySaver', 'on');
-    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ memorySaver: 'on' });
+    expect(seen).toEqual(['off', 'on', 'off', 'on', 'off', 'on']);
+    expect(createSettings(saveStorage('global'), () => '', { enabled: () => true }).setting('memorySaver')).toBe('on');
+    expect(createSettings(saveStorage('global'), () => '', { enabled: () => false }).setting('memorySaver')).toBe('off');
     s.saveSetting('memorySaver', 'off');
     expect(createSettings(saveStorage('global'), () => '', { enabled: () => true }).setting('memorySaver')).toBe('off');
     off(); expect(changed.size).toBe(0);
   });
   it.each([false, true])('ignores an invalid Memory saver pick in Developer mode %s', enabled => {
     fixtures.setItem(STORE, JSON.stringify({ memorySaver: 'invalid' }));
-    expect(createSettings(saveStorage('global'), () => '', { enabled: () => enabled }).setting('memorySaver')).toBe(enabled ? 'on' : 'off');
+    expect(createSettings(saveStorage('global'), () => '', { enabled: () => enabled }).setting('memorySaver')).toBe('off');
   });
 
   it('ignores saved diagnostic picks outside Developer and restores them without rewriting storage', () => {
