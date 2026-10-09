@@ -25,6 +25,7 @@
  * mesh + the balbal InstancedMeshes.
  */
 import * as THREE from 'three';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { app } from '@wildshard/engine/app/runtime';
 import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
@@ -97,13 +98,13 @@ export class NalatiPOIs {
       this.group.add(p.object);
       this.colliders.push(...p.colliders);
     };
-    const run = (name: string, f: (c: PoiCtx) => PoiPiece) => { const t0 = performance.now(); const p = f(ctx); add(name, p, performance.now() - t0); };
+    const run = (name: string, f: (c: PoiCtx) => PoiPiece) => { const t0 = diagnosticNow(); const p = f(ctx); add(name, p, diagnosticNow() - t0); };
     {
       // the camp a part a task (SF67): its own build time, the yields left out
       const camp = nomadCampSteps(ctx);
       let ms = 0;
       for (;;) {
-        const t0 = performance.now(), step = camp.next(); ms += performance.now() - t0;
+        const t0 = diagnosticNow(), step = camp.next(); ms += diagnosticNow() - t0;
         if (step.done === true) { add('camp', step.value, ms); break; }
         yield;
       }

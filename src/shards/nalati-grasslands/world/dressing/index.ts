@@ -25,6 +25,7 @@
  * scaled down on the phone tier.
  */
 import * as THREE from 'three';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { TIER } from '@wildshard/engine/core/tier';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
@@ -133,12 +134,12 @@ export class NalatiDressing {
   constructor(private sky: Sky, private forest: Forest | null) { this.group.name = 'nalati-dressing'; this.statics.name = 'nalati-dress-statics'; }
 
   async build(yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
-    let t0 = performance.now();
-    const lap = (k: string) => { const t = performance.now(); this.timings[k] = Math.round(t - t0); t0 = t; };
+    let t0 = diagnosticNow();
+    const lap = (k: string) => { const t = diagnosticNow(); this.timings[k] = Math.round(t - t0); t0 = t; };
     const plan = this.plan = await planDressing(this.forest, yieldTask);
     lap('plan');
     await yieldTask();
-    t0 = performance.now();
+    t0 = diagnosticNow();
 
     const rock = painterlyMaterial(this.sky, { rim: 0.3, bands: 0.8 });
     const shrub = painterlyMaterial(this.sky, { rim: 0.5, bands: 0.7, sway: 0.05 });
@@ -189,7 +190,7 @@ export class NalatiDressing {
     cover.clear();
     addCover(plan.boulder, 0.9); addCover(plan.slab, 1.1); addCover(plan.juniper, 0.85); addCover(plan.rose, 0.5); addCover(plan.willow, 0.4);
     await yieldTask();
-    t0 = performance.now();
+    t0 = diagnosticNow();
 
     const st = await buildStaticsSliced(this.sky, plan, this.flutter, slicer(30).due); // SF67: ~30 ms a task, the same props
     this.props = st.meshes;
@@ -202,7 +203,7 @@ export class NalatiDressing {
     this.descs.push(...st.descs);
     lap('props');
     await yieldTask();
-    t0 = performance.now();
+    t0 = diagnosticNow();
 
     this.life = new DressLife(this.sky, plan.drifts).build();
     this.group.add(this.life.group);
