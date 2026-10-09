@@ -16,8 +16,9 @@ import { ROSTER_STEP, type PineHuntBody } from '../../../src/shards/pine-hollow/
 import { ELITES_STEP } from '../../../src/shards/pine-hollow/runtime/elites';
 import { bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { LEVER_FLAG, PINE_WEAPON } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
-import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
+import { addPineWorld, installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
 import { parseNavmesh } from '../../../src/engine/physics/navmesh';
+import { isPineEdgeWall, provePineEntries } from '../../../src/shards/pine-hollow/runtime/entries';
 import type { ImperialBull } from '../../../src/shards/pine-hollow/combat/eliteScripts';
 import type { HuntBody } from '../../../src/engine/ai/hunt';
 import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
@@ -57,11 +58,20 @@ function standBy(host: SimHost, kind: string, d: number): string {
   return actor.entityId;
 }
 
-it('stands the player at the gate on the page\'s terrain grid, with no entry proof yet (finish refuses)', () => {
+it('stands the player at the gate on the page\'s terrain grid; the entry proof walks a real capsule 50 m in through every entryway\'s 23 lanes and refuses: four rocks stand in the east, south and west canyons', () => {
   expect(plan.level.seed).toBe(1337); expect(plan.level.player.at.z).toBe(-235); expect(plan.level.player.yaw).toBe(Math.PI);
   expect(plan.level.player.at.y).toBeCloseTo(heightAt(0, -235) + 0.1, 9);
-  expect(plan.proveEntries).toBeUndefined();
-});
+  const host = boot();
+  try { expect(() => plan.proveEntries?.(host)).toThrow(/^Blocked Pine entry east lane 0 at 25\.\d\d m$/u); } finally { host.dispose(); }
+  // the grid's world without those four boulders (the bake's convex hulls in the canyons) walks every lane clear
+  const rocks = [[223.77, -3.37], [-3.57, -204.99], [-233, -3.76], [-218.7, 3.8]] as const, fresh = createSimHost(plan.level, { ...plan.ports, rapier });
+  try {
+    addPineWorld(fresh, bake, solid => isPineEdgeWall(solid) || rocks.some(([x, z]) => solid.shape === 9 && Math.hypot(solid.at[0] - x, solid.at[2] - z) < 0.01));
+    fresh.step();
+    const proof = provePineEntries(fresh.physics, source.entryways, heightAt);
+    expect(proof.lanes).toBe(92); expect(proof.steps).toBeGreaterThan(92 * 400);
+  } finally { fresh.dispose(); }
+}, 30_000);
 
 it('refuses without the page\'s terrain grid or navmesh (Pine\'s shardfile admits no assets)', async () => {
   await expect(Promise.resolve().then(() => prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier }))).rejects.toThrow('baked terrain grid');

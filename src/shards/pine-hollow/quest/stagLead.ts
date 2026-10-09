@@ -14,10 +14,10 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { Puffs } from '../combat/fxKit';
 import { headingTo } from '../combat/combatMath';
 import { voice } from '../combat/ctx';
+import { STAG_FIRST, STAG_GONE, STAG_NEAR, STAG_PATH, STAG_TROT } from './stagWalk';
 
-/** the west road out of the Hollow, its bend into the clearing, the stones' gap, inside the ring */
-export const STAG_PATH: readonly [number, number][] = [[30, -2], [58, 12], [86, 16], [120, 12], [158, 6], [155, -6], [151, -18]];
-const NEAR = 16, TROT = 1.3, GONE = 1.1;
+// the walk's road and lengths are the renderer-free walk's (stagWalk.ts), which the headless quest runs alone
+const NEAR = STAG_NEAR, TROT = STAG_TROT, GONE = STAG_GONE;
 
 export class StagLead {
   private a: Animal | null = null;
@@ -43,7 +43,7 @@ export class StagLead {
     if (!on) { if (this.a) this.vanish(false); this.i = 0; this.mode = 'none'; return; }
     const first = STAG_PATH[0];
     if (!this.a) {
-      if (first === undefined || Math.hypot(player.x - first[0], player.z - first[1]) > 70) return;
+      if (first === undefined || Math.hypot(player.x - first[0], player.z - first[1]) > STAG_FIRST) return;
       this.appear(0, player, true);
     }
     const a = this.a;

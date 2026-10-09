@@ -25,4 +25,7 @@ export class LegacyPineClock {
     if (at(5)) this.ports.publish('dawn.caption', 0);
     if (at(12)) { this.ports.publish('dawn.finish', 0); this.dawnT = -1; }
   }
+  /** the dawn's clock (s since it started; −1: none running), the headless quest's continuation */
+  save(): number { return this.dawnT; }
+  load(dawnT: number): void { this.dawnT = dawnT; }
 }
