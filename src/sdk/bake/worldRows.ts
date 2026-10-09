@@ -2,7 +2,7 @@ import type { Shardfile } from '@wildshard/game/shardfile/schema';
 import { PropsSchema, type ShardProps } from '@wildshard/game/shardfile/props';
 import * as v from 'valibot';
 import { assetCost } from '../assets';
-import { contentHash } from '../project';
+import { hashImmutableBytes } from '../immutable';
 import type { NativeLatticeTile } from './nativeLattice';
 import { checkStaticMaterialDependencies, staticMaterialNames } from './staticMaterials';
 import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/game/shardfile/splatTerrain';
@@ -36,7 +36,7 @@ export class WorldBakeRows {
 
   /** Store an admitted payload with byte-derived cost; repeat bytes deduplicate, conflicting metadata refuses. */
   asset(bytes: Uint8Array, kind: FileRow['kind'], dependencies: readonly string[] = [], critical = false): FileRow {
-    const hash = contentHash(bytes), refs = [...new Set(dependencies)].sort(order);
+    const hash = hashImmutableBytes(bytes), refs = [...new Set(dependencies)].sort(order);
     if (refs.length !== dependencies.length || refs.some(ref => !this.files.has(ref) || ref === hash)) throw new Error('World asset needs unique previously packed dependencies');
     const known = this.files.get(hash);
     if (known !== undefined) {

@@ -94,7 +94,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
     // Traversal belongs to the platform, independently of authored item rows or Developer mode.
     loadout: { weapons: [], tools: ['tool.hoverboard'], start: ['tool.hoverboard'] },
-    ground: { ...(source.terrain === null && !source.entryways.some(entry => entry.kind === 'socketLift' || entry.kind === 'portalLink') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
+    ground: { ...(source.terrain === null && source.meshCollision === null && !source.entryways.some(entry => entry.kind === 'socketLift' || entry.kind === 'portalLink') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
     loot: { coins: source.rows.loot.length > 0 },
     creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },

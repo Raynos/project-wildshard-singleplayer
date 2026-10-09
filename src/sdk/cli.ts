@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI accepts filesystem project/output paths.
 import { resolve } from 'node:path';
-import { buildProject, newProject, projectAssets, readProject, validateProject } from './project';
+import { buildProject, newProject, projectAssets, readProjectAssets, validateProject } from './project';
 import { parseShardfile, type Shardfile } from './shardfile';
 import { devProject } from './dev';
 import { measureSimulation, validateSimulation } from './headless';
@@ -39,8 +39,10 @@ export async function runCli(args: readonly string[]): Promise<void> {
     const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(buildFlag === '--product-only' ? { client: null } : {}), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'validate') {
-    const built = input.endsWith('.json'); const shard = built ? parseShardfile(readShardfileSource(input)) : await readProject(resolve(input));
-    const assets = built ? projectAssets(resolve(input, '..'), shard, 'product') : projectAssets(resolve(input), shard);
+    const built = input.endsWith('.json');
+    const authored = built ? undefined : await readProjectAssets(resolve(input));
+    const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));
+    const assets = authored?.assets ?? projectAssets(resolve(input, '..'), shard, 'product');
     const project = built ? resolve(input, '..') : resolve(input), policy = projectPerformancePolicy(project, shard);
     validateProject(shard, assets, project);
     let layers = 0, blended = 0, masked = 0;

@@ -524,9 +524,56 @@ materials exported. Units are metres and the shard-local origin is the cell cent
 the full transformed world stays in the 500 m cube. Author four clear, dry, flat
 8×15 m entry footprints at the midpoints, at y=0. Existing entryways, spawn, material
 look, gameplay data rows and admitted AssemblyScript remain separate author inputs;
-the platform draws the asphalt socket after admission. The SDK ingest will produce
-content-addressed tiles, LODs, collision, edge profiles and far geometry without
-requiring a project generator or runtime.
+the platform draws the asphalt socket after admission. Add the build-only `world`
+key to the default declaration in `shard.config.ts`:
+
+```ts
+import { emptyShardfile } from '@wildshard/sdk/author';
+const shard = emptyShardfile({ slug: 'my-world', name: 'My world', author: 'Me', revision: 1, seed: 1 });
+export default { ...shard, world };
+```
+
+To compile server behaviour, export a build-only `behaviour` array from the same
+config. Each row has `id`, project-relative `.as` `source`, and `maximumPages`
+(default 2). Use `script:<id>` in `sim.scripts` and each binding's `module`;
+the SDK replaces those references with the metered module's immutable hash,
+includes its file and critical root, and charges the admitted memory copies.
+Explicit local imports use a `sources` map from virtual `.ts` names to bounded
+project-relative source files. Every source symlink must remain in the project.
+
+```ts
+export const behaviour = [{ id: 'door', source: 'behaviour/door.as', maximumPages: 2 }];
+// In the default declaration:
+// sim: { ...shard.sim, scripts: ['script:door'], bindings: [{ module: 'script:door',
+//   entity: 1106943697, actorId: 'actor.player', kind: 'server' }] }
+```
+
+The SDK pins AssemblyScript 0.28.20 and Binaryen 132.0.0. Its public
+`@wildshard/sdk/compileScript` module also compiles virtual source text in memory.
+Fuel, call-depth and finite-number guards use the existing ABI-v0 admission;
+the product contains Wasm, and runs no compiler or author source code at boot.
+
+`wildshard build` and `wildshard validate <project>` compile this input in memory;
+they never write compiled hash files back into `assets/`. Compiled terrain, props,
+mesh collision, tiles, far geometry or trusted runtime cannot also be supplied.
+Normal product admission checks every entry before writing output. Source GLB
+symlinks must resolve inside the author project.
+
+L0 tiles clip original triangles at 62.5 m. L1 uses the pinned simplifier with a
+0.5 target ratio / 0.25 m absolute error allowance, then clips at 125 m. Actual
+returned counts and errors own their declarations. Coarse tiles cast no shadows.
+An independent one-draw far approximation uses a 0.1 target ratio / 2 m allowance
+and source material factors as vertex colours; interactive nodes are excluded.
+Fine/coarse output retains named material slots, UV0, normals, tangents, vertex
+colours and encoded textures. Unsupported material families or incompatible
+same-material vertex channels refuse.
+
+All authored collision retains its actual triangle layers in WMC1. `ws_terrain`
+selects the surface for 257 boundary samples; otherwise permanent collision
+geometry supplies them. Missing boundary ground refuses. This path adds no
+analytic floor or second heightfield under mesh collision. Panels retain separate
+stable render/collider identities and use ordinary published-state targets and
+continuation snapshots. No project generator or runtime is required.
 
 ## Minimal singleplayer load
 

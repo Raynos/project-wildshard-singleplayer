@@ -73,7 +73,8 @@
     "./runtime/effects": "./runtime/effects.ts",
     "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
     "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts",
-    "./interactions": "./interactions.ts"
+    "./interactions": "./interactions.ts",
+    "./compileScript": "./compileScript.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -100,7 +101,9 @@
     "postprocessing": "^6.39.5",
     "@loaders.gl/textures": "4.5.3",
     "sharp": "0.34.5",
-    "meshoptimizer": "1.2.0"
+    "meshoptimizer": "1.2.0",
+    "assemblyscript": "0.28.20",
+    "binaryen": "132.0.0"
   },
   "publishConfig": {
     "exports": {
@@ -375,6 +378,10 @@
       "./runtime/audio/silentScore": {
         "types": "./dist/types/sdk/runtime/audio/silentScore.d.ts",
         "default": "./dist/runtime/audio/silentScore.js"
+      },
+      "./compileScript": {
+        "types": "./dist/types/sdk/compileScript.d.ts",
+        "default": "./dist/compileScript.js"
       }
     }
   }

@@ -19,7 +19,7 @@ const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
 });
 await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk', 'dist') /* build output, git-ignored: check-paths only checks committed paths */, emptyOutDir: true, minify: false, lib: {
   entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
-}, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite', 'sharp'] } } });
+}, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite', 'sharp', 'binaryen'] } } });
 
 // Ship declarations without requiring the repository's internal workspace packages.
 execFileSync('pnpm', ['exec', 'tsc', '-b', '--force', 'tsconfig.layers.json'], { cwd: root, stdio: 'inherit' });
@@ -61,5 +61,5 @@ for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-de
   await build({ root, mode, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {
     outDir: resolve(root, `src/sdk/dist/${folder}`), emptyOutDir: true, copyPublicDir: false, sourcemap: false,
   } });
-  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
+  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'basis/r186', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
 }

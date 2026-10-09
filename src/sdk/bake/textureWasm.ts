@@ -31,7 +31,7 @@ function moduleApi(value: unknown): value is BasisModule { return typeof value =
 function encoderApi(value: unknown): value is Encoder { return typeof value === 'object' && value !== null && methods.every(key => typeof Reflect.get(value, key) === 'function'); }
 let basis: Promise<BasisModule> | undefined;
 async function loadBasis(): Promise<BasisModule> {
-  const require = createRequire(import.meta.url), directory = dirname(require.resolve(WORLD_TEXTURE_TOOL.package));
+  const require = createRequire(join(import.meta.dirname, 'encoder.cjs')), directory = dirname(require.resolve(WORLD_TEXTURE_TOOL.package));
   const glue = Uint8Array.from(readFileSync(join(directory, 'libs/basis_encoder.js'))), wasm = Uint8Array.from(readFileSync(join(directory, 'libs/basis_encoder.wasm')));
   if (hashImmutableBytes(glue) !== WORLD_TEXTURE_TOOL.glue || hashImmutableBytes(wasm) !== WORLD_TEXTURE_TOOL.wasm) throw new Error('Pinned world texture encoder artifact mismatch');
   // The package publishes its CommonJS Emscripten glue beneath type:module. Give those exact verified bytes

@@ -26,9 +26,9 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
     const attributes: Record<string, Json> = {};
-    for (const [key, semantic, width] of [['position', 'POSITION', 3], ['normal', 'NORMAL', 3], ['uv', 'TEXCOORD_0', 2], ['color', 'COLOR_0', 3]] as const) {
+    for (const [key, semantic, width] of [['position', 'POSITION', 3], ['normal', 'NORMAL', 3], ['uv', 'TEXCOORD_0', 2], ['color', 'COLOR_0', geometry.hasAttribute('color') ? geometry.getAttribute('color').itemSize : 3], ['tangent', 'TANGENT', 4]] as const) {
       const a = geometry.getAttribute(key); if (!geometry.hasAttribute(key)) continue;
-      if (a.itemSize !== width || a.count !== p.count) throw new Error('Mismatched GLB attributes');
+      if (a.itemSize !== width || a.count !== p.count || (key === 'color' && width !== 3 && width !== 4)) throw new Error('Mismatched GLB attributes');
       attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, `VEC${width}`, false, key === 'position');
     }
     const custom = Object.entries(customAttributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);

@@ -60,6 +60,16 @@ it('shared sloping source edges retain identical seam coordinates under opposite
   };
   expect(seam(3).length).toBeGreaterThan(3); expect(seam(3)).toEqual(seam(4));
 });
+it('drops only unrepresentable clipped seam slivers from a valid large ground face', () => {
+  const source = { ...plane(0), node: 'Large ground', positions: Float64Array.of(-250, 0, -250, -6, 0, -250, -6, 0, -6, -250, 0, -6), indices: Uint32Array.of(0, 3, 2, 0, 2, 1) };
+  const baked = bakeWorldCollision({ collision: [source], panels: [] });
+  expect(baked.tiles).toHaveLength(16);
+  for (const tile of baked.tiles) {
+    const bytes = bytesOf(baked, tile.file);
+    expect(decodeMeshCollision(bytes).indices.length).toBeGreaterThan(0);
+  }
+  expect(bakeWorldCollision({ collision: [source], panels: [] })).toEqual(baked);
+});
 it('real GLB normalization feeds tiled collision while a transformed interactive node remains separate', async () => {
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('World'), material = doc.createMaterial('Clay'); doc.getRoot().setDefaultScene(scene);
   const quad = doc.createPrimitive().setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(Float32Array.from(plane(0, 3).positions)).setBuffer(buffer))

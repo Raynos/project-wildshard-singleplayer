@@ -22,7 +22,9 @@ function append(out: Chunk, a: Point, b: Point, c: Point, node: string): void {
   if (area(a, b, c) === 0) return;
   const rounded = [a, b, c].map((p): Point => [Math.fround(p[0]) || 0, Math.fround(p[1]) || 0, Math.fround(p[2]) || 0]);
   const [ra, rb, rc] = rounded;
-  if (ra === undefined || rb === undefined || rc === undefined || area(ra, rb, rc) === 0) throw new Error(`World collision node ${node} has a triangle that collapses at Float32 precision`);
+  if (ra === undefined || rb === undefined || rc === undefined) throw new Error('World collision missing rounded triangle');
+  // The source passed Float32 admission below. Clipping can leave an unrepresentable seam sliver.
+  if (area(ra, rb, rc) === 0) return;
   if (out.indices.length / 3 >= MESH_COLLISION_LIMITS.triangles) throw new Error(`World collision node ${node} exceeds triangles per chunk`);
   for (const vertex of rounded) {
     const key = vertex.join(','); let index = out.welded.get(key);
@@ -77,6 +79,9 @@ function triangles(primitive: WorldPrimitive, visit: (a: Point, b: Point, c: Poi
     if (a === undefined || b === undefined || c === undefined) throw new Error('World collision missing triangle');
     const pa = point(primitive, a, transform), pb = point(primitive, mirrored ? c : b, transform), pc = point(primitive, mirrored ? b : c, transform);
     if (area(pa, pb, pc) === 0) throw new Error(`World collision node ${primitive.node} has a degenerate triangle`);
+    const rounded = [pa, pb, pc].map((p): Point => [Math.fround(p[0]), Math.fround(p[1]), Math.fround(p[2])]);
+    const [ra, rb, rc] = rounded;
+    if (ra === undefined || rb === undefined || rc === undefined || area(ra, rb, rc) === 0) throw new Error(`World collision node ${primitive.node} has a triangle that collapses at Float32 precision`);
     visit(pa, pb, pc);
   }
 }

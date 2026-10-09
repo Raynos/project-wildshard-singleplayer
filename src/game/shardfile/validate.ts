@@ -185,7 +185,6 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   validateSocketLandings(s, assets);
   validatePortalFloors(portalLinkEntries(s.entryways), s, assets);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
-  if (s.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   validateSkinAssets(s, assets);
   return s;
 }

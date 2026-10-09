@@ -106,7 +106,6 @@ export class ShardfileClient {
   private readonly animals = new Map<string, Animal>();
   private readonly emptyTrustedData: boolean;
   constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) {
-    if (source.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
     if (bindings.residency !== undefined) {
       const home = bindings.residency.home();
       if (home.instance !== bindings.instance || home.allocator !== bindings.allocator) throw new Error('Shardfile client requires its early page home residency');

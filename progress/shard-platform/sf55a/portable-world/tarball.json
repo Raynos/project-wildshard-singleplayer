@@ -1,0 +1,15 @@
+{
+  "pass": true,
+  "tarballBytes": 57104663,
+  "installedBy": "file:",
+  "identicalBuilds": 2,
+  "files": 152,
+  "textures": 2,
+  "interactivePanels": 1,
+  "compiledScripts": 1,
+  "gameplay": "compiled door toggles open and closed",
+  "collisionTiles": 64,
+  "renderTiles": 80,
+  "build": "PERFORMANCE REPORT blender-fixture: PASS (refuse)\nnative runtime: charged 0.000 MB; none\nestimated memory near player (0, 0): play 585.666 MB, load 665.666 MB\nestimated worst grid memory (-280, -280): play 739.885 MB / 1000.000 MB, load 819.885 MB / 1800.000 MB\ndeclared view bounds spawn (0, 0): 89 draws, 412 triangles (before frustum/occlusion; excludes engine/native recipes)\ndeclared view bounds worst memory (-280, -280): 29 draws, 262 triangles (before frustum/occlusion; excludes engine/native recipes)\ngraphs: 0 authored graphs; platform family shader presets\nmeasured scripts (60 ticks): p95 36.5 us/tick, max 243.0 us/tick; fuel p95 11416, max 11416/8000000\ndownload closures: critical 0.015 MB, tiles 0.154 MB, library 0.003 MB, far 0.007 MB, unique total 0.178 MB\nestimated playable 1.117 s: 0.117 MB at 1.000 MB/s + 1 s setup (assumptions, not a phone reading)\nbuilt blender-fixture v0.1",
+  "validation": "advisory asset raster layers: 172.07 total, 0.00 blended, 0.00 alpha-tested (primitive bounds; before culling/occlusion, not measured screen overdraw)\nPERFORMANCE REPORT blender-fixture: PASS (refuse)\nnative runtime: charged 0.000 MB; none\nestimated memory near player (0, 0): play 585.666 MB, load 665.666 MB\nestimated worst grid memory (-280, -280): play 739.885 MB / 1000.000 MB, load 819.885 MB / 1800.000 MB\ndeclared view bounds spawn (0, 0): 89 draws, 412 triangles (before frustum/occlusion; excludes engine/native recipes)\ndeclared view bounds worst memory (-280, -280): 29 draws, 262 triangles (before frustum/occlusion; excludes engine/native recipes)\ngraphs: 0 authored graphs; platform family shader presets\nmeasured scripts (60 ticks): p95 33.4 us/tick, max 233.8 us/tick; fuel p95 11416, max 11416/8000000\ndownload closures: critical 0.015 MB, tiles 0.154 MB, library 0.003 MB, far 0.007 MB, unique total 0.178 MB\nestimated playable 1.117 s: 0.117 MB at 1.000 MB/s + 1 s setup (assumptions, not a phone reading)\nvalidated blender-fixture v0.1: 60 sim ticks, 92 edge lanes, 46099 capsule steps\nadvisory tick timing (60 samples): median 65.7 us, max 680.6 us, declared 1000 us"
+}

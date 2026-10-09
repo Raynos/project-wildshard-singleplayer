@@ -4,6 +4,29 @@
  "lock": "~/projects/localai/.model.lock",
  "cache": "~/.cache/wildshard-blender",
  "targets": {
+  "sdk-world-fixture": {
+   "about": "SF55a ordinary Blender GLB: transformed bridge, overhang, two embedded PNG materials, interactive door",
+   "script": "scripts/blender/lib/world_fixture.py",
+   "args": [
+    "$BUILD"
+   ],
+   "lock": true,
+   "build": [
+    "world.glb"
+   ],
+   "copy": [
+    [
+     "world.glb",
+     "test/fixtures/sdk-authored-world/world.glb"
+    ]
+   ],
+   "outputs": [
+    "test/fixtures/sdk-authored-world/world.glb"
+   ],
+   "feeds": [
+    "test/sdk-authored-world.test.ts"
+   ]
+  },
   "driftwood-isle/island": {
    "about": "Driftwood's spawn cove: terrain tiles, ~60-72 prototypes, 16.7 k placements, Cycles AO + bounce lightmaps (DRIFTWOOD-REMASTER X2, E52)",
    "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/lib/export-scene.mjs --chunk driftwood-isle $CACHE"],
