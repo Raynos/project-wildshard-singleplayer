@@ -2,7 +2,8 @@ import { BoxGeometry, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, Mes
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { TOWER } from '../data/layout';
 import { signalDunesField } from './tiles';
-import { bakeKinds, type PieceBake } from './kinds';
+import { bakeKinds } from './kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the signal tower's steel frame, baked

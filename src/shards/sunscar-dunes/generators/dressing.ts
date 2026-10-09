@@ -5,7 +5,8 @@ import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../data/layout';
 import { WIND } from '../world/dunes';
 import { signalDunesField } from './tiles';
-import { bakeKinds, type PieceBake } from './kinds';
+import { bakeKinds } from './kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 
 /**
  * The desert's dressing (loop 4; review #13 "something every few metres on the trails", mockups A–C): saltbush shrubs

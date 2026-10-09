@@ -6,7 +6,8 @@ import { COOK, CRATES, HORSE, LANTERN, WELL_RIG } from '../data/places';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
 import wellRows from '../data/well.json' with { type: 'json' };
 import brazierRows from '../data/braziers.json' with { type: 'json' };
-import { bakedColliders, bakedPiece, type BakedWorld } from './baked';
+import { bakedColliders } from '@wildshard/game/shardfile/bakedKinds';
+import { bakedPiece, type BakedWorld } from './baked';
 import { duneHd, duneMaterial, duneMesh, fit, without } from './meshes';
 
 /**

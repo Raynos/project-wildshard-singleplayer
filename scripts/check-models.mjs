@@ -39,6 +39,8 @@ const ROOT = resolve(import.meta.dirname, '..');
 function sources(dir = join(ROOT, 'src')) {
   const out = [];
   for (const name of readdirSync(dir)) {
+    // a workspace package's node_modules links another package's sources (src/commons → @wildshard/sdk): counted once, at home
+    if (name === 'node_modules') continue;
     const p = join(dir, name);
     if (statSync(p).isDirectory()) out.push(...sources(p));
     else if (name.endsWith('.ts') && !name.endsWith('.d.ts')) out.push(relative(ROOT, p).split('\\').join('/'));
@@ -142,6 +144,8 @@ export const DONE = {
     'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
     'src/game/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
+    'src/sdk/bake/kinds.ts': { why: "SF72: the offline bake folds a shard's code-built world piece into instanced kinds (build time only, never in the client): world", counts: { InstancedMesh: 1 } },
+    'src/game/shardfile/bakedKinds.ts': { why: "SF72: a shard's baked world piece drawn from its bake, one InstancedMesh per kind on the bake's own transforms (world, like the bake it draws)", counts: { InstancedMesh: 1 } },
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },

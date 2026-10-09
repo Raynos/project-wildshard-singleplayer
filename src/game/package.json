@@ -86,6 +86,7 @@
     "./shardfile/quests": "./shardfile/quests.ts",
     "./shardfile/hybridRows": "./shardfile/hybridRows.ts",
     "./shardfile/bossRow": "./shardfile/bossRow.ts",
+    "./shardfile/bakedKinds": "./shardfile/bakedKinds.ts",
     "./shardfile/homeKeeper": "./shardfile/homeKeeper.ts",
     "./shardfile/runtimeProduct": "./shardfile/runtimeProduct.ts",
     "./shardfile/audio": "./shardfile/audio.ts",

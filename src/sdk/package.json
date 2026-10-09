@@ -24,6 +24,7 @@
     "./plumbing": "./plumbing.ts",
     "./bake/props": "./bake/props.ts",
     "./bake/glb": "./bake/glb.ts",
+    "./bake/kinds": "./bake/kinds.ts",
     "./bake/texture": "./bake/texture.ts",
     "./bake/export": "./bake/export.ts",
     "./traversal": "./traversal.ts",

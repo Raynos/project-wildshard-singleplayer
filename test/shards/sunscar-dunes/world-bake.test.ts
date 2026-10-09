@@ -11,7 +11,7 @@ import { bakeSignalDressing, buildDressing } from '../../../src/shards/sunscar-d
 import { bakeSignalTower, buildTowerFrame } from '../../../src/shards/sunscar-dunes/generators/tower';
 import { bakeSignalBraziers, bakeSignalCaravan, bakeSignalWell, buildCaravanFrame, buildWellFrame } from '../../../src/shards/sunscar-dunes/generators/places';
 import { TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
-import type { PieceBake } from '../../../src/shards/sunscar-dunes/generators/kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakedPiece, type BakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
 import { BAKED_PIECES, type BakedPiece } from '../../../src/shards/sunscar-dunes/boot/files';
 import rocks from '../../../src/shards/sunscar-dunes/data/rocks.json' with { type: 'json' };

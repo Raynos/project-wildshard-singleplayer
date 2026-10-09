@@ -4,7 +4,8 @@ import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
 import { COOK, CRATES, HORSE, LANTERN, WELL_RIG } from '../data/places';
 import { WIND } from '../world/dunes';
 import { signalDunesField } from './tiles';
-import { bakeKinds, colliderRows, foldKinds, type PieceBake } from './kinds';
+import { bakeKinds, foldKinds } from './kinds';
+import { colliderRows, type PieceBake } from '@wildshard/sdk/bake/kinds';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the caravan's, the well's and the
