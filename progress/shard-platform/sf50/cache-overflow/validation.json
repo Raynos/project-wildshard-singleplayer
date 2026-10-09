@@ -1,0 +1,21 @@
+{
+  "source": "ab3b4e4fdd89f7ad7f7333085a0a8a2875ea9b92",
+  "candidate": "b8c7a255d9c27de05085aa22d36d85a3631b3842",
+  "parent": "780f710066fbc22caa83c901341d71e41f03b422",
+  "patchSha256": "8f11eb6a82ac732090f29a8eca4c563e6cff42fe9f504ba0ec893ccd2909152d",
+  "full": {
+    "files": 956,
+    "passed": 5439,
+    "skipped": 14,
+    "seconds": 107.48
+  },
+  "strict": "green",
+  "rootOxlint": "green",
+  "ratchet": "green",
+  "focused": {
+    "files": 4,
+    "tests": 13
+  },
+  "browser": "standalone and grid green; prior rejected diagnostic attempts preserved",
+  "nativeCredit": 0
+}

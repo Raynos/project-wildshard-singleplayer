@@ -1,0 +1,255 @@
+diff --git a/src/game/grid/assetResidency.ts b/src/game/grid/assetResidency.ts
+index 112440647..c23b26810 100644
+--- a/src/game/grid/assetResidency.ts
++++ b/src/game/grid/assetResidency.ts
+@@ -6,7 +6,7 @@ type AssetPort = Parameters<App['assets']['bindResidency']>[0];
+ /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
+ export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
+ interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; retired: boolean }
+-interface Allocation { readonly lease: ResidencyLease; refs: number; covering: string | undefined }
++interface Allocation { lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; refs: number; covering: string | undefined }
+ const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
+ 
+ /** One page's retained allocation bridge: CPU backing stores, GPU attributes and texture source/sampler pairs are
+@@ -52,6 +52,21 @@ export class AssetResidencyBridge implements AssetPort {
+   private covering(scope: Scope | null): string | undefined {
+     const owner = this.runtimeOwner(scope); return owner === undefined ? undefined : this.owners.get(owner);
+   }
++  // The dated native measurement is a coverage ceiling, not a bound on concrete storage. Larger caches
++  // remain visible, independently charged allocations and must pass the normal shared admission policy.
++  private coverage(bytes: number, preferred: string | undefined, id?: string): string | undefined {
++    if (preferred === undefined) return undefined;
++    const entries = this.allocator.entries(), parent = entries.find(entry => entry.id === preferred);
++    if (parent?.category !== 'sim') return undefined;
++    const used = entries.reduce((sum, entry) => sum + (entry.id !== id && entry.coveredBy === preferred ? entry.bytes : 0), 0);
++    return used + bytes <= parent.bytes ? preferred : undefined;
++  }
++  private reserve(bytes: number, kind: 'cpu' | 'gpu', covering: string | undefined): ResidencyLease {
++    const lease = this.allocator.reserve({ id: `commons:retained:${String(++this.sequence)}:${kind}`, category: 'commons', owner: 'platform',
++      bytes, distance: 0, needed: true, ...(covering === undefined ? {} : { coveredBy: covering }) });
++    if (lease === null) throw new Error('Retained cache admission deferred by the shared budget');
++    return lease;
++  }
+   private evictUnused(consumer: CacheConsumer): void {
+     for (const user of consumer.users) if (user.disposed) consumer.users.delete(user);
+     if (consumer.retired && consumer.users.size === 0) consumer.evict?.();
+@@ -63,10 +78,8 @@ export class AssetResidencyBridge implements AssetPort {
+       for (const row of this.readAllocations(resource)) {
+         let entry = this.allocations.get(row.identity);
+         if (entry === undefined) {
+-          const lease = this.allocator.reserve({ id: `commons:retained:${String(++this.sequence)}:${row.kind}`, category: 'commons', owner: 'platform',
+-            bytes: row.bytes, distance: 0, needed: true, ...(covering === undefined ? {} : { coveredBy: covering }) });
+-          if (lease === null) throw new Error('Retained cache admission deferred by the shared budget');
+-          entry = { lease, refs: 0, covering }; this.allocations.set(row.identity, entry);
++          const actualCoverage = this.coverage(row.bytes, covering), lease = this.reserve(row.bytes, row.kind, actualCoverage);
++          entry = { lease, bytes: row.bytes, kind: row.kind, refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
+         }
+         entry.refs++; held.push(entry);
+       }
+@@ -74,18 +87,26 @@ export class AssetResidencyBridge implements AssetPort {
+     let live = true;
+     const consumer: CacheConsumer = { users: new Set(), evict, retired: false };
+     const initialOwner = this.runtimeOwner(owner ?? this.readOwner());
+-    if (initialOwner !== undefined) consumer.users.add(initialOwner);
+     this.consumers.add(consumer);
+     const observe = (scope: Scope | null): void => {
+       if (!live) return;
+       const runtime = this.runtimeOwner(scope);
+-      if (runtime !== undefined) consumer.users.add(runtime);
+-      else if (scope !== null && !scope.disposed) consumer.users.add(scope); // A real page/kit draw keeps its shared resource alive.
++      const user = runtime ?? (scope !== null && !scope.disposed ? scope : undefined);
++      if (user !== undefined && consumer.users.has(user)) return; // Draws repeat; admission/coverage runs once per consumer.
+       const next = this.covering(scope);
+-      if (next === undefined) return; // Parent retirement itself exposes the bytes; a page draw cannot hide them.
+-      for (const entry of held) if (entry.covering !== next) {
+-        entry.lease.update({ coveredBy: next }); entry.covering = next;
++      // Parent retirement itself exposes the bytes; a page draw cannot hide them.
++      if (next !== undefined) for (const entry of held) {
++        if (entry.covering === next) continue;
++        const actualCoverage = this.coverage(entry.bytes, next, entry.lease.id);
++        if (entry.covering === actualCoverage) continue;
++        if (actualCoverage === undefined && entry.covering !== undefined && this.allocator.has(entry.covering)) {
++          // Admit the new charge before releasing the old covered reference: a refusal leaves it intact.
++          const replacement = this.reserve(entry.bytes, entry.kind, undefined);
++          entry.lease.release(); entry.lease = replacement;
++        } else entry.lease.update({ coveredBy: actualCoverage ?? null });
++        entry.covering = actualCoverage;
+       }
++      if (user !== undefined) consumer.users.add(user);
+     };
+     try { observe(initialOwner ?? null); }
+     catch (error) { live = false; this.consumers.delete(consumer); this.release(held); throw error; }
+diff --git a/test/grid-asset-residency.test.ts b/test/grid-asset-residency.test.ts
+index 717aa5229..3904bf87e 100644
+--- a/test/grid-asset-residency.test.ts
++++ b/test/grid-asset-residency.test.ts
+@@ -98,3 +98,40 @@ it('releases both calibrated renderer components if composer observation fails d
+   expect(page.allocator.entries()).toEqual([]); expect(page.allocator.cost().playing).toBe(before);
+   renderer.dispose(); page.dispose();
+ });
++
++it('charges cache overflow normally and admits a transfer before dropping its old live coverage', () => {
++  const allocator = new ResidencyAllocator();
++  const first = new Scope('large'), second = new Scope('small');
++  const large = allocator.reserve({ id: 'sim:large', category: 'sim', owner: 'large', bytes: 1000, distance: 0, needed: true });
++  const small = allocator.reserve({ id: 'sim:small', category: 'sim', owner: 'small', bytes: 100, distance: 0, needed: true });
++  if (large === null || small === null) throw new Error('fixture admission');
++  const identity = {}, measured = new AssetResidencyBridge(allocator, () => [{ identity, bytes: 800, kind: 'cpu' }]);
++  measured.cover(first, large); measured.cover(second, small);
++  const cache = measured.register('source', { dispose: () => undefined }, first);
++  expect(allocator.cost().accounted).toBe(1100);
++  cache.observe(second);
++  expect(allocator.cost().accounted).toBe(1900);
++  expect(allocator.entries().filter(row => row.category === 'commons')).toMatchObject([{ bytes: 800, accountedBytes: 800 }]);
++  expect(allocator.entries().some(row => row.coveredBy !== undefined)).toBe(false);
++  cache.release(); first.dispose(); second.dispose(); large.release(); small.release(); measured.dispose();
++  expect(allocator.entries()).toEqual([]);
++});
++
++it('refuses overflow at the shared cap without losing the prior covered allocation', () => {
++  const allocator = new ResidencyAllocator({ playing: new ResidencyAllocator().cost().playing + 2000 }), first = new Scope('large'), second = new Scope('small');
++  const large = allocator.reserve({ id: 'sim:large', category: 'sim', owner: 'large', bytes: 1000, distance: 0, needed: true });
++  const small = allocator.reserve({ id: 'sim:small', category: 'sim', owner: 'small', bytes: 100, distance: 0, needed: true });
++  if (large === null || small === null) throw new Error('fixture admission');
++  const bridge = new AssetResidencyBridge(allocator, () => [{ identity: {}, bytes: 800, kind: 'gpu' }]);
++  bridge.cover(first, large); bridge.cover(second, small);
++  const cache = bridge.register('source', { dispose: () => undefined }, first), before = allocator.entries();
++  expect(() => cache.observe(second)).toThrow('shared budget'); expect(allocator.entries()).toEqual(before);
++  expect(() => bridge.register('overflow', { dispose: () => undefined }, first)).toThrow('shared budget');
++  expect(allocator.entries()).toEqual(before);
++  // Once the former parent retires the allocation is already charged; clearing its stale coverage adds no bytes.
++  large.release(); cache.observe(second);
++  expect(allocator.cost().accounted).toBe(900);
++  expect(allocator.entries().find(row => row.category === 'commons')?.coveredBy).toBeUndefined();
++  cache.release(); first.dispose(); second.dispose(); small.release(); bridge.dispose();
++  expect(allocator.entries()).toEqual([]);
++});
+diff --git a/test/shards/sunscar-dunes/model-cache-coverage.test.ts b/test/shards/sunscar-dunes/model-cache-coverage.test.ts
+new file mode 100644
+index 000000000..78b6cc022
+--- /dev/null
++++ b/test/shards/sunscar-dunes/model-cache-coverage.test.ts
+@@ -0,0 +1,78 @@
++// oxlint-disable-next-line import/no-nodejs-modules -- Parse the committed GLBs in this Node-only allocation witness.
++import { readFileSync } from 'node:fs';
++import { expect, it, vi } from 'vitest';
++import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
++import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
++import { app } from '../../../src/engine/app/runtime';
++import { Scope } from '../../../src/engine/app/scope';
++import { sceneResources } from '../../../src/engine/app/sceneOwnership';
++import { cachedResourceAllocations } from '../../../src/engine/render/textureBytes';
++import { PageResidency } from '../../../src/game/grid/pageResidency';
++import { coverRuntimeAssets } from '../../../src/game/grid/assetResidency';
++import { runtimeAccountedBytes } from '../../../src/game/grid/runtimeCost';
++import { SIGNAL_DUNES_RUNTIME_COST } from '../../../src/shards/sunscar-dunes/budgets';
++import { duneHd, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
++
++// Node parses the actual GLBs and meshopt buffers. Only the image decoder is replaced: its real WebP
++// dimensions supply RGBA storage capacity, without pretending to measure physical resident RAM.
++class PixelCapacity {
++  constructor(readonly width: number, readonly height: number) {}
++  close(): void { return undefined; }
++}
++async function webpCapacity(blob: Blob): Promise<PixelCapacity> {
++  const head = new DataView(await blob.arrayBuffer());
++  expect(head.getUint32(0)).toBe(0x52494646); expect(head.getUint32(8)).toBe(0x57454250);
++  const chunk = head.getUint32(12);
++  if (chunk === 0x56503820) return new PixelCapacity(head.getUint16(26, true) & 0x3fff, head.getUint16(28, true) & 0x3fff);
++  if (chunk === 0x5650384c) { const bits = head.getUint32(21, true); return new PixelCapacity((bits & 0x3fff) + 1, ((bits >>> 14) & 0x3fff) + 1); }
++  if (chunk === 0x56503858) return new PixelCapacity((head.getUint32(24, true) & 0xffffff) + 1, (head.getUint32(27, true) & 0xffffff) + 1);
++  throw new Error('Unexpected committed model image');
++}
++
++it('loads the actual pack horse with standalone and grid coverage, charging concrete cache overflow within the shared cap', async () => {
++  const priorBitmap = Object.getOwnPropertyDescriptor(globalThis, 'ImageBitmap');
++  const priorDecode = Object.getOwnPropertyDescriptor(globalThis, 'createImageBitmap');
++  const priorSelf = Object.getOwnPropertyDescriptor(globalThis, 'self');
++  vi.stubGlobal('ImageBitmap', PixelCapacity); vi.stubGlobal('createImageBitmap', webpCapacity); vi.stubGlobal('self', globalThis);
++  const parser = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
++  const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(url => {
++    const bytes = readFileSync(`public${url}`);
++    return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
++  });
++  const warnings = vi.spyOn(console, 'warn');
++  const initial = new Set(app.assets.retained().map(row => row.key));
++  try {
++    for (const mode of ['standalone', 'grid'] as const) {
++      const page = new PageResidency(), renderer = new Scope('renderer'), resident = renderer.child(mode);
++      const bytes = runtimeAccountedBytes(SIGNAL_DUNES_RUNTIME_COST);
++      if (mode === 'standalone') page.admitHome('sunscar-dunes', bytes);
++      page.bindAssets(app.assets, renderer, mode === 'standalone' ? resident : null, () => resident, cachedResourceAllocations);
++      const lease = mode === 'standalone' ? null : page.allocator.reserve({ id: 'sim:dunes', category: 'sim', owner: 'dunes', bytes, needed: true, distance: 0 });
++      if (mode === 'grid') { if (lease === null) throw new Error('Regional admission refused'); coverRuntimeAssets(page.allocator, resident, lease); }
++      try {
++        await preloadDuneMeshes();
++        const horse = duneHd('horse-hd', { size: 1.62, by: 'height' });
++        if (horse === null) throw new Error('Actual pack horse missing');
++        const allocations = new Map<object, { bytes: number; kind: 'cpu' | 'gpu' }>();
++        for (const resource of sceneResources(horse)) for (const allocation of cachedResourceAllocations(resource)) allocations.set(allocation.identity, allocation);
++        const sum = (kind: 'cpu' | 'gpu'): number => [...allocations.values()].filter(row => row.kind === kind).reduce((total, row) => total + row.bytes, 0);
++        expect(sum('cpu')).toBe(4_394_860); expect(sum('gpu')).toBe(5_792_960);
++        const commons = page.allocator.entries().filter(row => row.category === 'commons');
++        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(53_837_632);
++        expect(commons.reduce((total, row) => total + row.accountedBytes, 0)).toBeGreaterThan(0);
++        expect(commons.filter(row => row.coveredBy !== undefined).reduce((total, row) => total + row.bytes, 0)).toBeLessThanOrEqual(bytes);
++        expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);
++        expect(warnings).not.toHaveBeenCalled();
++      } finally {
++        for (const row of app.assets.retained()) if (!initial.has(row.key)) app.assets.evictCached(row.key);
++        resident.dispose(); lease?.release(); page.dispose(); renderer.dispose();
++      }
++      expect(page.allocator.entries()).toEqual([]);
++    }
++  } finally {
++    loaded.mockRestore(); warnings.mockRestore();
++    for (const [key, descriptor] of [['ImageBitmap', priorBitmap], ['createImageBitmap', priorDecode], ['self', priorSelf]] as const) {
++      if (descriptor === undefined) Reflect.deleteProperty(globalThis, key); else Object.defineProperty(globalThis, key, descriptor);
++    }
++  }
++});
+diff --git a/test/shards/sunscar-dunes/model-retirement.test.ts b/test/shards/sunscar-dunes/model-retirement.test.ts
+index bcd8b794d..a7c9f9a98 100644
+--- a/test/shards/sunscar-dunes/model-retirement.test.ts
++++ b/test/shards/sunscar-dunes/model-retirement.test.ts
+@@ -2,6 +2,9 @@ import { expect, it, vi } from 'vitest';
+ import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
+ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+ import { app } from '../../../src/engine/app/runtime';
++import { PageResidency } from '../../../src/game/grid/pageResidency';
++import { coverRuntimeAssets } from '../../../src/game/grid/assetResidency';
++import { cachedResourceAllocations } from '../../../src/engine/render/textureBytes';
+ import { Scope } from '../../../src/engine/app/scope';
+ import { ownSceneTree, SceneOwnership } from '../../../src/engine/app/sceneOwnership';
+ import { preloadDuneMeshes, duneHd, duneMesh } from '../../../src/shards/sunscar-dunes/world/meshes';
+@@ -18,10 +21,21 @@ it('keeps live Dunes model users valid and reconstructs evicted source caches on
+   let previous: Texture | undefined;
+   try {
+     for (let visit = 0; visit < 3; visit++) {
++      // Exercise both borrowed standalone coverage and an admitted grid runtime. Concrete caches exceed
++      // this deliberately small measured claim; the horse must load with the excess charged independently.
++      const page = new PageResidency(), renderer = new Scope('renderer'), level = renderer.child('level');
++      page.admitHome('home', 512);
++      page.bindAssets(app.assets, renderer, visit === 0 ? level : null, () => level, cachedResourceAllocations);
++      const regional = visit === 0 ? null : page.allocator.reserve({ id: 'sim:dunes', owner: 'dunes', category: 'sim', bytes: 512, distance: 0, needed: true });
++      if (visit !== 0 && regional === null) throw new Error('fixture regional admission');
++      if (regional !== null) coverRuntimeAssets(page.allocator, level, regional);
+       await preloadDuneMeshes();
+       const count = loaded.mock.calls.length;
+       await preloadDuneMeshes(); expect(loaded).toHaveBeenCalledTimes(count);
+       expect(count).toBe((visit + 1) * (DUNE_MESHES.length + DUNE_HD.length));
++      expect(page.allocator.cost().input.commons).toBeGreaterThan(0);
++      const covered = page.allocator.entries().filter(row => row.coveredBy !== undefined);
++      expect(covered.reduce((sum, row) => sum + row.bytes, 0)).toBeLessThanOrEqual(512);
+       const hero = duneHd('horse-hd', { size: 2, by: 'height' }), faceted = duneMesh('caravan');
+       if (hero === null || faceted === null) throw new Error('Missing parsed Signal Dunes models');
+       let map: Texture | undefined;
+@@ -40,6 +54,8 @@ it('keeps live Dunes model users valid and reconstructs evicted source caches on
+       for (const row of app.assets.retained()) if (!initial.has(row.key)) expect(app.assets.evictCached(row.key)).toBe(true);
+       expect(duneMesh('caravan')).toBeNull();
+       expect(app.assets.retained().map(row => row.key)).toEqual([...initial]);
++      level.dispose(); regional?.release(); page.dispose(); renderer.dispose();
++      expect(page.allocator.entries()).toEqual([]);
+     }
+   } finally {
+     loaded.mockRestore();

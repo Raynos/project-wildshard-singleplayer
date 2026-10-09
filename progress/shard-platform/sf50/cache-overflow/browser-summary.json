@@ -1,0 +1,110 @@
+{
+  "browserSource": "16728f1c6f1d0cd7f29162d4ea2560909680ecf1",
+  "sourceMatches": "b8c7a255d9c27de05085aa22d36d85a3631b3842 production bytes; latter adds actual GLB regression test only",
+  "ruler": "Chromium iPhone16Pro portrait, Metal, muted. Storage+allocator model; not native WebContent.",
+  "rows": [
+    {
+      "mode": "standalone",
+      "errors": [],
+      "horseStorageBytes": 10187820,
+      "horseGlBytes": 5792960,
+      "caravan": [
+        {
+          "id": "sunscar.caravan",
+          "colliders": 4,
+          "horseColliders": [
+            {
+              "kind": "box",
+              "x": -74.57367695599153,
+              "y": 15.540038377819688,
+              "z": 24.022524620051495,
+              "hx": 0.35,
+              "hy": 0.96,
+              "hz": 1.1,
+              "yaw": 3.691592653589793,
+              "surface": "flesh"
+            }
+          ]
+        }
+      ],
+      "colliders": 150,
+      "accountedBytes": 115792463,
+      "cost": null,
+      "routes": []
+    },
+    {
+      "mode": "grid",
+      "errors": [],
+      "horseStorageBytes": 10187820,
+      "horseGlBytes": 5792960,
+      "caravan": [
+        {
+          "id": "sunscar.caravan",
+          "colliders": 4,
+          "horseColliders": [
+            {
+              "kind": "box",
+              "x": -74.57367695599153,
+              "y": 15.540038377819688,
+              "z": 24.022524620051495,
+              "hx": 0.35,
+              "hy": 0.96,
+              "hz": 1.1,
+              "yaw": 3.691592653589793,
+              "surface": "flesh"
+            }
+          ]
+        }
+      ],
+      "colliders": 220,
+      "accountedBytes": 199637945,
+      "cost": {
+        "playing": 584239556,
+        "loading": 664239556,
+        "accounted": 199637945,
+        "input": {
+          "l0": 76619606,
+          "l1": 524224,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 55681947,
+          "commons": 6797304,
+          "products": 12070400,
+          "overlap": 80000000,
+          "page": 38344464,
+          "engineBase": 286859328
+        }
+      },
+      "routes": [
+        {
+          "name": "sun-road-entry",
+          "seconds": 14.498300000190735,
+          "from": null,
+          "to": "sunscar-dunes",
+          "crossings": 1
+        },
+        {
+          "name": "sun-authored-spawn",
+          "seconds": 35.04309999990463,
+          "from": "sunscar-dunes",
+          "to": "sunscar-dunes",
+          "crossings": 0
+        }
+      ]
+    }
+  ],
+  "rejectedDiagnosticAttempts": [
+    {
+      "report": "browser.json",
+      "cause": "Harness census Game.physics typo; no game error."
+    },
+    {
+      "report": "browser-r2.json grid row",
+      "cause": "Harness source expected road while boot was still in Driftwood; standalone row passed."
+    },
+    {
+      "report": "browser-grid-r3.json",
+      "cause": "Parity frame-control wrapper across grid retirement timed out without game errors; real-time canonical floor setup passes."
+    }
+  ]
+}

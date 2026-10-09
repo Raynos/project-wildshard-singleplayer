@@ -48,7 +48,9 @@ does not excuse a shared-kit dependency (G135) or a performance finding; remaini
   adapters are in `runtime/audio/cues.ts` and `runtime/brains.ts`.
 - **Open:** actual terrain-tile adoption, props/world conversion and the remaining public SDK behaviour closure. The
   compiled dune tiles and runtime-bound world section seam landed in `7ce6398f2`, but the accompanying
-  [tile receipt](../hybrid-tiles/README.md) explicitly says nothing draws those tiles yet. The missing pack horse/cache-coverage regression from `eb19cbc58` is open for sp-x1; no baseline is accepted for it.
+  [tile receipt](../hybrid-tiles/README.md) explicitly says nothing draws those tiles yet at this inventory pin. The missing
+  pack horse/cache-coverage regression from `eb19cbc58` is fixed by `ab3b4e4fd`: actual-GLB fixtures and standalone/grid
+  browser presence are green, with ordinary charged overflow ([receipt](../sf50/cache-overflow/README.md)). No Signal baseline was changed.
   Port parity, both-surface floor,
   cold peak/census and prepared-layout soak remain independent gates. [Grid evidence](../sf50/README.md).
 

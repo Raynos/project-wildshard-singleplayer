@@ -1,0 +1,196 @@
+{
+  "m5": {
+    "pin": "16728f1c6f1d0cd7f29162d4ea2560909680ecf1",
+    "tiers": [
+      "phone",
+      "desktop"
+    ],
+    "runsPerTier": 3
+  },
+  "runner": {
+    "pin": "584c24d611397c4af695a6caaa4aeeac3b4a44ab",
+    "run": 37865888684,
+    "tiers": [
+      "phone"
+    ],
+    "runsPerTier": 3
+  },
+  "baselineFiles": [
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.desktop.beach.jpg",
+      "bytes": 179632,
+      "sha256": "f82612be29a020e5b8f4a7afe112719ab29b14280139c0053ea7e561033979b9"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.desktop.json",
+      "bytes": 453165,
+      "sha256": "8eee23057351b96d04570bf8bd9ae4e37023523ee159c1616180af1676042103"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.desktop.pier.jpg",
+      "bytes": 177821,
+      "sha256": "4ca84af36532f89164ffbd0f9b6d7418bcdfe0dd68bce8d7a5b9da86ff84950f"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.desktop.wreck.jpg",
+      "bytes": 151400,
+      "sha256": "a45e6472838e9bfb30b73c2e49570d771b72c3ee8ac4fec66bf937a44490ce7d"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.phone.beach.jpg",
+      "bytes": 53135,
+      "sha256": "1503c2d191de84f00df44f5e0c7fd9baa46d3422368f713d4cb3becd359ac806"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.phone.json",
+      "bytes": 356424,
+      "sha256": "5f55920e3099bb1c65968d11bf074b7bcb7313e66bc0417bab3025bd56b0b638"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.phone.pier.jpg",
+      "bytes": 50559,
+      "sha256": "2f10a8e4cc36394933ae61e395d6d63a718df39d2a1d58bad09ee2b3dca77356"
+    },
+    {
+      "path": "test/parity/baselines/m5/driftwood-isle.phone.wreck.jpg",
+      "bytes": 46449,
+      "sha256": "c40c6a8b692047191b5584f7abd96ec2a232204bc3d0acc605908e99fb567dbe"
+    },
+    {
+      "path": "test/parity/baselines/gh-macos15/driftwood-isle.phone.beach.jpg",
+      "bytes": 52968,
+      "sha256": "ca9e51142f6fb0cf9b466d84fb24aa536d0fa213e8b79b4caec66fc018bfb8a0"
+    },
+    {
+      "path": "test/parity/baselines/gh-macos15/driftwood-isle.phone.json",
+      "bytes": 356587,
+      "sha256": "1a74320a5434ad6e141950b60eac839dc430d6db665d670cc9a2139140128521"
+    },
+    {
+      "path": "test/parity/baselines/gh-macos15/driftwood-isle.phone.pier.jpg",
+      "bytes": 50377,
+      "sha256": "850cf04d1b4eafc4f61e616589e852feca0e17b35b9d88cb4bb074b7e71f48e7"
+    },
+    {
+      "path": "test/parity/baselines/gh-macos15/driftwood-isle.phone.wreck.jpg",
+      "bytes": 46460,
+      "sha256": "4ea0819fdd70641c05556428a38ff76a483422b417c457aa7cfc966365dcee1a"
+    }
+  ],
+  "rawRuns": [
+    {
+      "lane": "m5",
+      "run": 1,
+      "file": "driftwood-isle.desktop.raw.json",
+      "sha256": "4b548359b2e87154a765a55da2f30aa8f9aadae182d018e36a5ff39b14501eda"
+    },
+    {
+      "lane": "m5",
+      "run": 1,
+      "file": "driftwood-isle.desktop.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "m5",
+      "run": 1,
+      "file": "driftwood-isle.phone.raw.json",
+      "sha256": "aced71c4af5fd4f1df4695c4577f0c09ae0c9047cda10aa4ce9a36c6cf2b450f"
+    },
+    {
+      "lane": "m5",
+      "run": 1,
+      "file": "driftwood-isle.phone.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "m5",
+      "run": 2,
+      "file": "driftwood-isle.desktop.raw.json",
+      "sha256": "23c7d4468da9bd0059586ccd28fd8ded9a1cade274570d917b7153e3207ff1b1"
+    },
+    {
+      "lane": "m5",
+      "run": 2,
+      "file": "driftwood-isle.desktop.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "m5",
+      "run": 2,
+      "file": "driftwood-isle.phone.raw.json",
+      "sha256": "930d5a801ad949c2f30ce64af4cf1881f262a9b2852235e389341c0f01f0502c"
+    },
+    {
+      "lane": "m5",
+      "run": 2,
+      "file": "driftwood-isle.phone.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "m5",
+      "run": 3,
+      "file": "driftwood-isle.desktop.raw.json",
+      "sha256": "363476e783414318cb1e9230a3b46adfd0bea4f9627c58fdc11f30c867a6a43b"
+    },
+    {
+      "lane": "m5",
+      "run": 3,
+      "file": "driftwood-isle.desktop.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "m5",
+      "run": 3,
+      "file": "driftwood-isle.phone.raw.json",
+      "sha256": "47311a4b4f10c4a43279101ee08720910f7aed34aa98e06628ce49e3f2a217be"
+    },
+    {
+      "lane": "m5",
+      "run": 3,
+      "file": "driftwood-isle.phone.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "gh-macos15",
+      "run": 1,
+      "file": "driftwood-isle.phone.raw.json",
+      "sha256": "66e2cd29f217418eb3da882084b16ea1ffdb9d83de0b2f1c467960b3f52bfebb"
+    },
+    {
+      "lane": "gh-macos15",
+      "run": 1,
+      "file": "driftwood-isle.phone.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "gh-macos15",
+      "run": 2,
+      "file": "driftwood-isle.phone.raw.json",
+      "sha256": "36377a1591622686b2822fa7656b06f720e979b334f15fa5f306f630f0a5c0a9"
+    },
+    {
+      "lane": "gh-macos15",
+      "run": 2,
+      "file": "driftwood-isle.phone.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    },
+    {
+      "lane": "gh-macos15",
+      "run": 3,
+      "file": "driftwood-isle.phone.raw.json",
+      "sha256": "d7e065dcabff7060b8baa39bd9c5a0a4dee531da8e565774cd67822fcdf7b176"
+    },
+    {
+      "lane": "gh-macos15",
+      "run": 3,
+      "file": "driftwood-isle.phone.settings.json",
+      "sha256": "68687f1bc1c6b1a6e2283994185cdcb4dbcc7267daffc4ad1181deba454b90ec"
+    }
+  ],
+  "acceptedFields": [
+    "boot.saves.read adds local:wildshard.save.v2.profile",
+    "combat.loot.written adds local:wildshard.save.v2.profile",
+    "M5 desktop combat.sounds.ambient seeded bird/swell timing; event multiset unchanged"
+  ],
+  "signalDunesBaselines": "unchanged"
+}

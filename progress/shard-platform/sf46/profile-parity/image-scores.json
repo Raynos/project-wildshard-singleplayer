@@ -1,0 +1,56 @@
+[
+  {
+    "lane": "m5",
+    "tier": "phone",
+    "pose": "pier",
+    "ssim": 0.9926282856747453
+  },
+  {
+    "lane": "m5",
+    "tier": "phone",
+    "pose": "beach",
+    "ssim": 0.9933982833227667
+  },
+  {
+    "lane": "m5",
+    "tier": "phone",
+    "pose": "wreck",
+    "ssim": 0.9995947462060205
+  },
+  {
+    "lane": "m5",
+    "tier": "desktop",
+    "pose": "pier",
+    "ssim": 0.9999445511168908
+  },
+  {
+    "lane": "m5",
+    "tier": "desktop",
+    "pose": "beach",
+    "ssim": 0.9999049460210151
+  },
+  {
+    "lane": "m5",
+    "tier": "desktop",
+    "pose": "wreck",
+    "ssim": 0.9998826351809712
+  },
+  {
+    "lane": "gh-macos15",
+    "tier": "phone",
+    "pose": "pier",
+    "ssim": 0.9939873596959181
+  },
+  {
+    "lane": "gh-macos15",
+    "tier": "phone",
+    "pose": "beach",
+    "ssim": 0.9910844058762983
+  },
+  {
+    "lane": "gh-macos15",
+    "tier": "phone",
+    "pose": "wreck",
+    "ssim": 0.9996061823665509
+  }
+]

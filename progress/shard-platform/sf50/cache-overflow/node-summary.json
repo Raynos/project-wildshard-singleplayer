@@ -1,0 +1,73 @@
+{
+  "sourceCandidate": "b8c7a255d9c27de05085aa22d36d85a3631b3842",
+  "browserSource": "16728f1c6f1d0cd7f29162d4ea2560909680ecf1",
+  "method": "Actual GLTFLoader + Meshopt buffers and embedded WebP dimensions through cachedResourceAllocations. CPU/GPU storage capacity, not native resident RAM. No cap or measured runtime metadata change.",
+  "horse": {
+    "cpu": 4394860,
+    "gpu": 5792960,
+    "total": 10187820
+  },
+  "modelsTotal": 53837632,
+  "rows": [
+    {
+      "mode": "before",
+      "measuredRuntimeClaim": 49369323,
+      "cost": {
+        "playing": 434799949,
+        "loading": 514799949,
+        "accounted": 49369323,
+        "input": {
+          "l0": 0,
+          "l1": 0,
+          "far": 0,
+          "libraries": 0,
+          "sims": 49369323,
+          "commons": 0,
+          "products": 0,
+          "overlap": 80000000
+        }
+      },
+      "horsePresent": false
+    },
+    {
+      "mode": "standalone",
+      "measuredRuntimeClaim": 49369323,
+      "cost": {
+        "playing": 441007517,
+        "loading": 521007517,
+        "accounted": 54961727,
+        "input": {
+          "l0": 0,
+          "l1": 0,
+          "far": 0,
+          "libraries": 0,
+          "sims": 49369323,
+          "commons": 5592404,
+          "products": 0,
+          "overlap": 80000000
+        }
+      },
+      "horsePresent": true
+    },
+    {
+      "mode": "grid",
+      "measuredRuntimeClaim": 49369323,
+      "cost": {
+        "playing": 441007517,
+        "loading": 521007517,
+        "accounted": 54961727,
+        "input": {
+          "l0": 0,
+          "l1": 0,
+          "far": 0,
+          "libraries": 0,
+          "sims": 49369323,
+          "commons": 5592404,
+          "products": 0,
+          "overlap": 80000000
+        }
+      },
+      "horsePresent": true
+    }
+  ]
+}

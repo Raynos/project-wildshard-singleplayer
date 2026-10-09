@@ -117,3 +117,12 @@ Nine desktop substitutes the approved `8ecb6c70b60781dc33f88c0a54688227e5f6d19b`
 ```sh
 gh workflow run gpu-gate -f record=true -f sha=bfb9dc325d08792ddbe88bd08c78fcf288da8851
 ```
+
+## Driftwood profile-ledger refresh (2026-10-08)
+
+The [SF46 receipt](../../../progress/shard-platform/sf46/profile-parity/README.md) replaces only Driftwood's M5 phone /
+desktop and gh-macos15 phone records after `3e995e5a2`. Official three-run captures pass all gameplay, budget and
+unload gates; the profile-ledger read/write fingerprints are intended. M5 minimum self-SSIM is .99327451 phone / 1.0
+desktop; old/new poses remain above .99. Runner artifact bytes are unchanged from run `37865888684` on `584c24d61`.
+The receipt preserves the known desktop ambient scheduling difference, hashes and settings. Other shard baselines
+and shared metadata are untouched; Signal Dunes' missing-horse fix has its own independent proof.
