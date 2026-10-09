@@ -91,6 +91,7 @@
     "./combat/effects/types": "./combat/effects/types.ts",
     "./combat/health": "./combat/health.ts",
     "./combat/pipeline": "./combat/pipeline.ts",
+    "./combat/sweptMeleeCore": "./combat/sweptMeleeCore.ts",
     "./combat/targets": "./combat/targets.ts",
     "./combat/types": "./combat/types.ts",
     "./combat/view/DropArc": "./combat/view/DropArc.ts",

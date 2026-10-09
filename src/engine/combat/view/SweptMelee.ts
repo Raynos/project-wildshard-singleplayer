@@ -19,6 +19,7 @@ import type { Player } from '../../player/Player';
 import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import { Melee } from '../Melee';
+import { SweptMeleeCore, sweptMoveDamage } from '../sweptMeleeCore';
 import type { MeleeProfile } from '../meleeProfile';
 
 import * as THREE from 'three';
@@ -194,14 +195,10 @@ export class SweptMelee extends Melee {
   private tipY = 0; private baseY = 0; private tipX = 0;
   private mv: SwordMoveSet;
 
-  // swing / combo state
-  private move: Move | null = null;
-  private swingT = 0;
+  // swing / combo / heavy clock (renderer-free, combat/sweptMeleeCore.ts; the headless runtimes run the same one)
+  private readonly clock: SweptMeleeCore<Move>;
   private fromPos = new THREE.Vector3(); private fromQ = new THREE.Quaternion();   // where the sword was when this swing started
   private basePos = new THREE.Vector3(); private baseQ = new THREE.Quaternion(); // this frame's pose before sway / portrait
-  private comboIdx = 0;          // index into COMBO of the NEXT light swing
-  private lastSwingEnd = -1e9;
-  private cooldown = 0;
   private hitDone = false; private kicked = false; private clanged = false;
   private fx: CameraFX;
   private impacts: Impacts;
@@ -209,8 +206,7 @@ export class SweptMelee extends Melee {
   private jolt = 0;
   private dodgeLagX = 0; private dodgeLagV = 0; private dodgeSeen = 0; // the T dodge's lateral blade spring (E63)
   // heavy
-  private mouseHeld = false; private heldPrev = false;
-  private charging = false; private chargeT = 0; private releaseQueued = false; private chargePending = false;
+  private mouseHeld = false;
   private chargeBlend = 0; private sprintBlend = 0;
   private lookBlock = viewmodel(this.profile.feel.lag);
   private lookSpring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
@@ -257,6 +253,8 @@ export class SweptMelee extends Melee {
     this.framing = { ...profile.framing, ...opts.framing };
     const moves = opts.moves ?? profile.moves;
     if (moves) { this.mv = moves; this.basePos.copy(moves.rest.pos); this.baseQ.copy(moves.rest.q); }
+    this.clock = new SweptMeleeCore<Move>(this.mv, this.profile, { queue: () => { app.input.queue('attack'); }, consume: () => app.input.consume('attack') },
+      { start: (move, lunge) => { this.startSwing(move, lunge); }, charge: (phase) => { this.chargeEvent('heavy', phase); if (phase === 0) this.arms?.play('charge'); } });
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.impacts = Impacts.for(this.game); // contact debris (C4), in the scene from boot so its program is precompiled
     this.iron = opts.blade === 'iron';
@@ -295,33 +293,24 @@ export class SweptMelee extends Melee {
    * Ignored while charging the heavy.
    */
   tryFire(): void {
-    if (!this.enabled || this.charging) return;
-    if (this.move) {
-      if (this.move !== this.mv.heavy && this.comboIdx < this.mv.combo.length) app.input.queue('attack');
-      return;
-    }
-    if (this.cooldown > 0) return;
-    app.input.consume('attack');
-    if (this.comboIdx >= this.mv.combo.length || this.time - this.lastSwingEnd > this.profile.comboGap) this.comboIdx = 0;
-    const next = this.pickMove('attack'); this.comboIdx++;
-    if (next !== null) this.startSwing(next);
+    if (!this.enabled) return;
+    this.clock.tryFire((input) => this.pickMove(input));
   }
   /** start one specific move (outside the combo — the sabre's mounted pass slash): false when a swing or charge is running.
    *  `lunge` false = no dash onto the target (in the saddle the horse does the moving). Ends the combo. */
   strikeMove(move: Move, lunge = true): boolean {
-    if (!this.enabled || this.charging || this.move !== null || this.cooldown > 0) return false;
-    this.comboIdx = this.mv.combo.length;
-    this.startSwing(move, lunge);
-    return true;
+    if (!this.enabled) return false;
+    return this.clock.strike(move, lunge);
   }
   protected override pickMove(input: 'attack' | 'heavy'): Move | null {
-    return input === 'heavy' ? this.mv.heavy : this.mv.combo[this.comboIdx] ?? null;
+    return this.clock.pick(input);
   }
   protected override moveDamage(move: Move): number {
-    return this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1);
+    return sweptMoveDamage(this.damage, move, move === this.mv.heavy, this.heavyMult);
   }
-  private startSwing(move: Move, lunge = true): void {
-    this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.clanged = false; app.input.consume('attack');
+  /** the clock started `move` (its swing time is 0 and the queued tap consumed): the presentation and the lunge */
+  private startSwing(move: Move, lunge: boolean): void {
+    this.hitDone = false; this.kicked = false; this.clanged = false;
     this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.ribbon.reset(); this.trail.visible = false;
@@ -363,8 +352,6 @@ export class SweptMelee extends Melee {
     }
     return best;
   }
-  private beginCharge(): void { this.chargeEvent('heavy', 0); this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; this.arms?.play('charge'); }
-  private releaseHeavy(): void { this.chargeEvent('heavy', 1); this.charging = false; this.releaseQueued = false; this.comboIdx = 0; const move = this.pickMove('heavy'); if (move) this.startSwing(move); }
 
   /** no ammo to add / nothing to reload */
   override addBolts(_n: number): void { /* melee */ }
@@ -374,20 +361,20 @@ export class SweptMelee extends Melee {
   /** shown + held (true) or holstered (false: hidden, input off) */
   override setActive(on: boolean): void {
     this.model.visible = on;
-    if (!on) { this.enabled = false; this.move = null; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.ribbon.reset(); this.trail.visible = false; }
+    if (!on) { this.enabled = false; this.clock.stop(); this.ribbon.reset(); this.trail.visible = false; }
   }
   /** true while a swing is running (dev / tests) */
-  get swinging(): boolean { return this.move !== null; }
+  get swinging(): boolean { return this.clock.move !== null; }
   /** the running swing's name ('slash' | 'backhand' | 'finisher' | 'heavy'), or null */
-  get swingName(): Move['name'] | null { return this.move?.name ?? null; }
+  get swingName(): Move['name'] | null { return this.clock.move?.name ?? null; }
   /** true while the running swing is the heavy */
-  get heavySwing(): boolean { return this.move === this.mv.heavy; }
+  get heavySwing(): boolean { return this.clock.move === this.mv.heavy; }
   /** true while the heavy is being charged (RMB / HEAVY disc toggled on) */
-  get chargingHeavy(): boolean { return this.charging; }
+  get chargingHeavy(): boolean { return this.clock.chargingHeavy; }
   /** 0..1 heavy charge (1 = ready to release) */
-  override get charge(): number { return this.charging ? clamp01(this.chargeT / this.profile.heavyCharge) : 0; }
+  override get charge(): number { return this.clock.charge; }
   /** which light swing the next tap throws (1..3) */
-  get comboStep(): number { return this.comboIdx >= this.mv.combo.length || (this.move === null && this.time - this.lastSwingEnd > this.profile.comboGap) ? 1 : this.comboIdx + 1; }
+  get comboStep(): number { return this.clock.comboStep; }
 
   // ── viewmodel ──
   private buildViewmodel(custom: SwordRig | undefined): void {
@@ -595,7 +582,6 @@ export class SweptMelee extends Melee {
   update(dt: number, t: number): void {
     this.time = t;
     const p = this.player, cam = this.game.camera;
-    this.cooldown = Math.max(0, this.cooldown - dt);
 
     // FOV (Hor+ on portrait; the sword never zooms) + the dodge / lunge kick while in hand (Player.fovKick — transient, so
     // the shadow cascades are only refit for a base change, not every kicked frame)
@@ -607,26 +593,12 @@ export class SweptMelee extends Melee {
       if (refit) this.sky.csm.updateFrustums();
     }
 
-    // heavy: the hold (RMB / touch HEAVY latch) — edge on = start charging (after the running swing, if any), edge off = release
+    // heavy: the hold (RMB / touch HEAVY latch) — edge on = start charging (after the running swing, if any), edge off = release;
+    // then the swing clock (a hit-stop slows it with the whole world: dt is scaled, Game.hitStop): a queued combo swing
+    // chains the moment the active window closes (combat/sweptMeleeCore.ts, with the cooldown)
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;
-    if (held && !this.heldPrev) { if (this.move) this.chargePending = true; else this.beginCharge(); }
-    if (!held && this.heldPrev) { this.chargePending = false; if (this.charging) { if (this.chargeT >= this.profile.heavyCharge) this.releaseHeavy(); else this.releaseQueued = true; } }
-    this.heldPrev = held;
-    if (this.charging) {
-      this.chargeT += dt;
-      if (this.releaseQueued && this.chargeT >= this.profile.heavyCharge) this.releaseHeavy();
-    } else if (this.chargePending && !this.move) this.beginCharge();
-
-    // swing clock (a hit-stop slows it with the whole world: dt is scaled, Game.hitStop); a queued combo swing chains the moment the active window closes
-    let move = this.move;
-    if (move) {
-      this.swingT += dt / this.swingScale;
-      const next = this.swingT >= move.slashEnd + this.profile.chainLag && this.comboIdx < this.mv.combo.length && app.input.consume('attack') ? this.mv.combo[this.comboIdx++] : undefined;
-      if (next !== undefined) { this.startSwing(next); move = this.move; }
-      else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = this.profile.cooldown; }
-    }
-    const active = move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd;
+    const { move, active } = this.clock.step(dt, t, this.swingScale, held, (input) => this.pickMove(input));
     // the camera leans along the swing as the blade comes through (C3), the heavy punches the FOV in
     if (move && active && !this.kicked && this.model.visible) { this.kicked = true; this.fx.kick(move.kick.pitch, move.kick.roll); if (move.kick.fov !== undefined) this.fx.fovPunch(move.kick.fov); }
     // the melee lock (HUD brackets, touch lunge camera turn): the lunge's target while a swing runs, else what a swing would take
@@ -636,7 +608,7 @@ export class SweptMelee extends Melee {
     if (inHand) {
       if (!move) this.lungeTarget = null;
       else if (this.lungeTarget && !this.lungeTarget.alive) this.lungeTarget = null;
-      meleeLock.target = this.lungeTarget ?? (this.enabled ? this.findLunge(this.charging ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null);
+      meleeLock.target = this.lungeTarget ?? (this.enabled ? this.findLunge(this.clock.chargingHeavy ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null);
       meleeLock.lunging = this.lungeTarget !== null && this.player.dashing;
       this.player.swinging = move !== null;
     } else if (this.active) { meleeLock.target = null; meleeLock.lunging = false; this.player.swinging = false; this.lungeTarget = null; }
@@ -644,9 +616,10 @@ export class SweptMelee extends Melee {
     this.jolt *= Math.exp(-dt * 14);
 
     // charge pose blend (the blade rises over the shoulder), sprint
-    this.state.ads = this.charging;
-    { const step = dt / this.profile.chargeBlend; this.chargeBlend = clamp01(this.chargeBlend + THREE.MathUtils.clamp((this.charging ? 1 : 0) - this.chargeBlend, -step, step)); }
-    this.sprintBlend += ((p.sprinting && !move && !this.charging ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
+    const charging = this.clock.chargingHeavy;
+    this.state.ads = charging;
+    { const step = dt / this.profile.chargeBlend; this.chargeBlend = clamp01(this.chargeBlend + THREE.MathUtils.clamp((charging ? 1 : 0) - this.chargeBlend, -step, step)); }
+    this.sprintBlend += ((p.sprinting && !move && !charging ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
 
     // look lag (spring, substepped like the crossbow)
     let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
@@ -668,7 +641,7 @@ export class SweptMelee extends Melee {
 
     // base pose: rest, or the swing, blended toward the charge / sprint poses
     const pos = _v1, q = _q;
-    if (move) this.evalSwing(move, this.swingT, pos, q);
+    if (move) this.evalSwing(move, this.clock.swingTime, pos, q);
     else { pos.copy(this.mv.rest.pos); q.copy(this.mv.rest.q); }
     const c = smoothstep(0, 1, this.chargeBlend), sp = this.sprintBlend;
     if (c > 0) {
