@@ -7,12 +7,13 @@ import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { installStripCollider } from '../src/engine/physics/stripColliders';
 import { Scope } from '../src/engine/app/scope';
 import { generateStrip } from '../src/engine/sim/strips';
+import { PLAYER_GRAVITY as GRAVITY } from '../src/engine/player/fall';
 
 // G101: the cheap rail at an edge that can't blend blocks a single jump, and a DOUBLE jump clears it. The arcs use the
-// on-foot player's own numbers, read from Player.ts so this proof follows any retune.
+// on-foot player's own numbers, read from Player.ts (gravity from its shared fall law) so this proof follows any retune.
 const source = readFileSync('src/engine/player/Player.ts', 'utf8');
 const constant = (pattern: RegExp): number => { const m = pattern.exec(source); if (m?.[1] === undefined) throw new Error(`Player constant ${String(pattern)} moved`); return Number(m[1]); };
-const GRAVITY = constant(/const GRAVITY = ([\d.]+);/), DOUBLE_JUMP = constant(/const DOUBLE_JUMP = ([\d.]+);/), JUMP = constant(/const jumpV = ([\d.]+) \*/);
+const DOUBLE_JUMP = constant(/const DOUBLE_JUMP = ([\d.]+);/), JUMP = constant(/const jumpV = ([\d.]+) \*/);
 const RADIUS = constant(/const RADIUS = ([\d.]+);/), BODY = constant(/const BODY_HEIGHT = ([\d.]+);/), STEP = constant(/const STEP_UP = ([\d.]+);/);
 
 let rapier: Rapier;
