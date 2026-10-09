@@ -17,7 +17,9 @@ import { DRIFTWOOD_ISLE, PRACTICE_CRAB } from '../../../src/shards/driftwood-isl
 import { MONKEY } from '../../../src/shards/driftwood-isle/species/monkey';
 import { MONKEY_VARIANTS } from '../../../src/shards/driftwood-isle/species/monkeyVariants';
 import { driftwoodBake } from '../../../src/shards/driftwood-isle/runtime/baked';
-import { DRIFTWOOD_FIGHT, FAUNA_DRAWS, ISLAND_STEP } from '../../../src/shards/driftwood-isle/runtime/keeper';
+import { CAPTAIN_SCALE, DRIFTWOOD_FIGHT, FAUNA_DRAWS, ISLAND_STEP } from '../../../src/shards/driftwood-isle/runtime/keeper';
+import { ALTAR_FLAG, CAPTAIN_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/captain';
+import { CAPTAIN } from '../../../src/shards/driftwood-isle/species/captain';
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
 import { prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
@@ -219,6 +221,40 @@ it('releases a real coconut on a monkey\'s throw: it flies in the host\'s world,
     expect(hits).toBeGreaterThan(0); expect(most).toBeGreaterThan(1); expect(most).toBeLessThanOrEqual(16);
   } finally { restored?.dispose(); original.dispose(); }
 }, 90_000);
+
+it('wakes the Drowned Captain on the altar under the manager\'s next id: he rises, fights the player in his arena, restores exactly mid-fight and his death ends it', () => {
+  expect(CAPTAIN.variants.map(row => row.scale)).toEqual([CAPTAIN_SCALE]);
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const { pool } = bake.captain, still = { moveX: 0, moveZ: 0, yaw: 0 };
+    // the player 3 m from his pool, inside the arena
+    const at = new Vector3(pool.x + 3, 0, pool.z); at.y = bake.floorAt(at.x, at.z) + 0.3;
+    original.player.motor.resetAt(at); original.player.position.copy(at);
+    const attempts: string[] = [], cuts: number[] = [];
+    original.events.on('boss.attempt', ({ outcome }) => { attempts.push(outcome); }, original.scope);
+    original.events.on('damage.dealt', ({ req }) => { if (req.target === original.player.health && req.sourceTags.includes('creature.captain')) cuts.push(req.amount); }, original.scope);
+    original.step(still);
+    expect([...original.entities.keys()]).not.toContain('creature:34');
+    original.flags.set(ALTAR_FLAG);
+    const captain = original.entities.get('creature:34'); if (captain === undefined) throw new Error('no captain on the altar');
+    expect([captain.kind, captain.scale, captain.mem['poolX'], captain.mem['arena'], captain.mem['awake']]).toEqual(['captain', 1.35, pool.x, bake.captain.arena, 1]);
+    let fighting = -1;
+    for (let tick = 0; tick < 300 && fighting < 0; tick++) { original.step(still); if (captain.state === 'stalk') fighting = tick; }
+    expect(fighting).toBeGreaterThan(60); expect(captain.yOffset).toBe(0);
+    for (let tick = 0; tick < 240; tick++) original.step(still);
+    expect(cuts).toContain(24); // his cut landed
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 600; tick++) { original.step(still); restored.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    // a player who died in the arena ends that attempt ('lost'); leaving the arena and coming back starts another
+    const away = new Vector3(pool.x + 40, 0, pool.z); away.y = bake.floorAt(away.x, away.z) + 0.3;
+    for (const to of [away, at]) { original.player.motor.resetAt(to); original.player.position.copy(to); original.step(still); }
+    expect(attempts.every(outcome => outcome === 'lost' || outcome === 'left')).toBe(true);
+    kill(original, 'creature:34'); original.step(still);
+    expect(original.flags.has(CAPTAIN_DEAD_FLAG)).toBe(true); expect(attempts.at(-1)).toBe('won');
+  } finally { restored?.dispose(); original.dispose(); }
+}, 60_000);
 
 /** the restore test's tape up to a checkpoint: walk, two kills, then wait 43 m off while the practice crab comes back */
 const checkpointTape = (host: SimHost, at: number): void => {

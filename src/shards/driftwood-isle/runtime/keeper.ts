@@ -27,8 +27,12 @@ export const ISLAND_STEP = 'driftwood.island';
 /** The fauna's anchor searches' draws on the creature stream before the first enemy (the four sounders and two bears;
  *  test/shards/driftwood-isle/physics-bake.test.ts reads them off the bake). */
 export const FAUNA_DRAWS = 148;
-/** The roster (13 fauna + 21 enemies): every keeper loop is bounded by it. */
+/** The load-time roster (13 fauna + 21 enemies). */
 const BODY_COUNT = 34;
+/** The roster with the finale's captain in the slot after it: every keeper loop is bounded by it. */
+const ROSTER = 35;
+/** The captain's one variant's scale range (species/captain.ts; the headless test holds them equal). */
+export const CAPTAIN_SCALE: readonly [number, number] = [1.35, 1.35];
 /** manifest.ts `fight` (E297: telegraphed melee, two attack tokens); the headless test holds them equal. */
 export const DRIFTWOOD_FIGHT = { telegraphed: true, attackers: 2 } as const;
 const { delay: PRACTICE_BACK, away: PRACTICE_AWAY } = DRIFTWOOD_PRACTICE.respawn;
@@ -70,13 +74,14 @@ const Memory = v.strictObject({ timer: finite, tx: finite, tz: finite, fleeT: fi
   freeze: finite, spooked: v.boolean(), wary: finite, sensed: v.boolean(), windup: finite, backoff: finite, side: finite, committed: v.boolean(),
   path: v.array(Point), pathI: finite, goalX: finite, goalZ: finite, repathAt: finite });
 const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), state: v.picklist([1, 2]), rest: finite, age: finite,
-  thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(BODY_COUNT - 1)), handle: finite, wet: finite });
+  thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(ROSTER - 1)), handle: finite, wet: finite });
 /** a coconut collider's owner tag (plain data: the host's snapshot encodes collider owners) */
 const COCONUT_OWNER = { kind: 'coconut' } as const;
-const Saved = v.strictObject({ version: v.literal(4), rng: Stream,
+const Saved = v.strictObject({ version: v.literal(5), rng: Stream,
   coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())), stepped: v.array(v.boolean()) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })),
+  captain: v.nullable(v.strictObject({ id: v.string(), policy: v.boolean() })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 
 /** HuntMemory as plain data: every field, the path's corners as points. */
@@ -112,8 +117,10 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  * off, after its 1.5 s shell fade: a fresh body in its slot (the manager's next entity id, six more draws), a new herd of one. A
  * monkey's throw releases a real coconut (combat/coconuts.ts, the browser's own rules) into the host's world through a
  * body service stepped around the host's world step; the continuation keeps each live slot and its native handle, and the
- * restored world's bodies are adopted back by handle. Restore reinstalls exactly the saved roster from its recipes before
- * the host restores, with no stream draw kept.
+ * restored world's bodies are adopted back by handle. The finale's captain (`spawnCaptain`, runtime/captain.ts) joins the
+ * end of the list in the slot after the load-time bodies: the manager's next entity id, his spawn draws, his baked recipe
+ * at his pool, his authored fight on the 'legacy' clock. Restore reinstalls exactly the saved roster (the captain
+ * included) from its recipes before the host restores, with no stream draw kept.
  *
  * Known differences from the browser (the SF72 handoff): a charge's contact is tested at the start of the next tick (for
  * a body its band stepped), against the player where the charging tick saw it (the host steps bodies after its systems),
@@ -123,13 +130,19 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
   hunt: HuntBrain<HuntBody>;
+  /** The finale's captain (null until spawned). */
+  captain: () => HuntBody | null;
+  /** AnimalManager.spawn of the captain at his pool (the finale's spawn): the manager's next entity id and spawn draws, the
+   *  creature floor, his authored fight; at the end of the manager's list. Once. */
+  spawnCaptain: () => HuntBody;
   /** On restore, reinstall the bodies spawned in play after every other install-time registration (no-op when fresh). */
   settle: () => void;
 } {
   const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
-  // the page's distance bands with its default rates: 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`, the
-  // fauna's default), 'always' while a crab sidesteps; and the creature body LOD. Before any spawn.
-  host.useBodyBands();
+  // the page's distance bands (AnimalManager.tickRate): 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`,
+  // the fauna's default), 'always' while a crab sidesteps, the creature manager's 'legacy' for the captain (a self-thinking
+  // species with no `tick`: 10 Hz decisions, the body every frame at any distance); and the creature body LOD. Before any spawn.
+  host.useBodyBands({ rate: body => body.driven || body.state === 'sidestep' ? 'always' : body.kind === 'captain' ? 'legacy' : 'ai' });
   const normalY = (x: number, z: number): number => {
     const nx = heightAt(x - NORMAL_EPS, z) - heightAt(x + NORMAL_EPS, z), nz = heightAt(x, z - NORMAL_EPS) - heightAt(x, z + NORMAL_EPS);
     return 2 * NORMAL_EPS / Math.hypot(nx, 2 * NORMAL_EPS, nz);
@@ -197,7 +210,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     body.actor = a;
     const members = hunt.herds[body.herd]?.members ?? null;
     members?.push(a);
-    body.brain = ENEMIES.has(body.kind) ? enemyBrain(body.kind, recipe.spec.label, a, members, brainPorts) : null;
+    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, recipe.spec.label, a, members, brainPorts);
   };
   /** AnimalManager.spawnAnimal's placement: the floor ray from a metre over max(spawn y, ground). */
   const arrive = (body: IslandBody): void => {
@@ -232,12 +245,18 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   if (hunt.herds.length !== bake.herds.length) throw new Error('Driftwood herds diverge from the bake');
 
   const practice: { body: IslandBody | null; dead: number; fade: number } = { body: null, dead: 0, fade: -1 };
+  /** the finale's captain, once spawned (never retired: his corpse stays), in the roster slot after the load-time bodies */
+  let captain: IslandBody | null = null;
+  const captainBody = (id: string): IslandBody => ({ id, kind: 'captain', variant: 'captain', herd: -1, range: CAPTAIN_SCALE, actor: null, brain: null,
+    recipe: { id, spec: spec('captain', 'captain'), seed: 0, scale: 1, at: { x: bake.captain.pool.x, y: 0, z: bake.captain.pool.z }, yaw: bake.captain.pool.yaw } });
+  /** roster slot `i`: a load-time body, or the captain after them */
+  const rosterAt = (i: number): IslandBody | null => (i < BODY_COUNT ? bodies[i] : captain) ?? null;
   /** AnimalManager.stillAttacking: a charger while it charges, a self-thinking species while its strike runs */
   const still = (a: HuntBody): boolean => a.alive && (FAUNA.has(a.kind) ? a.state === 'charge' : a.attackPhase >= 0);
   /** whether each body's band stepped it last tick (the page tests a charge's contact only on a body update) */
-  const stepped = Array.from({ length: BODY_COUNT }, () => false);
+  const stepped = Array.from({ length: ROSTER }, () => false);
   /** AnimalManager.visibility: whether each aggressive body last had a clear line to the player (null: never asked) */
-  const sight = Array.from({ length: BODY_COUNT }, (): boolean | null => null);
+  const sight = Array.from({ length: ROSTER }, (): boolean | null => null);
   /** the manager's smoothed player ground speed, the player where the last step saw it (once one has), and the hunting
    *  brain's world clock */
   const tracked = { speed: 0, prev: new Vector3(), seen: false, clock: 0 };
@@ -308,8 +327,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     service.post(dt);
     // the last frame's charge contacts, after its bodies moved (the host steps its bodies after every system), against the
     // player where that frame saw it
-    if (tracked.seen) for (let i = 0; i < BODY_COUNT; i++) {
-      const body = bodies[i], a = body?.actor ?? null;
+    if (tracked.seen) for (let i = 0; i < ROSTER; i++) {
+      const body = rosterAt(i), a = body?.actor ?? null;
       if (a !== null && stepped[i] === true && body?.brain === null && a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, tracked.prev);
     }
     hunt.beginTick(dt); tracked.clock += dt;
@@ -320,9 +339,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     tracked.speed += (Math.min(moved / dt, 9) - tracked.speed) * (1 - 0.5 ** (dt * 10));
     hunt.resetRepaths();
     hunt.tokens.sweep(still);
-    for (let i = 0; i < BODY_COUNT; i++) {
-      const body = bodies[i], a = body?.actor;
-      if (body === undefined || a === null || a === undefined) continue;
+    for (let i = 0; i < ROSTER; i++) {
+      const body = rosterAt(i), a = body?.actor ?? null;
+      if (body === null || a === null) continue;
       // a hunter that loses its line to the player decides at once
       if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
         const clear = reach(a, player);
@@ -334,10 +353,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     }
     // the bodies on their band's step (0 while paused or on the off frame of 'half'; the next takes both frames' time):
     // a fauna body's running charge, an enemy's own body tick; the host then steps the body by the same step
-    for (let i = 0; i < BODY_COUNT; i++) {
-      const body = bodies[i], a = body?.actor ?? null;
+    for (let i = 0; i < ROSTER; i++) {
+      const body = rosterAt(i), a = body?.actor ?? null;
       stepped[i] = false;
-      if (body === undefined || a === null) continue;
+      if (body === null || a === null) continue;
       const step = host.bodyDt(body.id); stepped[i] = step > 0;
       if (step <= 0 || !a.alive || a.stunned) continue;
       if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, step, player); } else body.brain.move(step);
@@ -353,18 +372,20 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
-    snapshot: () => ({ version: 4, rng: { ...rng.snapshot() },
-      coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) }, tokens: bodies.flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
+    snapshot: () => ({ version: 5, rng: { ...rng.snapshot() },
+      coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) },
+      tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
         memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight], stepped: [...stepped] },
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
-      bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })) }),
+      bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
+      captain: captain === null ? null : { id: captain.id, policy: v.parse(v.boolean(), captain.brain?.snapshot()) } }),
     restore: value => {
       const state = v.parse(Saved, value);
-      if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length || state.fauna.stepped.length !== BODY_COUNT
-        || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== BODY_COUNT
+      if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length || state.fauna.stepped.length !== ROSTER
+        || state.fauna.memories.length !== BODY_COUNT || state.fauna.sight.length !== ROSTER || state.captain?.id !== captain?.id
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
-      const holders = state.tokens.map(id => { const a = bodies.find(b => b.id === id)?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
+      const holders = state.tokens.map(id => { const a = (captain?.id === id ? captain : bodies.find(b => b.id === id))?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
       placed.stream.restore(state.coconuts.rng);
       reattach = volley.restore(state.coconuts, i => bodies[i]?.actor ?? null);
       rng.restore(state.rng); practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
@@ -372,6 +393,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       state.fauna.stepped.forEach((on, i) => { stepped[i] = on; });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
       state.bodies.forEach((b, i) => { if (b.policy !== null) bodies[i]?.brain?.restore(v.parse(v.string(), JSON.parse(b.policy))); });
+      if (state.captain !== null) captain?.brain?.restore(state.captain.policy);
       // the hunting brain's world clock from 0 (its path re-plan timers run on it), the speed meter, sight and memories
       hunt.beginTick(state.fauna.clock); tracked.clock = state.fauna.clock; tracked.speed = state.fauna.speed;
       tracked.seen = state.fauna.prev !== null; if (state.fauna.prev !== null) tracked.prev.set(...state.fauna.prev);
@@ -385,7 +407,15 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     // the restored world holds the coconuts' native bodies: a body service over it adopts them by handle
     physicsRestored: () => { service = new Bodies(host.physics, player); reattach?.(); reattach = null; },
   }); };
-  if (saved === undefined) { keep(); return { bodies: () => bodies, hunt, settle: () => undefined }; }
+  const spawnCaptain = (): HuntBody => {
+    if (captain !== null) throw new Error('The Driftwood captain is spawned once');
+    const body = captainBody(entityIds.allocate());
+    draw(body); arrive(body); captain = body;
+    if (body.actor === null) throw new Error('The Driftwood captain did not spawn');
+    return body.actor;
+  };
+  const island = { bodies: () => bodies, hunt, captain: () => captain?.actor ?? null, spawnCaptain };
+  if (saved === undefined) { keep(); return { ...island, settle: () => undefined }; }
 
   const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === ISLAND_STEP)?.state);
   if (keeper.bodies.length !== BODY_COUNT || keeper.herds.length < bake.herds.length) throw new Error('Incompatible Driftwood island continuation');
@@ -420,9 +450,11 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // The host snapshots its adapters in registration order: the load-time bodies sit before the keeper's step, a body
   // spawned in play (a new practice crab) after it, and after the runtime's later steps. Reinstall each at its own point.
   const step = ids.indexOf(ISLAND_STEP), first = ids.findIndex((id, i) => i > step && !id.startsWith('runtime.actor.'));
-  const live = bodies.filter((_, i) => keeper.bodies[i]?.live === true).sort((a, b) => at(a.id) - at(b.id)), deferred: IslandBody[] = [];
+  // the captain, if the finale spawned him, under the id he was given
+  if (keeper.captain !== null) captain = captainBody(keeper.captain.id);
+  const live = [...bodies.filter((_, i) => keeper.bodies[i]?.live === true), ...(captain === null ? [] : [captain])].sort((a, b) => at(a.id) - at(b.id)), deferred: IslandBody[] = [];
   live.forEach(body => { if (at(body.id) < step) reinstall(body); });
   keep();
   live.forEach(body => { if (at(body.id) > step) { if (first === -1 || at(body.id) < first) reinstall(body); else deferred.push(body); } });
-  return { bodies: () => bodies, hunt, settle: () => { deferred.forEach(reinstall); deferred.length = 0; } };
+  return { ...island, settle: () => { deferred.forEach(reinstall); deferred.length = 0; } };
 }

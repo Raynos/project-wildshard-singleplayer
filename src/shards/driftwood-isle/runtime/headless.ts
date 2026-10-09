@@ -6,6 +6,7 @@ import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
 import { LOWERED_SEA } from '../world/sea';
 import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
 import { installIsland } from './keeper';
+import { installCaptain } from './captain';
 import navmeshBaked from './navmesh.baked.json' with { type: 'json' };
 
 /** The browser's baked navmesh (public/assets/baked/driftwood-isle/navmesh.bin), from its exact-bytes copy
@@ -38,8 +39,10 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
  * world (the island's heightfield as Rapier built it and every fixed WORLD collider; `ground: false`, the baked floor as
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
- * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts). Not yet
- * owned (fail-closed, see the SF72 handoff): the captain, the swords, the quest and its facts, and the entry proof; `finish` refuses.
+ * browser's baked navmesh), the monkeys' coconuts, the practice crab's return and exact restore (runtime/keeper.ts), and the
+ * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
+ * runtime/captain.ts). Not yet owned (fail-closed, see the SF72 handoff): the swords, the quest and its facts, and the entry
+ * proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh();
@@ -50,6 +53,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     if (!context.restoring) addDriftwoodWorld(host, bake);
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
+    installCaptain(host, bake, island);
+    // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
   } };
 };
