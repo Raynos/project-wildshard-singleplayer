@@ -23,8 +23,8 @@ export const ROW_TYPES = {
     'MeleeProfile', 'QuestDef', 'RangedFeelProfile', 'SkinDef', 'SkinRow', 'SlashTrailProfile', 'SpawnTableRow', 'SpeciesLook', 'SpeciesRow', 'ThrownProfile',
     'StrikeSpec', 'StringTable', 'TableSpec', 'VoiceTable', 'WeatherProfile',
   ],
-  'src/game/package.json': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec', 'ShardManifest'],
-  'src/kit/package.json': ['BowProfile', 'NpcRigProfile', 'NpcRow', 'RainCurtainSpec'],
+  'src/game/package.json': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec', 'RainCurtainSpec', 'ShardManifest'],
+  'src/kit/package.json': ['BowProfile', 'NpcRigProfile', 'NpcRow'],
   'src/sdk/package.json': ['FirearmProfile'],
   'src/shards/pine-hollow/weapons/crossbow/profiles.ts': ['CrossbowProfile'],
 };
