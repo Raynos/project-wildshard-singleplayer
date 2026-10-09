@@ -1,0 +1,97 @@
+{
+  "sha": "c7de9850eaf05c9b1890e2b850f70b9b530f36df",
+  "harnessRevision": "6f049ac157be030bb995d698928aa54ff9b25ef2",
+  "surface": "desktop",
+  "complete": true,
+  "pass": false,
+  "when": "2026-10-09T22:39:26.732Z",
+  "elapsedSeconds": 468.474,
+  "rows": [
+    {
+      "pose": {
+        "name": "spawn",
+        "x": -3.13341533811351e-06,
+        "y": 0.011599999583268072,
+        "z": -234.99999981140508,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "medianFps": 30.03,
+      "p95Ms": 33.4,
+      "p99Ms": 33.4,
+      "gameP95Ms": 29.5,
+      "workP95Ms": 28.9,
+      "contextLost": false,
+      "cpuPass": true,
+      "pass": false,
+      "trustedPineCpuP95Ms": 0.8000001907348633
+    },
+    {
+      "pose": {
+        "name": "pond",
+        "x": -56,
+        "z": 95,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "medianFps": 59.88,
+      "p95Ms": 33.3,
+      "p99Ms": 33.4,
+      "gameP95Ms": 24.8,
+      "workP95Ms": 23.5,
+      "contextLost": false,
+      "cpuPass": true,
+      "pass": false,
+      "trustedPineCpuP95Ms": 0.8000001907348633
+    },
+    {
+      "pose": {
+        "name": "cabin",
+        "x": -14,
+        "z": -62,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "medianFps": 59.88,
+      "p95Ms": 33.4,
+      "p99Ms": 50,
+      "gameP95Ms": 33,
+      "workP95Ms": 22.1,
+      "contextLost": false,
+      "cpuPass": true,
+      "pass": false,
+      "trustedPineCpuP95Ms": 0.5999999046325684
+    }
+  ],
+  "errors": [],
+  "protocol": {
+    "developer": "on",
+    "settings": {
+      "tier": "desktop",
+      "fps": "auto"
+    },
+    "renderScale": 2,
+    "viewport": [
+      1440,
+      900
+    ],
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "quiet": "Coordinator browser/Simulator quiet; lanes empty before build and after release. Non-platform CPU work remained; global load was 41.1\u201349.0."
+  },
+  "load": {
+    "start": "2026-10-09T22:38:14.450000+00:00",
+    "end": "2026-10-09T22:39:26.732000+00:00",
+    "samples": 72,
+    "median": 43.732666015625,
+    "min": 41.072265625,
+    "max": 48.96435546875
+  },
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  },
+  "timingContext": "FAIL under load; coordinator retained the recorded verdict, no further rerun.",
+  "postRunContext": "A MOSS process configured to prefer MPS was found after the run; its activity was not timestamped through the measured window and is not attributed as a measured cause."
+}
