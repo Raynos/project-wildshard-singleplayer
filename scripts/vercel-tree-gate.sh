@@ -8,6 +8,10 @@
 #   2. checks out ONLY the files Vercel would upload (gitignore rules of the commit's own .vercelignore) into a temp dir;
 #   3. runs the CI gates there: check-css, typecheck (app + api), oxlint, node-only bake-check, vitest, vite build.
 # A commit that passed is stamped in .git/vercel-gate-platform-ratchets-v7-ci-checks/ and never re-built.
+# Process audit 2026-10-09 (scripts/gate-cache.mjs): bake-check and the node audits are skipped when every input they
+# read last time (traced by scripts/gate-trace.mjs) is byte-identical, and vitest runs only `vitest related` to the
+# files changed since the last gate whose vitest passed. Every FULL_EVERY-th gate, any gate FULL_HOURS after the last
+# full one, a change to package / test setup / config files, and GATE_FULL=1 run everything. CI always runs everything.
 # E454 (Jake: "max 2 minutes the pre push"): the independent steps run in parallel and each prints its own wall time;
 # the generated-outputs check runs beside the export instead of before it.
 #
@@ -78,8 +82,38 @@ git archive "$sha^" -- "${predecessor_lists[@]}" | tar -xf - -C "$work/predecess
 
 # ── 3. the CI gates, in the Vercel tree: gen first, then every independent step at once (E454) ──
 cd "$work/tree" || exit 1
-echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · bake-check · vitest · vite build (parallel)"
+full=1; cache="$ROOT/scripts/gate-cache.mjs"
+if [ -f "$cache" ] && ! node "$cache" full?; then full=0; fi
+echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · bake-check · vitest · vite build (parallel, $([ "$full" = 1 ] && echo full || echo cached))"
 job() { steps+=("$1"); run "$@" & }
+# cached <name> <cmd…>: a node step skipped when its traced inputs are unchanged since it last passed (gate-cache.mjs)
+cached() {
+  local name="$1"; shift
+  if [ ! -f "$cache" ]; then job "$name" "$@"; return; fi
+  steps+=("$name")
+  ( export GATE_CACHE_COMMAND="$*"
+    if [ "$full" = 0 ] && node "$cache" check "$name" "$work/tree" > "$work/$name.cached" 2>/dev/null; then
+      echo 0 > "$work/$name.sec"; echo 0 > "$work/$name.rc"; exit 0
+    fi
+    : > "$work/$name.cached"; mkdir -p "$work/trace-$name"
+    GATE_TRACE_ROOT="$work/tree" GATE_TRACE_DIR="$work/trace-$name" \
+      NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--import=file://$ROOT/scripts/gate-trace.mjs" run "$name" "$@" || exit 1
+    node "$cache" record "$name" "$work/tree" "$work/trace-$name" "$sha" >> "$work/$name.log" 2>&1 || true ) &
+}
+# vitest: the whole suite on a full gate, else only the tests related to the files changed since vitest last passed
+vitest_mode=full; vitest_files=()
+if [ "$full" = 0 ]; then
+  plan="$(node "$cache" vitest-plan "$work/tree" "$sha" 2>/dev/null || echo full)"
+  case "$plan" in full) ;; none) vitest_mode=none;; *) vitest_mode=related; while IFS= read -r f; do vitest_files+=("$f"); done <<< "$plan";; esac
+fi
+vitest_step() {
+  case "$vitest_mode" in
+    full) pnpm exec vitest run || return 1;;
+    related) echo "vitest related: ${#vitest_files[@]} changed file(s)"; pnpm exec vitest related --run --passWithNoTests "${vitest_files[@]}" || return 1;;
+    none) echo "vitest: no changed file is in the Vercel tree";;
+  esac
+  [ ! -f "$cache" ] || node "$cache" vitest-pass "$sha" "$vitest_mode"
+}
 # chain <name> <cmd…> [-- <name> <cmd…>]…: steps that must run in order (one background job)
 chain() {
   local -a cmd=(); local -a all=("$@" --)
@@ -97,7 +131,7 @@ run platform-ratchets node scripts/check-platform-ratchets.mjs "$work/predecesso
 if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   job check-css node scripts/check-css.mjs
   job gen-check node scripts/gen-shards.mjs --check
-  job shard-coupling node scripts/shard-coupling.mjs --check
+  cached shard-coupling node scripts/shard-coupling.mjs --check
   job typecheck pnpm exec tsc --noEmit
   job typecheck-layers pnpm exec tsc -b tsconfig.layers.json   # E362 AG4: no layer reaches up, in any syntax
   job typecheck-api pnpm exec tsc --noEmit -p api
@@ -109,12 +143,12 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   # CI's `pnpm test:checks` runs these too; e9128c290 went red on audit-assets and the WebGPU inventory with
   # this gate green (2026-10-07), so the push checks them before CI does. (check-paths needs the full checkout: the
   # Vercel tree drops test/parity, so it stays a CI check.)
-  job audit-assets node scripts/audit-assets.mjs
-  job check-model-sources node scripts/check-model-sources.mjs
-  job webgpu-inventory node scripts/webgpu-inventory.mjs --check
+  cached audit-assets node scripts/audit-assets.mjs
+  cached check-model-sources node scripts/check-model-sources.mjs
+  cached webgpu-inventory node scripts/webgpu-inventory.mjs --check
   # CI checks committed terrain, sky metadata and navmeshes; stale bakes must block the push too.
-  job bake-check node scripts/bake-check.mjs --node-only
-  job vitest pnpm exec vitest run
+  cached bake-check node scripts/bake-check.mjs --node-only
+  job vitest vitest_step
   job script-conformance env BROWSER_LANE_PRIORITY=1 bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
   # vite build writes nothing in the tree after gen (checked 2026-10-07), so it runs beside the readers
   chain shardfiles node scripts/build-shardfiles.mjs \
@@ -130,14 +164,17 @@ wait
 failed=()
 for name in "${steps[@]}"; do
   rc="$(cat "$work/$name.rc" 2>/dev/null || echo skipped)"
-  if [ "$rc" = 0 ]; then echo "  ✓ $name ($(cat "$work/$name.sec") s)"
+  if [ "$rc" = 0 ] && [ -s "$work/$name.cached" ]; then echo "  ✓ $name (cached: inputs of $(cat "$work/$name.cached"))"
+  elif [ "$rc" = 0 ] && [ "$name" = vitest ] && [ "$vitest_mode" != full ]; then echo "  ✓ vitest ($(cat "$work/$name.sec") s, $vitest_mode ${#vitest_files[@]} file(s))"
+  elif [ "$rc" = 0 ]; then echo "  ✓ $name ($(cat "$work/$name.sec") s)"
   elif [ "$rc" = skipped ]; then echo "  - $name (not reached)"
   else echo "  ✗ $name ($(cat "$work/$name.sec") s)"; failed+=("$name"); fi
 done
 for name in ${failed[@]+"${failed[@]}"}; do echo "── $name ──" >&2; tail -40 "$work/$name.log" >&2; done
 [ ${#failed[@]} -eq 0 ] || fail "${failed[*]}"
 [ -f "$work/shard-platform.log" ] && sed 's/^/    /' "$work/shard-platform.log"
-echo "vercel-gate: $short gates took $((SECONDS - gate_t0)) s wall"
+echo "vercel-gate: $short gates took $((SECONDS - gate_t0)) s wall ($([ "$full" = 1 ] && echo full || echo cached))"
+if [ -f "$cache" ]; then if [ "$full" = 1 ]; then node "$cache" full-pass "$sha"; else node "$cache" partial-pass "$sha"; fi; fi
 
 mkdir -p "$stamp_dir" && touch "$stamp_dir/$sha"
 echo "vercel-gate: $short passed"

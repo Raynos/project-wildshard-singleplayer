@@ -58,6 +58,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   ~17 s for the regeneration on 2026-10-07); a step that pushes it over moves to CI, never silently away. It refuses
   the push when `.vercelignore` would drop anything under `src/`, `public/`, `api/` or `scripts/`; anchor every
   `.vercelignore` line with `/` (E41). A red gate is yours to fix before the push. Rare escape: `SKIP_VERCEL_GATE=1`.
+  **Gate cache** (`scripts/gate-cache.mjs`, state in `.git/gate-cache/`): bake-check and the node audits skip when every
+  file they read last time (traced by `scripts/gate-trace.mjs`) is byte-identical, and vitest runs `vitest related` on
+  the files changed since its last green gate. Every 8th gate, 6 h after the last full one, a package / config /
+  test-setup change, a deleted module and `GATE_FULL=1` run everything; CI always does (2026-10-09: 277 s → 57 s).
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and
   the plan-State check ([ASKS.md](ASKS.md)). Claude hooks live in `.claude/settings.json` and take effect on restart.
