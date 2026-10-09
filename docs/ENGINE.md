@@ -2009,7 +2009,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2276 exports, grouped by the module to import them from.
+2285 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2113,6 +2113,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/Melee`: `Melee`, `meleeActor`
 - `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
+- `@wildshard/engine/combat/sweptMeleeCore`: `AttackQueue`, `SweptEvents`, `SweptMeleeCore`, `SweptMeleeState`, `sweptMoveDamage`, `SweptMoves`, `SweptStep`, `SweptTiming`, `SwingTiming`
 - `@wildshard/engine/combat/targets`: `authoredTargets`, `RayTargets`
 - `@wildshard/engine/combat/Thrown`: `Thrown`
 - `@wildshard/engine/combat/thrownProfile`: `ThrownProfile`

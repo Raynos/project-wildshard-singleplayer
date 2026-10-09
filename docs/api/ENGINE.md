@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2293 members; 843 without a doc line (—).
+2302 members; 843 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -598,6 +598,15 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `FallCause` | interface | @wildshard/engine/combat/pipeline | — |
 | `HealthAttributes` | interface | @wildshard/engine/combat/pipeline | — |
 | `StringKey` | type | @wildshard/engine/combat/pipeline | — |
+| `AttackQueue` | interface | @wildshard/engine/combat/sweptMeleeCore | The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag). |
+| `SweptEvents` | interface | @wildshard/engine/combat/sweptMeleeCore | Reactions owned by the caller: a swing started (with whether it may lunge), the heavy's charge began (0) or released (1). |
+| `SweptMeleeCore` | class | @wildshard/engine/combat/sweptMeleeCore | The swept melee family's swing / combo / heavy clock; see the module comment. |
+| `SweptMeleeState` | interface | @wildshard/engine/combat/sweptMeleeCore | The clock's exact continuation; `move` indexes `[...combo, heavy]` (null: idle). |
+| `sweptMoveDamage` | function | @wildshard/engine/combat/sweptMeleeCore | A move's damage: the base × the move's factor, the heavy × `heavyMult` (a perk). |
+| `SweptMoves` | interface | @wildshard/engine/combat/sweptMeleeCore | The light combo in order and the charged heavy. |
+| `SweptStep` | interface | @wildshard/engine/combat/sweptMeleeCore | One step's outcome: the running move (after any chain) and whether its active window is open. |
+| `SweptTiming` | interface | @wildshard/engine/combat/sweptMeleeCore | The profile's clock numbers (meleeProfile.ts), read live each step. |
+| `SwingTiming` | interface | @wildshard/engine/combat/sweptMeleeCore | The part of a move the clock reads: its windup, the end of its active window, its length and its damage factor. |
 | `authoredTargets` | function | @wildshard/engine/combat/targets | An authored target source may refine the nearer creature hit. Practice uses its own isolated targets. |
 | `RayTargets` | interface | @wildshard/engine/combat/targets | — |
 | `Thrown` | class | @wildshard/engine/combat/Thrown | A composing weapon keeps its slot/input/pose; this helper owns its thrown row and ammunition. |

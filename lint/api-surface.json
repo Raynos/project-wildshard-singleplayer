@@ -3549,6 +3549,60 @@
         "from": "@wildshard/engine/combat/pipeline"
       },
       {
+        "name": "AttackQueue",
+        "kind": "interface",
+        "doc": "The one-deep queued tap (the browser's `app.input` 'attack' queue; a headless runtime keeps its own flag).",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptEvents",
+        "kind": "interface",
+        "doc": "Reactions owned by the caller: a swing started (with whether it may lunge), the heavy's charge began (0) or released (1).",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptMeleeCore",
+        "kind": "class",
+        "doc": "The swept melee family's swing / combo / heavy clock; see the module comment.",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptMeleeState",
+        "kind": "interface",
+        "doc": "The clock's exact continuation; `move` indexes `[...combo, heavy]` (null: idle).",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "sweptMoveDamage",
+        "kind": "function",
+        "doc": "A move's damage: the base × the move's factor, the heavy × `heavyMult` (a perk).",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptMoves",
+        "kind": "interface",
+        "doc": "The light combo in order and the charged heavy.",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptStep",
+        "kind": "interface",
+        "doc": "One step's outcome: the running move (after any chain) and whether its active window is open.",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SweptTiming",
+        "kind": "interface",
+        "doc": "The profile's clock numbers (meleeProfile.ts), read live each step.",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
+        "name": "SwingTiming",
+        "kind": "interface",
+        "doc": "The part of a move the clock reads: its windup, the end of its active window, its length and its damage factor.",
+        "from": "@wildshard/engine/combat/sweptMeleeCore"
+      },
+      {
         "name": "authoredTargets",
         "kind": "function",
         "doc": "An authored target source may refine the nearer creature hit. Practice uses its own isolated targets.",
