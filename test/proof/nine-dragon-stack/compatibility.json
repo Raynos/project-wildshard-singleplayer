@@ -1,16 +1,17 @@
 {
   "audit": {
-    "sourceRevision": "704a04d55f67a0794794b466c32c9ed87521896c",
-    "candidate": "this commit (SF72 parts 4-5: the Fei Zhua's law renderer-free in grapple/sim.ts, driven by the page's FeiZhua.ts and the host's runtime/grapple.ts; the Well rail's see-past reads the host's string collider owners; the physics bake records the 31 dragon hooks, rebaked on candidate 001589c30; the tape adds the Jian's charged heavy and the Well crossing from the south rim); then re-recorded (the continuation hashes re-recorded as canonical state hashes, test/fake/simState.ts — Rapier's snapshot bytes are not canonical, the broad phase's pair order permutes on round trips, so a raw-byte hash could flake; the native world now counts as the state it restores to, every body, collider and contact exactly)",
+    "sourceRevision": "6acc30575f009bf522ea844bc5812fabfcc08db8",
+    "candidate": "this commit: SF72 Nine6 short committed replay slices and non-transitional gameplay witness; production code, colliders and map inputs unchanged",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "compatible but transitional: the renderer-free trusted entry through the platform's trusted adapter runs the baked grid-cell colliders, the player walking the square's declared route by tick commands, two play-time portal rides on the page's own ride (square -> north deck -> square), the Jian's swing clock (row contacts with no target: Nine has no creature) and its charged heavy on the HEAVY hold, a jump over the square's west balustrade onto the Well's south rim and the Fei Zhua's lifting crossing over the Well (fire, bite, lift, zip, vault, settle) with the safety cap open while it flies, and the format's portal-link entry proof (92 lanes, 8 transfers), with an exact restore mid-swing and mid-ride whose suffix replays the heavy and the crossing; only Jian contacts on real targets are listed under `open`; the ledger is not-declared because Nine declares no fact (README.md)",
-    "runs": "two independent native processes, identical output"
+    "scope": "the uninterrupted 1084-tick route, Jian combo/heavy, two portal rides, Well lifting crossing, 92 entry lanes / 8 transfers; exact canonical restore and short in-process replays at ticks 400 and 940; no creatures or declared ledger rule",
+    "runs": "two independent native processes, identical output",
+    "checkpointInputs": "d9207593c76830f7bca05eb2feefcf97880d2cffececa6af7d01929acaaa287a"
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
   "compatible": true,
-  "transitional": true,
+  "transitional": false,
   "covers": [
     "the browser-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)",
     "the player capsule walking those colliders from the declared spawn, by tick commands",
@@ -21,8 +22,9 @@
     "the Fei Zhua on the page's own law (grapple/sim.ts over the 31 baked dragon hooks): aim as the phone's portrait camera, LOCK, JUMP; fire, bite, lift, zip, vault and settle on the player's capsule; the east tower's ledge from the arrival and exact continuation mid-zip in headless-runtime.test.ts",
     "the Well crossing (gates / fragments): over the square's west balustrade onto the south rim, seen past the rim's rail and the safety cap, the lifting zip over the parapet onto a crossing's deck; the safety cap's baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)"
   ],
-  "open": [
-    "Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at nothing"
+  "open": [],
+  "notApplicable": [
+    "Jian contacts on real targets: Nine has no creatures; its row fires a zero-damage contact at nothing"
   ],
   "ledger": {
     "status": "not-declared",
@@ -65,16 +67,33 @@
   },
   "replay": {
     "status": "passed",
-    "checkpointCaptured": true,
-    "checkpoint": {
-      "tick": 400,
-      "swing": 1,
-      "swings": 14,
-      "rideClock": 0.2333
+    "ride": {
+      "status": "passed",
+      "checkpointCaptured": true,
+      "checkpoint": {
+        "tick": 400,
+        "swing": 1,
+        "swings": 14,
+        "rideClock": 0.2333
+      },
+      "suffixTicksExecuted": 60,
+      "ticksExecuted": 120,
+      "hash": "87a299ef727f7bdb811bbded19226167397c51af590c1125388fc445367882f1",
+      "replayHash": "87a299ef727f7bdb811bbded19226167397c51af590c1125388fc445367882f1"
     },
-    "suffixTicksExecuted": 684,
-    "hash": "717422c873ae8c5ca727c9822100538e0a188ba64d59869e15f2bef48c402d4c",
-    "replayHash": "717422c873ae8c5ca727c9822100538e0a188ba64d59869e15f2bef48c402d4c"
+    "crossing": {
+      "status": "passed",
+      "checkpointCaptured": true,
+      "checkpoint": {
+        "tick": 940,
+        "phase": "zip",
+        "lifts": true
+      },
+      "suffixTicksExecuted": 144,
+      "ticksExecuted": 288,
+      "hash": "717422c873ae8c5ca727c9822100538e0a188ba64d59869e15f2bef48c402d4c",
+      "replayHash": "717422c873ae8c5ca727c9822100538e0a188ba64d59869e15f2bef48c402d4c"
+    }
   },
   "declarations": {
     "sourceLoaded": true,

@@ -18,13 +18,12 @@ it('sunscar-dunes reports identical passing whole-shard results in independent n
   expect(JSON.parse(first.stdout)).toMatchObject({ compatible: true, headless: { status: 'passed' }, replay: { status: 'passed' }, ledger: { status: 'passed' } });
 }, 120_000);
 
-// The replay stage carries the byte-exact continuation hash; the whole tape (run.mjs all) is the witness's own run and
-// its committed compatibility.json, as Sky's slice-replay. Two whole runs exceeded the native probe's 60 s under the gate.
-it('nine-dragon-stack reports identical passing replay stages in independent native processes (its whole tape is run.mjs all)', () => {
-  const first = nativeCompatibility('nine-dragon-stack', 'replay'), second = nativeCompatibility('nine-dragon-stack', 'replay');
+// The short replay slices carry canonical state hashes; run.mjs all retains the uninterrupted whole-tape witness.
+it.each(['ride', 'crossing'])('nine-dragon-stack reports an identical %s replay in independent native processes (its whole tape is run.mjs all)', name => {
+  const first = nativeCompatibility('nine-dragon-stack', `replay-${name}`), second = nativeCompatibility('nine-dragon-stack', `replay-${name}`);
   expect(first.stderr).toBe(''); expect(first.status).toBe(0); expect(second).toEqual(first);
-  expect(JSON.parse(first.stdout)).toMatchObject({ transitional: true, replay: { status: 'passed' } });
-}, 120_000);
+  expect(JSON.parse(first.stdout)).toMatchObject({ transitional: false, replay: { status: 'passed' } });
+}, 60_000);
 
 it('far-reach reports identical step → gale-wall replay slices in independent native processes (its whole tape is run.mjs all)', () => {
   const first = skyWitness('slice-replay'), second = skyWitness('slice-replay');

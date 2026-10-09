@@ -1,36 +1,42 @@
-# Handoff (sf72-nine) — 2026-10-09, SF72 Nine Dragon Stack headless, parts 4–5
+# Handoff (sf72-nine) — 2026-10-09, Nine6
 
-Coordinator `wildshard-new` pushes. Nine's canonical witness (`test/proof/nine-dragon-stack/`) passes on its trusted
-renderer-free entry `runtime/headless.ts`: `compatible: true`, still declared **transitional**; `open` now lists only
-"Jian contacts on real targets" (Nine has no creature). Identical output in two independent native processes.
+Coordinator `wildshard-new` pushes. This source-only commit closes the replay-budget and witness-classification
+follow-ups from `codex-nine6.md`. No production source, native collider or map input changes. No owned browser,
+Simulator or preview.
 
-## Landed (this commit: sf72-nine4's Fei Zhua split + sf72-nine5's finish)
+## What is proved
 
-- `grapple/sim.ts`: the Fei Zhua's law renderer-free (targeting by the view's projection, reach, sight past the Well's
-  rail, landing test, fire → bite → lift → zip → vault → settle / miss → reel → dock, snapshot / restore).
-  `grapple/FeiZhua.ts` drives it on the page (input, HUD, rope, markers, FX); `grapple/course.ts` gained the ports.
-- `runtime/grapple.ts`: the headless grapple (LOCK and aim pitch as script commands, JUMP from the player command, the
-  phone's portrait camera as the aim); the Well safety cap's baked colliders are off exactly while a lifting crossing
-  flies. `runtime/headless.ts` installs it on the 31 baked hooks.
-- `seePastWellRail` reads both owner shapes: the page tags colliders with the piece object, the host with the piece id
-  string (snapshot-safe). Before this, the host could never see a hook past the rail. Unit test for both shapes:
-  `test/shards/nine-dragon-stack/grapple-see-past.test.ts`.
-- Physics bake records `hooks` (from the page's `nd.grapple` debug expose), rebaked on candidate `001589c30`; inputs
-  unchanged since.
-- Witness tape (1084 ticks): the walk + two rides, 21 Jian taps, a 40-tick HEAVY hold (22 swings), then 6 m south along
-  the square's west balustrade, a running JUMP over it onto the Well's south rim, and the Fei Zhua's lifting crossing at
-  the hook (−8.2, 121.37, −18.49): phases idle → fire → bite → lift → zip → vault → settle → idle, cap open 151 ticks,
-  landed (−8.53, 119.09, −20.67). Replay checkpoint still tick 400 (mid-swing, mid-ride), suffix 684 ticks.
-- `headless-runtime.test.ts`: east tower zip from the spawn with a mid-zip restore; Well crossing with a mid-crossing
-  restore (cap open on the fresh host, closed on both after the settle).
-- Ceilings approved by the coordinator: graph nine → engine 185 → 188; `lint/shard-coupling.json` Nine
-  `context.debug` 1 → 2 (FeiZhua's `nd.grapple` expose, which the physics bake reads the hooks from).
+- The real `run.mjs all` passed twice in independent plain Node processes with identical output. The uninterrupted
+  1,084-tick tape still proves both portal rides, the Jian combo / charged heavy (22 swings / contacts), the Fei Zhua's
+  lifting Well crossing (cap open 151 ticks, all phases), 92 entry lanes and 8 portal transfers.
+- Witness `transitional` is false, `open` is empty. Jian targets are explicitly not applicable (Nine has no creatures);
+  ledger remains honestly `not-declared`. The structural platform classifier is unchanged.
+- Committed checkpoints at ticks 400 (mid-swing / held mid-ride) and 940 (lifting zip, cap open) restore exactly in
+  canonical state. Short in-process continuations compare canonical hashes, never raw Rapier bytes. Replay steps
+  408 ticks instead of 1,768; separate replay and determinism tests own one saved point each, with 60 s budgets.
+- Freshness covers every loaded repository input, including the command tape, trusted runtime, imported bake and
+  engine simulation closure, plus Rapier WASM. Changed inputs refuse before checkpoint admission. Regenerate with
+  `node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs checkpoints` after closure changes.
 
-## Next
+## Open: hook placement extraction
 
-1. If the hooks can be derived from the course data in Node (the world ctx's hook placement made renderer-free), bake
-   them without the page and drop the `nd.grapple` debug expose (coupling back to 1).
-2. `transitional`: nothing else renderer-bound decides an outcome in the fragment (crowd, movers, lights and FX are
-   decorative); the plan's owner can drop it. Jian contacts on real targets stay open until Nine has a creature.
+Keep `nd.grapple` and `context.debug = 2`. `grapple/course.ts` has interfaces, not placements. Seven render builders
+emit the 31 hooks: square, towers, stair-foot / upper street, rim, middle Well and bridges. The timber pavilion's
+hook depends on seeded / clearance-adjusted placement and LOD; the stair-foot hook uses the sculpted jaw transform.
+Copying baked coordinates is not a derivation. The exact next slice is to extract shared pure placement recipes and
+random choices into data consumed by both builders and bake, prove browser equality, rebake physics and map, then
+remove the debug expose and shrink the coupling cap. See the witness README for source-level evidence.
+
+## Validation / scratch
+
+Isolated local coverage (heavy-lane ticket 989, queue excluded): headless 8.002 s, ride replay 1.206 s, crossing
+replay 2.349 s. All are below 20 s (one third of the restored 60 s timeout). The two independent-process replay
+checks also passed under coverage (8.108 / 14.019 s on the busy shared machine). Focused witness 5 files / 7 tests,
+root and layer strict, root-config lint, coupling, ratchet and graph checks pass. Clean-export full suite passed
+1,053 files / 5,826 tests (222.72 s; heavy-lane ticket 999). The preceding run's only two failures were stale generated
+Sky boot-file lists; `pnpm gen` fixed them, then the full suite reran without changing assertions. Scratch is
+`/private/tmp/claude-501/sp-builders/sp-x1/nine6/`; no owned server to stop. Foreign shared-tree Nine plugin / VM /
+world / physics-bake edits were excluded. The four coordinator-released stale proof / handoff copies are synced only
+after landing. The coordinator owns serialized regeneration and push.
 
 Plan-State: unchanged.

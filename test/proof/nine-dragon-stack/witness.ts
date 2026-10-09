@@ -1,5 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the native physics module.
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Committed native checkpoints are compressed proof data.
+import { gzipSync, gunzipSync } from 'node:zlib';
+import * as v from 'valibot';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
@@ -23,18 +26,14 @@ import { compatibilityProbe } from '../compatibility/fixture';
  * the HEAVY hold, then jumps the square's west balustrade onto the Well's south rim and aims, LOCKs and JUMPs the Fei Zhua
  * across the Well (runtime/grapple.ts over the page's own law, grapple/sim.ts): the lifting crossing, the safety cap open
  * while it flies. Headless: the whole tape, then the adapter's `finish` runs the
- * portal-link entry proof (every deck lane, every bound transfer). Replay: a checkpoint mid-swing AND mid-ride (held in
- * the square's ring, before the transfer) restored into a fresh adapter replays the suffix to the identical snapshot.
+ * portal-link entry proof (every deck lane, every bound transfer). Replay: committed checkpoints mid-swing AND mid-ride
+ * and mid-crossing restore exactly, then each short suffix is replayed twice to identical canonical state.
  * Ledger: the fragment declares no rule, so the stage reports exactly that.
  */
 export const ENTRY = 'runtime/headless.ts';
-/**
- * What this witness covers, and what it does not (honestly transitional): it passes for the systems the headless world
- * runs; the open ones are absent from it, not proven. Nine declares no quest, fact or ledger rule, so `not-declared` is
- * the ledger stage's truth, not a skipped stage.
- */
+/** Outcomes are renderer-free. Nine declares no ledger rule or creature; neither is an unproven gameplay system. */
 export const SCOPE = {
-  transitional: true,
+  transitional: false,
   covers: [
     'the browser-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)',
     'the player capsule walking those colliders from the declared spawn, by tick commands',
@@ -45,9 +44,8 @@ export const SCOPE = {
     'the Fei Zhua on the page\'s own law (grapple/sim.ts over the 31 baked dragon hooks): aim as the phone\'s portrait camera, LOCK, JUMP; fire, bite, lift, zip, vault and settle on the player\'s capsule; the east tower\'s ledge from the arrival and exact continuation mid-zip in headless-runtime.test.ts',
     'the Well crossing (gates / fragments): over the square\'s west balustrade onto the south rim, seen past the rim\'s rail and the safety cap, the lifting zip over the parapet onto a crossing\'s deck; the safety cap\'s baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)',
   ],
-  open: [
-    'Jian contacts on real targets: Nine has no creature, so each active window fires the row\'s zero-damage contact at nothing',
-  ],
+  open: [],
+  notApplicable: ['Jian contacts on real targets: Nine has no creatures; its row fires a zero-damage contact at nothing'],
   ledger: 'Nine declares no quest, fact or ledger rule (shard.config.ts), so there is nothing to emit: the stage loads the real source and reports the empty declaration',
 } as const;
 
@@ -78,11 +76,43 @@ const TO_RIM = RIM_LEGS.flatMap(([n, x, z]) => Array.from({ length: n }, () => [
  *  open, flies to the crossing's deck and settles, the cap closing behind it, then drops onto the deck (210 ticks). */
 const AIM = RIM_AT + TO_RIM.length, HOOK_YAW = 0.1495, HOOK_PITCH = -0.1632;
 /** Tick 400: held in the square's ring (touched ~tick 386, the transfer at ~tick 403), mid-way through a Jian swing. */
-const TICKS = AIM + 2 + 210, CHECKPOINT = 400;
+const TICKS = AIM + 2 + 210;
+/** Each replay test owns one checkpoint and compares two short continuations in the same process (no recorded float oracle). */
+export type CheckpointName = 'ride' | 'crossing';
+const SLICES = { ride: { from: 400, to: 460 }, crossing: { from: 940, to: TICKS } } as const;
+const CHECKPOINTS = new URL('test/proof/nine-dragon-stack/checkpoints/', ROOT);
+const CheckpointSchema = v.strictObject({ tick: v.pipe(v.number(), v.integer()), snapshot: v.string() });
+const ManifestSchema = v.strictObject({ inputs: v.string(), ticks: v.strictObject({ ride: v.literal(400), crossing: v.literal(940) }) });
+const MANIFEST = new URL('manifest.json', CHECKPOINTS);
+const checkpointFile = (name: CheckpointName): URL => new URL(`${name}.snap.gz`, CHECKPOINTS);
+const readCheckpoint = (name: CheckpointName) => v.parse(CheckpointSchema, JSON.parse(gunzipSync(readFileSync(checkpointFile(name))).toString('utf8')));
+/** The loaded modules, physics bake and WASM must match before any committed checkpoint is admitted. */
+export function checkpointsFresh(inputs: string): { status: 'fresh' | 'stale'; inputs: string; recorded: string } {
+  const manifest = v.parse(ManifestSchema, JSON.parse(readFileSync(MANIFEST, 'utf8')));
+  return { status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs };
+}
+/** Write checkpoints from the real uninterrupted command tape; regeneration is explicit, never part of a passing test. */
+export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<object> {
+  const sim = await adapter(rapier);
+  try {
+    mkdirSync(CHECKPOINTS, { recursive: true });
+    let from = 0;
+    for (const name of ['ride', 'crossing'] as const) {
+      const tick = SLICES[name].from, snapshot = run(sim, from, tick);
+      checkCheckpoint(name, snapshot);
+      writeFileSync(checkpointFile(name), gzipSync(JSON.stringify({ tick, snapshot }), { level: 9 }));
+      from = tick;
+    }
+    const manifest = v.parse(ManifestSchema, { inputs, ticks: { ride: SLICES.ride.from, crossing: SLICES.crossing.from } });
+    writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);
+    return { status: 'written', ...manifest };
+  } finally { sim.dispose(); }
+}
 
 export function nineRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-const adapter = (rapier: Rapier, snapshot?: string): Promise<TickWorkerAdapter> =>
-  createTrustedHeadlessAdapter({ shard: source, assets: new Map(), rapier }, { module: MODULE }, snapshot);
+function adapter(rapier: Rapier, snapshot?: string): Promise<TickWorkerAdapter> {
+  return createTrustedHeadlessAdapter({ shard: source, assets: new Map(), rapier }, { module: MODULE }, snapshot);
+}
 /** The tape: the walk, three Jian taps 12 ticks apart every 1.5 s (a chained combo, then the gap lapses). */
 function tape(tick: number): HeadlessCommand[] {
   const [moveX, moveZ] = WALK[tick] ?? [0, 0];
@@ -153,17 +183,37 @@ export async function headlessProof(rapier: Rapier): Promise<object> {
   } catch (error) { return { status: 'failed', dependency: reason(error), ticksExecuted: 0 }; } finally { sim?.dispose(); }
 }
 
-export async function replayProof(rapier: Rapier): Promise<object> {
-  let sim: TickWorkerAdapter | undefined, replay: TickWorkerAdapter | undefined;
-  try {
-    sim = await adapter(rapier);
-    const checkpoint = run(sim, 0, CHECKPOINT), hash = digest(run(sim, CHECKPOINT, TICKS)), at = jian(checkpoint), ride = portals(checkpoint);
+/** Fail if the bake ever moves away from its gameplay boundary. */
+function checkCheckpoint(name: CheckpointName, snapshot: string): object {
+  if (decodeSimSnapshot(snapshot).state.tick !== SLICES[name].from) throw new Error('Checkpoint tick mismatch');
+  if (name === 'ride') {
+    const at = jian(snapshot), ride = portals(snapshot);
     if (at.move === null) throw new Error('The checkpoint must fall mid-swing');
     if (ride.held === null || ride.ride.t < 0 || ride.ride.rides.length > 0) throw new Error('The checkpoint must fall mid-ride, held before the transfer');
-    replay = await adapter(rapier, checkpoint);
-    const replayHash = digest(run(replay, CHECKPOINT, TICKS));
-    return { status: replayHash === hash ? 'passed' : 'failed', checkpointCaptured: true, checkpoint: { tick: CHECKPOINT, swing: at.move, swings: at.swings, rideClock: Number(ride.ride.t.toFixed(4)) },
-      suffixTicksExecuted: TICKS - CHECKPOINT, hash, replayHash };
+    return { swing: at.move, swings: at.swings, rideClock: Number(ride.ride.t.toFixed(4)) };
+  }
+  const law = grapple(snapshot).sim;
+  if (law.phase !== 'zip' || law.target?.lifts !== true) throw new Error('The checkpoint must fall mid-crossing, with the safety cap open');
+  return { phase: law.phase, lifts: law.target.lifts };
+}
+
+export async function replayProof(rapier: Rapier, inputs: string, name: CheckpointName): Promise<object> {
+  let sim: TickWorkerAdapter | undefined, replay: TickWorkerAdapter | undefined;
+  try {
+    if (checkpointsFresh(inputs).status !== 'fresh') throw new Error('Stale Nine Dragon checkpoints; regenerate from current headless inputs');
+    const saved = readCheckpoint(name), { from, to } = SLICES[name];
+    if (saved.tick !== from) throw new Error('Checkpoint envelope tick mismatch');
+    const at = checkCheckpoint(name, saved.snapshot);
+    sim = await adapter(rapier, saved.snapshot);
+    if (digest(sim.commit().snapshot) !== digest(saved.snapshot)) throw new Error('Checkpoint does not restore exactly');
+    const end = run(sim, from, to), hash = digest(end);
+    sim.dispose(); sim = undefined;
+    replay = await adapter(rapier, saved.snapshot);
+    const replayEnd = run(replay, from, to), replayHash = digest(replayEnd);
+    if (name === 'ride' && portals(end).ride.rides.length !== 1) throw new Error('The replay must finish the first portal transfer');
+    if (name === 'crossing' && grapple(end).sim.phase !== 'idle') throw new Error('The replay must settle the Well crossing');
+    return { status: replayHash === hash ? 'passed' : 'failed', checkpointCaptured: true, checkpoint: { tick: from, ...at },
+      suffixTicksExecuted: to - from, ticksExecuted: 2 * (to - from), hash, replayHash };
   } catch (error) { return { status: 'failed', dependency: reason(error), checkpointCaptured: false, suffixTicksExecuted: 0 }; } finally { sim?.dispose(); replay?.dispose(); }
 }
 

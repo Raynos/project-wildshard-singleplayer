@@ -21,9 +21,9 @@ Map: rebuilt after the Nine map-style commit `f9a2e7493`, using the official `sc
 ## SF72 witness (parts 2–5): what `compatible: true` covers, and what it does not
 
 `run.mjs` runs the trusted renderer-free entry `runtime/headless.ts` through the platform's own trusted adapter
-(`createTrustedHeadlessAdapter`). The result is **compatible but transitional** (`transitional: true` in
-`compatibility.json`): it passes for the systems the headless world runs, and the systems still browser-only are listed
-as open, not proven.
+(`createTrustedHeadlessAdapter`). The result is **compatible** (`transitional: false` in `compatibility.json`): no
+renderer-bound system decides a gameplay outcome. Decorative crowd, light and view controllers remain trusted
+runtime presentation.
 
 **Runs headless (proven):**
 - the browser-baked native colliders of the grid cell (`runtime/physics.baked.json`, `scripts/bake-nine-physics.mjs`):
@@ -31,7 +31,7 @@ as open, not proven.
   the Well's crossings and safety cap, every placed model's colliders;
 - the player capsule walking them from the declared spawn, by tick commands;
 - the Jian as its declared row on the shipping swept melee clock (`runtime/jian.ts`, `SweptMeleeCore` over `JIAN_ROW`):
-  combo, one-deep queue, combo gap, cooldown and active windows, with exact continuation (the replay restores mid-swing);
+  combo, one-deep queue, combo gap, cooldown and active windows, with exact continuation (the ride replay restores mid-swing);
 - the portal-link entry proof (`provePortalLinks`): 23 capsule lanes per deck and the format's checked transfer to the
   square and back (92 lanes, 8 transfers);
 - play-time portal rides (part 3) on the page's own ride, `world/portalRide.ts` (renderer-free since the fade veil moved
@@ -39,8 +39,8 @@ as open, not proven.
   route from the spawn into the ring out (→ the north deck, `portal.square.north>portal.north`), steps 2.5 m out of the
   deck's ring and back in (→ the square, `portal.north>portal.square.arrival`). The hold is the page Player's `carried`
   (feet kept at the ring's touch through the fade), the transfer is `createPortalTraversal` on the host's own physics,
-  motor and feet; the ride's state and hold are continuation, and the replay checkpoint (tick 400) falls mid-swing AND
-  held in the square's ring before the transfer. The same build's browser rides all four decks (north arrival
+  motor and feet; the ride's state and hold are continuation, and the committed ride checkpoint (tick 400) falls mid-swing AND
+  held in the square's ring before the transfer. Its 60-tick suffix finishes the north transfer. The same build's browser rides all four decks (north arrival
   (0, 0.01, 236), the headless one (0, 0, 236));
 - the Jian's charged heavy (part 5) on the tick protocol's HEAVY hold: back at the arrival the tape holds HEAVY for 40
   ticks and lets go, one heavy swing on the same clock (22 swings in all);
@@ -61,12 +61,60 @@ as open, not proven.
   closed on both after the settle). The see-past rule reads the host's collider owners, which are piece ids (strings,
   snapshot-safe) where the page's are the piece objects; before part 5 the host could never see a hook past the rail.
 
-**Still not headless (open):**
-- Jian contacts on real targets: Nine has no creature, so each active window fires the row's zero-damage contact at
-  nothing. Nothing else renderer-bound decides an outcome in the fragment (the crowd, movers, lights and FX are
-  decorative); `transitional` stays declared until the plan's owner drops it.
+**Not applicable:** Jian contacts on real targets. Nine has no creatures, so each active window fires the declared
+zero-damage contact at nothing. The combo, heavy and contact clock are still exercised. This is not an open gameplay
+item and does not make the witness transitional.
 
 **Ledger `not-declared`** is the truth, not a skipped stage: Nine declares no quest, fact or ledger rule
 (`shard.config.ts`), so there is nothing to emit. The stage loads the real source in strict Node and reports the empty
-declaration; no gameplay emission is claimed. (The platform gate, `scripts/shard-platform.mjs`, still reads Nine as not
-compatible, since its ledger flag needs a proven emission, and transitional, since `runtime/` has trusted code.)
+declaration; no gameplay emission is claimed. `scripts/shard-platform.mjs` computes its own structural transitional
+status while trusted runtime code remains; this witness does not change that classification.
+
+## Short replay checkpoints (Nine6)
+
+The uninterrupted headless stage still walks all 1,084 ticks, exercises both portal rides and the charged heavy, crosses
+the Well, and proves 92 entry lanes / 8 transfers. Replay no longer repeats that whole tape:
+
+| Checkpoint | State | Suffix | Ticks stepped in both continuations |
+| --- | --- | ---: | ---: |
+| `ride` (400) | Jian swing 1, held in the square ring before transfer | 60 | 120 |
+| `crossing` (940) | Lifting zip across the Well, safety cap open | 144 | 288 |
+
+Each test owns one committed checkpoint, checks exact canonical restoration, then runs two fresh adapters' short
+suffixes and compares canonical state hashes in the same process. No native transcendental-dependent terminal digest
+is used as a cross-platform oracle. The aggregate replay steps **408 ticks**, down from 1,768 (77% fewer); headless
+coverage is unchanged. Separate tests keep the portal / sword and Well continuation assertions, each with a 60 s budget.
+
+`checkpoints/manifest.json` records the SHA256 of every loaded repository module (including the command tape, trusted
+entry, engine simulation / snapshot / player / physics closure and imported physics bake) plus Rapier WASM. The native
+CLI admits the same closure in each mode; `fresh` and every replay refuse stale inputs before restoring. The checkpoint
+wire is strictly parsed and the engine validates the packed snapshot. Regenerate explicitly from a clean candidate:
+
+```sh
+node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs checkpoints
+node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs fresh
+node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all
+```
+
+`compatibility.json` is re-recorded from the real `all` run, with canonical hashes. Engine or Nine closure changes need
+a checkpoint regeneration just as Sky's committed checkpoints do. No production source, collider or map input changes
+in this slice.
+
+The isolated local coverage check (`vitest run .../headless.test.ts .../replay.test.ts --coverage --maxWorkers=1`,
+heavy-lane ticket 989, queue excluded) took 8.002 s for the whole headless route, 1.206 s for the ride replay and
+2.349 s for the crossing replay. Each is below one third of its 60 s timeout. A separate independent-process
+determinism check passed both slices under coverage (8.108 / 14.019 s while the shared machine was busy).
+
+## Why the hook debug capture remains
+
+`grapple/course.ts` contains interfaces, not hook placement data. The 31 ring centres are emitted by `square.ts`,
+`towers.ts`, `stairstreet.ts`, `stairstreet-upper.ts`, `well-rim.ts`, `well-mid.ts` and `well-bridges.ts`. Their render
+builders combine wall profiles, geometry placement and seeded detail generation; the timber pavilion's hook depends
+on its RNG-selected / clearance-adjusted pavilion centre and LOD. `props.ts::dragonHook` records the final ring centre
+while drawing its geometry; the stair-foot dragon records a separate transformed jaw ring.
+
+A faithful Node derivation requires extracting those authored placement recipes and their shared random choices into
+pure data used by both the render builders and the bake. Copying the 31 baked coordinates would only duplicate the
+bake, and importing the builders would load the renderer. This follow-up therefore retains `nd.grapple`, the real
+browser bake, and Nine's `context.debug` cap of 2. The placement extraction remains explicitly open; it changes world
+map inputs and needs a browser-equivalence proof and map rebake.
