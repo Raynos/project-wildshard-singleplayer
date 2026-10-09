@@ -1,55 +1,56 @@
-# Handoff (sf72-opus) — 2026-10-08, SF72 Signal Dunes headless, 90-min cap
+# Handoff (sf72-opus) — 2026-10-08, SF72 Signal Dunes headless, second 90-min lane (sf72-signal)
 
-Coordinator `wildshard-new` pushes. Landed locally with private indices + old-value CAS; no browser, preview or Simulator
-left running. Signal's canonical witness (`test/proof/sunscar-dunes/`) is UNCHANGED and still fails closed: the runtime
-does not yet own the quest, the whip, the Matriarch, the ledger or an entry proof. Sky Reach was not started.
+Coordinator `wildshard-new` pushes. Landed locally with pathspec commits; no browser, preview or Simulator left running.
+Signal's canonical witness (`test/proof/sunscar-dunes/`) is UNCHANGED and still fails closed: the runtime owns the
+terrain, colliders, 13 homes, the whip and the quest's first five steps, but not yet the Matriarch, the ledger facts
+from play or an entry proof. Sky Reach belongs to the parallel lane sf72-sky.
 
 ## Landed
 
-- `17c188c89` interactions: sp-x1's `runtime/interactions.ts` (logbook / well / oil / waymarks / signal fire, strict
-  transient snapshot) behind `world/build.ts`, unchanged order; tests `test/shards/sunscar-dunes/interactions.test.ts`;
-  official map rebake from the candidate's clean build. Graph sunscar→engine +1 approved.
-- `c6858f253` native bake: `scripts/bake-signal-physics.mjs` (+ `signal-physics-inputs.mjs` freshness hash) →
-  `runtime/physics.baked.json`: 13 homes' model-derived specs / seeds / scales (strider bodyY 1.966 from the fitted GLB),
-  the Matriarch's spec (captured after play's own steps light the signal and the player enters her basin), 10 collider
-  pieces. `physics-bake.test.ts` reproduces every baked seed/scale from the creature manager stream `Rng(5363 + 31)`,
-  six draws per spawn (scale, rig seed, actor seed, timer, fleeUntil, callT). NB: the manager is seeded with the LEVEL
-  seed (`layout.ts SEED` = shardfile seed 5363), not engine `SEED`'s default.
-- `8b4ac8ca9` headless runtime: `runtime/headless.ts` (SDK `PrepareHeadlessRuntime`: admitted terrain collider +
-  heights, baked colliders, `ground:false`), `runtime/homes.ts` (13 homes via `host.spawn/retire`, respawn clocks, the
-  stream, 2 attack tokens = manifest `fight.attackers`, ray held until `SCOUT_FLAG`, 10 Hz decide / per-tick move),
-  `runtime/homeBrains.ts` (shipping patrol-diver / skitterer / challenge-grazer, ports allocated once per body, contacts
-  inside the 70° arc with canReach). Restore reinstalls the saved roster from `runtime.actor.<id>` recipes before the host
-  restore, no stream draw; a changed spec refuses. Graph sunscar→engine +15, →sdk +3 approved.
+- `17c188c89` / `c6858f253` / `8b4ac8ca9` (first lane): interactions behind a renderer-free port, the native bake,
+  `runtime/headless.ts` with the 13 homes (see git log for detail).
+- `e1c387f42` `scripts/shard-platform.mjs` milestone flags read `test/proof/<slug>/compatibility.json` (status
+  `passed`, ledger `gameplayEmissionProven`, `compatible` + exit 0) over the bare test files; `transitional` holds until
+  the trusted runtime is gone AND the witnesses pass. All six native shards now read false, as their witnesses do.
+- `a4042f136` step 1, the whip: `runtime/whip.ts` installs the admitted `weapon.sunscar-whip` row as an engine
+  `ItemRuntime`; a `player` command's attack queues its light crack (18) from the eye (1.68 m) at the target's body,
+  7 m reach, 0.9 m lane, 0.45 s cooldown; exact snapshot adapter `item.weapon.sunscar-whip`. The protocol's attack has
+  no heavy flag, so headless heavy cracks (16) are only reachable through `WhipCommand.heavy`. The browser family's
+  0.12 s unroll, second lash, pull and stagger are not modelled. Graph sunscar→engine +2 approved.
+- `3263244d4` step 2, quest + interactions: `runtime/quest.ts` = `DeclaredQuests(host, shard.quests, { fact, coins })`
+  (effects through `context.emit`) + `SignalInteractions` on `host.flags`, driven by `script` commands on
+  `sunscar.interact` with `SIGNAL_ACT` values (talk 0, logbook 1, well 2, pour 3..5, fire 6, crank 100 = the heavy
+  double crack, light 101..103) at the browser radii from the eye. Spots are baked (`physics.baked.json` `spots`, from
+  the built world; the bake rerun on clean a4042f136 matched actors / pieces / bosses byte-for-byte). Sefa's head is
+  SCOUT_AT + ground + 1.62 (quest/scout.ts), radius 3.5. Not modelled: prompt line of sight, and crack commands do not
+  spend the whip's cooldown. Graph sunscar→game +2, →engine +1 approved.
 
 ## Exact next steps (in order)
 
-1. **Whip**: install `data/items.ts` `weapon.sunscar-whip` as an engine `ItemRuntime` (template fixture pattern in
-   `test/proof/_template/fixture.ts`), driven by `player` commands' attack; light 18 / heavy 16 contacts. Replace the
-   zero-damage `host.probe` level weapon only if the item lane needs it; never invent a strike.
-2. **Quest + interactions**: `SignalInteractions` on `host.flags` (it already takes `Pick<Flags,'has'|'set'>`), driven
-   by `script` commands (`actorId: 'sunscar.interact'`, value = interactable index) with the browser radii (logbook 2.4,
-   well 2.6, braziers 3 / crack 1.2, tower 2.6) and the well's heavy double crack; Sefa's talk sets `SCOUT_FLAG`. Quest
-   state from `quests/signal.ts SIGNAL_QUESTS` through the game's declared quest path (browser: `bindRuntimeQuest`; likely headless counterpart:
-   `DeclaredQuests` / `createQuestScriptPorts` headless); its snapshot = `SignalInteractions.snapshot()` adapter.
-   Completion emits fact `sunscar.signal` + 5 coins via `context.emit` (`installLedgerEmitter` in the proof).
-3. **Matriarch**: split `combat/matriarch.ts`'s `BossScript` (hp/phase/storm goal/invulnerable/checkpoint/reward) from
-   its views (BossBar, fog, shells, CoinBurst, toasts); spawn `sunscar.matriarch` with the baked spec via `host.spawn`
-   (her six draws come from the same stream, after the homes' draws), `MatriarchBrain` (`runtime/species/matriarch.ts`)
-   at the same cadence, `BossBrain` continuation in an adapter; victory → `MATRIARCH_FLAG` + fact `sunscar.matriarch`.
-4. **Entry proof**: `proveEntries` walking the shardfile's declared entryways on the native terrain (lanes ≥ 1, steps ≥ 1).
-5. **Witness**: point `test/proof/sunscar-dunes/run.mjs` at the trusted `runtime/headless.ts` through
-   `HeadlessSimulation` + `trustedRuntime`; headless 10k, replay (Matriarch mid-fight checkpoint + suffix, exact hash),
-   ledger (both facts from gameplay, durable, deduped); update compatibility.json/README only from the real run.
-6. Then Sky Reach from `sp-x4.md` (same shape: baked specs exist in `far-reach/runtime/physics.baked.json`).
+1. **Matriarch**: split `combat/matriarch.ts`'s `BossScript` (hp/phase/storm goal/invulnerable/checkpoint/reward) from
+   its views (BossBar, fog, shells, CoinBurst, toasts); summon from `installSignalQuest`'s `lit` port (the browser's
+   `fire.onLight`, then the player entering her basin); spawn `sunscar.matriarch` with the baked spec via `host.spawn`
+   (her six draws from the homes' stream `Rng(5363 + 31)`, after the homes'), `MatriarchBrain`
+   (`runtime/species/matriarch.ts`) at the 10 Hz cadence, `BossBrain` continuation in an adapter; victory →
+   `MATRIARCH_FLAG` (completes the quest: fact `sunscar.signal` + 5 coins already flow through DeclaredQuests) and fact
+   `sunscar.matriarch` via `context.emit`. Any knockback on the player uses sf72-sky's `host.impulsePlayer` seam
+   (`defff10d1`, `src/engine/player/impulse.ts`); never build a second one. `combat/matriarch.ts` is a bake input
+   (`signal-physics-inputs.mjs`) — rerun the bake (`scripts/browser-lane.sh node scripts/bake-signal-physics.mjs
+   --url=<clean build> --revision=<sha>`) in the same commit.
+2. **Entry proof**: `proveEntries` walking the shardfile's declared entryways on the native terrain (lanes ≥ 1, steps ≥ 1).
+3. **Witness**: point `test/proof/sunscar-dunes/run.mjs` at `runtime/headless.ts` through `HeadlessSimulation` +
+   `trustedRuntime`; headless 10k, replay (Matriarch mid-fight checkpoint + suffix, exact hash), ledger (both facts from
+   gameplay, durable, deduped); update compatibility.json / README only from the real run. `shard-platform --json`
+   then reads true by itself. Check: a restore after quest completion must not re-emit (the adapter throws on effects
+   during install).
 
-## Proof receipts
+## Proof receipts (this lane)
 
-- Clean-export full Vitest per slice: 992/5534, 993/5537, 994/5542 passed; root strict + layers + ratchet + hooks green.
-- Browser (muted Chromium, iPhone 16 Pro / phone, HEAD `8b4ac8ca9`): boot smoke standalone ×2 + grid PASS, 0 faults;
-  `physics-baseline --mode=walk --shard=sunscar-dunes` 7 legs, 0 stuck; the bake rerun on HEAD (which stages logbook →
-  well → oil → 3 waymarks → fire → Matriarch through the extracted interactions) matched the landed bake exactly.
-- `shard-platform --json` Signal: public 42 / custom 3797 → 4031, runtime 451 → 686, share 0.0109 → 0.0103 (new
-  trusted headless code is custom); Sky unchanged 0.0152.
+- Clean-export full Vitest on HEAD + the quest slice: 994/995 files, 5544/5545 tests; the one failure was AG7's
+  graph count, green (111/111) after the export-only regeneration. Strict tsc (root + layers + scripts), oxlint,
+  ratchet, shard-coupling green.
+- Browser (clean a4042f136 build, muted Chromium): boot smoke standalone ×2 + grid PASS, 0 faults;
+  `physics-baseline --mode=walk --shard=sunscar-dunes` 7 legs, 0 stuck. The quest slice touches no browser module.
+- `shard-platform --json` Signal: public 42 / custom 4031 → 4141, runtime 686 → 796, share 0.0103 → 0.0100.
 
 Plan-State: unchanged.
