@@ -2078,7 +2078,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2340 exports, grouped by the module to import them from.
+2343 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2234,6 +2234,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/debug/probe`: `CombatTarget`, `compiledProgramHash`, `createProbeNav`, `EngineProbe`, `Fingerprint`, `GameplayState`, `GpuBytes`, `HarnessPins`, `installProbe`, `LeakCensus`, `LeakResult`, `ProbeApp`, `ProbeDeps`, `ProbeNav`, `ProbePose`, `ProbeWorld`, `programHash`, `ResourceCounts`, `Saves`, `SoundLog`, `Vec3`, `WalkLeg`, `WalkResult`
 - `@wildshard/engine/entities/AnimalFactory`: `AnimalFactory`, `AnimalKind`, `AnimalMaterial`, `AnimalModel`, `AnimalRig`, `AnimalStyle`, `AnimalVariant`, `DEFAULT_CREATURE_RENDER`, `SHELL_LAYERS`
 - `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BodyClearable`, `clearBody`, `Herd`, `WanderGoalQuery`
+- `@wildshard/engine/entities/animalPose`: `AnimalPoseInput`, `AnimalPoseLaw`, `AnimalPoseRecipe`, `P_COUNT`
 - `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalPoseSample`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
 - `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/bodyClear`: `BodyClearable`, `clearBody`

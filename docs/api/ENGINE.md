@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2359 members; 842 without a doc line (—).
+2363 members; 842 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -922,6 +922,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `clearBody` | function | @wildshard/engine/entities/AnimalManager | Shared renderer-free law; the page mesh follows the same native displacement. |
 | `Herd` | type | @wildshard/engine/entities/AnimalManager | — |
 | `WanderGoalQuery` | interface | @wildshard/engine/entities/AnimalManager | — |
+| `AnimalPoseInput` | interface | @wildshard/engine/entities/animalPose | Numeric inputs to the shipping gait/overlay law. The caller owns body motion and these sampled clocks. |
+| `AnimalPoseLaw` | class | @wildshard/engine/entities/animalPose | Renderer-free shipping scalar pose law. Reuses its Float32 buffers; advancement allocates nothing. |
+| `AnimalPoseRecipe` | interface | @wildshard/engine/entities/animalPose | Existing authored dimensions and pose modifiers; no model, rig, scene or active world. |
+| `P_COUNT` | const | @wildshard/engine/entities/animalPose | Width of the shipping numeric pose-channel buffer. |
 | `AnimalMotor` | interface | @wildshard/engine/entities/AnimalSim | Collision-only displacement port; the creature retains its own feet position. |
 | `AnimalPoseSample` | interface | @wildshard/engine/entities/AnimalSim | Mutable presentation sample. A view owns this buffer; sampling never advances authoritative state. |
 | `AnimalSim` | class | @wildshard/engine/entities/AnimalSim | Creature state and motion. All world services arrive as ports; there is no scene, rig or active app. |

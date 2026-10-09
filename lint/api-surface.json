@@ -5495,6 +5495,30 @@
         "from": "@wildshard/engine/entities/AnimalManager"
       },
       {
+        "name": "AnimalPoseInput",
+        "kind": "interface",
+        "doc": "Numeric inputs to the shipping gait/overlay law. The caller owns body motion and these sampled clocks.",
+        "from": "@wildshard/engine/entities/animalPose"
+      },
+      {
+        "name": "AnimalPoseLaw",
+        "kind": "class",
+        "doc": "Renderer-free shipping scalar pose law. Reuses its Float32 buffers; advancement allocates nothing.",
+        "from": "@wildshard/engine/entities/animalPose"
+      },
+      {
+        "name": "AnimalPoseRecipe",
+        "kind": "interface",
+        "doc": "Existing authored dimensions and pose modifiers; no model, rig, scene or active world.",
+        "from": "@wildshard/engine/entities/animalPose"
+      },
+      {
+        "name": "P_COUNT",
+        "kind": "const",
+        "doc": "Width of the shipping numeric pose-channel buffer.",
+        "from": "@wildshard/engine/entities/animalPose"
+      },
+      {
         "name": "AnimalMotor",
         "kind": "interface",
         "doc": "Collision-only displacement port; the creature retains its own feet position.",
