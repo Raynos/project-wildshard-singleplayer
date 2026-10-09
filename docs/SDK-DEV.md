@@ -90,3 +90,21 @@ scope-owned status binding directly: movement lock/scale use independent channel
 periodic damage uses the supplied combat pipeline, and death/disposal cleanup ends
 with the owner. It adds no HUD or visual policy; status-icon presentation stays
 separate. Importing the module installs nothing.
+
+## Trusted renderer-free headless runtimes
+
+`HeadlessSimulation.create(source, assets, checkpoint, { trustedRuntime: { module: fileURL } })`
+loads an explicitly selected local ESM entry inside the same isolated worker and deadlines as the
+data-only simulation. This option is host policy, never inferred from `source.runtime` or untrusted
+asset data. The entry exports `prepareHeadlessRuntime`, typed by
+`@wildshard/sdk/headlessRuntime`. It receives validated source/assets and initialized Rapier and
+returns a `SimLevel`, optional ground ports, and `install(host, context)`. The SDK owns the native
+host. Install runs synchronously before snapshot restoration; register controller continuation
+through `host.onStep` adapters and native reconnection through `physicsRestored`.
+
+`context.commands()` reads the current admitted batch. `context.emit()` buffers facts/coins until
+the tick commits; installation cannot emit gameplay effects. Rendering and browser globals do
+not belong in this entry. Complete snapshots use the existing strict native codec and include
+actors, motors, controllers and pending events. An optional `proveEntries(host)` performs real
+entry validation: without it `finish()` refuses, while stepping and exact replay remain available.
+The ordinary data-only path is unchanged.

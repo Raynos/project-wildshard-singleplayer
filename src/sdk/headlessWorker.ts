@@ -1,3 +1,4 @@
+import { createTrustedHeadlessAdapter } from './headlessRuntime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the platform-selected physics binary is read inside the isolated worker.
 import { readFileSync } from 'node:fs';
@@ -12,8 +13,9 @@ import { runTickWorker } from './tickWorkerLoop';
 import type { HeadlessEffect } from './tickProtocol';
 
 await runTickWorker(async raw => {
-  const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()) }), raw);
+  const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()), trustedRuntime: v.exactOptional(v.strictObject({ module: v.string() })) }), raw);
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
+  if (payload.trustedRuntime !== undefined) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier }, payload.trustedRuntime, payload.snapshot);
   let commands: ReadonlyMap<string, number> = new Map();
   let effects: HeadlessEffect[] = [];
   const ports = { rapier, commands: () => commands, quest: {

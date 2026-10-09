@@ -10,13 +10,15 @@ import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import type { Shardfile } from './shardfile';
 import { TickWorkerHost } from './tickWorkerHost';
 import type { HeadlessCommandSource, HeadlessTickCommit } from './tickProtocol';
+import { trustedHeadlessModule, type TrustedHeadlessRuntime } from './headlessRuntime';
 import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 
 /** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
 export class HeadlessSimulation {
   private constructor(private readonly runner: TickWorkerHost) {}
   /** Start the fixed worker with runtime deadlines by default. Trusted offline validation selects advisory timing; author data cannot select this policy. */
-  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory' } = {}): Promise<HeadlessSimulation> {
+  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; trustedRuntime?: TrustedHeadlessRuntime } = {}): Promise<HeadlessSimulation> {
+    const trustedRuntime = options.trustedRuntime === undefined ? undefined : { module: trustedHeadlessModule(options.trustedRuntime.module) };
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'));
     const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
     if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
@@ -31,7 +33,7 @@ export class HeadlessSimulation {
     if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
     // Source-checkout workers need their own Node hooks; parent Vitest/Vite transforms never cross the isolate boundary.
     const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(loader).href];
-    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
+    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, ...(trustedRuntime === undefined ? {} : { trustedRuntime }), ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
     try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
   }
   /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */

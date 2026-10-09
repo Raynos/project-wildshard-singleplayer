@@ -36,6 +36,7 @@
     "./groupBrains": "./groupBrains.ts",
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
+    "./headlessRuntime": "./headlessRuntime.ts",
     "./commons": "./commons.ts",
     "./commonsCosts": "./commonsCosts.ts",
     "./runtime/weapons/Firearm": "./runtime/weapons/Firearm.ts",
@@ -223,6 +224,10 @@
       "./admission": {
         "types": "./dist/types/sdk/admission.d.ts",
         "default": "./dist/admission.js"
+      },
+      "./headlessRuntime": {
+        "types": "./dist/types/sdk/headlessRuntime.d.ts",
+        "default": "./dist/headlessRuntime.js"
       },
       "./headless": {
         "types": "./dist/types/sdk/headless.d.ts",

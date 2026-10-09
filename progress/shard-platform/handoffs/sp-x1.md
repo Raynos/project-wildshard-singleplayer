@@ -24,3 +24,5 @@ Horse scratch `/private/tmp/claude-501/sp-builders/sp-x1/horse-fix/` was deleted
 paused-frame attribution remains unproven; `6d8b93cc8` records its preserved scratch/manual-cleanup paths.
 
 Plan-State: unchanged.
+
+SF72 shared trusted installer: `src/sdk/headlessRuntime.ts`, explicit local ESM entry inside the SDK worker. Actual actor/combat/controller/native replay proof. Clean full5487pass/14skip, approved AG7 +3 then111 guards green; strict/lint/ratchet green. Signal controller extraction and passing compatibility witness remain next. Scratch `/private/tmp/claude-501/sp-builders/sp-x1/sf72/` holds candidate/export. No owned preview/browser/Simulator.
