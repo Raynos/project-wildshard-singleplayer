@@ -1988,7 +1988,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2253 exports, grouped by the module to import them from.
+2255 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2014,6 +2014,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/ai/skirmisher`: `SkirmisherBrain`, `SkirmisherPorts`, `SkirmisherSpec`
 - `@wildshard/engine/ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
 - `@wildshard/engine/ai/strikes`: `BrainPoint`, `StrikeActor`, `StrikeContext`, `StrikePhase`, `StrikeRunner`, `StrikeShape`, `StrikeSpec`, `UtilityScore`
+- `@wildshard/engine/ai/strikeState`: `readStrikeState`
 - `@wildshard/engine/ai/view/DebugOverlay`: `AiDebugHost`, `AiDebugView`, `DebugActor`, `installAiDebug`
 - `@wildshard/engine/ai/weighted`: `TableDrop`, `TableSpec`, `WeightedRow`, `WeightedTable`
 - `@wildshard/engine/anim/channel`: `ClipChannel`
@@ -2123,7 +2124,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/core/Grade`: `GradeEffect`, `GradeLookEffect`, `GradeOptions`
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
-- `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `layerArrayMips`, `prepareCompressedTexture`, `readTexturePixels`, `releaseAfterUpload`
+- `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `layerArrayMips`, `linearKtx2Texture`, `prepareCompressedTexture`, `readTexturePixels`, `releaseAfterUpload`
 - `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphOutline`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `SUN_CASCADES`, `SUN_CASCADES_MAX`, `SUN_OPS`, `validateGraph`
 - `@wildshard/engine/core/memoryAttribution`: `MemoryAllocation`, `memoryAttribution`, `MemoryAttribution`, `memoryCreationLabel`, `MemoryDomain`, `MemoryLabel`, `MemoryMeasurement`, `MemoryPrecision`, `MemorySnapshot`, `withMemoryLabel`
 - `@wildshard/engine/core/meshCollision`: `decodeMeshCollision`, `encodeMeshCollision`, `isMeshCollisionData`, `lowestMeshHeight`, `MESH_COLLISION_LIMITS`, `meshCollisionCost`, `MeshCollisionData`
@@ -2368,7 +2369,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-765 exports, grouped by the module to import them from.
+796 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2411,6 +2412,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/loot/runtime`: `installLoot`, `installRuntimeLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
 - `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
+- `@wildshard/game/models/pickups`: `carvedToken`, `carvedTokenGeometry`, `doubloon`, `flintKit`, `flintKitGeometry`, `glyphShard`, `glyphShardGeometry`, `installKitPickups`, `resinDrop`, `resinDropGeometry`, `seaGlass`, `seaGlassGeometry`, `tokenRimGeometry`
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
 - `@wildshard/game/Progress`: `Progress`, `ProgressLedger`, `ProgressRow`, `ProgressSink`
 - `@wildshard/game/quest/declared`: `createQuestScriptPorts`, `DeclaredQuests`, `DialogueView`, `QuestDataPorts`, `QuestScriptBindings`, `QuestScriptPorts`
@@ -2499,6 +2501,9 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/systems/looks/particles`: `makeMistTexture`, `Particles`
 - `@wildshard/game/systems/looks/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
 - `@wildshard/game/systems/looks/trample`: `grassHeightAt`, `GrassTrample`, `MAX_MOVERS`, `RECOVER`, `trample`, `TRAMPLE_GLSL`
+- `@wildshard/game/systems/npc/npcRig`: `footPlan`, `LEG_BONE_NAMES`, `legBones`, `LegBuilt`, `legPose`, `LegPoseIn`, `legRigOf`, `NpcFace`, `NpcModel`, `NpcRig`, `NpcRigProfile`, `NpcRow`, `rigLegs`, `WALK`
+- `@wildshard/game/systems/species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
+- `@wildshard/game/systems/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
 - `@wildshard/game/systems/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
 - `@wildshard/game/systems/viewmodel/armRig`: `armConst`, `ArmConst`, `ArmWorld`, `BONES`, `buildBones`, `frameYZ`, `GRIP`, `HandSpec`, `JointAngles`, `LEFT_HAND`, `LEFT_SCALE`, `LIMITS`, `measure`, `Pose`, `RIGHT_HAND`, `settleLeft`, `Side`, `signedAngle`, `softLimit`, `solveArm`, `TWISTS`, `twoBone`
 - `@wildshard/game/systems/viewmodel/rigArms`: `RigArms`, `RigMeta`, `RigState`, `swordArmsOf`, `VM_FOV`, `VmFrame`, `vmScale`
@@ -2513,7 +2518,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-104 exports, grouped by the module to import them from.
+73 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
@@ -2521,15 +2526,11 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
 - `@wildshard/kit/items/declared`: `declaredKitItemFamilies`, `ITEM_VIEW_LIFT`
 - `@wildshard/kit/models/creatures`: `bear`, `boar`, `deer`
-- `@wildshard/kit/models/pickups`: `carvedToken`, `carvedTokenGeometry`, `doubloon`, `flintKit`, `flintKitGeometry`, `glyphShard`, `glyphShardGeometry`, `installKitPickups`, `resinDrop`, `resinDropGeometry`, `seaGlass`, `seaGlassGeometry`, `tokenRimGeometry`
 - `@wildshard/kit/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`
 - `@wildshard/kit/npc/figureMotion`: `NpcFigureMotionProfile`, `npcFigurePose`, `NpcFigureState`, `stepNpcFigure`
 - `@wildshard/kit/npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigure`, `NpcFigureBones`, `NpcFigureFrame`, `NpcFigureRig`, `packNpcAtlases`
-- `@wildshard/kit/npc/npcRig`: `footPlan`, `LEG_BONE_NAMES`, `legBones`, `LegBuilt`, `legPose`, `LegPoseIn`, `legRigOf`, `NpcFace`, `NpcModel`, `NpcRig`, `NpcRigProfile`, `NpcRow`, `rigLegs`, `WALK`
 - `@wildshard/kit/species/bear`: `BEAR`, `BEAR_TUNING`
 - `@wildshard/kit/species/boar`: `BOAR`, `BOAR_TUNING`
-- `@wildshard/kit/species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
-- `@wildshard/kit/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
 - `@wildshard/kit/weapons/bow/family`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
 - `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2270 members; 835 without a doc line (—).
+2272 members; 836 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -116,6 +116,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `StrikeShape` | type | @wildshard/engine/ai/strikes | where a creature's strike lands, around it: an arc, a lane, a ring or a wedge |
 | `StrikeSpec` | interface | @wildshard/engine/ai/strikes | — |
 | `UtilityScore` | interface | @wildshard/engine/ai/strikes | — |
+| `readStrikeState` | function | @wildshard/engine/ai/strikeState | Validate a JSON strike continuation against this policy's exact finite strike catalogue before any state mutates. |
 | `AiDebugHost` | interface | @wildshard/engine/ai/view/DebugOverlay | — |
 | `AiDebugView` | interface | @wildshard/engine/ai/view/DebugOverlay | — |
 | `DebugActor` | interface | @wildshard/engine/ai/view/DebugOverlay | — |
@@ -750,6 +751,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ktx2Layers` | function | @wildshard/engine/core/ktx2 | The files of one texture array as KTX2 textures of one format (their `#layer` twins, baked unflipped), their mip chains trimmed so level 0 is `size` (the |
 | `ktx2Texture` | function | @wildshard/engine/core/ktx2 | The KTX2 texture standing in for `served`, or null: load the image instead. Memory saver keeps a bounded weak |
 | `layerArrayMips` | function | @wildshard/engine/core/ktx2 | Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level |
+| `linearKtx2Texture` | function | @wildshard/engine/core/ktx2 | — |
 | `prepareCompressedTexture` | function | @wildshard/engine/core/ktx2 | Fence a finalized compressed texture before publishing it to a material or doing a readback. |
 | `readTexturePixels` | function | @wildshard/engine/core/ktx2 | Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h |
 | `releaseAfterUpload` | function | @wildshard/engine/core/ktx2 | Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the |
@@ -2115,14 +2117,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `InteractDef` | type | @wildshard/engine/world/interact/types | — |
 | `InteractKind` | type | @wildshard/engine/world/interact/types | — |
 | `interactProps` | function | @wildshard/engine/world/interact/types | — |
-| `InteractProps` | interface | @wildshard/engine/world/interact/types | The props the interaction runtime draws (E405 E417: the props are content, the kit's — src/kit/props/interact.ts — |
+| `InteractProps` | interface | @wildshard/engine/world/interact/types | The props the interaction runtime draws (E405 E417: the props are content, the game's — src/game/systems/props/interact.ts — |
 | `InteractTable` | interface | @wildshard/engine/world/interact/types | — |
 | `KeyDef` | interface | @wildshard/engine/world/interact/types | — |
 | `LeverDef` | interface | @wildshard/engine/world/interact/types | — |
 | `PickupDef` | interface | @wildshard/engine/world/interact/types | — |
 | `pickupLook` | function | @wildshard/engine/world/interact/types | — |
 | `PickupLook` | interface | @wildshard/engine/world/interact/types | — |
-| `PickupPart` | interface | @wildshard/engine/world/interact/types | A pickup's look (E405: content registers its own — the kit's, src/kit/models/pickups.ts): its batched model, and the |
+| `PickupPart` | interface | @wildshard/engine/world/interact/types | A pickup's look (E405: content registers its own — the game's, src/game/models/pickups.ts): its batched model, and the |
 | `Place` | interface | @wildshard/engine/world/interact/types | — |
 | `PlateDef` | interface | @wildshard/engine/world/interact/types | — |
 | `PoiId` | type | @wildshard/engine/world/interact/types | Interactables kit — the DATA schema (A2, project/archive/2026-09-23-driftwood-remaster.md). Every chest, key, door, lever, pressure |

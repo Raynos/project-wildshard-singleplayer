@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-765 members; 126 without a doc line (—).
+796 members; 141 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -218,6 +218,19 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShopOpts` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopPanel` | class | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopState` | type | @wildshard/game/loot/ui/ShopPanel | 'full': the buyer has no room for what the good gives (a full quiver) |
+| `carvedToken` | const | @wildshard/game/models/pickups | — |
+| `carvedTokenGeometry` | function | @wildshard/game/models/pickups | a carved wooden token — lit batch: a wooden disc on edge, a burnt antler glyph on both faces, a bark rim |
+| `doubloon` | const | @wildshard/game/models/pickups | — |
+| `flintKit` | const | @wildshard/game/models/pickups | — |
+| `flintKitGeometry` | function | @wildshard/game/models/pickups | flint + steel striker on a scrap of leather — lit batch |
+| `glyphShard` | const | @wildshard/game/models/pickups | — |
+| `glyphShardGeometry` | function | @wildshard/game/models/pickups | — |
+| `installKitPickups` | function | @wildshard/game/models/pickups | — |
+| `resinDrop` | const | @wildshard/game/models/pickups | — |
+| `resinDropGeometry` | function | @wildshard/game/models/pickups | an amber resin drop — glow batch: a bead of amber weeping down a trunk, a smaller drip under it |
+| `seaGlass` | const | @wildshard/game/models/pickups | — |
+| `seaGlassGeometry` | function | @wildshard/game/models/pickups | — |
+| `tokenRimGeometry` | function | @wildshard/game/models/pickups | the token's faint ember rim (glow batch), so a token reads at a few metres in the undergrowth |
 | `NewGameProgress` | interface | @wildshard/game/newGame | Detached before/after progress for the Settings confirmation. Null quest counts mean legacy flags exist without a declared quest catalogue. |
 | `NewGameQuest` | interface | @wildshard/game/newGame | Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime. |
 | `NewGameSummary` | interface | @wildshard/game/newGame | A reset affects one stable instance. The kept categories include legacy shard feat progress as well as the profile ledger. |
@@ -705,6 +718,24 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RECOVER` | const | @wildshard/game/systems/looks/trample | seconds a fully flattened patch takes to stand back up (design: 20 s) |
 | `trample` | const | @wildshard/game/systems/looks/trample | the world's trample map (a singleton — movers anywhere push into it) |
 | `TRAMPLE_GLSL` | const | @wildshard/game/systems/looks/trample | GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) |
+| `footPlan` | function | @wildshard/game/systems/npc/npcRig | a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle) |
+| `LEG_BONE_NAMES` | const | @wildshard/game/systems/npc/npcRig | — |
+| `legBones` | function | @wildshard/game/systems/npc/npcRig | the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first |
+| `LegBuilt` | interface | @wildshard/game/systems/npc/npcRig | — |
+| `legPose` | function | @wildshard/game/systems/npc/npcRig | the pose function over `bones` (legBones' order) for `b` |
+| `LegPoseIn` | interface | @wildshard/game/systems/npc/npcRig | the pose's inputs (npcModels.ts NpcRig.pose): `walk` 0 … 1 blends the walk in, `phase` its cycle (0 … 1, wraps) |
+| `legRigOf` | function | @wildshard/game/systems/npc/npcRig | rigLegs, once per person per shard visit |
+| `NpcFace` | interface | @wildshard/game/systems/npc/npcRig | — |
+| `NpcModel` | interface | @wildshard/game/systems/npc/npcRig | Authored pivot and skinned models share the NPC row lifecycle; their pose driver stays with the content. |
+| `NpcRig` | class | @wildshard/game/systems/npc/npcRig | The draw cut runs before the pose, so a hidden counter and its figure freeze together. |
+| `NpcRigProfile` | interface | @wildshard/game/systems/npc/npcRig | Authored hull traits; the seed rig contains no shard names or model paths. |
+| `NpcRow` | interface | @wildshard/game/systems/npc/npcRig | — |
+| `rigLegs` | function | @wildshard/game/systems/npc/npcRig | place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node |
+| `WALK` | const | @wildshard/game/systems/npc/npcRig | the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H) |
+| `BEAR_LOOK` | const | @wildshard/game/systems/species/view/bear | — |
+| `BEAR_PALETTE` | const | @wildshard/game/systems/species/view/bear | Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown / |
+| `BOAR_LOOK` | const | @wildshard/game/systems/species/view/boar | — |
+| `BOAR_PALETTE` | const | @wildshard/game/systems/species/view/boar | Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head. |
 | `ARM_CLIPS` | const | @wildshard/game/systems/viewmodel/armClips | Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical. |
 | `armClipNames` | const | @wildshard/game/systems/viewmodel/armClips | — |
 | `SWIM_CLIPS` | const | @wildshard/game/systems/viewmodel/armClips | — |

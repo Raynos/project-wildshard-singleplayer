@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-106 members; 33 without a doc line (—).
+75 members; 18 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -19,19 +19,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `bear` | const | @wildshard/kit/models/creatures | black and brown bears, and their old ones |
 | `boar` | const | @wildshard/kit/models/creatures | wild boar: sows to the old boars, and the spawn-only variants a level asks for by name |
 | `deer` | const | @wildshard/kit/models/creatures | red deer: hinds, stags and their rare coats (the ghost stag, the great stag) |
-| `carvedToken` | const | @wildshard/kit/models/pickups | — |
-| `carvedTokenGeometry` | function | @wildshard/kit/models/pickups | a carved wooden token — lit batch: a wooden disc on edge, a burnt antler glyph on both faces, a bark rim |
-| `doubloon` | const | @wildshard/kit/models/pickups | — |
-| `flintKit` | const | @wildshard/kit/models/pickups | — |
-| `flintKitGeometry` | function | @wildshard/kit/models/pickups | flint + steel striker on a scrap of leather — lit batch |
-| `glyphShard` | const | @wildshard/kit/models/pickups | — |
-| `glyphShardGeometry` | function | @wildshard/kit/models/pickups | — |
-| `installKitPickups` | function | @wildshard/kit/models/pickups | — |
-| `resinDrop` | const | @wildshard/kit/models/pickups | — |
-| `resinDropGeometry` | function | @wildshard/kit/models/pickups | an amber resin drop — glow batch: a bead of amber weeping down a trunk, a smaller drip under it |
-| `seaGlass` | const | @wildshard/kit/models/pickups | — |
-| `seaGlassGeometry` | function | @wildshard/kit/models/pickups | — |
-| `tokenRimGeometry` | function | @wildshard/kit/models/pickups | the token's faint ember rim (glow batch), so a token reads at a few metres in the undergrowth |
 | `faceHead` | function | @wildshard/kit/npc/faceHeads | — |
 | `FaceHead` | interface | @wildshard/kit/npc/faceHeads | — |
 | `loadFaceHead` | function | @wildshard/kit/npc/faceHeads | — |
@@ -46,28 +33,10 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `NpcFigureFrame` | interface | @wildshard/kit/npc/figureRig | a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) |
 | `NpcFigureRig` | interface | @wildshard/kit/npc/figureRig | — |
 | `packNpcAtlases` | function | @wildshard/kit/npc/figureRig | the five atlases in one texture (3 × 2 cells, flipY off like glTF): each figure's uv moved into its cell |
-| `footPlan` | function | @wildshard/kit/npc/npcRig | a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle) |
-| `LEG_BONE_NAMES` | const | @wildshard/kit/npc/npcRig | — |
-| `legBones` | function | @wildshard/kit/npc/npcRig | the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first |
-| `LegBuilt` | interface | @wildshard/kit/npc/npcRig | — |
-| `legPose` | function | @wildshard/kit/npc/npcRig | the pose function over `bones` (legBones' order) for `b` |
-| `LegPoseIn` | interface | @wildshard/kit/npc/npcRig | the pose's inputs (npcModels.ts NpcRig.pose): `walk` 0 … 1 blends the walk in, `phase` its cycle (0 … 1, wraps) |
-| `legRigOf` | function | @wildshard/kit/npc/npcRig | rigLegs, once per person per shard visit |
-| `NpcFace` | interface | @wildshard/kit/npc/npcRig | — |
-| `NpcModel` | interface | @wildshard/kit/npc/npcRig | Authored pivot and skinned models share the NPC row lifecycle; their pose driver stays with the content. |
-| `NpcRig` | class | @wildshard/kit/npc/npcRig | The draw cut runs before the pose, so a hidden counter and its figure freeze together. |
-| `NpcRigProfile` | interface | @wildshard/kit/npc/npcRig | Authored hull traits; the seed rig contains no shard names or model paths. |
-| `NpcRow` | interface | @wildshard/kit/npc/npcRig | — |
-| `rigLegs` | function | @wildshard/kit/npc/npcRig | place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node |
-| `WALK` | const | @wildshard/kit/npc/npcRig | the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H) |
 | `BEAR` | const | @wildshard/kit/species/bear | — |
 | `BEAR_TUNING` | const | @wildshard/kit/species/bear | — |
 | `BOAR` | const | @wildshard/kit/species/boar | — |
 | `BOAR_TUNING` | const | @wildshard/kit/species/boar | — |
-| `BEAR_LOOK` | const | @wildshard/kit/species/view/bear | — |
-| `BEAR_PALETTE` | const | @wildshard/kit/species/view/bear | Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown / |
-| `BOAR_LOOK` | const | @wildshard/kit/species/view/boar | — |
-| `BOAR_PALETTE` | const | @wildshard/kit/species/view/boar | Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head. |
 | `Bow` | type | @wildshard/kit/weapons/bow/family | Compatibility name for the original starter Bow binding; all trusted callers share its identity. |
 | `BowInstance` | type | @wildshard/kit/weapons/bow/family | The one shared starter bow instance. |
 | `BowOptions` | type | @wildshard/kit/weapons/bow/family | Options for the trusted starter bow constructor. |

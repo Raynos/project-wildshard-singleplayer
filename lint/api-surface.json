@@ -650,6 +650,12 @@
         "from": "@wildshard/engine/ai/strikes"
       },
       {
+        "name": "readStrikeState",
+        "kind": "function",
+        "doc": "Validate a JSON strike continuation against this policy's exact finite strike catalogue before any state mutates.",
+        "from": "@wildshard/engine/ai/strikeState"
+      },
+      {
         "name": "AiDebugHost",
         "kind": "interface",
         "doc": "",
@@ -4460,6 +4466,12 @@
         "name": "layerArrayMips",
         "kind": "function",
         "doc": "Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level",
+        "from": "@wildshard/engine/core/ktx2"
+      },
+      {
+        "name": "linearKtx2Texture",
+        "kind": "function",
+        "doc": "",
         "from": "@wildshard/engine/core/ktx2"
       },
       {
@@ -12666,7 +12678,7 @@
       {
         "name": "InteractProps",
         "kind": "interface",
-        "doc": "The props the interaction runtime draws (E405 E417: the props are content, the kit's — src/kit/props/interact.ts —",
+        "doc": "The props the interaction runtime draws (E405 E417: the props are content, the game's — src/game/systems/props/interact.ts —",
         "from": "@wildshard/engine/world/interact/types"
       },
       {
@@ -12708,7 +12720,7 @@
       {
         "name": "PickupPart",
         "kind": "interface",
-        "doc": "A pickup's look (E405: content registers its own — the kit's, src/kit/models/pickups.ts): its batched model, and the",
+        "doc": "A pickup's look (E405: content registers its own — the game's, src/game/models/pickups.ts): its batched model, and the",
         "from": "@wildshard/engine/world/interact/types"
       },
       {
@@ -14902,6 +14914,84 @@
         "kind": "type",
         "doc": "'full': the buyer has no room for what the good gives (a full quiver)",
         "from": "@wildshard/game/loot/ui/ShopPanel"
+      },
+      {
+        "name": "carvedToken",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "carvedTokenGeometry",
+        "kind": "function",
+        "doc": "a carved wooden token — lit batch: a wooden disc on edge, a burnt antler glyph on both faces, a bark rim",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "doubloon",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "flintKit",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "flintKitGeometry",
+        "kind": "function",
+        "doc": "flint + steel striker on a scrap of leather — lit batch",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "glyphShard",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "glyphShardGeometry",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "installKitPickups",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "resinDrop",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "resinDropGeometry",
+        "kind": "function",
+        "doc": "an amber resin drop — glow batch: a bead of amber weeping down a trunk, a smaller drip under it",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "seaGlass",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "seaGlassGeometry",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/game/models/pickups"
+      },
+      {
+        "name": "tokenRimGeometry",
+        "kind": "function",
+        "doc": "the token's faint ember rim (glow batch), so a token reads at a few metres in the undergrowth",
+        "from": "@wildshard/game/models/pickups"
       },
       {
         "name": "NewGameProgress",
@@ -17826,6 +17916,114 @@
         "from": "@wildshard/game/systems/looks/trample"
       },
       {
+        "name": "footPlan",
+        "kind": "function",
+        "doc": "a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle)",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "LEG_BONE_NAMES",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "legBones",
+        "kind": "function",
+        "doc": "the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "LegBuilt",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "legPose",
+        "kind": "function",
+        "doc": "the pose function over `bones` (legBones' order) for `b`",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "LegPoseIn",
+        "kind": "interface",
+        "doc": "the pose's inputs (npcModels.ts NpcRig.pose): `walk` 0 … 1 blends the walk in, `phase` its cycle (0 … 1, wraps)",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "legRigOf",
+        "kind": "function",
+        "doc": "rigLegs, once per person per shard visit",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "NpcFace",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "NpcModel",
+        "kind": "interface",
+        "doc": "Authored pivot and skinned models share the NPC row lifecycle; their pose driver stays with the content.",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "NpcRig",
+        "kind": "class",
+        "doc": "The draw cut runs before the pose, so a hidden counter and its figure freeze together.",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "NpcRigProfile",
+        "kind": "interface",
+        "doc": "Authored hull traits; the seed rig contains no shard names or model paths.",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "NpcRow",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "rigLegs",
+        "kind": "function",
+        "doc": "place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "WALK",
+        "kind": "const",
+        "doc": "the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H)",
+        "from": "@wildshard/game/systems/npc/npcRig"
+      },
+      {
+        "name": "BEAR_LOOK",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/view/bear"
+      },
+      {
+        "name": "BEAR_PALETTE",
+        "kind": "const",
+        "doc": "Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown /",
+        "from": "@wildshard/game/systems/species/view/bear"
+      },
+      {
+        "name": "BOAR_LOOK",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/systems/species/view/boar"
+      },
+      {
+        "name": "BOAR_PALETTE",
+        "kind": "const",
+        "doc": "Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.",
+        "from": "@wildshard/game/systems/species/view/boar"
+      },
+      {
         "name": "ARM_CLIPS",
         "kind": "const",
         "doc": "Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical.",
@@ -18302,84 +18500,6 @@
         "from": "@wildshard/kit/models/creatures"
       },
       {
-        "name": "carvedToken",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "carvedTokenGeometry",
-        "kind": "function",
-        "doc": "a carved wooden token — lit batch: a wooden disc on edge, a burnt antler glyph on both faces, a bark rim",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "doubloon",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "flintKit",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "flintKitGeometry",
-        "kind": "function",
-        "doc": "flint + steel striker on a scrap of leather — lit batch",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "glyphShard",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "glyphShardGeometry",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "installKitPickups",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "resinDrop",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "resinDropGeometry",
-        "kind": "function",
-        "doc": "an amber resin drop — glow batch: a bead of amber weeping down a trunk, a smaller drip under it",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "seaGlass",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "seaGlassGeometry",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
-        "name": "tokenRimGeometry",
-        "kind": "function",
-        "doc": "the token's faint ember rim (glow batch), so a token reads at a few metres in the undergrowth",
-        "from": "@wildshard/kit/models/pickups"
-      },
-      {
         "name": "faceHead",
         "kind": "function",
         "doc": "",
@@ -18464,90 +18584,6 @@
         "from": "@wildshard/kit/npc/figureRig"
       },
       {
-        "name": "footPlan",
-        "kind": "function",
-        "doc": "a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle)",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "LEG_BONE_NAMES",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "legBones",
-        "kind": "function",
-        "doc": "the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "LegBuilt",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "legPose",
-        "kind": "function",
-        "doc": "the pose function over `bones` (legBones' order) for `b`",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "LegPoseIn",
-        "kind": "interface",
-        "doc": "the pose's inputs (npcModels.ts NpcRig.pose): `walk` 0 … 1 blends the walk in, `phase` its cycle (0 … 1, wraps)",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "legRigOf",
-        "kind": "function",
-        "doc": "rigLegs, once per person per shard visit",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "NpcFace",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "NpcModel",
-        "kind": "interface",
-        "doc": "Authored pivot and skinned models share the NPC row lifecycle; their pose driver stays with the content.",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "NpcRig",
-        "kind": "class",
-        "doc": "The draw cut runs before the pose, so a hidden counter and its figure freeze together.",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "NpcRigProfile",
-        "kind": "interface",
-        "doc": "Authored hull traits; the seed rig contains no shard names or model paths.",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "NpcRow",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "rigLegs",
-        "kind": "function",
-        "doc": "place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
-        "name": "WALK",
-        "kind": "const",
-        "doc": "the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H)",
-        "from": "@wildshard/kit/npc/npcRig"
-      },
-      {
         "name": "BEAR",
         "kind": "const",
         "doc": "",
@@ -18570,30 +18606,6 @@
         "kind": "const",
         "doc": "",
         "from": "@wildshard/kit/species/boar"
-      },
-      {
-        "name": "BEAR_LOOK",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/species/view/bear"
-      },
-      {
-        "name": "BEAR_PALETTE",
-        "kind": "const",
-        "doc": "Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown /",
-        "from": "@wildshard/kit/species/view/bear"
-      },
-      {
-        "name": "BOAR_LOOK",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/species/view/boar"
-      },
-      {
-        "name": "BOAR_PALETTE",
-        "kind": "const",
-        "doc": "Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.",
-        "from": "@wildshard/kit/species/view/boar"
       },
       {
         "name": "Bow",
