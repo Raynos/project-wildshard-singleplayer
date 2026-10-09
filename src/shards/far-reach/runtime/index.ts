@@ -10,7 +10,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from '../strings';
-import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem } from '../layout';
+import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, VANES, WISP_HOMES, apothem } from '../layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
@@ -50,6 +50,7 @@ import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { bindSkyActor } from './spawns';
 import { bindSkyItems } from './items';
 import { spawnSkyGoats } from '../species/goats';
+import { UPDRAFT_LIFT, inUpdraft } from './updraft';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -66,8 +67,6 @@ declare module '@wildshard/engine/combat/Equipment' {
 const SWING_ICON = '<path d="M12 19.5 4.2 9.8a10 10 0 0 1 15.6 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
   + '<path d="M12 19.5 8.6 7.6M12 19.5V6.8M12 19.5l3.4-11.9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>';
 const GUST_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5h10.5a3 3 0 1 0-3-3M3 12.5h14.5a3 3 0 1 1-3 3M3 16.5h7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
-/** The updraft's upward push while you ride its column (m/s², G24). */
-export const UPDRAFT_LIFT = 12;
 /** How far above its island's deck a goat's spawn ray starts (metres): above the grass, below anything overhead. */
 export const GOAT_SPAWN_ABOVE = 2;
 /** How fast the winch lifts the fallen bridge (radians per second). */
@@ -214,11 +213,8 @@ export class SkyReachPlugin extends ShardPlugin {
     const lift = new Vector3();
     ctx.system({ id: 'far.updraft', phase: 'fixed.pre', run: (dt) => {
       const p = position; if (!this.board()) return;
-      // inside the column: along the ramp's run (any heading), within its width, below the step's deck
-      const ux = UPDRAFT.x1 - UPDRAFT.x0, uz = UPDRAFT.z1 - UPDRAFT.z0, len = Math.hypot(ux, uz);
-      const along = ((p.x - UPDRAFT.x0) * ux + (p.z - UPDRAFT.z0) * uz) / len, across = Math.abs((p.x - UPDRAFT.x0) * uz - (p.z - UPDRAFT.z0) * ux) / len;
-      const inside = across < UPDRAFT.width / 2 + 0.5 && along > 0 && along < len && p.y < UPDRAFT.y1 + 0.5;
-      if (inside) ctx.app.player?.impulse(lift.set(0, UPDRAFT_LIFT * dt, 0));
+      // inside the column (runtime/updraft.ts, the headless host's same rule)
+      if (inUpdraft(p.x, p.y, p.z)) ctx.app.player?.impulse(lift.set(0, UPDRAFT_LIFT * dt, 0));
     } });
 
     const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {

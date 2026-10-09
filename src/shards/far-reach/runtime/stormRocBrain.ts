@@ -77,7 +77,9 @@ export class StormRocBrain<A extends AnimalSim = Animal> extends CreatureBrain<R
   private takeoff = 0; private wasFighting = false;
   /** The committed strike heading (the gale wall's lane). */
   aim = 0;
-  constructor(actor: A, private readonly shove: (yaw: number, speed: number, lift: number) => void = pushPlayer) { super(actor, ['circle', 'stalk', 'strike', 'rest']); }
+  /** How a gale-wall contact shoves the player (the browser's pushPlayer; the headless host's impulse). */
+  private readonly shove: (yaw: number, speed: number, lift: number) => void;
+  constructor(actor: A, shove: (yaw: number, speed: number, lift: number) => void = pushPlayer) { super(actor, ['circle', 'stalk', 'strike', 'rest']); this.shove = shove; }
   /** Actor motion is owned by SimHost; this is the complete decision and committed-strike continuation. */
   snapshot(): SimValue {
     return JSON.stringify({ version: 1, actor: this.actor.entityId, state: this.state, phase: this.phase, fighting: this.fighting,

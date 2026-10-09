@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { Vector3 } from 'three';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -20,6 +21,7 @@ import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './f
 import { installSkyMovers, verifiedMoverModules, type SkyMovers } from './headlessMovers';
 import { installSkyQuest, skyWinchPermission } from './quest';
 import { WINCH_BRIDGE } from './moverRows';
+import { UPDRAFT_LIFT, inUpdraft } from './updraft';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -33,7 +35,7 @@ const Quat = v.strictObject({ x: finite, y: finite, z: finite, w: finite });
 const Placed = { x: finite, y: finite, z: finite, yaw: v.optional(finite), rot: v.optional(Quat), surface: v.optional(v.string()) };
 /** One baked native collider piece (scripts/bake-sky-physics.mjs): boxes and convex hulls, as the world registers them. */
 const BakedPiece = v.strictObject({ id: v.string(), name: v.string(), category: v.picklist(['buildings', 'nature', 'props', 'ground']), file: v.string(),
-  active: v.boolean(), surface: v.string(), colliders: v.array(v.union([
+  active: v.boolean(), mode: v.optional(v.literal('board')), surface: v.string(), colliders: v.array(v.union([
     v.strictObject({ kind: v.literal('box'), ...Placed, hx: finite, hy: finite, hz: finite }),
     v.strictObject({ kind: v.literal('hull'), ...Placed, points: v.array(finite) })])) });
 
@@ -61,17 +63,21 @@ export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]>
   }));
 }
 
+/** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */
+export const UPDRAFT_STEP = 'far.updraft';
+
 /**
  * Sky Reach's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). A structures-only world: no terrain
  * collider (`ground: false`), the analytic placement floor at -1000 m, and every island, rope bridge, dock, lip and prop
- * the browser registers, from the browser-baked native colliders (inactive ones, the hover decks, the updraft and the
- * fallen crown bridge, stay out), with the host's layered WORLD floor queries for flight and falls. Owns the 13 declared
- * bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
+ * the browser registers, from the browser-baked native colliders (the hover decks and the updraft ramp collide only on the
+ * board, through the host's board mode; the fallen crown bridge stays out), with the host's layered WORLD floor queries
+ * for flight and falls. Owns the 13 declared bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
  * fact and purse) and the War Fan (runtime/fan.ts: the browser fan's own move recipe; a `player.attack` is its light
- * SWING, `far.fan` script commands its HEAVY and GUST at the `far.fan.aim` pitch; locked through the Roc's intro), the
+ * SWING, `far.fan` script commands its HEAVY and GUST at the `far.fan.aim` pitch; locked through the Roc's intro, stowed on the board), the
  * quest (runtime/quest.ts: its four steps, its fact and 10 coins once) and the movers (runtime/headlessMovers.ts: the
  * Rising Islets, their road gates and the winch bridge on their admitted modules, an exact continuation across a native
- * restore). `finish` proves all four Rising Islet entries by a real capsule traversal on fresh hosts of this world.
+ * restore) and the updraft's lift on the board (runtime/updraft.ts). `finish` proves all four Rising Islet entries by a
+ * real capsule traversal on fresh hosts of this world.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (input) => (await prepareSkyRuntime(input)).plan;
 
@@ -90,19 +96,25 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     player: { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never the War Fan: the fan is a declared item (data/items.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  const colliders = (host: SimHost): void => {
+  // every piece the browser collides with on foot, plus the board-only ones (the hover decks and the updraft ramp, baked
+  // `mode: 'board'`), returned so a fresh install registers them with the host's board mode (SimHost.boardColliders)
+  const colliders = (host: SimHost): { readonly handle: number }[] => {
+    const board: { readonly handle: number }[] = [];
     pieces.forEach(piece => {
-      if (!piece.active) return;
-      addPiece(host.physics, { id: piece.id, name: piece.name, category: piece.category, file: piece.file, surface: surface(piece.surface), colliderOwner: piece.id,
+      if (!piece.active && piece.mode !== 'board') return;
+      const added = addPiece(host.physics, { id: piece.id, name: piece.name, category: piece.category, file: piece.file, surface: surface(piece.surface), colliderOwner: piece.id,
         colliders: piece.colliders.map(c => {
           const placed = { x: c.x, y: c.y, z: c.z, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), ...(c.rot === undefined ? {} : { rot: c.rot }), ...(c.surface === undefined ? {} : { surface: surface(c.surface) }) };
           return c.kind === 'box' ? { kind: 'box' as const, ...placed, hx: c.hx, hy: c.hy, hz: c.hz } : { kind: 'hull' as const, ...placed, points: new Float32Array(c.points) };
         }) });
+      if (piece.mode === 'board') board.push(...added.colliders);
     });
+    return board;
   };
   const ports = { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR } as const;
   const installSky = (host: SimHost, context: HeadlessRuntimeInstallation): SkyMovers => {
-    if (!context.restoring) colliders(host);
+    // a restore brings the board-only handles back with the physics (SimSnapshot.boardColliders)
+    if (!context.restoring) host.boardColliders(colliders(host));
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const movers = installSkyMovers(host, modules, context.restoring, () => skyWinchPermission(host.flags));
     const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
@@ -110,8 +122,8 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     if (roc?.actor === null || roc?.actor === undefined || body === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
     const encounter = installSkyRoc(host, { roc: roc.actor, body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
-    // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput)
-    installSkyFan(host, () => encounter.locked() ? [] : context.commands().flatMap((command): FanCommand[] => {
+    // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
+    installSkyFan(host, () => encounter.locked() || host.playerBoard.on ? [] : context.commands().flatMap((command): FanCommand[] => {
       if (command.kind === 'player') return command.attack === undefined ? [] : [{ kind: 'swing', targetId: command.attack.targetId }];
       if (command.kind === 'script' && command.actorId === FAN_AIM) return [{ kind: 'aim', pitch: command.value }];
       if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return [];
@@ -121,6 +133,13 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); },
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
       winch: { command: () => { movers.runtime.command(WINCH_BRIDGE, 1); }, raised: () => movers.runtime.pose(WINCH_BRIDGE).enabled } });
+    // the updraft (G24): riding the board inside its column, a steady upward push through the host impulse, as the
+    // browser's `far.updraft` fixed.pre system; read after this tick's move, it feeds the next one, as the browser's does
+    const lift = new Vector3();
+    host.onStep(UPDRAFT_STEP, dt => {
+      const p = host.player.position;
+      if (host.playerBoard.on && inUpdraft(p.x, p.y, p.z)) host.impulsePlayer(lift.set(0, UPDRAFT_LIFT * dt, 0));
+    });
     flock.land();
     return movers;
   };
@@ -133,7 +152,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     socketLiftEntries(shard.entryways).forEach(entry => {
       const fresh = createSimHost(level, { ...ports, rapier });
       try {
-        colliders(fresh);
+        fresh.boardColliders(colliders(fresh));
         installEntrySockets(fresh.physics, fresh.scope, [{ x: 0, z: 0 }]);
         installDeclaredPropColliders(shard.props === null ? [] : propColliderDescriptors(shard.props), () => fresh.physics, fresh.scope);
         const movers = installSkyMovers(fresh, modules, false, () => 0);
