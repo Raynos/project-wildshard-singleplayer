@@ -89,11 +89,11 @@ in Claude Code
 
 ## Trailer · description
 
-The trailer: real gameplay from the shards, looping without sound
+The alpha trailer: gameplay captured in engine from every shard, looping without sound
 
 ## Trailer · tag
 
-Trailer · real gameplay
+Alpha · captured in engine
 
 # What is Wildshard
 

@@ -2,7 +2,8 @@
 //
 //   node site/tools/publish-media.ts <folder>
 //
-// <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-720.mp4` and, per shard,
+// <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-720.mp4` and, per shard (optional: a
+// folder with only the trailer keeps the manifest's shard loops),
 // `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
 // public, under a content-hashed name (`site/media/<name>-<hash8>.mp4`), so a re-run with unchanged files uploads
 // nothing and a changed file gets a new URL (the Blob CDN caches a year). The poster is a small WebP in
@@ -109,6 +110,8 @@ async function main(): Promise<void> {
     },
     loops: {},
   };
+  // a folder with only the trailer (TRAILERS TR7, the alpha trailer) keeps the shard loops the manifest already names
+  if (slugs.length === 0 && existsSync(manifestPath)) media.loops = (JSON.parse(readFileSync(manifestPath, 'utf8')) as Media).loops;
   for (const slug of slugs) {
     media.loops[slug] = {
       card: await publish(dir, `${slug}-card.mp4`, token, known),
@@ -116,7 +119,7 @@ async function main(): Promise<void> {
     };
   }
   writeFileSync(manifestPath, `${JSON.stringify(media, null, 2)}\n`);
-  console.info(`publish-media: wrote ${manifestPath} (${slugs.length} shard loops)`);
+  console.info(`publish-media: wrote ${manifestPath} (${Object.keys(media.loops).length} shard loops)`);
 }
 
 await main();

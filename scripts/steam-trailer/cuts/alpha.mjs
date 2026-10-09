@@ -31,7 +31,7 @@ export function cut({ TAKE, SFX, BUILD, BUG }) {
     [beat(24.82), 'n-camp', 1.0],
     [beat(26.63), 'n-bow', 0.5],
     [beat(28.43), 'p-dawn', 0.5, null, 0.14],
-    [beat(31.15), 'p-pond', 1.2],
+    [beat(31.15), 'p-pond', 0.0],
     [beat(32.96), 'p-final', 1.0],
     [beat(34.77), 'p-king', 0.6, 'night'],
     [beat(37.49), 'build', 0],
@@ -41,7 +41,7 @@ export function cut({ TAKE, SFX, BUILD, BUG }) {
     [beat(52.86), 'sr-roc', 0.5],
     [beat(54.65), 'nd-breach', 0.4, null, 0.14],
     [beat(57.36), 'nd-stairs', 0.4],
-    [beat(59.18), 'g-reveal', 0.3],
+    [beat(59.18), 'g-reveal', 0.05],
     [beat(62.79), 'p-king-fp', 1.0],
     [beat(63.69), 'nd-jian', 0.6],
     [beat(64.59), 'n-archer', 1.4],
@@ -89,13 +89,15 @@ export function cut({ TAKE, SFX, BUILD, BUG }) {
   add('game:swordSwing', on('nd-jian', 0.64), -8, { pan: 0.2 });
   add('game:bowTwang', on('n-archer', 1.6), -6, { take: 1 }); add('game:arrowWhoosh', on('n-archer', 1.62), -9);
   // trailer sound design on the structure: the hit, every shard change, the breath, the return, the end card
-  const RISE = { peak: 4.0, dur: 4.0 }, REV = { peak: 1.31, dur: 1.31 }, WHOOSH = { peak: 1.34 };
-  add('tr:riser', at('d-combo'), -10, RISE); add('tr:impact', at('d-combo'), -3); add('tr:subdrop', at('d-combo'), -6);
+  // peaks from <sfxDir>/picks.json (MOSS riser seed 2 tops at 3.25 s; SA3 reverse seed 3 at 1.31 s; MOSS whoosh seed 2 at
+  // 1.34 s); the MOSS sub drop swells late (3.02 s), so it only lands its swell on the end card
+  const RISE = { peak: 3.25, dur: 3.25 }, REV = { peak: 1.31, dur: 1.31 }, WHOOSH = { peak: 1.34 }, SWELL = { peak: 3.02 };
+  add('tr:riser', at('d-combo'), -10, RISE); add('tr:impact', at('d-combo'), -3);
   for (const s of ['n-open', 'p-dawn', 'dn-vista', 'sr-rise', 'nd-breach']) { add('tr:reverse', at(s), -7, REV); add('tr:whoosh', at(s), -10, WHOOSH); }
-  add('tr:subdrop', at('build'), -6);
+  add('tr:reverse', at('build'), -9, REV);
   add('tr:reverse', at('dn-vista'), -5, REV); add('tr:impact', at('dn-vista'), -4);
   add('tr:whoosh', at('g-reveal'), -8, { ...WHOOSH, pan: -0.3 });
-  add('tr:riser', END, -7, RISE); add('tr:braam', END, -2); add('tr:impact', END, -3); add('tr:subdrop', END, -5);
+  add('tr:riser', END, -7, RISE); add('tr:braam', END, -2); add('tr:impact', END, -3); add('tr:subdrop', END, -7, SWELL);
 
   const mix = {
     length: LEN, sfxdir: SFX,

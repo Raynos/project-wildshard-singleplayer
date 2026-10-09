@@ -37,3 +37,34 @@ A capture is ~70 s of rendering per 4 s shot (4K, 2 sub-frames) plus the boot, a
 - "Music: MiniMax-Music3" (a licence condition).
 - "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 — Powered by Stability AI" (a Stability licence condition).
 - "Captured in engine".
+
+## The alpha trailer (E466, TRAILERS Part A)
+
+The ~63 s alpha trailer on wildshard.io: the six shards in engine, a real Claude Code session beside the Sky Reach
+time-lapse, the grid fly-in, and "alpha" said three ways (the opening card, the corner bug, the end card). Its cut is
+`cuts/alpha.mjs` (MiniMax take 304 of `alpha-jobs.json`), its shots `shots/{driftwood,nalati,pine,nine-dragon,dunes,
+sky-reach,grid}.mjs`, its build beat `build-beat.mjs`. Keep every output in one private folder (`$T`); a subagent gets
+its own folder, never yours.
+
+```bash
+T=<scratch>/trailer
+scripts/serve-build.sh --head --name trailer                       # prints the preview URL (BASE below)
+~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs $PWD/scripts/steam-trailer/alpha-jobs.json \
+  --keys trailer/alpha --seeds 304 --out $T/score                 # under lockf -k ~/projects/localai/.model.lock
+# trailer SFX: gen_sfx_moss.py + gen_sfx.py --model medium on sfx-jobs.json (whoosh, braam, riser, impact, subdrop,
+# reverse), then sfx_pick.py --out $T/sfx-best; link tr-<family>.wav → tr-tr-<family>.wav (the picker doubles the prefix)
+asciinema rec --window-size 92x44 --idle-time-limit 2 -c 'claude' $T/build-beat.cast   # a real session in a scratch worktree
+node scripts/steam-trailer/build-beat.mjs $T/build-beat.cast $T/build-beat.mp4 --dur 8.13
+node scripts/steam-trailer/cut.mjs $T/cut $T/score/trailer-alpha/minimax3-304.wav $T/sfx-best --cut alpha \
+  --build $T/build-beat.mp4 --bug $T/titles/bug.png
+node scripts/steam-trailer/titles.mjs $T/titles --preview bug.json   # [{"id":"bug","card":"bug","dur":1,"at":0.5}]: the bug still
+node scripts/steam-trailer/titles.mjs $T/titles $T/cut/titles.json   # both through the browser lane
+scripts/browser-lane.sh node scripts/steam-trailer/capture.mjs $T/frames --shots driftwood,nalati,pine,nine-dragon,dunes,sky-reach,grid \
+  --edl $T/cut/edl.json --base <BASE>
+~/ml/music/analysis/.venv/bin/python scripts/steam-trailer/mix.py $T/cut/mix.json $T/mix.wav
+node scripts/steam-trailer/edit.mjs $T/frames $T/cut/edl.json $T/titles $T/mix.wav $T/wildshard-alpha-trailer.mp4
+# the site: silent 30 fps loops trailer-1280.mp4 (~1.3 Mb/s) + trailer-720.mp4 (~0.6 Mb/s) in a folder, then
+node site/tools/publish-media.ts <folder>                          # keeps the shard loops; the poster is the alpha card frame
+```
+
+The alpha end card adds "Built with Claude Code" to the credits above.
