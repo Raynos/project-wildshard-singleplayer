@@ -145,7 +145,7 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
     },
     markers,
   });
-  const entered = w.ctx !== undefined && retainsRuntimeServices(w.ctx) ? installEnteredAdventure(w.ctx, chip.line.root) : undefined;
+  const entered = w.ctx !== undefined && retainsRuntimeServices(w.ctx) ? installEnteredAdventure(w.ctx, chip.line) : undefined;
   const legacyDialogue = entered === undefined ? new DialogueBox(w.ctx?.scope) : undefined;
   const currentDialogue = (): DialogueBox => {
     const dialogue = entered?.dialogue ?? legacyDialogue;
@@ -171,11 +171,11 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
     w.music.sting('chunk');   // no "Quest complete" toast: the caption below says it (the phone stacked both over it)
     const title = REWARD[q.def.id]?.title;
     let c = caption.get(q.def.id);
-    if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); w.ctx?.scope.onDispose(() => c?.root.remove()); entered?.caption(c.root); }
+    if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); w.ctx?.scope.onDispose(() => c?.root.remove()); entered?.caption(c); }
     const shown = c;
     shown.show(true);
-    chip.line.root.classList.add('ws-quest-hide');   // the caption has the screen
-    const hide = (): void => { shown.show(false); chip.line.root.classList.remove('ws-quest-hide'); };
+    chip.line.hide(true);   // the caption has the screen
+    const hide = (): void => { shown.show(false); chip.line.hide(false); };
     if (entered === undefined) scope.timeout(6500, hide); else entered.timeout(6500, hide);
   };
   // the MAP tab's quest card: the chapter, its objective, the hint

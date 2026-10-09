@@ -1,7 +1,7 @@
 import { app } from '@wildshard/engine/app/runtime';
 import { practiceFps } from '@wildshard/engine/core/tier';
 import { DevKit, devLabel } from '@wildshard/engine/practice/playground/devGrid';
-import { PlaygroundChip, clock } from '@wildshard/engine/practice/playground/hud';
+import { PlaygroundChip, clock, playgroundActive } from '@wildshard/engine/practice/playground/hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
 import type { RoomMap, RoomShape } from '@wildshard/engine/ui/roomMap';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -152,9 +152,8 @@ export class GrapplePlayground implements Playground {
     this.root.visible = true;
     this.tool().setGrappleCourse(this.course);               // the claw bites these hooks now (before the practice flag, which it reads)
     practiceFps.on = true;                        // a tiny scene: mobile runs it at 60 (tier.ts, as the Practice arena)
-    document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
+    playgroundActive(true);                       // ws:practice-active, then #hud.playground-active
     app.events.emit('practice.active', true);
-    document.getElementById('hud')?.classList.add('playground-active');
     player.setHover(false);
     this.chip.show(true);
     this.restart();
@@ -166,8 +165,7 @@ export class GrapplePlayground implements Playground {
     app.setState('play');
     this.root.visible = false;
     this.chip.show(false);
-    document.getElementById('hud')?.classList.remove('playground-active');
-    document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
+    playgroundActive(false);
     app.events.emit('practice.active', false);
     practiceFps.on = false;
     this.tool().setGrappleCourse(null);

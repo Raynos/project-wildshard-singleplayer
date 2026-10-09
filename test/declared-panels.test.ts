@@ -10,6 +10,7 @@ import { ALERT, EYE_HALF, EYE_OPEN, EYE_SHUT, STEALTH_GRASS_ROW, STEALTH_LAYER, 
 import { nameBox } from '../src/shards/nalati-grasslands/ride/HorseNamePrompt';
 import { HORSE_NAME_MAX } from '../src/shards/nalati-grasslands/ride/horseNames';
 import { PORTAL_VEIL } from '../src/shards/nine-dragon-stack/world/portalVeil';
+import { playgroundActive } from '../src/engine/practice/playground/hud';
 
 afterEach(() => { document.body.innerHTML = ''; });
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement, text?: string): HTMLElementTagNameMap[K] => {
@@ -165,5 +166,17 @@ describe('Nine-Dragon panels', () => {
     view.style('', 'opacity', '0.500'); view.style('', 'display', 'block');
     veil.style.opacity = '0.500'; veil.style.display = 'block';
     expect(view.root.isEqualNode(veil)).toBe(true);
+  });
+});
+
+describe('the playground HUD flag (Nalati horse field, Nine grapple course)', () => {
+  it('announces before the HUD flips on and after it flips off, as both playgrounds did by hand', () => {
+    document.body.innerHTML = '<div id="hud"></div>';
+    const seen: string[] = [];
+    const hud = document.getElementById('hud');
+    document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) seen.push(`${String(e.detail)}:${String(hud?.classList.contains('playground-active'))}`); });
+    playgroundActive(true); expect(hud?.classList.contains('playground-active')).toBe(true);
+    playgroundActive(false); expect(hud?.classList.contains('playground-active')).toBe(false);
+    expect(seen).toEqual(['true:false', 'false:false']);
   });
 });

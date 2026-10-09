@@ -14,6 +14,17 @@ import { engineString } from '../../strings';
 import '../../ui/styles/playgrounds.css';
 import { ROW, hudSlots } from '../../ui/hudSlots';
 
+/**
+ * A playground opened (true) or closed (false): the practice listeners hear `ws:practice-active` and the HUD hides what a
+ * playground has no use for (`#hud.playground-active`): announced before the HUD flips on, after it flips off.
+ */
+export function playgroundActive(on: boolean): void {
+  const hud = document.getElementById('hud');
+  if (on) { document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true })); hud?.classList.add('playground-active'); return; }
+  hud?.classList.remove('playground-active');
+  document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
+}
+
 /** 83.4 s → "01:23.4" */
 export function clock(s: number): string {
   const m = Math.floor(s / 60), r = s - m * 60;

@@ -2,7 +2,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { practiceFps } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { DevKit, devLabel, devMaterial } from '@wildshard/engine/practice/playground/devGrid';
-import { PlaygroundChip, clock } from '@wildshard/engine/practice/playground/hud';
+import { PlaygroundChip, clock, playgroundActive } from '@wildshard/engine/practice/playground/hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
 import type { RoomMap, RoomMarker, RoomShape } from '@wildshard/engine/ui/roomMap';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -154,8 +154,7 @@ export class HorsePlayground implements Playground {
     ride.mount.addMountable(horse, HORSE_NAME);
     ride.mount.setRoads([this.road]);             // the track is the road while the field is open (B1's keep-to-the-road)
     practiceFps.on = true;                        // a small scene: mobile runs it at 60 (tier.ts, as the Practice arena)
-    document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
-    document.getElementById('hud')?.classList.add('playground-active');
+    playgroundActive(true);
     this.host.player.setHover(false);
     this.chip.show(true);
     this.restart();
@@ -174,8 +173,7 @@ export class HorsePlayground implements Playground {
     }
     this.root.visible = false;
     this.chip.show(false);
-    document.getElementById('hud')?.classList.remove('playground-active');
-    document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
+    playgroundActive(false);
     practiceFps.on = false;
   }
 

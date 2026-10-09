@@ -21,9 +21,9 @@ it('detaches quest HUD, closes modal input and cancels rewards on the road, pres
   const chip = withOwner(resident, () => new QuestChip({ chip: () => ({ label: 'Quest', count: '1/2' }), markers: () => [] }));
   chip.line.root.style.top = '42px';
   const afterChip = document.createElement('span'); hud.append(afterChip);
-  const entered = installEnteredAdventure(hooks.context, chip.line.root);
+  const entered = installEnteredAdventure(hooks.context, chip.line);
   const caption = withOwner(resident, () => new RewardCaption('Reward', 'Quest', 'Done'));
-  entered.caption(caption.root);
+  entered.caption(caption);
   let completed = 0, timerCalls = 0;
   vi.useFakeTimers();
   try {
@@ -33,7 +33,7 @@ it('detaches quest HUD, closes modal input and cancels rewards on the road, pres
       expect(chip.line.root.style.top).toBe('42px'); expect(caption.root.parentNode).toBe(hud);
       const dialogue = entered.dialogue;
       dialogue.open('Elder', ['An unfinished quest'], () => { completed++; });
-      expect(dialogue.isOpen).toBe(true); caption.show(true); chip.line.root.classList.add('ws-quest-hide');
+      expect(dialogue.isOpen).toBe(true); caption.show(true); chip.line.hide(true);
       entered.timeout(6500, () => { timerCalls++; });
       expect(resident.census.timers).toBe(1);
       hooks.deactivate();
