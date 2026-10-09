@@ -1,45 +1,44 @@
-# Handoff (sf72-driftwood, part 6) — 2026-10-09, SF72 Driftwood Isle headless
+# Handoff (sf72-driftwood, part 7) — 2026-10-09, SF72 Driftwood Isle headless
 
-Coordinator `wildshard-new` pushes. Supersedes part 5's "Exact next steps". Driftwood's canonical witness
+Coordinator `wildshard-new` pushes. Supersedes part 6's "Exact next steps". Driftwood's canonical witness
 (`test/proof/driftwood-isle/`) is UNCHANGED and still fails closed (its entry is still `runtime/hybrid.ts`).
 
-## Landed (part 6)
+## Landed (part 7)
 
-- `94a99ca8a` ramGrazer, challengeGrazer, orbitDiver, patrolDiver and burstFlyer accept an interrupt's zero step (as
-  407640b84 did for skirmisher / guardian / perch hunter); a zero-step test in each policy's test file.
-- `01918d552` the keeper runs on `host.useBodyBands` (its own rateOf / due clocks gone; brainDt / bodyDt; 45 / 55 m
-  capsules; a charge's next-tick contact only for a body its band stepped). Test: 'runs the bodies on the page's
-  distance bands'.
-- `cf59ecc55` the captain's rise / sink clock and `yOffset` run on his body step (`advanceCaptainRise` in
-  species/captainPolicy.ts), not in the rig's animate (the page froze him mid-rise beyond the animation LOD); the
-  Driftwood bake now sets `used:altar` and reads his spec, pool, spawn yaw and arena (`bake.captain`). Gates: full suite,
-  boot smoke (grid), walk baseline 0 stuck, browser probe.
-- `481a1cf2e` the headless finale: runtime/captain.ts (altar flag → keeper `spawnCaptain` under EntityIds' next id with
-  the manager's spawn draws → the browser's CaptainBrain on the 'legacy' band + the browser's DrownedCaptain with the
-  silent presentation; `dead:captain`, `boss.attempt`; exact mid-fight restore). Not on `installBossRow`: DrownedCaptain
-  bypasses BossBrain's intro / checkpoint / beat machine (the reason is in the commit).
+- `b7fa5ec86` runtime/swords.ts: both swords on `SweptMeleeCore` (84c4aedb2) over the starter moves and the page's
+  profiles (`driftwoodSwordProfiles` = loadout/rows.ts's recipe, built from HEAD's `@wildshard/game/weapons/starterMeleeProfile`,
+  not the stale uncommitted sword-module move). A player command's attack is a light tap at its target (no heavy: the
+  protocol has no hold). Every swing start is the page's 'weapon.fired': `island.alarm()` wakes the live aggressive or
+  sensing load-time bodies through the keeper's `wake(i)` (the captain is never interrupted). In the active window the
+  blade meets the named target once when its skin (head ball / body capsule) is within `reach` of the eye (1.68 m) and
+  `bladeBlocked` is false: `Melee.contact`'s hit (source 'env', tags actor.player / row id / dmg.melee / cover.checked,
+  `move.<name>`, `sweptMoveDamage` rounded: 12 / 12 / 16 on the wood combo), then the page's knockback + `AnimalSim.stagger`,
+  and `island.staggered` → `hunt.staggered` on a fauna body. `equip(0|1)` swaps the hand (stops the other clock).
+  The swords step registers after the keeper, so a wake is a zero step in the keeper's frame.
+- `14fb7f900` runtime/kills.ts: 'actor.died' → `dead:sailor` (Spine.ts) and the kill feats' ledger facts
+  (`driftwood.<id>` for `<id>:<n>`, sailor / crab10 / monkey6, capped at each feat's count; counts are continuation).
+  The test harness's `emit` now collects effects instead of throwing.
 
-## Still different from the browser (keeper.ts header)
+## Still different from the browser (keeper.ts / swords.ts headers)
 
-1. A charge's contact is tested at the next tick's start (the host steps bodies after its systems): one tick late.
-2. No 'target.attack' / 'target.dodge' wakes, no `hunt.staggered`, no `clearBody` (they come with the swords).
+1. A charge's contact is tested at the next tick's start: one tick late.
+2. No 'target.dodge' wake (the tick protocol has no dodge); no `clearBody`.
 3. The coconuts' swell runs on `host.clock.now`.
-4. The captain's rise clock pauses while he is stunned or dead (page and headless alike since cf59ecc55).
+4. Swords: no camera-space sweep rays (the command's target is the crosshair's), no lunge dash, no hit-stop, no clang,
+   no heavy. The swing wake is not directly asserted by a test (only through exact restore).
 
 ## Exact next steps (in order)
 
-1. **The swords.** Wait for (or check) the sword-module migration in the shared tree first: at the time of writing
-   another lane had uncommitted moves of `starterMeleeProfile` / `starterMoves` / `Sword` from `@wildshard/game/weapons`
-   and `src/sdk/runtime/weapons/` to `@wildshard/sdk/weapons/` (plus WIP in `engine/combat/items.ts`,
-   `driftwood-isle/quest/install.ts`, `loadout/rows.ts`, `weapons/swordView.ts`). Build on whatever lands. Then a
-   headless sword item on `@wildshard/engine/combat/sweptMeleeCore` (the browser's SweptMelee drives the same clock;
-   Signal's `runtime/whip.ts` on `ItemRuntime` is the item pattern) for the two rows in `data/items.ts`, with the
-   page's sweep contact, the swing wake (AnimalManager line ~397: `weapon.fired` → `interruptTargets('target.attack')`
-   for aggressive or sensing bodies; the self-thinking enemies with `tick: 'ai'` take it, the captain does not), the
-   dodge wake, and the fauna stagger (`a.onStaggered` → `hunt.staggered`). Wire the wakes through the keeper's `wake(i)`
-   (brainDt(id, true): a zero step is fine now for every policy).
-2. Quest / ledger facts from gameplay (the altar is now a host flag; the captain's death sets `dead:captain`), then
-   `proveEntries`, then the witness on `runtime/headless.ts` with bands (10k, a captain mid-fight replay checkpoint,
-   ledger); flip `compatibility.json` only from a real run.
+1. **The quest's interactables headless** (quest/interactables.ts `DRIFTWOOD_INTERACT`, questLine.ts): the castaway talk
+   (`talked:castaway`), the chest (`has:flint`), the beacon (`lit:beacon`) and lookout shard, the hold key (dropped at
+   the sailor's death point; `kit.moveTo`) → pump → winch → strongbox (`shard:wreck`), the tide plates + barrel + sluice
+   (`open:sluice`, a pushable barrel in the host's physics — the hard one), the cave shard, the altar (`used:altar`, which
+   already spawns the captain), the reward view (`seen:reward`), and the iron sword pickup (guarded while a sailor lives,
+   then `swords.equip(1)`). Every anchor's world point must come from the bake (extend scripts' Driftwood bake with the
+   resolved interactable spots, as Signal's `signalSpots()`), driven by `script` commands at the page's prompt radii
+   from the eye (Signal's runtime/quest.ts is the pattern), through `DeclaredQuests` with the fact / coins ports. Then
+   the feats from flags (quest/Feats.ts: castaway, shards, quest, glass, treasure, vista, zipline).
+2. `proveEntries`, then the witness on `runtime/headless.ts` with bands (10k, a captain mid-fight replay checkpoint,
+   ledger); point `test/proof/driftwood-isle/run.mjs` at the trusted entry and flip `compatibility.json` only from a real run.
 
 Plan-State: unchanged.
