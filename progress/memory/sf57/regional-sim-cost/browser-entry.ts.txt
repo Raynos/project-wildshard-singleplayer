@@ -1,0 +1,51 @@
+// SF57 sf57-qualify3: build N regional template sims in a real browser page, as liveSession.admit builds them.
+import { SaveStore } from '@E/src/engine/saves/store';
+import { loadRapier } from '@E/src/engine/physics/rapier';
+import { installEntrySockets } from '@E/src/engine/physics/entrySockets';
+import { installStripCollider } from '@E/src/engine/physics/stripColliders';
+import { installGridBorders } from '@E/src/engine/physics/gridBorders';
+import { generatePlatform } from '@E/src/engine/sim/strips';
+import { GridAssembly } from '@E/src/game/grid/assembly';
+import { GridRegionDurability } from '@E/src/game/grid/durability';
+import { createShardfileSim } from '@E/src/game/shardfile/simulation';
+import source from '@E/src/shards/_template/shard.config';
+
+class Mem implements Storage {
+  private m = new Map<string, string>();
+  get length(): number { return this.m.size; }
+  clear(): void { this.m.clear(); }
+  getItem(k: string): string | null { return this.m.get(k) ?? null; }
+  key(i: number): string | null { return [...this.m.keys()][i] ?? null; }
+  removeItem(k: string): void { this.m.delete(k); }
+  setItem(k: string, v: string): void { this.m.set(k, v); }
+}
+interface Held { dispose: () => void; basis: Uint8Array }
+const held: Held[] = [];
+let make: ((instance: string) => Held) | undefined;
+const ready = (async () => {
+  const rapier = await loadRapier(await (await fetch('/assets/physics/rapier.wasm')).arrayBuffer());
+  const assets = new Map<string, Uint8Array>();
+  for (const file of source.files) assets.set(file.hash, new Uint8Array(await (await fetch(`/a/${file.hash}`)).arrayBuffer()));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const strips = generatePlatform(assembly.cells.map((cell) => ({ ...cell, edges: source.edge })), assembly.emptyNeighbour.edge);
+  make = (instance) => {
+    const durability = new GridRegionDurability(new SaveStore({ local: new Mem(), session: null }), { id: instance, shard: source.identity.slug }, source, []);
+    const sim = createShardfileSim(source, assets, { rapier, playerBody: false, quest: durability.quest, groundResolution: 257 });
+    for (const strip of strips) for (const row of strip.duplicates) if (row.instance === instance) installStripCollider(sim.host.physics, row.mesh, sim.host.scope);
+    installEntrySockets(sim.host.physics, sim.host.scope, [{ x: 0, z: 0 }], 'backstop');
+    installGridBorders(sim.host.physics, sim.host.scope);
+    const basis = sim.host.physics.snapshot();
+    durability.setPhysicsBasis(basis); durability.bind(sim.host, sim.colliders);
+    return { basis, dispose: () => { durability.unbind(); sim.dispose(); } };
+  };
+})();
+const ids = ['template-1', 'template-2', 'template-3', 'template-4', 'template-5'];
+Object.assign(window, {
+  simReady: async () => { await ready; return true; },
+  simMake: (n: number) => {
+    if (make === undefined) throw new Error('not ready');
+    for (let i = 0; i < n; i++) held.push(make(ids[held.length % ids.length] ?? 'template-1'));
+    return { held: held.length, basis: held.reduce((s, h) => s + h.basis.byteLength, 0) };
+  },
+  simFree: () => { for (const h of held.splice(0)) h.dispose(); return true; },
+});

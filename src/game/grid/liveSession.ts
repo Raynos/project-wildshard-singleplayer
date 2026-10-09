@@ -66,6 +66,7 @@ import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/ru
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
 import { createRegionalWorldFoundation } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
+import { regionalSimAccountedBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../shard/runtime';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
@@ -553,7 +554,9 @@ export class LiveGridSession {
     const notices = this.page.scriptNotices;
     const scriptPorts = notices === undefined ? {} : { scriptDisabled: scriptDisabledNotice(notices) };
     // Four native creature-only walls and their shape/query adapters belong to this regional claim.
-    return { bytes: source.budgets.sim.resident + generatedGroundBytes + 4096 + TRANSFER_WALL_BYTES, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
+    // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
+    const bytes = regionalSimAccountedBytes(cell.slug, source.budgets.sim.resident + generatedGroundBytes + 4096, TRANSFER_WALL_BYTES, findShard(cell.slug));
+    return { bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
       let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
       let releaseBasis: () => void = () => undefined;
       let transfer: TransferWalls;

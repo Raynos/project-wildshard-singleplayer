@@ -1,0 +1,58 @@
+{
+ "declaredSimResident": 16000000,
+ "rows": [
+  {
+   "sims": 1,
+   "heapMB": 0.452704,
+   "externalMB": 2.686284,
+   "arrayBuffersMB": 2.555172,
+   "wasmMB": 0,
+   "basisMB": 1.63001
+  },
+  {
+   "sims": 2,
+   "heapMB": 1.000664,
+   "externalMB": 7.007262,
+   "arrayBuffersMB": 5.106678,
+   "wasmMB": 1.6384,
+   "basisMB": 3.256354
+  },
+  {
+   "sims": 3,
+   "heapMB": 1.41836,
+   "externalMB": 11.464388,
+   "arrayBuffersMB": 7.66326,
+   "wasmMB": 3.407872,
+   "basisMB": 4.887774
+  },
+  {
+   "sims": 4,
+   "heapMB": 1.891272,
+   "externalMB": 15.91813,
+   "arrayBuffersMB": 10.216458,
+   "wasmMB": 5.177344,
+   "basisMB": 6.51581
+  },
+  {
+   "sims": 5,
+   "heapMB": 2.2886,
+   "externalMB": 20.371026,
+   "arrayBuffersMB": 12.76881,
+   "wasmMB": 6.946816,
+   "basisMB": 8.143
+  },
+  {
+   "sims": 6,
+   "heapMB": 2.617552,
+   "externalMB": 24.69567,
+   "arrayBuffersMB": 15.323982,
+   "wasmMB": 8.585216,
+   "basisMB": 9.77301
+  }
+ ],
+ "afterDispose": {
+  "heapMB": 1.658144,
+  "wasmMB": 8.585216
+ },
+ "node": "v24.18.1"
+}

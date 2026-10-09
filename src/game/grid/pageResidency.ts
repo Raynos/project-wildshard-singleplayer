@@ -43,6 +43,7 @@ export class PageResidency {
   private closed = false;
   private assetsBound = false;
   private composerBound = false;
+  private wholePage = false;
 
   /** Renderer caches survive level unload, so their claims live with the actual renderer owner. */
   bindAssets(assets: App['assets'], rendererScope: Scope, homeScope: Scope | null, readOwner: () => Scope | null, readAllocations: AssetAllocationReader): void {
@@ -75,7 +76,7 @@ export class PageResidency {
     let detach: () => void;
     try {
       detach = game.observeComposerAllocation(bytes => {
-        const next = this.allocator.reservePageComponent('page:composer', composerReservation(bytes, tier), PHONE_COMPOSER_CALIBRATION);
+        const next = this.allocator.reservePageComponent('page:composer', composerReservation(bytes, tier), PHONE_COMPOSER_CALIBRATION, this.composerCover());
         if (next === null) throw new Error('Composer admission deferred by the shared budget');
         const previous = lease; lease = next; previous?.release();
       });
@@ -86,15 +87,23 @@ export class PageResidency {
 
   constructor(allocator = new ResidencyAllocator()) { this.allocator = allocator; }
 
+  /** SF57: a measured whole-page home was read through this same composer, so it covers the composer while it lives. */
+  private composerCover(): string | undefined {
+    const claim = this.claim;
+    return claim !== undefined && this.wholePage && this.allocator.has(`sim:${claim.instance}`) ? `sim:${claim.instance}` : undefined;
+  }
+
   /** The same policy follows early admission, the grid and every warning surface; never a second allocator. */
   get memory(): ResidencyAllocator['memory'] { return this.allocator.memory; }
 
-  /** Reserve the home before any bootstrap allocation. Identical repeated admission shares its immutable identity. */
-  admitHome(instance: string, bytes: number): HomeResidencyClaim {
+  /** Reserve the home before any bootstrap allocation. Identical repeated admission shares its immutable identity.
+   * `measuredPage`: the bytes are a reviewed whole-page reading (WebContent + GL minus the engine base, SF57), never a
+   * declared budget; only such a home covers the page's composer. */
+  admitHome(instance: string, bytes: number, measuredPage = false): HomeResidencyClaim {
     if (this.closed) throw new Error('Page residency is disposed');
     if (instance.length === 0 || !Number.isSafeInteger(bytes) || bytes <= 0) throw new RangeError('Home residency requires a positive measured or declared resident cost');
     if (this.claim !== undefined) {
-      if (this.claim.instance !== instance || this.claim.bytes !== bytes) throw new Error('Page home residency changed identity or cost');
+      if (this.claim.instance !== instance || this.claim.bytes !== bytes || this.wholePage !== measuredPage) throw new Error('Page home residency changed identity or cost');
       return this.claim;
     }
     const id = `sim:${instance}`;
@@ -106,6 +115,7 @@ export class PageResidency {
       return lease;
     };
     this.bootLease = reserve();
+    if (measuredPage) { this.allocator.markMeasuredPage(id); this.wholePage = true; }
     let handedOff = false, releasedPending = false;
     const retain = (): ResidencyLease => {
       if (handedOff) throw new Error('Home residency has been handed off');

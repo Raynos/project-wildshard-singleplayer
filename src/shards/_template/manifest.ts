@@ -10,6 +10,9 @@ export const TEMPLATE: ShardManifest = {
   card: { thumb: GREY_CARD, portrait: GREY_CARD, landscape: GREY_CARD },
   style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'trees' },
   shardfile: '/shardfiles/_template/shard.json',
+  // SF57: one admitted regional sim's measured resident cost (basis excluded; it is charged as sim-basis:), the highest of
+  // Node, Chromium and WebKit readings; budgets.sim.resident (16 MB) stays the validated ceiling
+  regionalSimCost: { residentMB: 3.21, rev: '01e880c73', device: 'Chromium 153 + WebKit 26.6 content footprint, Node 24 V8 + Rapier', evidence: 'progress/memory/sf57/regional-sim-cost/summary.json' },
   ground: { paths: 'plugin', structures: true },
   minimap: { image: '/assets/_template/map/top.webp' }, // the map baked from the world (SF66)
   assetGlobs: ['public/assets/_template/map/**'],

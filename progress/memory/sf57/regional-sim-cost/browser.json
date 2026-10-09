@@ -1,0 +1,135 @@
+{
+ "base": "http://127.0.0.1:60723/",
+ "steps": [
+  0,
+  3,
+  6,
+  12
+ ],
+ "runs": [
+  {
+   "browser": "chromium",
+   "version": "153.0.8010.12",
+   "rep": 0,
+   "pid": 39735,
+   "rows": [
+    {
+     "sims": 0,
+     "footprintMB": 72,
+     "deltaMB": 0
+    },
+    {
+     "sims": 3,
+     "footprintMB": 86,
+     "deltaMB": 14
+    },
+    {
+     "sims": 6,
+     "footprintMB": 100,
+     "deltaMB": 28
+    },
+    {
+     "sims": 12,
+     "footprintMB": 129,
+     "deltaMB": 57
+    }
+   ],
+   "perSimMB": 4.75,
+   "slope3to12MB": 4.778,
+   "errors": []
+  },
+  {
+   "browser": "chromium",
+   "version": "153.0.8010.12",
+   "rep": 1,
+   "pid": 44326,
+   "rows": [
+    {
+     "sims": 0,
+     "footprintMB": 71,
+     "deltaMB": 0
+    },
+    {
+     "sims": 3,
+     "footprintMB": 87,
+     "deltaMB": 16
+    },
+    {
+     "sims": 6,
+     "footprintMB": 101,
+     "deltaMB": 30
+    },
+    {
+     "sims": 12,
+     "footprintMB": 129,
+     "deltaMB": 58
+    }
+   ],
+   "perSimMB": 4.833,
+   "slope3to12MB": 4.667,
+   "errors": []
+  },
+  {
+   "browser": "webkit",
+   "version": "26.6",
+   "rep": 0,
+   "pid": 48906,
+   "rows": [
+    {
+     "sims": 0,
+     "footprintMB": 120,
+     "deltaMB": 0
+    },
+    {
+     "sims": 3,
+     "footprintMB": 128,
+     "deltaMB": 8
+    },
+    {
+     "sims": 6,
+     "footprintMB": 137,
+     "deltaMB": 17
+    },
+    {
+     "sims": 12,
+     "footprintMB": 161,
+     "deltaMB": 41
+    }
+   ],
+   "perSimMB": 3.417,
+   "slope3to12MB": 3.667,
+   "errors": []
+  },
+  {
+   "browser": "webkit",
+   "version": "26.6",
+   "rep": 1,
+   "pid": 52646,
+   "rows": [
+    {
+     "sims": 0,
+     "footprintMB": 120,
+     "deltaMB": 0
+    },
+    {
+     "sims": 3,
+     "footprintMB": 128,
+     "deltaMB": 8
+    },
+    {
+     "sims": 6,
+     "footprintMB": 136,
+     "deltaMB": 16
+    },
+    {
+     "sims": 12,
+     "footprintMB": 161,
+     "deltaMB": 41
+    }
+   ],
+   "perSimMB": 3.417,
+   "slope3to12MB": 3.667,
+   "errors": []
+  }
+ ]
+}

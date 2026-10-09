@@ -26,7 +26,8 @@ export interface ResidencyClaim {
   readonly distance: number;
   /** the readiness model needs it now: never evicted */
   readonly needed: boolean;
-  /** Shared bytes already included in this live whole-runtime claim. Retirement makes them independently charged. */
+  /** Shared bytes already included in this live whole-runtime claim (a retained commons cache, or a page component inside a
+   * measured whole-page home). Retirement makes them independently charged. */
   readonly coveredBy?: string;
   /**
    * Two-phase eviction for claims with durability (sims): prepare does the fallible part and returns null when the claim
@@ -58,7 +59,9 @@ export class ResidencyAllocator {
   /** G216: the page's trusted Developer policy; omitted callers retain strict admission. */
   readonly memory: MemoryAdmission;
   private readonly entries_ = new Map<string, Entry>();
-  
+  /** Sim claims whose bytes are a measured whole page (SF57), the only claims a page component may be covered by. */
+  private readonly measured = new Set<string>();
+
   private readonly playing: number;
   private generation = 0;
   private evicting = false;
@@ -72,17 +75,20 @@ export class ResidencyAllocator {
   reserve(claim: ResidencyClaim): ResidencyLease | null { return this.reserveClaim(claim, 0); }
 
   /** Split an evidenced renderer component out of the fixed engine baseline. Only the calibrated credit is removed;
-   * larger current allocations increase the envelope, and the component remains a visible page-owned claim. */
-  reservePageComponent(id: string, bytes: number, calibratedCredit: number): ResidencyLease | null {
+   * larger current allocations increase the envelope, and the component remains a visible page-owned claim.
+   * `coveredBy` names a measured whole-page home claim that already contains this component (SF57): while it lives, the
+   * component charges nothing and returns its calibration credit, since that home's reading subtracted the same base. */
+  reservePageComponent(id: string, bytes: number, calibratedCredit: number, coveredBy?: string): ResidencyLease | null {
     if (!Number.isSafeInteger(calibratedCredit) || calibratedCredit < 0 || calibratedCredit > CONTENT_CAPS.engineBase) throw new RangeError('Invalid engine calibration');
-    const claim: ResidencyClaim & { baseCredit: number } = { id, category: 'page', bytes, owner: 'platform', needed: true, distance: 0, baseCredit: Math.min(bytes, calibratedCredit) };
+    const claim: ResidencyClaim & { baseCredit: number } = { id, category: 'page', bytes, owner: 'platform', needed: true, distance: 0, baseCredit: Math.min(bytes, calibratedCredit), ...(coveredBy === undefined ? {} : { coveredBy }) };
     const existing = this.entries_.get(id);
     if (existing === undefined) return this.reserveClaim(claim, claim.baseCredit);
     if (this.evicting || existing.category !== 'page' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid page component replacement');
+    this.validateCoverage(id, 'page', bytes, coveredBy);
     const input = this.input(claim, new Set([id])), cost = contentCost(input);
     if (cost.playing > this.playing && !this.memory.accept({ stage: 'resident', owner: 'platform', id, claimedBytes: bytes,
       accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading, playingCap: this.playing, categories: input })) return null;
-    existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.refs++;
+    existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.coveredBy = coveredBy; existing.refs++;
     return this.lease(existing);
   }
 
@@ -126,16 +132,29 @@ export class ResidencyAllocator {
     return [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id)).map((e) => Object.freeze({ id: e.id, category: e.category, bytes: e.bytes, owner: e.owner, distance: e.distance, needed: e.needed, refs: e.refs, holds: e.holds, accountedBytes: this.effectiveBytes(e), ...(e.coveredBy === undefined ? {} : { coveredBy: e.coveredBy }) }));
   }
 
+  /** SF57: mark a live sim claim as a measured whole-page reading (its WebContent + GL minus the engine base), so page
+   * components it contains may be covered by it. An estimated or declared claim is never marked. */
+  markMeasuredPage(id: string): void {
+    const entry = this.entries_.get(id);
+    if (entry?.category !== 'sim' || entry.coveredBy !== undefined) throw new Error('Only a live sim claim can be a measured whole page');
+    this.measured.add(id);
+  }
+
   /** True while the id is resident (held by at least one lease). */
   has(id: string): boolean { return this.entries_.has(id); }
 
+  private covered(entry: { coveredBy?: string | undefined }, omitted: ReadonlySet<string> = new Set()): boolean {
+    return entry.coveredBy !== undefined && !omitted.has(entry.coveredBy) && this.entries_.has(entry.coveredBy);
+  }
   private effectiveBytes(entry: { bytes: number; coveredBy?: string | undefined }, omitted: ReadonlySet<string> = new Set()): number {
-    return entry.coveredBy !== undefined && !omitted.has(entry.coveredBy) && this.entries_.has(entry.coveredBy) ? 0 : entry.bytes;
+    return this.covered(entry, omitted) ? 0 : entry.bytes;
   }
   private validateCoverage(id: string, category: ResidencyCategory, bytes: number, covering: string | undefined): void {
     if (covering === undefined) return;
     const parent = this.entries_.get(covering);
-    if (category !== 'commons' || parent?.category !== 'sim' || parent.coveredBy !== undefined || id === covering) throw new Error('Invalid runtime cache coverage');
+    // Only a measured whole runtime (a `sim` claim) can contain other bytes: retained commons, or page components (SF57).
+    if ((category !== 'commons' && category !== 'page') || parent?.category !== 'sim' || parent.coveredBy !== undefined || id === covering) throw new Error('Invalid runtime cache coverage');
+    if (category === 'page' && !this.measured.has(covering)) throw new Error('Page coverage requires a measured whole-page claim');
     const others = [...this.entries_.values()].filter(e => e.id !== id && e.coveredBy === covering).reduce((sum, e) => sum + e.bytes, 0);
     if (others + bytes > parent.bytes) throw new Error('Runtime cache coverage exceeds its measured bytes');
   }
@@ -144,11 +163,11 @@ export class ResidencyAllocator {
     let credit = 0, page = 0;
     for (const e of this.entries_.values()) {
       if (omitted.has(e.id)) continue;
-      if (e.category === 'page') { page += e.bytes; credit += e.baseCredit; }
+      if (e.category === 'page') { if (!this.covered(e, omitted)) { page += e.bytes; credit += e.baseCredit; } }
       else { const key = field[e.category]; input[key] = (input[key] ?? 0) + this.effectiveBytes(e, omitted); }
     }
     if (extra !== undefined) {
-      if (extra.category === 'page') { page += extra.bytes; credit += extra.baseCredit; }
+      if (extra.category === 'page') { if (!this.covered(extra, omitted)) { page += extra.bytes; credit += extra.baseCredit; } }
       else { const key = field[extra.category]; input[key] = (input[key] ?? 0) + this.effectiveBytes(extra, omitted); }
     }
     if (credit > CONTENT_CAPS.engineBase) throw new Error('Page calibration exceeds the engine baseline');
@@ -174,7 +193,7 @@ export class ResidencyAllocator {
   }
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
-    this.entries_.delete(entry.id);
+    this.entries_.delete(entry.id); this.measured.delete(entry.id);
     this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
   }
   private lease(entry: Entry): ResidencyLease {

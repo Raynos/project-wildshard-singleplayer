@@ -42,7 +42,7 @@ export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'sha
         accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
         measured: { webContentBytes: Math.ceil(row.webContentMB * 1_000_000), glBytes: Math.ceil(row.glMB * 1_000_000), engineBaseBytes: Math.ceil(row.engineBaseMB * 1_000_000),
           rev: row.rev, device: row.device, evidence: row.evidence } })) throw new Error('Home residency admission deferred by the shared budget');
-      residency.admitHome(instance, bytes);
+      residency.admitHome(instance, bytes, true);
     }
     const recovery = mode === 'grid' ? pageGridRecovery() : null;
     return { mode, instance, residency, memory, ...(recovery === null ? {} : { recovery }) };

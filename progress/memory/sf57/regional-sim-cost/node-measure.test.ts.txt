@@ -1,0 +1,60 @@
+// SF57 (sf57-qualify3): resident cost of one regional template sim, as liveSession.admit builds it. Measurement, not a gate.
+// oxlint-disable-next-line import/no-nodejs-modules -- reads the admitted template assets and Rapier binary
+import { readFileSync, writeFileSync } from 'node:fs';
+import { it } from 'vitest';
+import { SaveStore } from '../src/engine/saves/store';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { installEntrySockets } from '../src/engine/physics/entrySockets';
+import { installStripCollider } from '../src/engine/physics/stripColliders';
+import { installGridBorders } from '../src/engine/physics/gridBorders';
+import { generatePlatform } from '../src/engine/sim/strips';
+import { GridAssembly } from '../src/game/grid/assembly';
+import { GridRegionDurability } from '../src/game/grid/durability';
+import { createShardfileSim } from '../src/game/shardfile/simulation';
+import { memoryAttribution } from '../src/engine/core/memoryAttribution';
+import source from '../src/shards/_template/shard.config';
+import { MemoryStorage } from './setup';
+
+it('measures template regional sims', async () => {
+  const gc = Reflect.get(globalThis, 'gc');
+  if (typeof gc !== 'function') throw new Error('run with --expose-gc');
+  const collect = (): void => { for (let i = 0; i < 6; i++) gc(); };
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assets = new Map(source.files.map((file) => [file.hash, readFileSync(`src/shards/_template/assets/${file.hash}`)]));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const strips = generatePlatform(assembly.cells.map((cell) => ({ ...cell, edges: source.edge })), assembly.emptyNeighbour.edge);
+  const probe = new rapier.World({ x: 0, y: -9.81, z: 0 }); probe.free();
+  const memOf = (): number => {
+    const row = memoryAttribution.snapshot(null).allocations.find((a) => a.kind === 'wasm' && a.owner === 'engine/physics');
+    return row?.bytes ?? Number.NaN;
+  };
+  const read = (): { heap: number; external: number; arrayBuffers: number; wasm: number } => {
+    collect(); const m = process.memoryUsage(); return { heap: m.heapUsed, external: m.external, arrayBuffers: m.arrayBuffers, wasm: memOf() };
+  };
+  const make = (instance: string) => {
+    const durability = new GridRegionDurability(new SaveStore({ local: new MemoryStorage(), session: null }), { id: instance, shard: source.identity.slug }, source, []);
+    const sim = createShardfileSim(source, assets, { rapier, playerBody: false, quest: durability.quest, groundResolution: 257 });
+    for (const strip of strips) for (const row of strip.duplicates) if (row.instance === instance) installStripCollider(sim.host.physics, row.mesh, sim.host.scope);
+    installEntrySockets(sim.host.physics, sim.host.scope, [{ x: 0, z: 0 }], 'backstop');
+    installGridBorders(sim.host.physics, sim.host.scope);
+    const basis = sim.host.physics.snapshot();
+    durability.setPhysicsBasis(basis); durability.bind(sim.host, sim.colliders);
+    return { sim, durability, basis };
+  };
+  // warm: one sim built and disposed so module-level caches and the first WASM growth are paid before the baseline
+  { const w = make('template-1'); w.durability.unbind(); w.sim.dispose(); }
+  const base = read();
+  const rows: unknown[] = [];
+  const held: ReturnType<typeof make>[] = [];
+  const ids = ['template-1', 'template-3', 'template-4', 'template-2', 'template-5', 'template-1'];
+  for (const [index, id] of ids.entries()) {
+    held.push(make(id));
+    const now = read();
+    rows.push({ sims: index + 1, heapMB: (now.heap - base.heap) / 1e6, externalMB: (now.external - base.external) / 1e6, arrayBuffersMB: (now.arrayBuffers - base.arrayBuffers) / 1e6, wasmMB: (now.wasm - base.wasm) / 1e6, basisMB: held.reduce((s, h) => s + h.basis.byteLength, 0) / 1e6 });
+  }
+  for (const h of held) { h.durability.unbind(); h.sim.dispose(); }
+  const after = read();
+  const out = { declaredSimResident: source.budgets.sim.resident, rows, afterDispose: { heapMB: (after.heap - base.heap) / 1e6, wasmMB: (after.wasm - base.wasm) / 1e6 }, node: process.version };
+  writeFileSync('/private/tmp/claude-501/sp-builders/sf57-qualify3/sim-measure.json', `${JSON.stringify(out, null, 1)}\n`);
+  console.log(JSON.stringify(out, null, 1));
+}, 300_000);

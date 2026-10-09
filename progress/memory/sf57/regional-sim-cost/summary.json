@@ -1,0 +1,46 @@
+{
+ "what": "SF57 (sf57-qualify3): resident cost of one admitted regional template sim, built as liveSession.admit builds it (createShardfileSim, strip duplicates, entry backstop, grid borders, checkpoint basis)",
+ "rev": "01e880c73",
+ "basisPerSimMB": 1.629,
+ "node": {
+  "perSimMB_excl_basis": 3.066,
+  "method": "V8 heapUsed + arrayBuffers + Rapier linear memory, forced GC, slope over 2..6 sims",
+  "file": "node.json"
+ },
+ "browser": [
+  {
+   "browser": "chromium",
+   "version": "153.0.8010.12",
+   "rep": 0,
+   "perSimMB_incl_basis": 4.75,
+   "perSimMB_excl_basis": 3.121
+  },
+  {
+   "browser": "chromium",
+   "version": "153.0.8010.12",
+   "rep": 1,
+   "perSimMB_incl_basis": 4.833,
+   "perSimMB_excl_basis": 3.204
+  },
+  {
+   "browser": "webkit",
+   "version": "26.6",
+   "rep": 0,
+   "perSimMB_incl_basis": 3.417,
+   "perSimMB_excl_basis": 1.788
+  },
+  {
+   "browser": "webkit",
+   "version": "26.6",
+   "rep": 1,
+   "perSimMB_incl_basis": 3.417,
+   "perSimMB_excl_basis": 1.788
+  }
+ ],
+ "browserMethod": "content-process phys_footprint (macOS footprint, 1 MB resolution), 0/3/6/12 sims after one warm build+free, median of 5 reads; Chromium after CDP collectGarbage; muted iPhone 16 Pro context; file browser.json",
+ "charged": {
+  "residentMB": 3.21,
+  "why": "the highest reading (Chromium 4.833 MB per sim incl. the 1.629 MB basis already charged as sim-basis:) minus the basis; WebKit 26.6 reads lower (3.42 incl. basis), Node 3.07 excl. basis"
+ },
+ "declaredCeilingMB": 16.0
+}

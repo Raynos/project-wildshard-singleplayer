@@ -20,7 +20,7 @@ import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from './plugin';
 import type { AccentId } from '../shardfile/accent';
-import type { RuntimeCost } from '../grid/runtimeCost';
+import type { RegionalSimCost, RuntimeCost } from '../grid/runtimeCost';
 import type { ShardSlug } from './slugs.generated';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
@@ -447,6 +447,8 @@ export interface ShardEntries { readonly legacy: boolean; readonly shardfile: bo
 export interface ShardManifest {
   /** Reviewed opaque-runtime home measurements, available before world bootstrap; the declaration shares this data. */
   runtimeCost?: RuntimeCost;
+  /** SF57: a reviewed per-sim resident reading for this shard's regional shardfile sims; the allocator charges it instead of the declared ceiling. */
+  regionalSimCost?: RegionalSimCost;
   next?: string;
   /** Built first-party data source, admitted before the existing session boot; picker identity stays on this manifest. */
   shardfile?: string;
