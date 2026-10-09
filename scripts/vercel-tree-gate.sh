@@ -164,7 +164,11 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   cached check-model-sources node scripts/check-model-sources.mjs
   cached webgpu-inventory node scripts/webgpu-inventory.mjs --check
   # CI checks committed terrain, sky metadata and navmeshes; stale bakes must block the push too.
-  cached bake-check node scripts/bake-check.mjs --node-only
+  # SF74 W24: each node baker is its own cached step, keyed by its own traced inputs (one trace of 3,058 inputs re-ran
+  # all of them for any touched src file: 131-224 s on "cached" gates). A tree from before --list-node keeps one step.
+  if grep -q -- '--list-node' scripts/bake-check.mjs; then
+    for baker in $(node scripts/bake-check.mjs --list-node); do cached "bake-$baker" node scripts/bake-check.mjs --node-only --only="$baker"; done
+  else cached bake-check node scripts/bake-check.mjs --node-only; fi
   job vitest vitest_step
   job script-conformance env BROWSER_LANE_PRIORITY=1 bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
   # vite build writes nothing in the tree after gen (checked 2026-10-07), so it runs beside the readers

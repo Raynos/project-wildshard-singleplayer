@@ -19,11 +19,18 @@ const run = (args, command = process.execPath) => {
   if (result.status !== 0) state.failed = true;
   return result.status === 0;
 };
-for (const baker of ['chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry']) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
-run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', 'scripts/bake-driftwood-fixed-models.mjs', '--check']);
+// SF74 W24 (speed audit #10): the push gate caches each node baker on its own inputs (`--list-node`, then
+// `--node-only --only=<baker>` per cached step), so one touched src file re-runs only the bakers that read it.
+const NODE_BAKERS = ['chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models'];
+if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n')); process.exit(0); }
+const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
+if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
+if (only !== undefined && !nodeOnly) { console.error('bake-check: --only needs --node-only'); process.exit(64); }
+for (const baker of NODE_BAKERS) if (only === undefined || only === baker) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
 
-const metal = process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
-if (!metal) console.log('bake-check: GPU bakers skipped (no Metal): bake-cards, bake-textures');
+const metal = only === undefined && process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
+if (only !== undefined) { /* one node baker: no GPU bakers */ }
+else if (!metal) console.log('bake-check: GPU bakers skipped (no Metal): bake-cards, bake-textures');
 else if (skipGpu) console.log('bake-check: GPU bakers queued: bake-cards, bake-textures');
 else if (!state.failed) {
   const scratch = mkdtempSync(join(tmpdir(), 'bake-check-'));
@@ -58,7 +65,8 @@ else if (!state.failed) {
     rmSync(scratch, { recursive: true, force: true });
   }
 }
-if (nodeOnly) console.log('bake-check: derived copies queued (--node-only): tex-tiers, bake-ktx2');
+if (only !== undefined) { /* one node baker for the gate's per-baker cache */ }
+else if (nodeOnly) console.log('bake-check: derived copies queued (--node-only): tex-tiers, bake-ktx2');
 else {
   if (toolVersion('magick', ['-version']) && toolVersion('cwebp', ['-version'])) run(['scripts/tex-tiers.mjs', '--check']);
   else console.log('bake-check: phone copies skipped (no magick/cwebp): tex-tiers');
