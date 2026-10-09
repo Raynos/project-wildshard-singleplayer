@@ -24,7 +24,7 @@ import { waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierPosts, type PierParams } from '../models/pier';
+import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierHalfWidthAt, pierPosts, type PierParams } from '../models/pier';
 
 export interface PierSpec {
   x: number; z: number;
@@ -45,6 +45,9 @@ export interface PierSpec {
   /** SF46 (G164): the deck ramps up over this many metres from road height (y = 0) at its sea end, where it meets the
    *  platform's entry socket (the lowered world's entries) */
   seaRamp?: number;
+  /** SF72 (pick (c)): the sea ramp flares to this full width at its sea end (the entry socket's 8 m), narrowing to the
+   *  deck's `width` at its top; absent: a straight ramp the deck's width */
+  seaFlare?: number;
 }
 
 export class Pier {
@@ -97,7 +100,8 @@ export class Pier {
     // the pennant streams downwind: the world's wind turned into the pier's frame
     const [wx, wz] = PENNANT_WIND, c = Math.cos(yaw), s = Math.sin(yaw);
     const pennantDir: [number, number] = yaw === 0 ? [wx, wz] : [wx * c - wz * s, wx * s + wz * c];
-    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { run: this.spec.seaRamp, landY: -deckY } };
+    const flare = this.spec.seaFlare === undefined ? {} : { flare: this.spec.seaFlare };
+    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { run: this.spec.seaRamp, landY: -deckY, ...flare } };
     this.params = { length, width, pileDepth: this.spec.pileDepth ?? 8, landing, pennantDir, ...(this.spec.pennantAt === undefined ? {} : { pennantAt: this.spec.pennantAt }), ...seaRamp };
     const pl: Placement<PierParams> = { x: this.spec.x, y: deckY, z: this.spec.z, ...(yaw === 0 ? {} : { yaw }), params: this.params };
     const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,
@@ -144,7 +148,7 @@ export class Pier {
   floorHeightAt(x: number, z: number): number | undefined {
     const dx = x - this.spec.x, dz = z - this.spec.z;
     const along = dx * this.sin + dz * this.cos, across = dx * this.cos - dz * this.sin;
-    if (along < -0.2 || along > this.params.length + 0.2 || Math.abs(across) > this.spec.width / 2 + 0.25) return undefined;
+    if (along < -0.2 || along > this.params.length + 0.2 || Math.abs(across) > pierHalfWidthAt(this.params, along) + 0.25) return undefined;
     return this.deckY + pierDeckAt(this.params, along);
   }
 }

@@ -264,7 +264,8 @@
         "context.strings": 1,
         "context.manifest": 5,
         "context.app": 3,
-        "subclass.CreatureBrain": 4
+        "subclass.CreatureBrain": 4,
+        "context.debugRow": 1
       },
       "sites": {
         "ctx.game.runtime": [
@@ -386,6 +387,9 @@
           "src/shards/driftwood-isle/species/crab.ts:329:1",
           "src/shards/driftwood-isle/species/monkey.ts:390:1",
           "src/shards/driftwood-isle/species/sailor.ts:393:1"
+        ],
+        "context.debugRow": [
+          "src/shards/driftwood-isle/runtime/index.ts:76:5"
         ]
       }
     },

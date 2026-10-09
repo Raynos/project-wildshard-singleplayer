@@ -1,53 +1,48 @@
-# Handoff (sf72-driftwood, part 11) — 2026-10-09, SF72 Driftwood Isle headless
+# Handoff (sf72-driftwood, part 12) — 2026-10-09, SF72 Driftwood Isle headless
 
-Coordinator `wildshard-new` pushes. Supersedes part 10's "Not done". Driftwood's canonical witness
-(`test/proof/driftwood-isle/`) is UNCHANGED and still fails closed (its entry is still `runtime/hybrid.ts`).
+Coordinator `wildshard-new` pushes. Supersedes part 11's "Not done". Driftwood's canonical witness
+(`test/proof/driftwood-isle/`) is UNCHANGED and still fails closed (its entry is still `runtime/hybrid.ts`). The next three
+steps are written for a Codex lane (non-graphical engineering); none needs a browser except where marked.
 
-## Landed (part 11)
+## Landed (part 12)
 
-- **74032f176, the last noise failures:** the cove's reef crabs scuttled into the barrel resting on plate b and shoved
-  it off during the walk round (two crab capsules in contact at the kick); the push now clears crabs within 20 m of
-  plate b first. A barrel wedged across the lane between the two blocks (two moves without progress) is walked into
-  until the never-jam rule sends it home, then the push starts again. Sweep (stick noise 1e-9…1e-3 + 0, a scratch copy
-  of the test with seeded noise in `steer`): 112/112 arm64, 70/70 x64 Node (Rosetta).
-- **3d20b4446, raw snapshot compares:** 38 restore comparisons in 31 engine / game / grid / shardfile tests moved onto
-  `expectSameSimSnapshot`. Still raw, in other lanes' files: `test/shards/far-reach/headless-quest.test.ts:124/127`;
-  `test/shards/sunscar-dunes/headless-quest.test.ts:106/113`, `headless-runtime.test.ts:102/107/135`,
-  `policy-continuation.test.ts:56/61`.
-- **9fb1523d6, the page's barrel push:** 3/3 muted iPhone 16 Pro runs press plate b with the touch stick, no page
-  errors (`progress/shard-platform/sf72-driftwood11/`, script re-runnable).
-- **7b57874bd, spots freshness:** `spots.baked.json` carries `inputs` (scripts/driftwood-spots-inputs.mjs, 63 files);
-  the quest test refuses a stale bake. Rebaked from a 357e7b538 build: identical except the barrel, which is now its
-  home (147.5, 0.37333, 3.5), not its settled pose (1e-5 jitter). Sweep re-run on it: 84/84 arm64, 56/56 x64.
+- **The flared sea ramps (pick (c)) + the entry proof**, one commit (see its message): `models/pier.ts`
+  (`PierSeaRamp.flare`, `pierHalfWidthAt`), `world/Pier.ts` (`seaFlare`), `world/build.ts`, `world/pierRamps.ts` (the pick),
+  the Debug row in `runtime/index.ts`'s `play` (`pierRamps`, Look, reload; `lint/ratchet.json` debugRows 6,
+  `lint/shard-coupling.json` driftwood `context.debugRow` 1). Bakes: physics (40 of 2067 solids, ramps only), spots (input
+  hashes only), map, navmesh + `runtime/navmesh.baked.json`. Images: `art/driftwood/round-1-pier-ramps/`.
+- `runtime/entries.ts` `proveDriftwoodEntries` is the headless plan's `proveEntries`: 92 / 92 lanes; it refuses the old
+  straight bake. `finish` no longer refuses for want of an entry proof.
+- **When Jake picks** (the plan's needs-pick): delete the `pierRamps` row, `world/pierRamps.ts`, the losing branch in
+  `models/pier.ts` (`flare === undefined` paths or the flare paths), `PIER_RAMP_STRINGS`, the ratchet/coupling +1s; if
+  straight wins, `runtime/entries.ts` must route the outer lanes differently (it would refuse) and the physics bake reverts.
 
-## Not done (in order)
+## Not done (in order, Codex steps)
 
-1. **The entry proof: the coordinator picked (c), the flared sea ramps. Build it first.** Every 8 m socket is dry for
-   16.5 m (15 m asphalt + 1.5 m landing), then narrows to the pier (4 m, manifest `PIER.width`) or a jetty (3 m,
-   `world/build.ts`). The 9 m ramp (`SEA_RAMP_RUN`, `world/Pier.ts`) becomes a trapezoid, 8 m wide at the landing and
-   the deck's width at the top. Requirements:
-   - the flared ramp is the default (a functional fix: the road's outer lanes no longer walk into the sea);
-   - the old straight ramp stays selectable as ONE Debug row (`ctx.debugRow`, e.g. "Driftwood pier ramps: flared /
-     straight"), never a URL switch;
-   - the rails follow the flare and the colliders match the visuals;
-   - a Driftwood map + physics rebake from a clean export (then `node scripts/bake-driftwood-navmesh.mjs` if the navmesh
-     moves; the spots `inputs` cover `world/`, so rebake the spots too);
-   - the entry proof walks all lanes, the walk baseline is 0 stuck, boot smoke passes (grid included), and parity changes
-     only at the four ramps;
-   - before / after images of each ramp from the road, iPhone portrait, ≤ 500 KB JPEG, in
-     `art/driftwood/round-<n>-pier-ramps/`. The coordinator adds Jake's pick to the plan.
-2. **Night respawns:** port `quest/Ecology.ts`'s RespawnQueue to headless. That means the delays from the `spawn`
-   stream, the 60 m out-of-sight rule, the sailor at night on `host.dayClock.night` in his hold, and a fresh spawn near
-   the herd home on land, with the herd membership restored. The queue goes into the keeper's continuation, and
-   `keeper.ts`'s practice crab return is the pattern.
-3. The swords on the new inputs (a0aa16128): the dodge wake on `player.dodge`, the heavy swing from the held `heavy`,
-   the lunge via `host.dashTo` + `sweptLunge`.
-4. The witness on `runtime/headless.ts`, with committed checkpoints and a freshness check if the tape is long.
+1. **Night respawns** (port `quest/Ecology.ts`'s `RespawnQueue` to headless). Read `quest/Ecology.ts` and
+   `runtime/keeper.ts` (its practice crab return is the pattern) first.
+   - A dead creature queues a respawn with its delay drawn from the `spawn` stream exactly as the page draws it.
+   - It respawns only when the player is ≥ 60 m away and out of sight (the page's rule, same order of checks).
+   - The sailor returns only at night (`host.dayClock.night`), in the wreck hold (`bake.habitat.hold`, its floor via
+     `bake.holdFloorAt`); land fauna spawn near their herd home with herd membership restored (`bake.herds`).
+   - New ids from the same `EntityIds` allocator the practice crab uses; the queue goes into the keeper's continuation
+     (snapshot / restore exact; one restore checkpoint per test, `expectSameSimSnapshot`).
+   - Test: kill a boar, walk 60 m away, run until its delay, assert it is back with the page's herd; kill the sailor by
+     day, assert no respawn until night. Keep it < 1/3 of its timeout under `--coverage`.
+   - If `src/engine/ai/hunt.ts` or `AnimalManager.ts` changes, rebake Pine, Driftwood and Nalati in the same commit.
+2. **The swords on the new inputs** (`a0aa16128`), in `runtime/swords.ts`: the dodge wake on `player.dodge`; the heavy
+   swing from the held `heavy` command; the lunge via `host.dashTo` + `sweptLunge`. Mirror the page's numbers
+   (`src/game/weapons/starterMeleeProfile.ts`, `starterMoves.ts`); extend `headless-runtime.test.ts`'s sword cases.
+3. **The witness** on `runtime/headless.ts`: point `test/proof/driftwood-isle/run.mjs`'s entry at the trusted
+   `runtime/headless.ts`, bands as Sky's (`c162fbd6a`): headless 10k, replay with a captain mid-fight checkpoint, ledger
+   from gameplay; committed checkpoints with a freshness guard if the tape is long; flip `compatibility.json` only from a
+   real run. `finish` now runs the entry proof (≈ 30k capsule steps, well under a second).
 
-## Map notes (tide puzzle)
+## Map notes
 
-Plate b (144.9, 9.9, slab ±0.55). The 1.7 m block covers x 140.25–143.6, z ≥ 9.4, and the 1.9 m block x 139.5–143.1,
-z 4.5–8.25; the lane between them (z 8.25–9.4) can wedge a barrel lying north–south. Rock lies east of
-x ≈ 147.25–148.75 for z 3–10. The barrel's home is (147.5, 3.5). Three reef crabs live within 20 m of plate b.
+Entries: socket 15 m flat (y 0) + landing 1.5 m; the ramp starts 15 m in (sand-level slab at 14.8–15 m) and tops out at
+24 m in, 1.2 m up; pier deck 4 m (south), jetties 3 m. The edge walls' inner face is 0.8 m inside the cell edge. Tide
+puzzle: plate b (144.9, 9.9); barrel home (147.5, 3.5); three reef crabs within 20 m of plate b; the 1.7 m / 1.9 m blocks
+leave a wedge lane at z 8.25–9.4.
 
 Plan-State: unchanged.

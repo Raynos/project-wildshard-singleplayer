@@ -12,6 +12,7 @@ import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../quest/rows';
 import { DRIFTWOOD_INTERACT } from '../quest/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from './quest';
+import { proveDriftwoodEntries } from './entries';
 import navmeshBaked from './navmesh.baked.json' with { type: 'json' };
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { DRIFTWOOD_DAY, type Preset } from '../look/dayKeys';
@@ -67,7 +68,8 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * Wendell, the chest, the beacon, the hold key / pump / winch / strongbox, the shards, the plates and the sluice, the altar,
  * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).
  * the puzzle barrel the player pushes onto the second tide plate (the kit's body and never-jam rule), and the open sluice.
- * Not yet owned (fail-closed, see the SF72 handoff): the night respawns and the entry proof; `finish` refuses.
+ * The entry proof (runtime/entries.ts): every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
+ * Not yet owned (see the SF72 handoff): the night respawns.
  */
 /** The walk the tick's last `player` command asks for (m/s): the host's walk (SimHost.step: the stick clamped to 1, times
  * the level's speed), the velocity the page's Player asks for and the barrel's watch reads. */
@@ -84,7 +86,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (runtime/swords.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, install: (host, context) => {
+  return { level, ports: { ground: false, heightAt }, proveEntries: host => proveDriftwoodEntries(host.physics, shard.entryways), install: (host, context) => {
     // the page's own day clock, stepped by the host before every tick's steps (a restoring install builds it again)
     host.useDayClock(driftwoodDayClock());
     if (!context.restoring) addDriftwoodWorld(host, bake);

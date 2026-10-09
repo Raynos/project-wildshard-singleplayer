@@ -1,6 +1,7 @@
 import { buildProgress, type ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { STRINGS } from '../strings';
+import { PIER_RAMP_STRINGS, STRINGS } from '../strings';
+import { PIER_RAMP_PICKS, pierRampPick } from '../world/pierRamps';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
 import { islandSystems } from '../world/systems';
@@ -71,6 +72,10 @@ export class DriftwoodPlugin extends ShardPlugin {
   protected installCreatures(ctx: ShardContext): void { installDriftwoodCreatures(ctx); }
 
   override async play(ctx: ShardContext): Promise<void> {
+    // SF72: flared / straight sea ramps until Jake picks (a reload row: the world hook read the saved pick, world/pierRamps.ts)
+    ctx.debugRow({ id: 'pierRamps', group: 'look', label: PIER_RAMP_STRINGS.label, choices: PIER_RAMP_PICKS.map((value) => ({ value, text: PIER_RAMP_STRINGS[value] })),
+      initial: pierRampPick(), reload: true, change: () => undefined, ask: 'E435', reviewBy: '2026-12-30',
+      note: 'SF72 pick (c): the sea ramps flare from the 8 m entry socket to the deck (flared) or stay the deck\'s width (straight); deleted when Jake picks.' });
     await installDriftwoodAudio(ctx);
     this.adventure = await installDriftwoodAdventure(ctx);
     ctx.scope.onDispose(() => { this.adventure = null; });

@@ -26,6 +26,8 @@ import { KILLS_STEP, SAILOR_DEAD_FLAG } from '../../../src/shards/driftwood-isle
 import { SWORD_IRON, SWORD_WOOD } from '../../../src/game/weapons/starterMeleeProfile';
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
+import { SEA_RAMP_RUN } from '../../../src/shards/driftwood-isle/world/build';
+import { ENTRY_RAMP_RUN } from '../../../src/shards/driftwood-isle/runtime/entries';
 import { prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
@@ -67,7 +69,19 @@ it('holds the renderer-free spellings equal to the browser\'s (monkey variants, 
   expect(LOWERED_SEA).toBe(DRIFTWOOD_ISLE.ground.terrain?.waterLevel());
   expect(DRIFTWOOD_FIGHT.attackers).toBe(DRIFTWOOD_ISLE.fight?.attackers); expect(DRIFTWOOD_FIGHT.telegraphed).toBe(DRIFTWOOD_ISLE.fight?.telegraphed);
   expect(plan.level.seed).toBe(0x5ea1); expect(plan.level.player.at).toEqual({ x: 0, y: 1.2, z: -194 }); expect(plan.level.player.yaw).toBe(Math.PI);
-  expect(plan.proveEntries).toBeUndefined(); // finish stays refused until the entry proof is real
+});
+
+it('walks every lane of the four entries up its flared sea ramp onto the deck (SF72 pick (c), the entry proof)', () => {
+  expect(ENTRY_RAMP_RUN).toBe(SEA_RAMP_RUN);
+  const host = boot();
+  try {
+    for (let tick = 0; tick < 60; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    const prove = plan.proveEntries; if (prove === undefined) throw new Error('Driftwood has no entry proof');
+    const colliders = host.physics.world.colliders.len(), proof = prove(host);
+    expect(proof.lanes).toBe(4 * 23);
+    expect(proof.steps).toBeGreaterThan(4 * 23 * 300);
+    expect(host.physics.world.colliders.len()).toBe(colliders); // the proof's capsule is released
+  } finally { host.dispose(); }
 });
 
 it('spawns the 34 load-time bodies in the manager\'s order, reproducing every baked kind, variant, herd, seed, scale and point', () => {
