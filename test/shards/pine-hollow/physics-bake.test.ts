@@ -20,7 +20,9 @@ const Bake = v.object({ version: v.literal(1), revision: v.string(), inputs: v.r
     halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()), indices: v.optional(v.string()) })),
   actors: v.array(v.object({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, scale: finite, seed: finite, scripted: v.boolean(),
     spec: v.object({ kind: v.string(), variant: v.string(), hp: finite, dims: v.object({ bodyRadius: finite }) }) })),
-  herds: v.array(v.object({ kind: v.string(), members: v.array(v.string()) })) });
+  herds: v.array(v.object({ kind: v.string(), members: v.array(v.string()) })),
+  // the forest's trunk circles (x, z, r) the herds' placement reads (runtime/herds.ts; herd-placement.test.ts proves the rolls)
+  trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])) });
 const baked = v.parse(Bake, bakedJson);
 const RES = 256, SIZE = 500;
 
@@ -29,6 +31,7 @@ it('refuses stale source or model bytes before the trusted Pine physics bake is 
   expect(baked.inputs).toEqual(pinePhysicsInputs(process.cwd()));
   expect(baked.revision).toMatch(/^[a-f0-9]{7,40}$/u);
   expect(Object.keys(baked.inputs).some(path => path.endsWith('/bear-black.rigged.glb'))).toBe(true);
+  expect(baked.trees.length).toBeGreaterThan(0);
 });
 
 it('captures the native floor: Pine\'s own terrain recipe at every lattice vertex, lowered only by the crag cuts', () => {

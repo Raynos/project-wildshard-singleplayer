@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Trusted SF72 metadata only (Pine Hollow): the real native browser recipes remain the shipping source. Captures the
 // standalone level's native floor (the terrain heightfield collider exactly as the page built it, crag cuts included),
-// its edge walls and every solid world collider (trunks, rocks, crags, cabins, props), the registry pieces' metadata,
+// its edge walls and every solid world collider (trunks, rocks, crags, cabins, props), the registry pieces' metadata, the
+// forest's trunk circles the herds' placement reads,
 // and the forest herds' and the Den's model-derived simulation specs, seeds, scales and herd membership at load. Two independent same-page captures must match exactly.
 // scripts/browser-lane.sh node scripts/bake-pine-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
 import { chromium, devices } from 'playwright';
@@ -43,6 +44,8 @@ try {
     // herd membership is a placement fact; positions and herd centres are not (the page ticks and recentres between
     // captures): the members' placement draws are the next step's (progress/shard-platform/handoffs/sf72-pine.md)
     const herds = w.animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
+    // the forest's trunks as the hunting brain's placement reads them (HuntGround.trees: x, z, r), in the forest's order
+    const trees = w.animals.forest.trees.map(t => [t.x, t.z, t.r]);
     const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: piece.colliders.length, active: piece.active?.() ?? true };
       if (piece.surface !== undefined) row.surface = piece.surface;
@@ -80,7 +83,7 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, herds, pieces, grounds, solids };
+    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, herds, trees, pieces, grounds, solids };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -92,9 +95,9 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Pine bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, pieces: first.pieces };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, herds: first.herds, trees: first.trees, pieces: first.pieces };
     writeFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
-    console.log(`bake-pine-physics: ${first.actors.length} native bodies, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
+    console.log(`bake-pine-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }
   await context.close();
 } finally { await browser.close(); }
