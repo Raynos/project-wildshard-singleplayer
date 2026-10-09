@@ -1,7 +1,8 @@
 import { saveFixture } from '../debug-settings.mjs';
+import { RELEASE_HELD } from './shots/lib.mjs';
 // E168 Steam trailer — deterministic in-engine capture.
 //
-//   node scripts/steam-trailer/capture.mjs <outDir> [--shots driftwood,nalati,pine] [--only a,b] [--sub 2] [--scale 2]
+//   node scripts/steam-trailer/capture.mjs <outDir> [--shots driftwood,nalati,pine | --shots-file=<path>[,<path>]] [--only a,b] [--sub 2] [--scale 2]
 //        [--base http://localhost:5173/] [--frames N] [--dry] [--portrait]
 //
 // What makes it a trailer capture rather than a screen recording:
@@ -20,10 +21,16 @@ import { saveFixture } from '../debug-settings.mjs';
 // Frames land in <outDir>/<shot>/<nnnnnn>.jpg at 60·sub fps; <outDir>/<shot>/meta.json records the pose track and events.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const argv = process.argv.slice(2);
 const OUT = argv[0];
-const opt = (k, d) => { const i = argv.indexOf(`--${k}`); return i === -1 ? d : argv[i + 1]; };
+const opt = (k, d) => {
+  const eq = argv.find((a) => a.startsWith(`--${k}=`));
+  if (eq) return eq.slice(k.length + 3);
+  const i = argv.indexOf(`--${k}`); return i === -1 ? d : argv[i + 1];
+};
 const flag = (k) => argv.includes(`--${k}`);
 const FPS = 60;
 const SUB = Number(opt('sub', '2'));
@@ -39,9 +46,12 @@ const VIEW = PORTRAIT ? { width: 1080, height: 1920 } : { width: 1920, height: 1
 const EDL = opt('edl', '') ? JSON.parse((await import('node:fs')).readFileSync(opt('edl', ''), 'utf8')) : null;
 const keep = (name, i) => !EDL || EDL.clips.some((c) => c.shot === name && i >= Math.floor((c.in - 0.25) * FPS) && i < Math.ceil((c.in + c.dur + 0.25) * FPS));
 
+// --shots-file=<path>[,<path>]: shot files outside ./shots/ (another pipeline's configs, e.g. scripts/progress-trailer/);
+// they replace --shots
+const FILES = opt('shots-file', '') ? opt('shots-file', '').split(',').map((f) => pathToFileURL(resolve(f)).href) : SETS.map((s) => `./shots/${s}.mjs`);
 const shots = [];
-for (const s of SETS) {
-  for (const x of (await import(`./shots/${s}.mjs`)).shots) shots.push(PORTRAIT && x.portrait ? { ...x, ...x.portrait } : x);
+for (const f of FILES) {
+  for (const x of (await import(f)).shots) shots.push(PORTRAIT && x.portrait ? { ...x, ...x.portrait } : x);
 }
 
 // ── in-page runtime ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -50,6 +60,9 @@ const RUNTIME = String.raw`(() => {
   const w = window.__wildshard?.world, g = w.game, cam = g.camera;
   const tr = window.__tr = { go: 0, t: 0, rig: null, dt: 1 / 60, lastPose: null, armed: false, vt: 0 };
   g.app.clock.setCapture(60);
+  // the capture clock advances exactly tr.dt per drawn frame: 1/60 while the world warms, 1/(60·sub)·speed while a shot
+  // records, so --sub 2 sub-frames are 1/120 s apart (real shutter blur) and speed < 1 is true slow motion
+  tr.setStep = (dt) => { tr.dt = dt; g.app.clock.setCapture(1 / dt); };
   g.frameGate = () => { if (tr.go > 0) { tr.go--; return true; } return false; };
   // centripetal-ish Catmull-Rom on a key array, time-parametrised with a smoothstep per span edge
   const cr = (p0, p1, p2, p3, u) => { const u2 = u * u, u3 = u2 * u; return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3); };
@@ -156,7 +169,7 @@ for (const grp of groups) {
     const n = MAXF > 0 ? MAXF : Math.round(s.secs * FPS);
     // world-side setup (spawn, hide the viewmodel …), the rig's first pose, then let the world stream in around it at
     // 1/60 steps before the capture clock takes over
-    await page.evaluate(`(() => { const tr = window.__tr; tr.rig = null; tr.t = 0; tr.dt = 1 / 60; tr.showHud(false); tr.hide = []; })()`);
+    await page.evaluate(`(() => { const tr = window.__tr; tr.rig = null; tr.t = 0; tr.setStep(1 / 60); tr.showHud(false); tr.hide = []; ${RELEASE_HELD} })()`);
     // a boss / elite spawns a beat into play: step the world until the shot's subject exists
     if (s.waitFor) for (let k = 0; k < 900 && !(await page.evaluate(s.waitFor)); k++) await page.evaluate('window.__tr.step()');
     if (s.setup) await page.evaluate(s.setup);
@@ -170,7 +183,7 @@ for (const grp of groups) {
     // speed < 1 = slow motion shot in engine: the sim steps less per frame, every frame is real (no interpolation);
     // t (rig keys, ticks) is sim time
     const SP = s.speed ?? 1;
-    await page.evaluate((dt) => { window.__tr.dt = dt; }, SP / (FPS * SUB));
+    await page.evaluate((dt) => { window.__tr.setStep(dt); }, SP / (FPS * SUB));
     const tc = Date.now();
     const picks = DRY ? new Set([0, Math.floor(n / 2), n - 1]) : null;
     let idx = 0;
@@ -187,6 +200,7 @@ for (const grp of groups) {
       }
       if (i % 30 === 0) poses.push(await page.evaluate('window.__tr.lastPose'));
     }
+    await page.evaluate('window.__tr.setStep(1 / 60)');
     const secs = (Date.now() - tc) / 1000;
     console.log(`[${s.name}] ${n} frames × ${SUB} in ${secs.toFixed(0)} s (${(secs / n).toFixed(2)} s/frame)${errors.length > 0 ? ` — ${errors.length} errors` : ''}`);
     writeFileSync(`${dir}/meta.json`, JSON.stringify({ name: s.name, shard: s.shard, frames: n, sub: SUB, fps: FPS, scale: SCALE, view: VIEW, url, errors, poses, probe, done: !DRY }, null, 1));

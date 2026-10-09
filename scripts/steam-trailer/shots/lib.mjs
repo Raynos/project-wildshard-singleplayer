@@ -14,8 +14,15 @@ export const tp = (x, z, yaw, pitch = 0, dy = 0) =>
   `(() => { const p = window.__wildshard.world.player; p.position.set(${x}, window.__hf.heightAt(${x}, ${z}) + ${dy}, ${z}); p.yaw = ${yaw}; p.pitch = ${pitch}; if (p.velocity) p.velocity.set(0, 0, 0); })();`;
 /** in-page: player look this frame */
 export const look = (yaw, pitch) => `window.__wildshard.world.player.yaw = ${yaw.toFixed(5)}; window.__wildshard.world.player.pitch = ${pitch.toFixed(5)};`;
-export const keyDown = (k) => `window.__wildshard.world.player.keys.add('${k}');`;
-export const keyUp = (k) => `window.__wildshard.world.player.keys.delete('${k}');`;
+/** in-page: hold / release an action through the InputService — the player reads movement from it (Player.moveInput),
+ *  not from player.keys, whenever a service is attached (every boot at HEAD) */
+export const held = (action, on = true) => `window.__wildshard.world.game.app.input.setHeld('${action}', ${on});`;
+/** the keyboard codes the shots press, as the actions they stand for; any other code falls back to player.keys */
+const KEY_ACTION = { KeyW: 'move.forward', KeyS: 'move.back', KeyA: 'move.left', KeyD: 'move.right', ShiftLeft: 'sprint', Space: 'jump' };
+export const keyDown = (k) => (KEY_ACTION[k] ? held(KEY_ACTION[k], true) : `window.__wildshard.world.player.keys.add('${k}');`);
+export const keyUp = (k) => (KEY_ACTION[k] ? held(KEY_ACTION[k], false) : `window.__wildshard.world.player.keys.delete('${k}');`);
+/** in-page: release every held action keyDown can press (the capture runs it before each shot) */
+export const RELEASE_HELD = `(() => { const i = window.__wildshard.world.game.app.input; for (const a of ${JSON.stringify(Object.values(KEY_ACTION))}) i.setHeld(a, false); })();`;
 /** tick(t, i, sb, step): true on the one step whose [t, t + step) holds the event time T */
 export const at = (t, T, step) => T >= t - 1e-9 && T < t + step - 1e-9;
 /** in-page expression: the nearest living animal whose kind matches `re` (a regex literal string) within `max` m, or null */
