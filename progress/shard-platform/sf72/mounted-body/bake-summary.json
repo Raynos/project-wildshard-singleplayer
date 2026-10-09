@@ -1,0 +1,32 @@
+{
+  "parent": "accf09fb44e36cf2a51cc880747b6356ade7d62c",
+  "candidate": "4e9a7294830d7c6604948512b8c8588b48b396d9",
+  "browser": "iPhone 16 Pro / phone / DPR2 / muted",
+  "repeatedNativeCaptureExact": true,
+  "parentGameplayFieldsExact": [
+    "actors",
+    "flocks",
+    "grass",
+    "ground",
+    "groups",
+    "herds",
+    "ledges",
+    "marmots",
+    "pieces",
+    "profile",
+    "solids",
+    "spawns",
+    "tops",
+    "trees",
+    "version",
+    "yurts"
+  ],
+  "bodies": 35,
+  "trees": 155,
+  "solidColliders": 2694,
+  "pieces": 81,
+  "changedInputs": [
+    "src/shards/nalati-grasslands/ride/Mount.ts",
+    "src/shards/nalati-grasslands/runtime/rideBody.ts"
+  ]
+}

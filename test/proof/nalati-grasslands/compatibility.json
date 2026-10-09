@@ -1,6 +1,6 @@
 {
   "audit": {
-    "sourceRevision": "b13614a6e7bb218f691a5f3b7040510de13cb7e8",
+    "sourceRevision": "67773a54ce8117510dbcd73be74bf93d297e6b3e",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nalati-grasslands/run.mjs all",
     "exitStatus": 1,
     "scope": "real entry import and partial declared-row ledger contracts; no gameplay proxy"

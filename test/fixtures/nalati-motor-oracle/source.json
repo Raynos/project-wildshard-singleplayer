@@ -1,0 +1,6 @@
+{
+  "revision": "d9312d5ccba84f1c34e2c1c93ed49f47a4185f57",
+  "sourceSha256": "04cfcf3eabe80e2ca3f3c7980b729c4040a72674ee76922e4bb76e81aec79dd7",
+  "adapterSha256": "a3fecbda6893e615ec778f49659e81a36999d61e7fad285d45a8d63438048558",
+  "adaptation": "Only explicit world/rider/contact ports, shared scalar fields and a typed throw result replace page globals; original arithmetic, loops, query calls and order remain."
+}
