@@ -1,49 +1,61 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-09 15:20 CT.** Councils done (11 rounds). Part A only; S1–S22 not started.
+**2026-10-09 17:00 CT.** Councils done. Part A only.
 
 **Milestones:**
-- **M1:** done (re-board SF16 at HEAD).
-- **M2:** open. SF57 must re-qualify on the G270 layout and SF22 gates must pass formally; then G269, Jake's three phone runs.
-- **M3:** open. 1 of 7 at 80/20 (Template 1, 90.4 %).
+- **M1:** done.
+- **M2:** open. SF57 forced-compressed soak running (sp-x5); then SF22 gates and G269 phone runs.
+- **M3:** open. 1 of 7 at 80/20.
 
 **80/20 (share · runtime/ceiling · compatible):**
 
 | Shard | Share | Runtime / ceiling | Compatible |
 |---|---|---|---|
-| Signal Dunes | 20.9 % | 806/965 | ✓ |
-| Sky Reach | 9.6 % | 1288/1377 | ✓ |
+| Template 1 | 90.4 % | — | ✓ |
+| Signal | 20.9 % (25.4 % candidate) | 806/965 | ✓ |
+| Sky | 18.5 % (`124b14522`) | 1288/1377 | ✓ |
 | Pine | 3.1 % | 5317/4339 | ✗ |
 | Driftwood | 1.0 % | 5868/3753 | ✗ |
 | Nalati | 0.4 % | 9583/6618 | ✗ |
-| Nine Dragon | 0.2 % | 722/5033 | ✗ |
-| Blender Template (8th, not counted) | 97.2 % | — | — |
+| Nine | 0.2 % | 722/5033 | ✗ |
 
-**Live:** production **1c74e431-mv1exih9** (2026-10-09 20:23 UTC) carries G258 public Pine/Nalati/Sky, G266 Signal tiles-only, G270 public grid, G271 saver off, the shadow fix. Deploy unstuck: W0 `46397ef46` committed (no duplicate full test for a CI-green pin; pushing now); deploys stay hourly. **SF74 pipeline is owned by the plan agent's sf74-speed lane;** no coordinator lane is on pipeline work now (op-pipeline, op-witness and op-process are finished; their commits are listed in wall-clock-plan.md).
+Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned bake, effect/look rows, boss/quest rows.
 
-**Lanes (5 Codex + 5 Opus; G285 re-mix):**
-- **Bakes:**
-  - Pine static builders: op-pinebake (Opus; logCabin, then crags/trees/homestead/undergrowth).
-  - Driftwood static builders: sp-x6 after the Blender card lands (models/, then GroundCover/Cove/BlenderIsland).
-  - Nine Dragon facade/hero/stair-street + ledger rule: the next free Opus slot (op-floor's when it finishes).
-- **Nalati headless witness:** sp-x1 (elites, Kokbori, Qyran done; Qara night next).
-- **M2:** sp-x5 (SF57 re-soak on G270, SF22 gates); Jake's three phone runs.
-- **Still on SF72 gameplay:** sp-x2 Pine (King FK activation etc.), sp-x4 Driftwood (posed volumes).
-- **Other Opus:** op-signal (Signal 25.4 % candidate), op-bfill (fill the Blender cell), op-nine (Nine Dragon ledger + bakes).
-- **op-skin:** generic SDK offline skinned-model bake (the main M3 blocker; first consumer Sky's rigs). Sky landed at 18.5 % (`124b14522`).
-- **Floors on HEAD (`bb4d2409b`):** Simulator 8/8, Developer grid both surfaces, public grid PASS (quiet). Desktop 7/8: the Pine cabin is GPU-bound at vsync; Developer label fix `64b9b57ef` (rerun queued to sp-x5).
+**Live:**
+- Production 1c74e431 (G258, G266, G270, G271, shadow fix).
+- Prod grid regression (Jake 21:25 UTC) is owned by the plan agent's grid-fix lane.
+- Pushes are automatic (auto-push.sh). Standing approvals live in .git/generated-approval.json, and the pusher waits while .git/quiet exists.
 
-**Unowned, next as slots free:**
-- **SF72:** Signal (~3.5k view lines to bake, Opus), Sky (~4.5k, Opus), Nine Dragon (ledger, Jian, gates, portal rides; Codex).
-- **Systems rows (Codex):** SF36 weapon rows (2 kit subclasses left); SF34 player modes; SF24 directors as the only path; SF27 brains (Pine/Nalati/Nine); SF26 commons packs (G259); SF66 map inside the shardfile.
-- **Opus:** SF28 panels (26 DOM files, E332); SF59/SF63 post and per-shard look; SF16 re-board; SF17b void wall + art check.
+**Floors on HEAD (`bb4d2409b`):**
+- Simulator: 8/8.
+- Grids: pass.
+- Desktop: 7/8. The Pine cabin is GPU-bound at vsync; the label fix `64b9b57ef` is in, and its rerun is queued to sp-x5.
+
+**Codex lanes:**
+- **sp-x1:** Nalati witness (elites, Kokbori, Qyran, Qara, ghosts done).
+- **sp-x2:** Pine King activation (lands before the cabin bake).
+- **sp-x4:** Driftwood. Posed volumes are live (`661da2660`); next ragdolls, camera, prompts.
+- **sp-x5:** SF57 → Pine floor rerun → SF22.
+- **sp-x6:** Driftwood static bakes (`38df10ae3` modelGeometry).
+
+**Opus lanes:**
+- **op-signal:** Signal SDK effect/look rows.
+- **op-bfill:** fill the Blender cell (G220).
+- **op-pinebake:** Pine cabin + static builders.
+- **op-nine:** Nine ledger + bakes.
+- **op-skin:** SDK offline skinned-model bake.
+
+**Unowned:**
+- SF36 weapon rows;
+- SF34 player modes;
+- SF24, SF27, SF26 systems rows;
+- SF28 panels;
+- SF59/SF63 look;
+- SF64 Simulator capture;
+- SF67 benchmark + sliced-world branch (parked: sf67-sliced-world-candidate);
+- SF66 map in shardfile.
 
 **Jake:**
-- **Done:** pier ramps, Signal tiles, shadow new, public 3×3.
-- **Pending:**
-  - Sky's playable isles are seeded per session; baking them fixes one look (a pick for Jake via the plan agent);
-  - G269 phone runs (+ the KTX2 phone verdict);
-  - G260 Blender board;
-  - confirm G120/G123/SF48 boards are moot.
-
-**Prod grid regression (Jake, 21:25 UTC):** owned by the plan agent's grid-fix lane.
+- G269: three phone runs.
+- G260: Blender board.
+- Sky's playable isles are per-session random; baking them fixes one look (pick).
