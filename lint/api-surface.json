@@ -10051,6 +10051,12 @@
         "from": "@wildshard/engine/sim"
       },
       {
+        "name": "SimBodyBands",
+        "kind": "interface",
+        "doc": "SF72: run this host's bodies on the page's distance bands (sim/bands.ts), as the page's AnimalManager runs a native",
+        "from": "@wildshard/engine/sim"
+      },
+      {
         "name": "SimCommand",
         "kind": "interface",
         "doc": "Resolved world-space movement and an optional targeted attack for one fixed tick.",
