@@ -28,7 +28,7 @@ it('limits historical NPC implementations to exact registered frozen callers whi
     { file: 'src/shards/fake-legacy/world.ts', code: "import { head } from '@wildshard/game/systems/npc/faceHeads';", count: 1 },
     { file: 'src/shards/ember/local.ts', code: "import { head } from './npc/faceHeads';", count: 0 },
     { file: 'src/shards/ember/shared.ts', code: "import { rig } from '@wildshard/game/systems/npc/npcRig';", count: 0 },
-    { file: 'src/game/systems/npc/figureMotion.ts', code: "import type { Rig } from './figureRig';", count: 0 },
+    { file: 'src/game/systems/npc/figureMotion.ts', code: "import type { Rig } from './figureRig'; import { rig } from './figureRig';", count: 1 },
     { file: 'src/game/systems/npc/figureRig.ts', code: "import type { Motion } from './figureMotion';", count: 1 },
     { file: 'src/game/systems/npc/new.ts', code: "import type { Rig } from './figureRig';", count: 1 },
   ];
