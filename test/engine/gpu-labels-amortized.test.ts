@@ -1,6 +1,6 @@
 // SF69: outside the census harness (Developer on), the per-render scene walk and the per-draw marking are amortized:
-// an unchanged node is not re-walked on every render, a changed one is relabelled at once, and every node is still
-// revisited within the refresh window.
+// an unchanged node is not re-walked on every render, a changed drawn one is relabelled at its next draw, and every node
+// is still revisited within the refresh window (the scene is swept in slices, op-floor 2026-10-09).
 import { BufferAttribute, BufferGeometry, DataTexture, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, ShaderMaterial } from 'three';
 import { afterEach, expect, it } from 'vitest';
 import type { Renderer } from '../../src/engine/render/renderer';
@@ -40,7 +40,8 @@ it('walks a Developer scene once, then only what changed or fell due, and marks 
   const next = countedGeometry();
   mesh.geometry = next.geometry;
   renderer.render(scene, camera);
-  expect(next.reads()).toBeGreaterThan(0); // re-dressed: relabelled at once
+  renderer.renderBufferDirect(camera, scene, mesh.geometry, mesh.material, mesh, { start: 0, count: 3, materialIndex: 0 });
+  expect(next.reads()).toBeGreaterThan(0); // re-dressed: relabelled at its next draw
   const settled = next.reads();
   for (let i = 0; i < 480; i++) renderer.render(scene, camera);
   expect(next.reads() - settled).toBeGreaterThanOrEqual(1); // still revisited within the refresh window
@@ -162,4 +163,19 @@ it('charges unowned scene resources to their first named subtree, in the amortiz
     expect(sources.get(url)).toBe('scene:assets/pine/tree.glb');
     expect(sources.get(loose)).toBe('engine/scene'); // an unnamed path stays the explicit generic bucket
   }
+});
+
+it('sweeps a large Developer scene in slices: no render visits every node, and all are labelled within half a window', () => {
+  Reflect.set(globalThis, 'window', {});
+  const renderer = fakeRenderer();
+  installGpuLabels(renderer, () => true); // Developer on
+  const scene = new Scene(), counted: (() => number)[] = [];
+  for (let i = 0; i < 2000; i++) { const { geometry, reads } = countedGeometry(); scene.add(new Mesh(geometry, new MeshBasicMaterial())); counted.push(reads); }
+  const camera = new PerspectiveCamera();
+  const labelled = (): number => counted.filter((reads) => reads() > 0).length;
+  renderer.render(scene, camera);
+  expect(labelled()).toBeGreaterThan(0);
+  expect(labelled()).toBeLessThan(200); // one slice, not the scene
+  for (let i = 0; i < 120; i++) renderer.render(scene, camera);
+  expect(labelled()).toBe(2000);
 });

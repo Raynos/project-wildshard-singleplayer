@@ -216,18 +216,44 @@ function due(cache: WeakMap<object, Walked>, node: Object3D, geometry: unknown, 
   else { seen.geometry = geometry; seen.material = material; seen.skeleton = skeleton; seen.version = version; seen.at = generation; }
   return true;
 }
-function amortizedTree(root: Object3D, owner: string, asset: string, priority: number): void {
+/**
+ * The scene walk outside the census, swept in slices (op-floor, 2026-10-09). Visiting every node on every render, even
+ * only to ask `due()`, was still ≈ 28 % of Pine Hollow's Developer main thread (work p95 15 ms against 8.5 ms with
+ * Developer off; its cabin pose is GPU-bound at vsync, so the stalled submission doubled frames,
+ * progress/frame-floor/2026-10-09-head/). The scene is flattened (pre-order, so a parent's label precedes its children)
+ * once per refresh window, and each render labels the next slice of that list. The whole scene is covered within half
+ * a window. A drawn object is still relabelled at its next draw when its geometry or material changes
+ * (`renderBufferDirect`); a node that is not drawn picks up its change within the window. Labels are diagnostics.
+ */
+interface Sweep { nodes: Object3D[]; parents: (Object3D | null)[]; indices: number[]; cursor: number; built: number }
+const sweeps = new WeakMap<Object3D, Sweep>();
+const SWEEP_SLICES = REFRESH / 2;
+const SWEEP_MIN = 64; // nodes a render labels at least, so a small scene is labelled on its first render
+function flatten(root: Object3D, built: number): Sweep {
+  const sweep: Sweep = { nodes: [], parents: [], indices: [], cursor: 0, built };
   const visit = (node: Object3D, parent: Object3D | null, index: number): void => {
-    if (due(walked, node, Reflect.get(node, 'geometry'), Reflect.get(node, 'material'))) {
-      const parentLabel = parent === null ? undefined : labels.get(parent);
-      const path = parent === null ? asset : `${parentLabel?.asset ?? asset}/${node.name || `${node.type}[${index}]`}`;
-      const charged = parent === null ? owner : walkOwner(owner, parentLabel, node.name);
-      nodeResources(node, remember(node, { owner: charged, asset: path, priority }));
-    }
+    sweep.nodes.push(node); sweep.parents.push(parent); sweep.indices.push(index);
     const children = node.children;
     for (let i = 0; i < children.length; i++) { const child = children[i]; if (child !== undefined) visit(child, node, i); }
   };
   visit(root, null, 0);
+  return sweep;
+}
+function amortizedTree(root: Object3D, owner: string, asset: string, priority: number): void {
+  let sweep = sweeps.get(root);
+  if (sweep === undefined || generation - sweep.built >= REFRESH) { sweep = flatten(root, generation); sweeps.set(root, sweep); }
+  const { nodes, parents, indices } = sweep, count = nodes.length;
+  const end = Math.min(count, sweep.cursor + Math.max(SWEEP_MIN, Math.ceil(count / SWEEP_SLICES)));
+  for (let k = sweep.cursor; k < end; k++) {
+    const node = nodes[k], parent = parents[k] ?? null, index = indices[k] ?? 0;
+    if (node === undefined || !due(walked, node, Reflect.get(node, 'geometry'), Reflect.get(node, 'material'))) continue;
+    const parentLabel = parent === null ? undefined : labels.get(parent);
+    const path = parent === null ? asset : `${parentLabel?.asset ?? asset}/${node.name || `${node.type}[${index}]`}`;
+    const charged = parent === null ? owner : walkOwner(owner, parentLabel, node.name);
+    nodeResources(node, remember(node, { owner: charged, asset: path, priority }));
+  }
+  sweep.cursor = end;
+  if (end >= count) { sweep.nodes = []; sweep.parents = []; sweep.indices = []; sweep.cursor = 0; } // done: hold no retired nodes until the next window
 }
 /** Registered pieces and loaded GLBs keep a content path for procedural as well as file-backed geometry. */
 export function labelObjectTree(root: Object3D, owner: string, asset: string): void {
