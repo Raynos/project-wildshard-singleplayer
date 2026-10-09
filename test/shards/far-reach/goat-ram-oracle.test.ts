@@ -12,10 +12,15 @@ import { setHome } from '../../../src/shards/far-reach/species/rig';
 import { GOAT_BRAIN } from '../../../src/shards/far-reach/data/brains';
 import { RAM } from '../../../src/shards/far-reach/runtime/strikes';
 import { creature } from '../../fake/creature';
+import { installPortableMath } from '../../fake/portableMath';
 
 // SF72 (sf72-sky5): the goat's RAM became an explicit charge (`motion`) when a motionless lane strike started ending at
 // its declared `active` window (the Roc's gale wall). These hashes were recorded on the shipping goat BEFORE that change
 // (HEAD 243da2c5e): every body frame, strike phase and contact per tick must stay byte-identical after it.
+// Platform-stable (ci-green): V8's native sin / cos / atan2… differ in the last bits on arm64 and x64, so the file runs
+// on test/fake/portableMath; the hashes were re-recorded that way on 243da2c5e and match on arm64 and x64.
+const restoreMath = installPortableMath();
+afterAll(() => { restoreMath(); });
 registerSpecies(speciesWithLook(SKY_GOAT, SKY_GOAT_LOOK));
 const unbind = overrideTerrain({ heightAt: () => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(unbind);
@@ -52,7 +57,7 @@ function replay(scenario: Scenario): { hash: number; rams: number; hits: number;
 }
 
 const RECORDED: Record<Scenario, number> = {
-  contact: 1736767659, rim: 4126102924, impulse: 1600885112, calm: 1736767659, fall: 922471975, tokens: 4137448093, blocked: 4133182512,
+  contact: 3483860768, rim: 1976446366, impulse: 348572411, calm: 3483860768, fall: 21161171, tokens: 3286276239, blocked: 529851510,
 };
 describe('the Sky goat RAM before / after the motionless-lane fix', () => {
   it.each(Object.keys(RECORDED) as Scenario[])('%s: every body frame, strike phase and contact is byte-identical', (scenario) => {
