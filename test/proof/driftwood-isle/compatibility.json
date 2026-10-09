@@ -2,21 +2,29 @@
   "slug": "driftwood-isle",
   "entry": "runtime/headless.ts",
   "compatible": false,
-  "scope": "Real Sealed Ring player tape, Captain continuation and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "8d11660a38976c9ebfeaaf9c9df699dae77afc5d96bbb2e1569bce2d5029b696",
+  "scope": "Real Sealed Ring player tape, earned chest pack, Captain continuation and emitted ledger facts; not whole-shard compatibility",
+  "inputs": "d41eca1050b82195eb7dd7a85fc99fdd4a04f9d3fd114e81a465a6c760a0e73e",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
-    "The reward camera/player carry, zipline and every optional treasure/sea-glass path are not covered by this tape.",
+    "Chest contents and pack restore are reproduced; underwater travel to the optional reef treasure, reward camera/player carry, zipline and every sea-glass path are not covered by this tape.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
   ],
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "33cb5622e58abb81f5e02f6f126051076a34bccf1a617fbba3566e5767d322c4",
+    "hash": "329c86b347d39c12ac2bcf57ba33fda93085e568c2d18b6e68d7361d30696c0c",
     "entries": {
       "lanes": 92,
       "steps": 34118
+    },
+    "pack": {
+      "counts": {
+        "doubloon": 2
+      },
+      "order": [
+        "doubloon"
+      ]
     },
     "facts": [
       {
@@ -89,8 +97,8 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 916,
-    "hash": "1b128f9464f0f6fb18e492a1c0bd3da85dcadd4c96879a31d2626d9797b4b2f8",
-    "replayHash": "1b128f9464f0f6fb18e492a1c0bd3da85dcadd4c96879a31d2626d9797b4b2f8",
+    "hash": "428d2c514a0b036093b84063056906237ae546d0e4b2f490ac8eb499efef21d8",
+    "replayHash": "428d2c514a0b036093b84063056906237ae546d0e4b2f490ac8eb499efef21d8",
     "effects": [
       {
         "tick": 19120,

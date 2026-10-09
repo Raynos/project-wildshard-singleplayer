@@ -7,6 +7,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/runtime/captain';
+import { QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
@@ -39,10 +40,10 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 export const OPEN = [
   'Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.',
   'Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.',
-  'The reward camera/player carry, zipline and every optional treasure/sea-glass path are not covered by this tape.',
+  'Chest contents and pack restore are reproduced; underwater travel to the optional reef treasure, reward camera/player carry, zipline and every sea-glass path are not covered by this tape.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',
 ];
-export const SCOPE = 'Real Sealed Ring player tape, Captain continuation and emitted ledger facts; not whole-shard compatibility';
+export const SCOPE = 'Real Sealed Ring player tape, earned chest pack, Captain continuation and emitted ledger facts; not whole-shard compatibility';
 export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   return createTrustedHeadlessResident({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
@@ -156,7 +157,10 @@ export async function headlessProof(rapier: Rapier): Promise<object> {
     const effects = play(session, frames, 10_000); sameEffects(effects, expected(m, 0, 10_000));
     const entries = session.proveEntries();
     if (entries.lanes !== 92 || !session.host.flags.has('shard:lookout')) throw new Error('Missing real lookout / four-entry proof');
-    return { status: 'passed', ticksExecuted: 10_000, hash: digest(session), entries, facts: effects, nativeActors: session.host.entities.size, alive: true };
+    const pack = v.parse(v.object({ pack: v.object({ counts: v.record(v.string(), v.number()), order: v.array(v.string()) }) }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;
+    // The 10k prefix has opened Wendell's chest; the strongbox comes after the sailor fight, at tick 11,101.
+    if (pack.counts['doubloon'] !== 2 || JSON.stringify(pack.order) !== '["doubloon"]') throw new Error('Missing real chest pack');
+    return { status: 'passed', ticksExecuted: 10_000, hash: digest(session), entries, pack, facts: effects, nativeActors: session.host.entities.size, alive: true };
   } finally { session.dispose(); }
 }
 /** Each later gameplay window is bounded to 10k, resuming a committed native continuation once. */

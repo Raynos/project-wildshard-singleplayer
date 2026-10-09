@@ -41,3 +41,9 @@ field; Driftwood adds 35 captured pose recipes. The re-recorded tape stays at 19
 18,339 (190 HP), the same fact ticks and the same 916-tick fight/reward suffix. Its new checkpoint payloads include the
 pose continuations. Exact original/restored state, 60 SDK-worker ticks and durable/refused-write ledger proofs pass.
 Jake picked flared pier ramps (plan ca6e4631e); they are the only path. The straight variant and Debug row are removed.
+
+Chest items now use the shipping pack law and authored Driftwood catalogue, with copied, strictly bounded pack
+continuations. The real tape earns two doubloons from Wendell's chest and three from the strongbox: five pack items,
+separate from purse coins (the 10k prefix still has two; the strongbox opens at tick 11,101). A focused native prompt test opens the actual reef chest, earns its eight doubloons and
+treasure fact, then restores exactly and refuses a duplicate opening. That test places the player at the prompt and
+does not claim underwater travel. The optional reef approach, reward carry/camera and zipline remain open.

@@ -44,7 +44,28 @@ const press = (host: SimHost, value: number, at: { x: number; y: number; z: numb
 };
 const row = (id: string): { x: number; y: number; z: number } => { const spot = spots.rows[rowIndex(id)]; if (spot === undefined) throw new Error(`missing spot ${id}`); return spot; };
 const act = (id: string): number => DRIFTWOOD_ACT.row + rowIndex(id);
+const pack = (host: SimHost): { counts: Record<string, number>; order: string[] } => v.parse(v.object({ pack: v.object({ counts: v.record(v.string(), v.number()), order: v.array(v.string()) }) }), host.adapters.get(QUEST_STEP)?.snapshot()).pack;
+
+
 const facts = (): string[] => emitted.flatMap(e => e.kind === 'fact' ? [`${e.name}@${e.actorId}`] : []);
+
+it('keeps the optional reef chest in the pack across exact restore, with one treasure fact and no purse grant', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    // Focused prompt law at the real baked chest; underwater travel is deliberately not claimed by this fixture.
+    press(original, act('reef-treasure'), row('reef-treasure'), 0.3);
+    expect(original.flags.has('open:reef-treasure')).toBe(true);
+    expect(original.flags.has('found:reef-treasure')).toBe(true);
+    expect(pack(original)).toEqual({ counts: { doubloon: 8 }, order: ['doubloon'] });
+    expect(facts().filter(f => f === 'driftwood.treasure@treasure:1')).toHaveLength(1);
+    expect(emitted.filter(e => e.kind === 'coins')).toEqual([]);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    press(restored, act('reef-treasure'), row('reef-treasure'), 0.3);
+    expect(pack(restored)).toEqual(pack(original));
+    expect(facts().filter(f => f === 'driftwood.treasure@treasure:1')).toHaveLength(1);
+  } finally { tape = []; restored?.dispose(); original.dispose(); }
+});
 /** one tick of play: the stick (world x / z) through the tick protocol's player command, as a worker steps it */
 const steer = (host: SimHost, moveX: number, moveZ: number): void => {
   tape = [{ kind: 'player', moveX, moveZ, yaw: 0 }]; host.step({ moveX, moveZ, yaw: 0 }); tape = [];
@@ -160,6 +181,9 @@ it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, b
     press(original, act('beacon'), row('beacon')); expect(F.has('lit:beacon')).toBe(false);
     press(original, act('shard-lookout'), row('shard-lookout')); expect(F.has('shard:lookout')).toBe(false);
     press(original, act('castaway-chest'), row('castaway-chest')); expect([F.has('open:castaway-chest'), F.has('has:flint')]).toEqual([true, true]);
+    expect(pack(original)).toEqual({ counts: { doubloon: 2 }, order: ['doubloon'] });
+    press(original, act('castaway-chest'), row('castaway-chest'));
+    expect(pack(original).counts['doubloon']).toBe(2);
     press(original, act('beacon'), row('beacon')); press(original, act('shard-lookout'), row('shard-lookout'));
     expect([F.has('lit:beacon'), F.has('shard:lookout')]).toEqual([true, true]); expect(facts()).toContain('driftwood.shards@shards:1');
     // the wreck: the pump is padlocked and the sword guarded while the sailor stands
@@ -176,6 +200,7 @@ it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, b
     press(original, act('hold-winch'), row('hold-winch')); expect(F.has('winch:up')).toBe(false); // jammed while flooded
     press(original, act('hold-pump'), row('hold-pump')); press(original, act('hold-winch'), row('hold-winch'));
     press(original, act('strongbox'), row('strongbox')); expect([F.has('winch:up'), F.has('shard:wreck')]).toEqual([true, true]);
+    expect(pack(original).counts['doubloon']).toBe(5);
     press(original, DRIFTWOOD_ACT.sword, { x: spots.sword.x, y: spots.sword.y - 1.2, z: spots.sword.z }, 0.3);
     expect(held(original)).toBe(1);
     // the cave: a player on a plate holds it down (the second wants the barrel), the sluice stays shut on one
@@ -207,6 +232,7 @@ it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, b
     for (let tick = 0; tick < 120; tick++) original.step(still);
     expect(F.has(REWARD_FLAG)).toBe(false);
     restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expect(pack(restored)).toEqual(pack(original));
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     for (let tick = 0; tick < 330; tick++) { original.step(still); restored.step(still); }
     expect([original.flags.has(REWARD_FLAG), original.flags.has(QUEST_DONE), restored.flags.has(QUEST_DONE)]).toEqual([true, true, true]);

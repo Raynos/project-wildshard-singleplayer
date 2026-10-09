@@ -8,6 +8,10 @@ const spots = driftwoodSpots();
 /** Author a tape from real observations and bounded player/script inputs. No pose, HP, flag or fact writes. */
 export async function playDriftwood(host: SimHost, tick: (commands: HeadlessCommand[]) => void, mark: (name: string) => Promise<void>): Promise<void> {
   const wait = (count: number): void => { for (let i = 0; i < count; i++) tick([]); };
+  const doubloons = (expected: number): void => {
+    const pack = v.parse(v.object({ pack: v.object({ counts: v.record(v.string(), v.number()) }) }), host.adapters.get(QUEST_STEP)?.snapshot()).pack;
+    if (pack.counts['doubloon'] !== expected) throw new Error(`Real chest pack diverged: expected ${String(expected)} doubloons`);
+  };
   const go = (x: number, z: number): void => {
     let best = Infinity, stall = 0;
     for (let frame = 0; frame < 3600; frame++) {
@@ -41,6 +45,7 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   tick([{ kind: 'script', actorId: 'driftwood.interact', value: 0 }]);
   if (!host.flags.has('talked:castaway')) throw new Error('Wendell did not speak');
   walk([[-22, -68.9], [-22, -67.6], [-22, -66.7], [-22, -65.2], [-22, -62.9]]); act('castaway-chest', 'has:flint');
+  doubloons(2);
   walk([[-22, -67.6], [-22, -71.5], [-8, -50], [10.8, -27.8], [15.4, -8.6], [15.6, -7], [13.88, 11.88], [15.29, 13.29], [23.99, 21.99], [31.98, 29.98], [35.8, 33.8], [46, 46], [60, 60], [76, 76], [86.1, 82.45], [86.94, 83.68], [87.68, 84.76], [90.27, 88.55], [92.76, 92.18], [94.17, 94.25]]);
   act('beacon', 'lit:beacon'); go(93.65, 95.2); act('shard-lookout', 'shard:lookout'); await mark('lookout');
   walk([[92.76, 92.18], [90.27, 88.55], [87.68, 84.76], [86.1, 82.45], [76, 76], [60, 60], [46, 46], [35.8, 33.8], [23.99, 21.99], [15.29, 13.29], [13.88, 11.88], [15.6, -7], [62, 0], [80, -1.5], [100, -2], [124, 1.5], [144, 0], [147, 0.8], [149, 1.2], [150.5, 1.8], [152, 2.5]]);
@@ -48,6 +53,7 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   await fight(sailor.entityId, 1.4, 50); act('hold-key', 'key:hold');
   go(155.2, -1.3); act('hold-pump', 'lever:hold-pump');
   go(154.7, -1.3); act('hold-winch', 'winch:up'); act('strongbox', 'shard:wreck');
+  doubloons(5);
   go(152.7, 3); tick([{ kind: 'script', actorId: 'driftwood.interact', value: 1 }]); await mark('wreck');
   walk([[152, 2.5], [150.5, 1.8], [149, 1.2], [147, 0.8]]);
   // Clear the actual plate approach in nearest-first order. Chasing the first roster crab through the wreck's solid hull is not a player route.

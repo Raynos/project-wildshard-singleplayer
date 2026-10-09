@@ -1,3 +1,6 @@
+/** The shipping pack limit when its shard has not authored a different policy. */
+export const DEFAULT_PACK_SLOTS = 12;
+
 /** Renderer-free pack state; the page owns persistence, catalogues and change notifications. */
 export interface InventoryState<K extends string> {
   counts: Partial<Record<K, number>>;

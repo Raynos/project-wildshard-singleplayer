@@ -4,7 +4,7 @@ import type { IconId } from '@wildshard/engine/ui/icons';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 import type { ItemRow } from './bag/items';
-import { addInventory, takeInventory } from './inventoryLaw';
+import { DEFAULT_PACK_SLOTS, addInventory, takeInventory } from './inventoryLaw';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
  * crab claws and coconuts — the drowned sailor and captain fade, nothing to harvest, E318). Counts
@@ -51,7 +51,7 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
   return new WeightedTable({ mode: 'each', rows: HARVEST[kind] ?? [] }).roll(variant ?? '', () => 0).flatMap((drop) => Array.from({ length: drop.count }, () => drop.item));
 }
 
-export const PACK_SLOTS = 12;
+export const PACK_SLOTS = DEFAULT_PACK_SLOTS;
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
 const isNoPackChunk = (chunkId: string): boolean => findShard(saveSlug(chunkId))?.bag?.pack.slots === 0; // a level with no pack declares 0 slots (its manifest's bag)
 
