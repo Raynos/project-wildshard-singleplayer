@@ -180,8 +180,12 @@ link_tree() {
 link_tree "$SRC/public" "$OUT"
 
 PREVIEW_CFG="$BASE/$stamp/vite.preview.mjs"
+# Older pinned trees predate the renderer-free preview module. The host's preview
+# plugins serve their already-built bytes without importing their build generators.
+PREVIEW_MODULE="$SRC/vite/preview.ts"
+[ -f "$PREVIEW_MODULE" ] || PREVIEW_MODULE="$REPO/vite/preview.ts"
 cat > "$PREVIEW_CFG" <<JS
-import { previewConfig } from '$SRC/vite/preview.ts';
+import { previewConfig } from '$PREVIEW_MODULE';
 export default { ...previewConfig(), root: '$SRC' };
 JS
 cd "$SRC" || exit 1
