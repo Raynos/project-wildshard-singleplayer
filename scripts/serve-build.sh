@@ -20,8 +20,9 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 REG="${SERVE_REG_DIR:-$HOME/.dev-servers}"; mkdir -p "$REG"
 # "mine" is the calling session, not its folder (E338): every agent runs from the repo root or a shared scratchpad, so a
 # cwd key let one agent's all-mine / eviction stop another's preview mid-run. Claude Code sets CLAUDE_CODE_SESSION_ID;
-# anything else falls back to the folder.
-CALLER="${CLAUDE_CODE_SESSION_ID:-${CODEX_SESSION_ID:-$PWD}}"; CALLER="${CALLER// /_}"
+# anything else falls back to the folder. Subagents share their parent's session id, so a lane sets SERVE_OWNER=<lane>
+# (op-nine11, …) or a sibling's eviction stops its preview mid-capture.
+CALLER="${SERVE_OWNER:-${CLAUDE_CODE_SESSION_ID:-${CODEX_SESSION_ID:-$PWD}}}"; CALLER="${CALLER// /_}"
 BASE="${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}"; mkdir -p "$BASE"; BASE="$(cd "$BASE" && pwd -P)" # canonical (E432)
 
 case "${1:-}" in
