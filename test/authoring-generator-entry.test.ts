@@ -14,6 +14,7 @@ it('allows a literal local generator in the author entry while refusing runtime,
   const root = mkdtempSync(join(tmpdir(), 'authoring-entry-'));
   const put = (file: string, source: string): void => { const target = join(root, file); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, source); };
   const cases = [
+    // oxlint-disable-next-line eslint/no-template-curly-in-string -- The fixture deliberately contains a computed import.
     { file: 'src/shards/ember/shard.config.ts', source: "import './generators/scene'; import('../other/generators/world'); import(`./generators/${name}`); import('./generators/' + name);", count: 3 },
     { file: 'src/shards/ember/runtime/world.ts', source: "import '../generators/scene';", count: 1 },
     { file: 'src/shards/ember/data/rows.ts', source: "import '../generators/scene';", count: 1 },
