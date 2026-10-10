@@ -2280,6 +2280,12 @@ browser and headless runtimes. Its encounter supplies the frame clock, engagemen
 queries; `bind` / `policy` refuse this kind without that authority rather than invent a `HomeObservation`. Contacts and
 presentation still pass through the explicit ports. This preserves deferred spawn, actor identity and frame/brain order.
 
+Species decision families `skirmisher`, `guardian` and `perch-hunter` use the strict `shardfile/brains` schemas.
+`brains.bind(kind, native)` requires a trusted body factory for these families, called once per animal with the
+admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch and shared RNG recipes.
+`brains.decision(kind, actor)` supplies the same admitted policy to a renderer-free native body adapter. Construction
+and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's

@@ -1,3 +1,4 @@
+import { admitSpeciesBrains } from '../../src/game/shardfile/speciesBrains';
 import { afterAll, describe, expect, it } from 'vitest';
 import { GuardianBrain } from '../../src/engine/ai/guardian';
 import type { Animal } from '../../src/engine/entities/AnimalView';
@@ -9,10 +10,13 @@ import { creature } from '../fake/creature';
 const restore = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0],
   waterLevel: (): number => -100, streamAt: (): null => null });
 afterAll(restore);
+const catalogue = admitSpeciesBrains([{ id: 'species.sailor', kind: 'sailor', label: 'sailor', variants: [],
+  brain: { archetype: 'guardian', data: SAILOR_BRAIN } }], []);
 function replay(platform: boolean, scenario: 'hold' | 'cover' | 'tokens'): object {
   let brain: GuardianBrain<Animal> | undefined;
   const f = creature('sailor', 'sailor', {}, undefined, platform ? (actor, ctx) => {
-    brain ??= new GuardianBrain(actor, SAILOR_BRAIN); brain.think(ctx);
+    if (brain === undefined) { const decision = catalogue.decision('sailor', actor);
+      if (decision.archetype !== 'guardian') throw new Error('Wrong species decision'); brain = decision.policy; } brain.think(ctx);
   } : undefined);
   f.ctx.rng = new Rng(357);
   const splashes: { frame: number; strength: number }[] = [];

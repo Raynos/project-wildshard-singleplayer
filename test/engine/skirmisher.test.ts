@@ -1,3 +1,4 @@
+import { admitSpeciesBrains } from '../../src/game/shardfile/speciesBrains';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the committed physics binary without a Vite wasm closure dependency.
 import { readFile } from 'node:fs/promises';
@@ -28,9 +29,12 @@ function installHeadless(host: SimHost): void {
       confine: () => undefined, claim: () => true, mayAttack: () => true });
   }, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } });
 }
+const catalogue = admitSpeciesBrains([{ id: 'species.crab', kind: 'crab', label: 'crab', variants: [],
+  brain: { archetype: 'skirmisher', data: CRAB_BRAIN } }], []);
 function replay(platform: boolean, scenario: 'approach' | 'tokens' | 'scatter'): object {
   let brain: SkirmisherBrain<Animal> | undefined;
-  const f = creature('crab', 'small', {}, undefined, platform ? (a, ctx) => { brain ??= new SkirmisherBrain(a, CRAB_BRAIN); brain.think(ctx); } : undefined);
+  const f = creature('crab', 'small', {}, undefined, platform ? (a, ctx) => { if (brain === undefined) { const decision = catalogue.decision('crab', a);
+      if (decision.archetype !== 'skirmisher') throw new Error('Wrong species decision'); brain = decision.policy; } brain.think(ctx); } : undefined);
   f.ctx.rng = new Rng(357);
   const leader = scenario === 'scatter' ? creature('crab', 'big').animal : undefined;
   if (leader) f.ctx.herd = [f.animal, leader];

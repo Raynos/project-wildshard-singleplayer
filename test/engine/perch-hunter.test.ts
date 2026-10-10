@@ -1,3 +1,4 @@
+import { admitSpeciesBrains } from '../../src/game/shardfile/speciesBrains';
 import { afterAll, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { PerchHunterBrain } from '../../src/engine/ai/perchHunter';
@@ -12,11 +13,14 @@ import { creature } from '../fake/creature';
 const restore = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0],
   waterLevel: (): number => -100, streamAt: (): null => null });
 afterAll(restore);
+const catalogue = admitSpeciesBrains([{ id: 'species.monkey', kind: 'monkey', label: 'monkey', variants: [],
+  brain: { archetype: 'perch-hunter', data: MONKEY_BRAIN } }], []);
 function replay(platform: boolean, scenario: 'ground' | 'perch' | 'flee' | 'tokens'): object {
   const beforeRandom = app.rng.snapshot(); app.rng.seed(357);
   let brain: PerchHunterBrain<Animal> | undefined;
   const f = creature('monkey', 'monkey', {}, undefined, platform ? (actor, ctx) => {
-    brain ??= new PerchHunterBrain(actor, MONKEY_BRAIN);
+    if (brain === undefined) { const decision = catalogue.decision('monkey', actor);
+      if (decision.archetype !== 'perch-hunter') throw new Error('Wrong species decision'); brain = decision.policy; }
     brain.think({ ...ctx, attackRandom: { range: (min, max) => app.rng.stream('ai').range(min, max) },
       pickPerch: (a, min, max, away) => pickPerch(a, ctx, min, max, away), setPerch: (a, index) => { setPerch(a, ctx, index); } });
   } : undefined);

@@ -2,6 +2,10 @@ import type * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { SkirmisherBrain } from '@wildshard/engine/ai/skirmisher';
+import { GuardianBrain } from '@wildshard/engine/ai/guardian';
+import { PerchHunterBrain } from '@wildshard/engine/ai/perchHunter';
 import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { ChallengeGrazerBrain } from '@wildshard/engine/ai/challengeGrazer';
@@ -17,6 +21,8 @@ import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from 
 import { parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from './phasedFlyers';
 import { parseScriptSpecies, ScriptSpeciesPolicy, SpeciesScriptLane, type ScriptSpeciesData, type ScriptSpeciesSchema } from './speciesScripts';
 import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from './homeKeeper';
+import { parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema,
+  type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from './brains';
 
 /**
  * A species row's declared brain (SHARD-PLATFORM SF27): a platform archetype and its data, resolved the same way by the
@@ -29,9 +35,22 @@ export type SpeciesBrain =
   | { readonly archetype: 'challenge-grazer'; readonly data: v.InferInput<typeof ChallengeGrazerSchema>; readonly phaseSlots: number }
   | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
   | { readonly archetype: 'phased-flyer'; readonly data: v.InferInput<typeof PhasedFlyerSchema> }
-  | { readonly archetype: 'script'; readonly data: v.InferInput<typeof ScriptSpeciesSchema> };
+  | { readonly archetype: 'script'; readonly data: v.InferInput<typeof ScriptSpeciesSchema> }
+  | { readonly archetype: 'skirmisher'; readonly data: v.InferInput<typeof SkirmisherSchema> }
+  | { readonly archetype: 'guardian'; readonly data: v.InferInput<typeof GuardianSchema> }
+  | { readonly archetype: 'perch-hunter'; readonly data: v.InferInput<typeof PerchHunterSchema> };
 /** A species' gameplay data with an optional declared brain; a row without one keeps its runtime's own policy. */
 export type BrainedSpecies = Omit<SpeciesRow, 'parent' | 'think' | 'act'> & { readonly brain?: SpeciesBrain };
+
+/** An admitted decision policy; native contact, vertical motion and shared RNG recipes remain explicit host ports. */
+export type SpeciesDecision<A extends AnimalSim> =
+  | { readonly archetype: 'skirmisher'; readonly policy: SkirmisherBrain<A> }
+  | { readonly archetype: 'guardian'; readonly policy: GuardianBrain<A> }
+  | { readonly archetype: 'perch-hunter'; readonly policy: PerchHunterBrain<A> };
+/** A trusted browser body adapter, constructed once per animal without running a decision or consuming RNG. */
+export type SpeciesNativeFactory = (actor: Animal, decision: SpeciesDecision<Animal>) => {
+  think: (context: ThinkCtx) => void; act: (context: ThinkCtx) => void;
+};
 
 /** One policy's continuation-bearing surface: decisions, movement, and its exact snapshot / restore. */
 export interface SpeciesPolicy<P> { think: (ports: P) => void; act: (ports: P) => void; snapshot: () => SimValue; restore: (value: SimValue) => void }
@@ -52,7 +71,10 @@ type Admitted =
   | { readonly archetype: 'challenge-grazer'; readonly data: ShardChallengeGrazer; readonly phaseSlots: number; readonly charge: StrikeSpec; readonly close: StrikeSpec }
   | { readonly archetype: 'patrol-diver'; readonly data: ShardPatrolDiver; readonly strike: StrikeSpec }
   | { readonly archetype: 'phased-flyer'; readonly data: ShardPhasedFlyer; readonly dive: readonly StrikeSpec[]; readonly grounded: readonly StrikeSpec[] }
-  | { readonly archetype: 'script'; readonly data: ScriptSpeciesData; readonly lane: SpeciesScriptLane; readonly catalogue: readonly StrikeSpec[] };
+  | { readonly archetype: 'script'; readonly data: ScriptSpeciesData; readonly lane: SpeciesScriptLane; readonly catalogue: readonly StrikeSpec[] }
+  | { readonly archetype: 'skirmisher'; readonly data: ShardSkirmisher }
+  | { readonly archetype: 'guardian'; readonly data: ShardGuardian }
+  | { readonly archetype: 'perch-hunter'; readonly data: ShardPerchHunter };
 
 /** A stable small integer per actor (its seed hashed) in `[0, n)`: the slot a pack member takes round a ring. */
 export function seedSlot(seed: number, n: number): number { return Math.floor(Math.abs(Math.sin(seed * 12.9898 + 1.7) * 43758.5)) % n; }
@@ -67,7 +89,9 @@ export interface SpeciesBrains {
    * The browser callbacks of a declared kind: `think` / `act` bound to one policy per animal, spread onto its species
    * row (`{ ...ROW, ...brains.bind(kind) }`). Each call binds a fresh policy table; a kind without a brain refuses.
    */
-  bind: (kind: string) => Required<Pick<SpeciesRow, 'think' | 'act'>>;
+  bind: (kind: string, native?: SpeciesNativeFactory) => Required<Pick<SpeciesRow, 'think' | 'act'>>;
+  /** Construct a decision-only family for a trusted native body adapter; refuses self-contained policy kinds. */
+  decision: <A extends AnimalSim>(kind: string, actor: A) => SpeciesDecision<A>;
   /** The archetype a live browser animal runs (null when it runs none of these rows' brains). */
   witness: (actor: Animal) => string | null;
   /** A fresh headless policy for one body of a declared kind, or null when the kind declares no brain. */
@@ -81,6 +105,9 @@ function strikeOf(strikes: ReadonlyMap<string, StrikeSpec>, id: string, kind: st
 }
 function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, StrikeSpec>, modules: ReadonlyMap<string, Uint8Array>): Admitted {
   switch (brain.archetype) {
+    case 'skirmisher': return { archetype: brain.archetype, data: parseSkirmisher(brain.data) };
+    case 'guardian': return { archetype: brain.archetype, data: parseGuardian(brain.data) };
+    case 'perch-hunter': return { archetype: brain.archetype, data: parsePerchHunter(brain.data) };
     case 'ledge-pouncer': return { archetype: brain.archetype, data: readPouncerSpec(brain.data) };
     case 'challenge-grazer': {
       const data = parseChallengeGrazer(brain.data);
@@ -102,8 +129,19 @@ function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, S
 }
 type Callbacks = Required<Pick<SpeciesRow, 'think' | 'act'>>;
 /** Browser callbacks bound to one policy per animal (built at its first decision); `live` answers the witness. */
-function browserCallbacks(brain: Admitted): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
+function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
   switch (brain.archetype) {
+    case 'skirmisher': case 'guardian': case 'perch-hunter': {
+      if (native === undefined) throw new Error(`Species ${brain.archetype} requires a trusted native body adapter`);
+      const live = new WeakMap<Animal, ReturnType<SpeciesNativeFactory>>();
+      const of = (actor: Animal): ReturnType<SpeciesNativeFactory> => {
+        let value = live.get(actor);
+        if (value === undefined) { value = native(actor, decisionOf(brain, actor)); live.set(actor, value); }
+        return value;
+      };
+      return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor).think(context); },
+        act: (actor, context) => { of(actor).act(context); } } };
+    }
     case 'ledge-pouncer': throw new Error('A ledge pouncer requires explicit frame/query ports through pouncer(kind, ports)');
     case 'challenge-grazer': {
       const live = new WeakMap<Animal, ChallengeGrazerBrain<Animal>>(), slots = brain.phaseSlots;
@@ -130,6 +168,17 @@ function browserCallbacks(brain: Admitted): { callbacks: Callbacks; live: (actor
   }
 }
 
+function decisionOf<A extends AnimalSim>(brain: Admitted, actor: A): SpeciesDecision<A> {
+  switch (brain.archetype) {
+    case 'skirmisher': return { archetype: brain.archetype, policy: new SkirmisherBrain(actor, brain.data) };
+    case 'guardian': return { archetype: brain.archetype, policy: new GuardianBrain(actor, brain.data) };
+    case 'perch-hunter': return { archetype: brain.archetype, policy: new PerchHunterBrain(actor, brain.data) };
+    case 'challenge-grazer': case 'patrol-diver': case 'phased-flyer': case 'script': case 'ledge-pouncer':
+      throw new Error(`Species ${brain.archetype} is not a native decision family`);
+    default: throw new Error('Unknown admitted brain archetype');
+  }
+}
+
 /**
  * Admit a species catalogue's declared brains (SF27) against its strike rows: every brain's data passes its archetype's
  * strict schema and every strike it names resolves, before any row, policy or actor exists; a script brain's module
@@ -147,10 +196,15 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       if (brain?.archetype !== 'ledge-pouncer') throw new Error(`Species ${kind} does not declare a ledge-pouncer brain`);
       return new LedgePouncerBrain(brain.data, ports);
     },
-    bind: kind => {
+    bind: (kind, native) => {
       const brain = admitted.get(kind);
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
-      const bound = browserCallbacks(brain); witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
+      const bound = browserCallbacks(brain, native); witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
+    },
+    decision: (kind, actor) => {
+      const brain = admitted.get(kind);
+      if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
+      return decisionOf(brain, actor);
     },
     witness: actor => witnesses.find(entry => entry.live(actor))?.archetype ?? null,
     policy: (kind, actor) => {
@@ -162,6 +216,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
         case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
         case 'phased-flyer': return new PhasedFlyerBrain(actor, brain.data, brain);
         case 'script': return new ScriptSpeciesPolicy(actor, brain.lane, brain.catalogue);
+        case 'skirmisher': case 'guardian': case 'perch-hunter': throw new Error(`Species ${kind} requires a trusted native body adapter`);
         default: throw new Error('Unknown admitted brain archetype');
       }
     },
