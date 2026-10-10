@@ -1,9 +1,22 @@
 /** Actual-frame floor routes; only the first home pose is seeded, every seam afterwards is driven by held input. */
-export function gridFloorPlans(state, scenario) {
+export function gridFloorPlans(state, scenario, options = {}) {
   const home = state.cells.find(cell => cell.instance === state.home);
   if (!home) throw new Error('Grid floor has no assembled home');
   const origin = cell => ({ x: cell.cell[0] * 555, z: cell.cell[1] * 555 });
   const h = origin(home), plans = [];
+  if (scenario === 'cell') {
+    // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner
+    // cell from its home-side midpoint), one road seed, then held input into its interior
+    const target = state.cells.find(cell => cell.slug === options.cell);
+    if (!target) throw new Error(`Grid floor has no ${String(options.cell)} cell (a DEVSERVER-only cell needs --devserver)`);
+    if (target.instance === home.instance) throw new Error('Grid floor cell scenario needs a non-home cell');
+    const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);
+    const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
+    const entry = dz !== 0 ? { x: t.x, z: t.z + dz * 210 } : { x: t.x + dx * 210, z: t.z };
+    // an entry may carry the player on (a deck's portal): the leg ends once the cell is entered and ready
+    plans.push({ name: `${target.slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start: road,
+      waypoints: [entry], requiredResidents: [target.instance], finishOnArrival: true });
+  }
   if (scenario === 'sun-entry') {
     const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
     if (!sun) throw new Error('Developer grid floor requires Signal Dunes');
@@ -184,6 +197,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
           if (seconds - lastSample >= 0.25) { trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady, hover: player.hover }); lastSample = seconds; }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
           const target = plan.waypoints[waypoint];
+          if (plan.finishOnArrival === true && active.current === plan.to && state.inside === plan.to && active.gameplayReady) { finish(); return; }
           if (!target) {
             input.clear();
             if (active.current === plan.to && state.inside === plan.to && active.gameplayReady) finish();

@@ -22,3 +22,23 @@ includes the chunk (`GridFrame.composite`, a warning instead of a dead frame; `t
 After the fix the B shot draws Sky Reach with its NEUTRAL curve and no shader error: `sky-reach-ab-fixed.jpg`
 (muted iPhone 16 Pro portrait, phone tier 2x, the north dock 4 s after ready; `sky-loading.mjs`, `sheet.py`; readout
 `sky-loading.json` from the fixed build `d823261`).
+
+**Floors with the row ON (Nine Dragon in the grid).** `scripts/frame-floor.mjs` gained a generic cell route:
+`--devserver` builds its pinned preview in DEVSERVER mode (whose grid holds the DEVSERVER-only cells, Nine Dragon at
+(+1, −1)), and `--grid-scenario=cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]` enters that cell from
+the road at its home-side edge (one road seed, then held input; the leg ends once the cell is entered and ready, since
+Nine's deck portals to Lantern Square), measures travel and the interior, then a pose in the cell's local frame
+(`gridFloorPlans(…, 'cell', { cell })`, `test/frame-floor-grid.test.ts`). Measured build `d823261` (85bc9fefb's composite
+content), Nine's pose = its spawn frame (0.95, 125, 7.5, yaw −12°), 120 frames per row:
+
+| surface, row | home spawn | crossroads | deck | Nine interior (entry) | Nine city pose | entry travel |
+|---|---|---|---|---|---|---|
+| desktop, ON | 59.88 / 16.7 | 59.88 / 16.7 | north 59.88 / 16.7 | 59.88 / 16.7 | **59.88 / 16.8 PASS** | 59.88 / p95 33.4 |
+| desktop, off | 59.88 / 16.8 | 59.88 / 16.8 | north 59.88 / 16.7 | 59.88 / 16.7 | 59.88 / 16.7 | 59.88 / p95 33.4 |
+| Simulator, ON | 30.30 / 34 | 30.30 / 34 | east 30.30 / 34 | 30.30 / 34 | **30.30 / 34 PASS** | 11.6 / p95 191 |
+| Simulator, off | 30.30 / 40 | 30.30 / 43 | north 30.30 / 36 | 27.8 / 56 | 28.6 / 52 | 11.4 / p95 194 |
+
+(median fps / p95 ms; floors ≥ 60 desktop and ≥ 30 Simulator, p95 ≤ 17.5 / 35 ms.) With the row on, Nine's interior
+and city hold both floors. The entry travel row misses on both surfaces with the row off as well (the cell's entry
+and portal hitch, not the composite); the Simulator row-off run fell on a loaded machine (load average 17-26, push
+gates running) and is noise. Results: `progress/frame-floor/d82326179-{38392,48647,55237,66043}-*.json`.

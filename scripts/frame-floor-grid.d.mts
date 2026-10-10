@@ -6,7 +6,9 @@ export interface FloorGridState { home: string; inside: string | null;
   claims?: readonly { id: string; owner: string; category: string; bytes?: number }[];
   live: { live: FloorGridLive; crossing: { phase: string; issue: string | null } } }
 export interface FloorGridPlan { name: string; from: string | null; to: string | null; movement?: 'road-hover'; hoverMaxSpeed?: number; borrowedHome?: string; start?: { x: number; z: number };
-  waypoints: { x: number; z: number }[]; requiredResidents: string[]; retiredResidents?: string[] }
+  waypoints: { x: number; z: number }[]; requiredResidents: string[]; retiredResidents?: string[];
+  /** the leg ends as soon as `to` is entered and ready, whatever waypoints remain (an entry that carries the player on) */
+  finishOnArrival?: boolean }
 export interface FloorGridWitness { plan: FloorGridPlan; before: FloorGridState; after: FloorGridState;
   trace: { seconds: number; x: number; y: number; z: number; current: string | null; gameplayReady: boolean; hover?: boolean }[]; elapsedSeconds: number }
 export interface FloorGridProgress { documentOrigin: number; sampledAt: number; seconds: number;
@@ -16,7 +18,8 @@ export interface FloorGridProgress { documentOrigin: number; sampledAt: number; 
 export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop']; lastSample: FloorGridProgress; recoveryReason: string; nextDocumentOrigin: number }
 export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
-export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'all'): FloorGridPlan[];
+/** 'cell' enters the cell whose slug is `options.cell` from the road at its home-side edge (op-frame22). */
+export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all', options?: { cell?: string }): FloorGridPlan[];
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;

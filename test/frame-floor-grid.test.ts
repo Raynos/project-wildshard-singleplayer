@@ -249,3 +249,15 @@ it('grades borrowed source claims without relaxing destination runtime residency
   row.after.live.live.residents = [];
   expect(gridFloorWitnessFailures(row)).toContain('Required runtime residents are missing');
 });
+
+it('enters any named cell from the road at its home-side edge with one road seed (op-frame22)', () => {
+  const corner = { instance: 'corner', slug: 'corner-shard', cell: [1, -1] as const };
+  expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'cell', { cell: 'corner-shard' })).toEqual([
+    { name: 'corner-shard-road-entry', from: null, to: 'corner', movement: 'road-hover', start: { x: 555, z: -277.5 },
+      waypoints: [{ x: 555, z: -345 }], requiredResidents: ['corner'], finishOnArrival: true },
+  ]);
+  expect(gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'nalati-grasslands' })[0]).toMatchObject({ start: { x: 277.5, z: 0 }, waypoints: [{ x: 345, z: 0 }] });
+  expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'corner-shard' })).toThrow('--devserver');
+  expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'driftwood-isle' })).toThrow('non-home');
+  expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'all')).toEqual(gridFloorPlans({ home: 'home', cells }, 'all'));
+});
