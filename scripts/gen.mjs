@@ -2,8 +2,11 @@
 import { genShards } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
+import { reportGeneration } from './generate.mjs';
 import { genPortShares } from './gen-port-shares.mjs';
 
+// G292 report phase runs in pnpm gen (Vercel and CI); no retained outputs are removed.
+reportGeneration(`${import.meta.dirname}/..`);
 await import('./bake-loader.mjs');
 const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
 genShards(undefined, false, false, shard);

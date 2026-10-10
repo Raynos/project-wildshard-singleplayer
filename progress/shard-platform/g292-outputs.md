@@ -1,8 +1,8 @@
 # G292 committed generated outputs
 
-Source: committed 75c839413791861be962b81d2720fac3d1cae7d1. Report-only: no output is deleted or uncommitted by this inventory.
+Source: committed 298d0b8564ab8cdd74808e4aebfb95c05be387d1. Report-only: no output is deleted or uncommitted by this inventory.
 
-1453 files, 429805266 bytes. Blender GLBs remain committed (G293); Darwin-normative outputs remain committed. Other outputs default to build-time + content-hash cache. A committed exception requires **both** <200,000 bytes and a measured cold regenerate time >60 s. Missing timing is not an exception.
+1871 files, 510484757 bytes. Blender GLBs remain committed (G293); Darwin-normative outputs remain committed. Other outputs default to build-time + content-hash cache. A committed exception requires **both** <200,000 bytes and a measured cold regenerate time >60 s. Missing timing is not an exception.
 
 Generation times are not consistently recorded per producer in the existing receipts. They remain unavailable here; the shared runner records elapsedMs on real cold executions. Darwin-only = yes only where the existing byte oracle explicitly restricts itself to macOS; unknown is not a portability claim.
 
@@ -10,11 +10,89 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 
 | Committed output | Bytes | Producer | Cold seconds | Darwin-only exact | G292 disposition |
 |---|---:|---|---:|---|---|
+| art/nalati-grasslands/round-10-models-merge/collie.phone.glb | 154084 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/nalati-grasslands/round-10-models-merge/ghost-horse.phone.glb | 152420 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/nalati-grasslands/round-9-rig-hulls/eagle-flight.phone.glb | 119040 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/nalati-grasslands/round-9-rig-hulls/snow-leopard-rig.phone.glb | 266816 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-25-e322-king-rig/antler-king-rig.phone.glb | 510312 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/antler-king.phone.glb | 453420 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/bear-black.phone.glb | 164804 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/bear-brown.phone.glb | 214480 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/boar.phone.glb | 193448 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/deer-hind.phone.glb | 127100 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/deer-stag.phone.glb | 168816 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/elk-bull.phone.glb | 202148 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| art/pine-hollow/round-9-creature-refs/elk-cow.phone.glb | 150544 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | bench.budget.json | 4942 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/_template.desktop.json | 42112 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/_template.phone.json | 43411 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/driftwood-isle.phone.json | 1345 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/far-reach.desktop.json | 1262924 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/far-reach.phone.json | 1259789 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/nalati-grasslands.phone.json | 1348 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/nine-dragon-stack-g224.desktop.json | 3578 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/nine-dragon-stack.phone.json | 1720 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/pine-hollow.desktop.json | 1300119 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/pine-hollow.phone.json | 1334 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/sunscar-dunes.desktop.json | 245326 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| budgets/calibration-reports/sunscar-dunes.phone.json | 282138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | lint/layer-edges.json | 331 | scripts/generated-files.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | lint/ratchet.json | 22212 | scripts/generated-files.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | lint/shard-words.generated.json | 6428 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | package.json | 4106 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/candidate/driftwood-isle.phone.json | 239759 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/candidate/nalati-grasslands.phone.json | 269352 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/candidate/nine-dragon-stack.phone.json | 196243 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/candidate/pine-hollow.phone.json | 230327 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/parent/driftwood-isle.phone.json | 239817 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/parent/nalati-grasslands.phone.json | 269370 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/parent/nine-dragon-stack.phone.json | 196375 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/l6/smoke/parent/pine-hollow.phone.json | 230319 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/driftwood-isle.phone.beach.jpg | 52757 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/driftwood-isle.phone.pier.jpg | 49874 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/driftwood-isle.phone.wreck.jpg | 46052 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/nalati-grasslands.phone.bridge.jpg | 72087 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/nalati-grasslands.phone.camp.jpg | 72001 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/nalati-grasslands.phone.plains.jpg | 80564 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/nine-dragon-stack.phone.spawn-rail.jpg | 91643 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/nine-dragon-stack.phone.stair-street.jpg | 98107 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/nine-dragon-stack.phone.well-edge.jpg | 81943 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/pine-hollow.phone.cabin.jpg | 77146 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/pine-hollow.phone.gate.jpg | 76833 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/normalization/x1-board/native-final/pine-hollow.phone.pond.jpg | 80817 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/42042e1/retry/nalati-grasslands.phone.plains.jpg | 81025 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nalati-grasslands.desktop.1.json.gz | 48680 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nalati-grasslands.desktop.2.json.gz | 48474 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nalati-grasslands.desktop.3.json.gz | 48447 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nalati-grasslands.phone.1.json.gz | 46043 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nalati-grasslands.phone.2.json.gz | 46062 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nalati-grasslands.phone.3.json.gz | 46033 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nine-dragon-stack.desktop.1.json.gz | 74085 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nine-dragon-stack.desktop.2.json.gz | 74076 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nine-dragon-stack.desktop.3.json.gz | 74074 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nine-dragon-stack.phone.1.json.gz | 21256 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nine-dragon-stack.phone.2.json.gz | 21238 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/nine-dragon-stack.phone.3.json.gz | 21249 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/pine-hollow.desktop.1.json.gz | 161591 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/pine-hollow.desktop.2.json.gz | 161583 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/pine-hollow.desktop.3.json.gz | 162118 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/pine-hollow.phone.1.json.gz | 157257 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/pine-hollow.phone.2.json.gz | 157367 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/pine-hollow.phone.3.json.gz | 157365 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/sunscar-dunes.desktop.1.json.gz | 62538 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/sunscar-dunes.desktop.2.json.gz | 62514 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/sunscar-dunes.desktop.3.json.gz | 62549 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/sunscar-dunes.phone.1.json.gz | 61909 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/sunscar-dunes.phone.2.json.gz | 61919 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/parity/rebase-2026-10-09/recorded-f983de200/sunscar-dunes.phone.3.json.gz | 61928 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f11-driftwood-isle.phone.json.gz | 53880 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f11-nalati-grasslands.phone.json.gz | 104717 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f11-nine-dragon-stack.phone.json.gz | 44679 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f11-pine-hollow.phone.json.gz | 265442 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f12-driftwood-isle.phone.json.gz | 53454 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f12-nalati-grasslands.phone.json.gz | 104139 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f12-nine-dragon-stack.phone.json.gz | 44249 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/physics/f12-pine-hollow.phone.json.gz | 264925 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | progress/props/sf9b-93468/course.baked.jpg | 29486 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | progress/props/sf9b-93468/hut.baked.jpg | 26049 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | progress/props/sf9b-93468/lantern.baked.jpg | 18887 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -23,6 +101,26 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | progress/props/sf9b-99680/hut.baked.jpg | 25744 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | progress/props/sf9b-99680/lantern.baked.jpg | 18887 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | progress/props/sf9b-99680/scatter.baked.jpg | 20638 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/quest-presentation/e383/driftwood-isle.desktop.pier.jpg | 177457 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/quest-presentation/e383/driftwood-isle.phone.pier.jpg | 50001 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/gh-macos15-run1-driftwood-isle.phone.raw.json.br | 22510 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/gh-macos15-run1-driftwood-isle.phone.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/gh-macos15-run2-driftwood-isle.phone.raw.json.br | 22689 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/gh-macos15-run2-driftwood-isle.phone.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/gh-macos15-run3-driftwood-isle.phone.raw.json.br | 22485 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/gh-macos15-run3-driftwood-isle.phone.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run1-driftwood-isle.desktop.raw.json.br | 75499 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run1-driftwood-isle.desktop.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run1-driftwood-isle.phone.raw.json.br | 22484 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run1-driftwood-isle.phone.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run2-driftwood-isle.desktop.raw.json.br | 75670 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run2-driftwood-isle.desktop.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run2-driftwood-isle.phone.raw.json.br | 22620 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run2-driftwood-isle.phone.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run3-driftwood-isle.desktop.raw.json.br | 75498 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run3-driftwood-isle.desktop.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run3-driftwood-isle.phone.raw.json.br | 22636 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| progress/shard-platform/sf46/profile-parity/m5-run3-driftwood-isle.phone.settings.json.br | 138 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/_template/map/top.webp | 26976 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/baked/_template/far.glb | 239660 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/baked/_template/far.json | 532 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -212,6 +310,7 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | public/assets/far-reach/baked/winch-house.glb | 284152 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/far-reach/map/top.webp | 23362 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/far-reach/models/roc-hd/roc-hd.glb | 274008 | scripts/blender/build.sh far-reach/roc | unavailable | unproven | retain Blender (G293) |
+| public/assets/far-reach/sky/panorama.phone.webp | 390020 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2 | 154680 | scripts/bake-ktx2.mjs (overlay producers also required) | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/gpu/baked/pine-hollow/tex/clouds.phone-2c362fd0.ktx2 | 286126 | scripts/bake-ktx2.mjs (overlay producers also required) | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/gpu/baked/pine-hollow/tex/planet-eb9b99ec.ktx2 | 160451 | scripts/bake-ktx2.mjs (overlay producers also required) | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -559,7 +658,17 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | public/assets/gpu/tex/wood_trunk_wall/nor_gl-e1b1ecf7.ktx2 | 5098654 | scripts/bake-ktx2.mjs (overlay producers also required) | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/gpu/tex/wood_trunk_wall/nor_gl_1k.phone-d83dea27.ktx2 | 1282232 | scripts/bake-ktx2.mjs (overlay producers also required) | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/ink-cel-valley/map/top.webp | 35206 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/Lantern_01/Lantern_01_lod.phone.glb | 286776 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/Lantern_01/textures/Lantern_01_brass_arm_1k.phone.webp | 38546 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/Lantern_01/textures/Lantern_01_brass_diff_1k.phone.webp | 45698 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/Lantern_01/textures/Lantern_01_brass_nor_gl_1k.phone.webp | 64876 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/dead_tree_trunk/dead_tree_trunk_lod.phone.glb | 408128 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/dead_tree_trunk/textures/dead_tree_trunk_arm_1k.phone.webp | 23082 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/dead_tree_trunk/textures/dead_tree_trunk_diff_1k.phone.webp | 88556 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/dead_tree_trunk/textures/dead_tree_trunk_nor_gl_1k.phone.webp | 202140 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/driftwood-blender/geometry.bin | 2039324 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/driftwood-blender/island-cover.desktop.bin | 54896 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/driftwood-blender/island-cover.phone.bin | 54896 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/driftwood-blender/island.glb | 1215332 | scripts/blender/build.sh driftwood-isle/island | unavailable | unproven | retain Blender (G293) |
 | public/assets/models/driftwood-blender/island.json | 49594 | scripts/blender/build.sh driftwood-isle/island | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/driftwood-blender/lm-ao.phone.webp | 142694 | scripts/blender/build.sh driftwood-isle/island | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -569,19 +678,55 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | public/assets/models/driftwood-blender/placements.bin | 667000 | scripts/blender/build.sh driftwood-isle/island | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/driftwood-blender/voxel-ao.bin | 506247 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/driftwood-fp/fp-arms.glb | 373240 | scripts/blender/build.sh driftwood-isle/fp-arms | unavailable | unproven | retain Blender (G293) |
+| public/assets/models/hatchet/textures/hatchet_arm_1k.phone.webp | 30238 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/hatchet/textures/hatchet_diff_1k.phone.webp | 35628 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/hatchet/textures/hatchet_nor_gl_1k.phone.webp | 56924 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-crags/cave.glb | 372680 | scripts/blender/build.sh pine-hollow/cave | unavailable | unproven | retain Blender (G293) |
 | public/assets/models/pine-hollow-crags/cave.json | 11282 | scripts/blender/build.sh pine-hollow/cave | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-crags/crags-b.glb | 462772 | scripts/blender/build.sh pine-hollow/crags-b | unavailable | unproven | retain Blender (G293) |
 | public/assets/models/pine-hollow-crags/crags-b.json | 1874 | scripts/blender/build.sh pine-hollow/crags-b | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-crags/crags.glb | 145004 | scripts/blender/build.sh pine-hollow/crags | unavailable | unproven | retain Blender (G293) |
 | public/assets/models/pine-hollow-crags/crags.json | 2183 | scripts/blender/build.sh pine-hollow/crags | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/beaver-dam/beaver-dam.phone.glb | 247820 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/canoe/canoe.phone.glb | 79140 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/cave-arch/cave-arch.phone.glb | 231968 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/contract-board/contract-board.phone.glb | 142760 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/stone-a/stone-a.phone.glb | 110528 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/stone-b/stone-b.phone.glb | 142084 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/stone-c/stone-c.phone.glb | 88636 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-hero/waystone/waystone.phone.glb | 106812 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-trees/cards-albedo.phone.webp | 230396 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-trees/cards-albedo.png | 631585 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-trees/cards-arm.jpg | 297809 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-trees/cards-arm.phone.webp | 60194 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-trees/cards-normal.jpg | 601695 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-trees/cards-normal.phone.webp | 73200 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-trees/impostor-albedo.phone.webp | 134708 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-trees/impostor-albedo.png | 449120 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-trees/impostor-normal.jpg | 589461 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/pine-hollow-trees/impostor-normal.phone.webp | 67978 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/models/pine-hollow-trees/trees.glb | 1422848 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | retain Blender (G293) |
 | public/assets/models/pine-hollow-trees/trees.json | 4044 | scripts/blender/build.sh pine-hollow/trees | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.phone.glb | 402960 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/rock_moss_set_01/textures/rock_moss_set_01_diff_1k.phone.webp | 71676 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/rock_moss_set_01/textures/rock_moss_set_01_nor_gl_1k.phone.webp | 115070 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/rock_moss_set_01/textures/rock_moss_set_01_rough_1k.phone.webp | 5730 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.phone.webp | 21832 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.phone.webp | 116994 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.phone.webp | 171142 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/tree_stump_01/textures/tree_stump_01_arm_1k.phone.webp | 33606 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/tree_stump_01/textures/tree_stump_01_diff_1k.phone.webp | 172964 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/tree_stump_01/textures/tree_stump_01_nor_gl_1k.phone.webp | 287118 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/tree_stump_01/tree_stump_01_lod.phone.glb | 588736 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.phone.webp | 22456 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.phone.webp | 75978 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.phone.webp | 63122 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.phone.webp | 32328 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.phone.webp | 74216 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.phone.webp | 57190 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.phone.webp | 31344 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.phone.webp | 78218 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.phone.webp | 52612 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati-grasslands/map/top.webp | 134504 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/baked/bodies.bin | 2585539 | src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/baked/dressing.bin | 66881 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -589,40 +734,175 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | public/assets/nalati/baked/places.bin | 2639439 | src/shards/nalati-grasslands/generators/bake-nalati-places.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/baked/specimens.bin | 1585891 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/baked/voxel-ao.bin | 2164949 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/cards.phone.webp | 318112 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/balbal.phone.glb | 80628 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/boulder-1.phone.glb | 33672 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/boulder-2.phone.glb | 24844 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/boulder-3.phone.glb | 25216 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/cauldron.phone.glb | 99288 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/chest.phone.glb | 104028 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone.webp | 268938 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.phone.webp | 268938 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.phone.webp | 182886 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.bay.coat.phone.webp | 269500 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.black.coat.phone.webp | 182886 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.phone.webp | 296188 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.phone.webp | 342416 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.phone.webp | 348862 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.grey.coat.phone.webp | 249346 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/horse-wild.horse.stallion.coat.phone.webp | 182886 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.phone.webp | 313334 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/wolf.wolf.alpha.coat.phone.webp | 271410 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/wolf.wolf.dark.coat.phone.webp | 256698 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/wolf.wolf.scout.coat.phone.webp | 317758 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/coats/wolf.wolf.tawny.coat.phone.webp | 332116 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/collie.phone.rigged.glb | 268216 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/collie.rigged.glb | 414408 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/eagle.phone.glb | 158760 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/eagle.phone.rigged.glb | 183352 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/eagle.rigged.glb | 317936 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/firewood.phone.glb | 121408 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/ghost-horse.phone.rigged.glb | 309572 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/ghost-horse.rigged.glb | 420616 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/golden-king.phone.glb | 140720 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/golden-king.phone.rigged.glb | 221616 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/golden-king.rigged.glb | 415780 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/horse-saddled.phone.glb | 146840 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/horse-saddled.phone.rigged.glb | 263288 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/horse-saddled.rigged.glb | 390340 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/horse-wild.phone.glb | 138648 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/horse-wild.phone.rigged.glb | 239292 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/horse-wild.rigged.glb | 372604 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/kokpar-rider.phone.glb | 170376 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/kumis-churn.phone.glb | 107344 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/people/child.gen.phone.glb | 170552 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/people/cook.gen.phone.glb | 151568 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/people/elder.gen.phone.glb | 147876 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/people/herder-dauren.gen.phone.glb | 150968 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/people/herder-erlan.gen.phone.glb | 146256 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/saddle.phone.glb | 108832 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/sheep.phone.glb | 128940 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/sheep.phone.rigged.glb | 154692 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/sheep.rigged.glb | 359964 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/snow-leopard.phone.glb | 304168 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/snow-leopard.phone.rigged.glb | 379916 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/snow-leopard.rigged.glb | 734516 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/snow-lotus.phone.glb | 163120 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/spruce.phone.glb | 126996 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/watchtower.phone.glb | 99376 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/models/wolf.phone.glb | 160308 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/wolf.phone.rigged.glb | 250312 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nalati/models/wolf.rigged.glb | 480660 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/panorama.phone.webp | 443158 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/animals/sheep-textured.phone.glb | 32600 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/birds/golden-eagle-perched.phone.glb | 51036 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/birds/hawk-flying.phone.glb | 183748 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/camp/ceramic-pot.phone.glb | 114856 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/camp/fantasy-props.phone.glb | 476952 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/camp/firewood-logs.phone.glb | 7940 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/camp/saddle.phone.glb | 42876 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/camp/village-fence.phone.glb | 129276 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/ground/megakit-flowers.phone.glb | 175264 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/ground/megakit-grass.phone.glb | 31668 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/rocks/megakit-pathstones.phone.glb | 218040 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/rocks/megakit-rocks.phone.glb | 113764 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/shrubs/megakit-bushes.phone.glb | 229968 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/trees/megakit-deadtrees.phone.glb | 265156 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/sourced/trees/megakit-pines.phone.glb | 387960 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/bark.phone.webp | 89970 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/felt.phone.webp | 62218 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/gravel.phone.webp | 102924 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/meadow.phone.webp | 109540 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/path.phone.webp | 93708 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/rock.phone.webp | 96844 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nalati/tex/snow.phone.webp | 51752 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon-stack/map/top.webp | 13432 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/baked/layout.bin | 7379351 | src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs | unavailable | yes | retain Darwin normative |
 | public/assets/nine-dragon/baked/specimens-explorer.bin | 3425670 | UNRESOLVED | unavailable | yes | retain Darwin normative |
 | public/assets/nine-dragon/baked/specimens.bin | 1334078 | UNRESOLVED | unavailable | yes | retain Darwin normative |
+| public/assets/nine-dragon/lab/organic/scroll.phone.webp | 254612 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/concrete.phone.webp | 140000 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/flag-a.phone.webp | 21748 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/flag.phone.webp | 138938 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/flag2-a.phone.webp | 20592 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/flag2.phone.webp | 145642 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/lacquer.phone.webp | 124568 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/panel.phone.webp | 117456 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/poster-a.phone.webp | 60986 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/poster.phone.webp | 84982 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/stone.phone.webp | 142192 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/tiles.phone.webp | 97912 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/paint/wood.phone.webp | 120004 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/arm-r-maps.phone.webp | 57856 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/arm-r-maps.webp | 162504 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/arm-r-nrm.phone.webp | 59438 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/arm-r-nrm.webp | 210556 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/fist-l-maps.phone.webp | 62370 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/fist-l-maps.webp | 171762 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/fist-l-nrm.phone.webp | 62308 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/fist-l-nrm.webp | 213036 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/fp-rig.glb | 2478580 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | retain Blender (G293) |
+| public/assets/nine-dragon/viewmodel/gauntlet-maps.phone.webp | 177202 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/gauntlet-maps.webp | 534196 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/gauntlet-nrm.phone.webp | 180694 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/gauntlet-nrm.webp | 792210 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/hand-r-maps.phone.webp | 65726 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/hand-r-maps.webp | 177788 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/nine-dragon/viewmodel/hand-r-nrm.phone.webp | 61248 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/nine-dragon/viewmodel/hand-r-nrm.webp | 212496 | scripts/blender/build.sh nine-dragon-stack/fp-rig | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pastel-plain/map/top.webp | 28498 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/astc6/baked/pine-hollow/tex/clouds.phone-f783a8b8.ktx2 | 154483 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/astc6/baked/pine-hollow/tex/planet-0949cd4a.ktx2 | 130357 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/horizon/pine-hollow-day-phone-f56cf74a.ktx2 | 609181 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/horizon/pine-hollow-night-phone-5f0a7fc7.ktx2 | 508777 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/hatchet/textures/hatchet_diff_1k-28f0a5e3.ktx2 | 606802 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/hatchet/textures/hatchet_nor_gl_1k-3e558017.ktx2 | 518464 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/pine-hollow-trees/cards-albedo.phone-cc9348ed.ktx2 | 155536 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/pine-hollow-trees/cards-normal.phone-5911500e.ktx2 | 186506 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/pine-hollow-trees/impostor-albedo.phone-4dd23ba5.ktx2 | 114017 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/pine-hollow-trees/impostor-normal.phone-be0710e6.ktx2 | 154886 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/stone_fire_pit/textures/stone_fire_pit_diff_1k-b2cb4756.ktx2 | 598031 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k-6ff7c97c.ktx2 | 608021 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/wine_barrel_01/textures/wine_barrel_01_diff_1k-6183a4d5.ktx2 | 624903 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k-834e0726.ktx2 | 551478 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k-555ca626.ktx2 | 626830 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k-9b56b384.ktx2 | 571955 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/wooden_crate_02/textures/wooden_crate_02_diff_1k-4fc90793.ktx2 | 623110 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k-41e03197.ktx2 | 499837 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/bark_willow_02/diffuse.phone-2082b657.ktx2 | 149392 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/bark_willow_02/nor_gl.phone-344098d4.ktx2 | 156407 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/birch_bark/diffuse.phone-23cdcb49.ktx2 | 127306 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/birch_bark/nor_gl.phone-8dffe8d0.ktx2 | 141713 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/fir_bark/diffuse.phone-4f059111.ktx2 | 143916 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/fir_bark/nor_gl.phone-2fcc5a1c.ktx2 | 150569 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/forrest_ground_03/diffuse_1k.phone-b36089fb.ktx2 | 550908 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/forrest_ground_03/nor_gl_1k.phone-f900af69.ktx2 | 603959 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/leafy_grass/diffuse_1k.phone-0a74e3d2.ktx2 | 622627 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/leafy_grass/nor_gl_1k-ad5715bd.ktx2 | 602318 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/metasequoia_bark/diffuse.phone-9ed0c4d8.ktx2 | 151477 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/metasequoia_bark/nor_gl.phone-c1227b9b.ktx2 | 154743 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2 | 610280 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2 | 615073 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/pine_bark/diffuse-562fcb4d.ktx2 | 626830 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/pine_bark/diffuse-7b80dfb8.ktx2 | 623925 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/pine_bark/nor_gl-57b0c519.ktx2 | 626168 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/pine_bark/nor_gl-cf768d17.ktx2 | 624757 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/rock_ground/diffuse-0378fd4c.ktx2 | 585300 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/rock_ground/diffuse-90136f33.ktx2 | 584468 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-78bf8132.ktx2 | 605170 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-be09de86.ktx2 | 604832 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/rough_pine_door/diffuse-a922a514.ktx2 | 619880 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/rough_pine_door/nor_gl-4d9b2c84.ktx2 | 551375 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/stone_wall/diffuse-fd6ba524.ktx2 | 622060 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/stone_wall/nor_gl-f2a9ca9c.ktx2 | 626830 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/stony_dirt_path/diffuse-5bd12575.ktx2 | 566627 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/stony_dirt_path/nor_gl-347f7d82.ktx2 | 592640 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/wood_planks_dirt/diffuse-fa2781c0.ktx2 | 603017 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/wood_planks_dirt/nor_gl-772fd5da.ktx2 | 482990 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/wood_planks_grey/diffuse-323f103f.ktx2 | 575735 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/wood_planks_grey/nor_gl-cce436f8.ktx2 | 565935 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/wood_trunk_wall/diffuse_1k.phone-045e6afd.ktx2 | 608075 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/astc6/tex/wood_trunk_wall/nor_gl_1k.phone-cc529072.ktx2 | 618103 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/baked/cabins.bin | 1275516 | src/shards/pine-hollow/generators/bake-pine-cabins.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/baked/crags.desktop.bin | 972869 | src/shards/pine-hollow/generators/bake-pine-crags.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/baked/crags.phone.bin | 534984 | src/shards/pine-hollow/generators/bake-pine-crags.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -646,7 +926,11 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | public/assets/pine-hollow/creatures/elk-bull.rigged.glb | 485516 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb | 199684 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/creatures/elk-cow.rigged.glb | 375380 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/life/birds.phone.glb | 275124 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/map/top.webp | 95600 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/npcs/miller.phone.glb | 202808 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/npcs/ranger.phone.glb | 219608 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/pine-hollow/npcs/trader.phone.glb | 209076 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/pine-hollow/weapons/lever-rifle.glb | 713536 | scripts/blender/build.sh pine-hollow/lever-rifle | unavailable | unproven | retain Blender (G293) |
 | public/assets/pine-hollow/weapons/lever-rifle.phone.glb | 253348 | scripts/blender/build.sh pine-hollow/lever-rifle | unavailable | unproven | retain Blender (G293) |
 | public/assets/pine-hollow/weapons/skinning-knife.glb | 429616 | scripts/blender/build.sh pine-hollow/skinning-knife | unavailable | unproven | retain Blender (G293) |
@@ -658,6 +942,59 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | public/assets/sunscar-dunes/baked/tower.glb | 25288 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/sunscar-dunes/baked/well.glb | 4252 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | public/assets/sunscar-dunes/map/top.webp | 27290 | scripts/bake-maps.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/bark_willow_02/arm.phone.webp | 44866 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/bark_willow_02/diffuse.phone.webp | 59166 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/bark_willow_02/nor_gl.phone.webp | 116480 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/birch_bark/arm.phone.webp | 11232 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/birch_bark/diffuse.phone.webp | 14692 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/birch_bark/nor_gl.phone.webp | 41660 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/fir_bark/arm.phone.webp | 28622 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/fir_bark/diffuse.phone.webp | 32466 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/fir_bark/nor_gl.phone.webp | 105320 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forest_ground_04/arm_1k.phone.webp | 28268 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forest_ground_04/diffuse_1k.phone.webp | 268388 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forest_leaves_02/arm.phone.webp | 56002 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forest_leaves_02/diffuse_1k.phone.webp | 311542 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forrest_ground_03/arm_1k.phone.webp | 36222 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forrest_ground_03/diffuse_1k.phone.webp | 336326 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/forrest_ground_03/nor_gl_1k.phone.webp | 463162 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/leafy_grass/arm_1k.phone.webp | 38610 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/leafy_grass/diffuse_1k.phone.webp | 277136 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/metasequoia_bark/arm.phone.webp | 24228 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/metasequoia_bark/diffuse.phone.webp | 42952 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/metasequoia_bark/nor_gl.phone.webp | 63244 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/mossy_rock/arm.phone.webp | 33800 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/mossy_rock/diffuse.phone.webp | 252720 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/mossy_rock/nor_gl.phone.webp | 139558 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/pine_bark/arm_1k.phone.webp | 27694 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/pine_bark/diffuse_1k.phone.webp | 105324 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/pine_bark/nor_gl_1k.phone.webp | 233656 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/pine_tree_01/twig_arm.phone.webp | 41980 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/pine_tree_01/twig_nor_gl.phone.webp | 138478 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/pine_tree_01/twig_rgba.phone.webp | 163100 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/rock_ground/arm.phone.webp | 72542 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/rock_ground/diffuse_1k.phone.webp | 316050 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/rock_ground/nor_gl_1k.phone.webp | 407560 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/roof_planks/arm.phone.webp | 2626 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/roof_planks/diffuse_1k.phone.webp | 41598 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/roof_planks/nor_gl_1k.phone.webp | 6682 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/rough_pine_door/arm.phone.webp | 1794 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/rough_pine_door/diffuse_1k.phone.webp | 50312 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/rough_pine_door/nor_gl_1k.phone.webp | 35574 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/stone_wall/arm_1k.phone.webp | 20626 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/stone_wall/diffuse_1k.phone.webp | 123944 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/stone_wall/nor_gl_1k.phone.webp | 233782 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/stony_dirt_path/arm_1k.phone.webp | 17440 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/stony_dirt_path/diffuse_1k.phone.webp | 307532 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_planks_dirt/arm_1k.phone.webp | 4998 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_planks_dirt/diffuse_1k.phone.webp | 151736 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_planks_dirt/nor_gl_1k.phone.webp | 8182 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_planks_grey/arm.phone.webp | 10156 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_planks_grey/diffuse.phone.webp | 108830 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_planks_grey/nor_gl.phone.webp | 36936 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_trunk_wall/arm_1k.phone.webp | 11456 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_trunk_wall/diffuse_1k.phone.webp | 41376 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| public/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp | 59412 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | scripts/README.md | 19276 | scripts/generated-files.mjs | unavailable | unproven | build/cache candidate; retain pending proof |
 | scripts/bake-astc6.cache.json | 11696 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | scripts/bake-astc6.list.json | 7498 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
@@ -1444,22 +1781,109 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 | test/fixtures/asset-case/sample/assets/packs/demo.phone.bin | 8 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/fixtures/asset-case/templates/assets/packs/demo.phone.bin | 8 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/fixtures/sdk-authored-world/world.glb | 8680 | scripts/blender/build.sh sdk-world-fixture | unavailable | unproven | retain Blender (G293) |
+| test/fixtures/shard-assets/malformed.ktx2 | 132 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/fixtures/shard-assets/pixel.ktx2 | 132 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/fixtures/sim-level/props/checker.ktx2 | 486 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/_template.phone.current.jpg | 34643 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/_template.phone.json | 147568 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/driftwood-isle.phone.beach.jpg | 52968 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/driftwood-isle.phone.json | 356587 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/driftwood-isle.phone.pier.jpg | 50377 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/driftwood-isle.phone.wreck.jpg | 46460 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/far-reach.phone.hover.jpg | 80969 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/far-reach.phone.json | 743730 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/far-reach.phone.spawn.jpg | 86458 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nalati-grasslands.phone.bridge.jpg | 72336 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nalati-grasslands.phone.camp.jpg | 72191 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nalati-grasslands.phone.json | 591826 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nalati-grasslands.phone.plains.jpg | 80619 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nine-dragon-stack.phone.json | 327223 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nine-dragon-stack.phone.spawn-rail.jpg | 91734 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nine-dragon-stack.phone.stair-street.jpg | 98142 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/nine-dragon-stack.phone.well-edge.jpg | 81934 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/pine-hollow.phone.cabin.jpg | 76720 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/pine-hollow.phone.gate.jpg | 77032 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/pine-hollow.phone.json | 788358 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/pine-hollow.phone.pond.jpg | 80947 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/sunscar-dunes.phone.json | 221226 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/sunscar-dunes.phone.quest.jpg | 53985 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/sunscar-dunes.phone.ray.jpg | 37622 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/sunscar-dunes.phone.spawn.jpg | 40265 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/gh-macos15/sunscar-dunes.phone.whip.jpg | 43479 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/_template.desktop.current.jpg | 77414 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/_template.desktop.json | 152405 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/_template.phone.current.jpg | 34739 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/_template.phone.json | 147633 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.desktop.beach.jpg | 179632 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.desktop.json | 453165 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.desktop.pier.jpg | 177821 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.desktop.wreck.jpg | 151400 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.phone.beach.jpg | 53135 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.phone.json | 356424 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.phone.pier.jpg | 50559 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/driftwood-isle.phone.wreck.jpg | 46449 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/far-reach.desktop.hover.jpg | 361621 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/far-reach.desktop.json | 749205 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/far-reach.desktop.spawn.jpg | 365324 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/far-reach.phone.hover.jpg | 80553 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/far-reach.phone.json | 743431 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/far-reach.phone.spawn.jpg | 85625 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.desktop.bridge.jpg | 296906 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.desktop.camp.jpg | 289653 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.desktop.json | 627579 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.desktop.plains.jpg | 304049 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.phone.bridge.jpg | 72351 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.phone.camp.jpg | 72188 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.phone.json | 591602 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nalati-grasslands.phone.plains.jpg | 80688 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.desktop.json | 415577 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.desktop.spawn-rail.jpg | 358205 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.desktop.stair-street.jpg | 345135 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.desktop.well-edge.jpg | 328377 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.phone.json | 327102 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.phone.spawn-rail.jpg | 91672 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.phone.stair-street.jpg | 98083 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/nine-dragon-stack.phone.well-edge.jpg | 81892 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.desktop.cabin.jpg | 321299 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.desktop.gate.jpg | 340547 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.desktop.json | 824688 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.desktop.pond.jpg | 351094 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.phone.cabin.jpg | 76764 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.phone.gate.jpg | 76967 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.phone.json | 787775 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/pine-hollow.phone.pond.jpg | 80939 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.desktop.json | 210229 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.desktop.quest.jpg | 137522 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.desktop.ray.jpg | 100479 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.desktop.spawn.jpg | 116488 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.desktop.whip.jpg | 147367 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.phone.json | 203887 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.phone.quest.jpg | 54232 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.phone.ray.jpg | 37889 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.phone.spawn.jpg | 40294 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/parity/baselines/m5/sunscar-dunes.phone.whip.jpg | 43117 | UNRESOLVED | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/driftwood-isle/checkpoints/captain.snap.gz | 1786223 | test/proof/driftwood-isle/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/driftwood-isle/checkpoints/commands.json.gz | 410542 | test/proof/driftwood-isle/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/driftwood-isle/checkpoints/manifest.json | 10976 | test/proof/driftwood-isle/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/driftwood-isle/checkpoints/spawn.snap.gz | 1692698 | test/proof/driftwood-isle/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/driftwood-isle/checkpoints/tick-10000.snap.gz | 1783946 | test/proof/driftwood-isle/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/far-reach/checkpoints/gale.snap.gz | 88229 | test/proof/far-reach/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
-| test/proof/far-reach/checkpoints/manifest.json | 157 | test/proof/far-reach/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/proof/far-reach/checkpoints/manifest.json | 609 | test/proof/far-reach/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/far-reach/checkpoints/step.snap.gz | 87879 | test/proof/far-reach/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/far-reach/checkpoints/storm.snap.gz | 88353 | test/proof/far-reach/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/nine-dragon-stack/checkpoints/crossing.snap.gz | 26825 | test/proof/nine-dragon-stack/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
-| test/proof/nine-dragon-stack/checkpoints/manifest.json | 138 | test/proof/nine-dragon-stack/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/proof/nine-dragon-stack/checkpoints/manifest.json | 503 | test/proof/nine-dragon-stack/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/nine-dragon-stack/checkpoints/ride.snap.gz | 26506 | test/proof/nine-dragon-stack/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/pine-hollow/checkpoints/basis.snap.gz | 2349827 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/pine-hollow/checkpoints/dam.snap.gz | 171398 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/pine-hollow/checkpoints/fallen.snap.gz | 178363 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/pine-hollow/checkpoints/king.snap.gz | 178280 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
-| test/proof/pine-hollow/checkpoints/manifest.json | 698 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
+| test/proof/pine-hollow/checkpoints/manifest.json | 1423 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/pine-hollow/checkpoints/night.snap.gz | 173479 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
 | test/proof/pine-hollow/checkpoints/ridge.snap.gz | 173572 | test/proof/pine-hollow/run.mjs checkpoints | unavailable | unproven | build/cache candidate; retain pending proof |
+
+## Shared-runner pilot
+
+Darwin arm64 Nine layout/specimens: one isolated cold generation (8.670 s backend), verified warm hit (16.684 ms backend), and forced fresh comparison (8.462 s backend). All five outputs match committed bytes: three compressed bins and two JSON stamps. Cache key `1aebd9b391eb6a50a558f23928209f85c85edc0dc22a64ddbdee262ad3234a2f`. These backend timings exclude initial input-map/key collection, and are not a Linux portability claim. The large bins are build/cache candidates; the small stamps do not meet the >60 s expensive exception in this pilot. Outputs remain committed.
+
+The first build integration is report-only (`pnpm gen` -> `scripts/generate.mjs`). Its explicit sidecar currently registers Nine's layout job; all uncovered shard bake entry points remain reported. Native witness consumers share the same `scripts/generation-cache.mjs` backend and supply exact loaded inputs; there is no second witness cache. See [the generation contract](../../../docs/process/GENERATION.md).

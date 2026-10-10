@@ -9,8 +9,8 @@
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-input-hashes.mjs --refresh <export> <result.json>
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, lstatSync, realpathSync, readFileSync, writeFileSync } from 'node:fs';
+import { isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Committed bakes with recorded input hashes: the output file, the script that bakes it and its exported bake function. */
@@ -26,7 +26,18 @@ export function bakeOutcome(text) {
   return JSON.stringify({ ...parsed, inputs: {} });
 }
 /** @param {string} root @param {string} path */
-const sha256 = (root, path) => existsSync(resolve(root, path)) ? createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex') : null;
+const sha256 = (root, path) => existsSync(resolve(root, path)) ? bakeInputHashes(root, [path])[path] ?? null : null;
+
+/** Exact regular-file SHA256 input map shared by asset jobs and recorded bakes. Missing files refuse generation.
+ * @param {string} root @param {Iterable<string>} paths @returns {Record<string,string>} */
+export function bakeInputHashes(root, paths) {
+  const base=realpathSync(root);
+  return Object.fromEntries([...new Set(paths)].sort().map(path => {
+    if (isAbsolute(path) || path.includes('\\') || path.split('/').some(part=>part==='' || part==='.' || part==='..')) throw new Error(`Invalid bake input path ${path}`);
+    if (!lstatSync(resolve(base,path)).isFile() || !realpathSync(resolve(base,path)).startsWith(base+sep)) throw new Error(`Invalid bake input ${path}`);
+    return [path,createHash('sha256').update(readFileSync(resolve(root,path))).digest('hex')];
+  }));
+}
 
 /** Re-record every recorded bake whose inputs changed in `root`. Returns { file: text } for each one re-recorded. @param {string} root */
 export async function refreshBakeInputs(root) {

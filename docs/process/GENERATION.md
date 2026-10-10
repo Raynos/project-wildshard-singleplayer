@@ -1,0 +1,36 @@
+# Generated content (G292)
+
+Shard generators stay in `src/shards/<slug>/generators/`. `scripts/generate.mjs` discovers their bake entry points and
+reads the explicit job sidecar `scripts/generation-jobs.json`. Its DO NOT EDIT notice applies to the listed outputs.
+That sidecar names the retained source command, input roots, outputs and platform policy. Unregistered entry points
+are reported as migration gaps. The full committed-output inventory is in
+[the G292 report](../../progress/shard-platform/g292-outputs.md).
+
+`pnpm gen`, used by Vercel and CI, runs the **report-only** phase. It validates declarations and prints uncovered
+producers and missing outputs, without introducing a gate failure for migration gaps. No committed output is removed
+in this rollout. Nine Dragon's layout/specimens pilot is Darwin-normative: Linux retains those files and reports that
+its bit-exact comparison is unavailable. Native witness jobs run on Linux too, with separate OS/architecture keys.
+
+Run one declared job with `node scripts/generate.mjs --job=nine-layout`. Add `--compare` to force fresh generation and
+compare both the existing cache and every committed output. `--restore` may materialize absent outputs after the same
+checks; it never overwrites different committed bytes. The pilot keeps stamp seeds because its schema imports them;
+the producer must write every declared output, so a copied seed cannot masquerade as a fresh bake. Removing these
+seeds requires separating schemas from generated data before uncommitting them.
+
+Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
+Bakers with dynamic reads must declare their complete source/asset closure. Conservative extra inputs cost cache hits,
+not correctness. Node commands run without a shell in a fresh, dependency-linked source copy, never against the shared
+checkout. All outputs are verified before publishing. Changing inputs during copying or generation refuses publication.
+
+`scripts/generation-cache.mjs` is the one asset/witness backend. `runGenerationJob(root, job, {generate, forceCompare})`
+passes an isolated output directory to the producer and returns its verified directory, key, hit, hashes and elapsedMs.
+Keys include exact input SHA256s, command/tool identity and Node version; native/Darwin jobs also include OS/architecture.
+Independent processes coalesce on one key. A failed job publishes nothing; corrupt warm hits regenerate. Forced
+comparison preserves an existing valid cache if new output differs. Cache files live outside git, under
+`WILDSHARD_GENERATE_CACHE` or `~/.cache/wildshard/generate`.
+
+The backend elapsedMs includes waiting, isolated copying, generation, post-run input verification and publication.
+Warm elapsedMs includes output-hash verification. Initial input-map collection and key verification precede that timer. Neither is a fabricated per-producer estimate. Record cold time and portability evidence before allowing
+the small-and-expensive committed exception (<200 KB **and** >60 s). Blender GLBs remain committed under G293. Browser
+captures and other undeclared producers remain retained until their build path is explicitly proven; the inventory's
+missing producer/timing evidence is a blocker to deletion.

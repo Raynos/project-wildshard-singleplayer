@@ -19,7 +19,7 @@ export function outputPolicy(row) {
  * @param {string} file @param {string} [header] */
 export function generatedContent(file, header = '') {
   return /(?:^|\/)(?:baked|gpu|checkpoints)\//u.test(file) || /\/map\/(?:top|height)\.(?:webp|png|jpg)$/u.test(file)
-    || /\.(?:generated|baked)\./u.test(file) || /\.(?:snap\.gz|pack|ws-pack)$/u.test(file)
+    || /\.(?:generated|baked)\./u.test(file) || /\.(?:snap\.gz|pack|ws-pack|ktx2|wasm)$/u.test(file) || /\.(?:phone|desktop)\./u.test(file)
     || /(?:^|\/)(?:physics|spots)\.baked\.json$/u.test(file)
     || file.startsWith('public/shardfiles/') || /^src\/shards\/[^/]+\/assets\/[a-f0-9]{64}$/u.test(file)
     || /^scripts\/.*\.(?:cache|list)\.json$/u.test(file)
@@ -33,8 +33,9 @@ export function inventoryOutputs(root, revision = 'HEAD') {
   const git = (/** @type {string[]} */ args) => execFileSync('git', args, {cwd:root,encoding:'utf8',maxBuffer:64*1024*1024});
   const pin = git(['rev-parse',revision]).trim();
   const files = git(['ls-tree','-r','-l',pin]).trim().split('\n').map(line => {
-    const [metadata,path] = line.split('\t');
-    if (path === undefined || metadata === undefined) throw new Error('Malformed committed file inventory');
+    const tab=line.indexOf('\t');
+    if(tab===-1) throw new Error('Malformed committed file inventory');
+    const metadata=line.slice(0,tab), path=line.slice(tab+1);
     const size = Number(metadata.split(/\s+/u).at(-1));
     if (!Number.isSafeInteger(size) || size < 0) throw new Error(`Unbounded committed output ${path}`);
     return {path,bytes:size};

@@ -1,0 +1,15 @@
+{
+  "schema": "generation-jobs/1",
+  "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their source commands. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Report-only build integration retains every committed output until CI/Vercel proof.",
+  "jobs": [
+    {
+      "id": "nine-layout",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs",
+      "command": ["--experimental-transform-types", "--import", "./scripts/bake-loader.mjs", "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs"],
+      "inputRoots": ["src/engine", "src/game", "src/sdk", "src/commons", "src/shards/nine-dragon-stack", "scripts/bake-loader.mjs", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"],
+      "outputs": ["public/assets/nine-dragon/baked/layout.bin", "public/assets/nine-dragon/baked/specimens.bin", "public/assets/nine-dragon/baked/specimens-explorer.bin", "src/shards/nine-dragon-stack/data/layout.json", "src/shards/nine-dragon-stack/data/specimens.json"],
+      "platform": "darwin"
+    }
+  ]
+}
