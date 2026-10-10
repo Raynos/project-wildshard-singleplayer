@@ -191,8 +191,8 @@ export function bindRuntimeItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game
 }
 
 /**
- * Register the declared item input contexts in the runtime's play stage: while its cell is entered for a retained home
- * (registered again on each entry), for the level otherwise.
+ * Resolve declared item input definitions in the runtime's play stage. Retained homes keep definitions until disposal,
+ * with actions enabled and binding descriptions installed only while entered; ordinary levels keep their level scope.
  */
 export function bindRuntimeItemContexts(ctx: ShardContext, source: Shardfile): void {
   requireBound(source, 'items');

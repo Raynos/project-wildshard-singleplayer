@@ -11,7 +11,10 @@ import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
-import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
+import { installEnteredRuntimeInput, installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
+import { installDeclaredItems } from '../src/game/shardfile/items';
+import nalatiSource from '../src/shards/nalati-grasslands/shard.config';
+import skySource from '../src/shards/far-reach/shard.config';
 import { bindScopedRuntime, createScopedRuntimeBinding } from '../src/game/shard/scopedRuntime';
 import { shardContext, type GameServices, type ShardContext } from '../src/game/shard/context';
 import { ShardPlugin } from '../src/game/shard/plugin';
@@ -125,6 +128,54 @@ it('stages an admitted regional shell only inside the cell and parks retained se
     expect(f.calls).toEqual(['module', 'trusted.world', 'shell.world', 'trusted.kit', 'shell.kit', 'trusted.play']);
   } finally { f.app.engineScope.dispose(); }
   expect(f.app.registry.pieceList()).toEqual([]); expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+});
+
+it.each([nalatiSource, skySource])('resolves $identity.slug runtime inputs during road approach without enabling their actions', async (source) => {
+  const f = fixture(), resident = f.residents.get('template-1');
+  if (resident === undefined) throw new Error('Missing fixture resident');
+  const contexts = source.items.runtimeContexts ?? [];
+  for (const id of new Set(['weapon.melee', ...contexts])) if (id !== 'far.fan') f.app.input.register({ id, actions: ['attack'] }, f.app.engineScope);
+  let ticks = 0;
+  class Regional extends ShardPlugin {
+    override play(ctx: ShardContext): void {
+      if (source === nalatiSource) {
+        ctx.inputContext({ id: 'stealth', actions: ['crouch', 'crouch.hold'], keys: { crouch: ['KeyC'] } });
+        ctx.app.input.push('stealth', ctx.scope);
+      } else {
+        installEnteredRuntimeInput(ctx, { id: 'far.fan', actions: ['far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
+          touch: { mode: 'melee', relabel: {}, verbs: { 'verb.1': { action: 'far.gust', label: 'Gust', icon: 'G' } } } }, { rows: [] });
+      }
+      const items = emptyShardfile({ slug: 'inputs', name: 'Inputs', author: 'Fixture', seed: 1, revision: 1 }).items;
+      installDeclaredItems({ ...items, runtimeContexts: contexts }, { scope: ctx.scope, actorId: 'player', input: ctx.app.input,
+        families: new Map(), contexts: 'runtime', icon: () => 'sword', aim: () => ({ origin: new Vector3(), direction: new Vector3(0, 0, 1) }),
+        runtime: () => { throw new Error('Empty item fixture cannot construct a family'); } });
+      installEnteredRuntimeService(ctx, () => { ctx.system({ id: 'approached.input', phase: 'update', run: () => { ticks++; } }); });
+    }
+  }
+  f.entries[0] = { slug: 'template', entry, load: () => Promise.resolve({ default: Regional }) };
+  f.residents.set('template-1', { ...resident, retainRuntime: true, context: (scope, rt) => ({
+    ...resident.context(scope, rt), prepareConstruction: () => () => undefined,
+  }) });
+  const custom = source === nalatiSource ? 'stealth' : 'far.fan';
+  try {
+    expect(await f.session.installAhead('template-1')).toBe(true);
+    expect(f.app.input.has(custom)).toBe(true); expect(f.app.input.active(custom)).toBe(false);
+    expect(f.app.input.contexts).toEqual([]); expect(f.app.input.touchLayout().verbs).toEqual({});
+    expect(f.app.systemIds(f.app.engineScope)).toEqual([]);
+    const action = source === nalatiSource ? 'crouch' : 'far.gust';
+    f.app.input.executeCommand({ kind: 'physical', code: source === nalatiSource ? 'KeyC' : 'KeyG', on: true, at: 0 });
+    expect(f.app.input.held(action)).toBe(false);
+    for (let visit = 0; visit < 2; visit++) {
+      expect(await f.session.enter({ instance: 'template-1', slug: 'template' })).toBe(true);
+      expect(f.app.input.active(custom)).toBe(true);
+      expect(f.app.input.held(action)).toBe(true);
+      for (const system of f.app.systemsByPhase().update) system.run(1 / 60, 0);
+      expect(ticks).toBe(visit + 1);
+      f.session.leave(); expect(f.app.input.active(custom)).toBe(false); expect(f.app.input.contexts).toEqual([]);
+      expect(f.app.input.held(action)).toBe(false);
+    }
+  } finally { f.app.engineScope.dispose(); }
+  expect(f.app.input.has(custom)).toBe(false);
 });
 
 it('finishes road preparation with hooks and parent slots unpublished, then activates without rebuilding', async () => {

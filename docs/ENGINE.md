@@ -101,7 +101,11 @@ registry. `prepareHybridShard` admits the shardfile and its trusted entry, choos
 the game layer, and composes their world, kit and play stages. Empty transitional data adds no gameplay services.
 `HybridRuntimeSession.prepare` prefetches module code without running hooks. `installAhead(instance)` requires an
 inactive, retained, fully claimed resident with reversible construction bindings; it builds world/kit/play and warms
-programs while entered callbacks, input, parent runtime slots and presentation stay unpublished. `enter` activates
+programs while entered callbacks, input actions, parent runtime slots and presentation stay unpublished. Input
+definitions resolve during preparation so native pushes and declared equipment references can validate them;
+their keys, blocking and touch presentation remain disabled outside the entered scope. Definitions retire with
+the resident, while binding descriptions retire on leave. Nested registrations belong to the installing service
+and are recreated once per entry. `enter` activates
 the prepared resident without repeating those stages. Ordinary borrowed-home callers retain entry-time installation. `bindScopedRuntime` restores each parent slot's original
 descriptor on exit; late hooks retain a private overlay and cannot register into a disposed scope. The staged home-cell
 adapter consumes the same cell events and reinstalls only trusted hooks on re-entry. Driftwood's first transition

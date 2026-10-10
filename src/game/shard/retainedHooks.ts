@@ -35,14 +35,13 @@ export function installEnteredRuntimeService(context: ShardContext, install: (sc
   if (entered === undefined) install(context.scope); else entered(install);
 }
 
-/** Register a retained kit's input definition and binding labels only while its cell is entered. */
+/** Resolve a retained kit's input definition during construction; enable actions and binding labels only on entry. */
 export function installEnteredRuntimeInput(context: ShardContext, definition: Parameters<ShardContext['inputContext']>[0],
   description: Parameters<ShardContext['app']['input']['bindings']['describe']>[0]): void {
   if (!retainsRuntimeServices(context)) throw new Error('Entered input needs a retained context');
+  context.inputContext(definition);
   installEnteredRuntimeService(context, scope => {
-    const input = scope.child(`input.${definition.id}`);
-    context.app.input.register(definition, input);
-    context.app.input.bindings.describe(description, input);
+    context.app.input.bindings.describe(description, scope);
   });
 }
 
@@ -85,13 +84,13 @@ export class RetainedRuntimeHooks {
   private entered: Scope | undefined;
   private generation = 0;
   private preparing: boolean;
+  private installing = 0;
 
   /** Defer entered services while a budget-admitted resident constructs its world on the road.
    * Construction may queue registrations until activation or cancellation; it never runs those installers. */
   constructor(base: ShardContext, preparation: { deferActivation?: boolean } = {}) {
     this.resident = base.scope;
     this.preparing = preparation.deferActivation === true;
-    if (!this.preparing) this.activate();
     const generation = this.generation;
     const register = (install: (scope: Scope) => void): void => {
       const entered = this.entered;
@@ -102,18 +101,33 @@ export class RetainedRuntimeHooks {
       // is read only for that check (SF57: a read on every registration counted as a stray read during owned builds).
       if (base.scope.disposed || entered === undefined || (generation !== this.generation
         && !ownerBelongsTo(currentOwner(), entered))) throw new Error('Trusted callback registration left its cell');
-      withOwner(entered, () => install(entered));
-      this.installers.push(install);
+      const nested = this.installing > 0;
+      this.install(install, entered);
+      // A replayed service owns its nested registrations; replaying them separately would duplicate callbacks.
+      if (!nested) this.installers.push(install);
     };
     this.context = { ...base, get progress() { return base.progress; },
       system: (spec) => { register((scope) => { base.app.addSystem(spec, scope); }); },
       on: (name, fn, options) => { register((scope) => { base.app.events.on(name, fn, scope, options); }); },
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
-      inputContext: (definition) => { register((scope) => { base.inputContext(definition, scope); }); },
+      inputContext: (definition) => {
+        if (this.installing > 0) { register((scope) => { base.inputContext(definition, scope); }); return; }
+        if (base.scope.disposed || (!this.preparing && (this.entered === undefined || generation !== this.generation))) {
+          throw new Error('Trusted callback registration left its cell');
+        }
+        // Equipment resolves these definitions during preparation. A native push may also happen immediately;
+        // its context remains inert on the road and while parked, including keys, blocking and touch presentation.
+        base.inputContext({ ...definition, enabled: () => this.entered !== undefined && definition.enabled?.() !== false }, base.scope);
+      },
       debug: { expose: (name, value) => { register((scope) => { scope.onDispose(base.app.debug.scopedExpose(name, value)); }); } },
     };
     enteredServices.set(this.context, register);
+    if (!this.preparing) this.activate();
     base.scope.onDispose(() => { enteredServices.delete(this.context); this.deactivate(); this.installers.length = 0; });
+  }
+  private install(install: (scope: Scope) => void, scope: Scope): void {
+    this.installing++;
+    try { withOwner(scope, () => install(scope)); } finally { this.installing--; }
   }
   /** Publish each recorded callback in a fresh entered scope, once; failure rolls back every partial registration. */
   activate(): void {
@@ -121,15 +135,21 @@ export class RetainedRuntimeHooks {
     if (this.entered !== undefined) return;
     this.preparing = false;
     const scope = this.resident.child('runtime.entered');
+    this.entered = scope;
     try {
-      for (const install of this.installers) withOwner(scope, () => install(scope));
-      this.entered = scope;
-    } catch (error) { scope.dispose(); throw error; }
+      for (const install of this.installers) this.install(install, scope);
+      this.context.app.input.refresh(false); this.context.app.input.repaint();
+    } catch (error) {
+      this.entered = undefined; scope.dispose();
+      this.context.app.input.refresh(false); this.context.app.input.repaint();
+      throw error;
+    }
   }
   /** Remove every system/listener/answerer before another cell becomes active; resident geometry is untouched. */
   deactivate(): void {
     if (this.preparing) { this.preparing = false; this.generation++; this.installers.length = 0; }
     const scope = this.entered; if (scope === undefined) return;
     this.entered = undefined; this.generation++; scope.dispose();
+    this.context.app.input.refresh(false); this.context.app.input.repaint();
   }
 }

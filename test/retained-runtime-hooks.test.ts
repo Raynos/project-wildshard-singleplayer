@@ -17,7 +17,7 @@ function preparedFixture() {
   return { app, scope, hooks: new RetainedRuntimeHooks(context, { deferActivation: true }) };
 }
 
-it('uses the existing input adapter only on entry and reverses it before every departure', () => {
+it('resolves input through the existing adapter during preparation and retires its definition with the resident', () => {
   const app = new App(), scope = app.engineScope.child('input.prepared');
   const manifest = emptyShardfileSource(emptyShardfile({ slug: 'prepared', name: 'Prepared', author: 'Fixture', seed: 1, revision: 1 }));
   let installs = 0, active = false;
@@ -28,15 +28,35 @@ it('uses the existing input adapter only on entry and reverses it before every d
     bag: { tab: () => () => undefined, fragment: () => () => undefined } }), { deferActivation: true });
   try {
     hooks.context.inputContext({ id: 'prepared.input', actions: ['attack'] });
-    expect(installs).toBe(0); expect(active).toBe(false);
+    expect(installs).toBe(1); expect(active).toBe(true);
     for (let visit = 0; visit < 2; visit++) {
-      hooks.activate(); expect(installs).toBe(visit + 1); expect(active).toBe(true);
-      hooks.deactivate(); expect(active).toBe(false);
+      hooks.activate(); expect(installs).toBe(1); expect(active).toBe(true);
+      hooks.deactivate(); expect(active).toBe(true);
     }
     const unrelated = app.engineScope.child('unrelated');
     expect(() => base.context.inputContext({ id: 'wrong.input', actions: [] }, unrelated)).toThrow('descendant');
-    expect(installs).toBe(2);
+    expect(installs).toBe(1);
+    scope.dispose(); expect(active).toBe(false);
   } finally { app.engineScope.dispose(); }
+});
+
+it('activates nested service registrations exactly once per entry and rolls them back on leave', () => {
+  const f = preparedFixture(); let installs = 0, ticks = 0;
+  try {
+    installEnteredRuntimeService(f.hooks.context, () => {
+      installs++;
+      f.hooks.context.system({ id: 'nested.tick', phase: 'update', run: () => { ticks++; } });
+      f.hooks.context.on('player.respawned', () => { ticks++; });
+    });
+    for (let visit = 0; visit < 3; visit++) {
+      f.hooks.activate();
+      expect(installs).toBe(visit + 1); expect(f.app.systemIds(f.scope)).toEqual(['nested.tick']);
+      for (const system of f.app.systemsByPhase().update) system.run(1 / 60, 0);
+      f.app.events.emit('player.respawned', { at: new Vector3(), checkpoint: false }); f.app.events.flush('update');
+      expect(ticks).toBe((visit + 1) * 2);
+      f.hooks.deactivate(); expect(f.app.systemIds(f.scope)).toEqual([]);
+    }
+  } finally { f.app.engineScope.dispose(); }
 });
 
 it('constructs a resident with entered services queued, then publishes them once and retires them on leave', async () => {
