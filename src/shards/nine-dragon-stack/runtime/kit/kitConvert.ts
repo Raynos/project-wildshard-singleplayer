@@ -1,12 +1,11 @@
 // kitConvert — a world's named kits into geometries (SHARD-PLATFORM M3, ex Nine Dragon's world/build.ts): one geometry per
 // kit name, a solid kit and the swept kit of the same name merged, the alpha-cut kits apart. Each builder is released once
 // built (its JS number arrays would otherwise sit beside the GPU copy through the uploads that follow) and dropped from its
-// map, and the page gets a turn every `yieldMs` so the loading panel paints. `step(done, total, name)` runs before a kit
-// (with its name) and after it (without).
+// map, and the page gets a turn every `yieldMs` (`pause`: the plugin's paced worldBuildYield, op-hitch45) so the loading
+// panel paints, or in play a frame is drawn. `step(done, total, name)` runs before a kit (with its name) and after it (without).
 //
-//   const { solid, alpha, profile } = await convertKits({ solid: kits, swept: kitxs, alpha: alphaKits }, mergeKits, step, 30);
+//   const { solid, alpha, profile } = await convertKits({ solid: kits, swept: kitxs, alpha: alphaKits }, mergeKits, step, 30, pause);
 import type { BufferGeometry } from 'three';
-import { resourceScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 
 /** A kit builder: its vertex count, its geometry, and dropping its JS arrays once built. */
@@ -31,7 +30,7 @@ export interface KitGeometries {
 }
 
 /** Build every named kit (empty ones skipped), releasing and dropping each builder as it goes. */
-export async function convertKits(sets: KitSets, merge: (parts: BufferGeometry[]) => BufferGeometry, step: (done: number, total: number, name?: string) => void, yieldMs: number): Promise<KitGeometries> {
+export async function convertKits(sets: KitSets, merge: (parts: BufferGeometry[]) => BufferGeometry, step: (done: number, total: number, name?: string) => void, yieldMs: number, pause: () => Promise<void>): Promise<KitGeometries> {
   const solid: [string, BufferGeometry][] = [], alpha: [string, BufferGeometry][] = [], profile: KitProfile[] = [];
   const processed = new Set<string>();
   const total = sets.solid.size + sets.swept.size + sets.alpha.size;
@@ -41,7 +40,7 @@ export async function convertKits(sets: KitSets, merge: (parts: BufferGeometry[]
     done++;
     step(done, total);
     if (diagnosticNow() - lastYield < yieldMs) return;
-    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
+    await pause();
     lastYield = diagnosticNow();
   };
   for (const [name, kit] of sets.solid) {

@@ -6,7 +6,7 @@ import { FEI_ZHUA_ROW } from './grapple/row';
 import { FeiZhua } from './grapple/FeiZhua';
 import { GRAPPLE_PLAYGROUND } from './playground/registration';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
@@ -30,10 +30,11 @@ import { GlyphField } from './runtime/signs/glyphField';
 /** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
 const DECK_ZONE = 200;
 
-/** `caps`: whether the decks' open ends get their standalone balustrades (G200: no grid cube) */
-type WorldBuilder = (ctx: ShardContext, caps: boolean) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
+/** `caps`: whether the decks' open ends get their standalone balustrades (G200: no grid cube); `pause`: the build's paced
+ *  pause between stretches (worldBuildYield, op-hitch45) */
+type WorldBuilder = (ctx: ShardContext, caps: boolean, pause: () => Promise<void>) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
-async function buildWorld(ctx: ShardContext, caps: boolean): ReturnType<WorldBuilder> {
+async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise<void>): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
   // op-hitch23: the neon's glyph atlas is computed ahead in engine work slices (a grid cell builds this world on the road,
@@ -45,7 +46,7 @@ async function buildWorld(ctx: ShardContext, caps: boolean): ReturnType<WorldBui
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier, { caps });
+  }, render.tier, { caps, pause });
   return { world, camera: render.camera };
 }
 
@@ -102,7 +103,7 @@ export class NdPlugin extends ShardPlugin {
     const shell = this.shell;
     if (shell !== undefined) shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250,
       get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
-    const { world, camera } = await this.build(ctx, entryCapsFor(ctx.cube));
+    const { world, camera } = await this.build(ctx, entryCapsFor(ctx.cube), () => worldBuildYield(ctx));
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     this.ndWorld = world;
     const rt = installWorld(ctx, world, camera);

@@ -1,4 +1,3 @@
-import { resourceScope } from '@wildshard/engine/app/resources';
 import type { ModelContext, Placement } from '@wildshard/engine/models/model';
 import { type InstancedCuller, place } from '@wildshard/engine/models/place';
 // Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
@@ -20,6 +19,8 @@ export interface FacadeStats { draws: number; tris: number; instances: number; w
 export interface FacadeOptions {
   /** [start, end] metres: small clutter shrinks into the wall between them (0 = never) */
   clutterFar?: readonly [number, number];
+  /** the build's pause after ~30 ms of placing (the plugin's paced `worldBuildYield`, op-hitch45) */
+  pause: () => Promise<void>;
 }
 
 /** where the pieces are placed: the fragment's model context and look, and the culler that takes their copies */
@@ -36,7 +37,7 @@ interface Copy { m: Matrix4; c: Color }
  *  the E283 culler's LOD names read them); level 0's triangles per copy */
 export const nameDraws: typeof namePlacedDraws = namePlacedDraws;
 
-export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeModels, opt: FacadeOptions = {}): Promise<{ group: Group; stats: FacadeStats }> {
+export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeModels, opt: FacadeOptions): Promise<{ group: Group; stats: FacadeStats }> {
   const group = new Group();
   group.name = 'facade';
   const mat = jiehuaMaterial(shared);
@@ -102,7 +103,7 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     stats.instances += list.length;
     stats.tris += tris * list.length;
     stats.perPiece[id] = [list.length, tris * list.length];
-    if (performance.now() - lastYield > 30) { await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); }); lastYield = performance.now(); }
+    if (performance.now() - lastYield > 30) { await opt.pause(); lastYield = performance.now(); }
   }
   // the windows: one InstancedMesh of unit quads (x ∈ [-0.5, 0.5], y ∈ [0, 1]), interior-mapped — the towers' own
   // windows, part of their fabric (world)

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { WORK_SLICE_MS, workSlice, yieldTask } from '@wildshard/engine/core/workSlice';
+import { WORK_SLICE_MS, buildYield, workSlice, yieldTask } from '@wildshard/engine/core/workSlice';
+import { Scope } from '@wildshard/engine/app/scope';
+import { setFramePacing } from '@wildshard/engine/core/framePacing';
 
 // op-hitch23 (E435 frame floor): sliced builders let a drawn frame through every WORK_SLICE_MS.
 describe('workSlice', () => {
@@ -20,5 +22,16 @@ describe('workSlice', () => {
     void Promise.resolve().then(() => order.push('microtask'));
     await task;
     expect(order).toEqual(['microtask', 'task']);
+  });
+  it('pauses a world build on a timer task of its scope, and stops a build whose scope has closed (op-hitch45)', async () => {
+    setFramePacing(false); // the shipped default: exactly the scope's own timer task
+    const scope = new Scope('build');
+    const order: string[] = [];
+    const pause = buildYield(scope).then(() => order.push('task'));
+    void Promise.resolve().then(() => order.push('microtask'));
+    await pause;
+    expect(order).toEqual(['microtask', 'task']);
+    scope.dispose();
+    await expect(buildYield(scope)).rejects.toThrow(/scope has closed/u);
   });
 });

@@ -50,7 +50,6 @@ import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial,
 import { FONT_CHARS, WORDS } from './words';
 import { chars } from '../util';
 import { glyphLayout, signLayout, type NdTier } from '../tier';
-import { resourceScope } from '@wildshard/engine/app/resources';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
@@ -126,8 +125,9 @@ export interface NineDragonWorld {
   readonly portal?: PortalSlot;
 }
 
-/** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { caps?: boolean } = {}): Promise<NineDragonWorld> {
+/** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
+ *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -184,7 +184,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const portals = buildPortals(ctx, shared);
   root.add(portals.root);
   progress(0.3, 'signs');
-  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
+  await opts.pause();
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
   const slotRng = new Rng(4242);
   const bladesKit = ctx.kit('facade-signs');
@@ -215,14 +215,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const { solid: kitGeos, alpha: alphaGeos, profile: kitProfile } = await convertKits({ solid: ctx.kits, swept: ctx.kitxs, alpha: ctx.alphaKits }, merge, (done, total, name) => {
     progress(0.4 + 0.12 * done / Math.max(1, total), name === undefined ? `geometry ${done}/${total}` : `geometry ${done + 1}/${total}: ${name}`);
-  }, KIT_YIELD_MS);
+  }, KIT_YIELD_MS, opts.pause);
   // Each Kit/KitX still owns its large JS number[] buffers after build() copies them into typed geometry.
   // No later phase reads the builders; release them before the facade and texture uploads add to the peak.
   ctx.kits.clear();
   ctx.kitxs.clear();
   ctx.alphaKits.clear();
   Reflect.set(window, '__ndKitProfile', kitProfile);
-  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); }); // let the loading panel paint and GC run
+  await opts.pause(); // let the loading panel paint and GC run (in play: a drawn frame)
   progress(0.52, 'neon spill + canopy');
   let phaseStart = performance.now();
   await bakeSpill(kitGeos.map(([, g]) => g), emitters);
@@ -261,7 +261,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   phaseStart = performance.now();
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
-  const facade = await buildFacade(ctx.fd, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look, culler: batches }, { clutterFar: [55, 85] });
+  const facade = await buildFacade(ctx.fd, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look, culler: batches }, { clutterFar: [55, 85], pause: opts.pause });
   phaseDone('facade', phaseStart);
   const isMesh = (o: Object3D | undefined): o is Mesh => o instanceof Mesh;
   const shell = facade.group.getObjectByName('facade-shell');

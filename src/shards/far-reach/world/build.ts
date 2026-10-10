@@ -135,20 +135,14 @@ function millDrum(): ColliderDesc {
   }
   return { kind: 'hull', x: MILL.x, y: DECK, z: MILL.z, points, surface: 'stone' };
 }
-/** A fresh timer task of `ctx`'s scope: the world build's pause between pieces, and what follows it (the meadow) starts
- *  on one too (op-hitch41). Rejects once the scope has closed: an unloaded cell stops building. */
-export function nextBuildTask(ctx: ShardContext): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    if (ctx.scope.timeout(0, resolve) === 0) reject(new Error('Sky Reach was unloaded during its world build'));
-  });
-}
 /**
  * The world, with SF49-g's four Rising Islet entries (G183; the only way in since G194), built a piece (or a few small
  * ones) per task (op-hitch41: a grid cell builds it on the road, in play, where the whole build was one 366 ms task on
- * the iOS Simulator). The same pieces in the same order, the same seeded draws.
+ * the iOS Simulator). The same pieces in the same order, the same seeded draws. `pause` ends a piece's task (the plugin's
+ * paced worldBuildYield, op-hitch45: in play a drawn frame when one is due, else a timer task of the shard's scope;
+ * it rejects once the cell has unloaded, and the build stops).
  */
-export async function buildWorld(ctx: ShardContext): Promise<BuiltWorld> {
-  const pause = (): Promise<void> => nextBuildTask(ctx);
+export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };

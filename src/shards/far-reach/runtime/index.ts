@@ -1,7 +1,7 @@
 import { declaredSkyRows } from './brains';
 import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { installSilentScore } from '@wildshard/sdk/runtime/audio/silentScore';
 import source from '../shard.config';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -14,7 +14,7 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrappin
 import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, VANES, WISP_HOMES } from '../data/layout';
 import { apothem } from '../layout';
-import { buildWorld, nextBuildTask, type BuiltWorld } from '../world/build';
+import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
 import { installDeclaredMovers, type MoverRuntimeInstance as MoverRuntime } from '@wildshard/sdk/runtime/movers';
 import { commandSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
@@ -131,8 +131,8 @@ export class SkyReachPlugin extends ShardPlugin {
     setIsleTextures({ rock, meadow: meadowTex });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
-    this.built = await buildWorld(ctx);
-    await nextBuildTask(ctx);
+    this.built = await buildWorld(ctx, () => worldBuildYield(ctx));
+    await worldBuildYield(ctx);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(SUN_DIR, ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());
