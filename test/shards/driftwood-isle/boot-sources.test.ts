@@ -46,7 +46,9 @@ describe('Driftwood boot sources (E357 S4.1, 08 §6.1 step 7)', () => {
       '/assets/driftwood-isle/baked/fixed-models/cover-hibiscusFar.glb',
       '/assets/driftwood-isle/baked/fixed-models/cover-daisyFar.glb',
       '/assets/driftwood-isle/baked/fixed-models/cover-bushFar.glb',
-
+      '/assets/driftwood-isle/baked/fixed-models/hut-kit.glb',
+      '/assets/driftwood-isle/baked/fixed-models/hut-flames.glb',
+      '/assets/driftwood-isle/baked/fixed-models/lookout.glb',
     ]);
     expect(files.terrain).toHaveLength(1);
     expect(files.terrain.every((url) => url.includes('/baked/driftwood-isle/terrain'))).toBe(true);

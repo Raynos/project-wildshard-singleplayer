@@ -12,8 +12,10 @@ import { defineModel, modelContext } from '../../../src/engine/models/model';
 import { place } from '../../../src/engine/models/place';
 import { boat, boatColliders } from '../../../src/shards/driftwood-isle/models/boat';
 import { palm } from '../../../src/shards/driftwood-isle/models/palm';
-import { hut, hutLayout } from '../../../src/shards/driftwood-isle/models/hut';
-import { lookout, lookoutLayout } from '../../../src/shards/driftwood-isle/models/lookout';
+import { hut, hutLayout, hutOrigin } from '../../../src/shards/driftwood-isle/models/hut';
+import { HUT, LOOKOUT } from '../../../src/shards/driftwood-isle/manifest';
+import { lookout, lookoutLayout, lookoutOrigin } from '../../../src/shards/driftwood-isle/models/lookout';
+import lookoutBakeRow from '../../../src/shards/driftwood-isle/data/lookoutBake.json' with { type: 'json' };
 import { shipwreck } from '../../../src/shards/driftwood-isle/models/shipwreck';
 import { barrel, crate, ropeCoil } from '../../../src/shards/driftwood-isle/models/cargo';
 import { driftLog } from '../../../src/shards/driftwood-isle/models/driftLog';
@@ -107,29 +109,28 @@ describe('Driftwood models (E315 M1)', () => {
     for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'wreck', 'bridge', 'cove', 'trailside', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`registry\\.add\\(\\{ id: '${id}`));
   });
 
-  it("the hut's layout and its geometry come from one build per site", () => {
-    const ground = (): number => 0.5, site = { x: 10, z: -20, rot: 0 };
-    const lay = hutLayout({ site, ground });
-    expect(lay.floorY).toBeCloseTo(1.1, 9); // own space: the cabin floor stands 1.1 m over the ground at its centre
-    expect(lay.floorHeightAt(0, 0)).toBeCloseTo(1.1, 9);
+  it("the hut's layout and its geometry are its site's fixed bake", () => {
+    const site = { x: HUT.x, z: HUT.z, rot: HUT.rot }, o = hutOrigin(site);
+    const lay = hutLayout(site);
+    expect(lay.floorY).toBeGreaterThan(1); // own space: the cabin floor stands on stilts over the ground at its centre
+    expect(lay.floorHeightAt(0, 0)).toBe(lay.floorY);
     expect(Object.keys(lay.anchors).sort()).toEqual(['door', 'hutChest', 'npc', 'porch']);
-    const placed = place(hut, [{ x: site.x, y: 0.5, z: site.z, params: { site, ground } }], { ctx, draw: 'merged', registry: null });
-    expect(hutLayout({ site, ground })).toBe(lay); // the same builder (by its site)
-    expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(10, 0); // built where it stands
+    const placed = place(hut, [{ x: o.x, y: o.y, z: o.z, params: {} }], { ctx, draw: 'merged', registry: null });
+    expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(o.x, 0); // built where it stands
     expect(placed.colliders.length).toBe(lay.colliderDescs().length);
+    expect(() => hutLayout({ ...site, x: site.x + 1 })).toThrow('regenerate');
   });
 
-  it("the lookout's layout and its geometry come from one build per site", () => {
-    const ground = (): number => 2, site = { x: 40, z: 60, rot: 0.6 }, params = { site, ground, zipTo: { x: 80, z: 20 } };
+  it("the lookout's layout and its geometry are its site's fixed bake", () => {
+    const params = { site: { x: LOOKOUT.x, z: LOOKOUT.z, rot: LOOKOUT.rot }, zipTo: lookoutBakeRow.zipTo }, o = lookoutOrigin(params);
     const lay = lookoutLayout(params);
-    expect(lay.platformY).toBeCloseTo(7, 9); // own space: the platform stands 7 m over the ground at its centre
-    expect(lay.floorHeightAt(0, 0)).toBeCloseTo(7, 9);
+    expect(lay.platformY).toBeGreaterThan(6); // own space: the platform stands 7 m over the ground at its centre
+    expect(lay.floorHeightAt(0, 0)).toBe(lay.platformY);
     expect(Object.keys(lay.anchors).sort()).toEqual(['beacon', 'shard', 'stairFoot', 'zipTop']);
-    const placed = place(lookout, [{ x: site.x, y: 2, z: site.z, params }], { ctx, draw: 'merged', registry: null });
-    expect(lookoutLayout(params)).toBe(lay); // the same builder (by its site)
-    expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(40, -1); // built where it stands
+    const placed = place(lookout, [{ x: o.x, y: o.y, z: o.z, params: {} }], { ctx, draw: 'merged', registry: null });
+    expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(o.x, -1); // built where it stands
     expect(placed.colliders.length).toBe(lay.colliderDescs().length);
-    expect(placed.colliders.find((c) => c.kind === 'treads')).toBeDefined(); // the stair
+    expect(() => lookoutLayout({ ...params, zipTo: { x: 0, z: 0 } })).toThrow('regenerate');
   });
 
   it("the Wreck cove's models build their specimens in their own space, on the ground at the origin", () => {

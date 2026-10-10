@@ -29,4 +29,7 @@ export const FIXED_MODEL_FILES = {
   coverHibiscusFar: '/assets/driftwood-isle/baked/fixed-models/cover-hibiscusFar.glb',
   coverDaisyFar: '/assets/driftwood-isle/baked/fixed-models/cover-daisyFar.glb',
   coverBushFar: '/assets/driftwood-isle/baked/fixed-models/cover-bushFar.glb',
+  hutKit: '/assets/driftwood-isle/baked/fixed-models/hut-kit.glb',
+  hutFlames: '/assets/driftwood-isle/baked/fixed-models/hut-flames.glb',
+  lookout: '/assets/driftwood-isle/baked/fixed-models/lookout.glb',
 } as const;

@@ -19,9 +19,8 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Cove } from './Cove';
-import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutParams } from '../models/lookout';
+import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutLayout, type LookoutPlacement } from '../models/lookout';
 
 export interface LookoutSpec { x: number; z: number; rot: number }
 
@@ -33,17 +32,19 @@ export class Lookout {
   anchors: Record<string, LookoutAnchor> = {};
   /** the platform's world y */
   platformY = 0;
-  private readonly params: LookoutParams;
+  private readonly sky: Sky;
+  private readonly params: LookoutPlacement;
   /** the site's origin: own space + this = world */
   private readonly o: { x: number; y: number; z: number };
-  private lay: ReturnType<typeof lookoutLayout> | null = null;
+  private lay: LookoutLayout | null = null;
   private descs: ColliderDesc[] = [];
   /** its placements (the named places' sets read them, src/shards/driftwood-isle/world/places.ts) */
   placed: Placed | null = null;
 
-  constructor(private sky: Sky, spec: LookoutSpec) {
+  constructor(sky: Sky, spec: LookoutSpec) {
+    this.sky = sky;
     const cave = Cove.forIsland().cave;
-    this.params = { site: { x: spec.x, z: spec.z, rot: spec.rot }, ground: heightAt, zipTo: { x: cave.x, z: cave.z } };
+    this.params = { site: { x: spec.x, z: spec.z, rot: spec.rot }, zipTo: { x: cave.x, z: cave.z } };
     this.o = lookoutOrigin(this.params);
   }
 
@@ -55,7 +56,7 @@ export class Lookout {
 
   private draw(registry: WorldRegistry | null): this {
     const o = this.o;
-    const placed = place(lookout, [{ x: o.x, y: o.y, z: o.z, params: this.params }], { ctx: modelContext(this.sky), draw: 'merged', registry,
+    const placed = place(lookout, [{ x: o.x, y: o.y, z: o.z, params: {} }], { ctx: modelContext(this.sky), draw: 'merged', registry,
       piece: { id: 'lookout', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;

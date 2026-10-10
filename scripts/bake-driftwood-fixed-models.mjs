@@ -17,6 +17,7 @@ import { ironSwordGeometry } from '../src/shards/driftwood-isle/generators/ironS
 import { coverGeometry } from '../src/shards/driftwood-isle/generators/groundCover.ts';
 import { originalTrailside } from './bake/driftwoodTrailside.mjs';
 import { originalCove } from './bake/driftwoodCove.mjs';
+import { originalHut, originalLookout } from './bake/driftwoodHut.mjs';
 
 const assets = new URL('../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');
@@ -54,4 +55,11 @@ write(new URL('../src/shards/driftwood-isle/data/coveBake.json', import.meta.url
 const trail = originalTrailside();
 emit('trailside', trail.geometry);
 write(new URL('../src/shards/driftwood-isle/data/trailsideBake.json', import.meta.url), `${JSON.stringify(trail.metadata, null, 2)}\n`);
+const hut = originalHut();
+emit('hut-kit', hut.kit);
+emit('hut-flames', hut.flames);
+write(new URL('../src/shards/driftwood-isle/data/hutBake.json', import.meta.url), `${JSON.stringify(hut.layout, null, 2)}\n`);
+const tower = originalLookout();
+emit('lookout', tower.geometry);
+write(new URL('../src/shards/driftwood-isle/data/lookoutBake.json', import.meta.url), `${JSON.stringify(tower.layout, null, 2)}\n`);
 material.dispose();

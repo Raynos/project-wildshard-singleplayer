@@ -14,6 +14,11 @@ export const BOAT_GEAR_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.boatGear);
 export const TROPHY_PLAQUES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.trophyPlaques);
 export const TROPHY_DROP_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.trophyDrop);
 export const COUNTER_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.tradeCounter, { _sway: 'aSway' });
+/** The castaway's hut on its site (own space): the kit mesh and the unlit flames. */
+export const HUT_KIT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.hutKit);
+export const HUT_FLAMES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.hutFlames);
+/** The lookout tower on its site (own space), the banner's sway channel kept. */
+export const LOOKOUT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.lookout, { _sway: 'aSway' });
 /** Pickup parts retain their native materials and local centring. */
 export const IRON_SWORD_BLADE_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.ironSwordBlade);
 export const IRON_SWORD_FITTINGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.ironSwordFittings);
@@ -32,6 +37,8 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array>)
     BOAT_SAIL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatGear)),
     TROPHY_PLAQUES_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.trophyPlaques)), TROPHY_DROP_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.trophyDrop)),
     COUNTER_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.tradeCounter)),
+    HUT_KIT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hutKit)), HUT_FLAMES_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hutFlames)),
+    LOOKOUT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.lookout)),
   ]);
   ready = true;
 }
