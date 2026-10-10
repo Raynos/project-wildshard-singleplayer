@@ -12,6 +12,7 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { nalatiPhysicsInputs } from '../../../../scripts/nalati-physics-inputs.mjs';
 import { saveFixture } from '../../../../scripts/debug-settings.mjs';
+import { installNalatiPhysicsCapture } from './physicsCapture.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
@@ -27,40 +28,9 @@ try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   const page = await context.newPage(); page.on('pageerror', error => { errors.push(String(error)); });
-  // tick 0: every body's spot and heading the frame it first exists, before any frame callback runs after its spawn (the
-  // manager thinks and moves it from the next frame on), checked against the renderer-free boot roster
-  // (test/shards/nalati-grasslands/boot-roster.test.ts). Read on first sight, so a body spawned later is caught at its own
-  // tick 0. The one exception is the shepherd's horse (creatures/sheepRaid.ts): ride.ts builds him before the page exposes
-  // its manager, and his ring has turned him a frame's worth by first sight (his spot is still exact)
-  // the harness pin: the page's random streams from the level's own seed (session.ts pageSeed), as a renderer-free host
-  // seeds them, instead of the live page's per-load salt; the groups' setup draws on the 'ai' stream are then the host's
-  await page.addInitScript(() => { window.__wildshardHarness = { seed: 0x4a1a, capture: null }; });
-  // The same first sight reads each body's memory (the group policies' setup draws: a wolf's role, offset and ring) and
-  // each declared group's continuation (PackBrain / HerdBrain `snapshot()`: the herd's first grazing spot, Argymaq's
-  // adoption), before any of them decides: the renderer-free runtime's groups are checked against them on the 'ai' stream
-  await page.addInitScript(() => {
-    const seen = new Map(), groups = new Map(), flocks = new Map(), raf = window.requestAnimationFrame.bind(window);
-    window.__nalatiSpawns = seen; window.__nalatiGroups = groups; window.__nalatiFlocks = flocks; window.__nalatiMarmots = null;
-    window.requestAnimationFrame = onFrame => raf(time => {
-      for (const a of window.__wildshard?.world?.animals?.animals ?? []) {
-        if (!seen.has(a.entityId)) seen.set(a.entityId, { id: a.entityId, at: [a.position.x, a.position.y, a.position.z], yaw: a.yaw, mem: { ...a.mem } });
-      }
-      const wildlife = window.__wildshard?.world?.game?.app?.debug?.snapshot?.().nalati?.wildlife;
-      if (window.__nalatiMarmots === null && wildlife?.marmots !== null && wildlife?.marmots !== undefined) window.__nalatiMarmots = wildlife.marmots.tickZero;
-      for (const [kind, list] of [['pack', wildlife?.packs ?? []], ['herd', wildlife?.herds ?? []]]) list.forEach((group, i) => {
-        const key = `${kind}:${i}`;
-        if (!groups.has(key)) groups.set(key, { kind, members: group.members.map(m => m.entityId), state: group.snapshot() });
-      });
-      (wildlife?.flocks ?? []).forEach((flock, i) => {
-        if (flocks.has(i)) return;
-        const point = { x: 0, y: 0, z: 0, set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; } };
-        flocks.set(i, { n: flock.n, cx: flock.cx, cz: flock.cz, members: Array.from({ length: flock.n }, (_, index) => {
-          const p = flock.positions(index, point); return { at: [p.x, p.y, p.z], yaw: flock.headingOf(index) };
-        }) });
-      });
-      onFrame(time);
-    });
-  });
+  // First sight can follow one real pose/shepherd frame. Its delta must come from the capture clock,
+  // not the sub-millisecond interval between the loading screen and the first live draw.
+  await page.addInitScript(installNalatiPhysicsCapture);
   await page.goto(new URL('/?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => {
     const w = window.__wildshard?.world;

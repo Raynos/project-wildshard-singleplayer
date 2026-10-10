@@ -28,3 +28,23 @@ Darwin preview/binary. This is an unresolved producer issue, not a cache hit or 
 The existing valid cache was preserved; the failed staging output was discarded. Body/place checks and runner strict/lint
 are green (11 focused tests). All browsers/leases closed. Fix first-sight actor timing before using this job to remove
 or replace the committed physics payload.
+
+## Deterministic first sight
+
+The browser init now selects the existing capture clock before bootstrap: a fixed 0.1 ms boot quantum observes
+the initial actor roster before a 60 Hz motor step. It preserves every first-sight position, heading and memory field;
+no tolerance, rounding or exclusion is used. A 60 Hz experiment advanced the shepherd before first sight and was
+rejected by the unchanged tick-zero roster tests. The shipping live clock is unchanged.
+
+At preview `90932bd93b0531b672f8e238d047b9dc8883f0e7` (same application bytes; final producer helper supplied by Node),
+two independent cold Chromium processes produced identical complete bytes. The shared producer cache then passed
+cold (7304.44 ms), warm (2.07 ms) and forced cold regenerate-and-compare (7377.39 ms), key
+`83d5a9df6b68e4319b6890e4c3c496ee5d3dfa31671555b6b0c57529c16451b3`. Output SHA-256:
+`3196eaa4fb068c8eca3e6973379781fdfa64354e7607b625fad7f03b0a156381`.
+
+Compared with the previous capture, only two gameplay fields change deliberately: `spawns[21].mem._graze` becomes
+`0.00022000000000000003`, and `spawns[23].yaw` becomes `-2.498311544796509`. Collider/floor bytes, every placement,
+actor identity, other memory, group state and grass observation are unchanged. The fixed boot-clock/first-sight tests,
+existing native roster/raid/elite/restore tests and strip-only compatibility process are checked without relaxing assertions.
+All browser leases close after capture. This resolves the physics producer blocker; outputs remain committed pending
+the separate build-time retention rollout.
