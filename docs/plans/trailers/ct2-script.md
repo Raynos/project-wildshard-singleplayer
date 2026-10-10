@@ -1,62 +1,92 @@
 # CT2 — the cinematic concept trailer: script, shots and how each is made (TRAILERS Part B, E466)
 
-**Draft 2 (2026-10-10)**, rebuilt on Jake's CT1 verdicts and his highway note (the ledger:
-[council/ledger.md](council/ledger.md)). Draft 1 (the blue-lattice storyboard of 2026-10-10 morning) is superseded: it
-followed the concept painting instead of the engine. **Labelled "Concept trailer · not gameplay"** on the first and
-last card. ~67 s, 16:9, generated at 1280 × 704, finished at 1920 × 1056, 24 fps.
+**Draft 3 (2026-10-10)** — draft 2 after council round 1 (`council/register.md`; the seats' files `council/round-1-seat-*.md`).
+Built on Jake's CT1 verdicts and his highway note (the frozen ledger: [council/ledger.md](council/ledger.md)). Draft 1
+(the blue-lattice storyboard) is superseded.
+
+## The frame
+
+- **~67 s**, generated at 1280 × 704 (≈ 1.82 : 1), mastered at **1920 × 1080**: each shot scaled to 1964 × 1080 and centre-
+  cropped 22 px a side (R1A-11). 24 fps. Every generated length is 8n + 1 frames (97 = 4 s, 121 = 5 s, 145 = 6 s).
+- **Labelled on every frame** (R1C-4): a corner tag *CONCEPT TRAILER · NOT GAMEPLAY* (the alpha trailer's bug, violet),
+  plus the full line on the first image (from frame 1, over shot 1 — no extra card, R1A-10) and on the end card.
+- **Muted-first** (R1A-10, R1C-3): four large captions carry the pitch with no sound (§Captions). Text is never generated.
 
 ## The world it shows (the engine's, painted)
 
-- **Our six shards, each in its own style:** Driftwood Isle (toon tropical island, pier), Nalati Grasslands (painterly
-  steppe, yurts, horses), Pine Hollow (photoreal pine forest, log cabin), Signal Dunes (dusk dunes, signal tower and
-  fires), Sky Reach (golden-hour floating islands, windmill, rope bridges), Nine Dragon Stack (neon vertical city, rain).
-- **The highway between them:** a 15 m two-lane road with markings, roundabouts where four shards meet, a road entry
-  at the middle of each shard edge, streetlights, cars and hoverboards. No glowing walls, no blue lattice.
-- **The vision's beats:** an author builds a shard in Claude Code, the nine-beacon upload ritual, the shard goes live in
-  an empty plot, players travel the highway from world to world, the grid goes on to the horizon.
-- **References:** `art/trailers/round-2-highway/` (the look: golden aerial, night aerial, the crossroads) and the six
-  shard concept paintings (`art/trailers/round-2-highway/shard-*.jpg`), all painted from in-engine frames.
+- **Our six shards, each in its own style:** Driftwood Isle (toon), Nalati (painterly), Pine Hollow (photoreal), Signal
+  Dunes (dusk), Sky Reach (golden hour), Nine Dragon Stack (neon). **Driftwood stays faceted toon** in every shot it is
+  in; a take that paints it naturalistic is rejected (R1A-7, R1B-4).
+- **The highway between them:** 15 m, two lanes, markings, roundabouts where four shards meet, a road entry at each edge's
+  midpoint, streetlights, cars. No glowing walls (ledger 5). No hoverboard outside staging (VISION; R1B-9).
+- **The new shard** (one canonical look, R1A-6, R1C-2): `art/trailers/round-2-highway/hero-shard.jpg` — a floating cube of
+  land, a low hill, a pine wood, a river to a front-edge waterfall, **one round stone tower with a slate cone roof**, a
+  cobbled road to the front edge, brown cliffs with roots. Every shot that shows it uses that image as a reference.
+- **One neighbour map** (R1A-6): the new shard's plot sits with Driftwood south, Pine Hollow west, Signal Dunes east,
+  Nine Dragon north-east, Nalati north-west, Sky Reach north (as `look-grid-night`).
+- **No upload ritual** (Jake, 2026-10-09: "drop the upload ritual" for the site, MARKETING-SITE.md §7; R1C-new): the
+  upload is the shard leaving its builder's staging space and arriving in the world.
+- **Staging before the world** (VISION §Isolation; R1A-5, R1B-1): shots 3–5 happen on the floating shard **alone** (the
+  void, the clouds), with no highway and no neighbours. The world first appears around it in shot 6.
 
-## How every shot is made (CT1's winners, Jake's pick)
+## How every shot is made
 
-| Kind | Method | CT1 evidence |
+| Kind | Method | CT1 evidence (corrected, R1B-5/6) |
 |---|---|---|
-| **Directed** — the camera move or the layout must be exact (the empty plot, the build, the dock, the highway waking, the drive, the pull-out) | a **Blender grey blockout** of the shot from a shared kit (highway grid, plots, a floating shard, beacons, cars, a rider) → a **look still**: its first grey frame repainted by Qwen-Image-2.1 (or OpenAI Image 2.5) with the round-2 references → **LTX-2.5 Layout-To-Render** (grey video + look still) | #9 |
-| **Atmosphere** — a place and a mood, the model may choose the drift (the author at the desk, the ritual, the crossroads, the shard vignettes) | a **keyframe**: an in-engine capture of that shard (where one exists) repainted by Qwen-Image-2.1 in the round-2 look, else a Qwen / OpenAI still from the references → **LTX-2.5 image-to-video** | #10b |
-| Out | per-frame repaint (#4–#6: jarring drift), Wan (#7 static, #8 failed), a plain OpenAI keyframe → LTX (#10: weaker than #9 / #10b) | Jake, 2026-10-10 |
+| **Directed** (an exact layout or camera: 1, 6, 9, 14) | a Blender grey blockout from the shared kit → a **look still** repainted from its first grey frame (OpenAI Image 2.5 or Qwen-Image-2.1, references by role: `look-*` for roads and light, `shard-*` and `hero-shard` for local materials, R1A-7) → **LTX-2.5 Layout-To-Render** | #9 (its look still was OpenAI) — ~12 min of lock per shot |
+| **Atmosphere** (a place and a mood: 2, 3, 4, 5, 7, 8, 10–13, 15) | a **keyframe** (the storyboard frame or an in-engine view, repainted by Qwen-Image-2.1 with calm, readable detail) → **LTX-2.5 image-to-video** | #10b (a Qwen repaint of the grey blockout) — ~8.4 min of lock per shot |
+| Out | per-frame repaint (#4–#6, jarring), Wan (#7, #8), a busy OpenAI keyframe straight to LTX (#10) | Jake, 2026-10-10 |
 
-Rules from the research and CT1: one motion per shot; the camera carries the movement; big rigid things (land, roads,
-cliffs, towers, cars) hold, limbs and faces don't, so figures stay small, far and slow; 4–6 s shots; never the same
-slow push-in twice in a row; **text is never generated** (the typed prompt, the captions and the end card are overlays).
+**Draft 1 (2026-10-10)** makes every shot except 6 as atmosphere (image-to-video from the storyboard repainted by Qwen) and
+shot 6 by Layout-To-Render on CT1's grey dock blockout with a highway look still; the blockout kit (CT3) lands for
+draft 2.
+
+**Gates** (R1A-4, R1A-8): reject a bad keyframe before any video (composition, the hero shard's tower, Driftwood's
+facets, no lattice); each shot gets **one take plus two re-rolls**: a topology failure (roads, the plot, the tower) →
+fix the guide or the still, not the seed; a limb failure → smaller, slower figures; style drift → swap the references.
+After the cap the shot is replaced by a shorter stable insert of the same beat (a hold on its approved still with a slow
+push in the edit); never grey or raw engine footage.
+
+**Motion rules:** one motion per shot; the camera carries the movement; figures small, far and **slow** (walk, not
+gallop, R1A-2); big rigid things hold. Shot 14 is generated as a **push-in and played in reverse** (R1C: LTX keeps detail
+best at a clip's start). Light changes (streetlights coming on) are untested in CT1 (R1B-5): a re-roll, then a cut on
+the change if it doesn't land.
 
 ## The shots
 
 | # | t (s) | Shot | Kind | What we see / the motion |
 |---|---|---|---|---|
-| 1 | 0–4 | **The empty plot** | directed | Night, very high: the grid of lit shards and highways, one dark empty square plot in the middle, its four road entries unlit. A slow push down toward it |
-| 2 | 4–8 | **The prompt** | atmosphere | An author at a desk at night, from behind, a monitor's glow. Overlay: `> a fortress on a hill — pines, a stone tower, a river, dusk` typed out |
-| 3 | 8–14 | **The build** | directed | On a floating platform in the void, grey blocks rise and settle into terrain, trees and a tower; the colour washes in (the grey-to-final time-lapse the engine really does, painted) |
-| 4 | 14–18 | **Walking it** | atmosphere | Golden hour on the new shard: the small author walks the road entry to the shard's edge, the highway beyond |
-| 5 | 18–22 | **The upload ritual** | atmosphere | Night: nine beacons light at the shard's corners, edge midpoints and centre, beams into the sky |
-| 6 | 22–28 | **It goes live** | directed | The shard comes down into the empty plot between the highways; its four road entries meet the highway; its streetlights come on (CT1's shot, re-laid on the highway grid) |
-| 7 | 28–32 | **The highway wakes** | directed | Night aerial: headlights stream along the highway and turn into the new shard's entries; the roundabouts glow |
-| 8 | 32–36 | **The crossroads** | atmosphere | Dusk at the roundabout where four shards meet (beach, steppe, pines, an unbuilt plot), the signpost, a rider trots through (round-2 look C) |
-| 9 | 36–40 | **The drive** | directed | A low tracking shot along the highway: Driftwood's toon beach on one side, Pine Hollow's photoreal forest on the other, one road between two styles |
-| 10 | 40–44 | **Nalati** | atmosphere | Riders gallop across the painterly steppe toward a road entry, yurts and kurgans behind |
-| 11 | 44–48 | **Signal Dunes** | atmosphere | Dusk: the signal tower's fire lit, a caravan on the dunes, the highway lamps at the shard's edge |
-| 12 | 48–52 | **Sky Reach** | atmosphere | Golden hour: floating islands, a hoverboarder crosses a rope bridge, the windmill turning |
-| 13 | 52–56 | **Nine Dragon Stack** | atmosphere | Rain and neon: the vertical city seen from the highway's entry road, crowds under umbrellas |
-| 14 | 56–62 | **The pull-out** | directed | Up and back from the city: the 3 × 3, the 5 × 5, then shards and highways to the horizon, more lights coming on |
-| 15 | 62–67 | **End card** | — | The night grid dims behind the overlay: the Cell logo, *Play it in the browser. Build it in Claude Code.*, wildshard.io, *Concept trailer · not gameplay* |
+| 1 | 0–4 | **The empty plot** | directed | Night, very high over the lit grid; one dark empty plot in the middle. A slow push down toward it. *Full concept label over this image.* |
+| 2 | 4–8 | **The prompt** | atmosphere | An author at a desk at night, from behind, a monitor's glow (2.5 s) → a cut to **the real Claude Code session** (TR5's recording, `progress/trailers/tr5-lookout-session.cast`, 1.5 s, sped up; R1C-6). Caption 1. |
+| 3 | 8–14 | **The build** | atmosphere | The hero shard alone in the void, half grey blocks, half painted, the colour sweeping across. Draft 1: image-to-video from the half-grey keyframe; draft 2: two passes (grey, painted) wiped in the edit (R1A-3, R1C-5). Caption 2. |
+| 4 | 14–18 | **Walking it** | atmosphere | Golden hour on the hero shard, alone above the clouds: the small author walks the cobbled road from the tower toward the waterfall edge |
+| 5 | 18–22 | **The upload** | atmosphere | The hero shard rises out of the void trailing white-gold light. Caption 3. |
+| 6 | 22–28 | **It goes live** | directed | Dusk aerial: the hero shard comes down into the empty plot between the highways; its road entries meet the highway |
+| 7 | 28–32 | **Players arrive** | atmosphere | Night aerial: headlights stream along the highways into the hero shard's four entries. Caption 4. |
+| 8 | 32–36 | **The crossroads** | atmosphere | Dusk at the roundabout where Driftwood (toon), Nalati, Pine Hollow and an unbuilt plot meet; the signpost; a rider walks along the road |
+| 9 | 36–40 | **The drive** | directed | A low tracking shot along the highway: Driftwood's toon beach left, Pine Hollow's photoreal forest right |
+| 10 | 40–44 | **Nalati** | atmosphere | Distant riders walk their horses across the painterly steppe toward a road entry |
+| 11 | 44–48 | **Signal Dunes** | atmosphere | Dusk: the signal tower's fire, a small caravan, the highway lamps at the edge |
+| 12 | 48–52 | **Sky Reach** | atmosphere | Golden hour: floating islands, a small figure walks a rope bridge |
+| 13 | 52–56 | **Nine Dragon Stack** | atmosphere | Rain and neon: the vertical city from the highway's entry road |
+| 14 | 56–62 | **The pull-out** | directed | Up and back over shards and highways to the horizon (a push-in, reversed) |
+| 15 | 62–67 | **End card** | atmosphere | The night grid, dim, behind: the Cell logo · *Play it in the browser. Build it in Claude Code.* · wildshard.io · *Concept trailer · not gameplay* |
+
+## Captions (overlays, large, phone-safe)
+
+1. *Describe a world.* (shot 2) · 2. *Claude Code builds it.* (shot 3) · 3. *Upload it.* (shot 5) · 4. *Players arrive.*
+(shot 7). No upload API exists yet; the end card's *Build it in Claude Code* is the pitch, labelled concept (R1B-10).
 
 ## Sound
 
-The score job `scripts/steam-trailer/concept-jobs.json` (MiniMax Music 3, ~72 s): a deep-space open (1–2), a build
-(3–4), the ritual swell (5), the first big hit on the dock (6), full drive through the travel montage (7–13), the peak
-on the pull-out (14), a ringing end. Trailer SFX (MOSS v2 + SA3) on the cuts; the cars and the town as soft beds.
+`scripts/steam-trailer/concept-jobs.json` (MiniMax Music 3, ~72 s): a quiet open (1–2), a build (3–5), the first big hit
+on the dock (6), full drive through the travel montage (7–13), the peak on the pull-out (14), a ringing end. Trailer SFX
+on the cuts; cars and towns as soft beds.
 
-## Cost (local, from CT1)
+## Cost and order (R1A-9, R1B-6)
 
-~6 Blender blockouts (one shared kit, minutes each) · ~15 look stills / keyframes (Qwen ~30 s each under the lock, or
-OpenAI remote) · 14 LTX runs (~5 min image-to-video, ~8 min Layout-To-Render) ≈ 1.5–2 h of model lock · the score ·
-the cut, mix and conform on the existing pipeline (`cut.mjs`, `mix.py`, `edit.mjs`).
+Measured lock time per shot: ~8.4 min (image-to-video) / ~12 min (Layout-To-Render), so one pass of 14 shots ≈ 2–2.3 h
+of model lock, before re-rolls and other agents' queue. Order: the storyboard and keyframes (remote, parallel) → the
+critical shots first (6, 3, 5, 7) → the rest → the score (it queues on the same lock) → the cut with overlays and a
+temp mix while takes land. Production state lives in the scratchpad job list (`ct2/draft1.sh`, resumable: a finished
+shot is skipped on re-run).

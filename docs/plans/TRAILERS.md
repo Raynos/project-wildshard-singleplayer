@@ -18,7 +18,7 @@ Two trailers, two jobs, the same honesty rules as the site (MARKETING-SITE §1.1
 | Sells | the road: what you can play today | the destination: the MMO built by its players in Claude Code |
 | Footage | 100 % captured in engine, at HEAD | none from the engine: made shots |
 | Label | "Alpha · captured in engine · work in progress", start to end | "Concept trailer · not gameplay" |
-| On the site | replaces MS11's trailer (the 21 s cut of the 18 September trailer) | the hero or the "The world" section, beside the concept art |
+| On the site | replaces MS11's trailer (the 21 s cut of the 18 September trailer) | "The world", beside the alpha trailer (Jake, 2026-10-10; R1A-10) |
 
 ## 1. What exists
 
@@ -88,11 +88,11 @@ CT1 made one shot (a shard docks into the grid) ten ways locally (`trailers/ct1-
 |---|---|---|---|
 | 1 | Blender grey blockout (the input) | the directed layout + camera, grey | "can't tell what I'm looking at" — an input, never shown alone |
 | 2 / 3 | style keyframes, Qwen-Image-2.1 / OpenAI Image 2.5 | both strong; OpenAI painterly, Qwen photoreal and closer to the blockout's framing | OpenAI picked for stills (before 10b) |
-| 4 / 5 / 6 | per-frame repaint (every frame / keys + EbSynth / the alpha capture) | the look works, the camera holds; soft "breathing" between keys | "way too jarring" — out |
+| 6 (4 / 5 stopped) | per-frame repaint of the alpha capture (keys + EbSynth); #4 / #5 on the blockout were stopped unfinished once #6 was judged | the look works, the camera holds; soft "breathing" between keys | "way too jarring" — out |
 | 7 / 8 | Wan 2.2 image-to-video / Wan VACE on depth | barely moves (15 min for 3 s) / ignored the look | out |
-| 9 | **LTX-2.5 Layout-To-Render on the grey + a look still** | follows the directed camera, painted | **"way better"** |
+| 9 | **LTX-2.5 Layout-To-Render on the grey + an OpenAI look still** | follows the directed camera, painted; ~12 min of lock | **"way better"** |
 | 10 | LTX-2.5 image-to-video from the OpenAI keyframe | holds the look 6 s, ~5 min | "surprisingly good", but below 9 / 10b |
-| 10b | **LTX-2.5 image-to-video from the Qwen keyframe** | — | **"way better"** |
+| 10b | **LTX-2.5 image-to-video from the Qwen keyframe** (Qwen's repaint of the grey's first frame) | calmer, cleaner detail than #10; ~8.4 min of lock | **"way better"** |
 
 **The method:** directed shots = a Blender grey blockout + a look still → LTX Layout-To-Render (#9); atmosphere shots =
 a keyframe (an in-engine capture repainted, else a still from the references) → LTX image-to-video (#10b). Text is
