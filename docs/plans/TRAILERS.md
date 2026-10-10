@@ -1,9 +1,8 @@
 # Plan: TRAILERS — an alpha in-engine trailer and a cinematic vision trailer (E466)
 
-**State:** `in progress` 2026-10-09 — **Part A done: the 63 s alpha trailer is on wildshard.io** (`55d4cc841`; the six
-shards in engine at HEAD, a real Claude Code session beside the Sky Reach time-lapse, the grid fly-in, alpha said three
-ways). Open: TR9, a shard-to-shard crossing shot (the grid's loading never settles under the capture clock). Part B,
-the cinematic, starts now that Part A is done (CT1, the bake-off); its research is in.
+**State:** `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). **Part B: CT1 done**
+(ten experiments, Jake's verdicts: LTX Layout-To-Render on a Blender grey (#9) and LTX from a Qwen keyframe (#10b) win);
+**CT2 draft 2** of the cinematic plan is being reviewed by a council (the highway look, our six shards). Open: TR9, CT2–CT6.
 
 ## 0. Why
 
@@ -68,46 +67,48 @@ Two trailers, two jobs, the same honesty rules as the site (MARKETING-SITE §1.1
 
 ## 3. Part B — the cinematic vision trailer
 
-### 3.1 What it shows (a first script, for Jake to rewrite)
+**Draft 2 of the plan (2026-10-10):** the script, the shots and the method are in
+[trailers/ct2-script.md](trailers/ct2-script.md); what is settled is in [trailers/council/ledger.md](trailers/council/ledger.md);
+the bake-off is [trailers/ct1-shot.md](trailers/ct1-shot.md); the research [trailers/research-2026-10-09.md](trailers/research-2026-10-09.md).
 
-~60–90 s, labelled **Concept trailer · not gameplay**. A dark sky lattice → an author types one sentence into Claude
-Code → a 500 m cube of world grows from the line → the author walks it → nine beacons light at its corners and centre,
-the upload ritual → the shard flies up and docks into the glowing grid → players cross the seams from one shard into the
-next, each in its own look → the camera pulls out over the 5 × 5 grid → "Play it in the browser. Build it in Claude
-Code." · wildshard.io.
+### 3.1 What it shows
 
-### 3.2 How it could be made (Jake, 2026-10-09)
+~67 s, labelled **Concept trailer · not gameplay**: an empty plot in the night grid → an author types one line into
+Claude Code → the shard builds from grey to colour → the author walks it → the nine-beacon upload ritual → it goes live
+in the plot between the highways → headlights stream in → the crossroads where four shards meet → a drive between two
+styles → Nalati, Signal Dunes, Sky Reach, Nine Dragon → the pull-out over shards and highways to the horizon → *Play it
+in the browser. Build it in Claude Code.* · wildshard.io. **The world is the engine's** (Jake, 2026-10-10): our six
+shards in their own styles, divided by the 15 m highway with road entries and roundabouts; no glowing lattice.
 
-A straight Blender render is out (Jake: *"making a video in Blender is going to be absolute dog shit … we know that"*).
-Blender's job is the **grey blockout and the camera**: boxy shapes, our real GLBs where they help, a directed camera,
-and the passes a model can follow (depth, normals, line art, flat colour IDs). An AI model makes it look good. The
-source can also be **a capture from the alpha game**, remastered. Three ways, all local (CT0: no paid cloud model):
+### 3.2 How it is made (CT1, decided)
 
-| Way | How | Strength | Risk |
+CT1 made one shot (a shard docks into the grid) ten ways locally (`trailers/ct1-shot.md`, board `art/trailers/round-1-bakeoff/`):
+
+| # | Way | Result | Jake (2026-10-10) |
 |---|---|---|---|
-| **A · Image-to-video** | a keyframe still (codex `image_gen` or Qwen-Image-2.1, in the concept-art style) animated 5–10 s at a time by an open video model | the fastest to a cinematic look | the camera and layout are the model's guess, not directed; shot-to-shot consistency |
-| **B · Blender grey → video-to-video** | the grey blockout (or an in-game capture) rendered with its passes and fed as the control video to an open video model that remasters it (VACE / control-style), first frame and style from a remastered still | we direct the camera and the layout; the model only paints | does an open model on this Mac hold the look over 5–10 s; speed on MPS |
-| **C · Per-frame image-to-image** | every frame of the grey blockout or the in-game capture restyled by an image model (img2img with depth / edge control, never text-to-image), then made temporally consistent (keyframe propagation, flow warping, deflicker, "on twos" at 12 fps) | exact framing; the image models we already run well | flicker: text-to-image per frame is a shit show (Jake); 24 images per second is slow |
+| 1 | Blender grey blockout (the input) | the directed layout + camera, grey | "can't tell what I'm looking at" — an input, never shown alone |
+| 2 / 3 | style keyframes, Qwen-Image-2.1 / OpenAI Image 2.5 | both strong; OpenAI painterly, Qwen photoreal and closer to the blockout's framing | OpenAI picked for stills (before 10b) |
+| 4 / 5 / 6 | per-frame repaint (every frame / keys + EbSynth / the alpha capture) | the look works, the camera holds; soft "breathing" between keys | "way too jarring" — out |
+| 7 / 8 | Wan 2.2 image-to-video / Wan VACE on depth | barely moves (15 min for 3 s) / ignored the look | out |
+| 9 | **LTX-2.5 Layout-To-Render on the grey + a look still** | follows the directed camera, painted | **"way better"** |
+| 10 | LTX-2.5 image-to-video from the OpenAI keyframe | holds the look 6 s, ~5 min | "surprisingly good", but below 9 / 10b |
+| 10b | **LTX-2.5 image-to-video from the Qwen keyframe** | — | **"way better"** |
 
-Research before the build (2026-10-09, two research lanes): which open video models do control-video and image-to-video,
-their licences for a shipped asset, and whether they run on the M5 Max; and the community's best practice (Reddit, X)
-for grey-blockout previs into AI video, camera direction, per-frame restyle and the finish. Findings:
-[trailers/research-2026-10-09.md](trailers/research-2026-10-09.md) (lead: B = LTX-2.5 + the Layout-To-Render IC-LoRA;
-image models: Qwen-Image-2.1 and OpenAI Image 2.5, Jake's call, §5).
-
-**CT1 tests all three on the same shot** (the shard docking into the grid, ~6 s, one Blender grey blockout plus one
-in-game capture as sources) and shows Jake one labelled A / B / C video. Then we feel it out: the winner, or a mix per
-shot, makes the trailer.
+**The method:** directed shots = a Blender grey blockout + a look still → LTX Layout-To-Render (#9); atmosphere shots =
+a keyframe (an in-engine capture repainted, else a still from the references) → LTX image-to-video (#10b). Text is
+always an overlay.
 
 ### 3.3 Rows
 
 | # | Row | Done when | Owner |
 |---|---|---|---|
-| CT0 | ✅ **Jake's picks** (2026-10-09): the bake-off, local models and Blender only, no paid cloud model (§5) | answers recorded | Jake |
-| CT1 | **Bake-off** — the docking shot as a Blender grey blockout (script-built, `scripts/blender/`) and an in-game capture, then made ways A, B and C with open models run locally (fetched to `~/projects/weights` under the model lock, each licence checked for a shipped asset); one labelled A / B / C video, iPhone portrait board plus the 16:9 clips | Jake picks a way, or a mix per shot | trailer agent |
-| CT2 | **Script and boards** — the §3.1 script rewritten with Jake, then a storyboard of 12–20 keyframes in the concept-art style | Jake has read the board | trailer agent + Jake |
-| CT3 | **Shots** — every shot made the picked way | the shots exist at 1080p | trailer agent |
-| CT4 | **Score, cut, ship** — a MiniMax cue, MOSS / SA3 SFX, the cut, the "Concept trailer · not gameplay" label, the site's slot | wildshard.io plays it | trailer agent |
+| CT0 | ✅ **Jake's picks** (2026-10-09): the bake-off, local models only | answers recorded | Jake |
+| CT1 | ✅ **Bake-off** (2026-10-10) — ten experiments on one shot, the board sent, Jake's verdicts recorded (§3.2, §5) | Jake picks a way | trailer agent |
+| CT2 | ◐ **Script, look and storyboard, draft 2** — rebuilt on the highway (ct2-script.md), the round-2 look (`art/trailers/round-2-highway/`: three references, six shard concept paintings from in-engine views, the storyboard), put through a council (`trailers/council/`) | Jake has read the draft | trailer agent + Jake |
+| CT3 | **The blockout kit** — `scripts/steam-trailer/cinematic/` grows from `dock_blockout.py` into a shared kit (highway grid with markings and roundabouts, plots, the floating shard, beacons, cars, a rider) and one blockout per directed shot (1, 3, 6, 7, 9, 14) | each directed shot has grey / depth / normal at 1280 × 704 | trailer agent |
+| CT4 | **Look stills and keyframes** — one per shot (Qwen-Image-2.1 local, OpenAI for hero stills), from the blockout's first frame or an in-engine capture, in the round-2 look | every shot has its still | trailer agent |
+| CT5 | **The shots** — LTX Layout-To-Render (directed) or image-to-video (atmosphere), 4–6 s each; weak takes re-rolled with a new seed | 14 shots at 1280 × 704 | trailer agent |
+| CT6 | **Score, cut, ship** — the MiniMax cue (`concept-jobs.json`), trailer SFX, the cut on the cue's hits, overlays (the typed prompt, the end card, the label), upscale to 1920 × 1056, the site's slot beside the alpha trailer | wildshard.io plays it | trailer agent |
 
 ## 4. Not in this plan
 
