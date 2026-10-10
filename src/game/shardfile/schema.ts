@@ -39,6 +39,7 @@ import { PresentationSchema } from './presentation';
 import { MigrationsSchema, migrationRules } from './migrations';
 import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs, materialGraphRules } from './materials';
+import { PostStackSchema, postStackRules } from './postStack';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -68,7 +69,7 @@ const rawSchema = v.strictObject({
   presentation: v.exactOptional(PresentationSchema),
   requires: v.strictObject({ sdk: v.literal(SHARDFILE_VERSION), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}), commonsCosts: v.optional(CommonsCostsSchema, {}) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: natural, compressed: natural }), sim: v.strictObject({ resident: natural, compressed: natural }), overlap: natural }),
-  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
+  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), post: v.exactOptional(PostStackSchema), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: references, bindings: v.optional(ScriptBindingsSchema, []) }),
   state: StateSchema,
   migrations: v.optional(MigrationsSchema, []),
@@ -141,7 +142,7 @@ export function shardfileRules(s: Shardfile): string[] {
   }
   errors.push(...stateRules(s.state));
   if (s.runtime?.binds?.includes('state') === true && (s.state.player.length > 0 || s.state.shared.some((field) => field.privacy !== 'host'))) errors.push('runtime-bound state supports only host-owned shared fields');
-  errors.push(...materialGraphRules(s));
+  errors.push(...materialGraphRules(s), ...postStackRules(s));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
   const libraryPending = [...s.library];
   while (libraryPending.length > 0) {

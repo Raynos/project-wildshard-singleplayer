@@ -38,7 +38,7 @@ import {
 import {
   Fn, Loop, OnBeforeFrameUpdate, Var, and, cameraPosition, cameraViewMatrix, clamp, diffuseContribution, dot, float, hash,
   instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, modelPosition, modelWorldMatrix,
-  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, positionGeometry, positionLocal,
+  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { targetTexture } from '../nodes/engineNodesHandler';
@@ -57,6 +57,13 @@ export interface CompileGraphOptions extends GraphValidationOptions {
   readonly textures?: (ref: string) => THREE.Texture;
   /** a post graph's scene colour: the engine's render target texture, sampled upright (`targetTexture`) */
   readonly scene?: THREE.Texture;
+  /**
+   * a post graph's scene depth (SF59 (2b)): the scene target's perspective depth texture and the scene camera's clip
+   * range; `sceneDepth` is the linear view distance in metres (move the range with `setDepthRange`)
+   */
+  readonly depth?: { readonly texture: THREE.Texture; readonly near: number; readonly far: number };
+  /** a post graph's scene normal (SF59 (2b)): the normal pre-pass target, view-space normals packed as `n × 0.5 + 0.5` */
+  readonly normal?: THREE.Texture;
 }
 
 /** a compiled graph */
@@ -72,6 +79,8 @@ export interface CompiledGraph {
   readonly selects: { readonly light: number; readonly branch: number };
   /** the outline stage's second draw (null without one): attach it with `attachOutline` */
   readonly outline: NodeMaterial | null;
+  /** move the scene camera's clip range `sceneDepth` linearises with (a post graph compiled with `depth`; else a no-op) */
+  readonly setDepthRange: (near: number, far: number) => void;
 }
 
 /** the instance matrices' arrays as instanced buffers, shared by every graph that reads `objectOrigin` */
@@ -244,6 +253,7 @@ function lightDependents(ir: GraphIr): ReadonlySet<string> {
 const LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, vec3: 3, vec4: 4, bool: 1 };
 const asBool = (v: Val): Node<'bool'> => new ConvertNode<'bool'>(v.n, 'bool');
 const asFloat = (v: Val): Node<'float'> => new ConvertNode<'float'>(v.n, 'float');
+const asVec2 = (v: Val): Node<'vec2'> => new ConvertNode<'vec2'>(v.n, 'vec2');
 /** a float widened to `t` (a no-op for a value already of type t) */
 const widen = (v: Val, t: GraphValueType): Node => (v.t === t || t === 'float' || t === 'bool' ? v.n : new ConvertNode(v.n, t));
 const literal = (v: GraphLiteral): Val => {
@@ -319,6 +329,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     return (spec?.cost ?? 0) + body + (n.in ?? []).reduce<number>((sum, x) => sum + ownCost(x, seen), 0);
   };
 
+  // the scene camera's clip range for `sceneDepth` (uniforms: a camera change moves no program)
+  const depthNear = uniform(opts.depth?.near ?? 0.1), depthFar = uniform(opts.depth?.far ?? 1000);
   interface Scope { readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
   // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
@@ -375,6 +387,20 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'sceneColour': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColour, so compile it with { scene }');
         return { t: 'vec4', n: targetTexture(opts.scene, uv()) };
+      }
+      case 'sceneColourAt': {
+        if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColourAt, so compile it with { scene }');
+        return { t: 'vec4', n: targetTexture(opts.scene, asVec2(one())) };
+      }
+      case 'sceneDepth': {
+        if (opts.depth === undefined) throw new Error('material graph: a post graph reads sceneDepth, so compile it with { depth }');
+        const raw = new ConvertNode<'float'>(new SplitNode(targetTexture(opts.depth.texture, a === undefined ? uv() : asVec2(a)), 'x'), 'float');
+        return { t: 'float', n: perspectiveDepthToViewZ(raw, depthNear, depthFar).negate() };
+      }
+      case 'sceneNormal': {
+        if (opts.normal === undefined) throw new Error('material graph: a post graph reads sceneNormal, so compile it with { normal }');
+        const packed = new ConvertNode<'vec3'>(new SplitNode(targetTexture(opts.normal, a === undefined ? uv() : asVec2(a)), 'xyz'), 'vec3');
+        return { t: 'vec3', n: packed.mul(2).sub(1).normalize() };
       }
       case 'const': return literal(n.value ?? 0);
       case 'param': {
@@ -551,6 +577,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
 
   return {
     material, cost: checked.cost, bindings, selects, outline,
+    setDepthRange(near, far) { depthNear.value = near; depthFar.value = far; },
     setParam(name, value) {
       const set = setters.get(name);
       if (set === undefined) throw new Error(`material graph: no param ${name}`);

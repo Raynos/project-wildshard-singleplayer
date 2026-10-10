@@ -284,6 +284,23 @@ program instead of carrying it inline:
 
 Props texture slots (`props.materials`) bind only an inline graph.
 
+**Post inputs and the shard's post stack (SF59 (2b), step 4).** A `kind: "post"` graph
+reads the scene through `sceneColour`, `sceneColourAt(uv)` (one tap at a vec2, such
+as an edge or blur kernel), `sceneDepth([uv])` (linear view distance in metres) and
+`sceneNormal([uv])` (a unit view-space normal from a normal pre-pass). Each input is
+one sampler, however many taps read it, and each tap costs instructions. A material
+graph cannot read any of them. `look.post` is optional: an ordered list of at most 4
+authored passes, each `{ graph: <post graph> }` or `{ file: "<hash>" }` (a JSON file in
+the library closure, validated with its bytes at product admission). Every pass
+validates under the author caps and the shard's admitted bindings. The stack's cost
+is the sum of its passes' instruction estimates, per pixel at 2× render scale, plus
+`POST_NORMAL_PREPASS_COST` (160) once if any pass reads `sceneNormal`. Admission
+refuses a stack over 1,000 instructions. Where two cells' frames blend,
+`postPairRefusal` checks the pair's sum against the same 1,000 (a normal pre-pass both
+stacks read is counted once). The check is static, with no runtime sensing. Older
+products without `look.post` parse unchanged. This is format and budget only: the
+client does not yet run a shard's post stack.
+
 `@wildshard/sdk/commonsCosts` exposes the defining cost schemas and
 `assertCommonsCosts(hashes, table)`. A product declares one entry per required
 commons hash (at most 1024), matching `commonsWire` exactly. Decoded/GPU values

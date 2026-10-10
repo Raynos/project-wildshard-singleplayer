@@ -12,6 +12,7 @@ import { glbMaterialNames, validatePropMaterials, type PropMaterials } from './p
 import { checkTileMaterialNames, splatTextureRefs } from './splatTerrain';
 import { validateSkinAssets } from './skins';
 import { graphFileRules } from './materials';
+import { postStackCost } from './postStack';
 import { validateEntrywayTerrain } from './entryways';
 import { validateEntrywayClearance } from './entryClearance';
 import { validateSocketLandings } from './entryLanding';
@@ -125,8 +126,8 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
       validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files });
     }
   }
-  const graphFiles = graphFileRules(s, (hash) => assets.get(hash));
-  if (graphFiles.length > 0) throw new Error(`material graph files: ${graphFiles.join('; ')}`);
+  const graphFiles = [...graphFileRules(s, (hash) => assets.get(hash)), ...postStackCost(s, (hash) => assets.get(hash)).errors];
+  if (graphFiles.length > 0) throw new Error(`material / post graph files: ${graphFiles.join('; ')}`);
   const library = closure(s.library);
   const sketches = compendiumSketches(s.rows, assets);
   const sketchResident = [...sketches.values()].reduce((total, sketch) => total + sketch.decoded + sketch.gpu, 0);

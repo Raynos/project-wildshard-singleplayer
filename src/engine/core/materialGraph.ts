@@ -10,7 +10,8 @@
  * - `stages`: `vertex.offset` (a displacement in the mesh's model space, added after an instance's own transform: an
  *   instanced mesh's `positionLocal` already carries it; `positionGeometry` is the vertex before it), `surface` (colour,
  *   alpha, cutoff, emissive, roughness, metalness, occlusion), `lighting` (the lighting model: see below), `outline` (the
- *   inverted-hull second draw: see below), `post` (a screen pass over `sceneColour`); the engine epilogue (fog, the CSM
+ *   inverted-hull second draw: see below), `post` (a screen pass over `sceneColour`, with SF59 (2b)'s taps `sceneColourAt`,
+ *   `sceneDepth` and `sceneNormal`, each input one sampler: `inputs` in the validation names those a pass reads); the engine epilogue (fog, the CSM
  *   cascade gate, the tent PCF, the shadow fade) is appended by the back-end and is not a stage a graph can skip;
  * - `outline` (SF59 step 7, the ink outline as a render state the format owns, not a free one): a second draw of the
  *   same geometry with a fixed render state: back faces only, depth tested and written, opaque, unlit, fogged by the
@@ -215,7 +216,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 /** how an op types its inputs */
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
-  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'dir3';
+  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'dir3' | 'sceneTap';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -266,6 +267,13 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   irradiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] }, // the indirect irradiance (hemisphere, ambient)
   litColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['grade'] }, // the lit colour, emissive included
   sceneColour: { arity: [0, 0], rule: 'input', cost: 2, type: 'vec4', places: ['post'] },
+  // SF59 (2b), the post inputs, each its own sampler once a graph reads it (however many taps): the scene colour at a uv
+  // (`sceneColourAt`, a tap: an edge or blur kernel), the scene depth (linear view distance in metres, from the engine's
+  // depth target) and the scene normal (view space, unit, from the normal pre-pass the engine draws only for a post stack
+  // that reads it: `postInputs` names it so the stack's cost carries it). Each samples at `screenUV` without an input.
+  sceneColourAt: { arity: [1, 1], rule: 'sceneTap', cost: 4, type: 'vec4', places: ['post'] },
+  sceneDepth: { arity: [0, 1], rule: 'sceneTap', cost: 6, type: 'float', places: ['post'] },
+  sceneNormal: { arity: [0, 1], rule: 'sceneTap', cost: 6, type: 'vec3', places: ['post'] },
   const: { arity: [0, 0], rule: 'const', cost: 0 },
   param: { arity: [0, 0], rule: 'param', cost: 0 },
   // arithmetic (a float broadcasts to a vector)
@@ -324,9 +332,14 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
 /** the ops whose value is one directional light's (a node reading one is built per light, and counted per cascade) */
 export const SUN_OPS: ReadonlySet<string> = new Set(['sunDirection', 'sunColour', 'sunShadow']);
 
+/**
+ * the scene inputs a post graph reads (SF59 (2b)): each is one sampler in its cost; `normal` also needs the engine's
+ * normal pre-pass, which a post stack pays once (`POST_NORMAL_PREPASS_COST`) whichever of its passes read it
+ */
+export interface PostInputs { readonly colour: boolean; readonly depth: boolean; readonly normal: boolean }
 /** the outcome of validation: the graph (typed) and its cost, or every reason it is refused */
 export type GraphValidation =
-  | { readonly ok: true; readonly graph: GraphIr; readonly cost: GraphCost; readonly types: ReadonlyMap<string, GraphValueType> }
+  | { readonly ok: true; readonly graph: GraphIr; readonly cost: GraphCost; readonly types: ReadonlyMap<string, GraphValueType>; readonly inputs: PostInputs }
   | { readonly ok: false; readonly errors: readonly string[] };
 
 /** what validation checks bindings and the budget against */
@@ -445,7 +458,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const types = new Map<string, GraphValueType>(); // `<scope path>/<id>` → type
   const visiting = new Set<string>();
   const textures = new Set<string>();
-  const sampled = { scene: false }; // set while typing (a post graph reads sceneColour)
+  const sampled = { scene: false, depth: false, normal: false }; // set while typing (a post graph reads a scene input)
   const counted = new Set<string>();
   /** `<scope path>/<id>` → whether the node reads a sun input (directly, through its inputs or a loop body) */
   const lightDep = new Map<string, boolean>();
@@ -554,6 +567,10 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
       case 'noise': return ins[0] === 'vec2' || ins[0] === 'vec3' ? 'float' : fail(`${at}: noise takes a vec2 or vec3`);
       case 'dir3': return ins[0] === 'vec3' ? 'vec3' : fail(`${at}: ${op} takes a vec3 direction`);
+      case 'sceneTap':
+        if (ins.length === 1 && ins[0] !== 'vec2') return fail(`${at}: ${op} samples at a vec2`);
+        if (op === 'sceneDepth') sampled.depth = true; else if (op === 'sceneNormal') sampled.normal = true; else sampled.scene = true;
+        return spec.type ?? null;
       case 'texture': {
         const name = raw.param;
         if (typeof name !== 'string' || paramTypes.get(name) !== 'texture') return fail(`${at}: texture names a texture param`);
@@ -641,7 +658,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
   }
 
-  const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + (sampled.scene ? 1 : 0), instructions };
+  const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + [sampled.scene, sampled.depth, sampled.normal].filter(Boolean).length, instructions };
   if (cost.nodes > budget.nodes) fail(`budget: ${cost.nodes} nodes (at most ${budget.nodes})`);
   if (cost.samplers > budget.samplers) fail(`budget: ${cost.samplers} samplers (at most ${budget.samplers})`);
   if (cost.instructions > budget.instructions) fail(`budget: ≈ ${cost.instructions} instructions (at most ${budget.instructions})`);
@@ -649,7 +666,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const rootTypes = new Map<string, GraphValueType>();
   for (const [key, t] of types) if (key.startsWith('nodes/')) rootTypes.set(key.slice(6), t);
   // the shape has been checked field by field above, so the input is the graph
-  return { ok: true, graph: asGraph(input), cost, types: rootTypes };
+  return { ok: true, graph: asGraph(input), cost, types: rootTypes, inputs: { colour: sampled.scene, depth: sampled.depth, normal: sampled.normal } };
 }
 
 /** a checked record as the typed graph (called only once validateGraph found no error) */
