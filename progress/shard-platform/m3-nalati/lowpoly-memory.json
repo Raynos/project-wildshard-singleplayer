@@ -1,0 +1,35 @@
+{
+  "note": "Nalati spawn, 35 animals, CDP Runtime.getHeapUsage after 3 forced GCs; gpuMB = WebGL allocation census; iPhone 16 Pro DPR2 Metal",
+  "builds": {
+    "base": "bcdcbe71c",
+    "cand": "eac834b1c"
+  },
+  "base": {
+    "phone": {
+      "usedMB": 57.54,
+      "backingMB": 133.62,
+      "gpuMB": 218.19,
+      "animals": 35
+    },
+    "desktop": {
+      "usedMB": 60.43,
+      "backingMB": 141.14,
+      "gpuMB": 519.03,
+      "animals": 35
+    }
+  },
+  "cand": {
+    "phone": {
+      "usedMB": 57.35,
+      "backingMB": 128.99,
+      "gpuMB": 218.19,
+      "animals": 35
+    },
+    "desktop": {
+      "usedMB": 60.26,
+      "backingMB": 136.51,
+      "gpuMB": 519.03,
+      "animals": 35
+    }
+  }
+}

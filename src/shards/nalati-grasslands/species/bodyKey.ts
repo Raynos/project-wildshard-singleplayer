@@ -31,7 +31,11 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** The bake's key for a variant's body: the family, the loft resolution and the two inputs the lofts read (traits, tint). */
-export function bodyKey(family: BodyFamily, v: VariantDef, lowPoly: boolean): string {
-  return `${family}${lowPoly ? ':low' : ''}:${canonical({ traits: v.traits ?? null, tint: v.tint ?? null })}`;
+/**
+ * The bake's key for a variant's body: the family and the two inputs the lofts read (traits, tint). One loft resolution,
+ * the painterly page's: Nalati's species are registered in its own level scope only (a grid cell's regional herd runs under
+ * that level's frame too), whose creature render is never low-poly, so no page builds a low-poly Nalati animal.
+ */
+export function bodyKey(family: BodyFamily, v: VariantDef): string {
+  return `${family}:${canonical({ traits: v.traits ?? null, tint: v.tint ?? null })}`;
 }

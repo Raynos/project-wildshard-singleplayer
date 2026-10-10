@@ -1,6 +1,5 @@
 import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import { setLowPoly } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { buildHorse } from './horseBody';
 import { buildCanid } from './canidBody';
@@ -14,7 +13,7 @@ import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRo
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): every horse-family and canid body the page can make,
  * built here by the lofts that `species/horse.ts` and `species/wolf.ts` used to run on the page (`horseBody.ts`,
- * `canidBody.ts`), in both loft resolutions (the painterly page's and a low-poly page's). A body depends on its variant's
+ * `canidBody.ts`), in the painterly page's loft resolution, the only one a page builds (`bodyKey`). A body depends on its variant's
  * `traits` and `tint` only (the builders read nothing else, and no rng), so each distinct pair is baked once under its
  * `bodyKey`. `scripts/bake-nalati-bodies.mjs` writes the binary (every geometry's channels and index as their own typed
  * bytes, in order, each block padded to whole words) and the rows (bones, dims, each geometry's counts and groups);
@@ -59,22 +58,23 @@ export function geometryRow(g: BufferGeometry, blocks: Uint8Array[]): BodyGeomet
   return [vertices, index.count, ...g.groups.flatMap((group) => [group.start, group.count, group.materialIndex ?? 0])];
 }
 
-/** The bake: every distinct body in both resolutions, the rows and the raw binary (not yet lane-shuffled or compressed). */
+/** One body: its family's lofts on the variant (painterly), its row, and its geometries' bytes appended to `blocks`. */
+export function bakeBody(family: BodyFamily, variant: VariantDef, blocks: Uint8Array[]): BodyRow {
+  const key = bodyKey(family, variant), body = BUILD[family](variant, new Rng(1));
+  if (body.map !== undefined || body.facetJitter !== undefined || body.selfLight !== undefined) throw new Error(`[nalati bodies] ${key} has a map / facet / self-light`);
+  return { key, bones: body.bones, dims: body.dims,
+    fur: body.furParts.map((g) => geometryRow(g, blocks)), hard: body.hardParts.map((g) => geometryRow(g, blocks)), eye: body.eyeParts.map((g) => geometryRow(g, blocks)) };
+}
+
+/** every distinct body the page can make, once each, in the bake's order */
+export function distinctBodies(): { family: BodyFamily; variant: VariantDef }[] {
+  const seen = new Set<string>();
+  return bodyVariants().filter(({ family, variant }) => { const key = bodyKey(family, variant); if (seen.has(key)) return false; seen.add(key); return true; });
+}
+
+/** The bake: every distinct body, the rows and the raw binary (not yet lane-shuffled or compressed). */
 export function bakeNalatiBodies(): { rows: Omit<BodyRows, 'bin' | 'bytes'>; bin: Uint8Array } {
-  const blocks: Uint8Array[] = [], bodies: BodyRow[] = [], seen = new Set<string>();
-  for (const lowPoly of [false, true]) {
-    for (const { family, variant } of bodyVariants()) {
-      const key = bodyKey(family, variant, lowPoly);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      setLowPoly(lowPoly);
-      let body: AnimalSpecies;
-      try { body = BUILD[family](variant, new Rng(1)); } finally { setLowPoly(false); }
-      if (body.map !== undefined || body.facetJitter !== undefined || body.selfLight !== undefined) throw new Error(`[nalati bodies] ${key} has a map / facet / self-light`);
-      bodies.push({ key, bones: body.bones, dims: body.dims,
-        fur: body.furParts.map((g) => geometryRow(g, blocks)), hard: body.hardParts.map((g) => geometryRow(g, blocks)), eye: body.eyeParts.map((g) => geometryRow(g, blocks)) });
-    }
-  }
+  const blocks: Uint8Array[] = [], bodies = distinctBodies().map(({ family, variant }) => bakeBody(family, variant, blocks));
   const length = blocks.reduce((n, b) => n + b.length, 0), bin = new Uint8Array(length);
   let at = 0;
   for (const b of blocks) { bin.set(b, at); at += b.length; }

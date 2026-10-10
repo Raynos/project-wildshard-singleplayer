@@ -1,5 +1,4 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { isLowPoly } from '@wildshard/engine/entities/species/loft';
 import type { AnimalDims, AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import rowsJson from '../data/bodies.json' with { type: 'json' };
 import { BODY_ATTRS, NALATI_BODIES_URL, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from './bodyKey';
@@ -90,10 +89,13 @@ function geometry(src: Uint8Array, row: BodyGeometryRow, start: number): { g: Bu
 const bone = (b: BoneDef): BoneDef => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] });
 const dimsOf = (d: AnimalDims): AnimalDims => ({ ...d, feet: d.feet.map((f): [number, number] => [f[0], f[1]]) });
 
-/** A variant's baked body, as its family's lofts built it (for the page's current loft resolution). */
+/**
+ * A variant's baked body, as its family's lofts built it. The painterly loft only (`bodyKey`): no page renders Nalati's
+ * creatures low-poly, so a low-poly loft request (a test fixture's `setLowPoly(true)`) is handed the same body.
+ */
 export function nalatiBody(family: BodyFamily, v: VariantDef): AnimalSpecies {
   if (bytes === null && provider !== null) { const read = provider; provider = null; useNalatiBodies(read()); }
-  const key = bodyKey(family, v, isLowPoly()), src = bytes, hit = offsets?.get(key);
+  const key = bodyKey(family, v), src = bytes, hit = offsets?.get(key);
   if (src === null) throw new Error(`[nalati-grasslands] the baked species bodies are not loaded (${key})`);
   if (hit === undefined) throw new Error(`[nalati-grasslands] no baked body for ${key}`);
   let at = hit.at;
