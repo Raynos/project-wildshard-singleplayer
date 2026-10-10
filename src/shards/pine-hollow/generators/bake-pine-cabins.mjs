@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { bakedSamplers, parseBakedTerrain } from '../../../engine/world/BakedTerrain.ts';
+import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { bakePineCabins } from './logCabin.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');

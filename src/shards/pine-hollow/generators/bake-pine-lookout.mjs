@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { setActiveChunk } from '../../../game/shard/registry.ts';
+import { setActiveChunk } from '@wildshard/game/shard/registry';
 import { bakeFireLookout } from './fireLookout.ts';
 import { shuffleLanes } from './crags.ts';
 

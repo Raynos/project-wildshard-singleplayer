@@ -15,8 +15,8 @@ import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { setActiveChunk } from '../../../game/shard/registry.ts';
-import { installBakedGrid, parseBakedTerrain } from '../../../engine/world/BakedTerrain.ts';
+import { setActiveChunk } from '@wildshard/game/shard/registry';
+import { installBakedGrid, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { bakePineCrags, shuffleLanes } from './crags.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
