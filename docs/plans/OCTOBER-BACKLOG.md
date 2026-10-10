@@ -1,6 +1,6 @@
 # Plan: OCTOBER-BACKLOG — the October backlog (E469)
 
-**State:** `draft` 2026-10-10 — created at Jake's ask (E469): saga 1 (Fun) named, sagas 2 and 3 waiting on Jake; rows OB1 (low-poly player body) and OB2 (Debug third-person camera); unowned, nothing built.
+**State:** `draft` 2026-10-10 — created at Jake's ask (E469): sagas 1 (Fun, players) and 2 (Fun to build, builders) named, saga 3 waiting on Jake; rows OB1 (low-poly player body) and OB2 (Debug third-person camera); unowned, nothing built.
 
 ## 0. Read this first
 
@@ -14,11 +14,13 @@ A home for October work that belongs to no other live plan. A row that fits a li
 Jake, 2026-10-10: *"I want to build three high level sagas for all the plans."* Each live plan and each backlog row
 sits under one saga.
 
-| Saga | Jake's words | Rows here |
-|---|---|---|
-| **1. Fun** | *"make the gameplay fun for the players of the mmo a shard should be fun. Controls should be fun. HUD should be fun"* | OB1, OB2 |
-| **2.** | (Jake to name) | |
-| **3.** | (Jake to name) | |
+| Saga | Jake's words | Plans Jake named | Rows here |
+|---|---|---|---|
+| **1. Fun** (players) | *"make the gameplay fun for the players of the mmo a shard should be fun. Controls should be fun. HUD should be fun"* | | OB1, OB2 |
+| **2. Fun to build** (builders) | *"make building a shard for the builders fun, this is the worldclaw plan, the guild wars 2 plan the draft plan etc"* | [WORLDCLAW-SHARD](WORLDCLAW-SHARD.md), GW2-ZONES ([docs/design/gw2-zones/GW2-ZONES.md](../design/gw2-zones/GW2-ZONES.md)), [WORLDCLAW-TOOLS](WORLDCLAW-TOOLS.md) (Draft mode and the drafts site) | |
+| **3.** | (Jake to name) | | |
+
+The other live plans are placed once saga 3 is named.
 
 ## Rows
 
