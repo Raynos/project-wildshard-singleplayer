@@ -13,5 +13,9 @@
   (`progress/progress-trailer/pt2-probe/`).
 - **Rewind spot chosen**: (230, 0) at the day-22 stags, ground 0 m on all four builds; sheet
   `progress/progress-trailer/pt2-rewind-spot.jpg` (cuts 1 → 8 → 15, day 22 carries the impact).
+- **The rewind proven end to end** (PT3 begun): one hip-shot track replayed on all four builds, tracers off via the
+  pause menu, the ramp after the release, cut at 2 / 4 / 6 m of bolt flight; day 22's stag drops; a 4.2 s rough proof was
+  sent to Jake. Open on it: the bolt is small from behind at the hip, and days 15 → 22 look alike at this spot (by
+  Jake's rule that cut can fold into the impact).
 - Next: PT2's remaining scouting (each play beat's spot and verb; the lapse camera adapter and stages).
 - Open rows: PT2–PT11.
