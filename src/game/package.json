@@ -190,6 +190,7 @@
     "./systems/items/leverFirearm": "./systems/items/leverFirearm.ts",
     "./systems/items/mountedSword": "./systems/items/mountedSword.ts",
     "./systems/items/rewardBow": "./systems/items/rewardBow.ts",
+    "./systems/items/javelinSpear": "./systems/items/javelinSpear.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",

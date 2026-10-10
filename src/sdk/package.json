@@ -94,6 +94,7 @@
     "./items/leverFirearm": "./items/leverFirearm.ts",
     "./items/mountedSword": "./items/mountedSword.ts",
     "./items/rewardBow": "./items/rewardBow.ts",
+    "./items/javelinSpear": "./items/javelinSpear.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
     "./modelGeometry": "./modelGeometry.ts",

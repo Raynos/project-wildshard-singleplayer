@@ -17,7 +17,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 import { Sabre, type MountState, type SabreWeapon } from '../runtime/weapons/Sabre';
-import { Spear } from '../runtime/weapons/Spear';
+import { Spear, type SpearWeapon } from '../runtime/weapons/Spear';
 import { BOW } from './equipment';
 
 /** Nalati's recurve: the kit bow's numbers with the recurve's view (SF54: moved out of the kit's BOW row unchanged), and
@@ -35,7 +35,7 @@ export interface NalatiLoadout {
   base: SabreWeapon;
   bow: Bow;
   sabre: SabreWeapon;
-  spear: Spear;
+  spear: SpearWeapon;
   extras: Weapon[];
   install: (weapons: EquipmentService) => void;
   refill: () => void;
@@ -64,7 +64,7 @@ export async function buildNalatiLoadoutSliced(world: NalatiWorld, targets: Targ
   return loadoutOf(world, targets, allowUnlocked, sabre, spear, bow);
 }
 
-function loadoutOf(world: NalatiWorld, targets: Targets, allowUnlocked: boolean, sabre: SabreWeapon, spear: Spear, bow: Bow): NalatiLoadout {
+function loadoutOf(world: NalatiWorld, targets: Targets, allowUnlocked: boolean, sabre: SabreWeapon, spear: SpearWeapon, bow: Bow): NalatiLoadout {
   const kit: NalatiLoadout = {
     base: sabre, bow, sabre, spear,
     extras: [bow, spear],
