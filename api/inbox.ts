@@ -64,7 +64,8 @@ export function rateLimited(ip: string, now = Date.now(), limit = RATE_LIMIT_PER
   const recent = (hits.get(ip) ?? []).filter((t) => t > cut);
   recent.push(now);
   hits.set(ip, recent);
-  if (hits.size > RATE_TABLE_MAX) for (const k of hits.keys()) if (k !== ip) hits.delete(k);
+  // a full table forgets only the IPs with nothing in the last minute, so a limited IP stays limited (E473)
+  if (hits.size > RATE_TABLE_MAX) for (const [k, ts] of hits) if (!ts.some((t) => t > cut)) hits.delete(k);
   return recent.length > limit;
 }
 export function resetRateLimit(): void {
