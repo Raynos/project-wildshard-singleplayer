@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "c3916fae4cef46740b572b49cb1803e8de76e9f46ffe10a2f0d0eb7cecb68910",
+  "inputs": "cb202534663c2b1deeef87a51bd229333f5de47459497f2dc724045c6da3167b",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,7 +12,7 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "6cc02e96c62314a1fef9bbcc865c6e54d94a1aad0763e73f2677fabb8dae83fb",
+    "hash": "7972ad8a67d7fbb10b2bc288752c41c688f1b19eeedf622b7600a409e9a23b89",
     "pack": {
       "counts": {
         "amber-resin": 5
@@ -550,8 +550,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 27851,
     "suffixTicksExecuted": 1200,
-    "hash": "7946de5a91d6fd4967ee149b356ddd29a80523fc3f21a51387fb25fcb0b9962b",
-    "replayHash": "7946de5a91d6fd4967ee149b356ddd29a80523fc3f21a51387fb25fcb0b9962b",
+    "hash": "82c01d25f32a780d4b38a00c1f79d7e1d93130f15476a18d18bf5aed9ed771aa",
+    "replayHash": "82c01d25f32a780d4b38a00c1f79d7e1d93130f15476a18d18bf5aed9ed771aa",
     "checkpoint": {
       "state": "fight",
       "phase": 1
@@ -778,7 +778,7 @@
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
     "King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.",
-    "Rain wander goals are null: creature positions can differ.",
+    "Rain shelter goals use captured page crown cover and restored native continuation; variable page-frame weather/brain scheduling is not yet matched.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved."
   ],
   "coverageGaps": [
@@ -792,7 +792,7 @@
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
     "King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.",
-    "Rain wander goals are null: creature positions can differ.",
+    "Rain shelter goals use captured page crown cover and restored native continuation; variable page-frame weather/brain scheduling is not yet matched.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.",
     "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",
     "Mott swaps and special-ammunition cycling/flight have native rule and restore fixtures, but no dedicated uninterrupted quest tape.",

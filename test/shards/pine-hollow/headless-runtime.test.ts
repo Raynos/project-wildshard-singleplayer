@@ -292,6 +292,21 @@ function exactAfter(parts: PineInstall, original: SimHost, ticks: number, level:
   } finally { restored.dispose(); }
 }
 
+it('the single weather owner shelters actual grazing herds before their native thinking and restores mid-shower exactly', () => {
+  const parts: PineInstall = { ...pineParts(), weatherMode: 'rain' };
+  const { host, roster, air } = bootWith(parts);
+  try {
+    const before = roster.hunt.herds.map(herd => [herd.cx, herd.cz]);
+    for (let tick = 0; tick < 60; tick++) host.step(still);
+    expect(air.weather.rain).toBeGreaterThan(0.3);
+    const adapter = host.adapters.get('pine.rain-shelter');
+    expect(adapter).toBeDefined();
+    expect(JSON.stringify(adapter?.snapshot())).toContain('spot');
+    expect(roster.hunt.herds.map(herd => [herd.cx, herd.cz])).not.toEqual(before);
+    exactAfter(parts, host, 600);
+  } finally { host.dispose(); }
+}, 60_000);
+
 it('reinstalls the immutable recipe of an ordinary live spawn exactly after a world step', () => {
   const parts = pineParts(), { host, roster } = bootWith(parts);
   try {

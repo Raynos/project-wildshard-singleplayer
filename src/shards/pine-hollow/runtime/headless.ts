@@ -22,6 +22,7 @@ import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
 import { isPineEdgeWall, provePineEntries } from './entries';
 import { installPineAir } from './air';
+import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
 import { installPineNight } from './night';
 import { PINE_LODGE } from './lodge';
@@ -228,7 +229,9 @@ export function installPine(host: SimHost, parts: PineInstall): {
   const thralls = installPineNight(host, { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
     retire: actor => { live().retire(actor); }, find: id => live().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
   air = installPineAir(host, () => day.phase, parts.weatherMode);
-  roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
+  const shelter = installPineRainShelter(host, () => roster?.hunt.herds ?? [], bake.shelterTrees, () => atmosphere().weather.rain);
+  roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved,
+    wanderGoal: herd => shelter.wanderGoal(herd, atmosphere().weather.rain) });
   elites.initialize();
   return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air, thralls, ammunition: ammunitionOwner };
 }

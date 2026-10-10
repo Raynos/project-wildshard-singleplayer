@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { Material } from '@wildshard/engine/physics/surface';
+import type { PineShelterTree } from './rainShelter';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it (crag cuts included). */
@@ -25,9 +26,10 @@ const Solid = v.strictObject({ shape: v.picklist([1, 2, 6, 9]), groups: finite, 
   ownerId: v.exactOptional(v.pipe(v.string(), v.regex(/^(?:piece|declared):[^\r\n]{1,256}$/u))),
   half: v.exactOptional(triple), halfHeight: v.exactOptional(finite), radius: v.exactOptional(finite), vertices: v.exactOptional(v.string()), indices: v.exactOptional(v.string()) });
 const KingHit = v.strictObject({ head: triple, body: v.tuple([triple, triple]), fore: v.tuple([triple, triple]), ribs: triple, radius: v.pipe(finite, v.minValue(0.001)) });
+const ShelterTree = v.tuple([finite, finite, v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0), v.maxValue(1))]);
 const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(PINE_GROUND_RES - 1), cols: v.literal(PINE_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
-  kingHit: KingHit, solids: v.array(Solid), actors: v.array(Actor), parked: v.array(Parked), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
+  kingHit: KingHit, shelterTrees: v.array(ShelterTree), solids: v.array(Solid), actors: v.array(Actor), parked: v.array(Parked), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
 
 /** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
 export interface PineSolid {
@@ -47,6 +49,8 @@ export interface PineBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
   /** Page-rig rest-space head/main/chest hit volumes and ribcage, measured from the native inverse binds. */
   readonly kingHit: v.InferOutput<typeof KingHit>;
+  /** Real tree height and crown-cover metadata, captured from the page's shelter inputs. */
+  readonly shelterTrees: readonly PineShelterTree[];
   readonly solids: readonly PineSolid[];
   readonly actors: readonly PineBakedActor[];
   /** the Antler King's prewarm (his body, an elk thrall, a boar thrall): spawned at boot, parked out of the manager's list */
@@ -78,7 +82,7 @@ export function pineBake(): PineBake {
   const bake = v.parse(Bake, baked), heights = floats(bake.ground.heights);
   if (heights.length !== PINE_GROUND_RES ** 2 || bake.ground.scale.x !== PINE_GROUND_SIZE || bake.ground.scale.z !== PINE_GROUND_SIZE || bake.ground.scale.y !== 1) throw new Error('Pine baked floor is not its 256² lattice');
   const solids = bake.solids.map(decodeSolid);
-  parsed = { kingHit: bake.kingHit, ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
+  parsed = { kingHit: bake.kingHit, shelterTrees: bake.shelterTrees, ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
     actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })),
     parked: bake.parked.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds };
   return parsed;

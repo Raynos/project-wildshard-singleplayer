@@ -38,6 +38,8 @@ export interface PineBody { readonly id: string; readonly kind: string; readonly
 export interface PineParked { readonly id: string; readonly kind: string; readonly variant: string; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number }
 export interface PineRosterPorts {
   readonly bake: PineBake;
+  /** The rain keeper's goal from the same weather reading, lent before the roster starts thinking. */
+  readonly wanderGoal?: (herd: number) => { x: number; z: number; r: number } | null;
   /** the terrain grid the page installs before the herds (public/assets/baked/pine-hollow/terrain.bin) */
   readonly grid: BakedGrid;
   /** the shard's baked navmesh (public/assets/baked/pine-hollow/navmesh.bin), as the page's hunting brain asks it */
@@ -106,8 +108,8 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * order). The four elites' fights run beside it (runtime/elites.ts), on these bodies, and the Antler King's (runtime/king.ts:
  * his parked prewarm body made real out of the list, `adoptParked`; a fallen King's next body, `spawnLoose`: a live
  * spawn kept out of the list; his thralls are live spawns). A restoring install
- * reinstalls every saved body the boot did not make in the host's own order, listed or not. Not yet owned (fail-closed,
- * progress/shard-platform/handoffs/sf72-pine.md): the rain's wander goals.
+ * reinstalls every saved body the boot did not make in the host's own order, listed or not. Rain goals are lent by the
+ * single native weather/shelter owner before this roster's tick.
  */
 export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: HuntBrain<HuntBody>;
@@ -142,7 +144,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
       point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } });
   };
   const hunt = new HuntBrain<HuntBody>({ rng, fight: { telegraphed: false }, faunaTuning: () => undefined, species }, {
-    ground, nav: () => ports.nav, reach: (a, p) => canReach(a, p, host.physics), wanderGoal: () => null, unaware: () => false,
+    ground, nav: () => ports.nav, reach: (a, p) => canReach(a, p, host.physics), wanderGoal: a => ports.wanderGoal?.(a.herd) ?? null, unaware: () => false,
     now: () => host.clock.now * 1000, sound: () => undefined, charge,
   }, new Vector3());
   const list: PineBody[] = [], parked: PineParked[] = [];

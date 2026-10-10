@@ -10,6 +10,8 @@ export function pinePhysicsInputs(root) {
   paths.push('src/shards/pine-hollow/generators/bake-pine-physics.mjs', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/animalPose.ts', 'src/engine/entities/animalRig.ts', 'src/engine/entities/species/rigs.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   // The trusted owner identity capture depends on the actual tag writer and readonly probe, not geometry guesses.
   paths.push('src/engine/physics/surface.ts', 'src/engine/physics/pieces.ts', 'src/engine/world/registry.ts', 'src/engine/debug/probe.ts');
+  // Native rain goals read the page's exact crown-cover values from this defining texture builder.
+  paths.push('src/game/systems/looks/rainFx.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

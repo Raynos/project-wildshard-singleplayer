@@ -84,6 +84,10 @@ try {
     const herds = w.animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
     // the forest's trunks as the hunting brain's placement reads them (HuntGround.trees: x, z, r), in the forest's order
     const trees = w.animals.forest.trees.map(t => [t.x, t.z, t.r]);
+    // Exact shelter inputs: the shipped tree heights and the already-built RainFx crown texture's CPU readings.
+    const rain = g.app.debug.snapshot()['pine.weather'];
+    if (typeof rain?.fx?.coverAt !== 'function') throw new Error('Missing Pine rain crown-cover reader');
+    const shelterTrees = w.animals.forest.trees.map(t => [t.x, t.z, t.r, t.height, rain.fx.coverAt(t.x, t.z)]);
     // The query tag is the authority: registry object identity and declared string ownership are distinct.
     const ownerKeys = new Map(), ownerIds = new Set();
     for (const piece of g.app.registry.pieceList()) {
@@ -135,7 +139,7 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, parked, kingHit, herds, trees, pieces, grounds, solids };
+    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, parked, kingHit, herds, trees, shelterTrees, pieces, grounds, solids };
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
@@ -147,7 +151,7 @@ try {
     }
     if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Pine bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
     const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, parked: first.parked, kingHit: first.kingHit, herds: first.herds, trees: first.trees, pieces: first.pieces };
+    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, parked: first.parked, kingHit: first.kingHit, herds: first.herds, trees: first.trees, shelterTrees: first.shelterTrees, pieces: first.pieces };
     writeFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
     console.log(`bake-pine-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
   }

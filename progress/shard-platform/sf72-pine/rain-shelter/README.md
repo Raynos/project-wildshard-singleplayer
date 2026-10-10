@@ -1,0 +1,9 @@
+# Pine native rain shelter — SF72 / E435
+
+The native roster now reads the same wet/dry thresholds, tree selection scores, trunk offsets and 90-second home hold as shipping HerdShelter. It uses the existing single weather owner, before the herd brain tick, with bounded reusable per-herd goals and serialized shelter continuation. No renderer or second Weather enters the native closure. Variable page-frame weather/brain scheduling is still unproved; whole-Pine compatible remains false.
+
+Actual page capture `8cd37a107cbe0e7fa3f0ccf703173d9065beb7ad` yields 918 tree rows, 435 eligible big trees, and each actual RainFx crown-cover reading. The repeated page captures are exact; every pre-existing physics gameplay field, King collision value and map image is unchanged. The retained generator and hash fence include the defining cover builder. The map-copy path mistake was corrected after the successful captures; no synthetic metadata was substituted.
+
+The independent shipping shelter oracle matches every frame of 10,000 threshold/cover/return/no-tree samples; a fresh-herd restore matches 6,500 suffix frames. The actual native rainy roster relocates grazing centres before thinking and restores a 600-tick shower continuation exactly. The four focused rain/roster/physics/King files pass 42 tests; scoped strict and touched lint pass.
+
+Real native command tape on source candidate `807db649395812f00b97ab8043c1ccbdc7d0c02d`: headless, replay and ledger pass. ARM64 and Rosetta x64 complete receipts and all six generated checkpoint hashes are byte-identical. The deliberate shelter adapter changes checkpoint state; only its generated hash manifest and compatibility summary are committed, preserving G292 cache metadata. Gzip payloads stay in the shared generation cache, not git. Existing checkpoint freshness and King replay checks pass. No new platform system, page behavior change or collider change is claimed.
