@@ -1,6 +1,7 @@
 import { DUSK, fillAt, keyAt } from './dusk';
 import { curveAt } from '@wildshard/sdk/looks/duskCurves';
 import { AERIAL_FOG, FAR_HAZE, FOG_SUN } from '../data/dusk';
+import { DEEP_KEY as DEEP_KEY_RGB, DUSK_CLOCK, FOG, KEY_LIGHT, SAND_TINT } from '../data/renderLook';
 import { Color, Fog, Mesh, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
@@ -38,17 +39,9 @@ import source from '../shard.config';
 // tower; the key is one global art-directed direction that lights the faces the mockups light. Tested on round 13's
 // landform (row-mean-removed r of the dune band): 20 deg left of north gave dusk-fire +0.42, A +0.13 (15 deg: +0.45 / +0.10;
 // 27 deg: +0.36 / +0.13; west and behind-left: -0.18 to +0.09); A does not pass +0.3 under any one key
-export const KEY = { dir: new Vector3(...KEY_DIR).normalize(), color: new Color(1, 0.68, 0.34), intensity: 1.85 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
-/** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
-/** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
-const DEEP_KEY = new Color(0.78, 0.42, 0.4);
-// round 22 (the lead after round 21: the light band's 0x5e5288 turned A's mid dunes and D's far land milky lilac): the
-// horizon's darker violet near the ground
-export const FOG = { color: 0x3e3452, near: 80, far: 430 } as const;
-// loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
-// E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
-const SAND = new Color(0.5, 0.23, 0.075),
-  HOLLOW = new Color(0.22, 0.14, 0.12), CREST = new Color(0.64, 0.33, 0.1);
+export const KEY = { dir: new Vector3(...KEY_DIR).normalize(), color: new Color(...KEY_LIGHT.color), intensity: KEY_LIGHT.intensity } as const; // data/renderLook.ts
+const DEEP_KEY = new Color(...DEEP_KEY_RGB);
+const SAND = new Color(...SAND_TINT.sand), HOLLOW = new Color(...SAND_TINT.hollow), CREST = new Color(...SAND_TINT.crest);
 /**
  * The sand's three baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`, uploaded from data/sand.ts
  * SAND_MAPS): the dune-shadow map (R1, E407 row 3), the trail mask (round 2) and the grain tile (loop 2; R albedo, G / B
@@ -65,20 +58,13 @@ export const SAND_TILES = new TintedTileGround({ source, x: SPAWN.x, z: SPAWN.z,
 /** The skirt, held so the plugin can cut it back to a grid cell's cube (G99). */
 export const SKIRT = new CubeSkirt();
 
-/** The sand's hollow / crest tint at one vertex (round 1): its height `h` against the mean of a 14 m ring around it. */
+/** The sand's hollow / crest tint at one vertex (data/renderLook.ts SAND_TINT): its height `h` against its ring's mean. */
 function sandTint(heightAt: (x: number, z: number) => number, x: number, z: number, h: number, c: Color): Color {
-  const mean = (heightAt(x + 14, z) + heightAt(x - 14, z) + heightAt(x, z + 14) + heightAt(x, z - 14)) / 4;
-  const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
-  c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.6);
+  const { ring, span, hollowGain, crestGain } = SAND_TINT;
+  const mean = (heightAt(x + ring, z) + heightAt(x - ring, z) + heightAt(x, z + ring) + heightAt(x, z - ring)) / 4;
+  const rel = Math.max(-1, Math.min(1, (h - mean) / span));
+  c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * hollowGain); else c.lerp(CREST, rel * crestGain);
   return c;
-}
-
-/** The day clock: Signal Dunes holds at dusk (the clock is never advanced). */
-function duskClock(): DayCycle {
-  return new DayCycle({ units: 'hour', start: 19,
-    schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 * 60 }],
-    sun: { maxElevation: 60, azimuthOffset: 250 },
-    fixed: { midday: 12, golden: 18, sunset: 19, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } });
 }
 
 /**
@@ -107,7 +93,7 @@ export function signalDunesLook(): LookStrategy {
     const material = familyGround.material; terrain.material = material;
     // the skirt and the tint's ring mean read the analytic field (the code-built mesh's), never the collider the ground binds
     const analytic = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] }), c = new Color();
-    const skirtColour = new Color().copy(SAND).lerp(HOLLOW, 0.25), skirt = skirtGrid(SKIRT_GRID, SKIRT_SWELL, analytic.heightAt, skirtColour); scope.own(skirt);
+    const skirtColour = new Color().copy(SAND).lerp(HOLLOW, SAND_TINT.skirtHollow), skirt = skirtGrid(SKIRT_GRID, SKIRT_SWELL, analytic.heightAt, skirtColour); scope.own(skirt);
     const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
     await SAND_TILES.bind(terrain, field, material, (x, z, h, out, at) => {
       sandTint(analytic.heightAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
@@ -143,7 +129,7 @@ export function signalDunesLook(): LookStrategy {
       // E407 row 10's learned grade (art/sunscar-dunes/round-24-lut) is out of the grade until the landforms settle (the lead
       // and seat B after round 16: fitted before the wind went back, it dropped B's and dusk-fire's near sand ~7); its file
       // stays a declared late read (boot/files.ts) for the re-fit
-      const clock = duskClock(), keyColor = new Color();
+      const clock = new DayCycle(DUSK_CLOCK), keyColor = new Color();
       let hemi: HemisphereLight | null = null, hemiBase = 1;
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens

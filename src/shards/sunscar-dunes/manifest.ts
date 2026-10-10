@@ -8,7 +8,8 @@ import { DUSK_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources, lateReads } from './boot/files';
 import { duneHeight } from './world/dunes';
-import { SIGNAL_DUNES_MINIMAP } from './look/minimap';
+import { mapPalette } from '@wildshard/sdk/looks/mapPalette';
+import { SIGNAL_DUNES_MAP } from './data/minimap';
 
 const terrain = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
 const ground = (x: number, z: number): number => terrain.heightAt(x, z);
@@ -59,7 +60,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
       bands: [0, 40, 85, 125, 175, 220, 265, 310].map((azimuth, i) => ({ azimuth, spread: 50, height: [29, 33, 26, 35, 30, 34, 27, 32][i] ?? 30, rough: 0.18 })) },
   ] },
   boundary: { visible: false },
-  minimap: { image: '/assets/sunscar-dunes/map/top.webp', palette: SIGNAL_DUNES_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges (look/minimap.ts)
+  minimap: { image: '/assets/sunscar-dunes/map/top.webp', palette: mapPalette(SIGNAL_DUNES_MAP) }, // the map baked from the world (SF66); the palette paints the grid's edges (data/minimap.ts)
   render: async () => (await import('./look/render')).signalDunesLook(),
   uses: ['quests', 'coins', 'loot', 'hover'],
   assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/lut/sunscar-dunes.bin'],

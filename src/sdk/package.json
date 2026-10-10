@@ -103,6 +103,7 @@
     "./looks/toonLight": "./looks/toonLight.ts",
     "./looks/bakedIsland": "./looks/bakedIsland.ts",
     "./looks/bakedGround": "./looks/bakedGround.ts",
+    "./looks/mapPalette": "./looks/mapPalette.ts",
     "./looks/paintedStrips": "./looks/paintedStrips.ts",
     "./looks/duskCurves": "./looks/duskCurves.ts",
     "./looks/modelLibrary": "./looks/modelLibrary.ts",

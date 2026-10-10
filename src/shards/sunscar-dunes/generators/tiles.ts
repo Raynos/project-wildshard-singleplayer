@@ -2,7 +2,8 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
 import { SEED, TRAIL } from '../data/layout';
 import { duneHeight } from '../world/dunes';
-import { SIGNAL_DUNES_MINIMAP } from '../look/minimap';
+import { mapPalette } from '@wildshard/sdk/looks/mapPalette';
+import { SIGNAL_DUNES_MAP } from '../data/minimap';
 
 /** The lattice step of the 257² bake (500 m / 256). */
 const STEP = 500 / 256;
@@ -23,10 +24,10 @@ export const signalDunesField = (): ReturnType<typeof buildTerrain> => buildTerr
  */
 export function signalDunesTiles(): BakedTerrain {
   const field = signalDunesField();
-  const rgb: [number, number, number] = [0, 0, 0];
+  const rgb: [number, number, number] = [0, 0, 0], ground = mapPalette(SIGNAL_DUNES_MAP).ground;
   const baked = bakeTerrain({ heightAt: field.heightAt, family: 'pbr', colourAt: (x, z, h) => {
     const slope = Math.min(1, Math.hypot(field.heightAt(x + STEP, z) - field.heightAt(x - STEP, z), field.heightAt(x, z + STEP) - field.heightAt(x, z - STEP)) / (2 * STEP) / 2);
-    SIGNAL_DUNES_MINIMAP.ground(x, z, h, slope, 0, rgb);
+    ground(x, z, h, slope, 0, rgb);
     const scale = Math.max(...rgb) > 1 ? 255 : 1;
     return [unit(linear(rgb[0] / scale)), unit(linear(rgb[1] / scale)), unit(linear(rgb[2] / scale))];
   } });
