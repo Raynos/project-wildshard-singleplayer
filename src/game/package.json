@@ -282,6 +282,8 @@
     "./systems/items/weaponHooks": "./systems/items/weaponHooks.ts",
     "./systems/items/rewardBow": "./systems/items/rewardBow.ts",
     "./systems/items/javelinSpear": "./systems/items/javelinSpear.ts",
+    "./systems/items/coneFan": "./systems/items/coneFan.ts",
+    "./systems/items/coneStrikes": "./systems/items/coneStrikes.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./systems/tools/grappleAim": "./systems/tools/grappleAim.ts",
     "./systems/tools/hookCourse": "./systems/tools/hookCourse.ts",

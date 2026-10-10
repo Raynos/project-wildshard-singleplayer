@@ -23,9 +23,10 @@ import { gustFx } from '@wildshard/sdk/looks/windFx';
 import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS, type RisingIslet } from '../world/islets';
 import { FALL_TIME } from '../world/distant';
-import { WarFan } from '../weapons/WarFan';
+import { WarFan, type WarFanWeapon } from '../weapons/WarFan';
 import { loadSkyFan } from '../weapons/fanShapes';
-import type { FanTarget } from '../weapons/fanStrikes';
+import type { ConeFanTarget } from '@wildshard/sdk/items/coneStrikes';
+import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../species/driftRay';
@@ -90,7 +91,7 @@ const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => va
 
 export class SkyReachPlugin extends ShardPlugin {
   readonly player = new Vector3();
-  built: BuiltWorld | null = null; fan: WarFan | null = null; quest: QuestState | null = null; boss: StormRocBoss | null = null;
+  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; quest: QuestState | null = null; boss: StormRocBoss | null = null;
   rays: Animal[] = []; roostRays: Animal[] = []; goats: Animal[] = []; wisps: Animal[] = []; roc: Animal | null = null;
   /** Is the player riding the hoverboard? The fan stows and the decks glow then; the hover decks and the updraft are
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
@@ -152,9 +153,9 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.rows.encounter({ id: ROC_ID, displayName: STRINGS.roc });
     const rt = ctx.game.runtime;
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
-    const targets = (): readonly FanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
+    const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
     this.fan = new WarFan(ctx.app, targets);
-    if (this.leaf !== null) this.fan.setLeaf(this.leaf);
+    if (this.leaf !== null) paintFanLeaf(this.fan.parts, this.leaf);
     if (rt) rt.buildEquipment = () => {
       const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built');
       fan.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(FAN_ROW, 'heavy'); else rt.play?.cues.fire(FAN_ROW); };

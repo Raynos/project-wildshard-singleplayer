@@ -1,4 +1,4 @@
-import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry } from 'three';
+import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { FAN_SILK_EDITS } from '../data/paintLook';
@@ -19,7 +19,14 @@ export const FAN = { panels: 9, reach: 0.31, spread: Math.PI * 0.68, grip: 0.07,
 /** The silk's grade: how much of the paint's saturation stays, the lift after it and a tint toward blue (measured against the mockups' leaf, where blue >= green). */
 export const SILK = { saturation: 0.8, lift: 2.6, tint: [0.94, 1.0, 1.16] } as const;
 
-export interface FanParts { readonly group: Group; readonly fan: Group; readonly tassel: Group; readonly silk: MeshStandardMaterial }
+/** The painted silk's tint (E399 seats: 'plain and bright'; the mockups' silk is a lighter sea-green with pale cloud swirls). */
+export const SILK_TINT = 0xdfece6;
+
+/** The fan's parts: the viewmodel root, the fan, the tassel (the cone fan's pendant) and the silk. */
+export interface FanParts { readonly group: Group; readonly fan: Group; readonly pendant: Group; readonly silk: MeshStandardMaterial }
+
+/** Paint the silk with the leaf texture (loaded and owned by the plugin's scope). */
+export function paintFanLeaf(parts: FanParts, leaf: Texture): void { parts.silk.map = leaf; parts.silk.color.set(SILK_TINT); parts.silk.needsUpdate = true; }
 
 export function fanParts(): FanParts {
   const group = new Group(), fan = new Group();
@@ -64,7 +71,7 @@ export function fanParts(): FanParts {
     // row 3 (mockup C): the tassel hangs from the pivot boss in front of the fist (it hung below the fist, off the frame)
     group.add(hero.group); grip.visible = false; ring.position.y = -hero.grip - 0.006; tassel.position.set(0, -0.004, 0.028);
   }
-  return { group, fan, tassel, silk };
+  return { group, fan, pendant: tassel, silk };
 }
 
 /** The viewmodel root (kept for the Model Explorer and older callers). */

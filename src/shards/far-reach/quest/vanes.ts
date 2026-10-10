@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { FAN_GUST } from '../data/items';
-import { inCone } from '../weapons/fanStrikes';
+import { inCone } from '@wildshard/sdk/items/coneStrikes';
 import { FLAGS, vaneFlag } from './flags';
 
 /** How close a GUST must reach a vane to turn it (metres; the cone is the fan's GUST cone, a little longer). */

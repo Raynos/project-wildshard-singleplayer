@@ -1,7 +1,8 @@
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { VANES } from '../data/layout';
-import { FanStrikes, FAN_ID, type FanTarget } from '../weapons/fanStrikes';
+import { ConeStrikes, type ConeFanTarget, type ConeStrikesRuntime } from '@wildshard/sdk/items/coneStrikes';
+import { FAN_ID, FAN_STRIKES } from '../data/items';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
 
 /** The fan's fixed-step adapter id. */
@@ -26,7 +27,7 @@ const MAX_COMMANDS = 1024;
 export type FanCommand = { readonly kind: 'swing'; readonly targetId: string } | { readonly kind: 'heavy' | 'gust' } | { readonly kind: 'aim'; readonly pitch: number };
 
 /**
- * Sky Reach's war fan in the renderer-free host (SF72, G51): the browser WarFan's own move recipe (weapons/fanStrikes.ts:
+ * Sky Reach's war fan in the renderer-free host (SF72, G51): the browser WarFan's own move recipe (the platform's ConeStrikes on data/items.ts FAN_STRIKES:
  * its cooldowns, the SWING / HEAVY arc slash and the GUST cone's impulse and wind hit), aimed from the player's eye. A
  * `player.attack` is a light SWING aimed at the commanded target's body; HEAVY and GUST are script commands aimed along
  * the player's yaw at the tick's `far.fan.aim` pitch (the browser aims them along the camera ray). Targets are the host's live creatures in the combat
@@ -34,12 +35,12 @@ export type FanCommand = { readonly kind: 'swing'; readonly targetId: string } |
  * cone reaches once the keeper's notes are read (quest/vanes.ts, at the vane hubs world/build.ts places). The browser's
  * charge hold, viewmodel, cues and wind streaks are presentation. Its two cooldowns are exact continuation.
  */
-export function installSkyFan(host: SimHost, commands: () => readonly FanCommand[]): FanStrikes {
-  const targets = (): readonly FanTarget[] => [...host.entities.values()].flatMap(actor => {
+export function installSkyFan(host: SimHost, commands: () => readonly FanCommand[]): ConeStrikesRuntime {
+  const targets = (): readonly ConeFanTarget[] => [...host.entities.values()].flatMap(actor => {
     const port = host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
     return port.hittable ? [port] : [];
   });
-  const fan = new FanStrikes({ hit: req => host.combat.hit(req), targets });
+  const fan = new ConeStrikes(FAN_STRIKES, { hit: req => host.combat.hit(req), targets });
   const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
   const from = new Vector3(), dir = new Vector3();
   const eye = (): Vector3 => from.copy(host.player.position).setY(host.player.position.y + EYE);

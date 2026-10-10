@@ -213,6 +213,8 @@
     "./items/mountedSword": "./items/mountedSword.ts",
     "./items/rewardBow": "./items/rewardBow.ts",
     "./items/javelinSpear": "./items/javelinSpear.ts",
+    "./items/coneFan": "./items/coneFan.ts",
+    "./items/coneStrikes": "./items/coneStrikes.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
     "./modelGeometry": "./modelGeometry.ts",
