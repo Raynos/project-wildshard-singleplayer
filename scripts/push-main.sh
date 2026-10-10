@@ -34,11 +34,44 @@ tipfile="$(git rev-parse --path-format=absolute --git-common-dir)/push-main.tip"
 # SF74 W14: one JSON line per loop (regeneration seconds, gate + upload seconds) in .git/push-timings.jsonl.
 timings="$(git rev-parse --path-format=absolute --git-common-dir)/push-timings.jsonl"
 record() { printf '{"at":%s,"tip":"%s","ahead":%s,"regen":%s,"push":%s,"rc":%s}\n' "$(date +%s)" "$1" "$2" "$3" "$4" "$5" >> "$timings" 2>/dev/null || true; }
+# SF74 W25 (speed audit #11): a red tip still lets the commits before the break through.
+# try_prefix <vitest|witness> <red tip> <output file>: scripts/green-prefix.mjs bisects the red (the failing test files of
+# a gate, or a refused witness payload of the regeneration) over the unpushed commits and names the newest pushable
+# commit before the break; gate it and push it when green (twice at most: a prefix's own gate can name other files).
+# GREEN_PREFIX=0 turns it off. The caller still exits red, so auto-push pings the lane of the first bad commit.
+try_prefix() {
+  local mode="$1" red_tip="$2" out="$3" prefix prc pahead t1 flag=()
+  [ "$mode" = witness ] && flag=(--witness)
+  for _p in 1 2; do
+    [ "${GREEN_PREFIX:-1}" != 0 ] && [ -f scripts/green-prefix.mjs ] || return 0
+    prefix="$(node scripts/green-prefix.mjs ${flag[@]+"${flag[@]}"} "$red_tip" "$out")"
+    [ -n "$prefix" ] || return 0
+    t1=$SECONDS
+    bash scripts/vercel-tree-gate.sh "$prefix" > "$out" 2>&1; prc=$?
+    sed 's/^/  prefix: /' "$out"
+    if [ "$prc" = 0 ]; then
+      pahead="$(git rev-list --count "origin/main..$prefix")"
+      echo "push-main: pushing green prefix $(git rev-parse --short "$prefix") ($pahead of $(git rev-list --count "origin/main..main") commits); the rest stays red"
+      git push origin "$prefix:refs/heads/main"; prc=$?
+      record "$prefix" "$pahead" 0 "$((SECONDS - t1))" "$prc"
+      [ "$prc" = 0 ] && echo "push-main: green prefix pushed: origin/main = $(git rev-parse --short "$prefix")"
+      return 0
+    fi
+    red_tip="$prefix"; flag=() # the prefix's own gate went red: bisect its failing files below it
+  done
+}
 for _ in 1 2 3 4 5 6; do
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
   t0=$SECONDS
-  REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs || { rc=$?; record '' 0 "$((SECONDS - t0))" 0 "$rc"; exit "$rc"; }
+  rout="$(mktemp -t push-regen)"
+  REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs 2>&1 | tee "$rout"; rc=${PIPESTATUS[0]}
+  if [ "$rc" != 0 ]; then
+    record '' 0 "$((SECONDS - t0))" 0 "$rc"
+    grep -q 'witness-manifests: payloads changed' "$rout" && try_prefix witness "$(git rev-parse main)" "$rout"
+    rm -f "$rout"; exit "$rc"
+  fi
+  rm -f "$rout"
   regen=$((SECONDS - t0))
   # Push exactly the regenerated tip: a builder commit landing after the regeneration waits for the next loop, so the
   # gate never sees an unregenerated tip (2026-10-09: 'Ratchet rose: … is clean' reds after a lane cleaned debt).
@@ -58,27 +91,7 @@ for _ in 1 2 3 4 5 6; do
     bash scripts/vercel-tree-gate.sh "$tip" 2>&1 | tee "$gout"; rc=${PIPESTATUS[0]}
     if [ "$rc" != 0 ]; then
       record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
-      # SF74 W25 (speed audit #11): a red tip still lets the commits before the break through. Probe the failing test
-      # files on the unpushed verified regeneration commits, gate the newest that passes, push it when green (twice at
-      # most: a prefix's own gate can name other files). GREEN_PREFIX=0 turns it off.
-      red_tip="$tip"
-      for _p in 1 2; do
-        [ "${GREEN_PREFIX:-1}" != 0 ] && [ -f scripts/green-prefix.mjs ] || break
-        prefix="$(node scripts/green-prefix.mjs "$red_tip" "$gout")"
-        [ -n "$prefix" ] || break
-        t1=$SECONDS
-        bash scripts/vercel-tree-gate.sh "$prefix" > "$gout" 2>&1; prc=$?
-        sed 's/^/  prefix: /' "$gout"
-        if [ "$prc" = 0 ]; then
-          pahead="$(git rev-list --count "origin/main..$prefix")"
-          echo "push-main: pushing green prefix $(git rev-parse --short "$prefix") ($pahead of $ahead commits); $(git rev-parse --short "$tip") stays red"
-          git push origin "$prefix:refs/heads/main"; prc=$?
-          record "$prefix" "$pahead" 0 "$((SECONDS - t1))" "$prc"
-          [ "$prc" = 0 ] && echo "push-main: green prefix pushed: origin/main = $(git rev-parse --short "$prefix")"
-          break
-        fi
-        red_tip="$prefix"
-      done
+      try_prefix vitest "$tip" "$gout"
       rm -f "$gout"
       exit "$rc"
     fi

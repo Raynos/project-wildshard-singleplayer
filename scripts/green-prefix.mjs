@@ -12,9 +12,10 @@
 //      (.git/generated-verified/<sha>) or one `regenerate-committed.mjs --check` passes (3 checks at most), whose
 //      witness checkpoints are current, skipping any commit a gate already failed (.git/gate-timings.jsonl).
 // push-main.sh then runs the full gate on that commit and pushes it when green; the rest waits for the fix as before.
-// A red outside vitest (typecheck, oxlint, a bake, the build) prints nothing: those reds are not bisected yet.
+// `--witness`: the regeneration refused a witness payload change (a behaviour change landed without its rebake); the
+// probe is then the witness re-record itself. Other reds (typecheck, oxlint, a bake, the build) print nothing.
 //
-//   node scripts/green-prefix.mjs <tip> <gate-output-file>    prints a sha, or nothing (reason on stderr)
+//   node scripts/green-prefix.mjs [--witness] <tip> <output-file>    prints a sha, or nothing (reason on stderr)
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -95,19 +96,50 @@ const MAX_GENERATED_CHECKS = 3;
 /** the witnesses' checkpoint fences: a commit whose manifests are stale is not pushable as it is */
 const CHECKPOINTS = ['driftwood-isle', 'far-reach', 'nine-dragon-stack', 'pine-hollow'].map((slug) => `test/proof/${slug}/checkpoints.test.ts`);
 
-/** @param {string} root @param {string} tip @param {string} out the gate's output */
-export function greenPrefix(root, tip, out) {
-  const steps = failedSteps(out);
-  if (steps.length === 0) { log('no failed gate step in the output'); return null; }
-  if (steps.some((step) => step !== 'vitest')) { log(`red outside vitest (${steps.join(', ')}): not bisected`); return null; }
-  const files = failingTestFiles(out);
-  if (files.length === 0) { log('vitest failed with no FAIL line'); return null; }
+/** Whether the witnesses re-record at <sha> with byte-identical payloads (the regeneration's refusal, probed alone). @param {string} root @param {string} common @param {string} sha */
+function witnessProbe(root, common, sha) {
+  const work = realpathSync(mkdtempSync(join(tmpdir(), 'green-prefix-')));
+  try {
+    const archive = join(work, 'source.tar');
+    execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, sha, '--', '.', ':!art', ':!progress', ':!sources', ':!drafts', ':!ios', ':!android', ':!.claude', ':!docs'], { cwd: root });
+    execFileSync('tar', ['-xf', archive, '-C', work]);
+    rmSync(archive);
+    if (!existsSync(join(work, 'scripts/witness-manifests.mjs'))) { log(`${sha.slice(0, 9)}: no witness recorder yet: pass`); return true; }
+    linkNodeModules(root, work);
+    if (existsSync(join(work, 'scripts/gen.mjs'))) execFileSync(process.execPath, ['scripts/gen.mjs'], { cwd: work, stdio: 'ignore' });
+    const t0 = Date.now();
+    const run = spawnSync(process.execPath, ['scripts/witness-manifests.mjs', '--refresh', work, join(common, 'witness-verified'), join(work, 'witness.json')], { cwd: work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    log(`${sha.slice(0, 9)}: witness payloads ${run.status === 0 ? 'byte-identical' : 'changed'} (${Math.round((Date.now() - t0) / 1000)} s)`);
+    return run.status === 0;
+  } catch (error) {
+    log(`${sha.slice(0, 9)}: witness probe failed (${error instanceof Error ? error.message.split('\n')[0] : String(error)}): counted as red`);
+    return false;
+  } finally { rmSync(work, { recursive: true, force: true }); }
+}
+
+/**
+ * @param {string} root @param {string} tip @param {string} out the gate's (or, for 'witness', the regeneration's) output
+ * @param {'vitest' | 'witness'} [mode] 'witness': the regeneration refused a witness payload change (a behaviour change
+ *   committed without its rebake), so the probe is the witness re-record itself
+ */
+export function greenPrefix(root, tip, out, mode = 'vitest') {
+  /** @type {string[]} */
+  let files = [];
+  if (mode === 'witness') {
+    if (!out.includes('witness-manifests: payloads changed')) { log('the regeneration failed for another reason: not bisected'); return null; }
+  } else {
+    const steps = failedSteps(out);
+    if (steps.length === 0) { log('no failed gate step in the output'); return null; }
+    if (steps.some((step) => step !== 'vitest')) { log(`red outside vitest (${steps.join(', ')}): not bisected`); return null; }
+    files = failingTestFiles(out);
+    if (files.length === 0) { log('vitest failed with no FAIL line'); return null; }
+  }
   const common = git(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']);
   const tipSha = git(root, ['rev-parse', tip]), red = gatedRed(common);
   const commits = git(root, ['rev-list', '--reverse', `origin/main..${tipSha}`]).split('\n').filter(Boolean).filter((sha) => sha !== tipSha);
   if (commits.length === 0) { log('nothing unpushed before the red tip'); return null; }
-  log(`${files.length} failing file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
-  const index = newestPassing(commits, (sha) => probe(root, sha, files));
+  log(mode === 'witness' ? `witness payloads changed: bisecting ${commits.length} unpushed commit(s)` : `${files.length} failing file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
+  const index = newestPassing(commits, (sha) => mode === 'witness' ? witnessProbe(root, common, sha) : probe(root, sha, files));
   if (index < 0) { log('the failing files fail on every unpushed commit'); return null; }
   log(`first bad commit (guess): ${git(root, ['log', '-1', '--format=%h %s', commits[index + 1] ?? tipSha]).slice(0, 120)}`);
   let checks = 0;
@@ -128,9 +160,10 @@ export function greenPrefix(root, tip, out) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const [tip = '', file = ''] = process.argv.slice(2);
-  if (tip === '' || file === '' || !existsSync(file)) { console.error('usage: green-prefix.mjs <tip> <gate-output-file>'); process.exit(64); }
+  const witness = process.argv[2] === '--witness';
+  const [tip = '', file = ''] = process.argv.slice(witness ? 3 : 2);
+  if (tip === '' || file === '' || !existsSync(file)) { console.error('usage: green-prefix.mjs [--witness] <tip> <gate-or-regeneration-output-file>'); process.exit(64); }
   const root = git(process.cwd(), ['rev-parse', '--show-toplevel']);
-  const sha = greenPrefix(root, tip, readFileSync(file, 'utf8'));
+  const sha = greenPrefix(root, tip, readFileSync(file, 'utf8'), witness ? 'witness' : 'vitest');
   if (sha !== null) console.log(sha);
 }
