@@ -73,8 +73,9 @@ it('keeps asynchronous construction hidden while warming exact models, then expo
     const before = model.matrixWorld.elements.slice();
     const { jobs } = sceneJobs(scene, null, 1, [group]);
     expect(jobs).toHaveLength(1); // shared material/object variant, original geometry and flags
-    const compiled: Mesh[] = []; for (const job of jobs) job.root.traverse(part => { if (part instanceof Mesh) compiled.push(part); });
-    expect(compiled[0]?.material).toBe(material); expect(compiled[0]?.geometry).toBe(geometry);
+    const compiledMaterials: unknown[] = [], compiledGeometry: unknown[] = [];
+    for (const job of jobs) job.root.traverse(part => { if (part instanceof Mesh) { compiledMaterials.push(part.material); compiledGeometry.push(part.geometry); } });
+    expect(compiledMaterials).toEqual([material]); expect(compiledGeometry).toEqual([geometry]);
     group.visible = true; scene.updateMatrixWorld(true);
     expect(model.matrixWorld.elements).toEqual(before); expect(model.renderOrder).toBe(1000);
     expect(root.children.filter(part => part.renderOrder === 999)).toHaveLength(1);
