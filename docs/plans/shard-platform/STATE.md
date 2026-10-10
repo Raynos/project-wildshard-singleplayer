@@ -40,7 +40,7 @@
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
-**Follow-up:** fresh SDK tarball install fails until npm publishes `@loaders.gl/worker-utils@4.5.4` (core 4.5.4 needs it); pin core 4.5.3 in the SDK if it lingers (op-blend42). G328 proofs pass (`f4863d186`).
+**Follow-up:** fresh SDK install fails until npm has `@loaders.gl/worker-utils@4.5.4`; pin core 4.5.3 if it lingers.
 
 **Decisions:** G290–G328 in the plan; `design-system.md` is the route.
 
