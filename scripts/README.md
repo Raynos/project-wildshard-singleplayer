@@ -351,6 +351,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [proof-nalati-look-parity.mjs](./proof-nalati-look-parity.mjs)
 - [proof-nine-layout-parity.mjs](./proof-nine-layout-parity.mjs)
 - [proof-run.sh](./proof-run.sh)
+- [proof-signal-look-parity.mjs](./proof-signal-look-parity.mjs)
 - [proof-sky-look-parity.mjs](./proof-sky-look-parity.mjs)
 - [public-grid.d.mts](./public-grid.d.mts)
 - [public-grid.mjs](./public-grid.mjs)
