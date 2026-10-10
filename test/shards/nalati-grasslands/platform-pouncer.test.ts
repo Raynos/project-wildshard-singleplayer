@@ -5,8 +5,7 @@ import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import { LedgePouncerBrain, readPouncerSpec, type PouncerSpec, type PouncerPorts } from '../../../src/engine/ai/ledgePouncer';
-import { speciesBrains } from '../../../src/sdk/speciesBrains';
+import { LedgePouncerBrain, readPouncerSpec, type PouncerSpec, type PouncerPorts } from '../../../src/shards/nalati-grasslands/runtime/ledgePouncer';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { AqbarsOracle } from '../../fixtures/nalati-aqbars-oracle/shipping';
 import bodies from '../../fixtures/nalati-aqbars-oracle/shipping.json' with { type: 'json' };
@@ -27,12 +26,9 @@ const tuning: PouncerSpec = {
   pounce: { minDistance: 7, maxDistance: 12, seconds: 0.6, arcHeight: 1.6, range: 1.9, damage: 35, cooldown: 2.5 },
   tell: { radius: 2.2, strength: 0.6, growth: 0.4, growSeconds: 0.3, seconds: 1 },
 };
-const catalogue = speciesBrains([{ id: 'species.fixture.pouncer', kind: 'pouncer', label: 'Pouncer', variants: [],
-  brain: { archetype: 'ledge-pouncer', data: tuning } }], []);
-
 function brain(ports: ReturnType<typeof inputs>['ports']): LedgePouncerBrain<AnimalSim> {
   const authority: PouncerPorts<AnimalSim> = { ...ports, opened: () => { ports.feed('Aqbars skids — OPEN'); }, growl: at => { ports.sound('leopard_growl', at); } };
-  return catalogue.pouncer('pouncer', authority);
+  return new LedgePouncerBrain(tuning, authority);
 }
 
 const floor = (x: number, z: number): number => Math.sin(x / 30) + Math.cos(z / 40);
@@ -117,12 +113,3 @@ it('admits copied finite tuning and refuses unknown, conflicting or out-of-order
   })).toThrow('ledge bound');
 });
 
-it('requires real pouncer authority and refuses the wrong family or malformed row at admission', () => {
-  expect(() => catalogue.bind('pouncer')).toThrow('explicit frame/query ports');
-  expect(() => catalogue.policy('pouncer', actor())).toThrow('explicit frame/query ports');
-  const i = inputs(), ports: PouncerPorts<AnimalSim> = { ...i.ports, opened: () => undefined, growl: () => undefined };
-  expect(() => catalogue.pouncer('absent', ports)).toThrow('does not declare');
-  expect(() => speciesBrains([{ id: 'species.fixture.pouncer', kind: 'pouncer', label: 'Pouncer', variants: [],
-    brain: { archetype: 'ledge-pouncer', data: { ...tuning, swipe: { ...tuning.swipe, first: 0.9 } } } }], [])).toThrow();
-  expect(i.events).toEqual([]);
-});

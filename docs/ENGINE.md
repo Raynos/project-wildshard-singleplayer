@@ -2360,40 +2360,11 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
-**Ledge pouncers (SF27).** `@wildshard/engine/ai/ledgePouncer` exposes `LedgePouncerBrain`, a view-free stalking,
-paired-swipe and ballistic-pounce policy. Its strictly admitted `PouncerSpec` holds perception ranges, ledge selection,
-movement, turn rates, tell/strike/cooldown clocks, weak-point multipliers and named pose fields. `PouncerPorts` provides
-the actual ledges (at most six), native height/head queries, player/home/phase, tell events and authoritative hit/knock
-callbacks; it never infers collision. `think(body, context)` follows the manager's decision cadence, `act(body)` follows
-the body's attack phase, and `tick(body, dt, t, engaged, leashing)` follows the fixed frame clock. Spawn, reset and tell
-lifetime remain explicit. `snapshot` / atomic `restore` retain every clock, leap endpoint, retreat goal and paired hit
-marker; the prior runtime keeper wire shape and output order stay exact. `readPouncerSpec` rejects unknown fields,
-nonfinite tuning, reversed ranges, invalid strike fractions and conflicting pose fields before constructing a policy.
-
-A declared `ledge-pouncer` uses `PouncerSpec` and `brains.pouncer(kind, ports)` to bind its retained controller in both
-browser and headless runtimes. Its encounter supplies the frame clock, engagement/leash state and actual ledges and
-queries; `bind` / `policy` refuse this kind without that authority rather than invent a `HomeObservation`. Contacts and
-presentation still pass through the explicit ports. This preserves deferred spawn, actor identity and frame/brain order.
-
 Species decision families `skirmisher`, `guardian` and `perch-hunter` use the strict `shardfile/brains` schemas.
 `brains.bind(kind, native)` requires a trusted body factory for these families, called once per animal with the
 admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch and shared RNG recipes.
 `brains.decision(kind, actor)` supplies the same admitted policy to a renderer-free native body adapter. Construction
 and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
-
-A declared `pack-howler` uses strict `HowlerSpec` tuning (`@wildshard/engine/ai/packHowler`) and
-`brains.howler(kind, ports)`. The runtime supplies its real pack, shared AI stream, gaze/grass and path queries,
-engagement/phase clock, contacts and named presentation events. The platform owns the circling, interruption,
-regroup and melee law and its complete continuation; restore consumes no RNG and emits no events. `bind`, `policy`
-and `decision` refuse this archetype without those explicit frame/pack ports. The SDK exposes its retained surface
-as `SpeciesHowler` / `SpeciesHowlerPorts`; spawn identity and deferred timing remain with the runtime.
-
-A declared `wind-stooper` uses strict `WindStooperSpec` (`@wildshard/engine/ai/windStooper`) and
-`brains.stooper(kind, ports)` (SDK `SpeciesStooper` / `SpeciesStooperPorts`). The runtime supplies native terrain,
-wind, home/player/phase, head/contact and tell authority plus its shared random stream. The platform owns the
-moving downwind orbit, altitude law, tell target, hit/miss stoop, grounded weak point and cooldown; every clock,
-orbit centre and fixed target is captured and validated atomically. Restore neither steps nor emits events or draws.
-`bind`, `policy` and `decision` refuse it without those explicit frame/altitude ports; actor/spawn identity stays runtime.
 
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,

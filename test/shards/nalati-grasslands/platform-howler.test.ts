@@ -4,12 +4,11 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { speciesBrains, type BrainedSpecies } from '../../../src/sdk/speciesBrains';
 import { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { PackBrain, type PackPorts } from '../../../src/engine/ai/pack';
 import { Rng } from '../../../src/engine/core/rng';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { readHowlerSpec, type HowlerPorts, type HowlerSpec } from '../../../src/engine/ai/packHowler';
+import { PackHowlerBrain, readHowlerSpec, type HowlerPorts, type HowlerSpec } from '../../../src/shards/nalati-grasslands/runtime/packHowler';
 import { NALATI_PACK_BRAIN } from '../../../src/shards/nalati-grasslands/data/brains';
 import { KokboriOracle } from '../../fixtures/nalati-kokbori-oracle/shipping';
 import bodies from '../../fixtures/nalati-kokbori-oracle/shipping.json' with { type: 'json' };
@@ -28,10 +27,7 @@ const spec: HowlerSpec = {
 };
 
 function policy(ports: HowlerPorts<AnimalSim>) {
-  return speciesBrains([{ id: 'species.test.howler', kind: 'howler', label: 'Howler',
-    walkSpeed: 1.8, chargeSpeed: 11, chargeDamage: 22,
-    variants: [{ id: 'leader', label: 'Leader', weight: 1, rarity: 'legendary', scale: [2.6, 2.6], hp: 650 }],
-    brain: { archetype: 'pack-howler', data: spec } }], []).howler('howler', ports);
+  return new PackHowlerBrain(spec, ports);
 }
 
 function fixture() {
@@ -125,15 +121,3 @@ it('strictly admits declared tuning and refuses invalid ranges and aliases befor
   }
 });
 
-it('refuses absent, non-howler and non-native admission without drawing the shared stream', () => {
-  const f = fixture(), before = f.rng.snapshot();
-  const row: BrainedSpecies = { id: 'species.test.howler', kind: 'howler', label: 'Howler', walkSpeed: 1.8, chargeSpeed: 11, chargeDamage: 22,
-    variants: [{ id: 'leader', label: 'Leader', weight: 1, rarity: 'legendary', scale: [2.6, 2.6], hp: 650 }] };
-  const absent = speciesBrains([row], []);
-  expect(() => absent.howler('howler', f.ports)).toThrow(/does not declare/u);
-  const admitted = speciesBrains([{ ...row, brain: { archetype: 'pack-howler', data: spec } }], []);
-  expect(() => admitted.bind('howler')).toThrow(/explicit frame\/pack/u);
-  expect(() => admitted.policy('howler', f.actor)).toThrow(/explicit frame\/pack/u);
-  expect(() => admitted.decision('howler', f.actor)).toThrow(/not a native decision/u);
-  expect(f.rng.snapshot()).toEqual(before);
-});

@@ -1,9 +1,8 @@
-import type { SpeciesBrain, BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import { LEOPARD_DATA } from './species/leopard';
-import { KOKBORI_DATA } from './species/kokbori';
+import type { PouncerSpec } from './ledgePouncer';
+import type { HowlerSpec } from './packHowler';
 
 /** Aqbars' shipping ledge/perch/pounce/swipe law, admitted by the platform species catalogue in both hosts. */
-export const AQBARS_BRAIN: SpeciesBrain = { archetype: 'ledge-pouncer', data: {
+export const AQBARS_BRAIN: { readonly archetype: 'ledge-pouncer'; readonly data: PouncerSpec } = { archetype: 'ledge-pouncer', data: {
   initialCooldown: 2, awareCooldown: 1.5, lookIdle: 0.4, homeRadius: 3, pathSeconds: 0.6,
   ledgeMargin: 0.3, standRate: 10, openSeconds: 1.5, openCooldown: 1.2,
   fields: { low: 'low', leap: 'leap', snarl: 'snarl' },
@@ -21,7 +20,7 @@ export const AQBARS_BRAIN: SpeciesBrain = { archetype: 'ledge-pouncer', data: {
 /** Existing tell and cue outputs; only the entered presentation answers them. */
 export const AQBARS_OPEN = 'Aqbars skids — OPEN';
 /** Kokbori's shipping circle/howl/interruption/bite law over the real pack and shared AI stream. */
-export const KOKBORI_BRAIN: SpeciesBrain = { archetype: 'pack-howler', data: {
+export const KOKBORI_BRAIN: { readonly archetype: 'pack-howler'; readonly data: HowlerSpec } = { archetype: 'pack-howler', data: {
   initialHowl: 8, engagedHowl: 3, phaseCooldown: 1, interruptedHowl: 12, nextHowl: 11, randomHowl: 4,
   pathSeconds: 0.6, pathNear: 6, homePathSeconds: 2, homeStop: 3, homeReset: 4, meleeRadius: 3.8, grassHeight: 0.6, hiddenDamage: 2,
   fields: { howl: 'howl', low: 'low', snarl: 'snarl' },
@@ -36,4 +35,3 @@ export const KOKBORI_BRAIN: SpeciesBrain = { archetype: 'pack-howler', data: {
 export const KOKBORI_CUES = { regrouped: 'Kokbori calls the pack back — and comes for you',
   interrupted: 'The howl breaks — the pack scatters', closed: 'PACK HOWL — the pack closes in' };
 /** The retained elite policies, using the same body data as the actual page species. */
-export const NALATI_ELITE_SPECIES: readonly BrainedSpecies[] = [{ ...LEOPARD_DATA, brain: AQBARS_BRAIN }, { ...KOKBORI_DATA, brain: KOKBORI_BRAIN }];

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Vector3, MathUtils } from 'three';
-import type { AnimalSim } from '../entities/AnimalSim';
-import type { PackBrain } from './pack';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { PouncerContext } from './ledgePouncer';
 
 /** The real pack controller is owned and snapshotted by its group host, not copied into the elite. */

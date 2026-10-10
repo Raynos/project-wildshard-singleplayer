@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { Vector3, MathUtils } from 'three';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 
 /** One solid ledge observed by the native world; at most six are admitted per pouncer. */
 export interface PouncerLedge { readonly x: number; readonly y: number; readonly z: number; readonly r: number }
