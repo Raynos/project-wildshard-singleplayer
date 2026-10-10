@@ -128,6 +128,7 @@ export const OPTION_VALUES = {
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   regionShadowFocus: ['off', 'tight'],                 // SF63: inside a grid cell whose level casts with the phone's split rig, the page's one cascade pulls in to 22 m at 2048² (SkyRig.focusCascade, src/game/grid/regionShadow.ts) — live
   gridDeclaredLut: ['off', 'on'],                      // op-lut20: a grid cell carries the learned LUT its look declares (ExtendLook.lut, applied standalone inside its own compose; src/game/grid/regionalWorld.ts) — a reload
+  gridCellComposite: ['off', 'on'],                    // op-frame21 (SF63 / G158): a grid cell runs the post composite its look declares (ExtendLook.cell; src/game/grid/regionalWorld.ts, frame.ts) — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -144,7 +145,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   tex: { def: 'auto', params: [], url: () => null },
   
-  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, regionShadowFocus: DEBUG_ONLY, gridDeclaredLut: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, regionShadowFocus: DEBUG_ONLY, gridDeclaredLut: DEBUG_ONLY, gridCellComposite: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -212,7 +213,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     tex: option('tex'),
     
     
-    memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), regionShadowFocus: option('regionShadowFocus'), gridDeclaredLut: option('gridDeclaredLut'),
+    memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), regionShadowFocus: option('regionShadowFocus'), gridDeclaredLut: option('gridDeclaredLut'), gridCellComposite: option('gridCellComposite'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

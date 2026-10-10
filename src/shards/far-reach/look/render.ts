@@ -18,6 +18,7 @@ import SKY_CARDS from '../data/skyCards.json' with { type: 'json' };
 import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../data/skyCardsLook';
 import { PANO_SUN } from './panoramaData';
 import { loadPainted } from './image';
+import { SkyNeutralToneEffect } from './neutralTone';
 import { TEX_URL } from '../boot/files';
 
 /** A fixed golden-hour clock: Sky Reach does not run a day cycle (no `dayCycle` in `uses`). */
@@ -46,6 +47,10 @@ export async function skyReachLook(): Promise<LookStrategy> {
   return { mode: 'extend',
     // the clean chain is declared as well as composed, so a grid cell carries it without composing (absent: cinematic)
     chain: 'clean',
+    // its tone curve inside a grid cell (op-frame21, SF63 / G158; behind the grid's default-off Debug row): the carried clean
+    // chain stays, NEUTRAL in the place of the page's AgX, as its compose sets it standalone (E399); its own effect, since
+    // a second ToneMappingEffect in the page's colour pass never compiles (op-frame22)
+    cell: { replaces: 'tone', build: () => ({ display: new SkyNeutralToneEffect() }) },
     dispose: () => { for (const texture of pending) texture.dispose(); pending.clear(); },
     // `c.fx` builds the CINEMATIC chain when nothing is built yet, so the clean chain is asked first and `fx` only after
     // it (E399: destructuring `fx` in the parameters, or reading it before `engineChain('clean')`, makes the clean ask

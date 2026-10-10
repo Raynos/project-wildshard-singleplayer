@@ -20,7 +20,7 @@
  */
 import type { Color, Texture } from 'three';
 import type { Effect } from 'postprocessing';
-import { ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineKnobs, type SkyBackdropPost } from '@wildshard/engine/render/look';
+import { ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineKnobs, type LookCellPost, type SkyBackdropPost } from '@wildshard/engine/render/look';
 import type { RegionGrade } from './frameModel';
 
 type Rgb = readonly [number, number, number];
@@ -105,6 +105,12 @@ export interface FrameLookPort {
    * a shard's own post stack fades by it (SF59 step 4). Returns the release (absent on a port with no frame weights).
    */
   readonly owned?: (instance: string, weight: (w: number) => void) => () => void;
+  /**
+   * a live region's own post composite (its look's `ExtendLook.cell`, SF63 / G158): its display in the place of the page's
+   * tone mapping and its side passes before the colour pass, run and faded in by its weight while it carries the frame
+   * (after `contribute`; absent on a port with no carried chains). Returns the release, which frees them.
+   */
+  readonly composite?: (instance: string, post: LookCellPost) => () => void;
 }
 
 const ports = new WeakMap<object, FrameLookPort>();
@@ -190,6 +196,12 @@ export function regionChain(level: ChainLevel, lut: () => Texture | null, kind?:
       ...(kind === 'cinematic' ? { volumetric: { strength: level.atmosphere?.volumetric?.strength ?? 0.55, sunColor: level.atmosphere?.volumetricSunColor ?? [1, 0.7, 0.4] } } : {}) } }),
   };
 }
+/**
+ * The engine knobs of a level whose own composite is its whole colour chain (`LookCellComposite.replaces` 'chain'): no
+ * bloom, vignette or god rays of the engine's (its composite draws its own), AO as its tier knob gives it; its display
+ * arrives with its composite (`FrameLookPort.composite`).
+ */
+export function wholeChainKnobs(ao: boolean): EngineKnobs { return { bloom: null, vignette: 0, rays: 0, ao }; }
 /** A 'replace' look's own chain as engine knobs on a tier (SF63, `ReplaceLook.engineKnobs`); undefined for any other look. */
 export function replacedKnobs<T>(look: { readonly mode?: 'extend' | 'replace'; readonly engineKnobs?: (tier: T) => EngineKnobs } | null, tier: T): EngineKnobs | undefined {
   return look?.mode === 'replace' ? look.engineKnobs?.(tier) : undefined;

@@ -1,0 +1,334 @@
+{
+  "version": {
+    "build": "fa6f61a-mv2fbr85",
+    "time": "2026-10-10T13:22:29.284Z"
+  },
+  "started": "2026-10-10T13:23:59.993Z",
+  "shards": {
+    "nine-dragon-stack": {
+      "errors": [],
+      "shots": {
+        "nine-dragon-stack-grid-A": {
+          "name": "nine-dragon-stack-grid-A",
+          "route": [],
+          "frame": {
+            "local": [
+              0.9500003601433107,
+              125.00020142614812,
+              7.499999128356421
+            ],
+            "feet": {
+              "x": 555.95,
+              "z": -547.5
+            },
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.1,
+                0,
+                0.1,
+                0,
+                0
+              ],
+              "post": [
+                0.6,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "nine-dragon-stack",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.3
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0.12",
+              "GridFrameGrade@1"
+            ]
+          }
+        },
+        "nine-dragon-stack-grid-B": {
+          "name": "nine-dragon-stack-grid-B",
+          "route": [],
+          "frame": {
+            "local": [
+              0.95,
+              125.00000143051147,
+              7.5
+            ],
+            "feet": {
+              "x": 555.95,
+              "z": -547.5
+            },
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "NdJiehuaEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ]
+          }
+        },
+        "nine-dragon-stack-select": {
+          "name": "nine-dragon-stack-select",
+          "lut": {
+            "skyLut": null,
+            "compositeLutAmount": 1,
+            "passes": [
+              "RenderPass:",
+              "EffectPass:NdJiehuaEffect",
+              "EffectPass:FXAAEffect"
+            ]
+          }
+        }
+      }
+    },
+    "far-reach": {
+      "errors": [],
+      "shots": {
+        "far-reach-grid-A": {
+          "name": "far-reach-grid-A",
+          "route": [],
+          "frame": {
+            "local": [
+              -1.2,
+              0.28166666692122816,
+              236.5
+            ],
+            "feet": {
+              "x": -1.2,
+              "z": -318.5
+            },
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ]
+          }
+        },
+        "far-reach-grid-B": {
+          "name": "far-reach-grid-B",
+          "route": [],
+          "frame": {
+            "local": [
+              -1.2,
+              0.28166666692122816,
+              236.5
+            ],
+            "feet": {
+              "x": -1.2,
+              "z": -318.5
+            },
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ]
+          }
+        },
+        "far-reach-select": {
+          "name": "far-reach-select",
+          "lut": {
+            "skyLut": "far-reach-lut",
+            "compositeLutAmount": null,
+            "passes": [
+              "RenderPass:",
+              "EffectPass:GodRaysEffect+BloomEffect+VignetteEffect+ToneMappingEffect+HueSaturationEffect+BrightnessContrastEffect+GradeEffect+LUT3DEffect",
+              "EffectPass:SMAAEffect"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "finished": "2026-10-10T13:26:55.274Z"
+}

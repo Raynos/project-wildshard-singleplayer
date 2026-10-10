@@ -25,6 +25,9 @@
  *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
  *   its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
  *   materials as region-keyed program variants (`render/regionLook.ts`), freed with the resident scope.
+ * - its own post composite (SF63 / G158, op-frame21): where its look declares one (`ExtendLook.cell`) and the default-off
+ *   Debug row `gridCellComposite` is on, it is built once its world exists and run by the frame owner while it carries the
+ *   frame (`FrameLookPort.composite`); a composite that is its whole chain carries a neutral engine chain beside it.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
  * (the resident scope): the host's Physics frees every body and collider, the subtree leaves the page scene and frees the
@@ -54,12 +57,13 @@ import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { setting } from '@wildshard/engine/ui/Settings';
 import type { ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
-import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, type FrameLookPort } from './frameLook';
+import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
 import { focusRegionShadow } from './regionShadow';
@@ -198,6 +202,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // SF63 part 2: the region's scoped look, whose per-frame parts run only while its cell is entered
       let regionLook: ReturnType<SkyRig['scopeLevelLook']> = null;
       let skyReady = Promise.resolve();
+      // op-frame21: its look's own post composite, behind the default-off reload row (a look change on the grid)
+      const cellComposite = levelLook !== null && levelLook.mode !== 'replace' && setting('gridCellComposite') === 'on' ? levelLook.cell ?? null : null;
+      let framePort: FrameLookPort | null = null, viewRoot: Object3D | null = null, composited = false;
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
       const foundation: RegionalRuntimeFoundation = {
@@ -210,9 +217,15 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           scene.fog = game.rootScene.fog?.clone() ?? null;
           // ... which is the owner's air in the one frame, with its level's grade, while the region is resident
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
+          framePort = look; viewRoot = view.root;
           // G232: on a neutral page shell its whole grade chain (grade, look layer, learned LUT) is carried exactly
           let lut: Texture | null = null;
-          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut, lookChainKind(levelLook), { ao: level.tiers?.[TIER]?.ao ?? TIER_CONFIG.ao, godRays: level.tiers?.[TIER]?.godRays }, replacedKnobs(levelLook, TIER)) }));
+          const ao = level.tiers?.[TIER]?.ao ?? TIER_CONFIG.ao;
+          // a composite that is its whole colour chain: the carried engine chain is neutral beside it (no engine grade, LUT,
+          // bloom, vignette, rays or shafts), as standalone, where its compose's chain holds no engine effect
+          const chain = cellComposite?.replaces === 'chain' ? regionChain(level, () => null, undefined, { ao }, wholeChainKnobs(ao))
+            : regionChain(level, () => lut, lookChainKind(levelLook), { ao, godRays: level.tiers?.[TIER]?.godRays }, replacedKnobs(levelLook, TIER));
+          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain }));
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) skyReady = (async () => {
             try {
@@ -300,7 +313,18 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         checkpoint: () => !resident.disposed && ports.checkpoint(host, request),
         // rt3-crossing2: the look's per-frame sweep never ran on what the entered hooks added (no frame draws while they
         // install), so the warm-up compiled the page-look programs and the first frame after it the region-look ones
-        beforeWarm: async () => { await skyReady; if (!resident.disposed) regionLook?.sweep(); },
+        beforeWarm: async () => {
+          await skyReady;
+          if (resident.disposed) return;
+          regionLook?.sweep();
+          // op-frame21: its own composite, once its world hook has run and before the warm-up compiles the page's passes
+          const place = framePort?.composite;
+          if (cellComposite !== null && place !== undefined && viewRoot !== null && !composited) {
+            composited = true;
+            try { resident.onDispose(place(cell.instance, cellComposite.build({ root: viewRoot, camera: game.camera, renderer: game.renderer, tier: TIER, scope: resident }))); }
+            catch (error) { console.warn(`[region composite] ${cell.instance}`, error); }
+          }
+        },
       };
       census.set(foundation, () => {
         const native = resident.disposed ? { bodies: 0, colliders: 0 } : { bodies: host.physics.world.bodies.len(), colliders: host.physics.world.colliders.len() };

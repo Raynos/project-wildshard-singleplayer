@@ -170,6 +170,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('graphMaterials', 'look', engineString('s_graph_materials'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_materials_note') }),
   opt('regionShadowFocus', 'look', engineString('s_region_shadow_focus'), [['off', engineString('s_region_shadow_focus_off')], ['tight', engineString('s_region_shadow_focus_tight')]], { when: () => TIER === 'phone', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_region_shadow_focus_note') }),
   opt('gridDeclaredLut', 'look', engineString('s_grid_declared_lut'), [['off', engineString('s_grid_declared_lut_off')], ['on', engineString('s_grid_declared_lut_on')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_grid_declared_lut_note') }),
+  opt('gridCellComposite', 'look', engineString('s_grid_cell_composite'), [['off', engineString('s_grid_cell_composite_off')], ['on', engineString('s_grid_cell_composite_on')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_grid_cell_composite_note') }),
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.

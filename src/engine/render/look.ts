@@ -202,7 +202,48 @@ export interface ExtendLook extends LookParts {
    * backdrop's (`SkyBackdrop.lut`) or its level's own file. Standalone the compose applies it as before.
    */
   lut?: string;
+  /**
+   * Its own post composite as a grid cell runs it (SF63 / G158: inside its cell a level owns the whole frame, its post
+   * stack included), declared so the frame owner can run it where it carries this level, without composing. Absent: the
+   * cell carries its engine chain only. Standalone its compose builds its composite as before.
+   */
+  cell?: LookCellComposite;
   compose: (c: LookComposeContext) => LookComposition;
+}
+
+/** What a look's grid-cell composite is built from (SF63 / G158): what the region draws, the page's one camera and renderer. */
+export interface LookCellContext {
+  /** everything the region draws (its scene subtree and its authored root), at the cell's render offset */
+  readonly root: Object3D;
+  readonly camera: PerspectiveCamera;
+  readonly renderer: WebGLRenderer;
+  readonly tier: Tier;
+  /** the region's resident scope: whatever the build makes besides `display` and `passes` is owned by it */
+  readonly scope: Scope;
+}
+/** A look's own post composite for a grid cell: its colour composite and the side passes it reads. */
+export interface LookCellPost {
+  /**
+   * its colour composite over the scene-linear colour, in the place of the frame's tone mapping: the frame owner gives it a
+   * NORMAL blend and fades it in by its cell's owner weight as the frame's tone mapping fades out (blended at the 16 m edge)
+   */
+  readonly display: Effect;
+  /**
+   * side passes that render into their own targets for `display` to read (`needsSwap` false), placed before the frame's
+   * colour pass and run only while its cell carries the frame; the frame owner frees them and `display` when the region leaves
+   */
+  readonly passes?: readonly Pass[];
+}
+/** A look's composite as a grid cell runs it (SF63 / G158, `ExtendLook.cell`). */
+export interface LookCellComposite {
+  /**
+   * 'chain': `display` is its whole colour chain (its compose's `chain` holds no engine effect), so the engine grade, look
+   * layer, learned LUT, bloom, vignette, god rays and shafts stay out of its cell; 'tone': only its tone mapping is its own,
+   * and the carried engine chain stays
+   */
+  readonly replaces: 'chain' | 'tone';
+  /** build it once the region's world exists (its world hook has run), before its programs warm */
+  readonly build: (c: LookCellContext) => LookCellPost;
 }
 
 /**

@@ -6,6 +6,7 @@
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
 import { Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4 } from 'three';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
+import type { Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime/state';
@@ -56,6 +57,44 @@ const PHONE_CARD_GAIN = 1;
  *  test at the far plane it then shades only where the sky shows — the skyline's layers cost nothing under the city */
 const SKY_ORDER = 900;
 
+/** The Jiehua composite and the side passes it reads (the wet floor, the haze march, the bleed pyramid; none on the phone). */
+interface Composite { reflect: RowRenderPassView | null; haze: RowRenderPassView | null; bleed: RowRenderPassView | null; jiehua: JiehuaEffect }
+
+/** Build the composite for a camera on a tier: standalone (compose) and inside a grid cell (`cell`) build the same one. */
+function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>): Composite {
+  const world = ndRuntime().world;
+  let reflect: RowRenderPassView | null = null;
+  let haze: RowRenderPassView | null = null;
+  let bleed: RowRenderPassView | null = null;
+  // Emergency phone profile: avoid the three custom passes while isolating the iPhone load failure.
+  // At 402×812, DPR 2, their half-float RGBA targets total an estimated 7,550,992 bytes (7.20 MiB);
+  // actual driver allocation and whether this causes the crash remain unconfirmed.
+  if (tier !== 'phone') {
+    // the wet floor at the square's datum: the plaza, the street north through the gate, the stair-street's foot
+    const rect = new Vector4(WELL.x0 - 2, STREET.z0, Math.max(PLAZA.x1, STAIR.x0) + 4, PLAZA.z1 + 10);
+    // (dome C2) and the stair-street's treads and landings, any height: x 22 … 102, z 2 … 10
+    const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
+    const s = world.shared.u, time = (): number => s.uTime.value;
+    const family = PASS_FAMILY;
+    reflect = new RowRenderPass(REFLECT_PASS, { family, camera, params: { time }, links: { uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
+    haze = new RowRenderPass(HAZE_PASS, { family, camera, params: { time }, links: { ...s, uGroundY: { value: Y0 } } });
+    bleed = new RowRenderPass(BLEED_PASS, { family, camera, links: glow });
+  }
+  const jiehua = new JiehuaEffect(camera, world.shared, glow, grade);
+  jiehua.source = bleed;
+  jiehua.haze = haze;
+  jiehua.refl = reflect;
+  return { reflect, haze, bleed, jiehua };
+}
+
+/** (E281) the phone's streak cards at their full wet-ground gain */
+function phoneCardGain(streaks: readonly Object3D[]): void {
+  for (const o of streaks) {
+    const k = o instanceof Mesh && o.material instanceof ShaderMaterial ? o.material.uniforms['uCardK'] : undefined;
+    if (k !== undefined && k.value instanceof Vector4) k.value.x *= PHONE_CARD_GAIN;
+  }
+}
+
 export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
   const glow = glowUniforms();
@@ -70,43 +109,37 @@ export function shardRender(): LookStrategy {
     // the learned LUT its composite applies, declared so a grid cell (which carries the engine chain, not this compose)
     // can carry it too (op-lut20; behind the grid's default-off Debug row)
     lut: LUT_URL,
+    // the same composite inside a grid cell (op-frame21, SF63 / G158; behind the grid's default-off Debug row): it is the
+    // whole colour chain, as standalone, where the chain slot holds the composite alone
+    cell: {
+      replaces: 'chain',
+      build: (c) => {
+        const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade);
+        // its scene-side parts, as compose sets them: the streak cards' gain (the whole wet-floor reflection where no
+        // reflection pass runs) and, without the bleed pyramid, the phone's light halos
+        const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
+        for (const u of cardOns) u.value = reflect === null ? 1 : CARD_ON;
+        if (reflect === null) phoneCardGain(streaks);
+        const world = ndRuntime().world, src = lightSources();
+        const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
+        if (halos !== null) {
+          world.root.add(halos.mesh);
+          c.scope.onDispose(() => { halos.mesh.removeFromParent(); halos.mesh.geometry.dispose(); halos.mesh.material.dispose(); });
+        }
+        return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed] };
+      },
+    },
     compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
       // AO at the city's scale, faded with the fog (data/aoLook.ts)
       tuneAo(c.fx.ao, AO_TUNING, c.tier === 'phone', c.scene);
-      let reflect: RowRenderPassView | null = null;
-      let haze: RowRenderPassView | null = null;
-      let bleed: RowRenderPassView | null = null;
-      const beforeChain: NonNullable<LookComposition['beforeChain']> = [];
-      // Emergency phone profile: avoid the three custom passes while isolating the iPhone load failure.
-      // At 402×812, DPR 2, their half-float RGBA targets total an estimated 7,550,992 bytes (7.20 MiB);
-      // actual driver allocation and whether this causes the crash remain unconfirmed.
-      if (c.tier !== 'phone') {
-        // the wet floor at the square's datum: the plaza, the street north through the gate, the stair-street's foot
-        const rect = new Vector4(WELL.x0 - 2, STREET.z0, Math.max(PLAZA.x1, STAIR.x0) + 4, PLAZA.z1 + 10);
-        // (dome C2) and the stair-street's treads and landings, any height: x 22 … 102, z 2 … 10
-        const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
-        const s = world.shared.u, time = (): number => s.uTime.value;
-        const family = PASS_FAMILY, camera = c.camera;
-        reflect = new RowRenderPass(REFLECT_PASS, { family, camera, params: { time }, links: { uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
-        haze = new RowRenderPass(HAZE_PASS, { family, camera, params: { time }, links: { ...s, uGroundY: { value: Y0 } } });
-        bleed = new RowRenderPass(BLEED_PASS, { family, camera, links: glow });
-        beforeChain.push(reflect, haze, bleed);
-      }
-      const jiehua = new JiehuaEffect(c.camera, world.shared, glow, grade);
-      jiehua.source = bleed;
-      jiehua.haze = haze;
-      jiehua.refl = reflect;
+      const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade);
+      const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
       // the streak cards (look/streaks.ts): found by their own uniform
       const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.scene, 'uCardOn');
       const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; };
       setCardOn(reflect === null ? 1 : CARD_ON);
-      if (reflect === null) {
-        for (const o of streaks) {
-          const k = o instanceof Mesh && o.material instanceof ShaderMaterial ? o.material.uniforms['uCardK'] : undefined;
-          if (k !== undefined && k.value instanceof Vector4) k.value.x *= PHONE_CARD_GAIN;
-        }
-      }
+      if (reflect === null) phoneCardGain(streaks);
       // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
       const src = lightSources();
       const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;

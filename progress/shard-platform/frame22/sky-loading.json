@@ -1,0 +1,340 @@
+{
+ "version": {
+  "build": "d823261-mv2h41uj",
+  "time": "2026-10-10T14:12:22.834Z"
+ },
+ "started": "2026-10-10T14:12:37.109Z",
+ "runs": {
+  "off": {
+   "errors": [],
+   "console": [
+    "warning: THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "warning: THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "warning: THREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+   ],
+   "shots": [
+    {
+     "name": "sky-A-0s",
+     "local": [
+      -1.2,
+      0.3,
+      236.5
+     ],
+     "feet": {
+      "x": -1.2,
+      "y": 0.3,
+      "z": -318.5
+     },
+     "current": "far-reach",
+     "inside": "far-reach",
+     "gameplayReady": true,
+     "pending": [],
+     "residents": [
+      "far-reach"
+     ],
+     "screens": {
+      "shown": [
+       {
+        "instance": "blender-template-1",
+        "status": "loading"
+       },
+       {
+        "instance": "driftwood-isle",
+        "status": "loading"
+       },
+       {
+        "instance": "nine-dragon-stack",
+        "status": "loading"
+       }
+      ],
+      "draws": 70
+     },
+     "wsLoad": null,
+     "overlays": [
+      {
+       "tag": "DIV",
+       "cls": "ws-grid-budget",
+       "text": "MEMORYALL LOADED 670 / 1000 MB (67%)SKY REACH 137% OF BUDGETBLENDER TEMPLATE 2% OF BUDGETSIGNAL DUNES 2% OF BUDGETNINE DRAGON STACK 2% OF BUDGETPASTEL PLAIN 2% "
+      },
+      {
+       "tag": "DIV",
+       "cls": "ws-resume-card",
+       "text": "ResumingDriftwood IsleReload"
+      }
+     ]
+    },
+    {
+     "name": "sky-A-4s",
+     "local": [
+      -1.2,
+      0.3,
+      236.5
+     ],
+     "feet": {
+      "x": -1.2,
+      "y": 0.3,
+      "z": -318.5
+     },
+     "current": "far-reach",
+     "inside": "far-reach",
+     "gameplayReady": true,
+     "pending": [],
+     "residents": [
+      "far-reach"
+     ],
+     "screens": {
+      "shown": [
+       {
+        "instance": "blender-template-1",
+        "status": "loading"
+       },
+       {
+        "instance": "driftwood-isle",
+        "status": "loading"
+       },
+       {
+        "instance": "nine-dragon-stack",
+        "status": "loading"
+       }
+      ],
+      "draws": 82
+     },
+     "wsLoad": null,
+     "overlays": [
+      {
+       "tag": "DIV",
+       "cls": "ws-grid-budget",
+       "text": "MEMORYALL LOADED 670 / 1000 MB (67%)SKY REACH 137% OF BUDGETBLENDER TEMPLATE 2% OF BUDGETSIGNAL DUNES 2% OF BUDGETNINE DRAGON STACK 2% OF BUDGETPASTEL PLAIN 2% "
+      },
+      {
+       "tag": "DIV",
+       "cls": "ws-resume-card",
+       "text": "ResumingDriftwood IsleReload"
+      }
+     ]
+    },
+    {
+     "name": "sky-A-15s",
+     "local": [
+      -1.2,
+      0.3,
+      236.5
+     ],
+     "feet": {
+      "x": -1.2,
+      "y": 0.3,
+      "z": -318.5
+     },
+     "current": "far-reach",
+     "inside": "far-reach",
+     "gameplayReady": true,
+     "pending": [],
+     "residents": [
+      "far-reach"
+     ],
+     "screens": {
+      "shown": [
+       {
+        "instance": "blender-template-1",
+        "status": "loading"
+       },
+       {
+        "instance": "driftwood-isle",
+        "status": "loading"
+       },
+       {
+        "instance": "nine-dragon-stack",
+        "status": "loading"
+       }
+      ],
+      "draws": 118
+     },
+     "wsLoad": null,
+     "overlays": [
+      {
+       "tag": "DIV",
+       "cls": "ws-grid-budget",
+       "text": "MEMORYALL LOADED 670 / 1000 MB (67%)SKY REACH 137% OF BUDGETBLENDER TEMPLATE 2% OF BUDGETSIGNAL DUNES 2% OF BUDGETNINE DRAGON STACK 2% OF BUDGETPASTEL PLAIN 2% "
+      },
+      {
+       "tag": "DIV",
+       "cls": "ws-resume-card",
+       "text": "ResumingDriftwood IsleReload"
+      }
+     ]
+    }
+   ],
+   "route": []
+  },
+  "on": {
+   "errors": [],
+   "console": [
+    "warning: THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "warning: THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "warning: THREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "warning: THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+   ],
+   "shots": [
+    {
+     "name": "sky-B-0s",
+     "local": [
+      -1.2,
+      0.28166666692122816,
+      236.5
+     ],
+     "feet": {
+      "x": -1.2,
+      "y": 0.28166666692122816,
+      "z": -318.5
+     },
+     "current": "far-reach",
+     "inside": "far-reach",
+     "gameplayReady": true,
+     "pending": [],
+     "residents": [
+      "far-reach"
+     ],
+     "screens": {
+      "shown": [
+       {
+        "instance": "blender-template-1",
+        "status": "loading"
+       },
+       {
+        "instance": "driftwood-isle",
+        "status": "loading"
+       },
+       {
+        "instance": "nine-dragon-stack",
+        "status": "loading"
+       }
+      ],
+      "draws": 66
+     },
+     "wsLoad": null,
+     "overlays": [
+      {
+       "tag": "DIV",
+       "cls": "ws-grid-budget",
+       "text": "MEMORYALL LOADED 670 / 1000 MB (67%)SKY REACH 137% OF BUDGETBLENDER TEMPLATE 2% OF BUDGETSIGNAL DUNES 2% OF BUDGETNINE DRAGON STACK 2% OF BUDGETPASTEL PLAIN 2% "
+      },
+      {
+       "tag": "DIV",
+       "cls": "ws-resume-card",
+       "text": "ResumingDriftwood IsleReload"
+      }
+     ]
+    },
+    {
+     "name": "sky-B-4s",
+     "local": [
+      -1.2,
+      0.28166666692122816,
+      236.5
+     ],
+     "feet": {
+      "x": -1.2,
+      "y": 0.28166666692122816,
+      "z": -318.5
+     },
+     "current": "far-reach",
+     "inside": "far-reach",
+     "gameplayReady": true,
+     "pending": [],
+     "residents": [
+      "far-reach"
+     ],
+     "screens": {
+      "shown": [
+       {
+        "instance": "blender-template-1",
+        "status": "loading"
+       },
+       {
+        "instance": "driftwood-isle",
+        "status": "loading"
+       },
+       {
+        "instance": "nine-dragon-stack",
+        "status": "loading"
+       }
+      ],
+      "draws": 78
+     },
+     "wsLoad": null,
+     "overlays": [
+      {
+       "tag": "DIV",
+       "cls": "ws-grid-budget",
+       "text": "MEMORYALL LOADED 670 / 1000 MB (67%)SKY REACH 137% OF BUDGETBLENDER TEMPLATE 2% OF BUDGETSIGNAL DUNES 2% OF BUDGETNINE DRAGON STACK 2% OF BUDGETPASTEL PLAIN 2% "
+      },
+      {
+       "tag": "DIV",
+       "cls": "ws-resume-card",
+       "text": "ResumingDriftwood IsleReload"
+      }
+     ]
+    },
+    {
+     "name": "sky-B-15s",
+     "local": [
+      -1.2,
+      0.28166666692122816,
+      236.5
+     ],
+     "feet": {
+      "x": -1.2,
+      "y": 0.28166666692122816,
+      "z": -318.5
+     },
+     "current": "far-reach",
+     "inside": "far-reach",
+     "gameplayReady": true,
+     "pending": [],
+     "residents": [
+      "far-reach"
+     ],
+     "screens": {
+      "shown": [
+       {
+        "instance": "blender-template-1",
+        "status": "loading"
+       },
+       {
+        "instance": "driftwood-isle",
+        "status": "loading"
+       },
+       {
+        "instance": "nine-dragon-stack",
+        "status": "loading"
+       }
+      ],
+      "draws": 112
+     },
+     "wsLoad": null,
+     "overlays": [
+      {
+       "tag": "DIV",
+       "cls": "ws-grid-budget",
+       "text": "MEMORYALL LOADED 670 / 1000 MB (67%)SKY REACH 137% OF BUDGETBLENDER TEMPLATE 2% OF BUDGETSIGNAL DUNES 2% OF BUDGETNINE DRAGON STACK 2% OF BUDGETPASTEL PLAIN 2% "
+      },
+      {
+       "tag": "DIV",
+       "cls": "ws-resume-card",
+       "text": "ResumingDriftwood IsleReload"
+      }
+     ]
+    }
+   ],
+   "route": []
+  }
+ },
+ "finished": "2026-10-10T14:14:05.484Z"
+}

@@ -29,15 +29,19 @@
  *   effects only the cinematic chain has are compiled into its colour pass at install, neutral (`regionCinematic.ts`); a
  *   carried region on the cinematic chain turns them on by its weight, its clock drives the shafts, and the march's target
  *   is allocated only while it carries them.
+ * - **A region's own composite** (SF63 / G158, `ExtendLook.cell`): a resident region whose look declares its post composite
+ *   puts its display after the shell's tone mapping (like a 'replace' chain's display transform) and its side passes before
+ *   the colour pass; they run only while it carries the frame, and its weight fades its display in and the tone mapping out.
  * - **Owner stacks** (`FrameStack`): each owner may hang a stack on the frame that is told its weight every frame. The
  *   home's grade fade is the first; SF59's per-shard post stacks (catalogue effects as data) hang here the same way.
  * Select a shard never builds this (grid page mode only).
  */
 import { Color, Data3DTexture, NoColorSpace, SRGBColorSpace, Uniform, UnsignedByteType, Vector3, WebGLRenderTarget, type Camera, type Scene, type Texture } from 'three';
-import { BlendFunction, Effect, EffectAttribute, EffectPass, LookupTexture, LUT3DEffect, type EffectComposer } from 'postprocessing';
+import { BlendFunction, Effect, EffectAttribute, EffectPass, LookupTexture, LUT3DEffect, type EffectComposer, type Pass } from 'postprocessing';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
+import type { LookCellPost } from '@wildshard/engine/render/look';
 import type { FarProxyView } from './farView';
 import { RoadSky, type RoadSkyPage } from './roadSky';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
@@ -247,6 +251,9 @@ export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined
   };
 }
 
+/** three's tone-mapping chunk, which a colour pass may include once (op-frame22) */
+const TONE_CHUNK = /#include\s*<tonemapping_pars_fragment>/u;
+
 /** The live one frame. Built by the grid session for every host with a frame (G175); disposed with the level scope. */
 export class GridFrame {
   private readonly host: GridFrameHost;
@@ -280,7 +287,9 @@ export class GridFrame {
   /** SF63 follow-up: a cinematic region's shafts, fringe and grain, compiled into the shell's colour pass at install */
   private cine: FrameCinematic | null = null;
   /** SF63: the shell's colour pass and its effect list (set at install), where a resident region's display transform goes */
-  private colour: { readonly pass: EffectPass; readonly effects: Effect[]; readonly tone: Effect } | null = null;
+  private colour: { readonly composer: EffectComposer; readonly pass: EffectPass; readonly effects: Effect[]; readonly tone: Effect } | null = null;
+  /** SF63 / G158: each resident region's own composite side passes (`ExtendLook.cell`), before the colour pass */
+  private readonly cellPasses = new Map<string, readonly Pass[]>();
   /** SF63: each resident region's own display transform (a 'replace' chain's), placed after the page's tone mapping */
   private readonly displays = new Map<string, Effect>();
   private readonly roadSky = new RoadSky();
@@ -307,6 +316,7 @@ export class GridFrame {
     this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
     const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
       owned: (instance, weight) => this.stack(instance, { weight }),
+      composite: (instance, post) => this.composite(instance, post),
       post: (instance?: string): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null,
         vol: instance === undefined || this.cine === null ? null : this.cine.port(instance) }) });
     scope.onDispose(() => {
@@ -315,6 +325,8 @@ export class GridFrame {
       this.cine?.dispose(); this.cine = null;
       for (const display of this.displays.values()) display.dispose();
       this.displays.clear();
+      for (const passes of this.cellPasses.values()) for (const p of passes) p.dispose();
+      this.cellPasses.clear();
       detachSky(); this.roadSky.dispose();
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
@@ -354,6 +366,8 @@ export class GridFrame {
         if (colour !== null && i !== -1) { colour.effects.splice(i, 1); colour.pass.recompile(); }
         display.dispose();
       }
+      const passes = this.cellPasses.get(instance);
+      if (passes !== undefined) { this.cellPasses.delete(instance); for (const p of passes) { this.colour?.composer.removePass(p); p.dispose(); } }
     };
   }
 
@@ -367,6 +381,41 @@ export class GridFrame {
     this.skies.set(instance, layer);
     const unstack = this.stack(instance, { weight: (w) => { layer.weight(w); } });
     return () => { if (this.skies.get(instance) === layer) this.skies.delete(instance); unstack(); layer.weight(0); };
+  }
+
+  /**
+   * A live region's own post composite (SF63 / G158, `ExtendLook.cell`): its display after the shell's tone mapping, its side
+   * passes before the colour pass (both placed now, one recompile, or at the install), run and faded in by its weight
+   * while it carries the frame. Returns the release, which removes and frees them.
+   */
+  composite(instance: string, post: LookCellPost): () => void {
+    if (!this.live.has(instance)) throw new Error(`Grid frame has no live look for ${instance} to composite`);
+    if (this.displays.has(instance) || this.cellPasses.has(instance)) throw new Error(`Grid frame already has a display for ${instance}`);
+    const display = post.display, passes = [...(post.passes ?? [])];
+    // op-frame22: the shell's tone mapping already includes three's tone-mapping chunk; a second copy in the merged colour
+    // pass redefines it, the pass never compiles and the frame freezes on its last image (Sky Reach's first composite)
+    if (TONE_CHUNK.test(display.getFragmentShader())) throw new Error(`Grid frame refuses ${instance}'s display: three's tone-mapping chunk is already in the colour pass`);
+    display.blendMode.blendFunction = BlendFunction.NORMAL; display.blendMode.opacity.value = 0;
+    for (const p of passes) p.enabled = false;
+    this.displays.set(instance, display); this.cellPasses.set(instance, passes);
+    this.placePasses(passes); this.placeDisplay(display, true);
+    if (this.carrier?.instance === instance) this.drop(); // taken again next frame, with its composite
+    return () => {
+      if (this.displays.get(instance) !== display) return;
+      if (this.carrier?.instance === instance) this.drop();
+      this.displays.delete(instance); this.cellPasses.delete(instance);
+      const colour = this.colour, i = colour?.effects.indexOf(display) ?? -1;
+      if (colour !== null && i !== -1) { colour.effects.splice(i, 1); colour.pass.recompile(); }
+      for (const p of passes) colour?.composer.removePass(p);
+      display.dispose(); for (const p of passes) p.dispose();
+    };
+  }
+
+  /** a composite's side passes right before the colour pass (nothing before the install: the install places them) */
+  private placePasses(passes: readonly Pass[]): void {
+    const colour = this.colour;
+    if (colour === null) return;
+    for (const p of passes) if (!colour.composer.passes.includes(p)) colour.composer.addPass(p, colour.composer.passes.indexOf(colour.pass));
   }
 
   /** A drawn far proxy: its haze follows the owner's air. Returns the release. */
@@ -426,13 +475,15 @@ export class GridFrame {
         const tone = post.tone, toneBlend = tone?.blendMode.blendFunction;
         if (tone !== undefined && effects.includes(tone)) {
           tone.blendMode.blendFunction = BlendFunction.NORMAL;
-          this.colour = { pass, effects, tone };
+          this.colour = { composer, pass, effects, tone };
           for (const display of this.displays.values()) this.placeDisplay(display, false);
+          for (const passes of this.cellPasses.values()) this.placePasses(passes);
         }
         unstack = () => {
           this.drop(); this.chainPost = null; this.chainFade = null; carried.dispose(); rest.dispose();
           for (const effect of [this.lookEffect, this.lutEffect, ...this.displays.values()]) { const i = effects.indexOf(effect); if (i !== -1) effects.splice(i, 1); }
           if (tone !== undefined && toneBlend !== undefined) { tone.blendMode.blendFunction = toneBlend; tone.blendMode.opacity.value = 1; }
+          for (const passes of this.cellPasses.values()) for (const p of passes) composer.removePass(p);
           this.colour = null;
           unplace();
         };
@@ -523,7 +574,9 @@ export class GridFrame {
     const volumetric = chain.post?.volumetric;
     if (volumetric !== undefined) this.cine?.take(instance, { strength: volumetric.strength, sunColor: volumetric.sunColor, sunDir: this.host.sunDir?.(), fog: this.live.get(instance)?.fog?.color });
     // SF63: its own display transform in by the weight, the page's tone mapping out
-    const fade = display === null || tone === null ? null : (w: number): void => { display.blendMode.opacity.value = w; tone.blendMode.opacity.value = 1 - w; };
+    // SF63 / G158: its own composite's side passes run only while it carries the frame
+    const passes = this.cellPasses.get(instance) ?? [];
+    const fade = display === null || tone === null ? null : (w: number): void => { display.blendMode.opacity.value = w; tone.blendMode.opacity.value = 1 - w; for (const p of passes) p.enabled = w > 0; };
     this.carrier = { instance, chain, knobs: knobs === null && fade === null ? null : (w) => { knobs?.weight(w); fade?.(w); }, restore: () => {
       knobs?.restore(); fade?.(0);
       post.saturation.saturation = saturation; post.contrast.brightness = brightness; post.contrast.contrast = contrast; undoGrade();
