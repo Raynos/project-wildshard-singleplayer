@@ -155,7 +155,65 @@ export interface Milestone {
   lines: string[];
 }
 
+/** One shard on the Progress card: the share script's measured numbers, and the recount's effort when it has a row. */
+export interface ProgressShard {
+  slug: string;
+  name: string;
+  /** Public SDK share, % (measured on this build's revision). */
+  sharePct: number;
+  publicLines: number;
+  customLines: number;
+  /** runtime/ + trusted-SDK lines, and the ceiling they must stay under (measure 2). */
+  runtime: number;
+  ceiling: number;
+  /** Both measures: share ≥ the target and runtime ≤ the ceiling. */
+  at8020: boolean;
+  /** Of the six: boot, headless, replay, ledger, grid-ready, compatible. */
+  proofs: number;
+  effort: ProgressEffort | null;
+}
+
+/** A recount row: hours spent are measured; hours left (and so effort %) are the recount's projection. */
+export interface ProgressEffort {
+  name: string;
+  pct: number;
+  spent: number;
+  left: number | null;
+  approx: boolean;
+}
+
+export interface ProgressTotal {
+  label: string;
+  pct: number;
+  spent: number | null;
+  left: number | null;
+  range: number[] | null;
+}
+
+export interface ProgressData {
+  /** The revision the share script measured (this build's). */
+  revision: string;
+  targetPct: number;
+  hardCount: { done: number; total: number };
+  /** The shipping seven, highest share first. */
+  shipping: ProgressShard[];
+  /** Templates and style shards. */
+  others: ProgressShard[];
+  /** Recount rows that are not a shard (shared systems). */
+  extra: ProgressEffort[];
+  recount: {
+    date: string;
+    asOf: string;
+    confidence: string;
+    source: string;
+    totals: ProgressTotal[];
+    finish: { label: string; central: string; from: string; to: string }[];
+    chart: string | null;
+  };
+}
+
 export interface PlanData {
+  progress: ProgressData;
   slug: string;
   title: string;
   state: string;
@@ -166,8 +224,12 @@ export interface PlanData {
   readiness: string | null;
   /** State's own reported percentages, verbatim (never inferred). */
   effort: Effort[];
+  /** Who / when State says those percentages are from ("coordinator, 2026-10-08 evening"), or null. */
+  effortWhen: string | null;
   milestones: Milestone[];
   rows: PlanRow[];
   decisions: Decision[];
+  /** "G1–G289": the span of the decision ids the plan has. */
+  decisionRange: string;
   waiting: WaitingItem[];
 }

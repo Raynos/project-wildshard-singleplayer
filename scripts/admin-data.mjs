@@ -1,10 +1,28 @@
 #!/usr/bin/env node
 // SF68 / E462: committed reports -> typed static admin bundle. No game build, browser or deploy.
 import { execFileSync } from 'node:child_process';
-import { existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,renameSync,rmSync,writeFileSync } from 'node:fs';
+import { existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,renameSync,rmSync,writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname,join,resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { collectAdminData,safeSourcePath,stableJson } from './admin-data/collect.mjs';
+import { RECOUNT_PREFIX,SHARE_COMMAND } from './admin-data/progress.mjs';
+import { linkNodeModules } from './link-node-modules.mjs';
+
+const REPORTS=['progress/memory','progress/loading/sf67','art/playtest','docs/plans/SHARD-PLATFORM.md'];
+const SHARE_SCRIPT='scripts/shard-platform.mjs';
+/** What `node scripts/shard-platform.mjs --json` reads: the shard sources and packages, its ceilings, the frozen legacy
+ * inventory, the proof witnesses and its own imports. admin/tools/deploy.sh exports the same list. */
+export const SHARE_INPUTS=['package.json','src','lint/shard-platform.json','lint/legacy-shards.json','test/proof',SHARE_SCRIPT,'scripts/check-graph.mjs','scripts/legacy-shards.mjs'];
+
+/** Runs the share script of a clean tree (it measures the tree it lives in) and parses its JSON; it fails if the script
+ * is missing or exits nonzero, never falling back to the shared checkout.
+ * @param {string} root @returns {unknown} */
+export function runSharePlatform(root){
+  if(!existsSync(join(root,SHARE_SCRIPT)))throw new Error(`Missing share script ${SHARE_SCRIPT} in ${root} (${SHARE_COMMAND})`);
+  const out=execFileSync(process.execPath,[join(root,SHARE_SCRIPT),'--json'],{cwd:root,maxBuffer:16_000_000,stdio:['ignore','pipe','inherit']});
+  return JSON.parse(out.toString('utf8'));
+}
 
 /** Never observe the shared index/working tree. A single resolved commit pins all subsequent blob reads.
  * @param {string} root @param {string} rev @returns {import('./admin-data/collect.mjs').CommittedTree} */
@@ -12,13 +30,28 @@ export function committedAdminTree(root,rev){
   const git=/** @param {string[]} args */args=>execFileSync('git',['-C',root,...args],{maxBuffer:64_000_000});
   const revision=git(['rev-parse','--verify',`${rev}^{commit}`]).toString('utf8').trim();
   if(!/^[a-f\d]{40}$/u.test(revision))throw new Error('Could not resolve report revision');
-  const entries=git(['ls-tree','-r','-z',revision,'--','progress/memory','progress/loading/sf67','art/playtest','docs/plans/SHARD-PLATFORM.md']).toString('utf8').split('\0').filter(Boolean);
+  const recounts=git(['ls-tree','-d','--name-only','-z',revision,'--','progress/shard-platform/']).toString('utf8').split('\0').filter(path=>path.startsWith(RECOUNT_PREFIX));
+  const entries=git(['ls-tree','-r','-z',revision,'--',...REPORTS,...recounts]).toString('utf8').split('\0').filter(Boolean);
   const paths=entries.map(entry=>{
     const tab=entry.indexOf('\t'),meta=entry.slice(0,tab),path=entry.slice(tab+1);
     if(!meta.startsWith('100644 blob ')&&!meta.startsWith('100755 blob '))throw new Error(`Report tree contains a non-regular file: ${path}`);
     return path;
   });
-  return {revision,paths,read:path=>git(['show',`${revision}:${path}`])};
+  // The share is measured on a clean export of the same revision, with the checkout's installed node_modules linked in.
+  const platform=()=>{
+    const present=git(['ls-tree','--name-only','-z',revision,'--',...SHARE_INPUTS]).toString('utf8').split('\0').filter(Boolean);
+    if(!present.includes(SHARE_SCRIPT))throw new Error(`Missing committed share script ${SHARE_SCRIPT} at ${revision.slice(0,9)} (${SHARE_COMMAND})`);
+    const work=realpathSync(mkdtempSync(join(tmpdir(),'admin-share-')));
+    try{
+      const tar=join(work,'share.tar'),tree=join(work,'tree');
+      mkdirSync(tree);
+      git(['archive','--format=tar',`--output=${tar}`,revision,'--',...present]);
+      execFileSync('tar',['-xf',tar,'-C',tree]);
+      linkNodeModules(root,tree);
+      return runSharePlatform(tree);
+    }finally{rmSync(work,{recursive:true,force:true});}
+  };
+  return {revision,paths,read:path=>git(['show',`${revision}:${path}`]),platform};
 }
 /** Explicit build-export adapter for hosts without .git. The caller must supply a clean archive of rev.
  * Never a fallback for the mutable shared checkout; the pin is provenance supplied by the export producer.
@@ -39,8 +72,10 @@ export function exportedAdminTree(root,revision){
     else if(stat.isFile())paths.push(path);
     else throw new Error(`Report export contains a non-regular file: ${path}`);
   };
-  for(const path of ['progress/memory','progress/loading/sf67','art/playtest','docs/plans/SHARD-PLATFORM.md'])walk(path);
-  return {revision,paths,read:path=>readFileSync(join(root,safeSourcePath(path)))};
+  const recounts=existsSync(join(root,'progress/shard-platform'))?readdirSync(join(root,'progress/shard-platform')).map(name=>`progress/shard-platform/${name}`).filter(path=>path.startsWith(RECOUNT_PREFIX)):[];
+  for(const path of [...REPORTS,...recounts])walk(path);
+  // The export carries the share script and its inputs (admin/tools/deploy.sh); the script measures that export.
+  return {revision,paths,read:path=>readFileSync(join(root,safeSourcePath(path))),platform:()=>runSharePlatform(root)};
 }
 /** Writes a complete fresh directory atomically; stale assets from older bundles cannot survive.
  * @param {import('./admin-data/collect.mjs').CommittedTree} tree @param {string} output */

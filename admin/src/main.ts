@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   if (schema !== BUNDLE_SCHEMA) throw new Error(`data/bundle.json: schema ${JSON.stringify(schema)}, expected ${BUNDLE_SCHEMA}`);
   const bundle = raw as Bundle;
   if (build) {
-    build.textContent = `${bundle.build.slice(0, 9)} · ${bundle.builtAt.slice(5, 16).replace('T', ' ')}`;
+    build.textContent = `${bundle.build.slice(0, 9)} · built ${bundle.builtAt.slice(5, 16).replace('T', ' ')} UTC`;
     build.title = `Built ${bundle.builtAt} from ${bundle.build}`;
   }
   let last = '';

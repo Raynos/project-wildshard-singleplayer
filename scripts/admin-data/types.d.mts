@@ -34,9 +34,33 @@ export interface LoadingRun {
   longTasks:{startMs:number;durationMs:number;owner:string}[];
 }
 export interface LoadingReport {schema:'loading-benchmark/1';pin:string;device:string;runs:LoadingRun[];missing:string[]}
+/** One shard's row of `node scripts/shard-platform.mjs --json`, run on the collected revision (measured, verbatim). */
+export interface ShareProofs { boot:boolean; headless:boolean; replay:boolean; ledger:boolean; gridReady:boolean; compatible:boolean; transitional:boolean }
+export interface ShardShare {
+  slug:string; publicLines:number; customLines:number; runtimeLines:number; trustedRuntimeLines:number;
+  /** public ÷ (public + custom), 0..1. */
+  publicShare:number; baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
+  /** boot, headless, replay, ledger, grid-ready, compatible: how many of the six pass. */
+  proofsPassing:number;
+}
+export interface ShareReport { command:string; target:number; shards:ShardShare[] }
+/** A row of the newest measured effort recount (progress/shard-platform/effort-recount-*): hours spent are measured,
+ * hours remaining are the recount's projection (approximate where it writes `~`). */
+export interface EffortShard { slug:string|null; name:string; spentHours:number; remainingHours:number|null; approximate:boolean; effortPercent:number; line:number }
+export interface EffortTotal { label:string; spentHours:number|null; remainingHours:number|null; remainingRange:number[]|null; effortPercent:number }
+/** A projected finish (UTC timestamps as the recount writes them), per pace. */
+export interface EffortFinish { label:string; central:string; from:string; to:string }
+export interface EffortRecount {
+  folder:string; date:string;
+  /** The recount's own timestamp (effort.json `date`), or the folder date for a README-only recount. */
+  asOf:string; confidence:string; format:'json'|'readme'; source:Source;
+  /** The recount's share-vs-hours chart, a media path. */
+  chart:string; shards:EffortShard[]; totals:EffortTotal[]; finish:EffortFinish[];
+}
+export interface Progress { share:ShareReport; effort:EffortRecount }
 export interface AdminBundle {
   schema:'wildshard-admin/1';revision:string;
   memory:MemoryEntry[];
   loading:{status:'available'|'unavailable';reports:{source:Source;data:LoadingReport}[];missing:string[]};
-  playtests:Playtest[]; plan:Plan; media:Media[];
+  playtests:Playtest[]; plan:Plan; progress:Progress; media:Media[];
 }

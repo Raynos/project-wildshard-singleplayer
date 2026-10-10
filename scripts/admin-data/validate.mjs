@@ -78,6 +78,8 @@ export function readAdminBundle(value){
   if(bundle.loading.status==='unavailable'&&bundle.loading.missing.length === 0)throw new Error('Missing loading evidence requires a reason');
   const paths=new Set(bundle.media.map(row=>row.path));
   if(paths.size!==bundle.media.length)throw new Error('Duplicate media path');
+  if(!paths.has(bundle.progress.effort.chart))throw new Error(`Unknown effort chart ${bundle.progress.effort.chart}`);
+  if(bundle.progress.share.shards.length===0)throw new Error('Progress requires the share script rows');
   for(const report of bundle.playtests){
     if(report.builds.length === 0&&report.missing.length === 0)throw new Error('Playtest requires build provenance or a missing reason');
     const ranks=new Set(report.findings.map(row=>row.rank));

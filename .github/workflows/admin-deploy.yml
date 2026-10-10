@@ -12,6 +12,10 @@ on:
       - 'progress/loading/sf67/**'
       - 'art/playtest/round-*/**'
       - 'docs/plans/SHARD-PLATFORM.md'
+      # the plan page's Progress card: the effort recounts and the share script (with its ceilings)
+      - 'progress/shard-platform/effort-recount-*/**'
+      - 'scripts/shard-platform.mjs'
+      - 'lint/shard-platform.json'
       - '.github/workflows/admin-deploy.yml'
   workflow_dispatch:
 

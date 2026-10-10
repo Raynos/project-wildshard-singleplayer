@@ -274,3 +274,36 @@ input.search { width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 
 table.waitlist { width: 100%; border-collapse: collapse; font-size: 13px; }
 table.waitlist th, table.waitlist td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 table.waitlist td a { color: inherit; }
+
+/* the plan's Progress card: measured share (accent) next to projected effort (amber), the 80 % target as a tick */
+.progress .ptop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.progress .ptop h2 { margin: 0; }
+.phard { display: flex; align-items: center; gap: 12px; margin: 4px 0 6px; line-height: 1.3; }
+.phard .hard-count { margin: 0; white-space: nowrap; }
+.ptiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 4px; }
+.ptile { background: var(--panel-2); border-radius: 11px; padding: 9px 11px; }
+.ptile .plabel { font-size: 12px; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.ptile .pbig { font-size: 26px; font-weight: 750; color: var(--warn); font-variant-numeric: tabular-nums; line-height: 1.15; }
+.pfinish { margin: 6px 0 0; }
+.sw.ptick { width: 3px; height: 14px; border-radius: 1px; background: var(--text); }
+.pshards { list-style: none; margin: 10px 0 0; padding: 0; }
+.pshard { padding: 9px 0; border-top: 1px solid var(--line); }
+.phead { display: flex; align-items: baseline; gap: 8px; }
+.phead b { font-size: 14.5px; }
+.pmet { font-size: 11px; font-weight: 700; color: var(--good); background: color-mix(in srgb, var(--good) 15%, transparent); padding: 2px 6px; border-radius: 6px; }
+.pnum { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.pshare { color: var(--accent); }
+.peffort { color: var(--warn); }
+.pbars { display: grid; gap: 3px; margin: 5px 0 4px; }
+.ptrack { position: relative; display: block; height: 8px; border-radius: 4px; background: var(--panel-2); }
+.ptrack.effort { height: 5px; }
+.ptrack i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.ptrack.effort i { background: var(--warn); }
+.pshard.met .ptrack.share i { background: var(--good); }
+.ptrack em { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--text); border-radius: 1px; }
+.pmeta { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pmeta .pover { color: var(--bad); }
+.pothers { margin-top: 6px; }
+.pchart { display: block; width: 100%; padding: 0; margin: 12px 0 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: none; cursor: zoom-in; }
+.pchart img { display: block; width: 100%; height: auto; }
+.pnote { margin: 10px 0 0; overflow-wrap: anywhere; }

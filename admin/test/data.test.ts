@@ -1,10 +1,15 @@
 // The admin site's view mapping (SF68): sp-x2's `wildshard-admin/1` bundle → the page's view, on inline fixtures (no
 // dependence on progress/ or art/, which the game's Vercel export drops).
 import { describe, expect, it } from 'vitest';
-import type { AdminBundle } from '../../scripts/admin-data/types.mjs';
+import type { AdminBundle, ShardShare } from '../../scripts/admin-data/types.mjs';
 import { finding, plain, poseTitle, rowStatus, sectionBullets, toView } from '../tools/view.ts';
 
 const src = (path: string) => ({ path, sha256: 'a'.repeat(64), bytes: 1 });
+const shareRow = (slug: string, publicShare: number, runtimeLines: number, ceiling: number, proofsPassing: number): ShardShare => ({
+  slug, publicLines: Math.round(publicShare * 1000), customLines: 1000 - Math.round(publicShare * 1000), runtimeLines, trustedRuntimeLines: 0,
+  publicShare, baseline: ceiling * 5, ceiling, enforced: ceiling === 0, proofsPassing,
+  proofs: { boot: true, headless: true, replay: true, ledger: true, gridReady: true, compatible: true, transitional: runtimeLines > 0 },
+});
 
 const ADMIN: AdminBundle = {
   schema: 'wildshard-admin/1',
@@ -49,7 +54,28 @@ const ADMIN: AdminBundle = {
     decisions: [{ id: 'G248', line: 972, cells: ['G248', 'The admin site', '**A new site**'] }],
     waitingForJake: [{ id: 'G148', line: 870, cells: ['G148', 'Pick', 'needs pick'] }],
   },
-  media: [{ path: 'art/playtest/round-2-2026-10-08/clip-03-crash.mp4', sha256: 'b'.repeat(64), bytes: 9, url: `media/${'b'.repeat(64)}.mp4`, kind: 'video' }],
+  progress: {
+    share: { command: 'node scripts/shard-platform.mjs --json', target: 0.8, shards: [
+      shareRow('_template', 0.955, 0, 0, 6), shareRow('blender-template', 0.902, 0, 0, 6), shareRow('driftwood-isle', 0.191, 4864, 3753, 3),
+      shareRow('far-reach', 0.447, 1130, 1377, 5), shareRow('nalati-grasslands', 0.14, 9592, 6618, 0),
+      shareRow('nine-dragon-stack', 0.82, 6000, 5033, 5), shareRow('pine-hollow', 0.237, 4866, 4339, 3), shareRow('sunscar-dunes', 0.603, 260, 965, 6),
+    ] },
+    effort: {
+      folder: 'progress/shard-platform/effort-recount-2026-10-09', date: '2026-10-09', asOf: '2026-10-09', confidence: 'low to medium', format: 'readme',
+      source: src('progress/shard-platform/effort-recount-2026-10-09/README.md'),
+      chart: 'progress/shard-platform/effort-recount-2026-10-09/share-vs-hours.jpg',
+      shards: [
+        { slug: null, name: 'Template 1', spentHours: 57, remainingHours: 0, approximate: false, effortPercent: 100, line: 10 },
+        { slug: null, name: 'Sky Reach', spentHours: 20, remainingHours: 50, approximate: true, effortPercent: 28, line: 12 },
+        { slug: 'pine-hollow', name: 'Pine', spentHours: 21, remainingHours: 205, approximate: true, effortPercent: 9, line: 0 },
+        { slug: null, name: 'Shared systems', spentHours: 41, remainingHours: 100, approximate: true, effortPercent: 29, line: 17 },
+      ],
+      totals: [{ label: 'M3', spentHours: 205, remainingHours: 950, remainingRange: [700, 1200], effortPercent: 18 }],
+      finish: [],
+    },
+  },
+  media: [{ path: 'art/playtest/round-2-2026-10-08/clip-03-crash.mp4', sha256: 'b'.repeat(64), bytes: 9, url: `media/${'b'.repeat(64)}.mp4`, kind: 'video' },
+    { path: 'progress/shard-platform/effort-recount-2026-10-09/share-vs-hours.jpg', sha256: 'c'.repeat(64), bytes: 9, url: `media/${'c'.repeat(64)}.jpg`, kind: 'image' }],
 };
 
 describe('admin view mapping', () => {
@@ -105,5 +131,39 @@ describe('admin view mapping', () => {
     expect(toView(data, '', new Set()).plans.hardCount).toEqual({ done: 0, total: 7 });
     data.plan.state = 'shards at 80/20: 8 of 7';
     expect(toView(data, '', new Set()).plans.hardCount).toBeNull();
+  });
+
+  it('builds the Progress card: the hard count on both measures, the seven apart from style shards, effort matched by slug or name', () => {
+    const plan = toView(ADMIN, '2026-10-10T00:00:00Z', new Set()).plans;
+    const p = plan.progress;
+    // Nine Dragon has 82 % share but runtime over its ceiling, so only the template is at 80/20.
+    expect(p.hardCount).toEqual({ done: 1, total: 7 });
+    expect(p.revision).toBe('012345678');
+    expect(p.shipping.map((s) => [s.name, s.sharePct, s.at8020])).toEqual([['Template', 95.5, true], ['Nine Dragon', 82, false],
+      ['Signal Dunes', 60.3, false], ['Sky Reach', 44.7, false], ['Pine Hollow', 23.7, false], ['Driftwood', 19.1, false], ['Nalati', 14, false]]);
+    expect(p.others.map((s) => s.name)).toEqual(['Blender Template']);
+    expect(p.shipping.find((s) => s.slug === 'far-reach')?.effort).toEqual({ name: 'Sky Reach', pct: 28, spent: 20, left: 50, approx: true });
+    expect(p.shipping.find((s) => s.slug === 'pine-hollow')?.effort?.pct).toBe(9);
+    expect(p.shipping.find((s) => s.slug === 'driftwood-isle')?.effort).toBeNull();
+    expect(p.extra.map((e) => e.name)).toEqual(['Shared systems']);
+    expect(p.recount).toMatchObject({ date: '2026-10-09', confidence: 'low to medium', chart: `media/${'c'.repeat(64)}.jpg`,
+      totals: [{ label: 'M3', pct: 18, spent: 205, left: 950, range: [700, 1200] }] });
+    expect(plan.decisionRange).toBe('G248–G248');
+  });
+
+  it('fails when the share script lost a shipping shard', () => {
+    const data = structuredClone(ADMIN);
+    data.progress.share.shards = data.progress.share.shards.filter((s) => s.slug !== 'nalati-grasslands');
+    expect(() => toView(data, '', new Set())).toThrow('nalati-grasslands');
+  });
+
+  it('labels decisions by the ids the plan has, and keeps State effort dated', () => {
+    const data = structuredClone(ADMIN);
+    data.plan.decisions = [1, 2, 289].map((n) => ({ id: `G${n}`, line: n, cells: [`G${n}`, 't', 'a'] }));
+    data.plan.state = 'Then effort (coordinator, 2026-10-08 evening): the whole plan ≈ 57 %';
+    const plan = toView(data, '', new Set()).plans;
+    expect(plan.decisionRange).toBe('G1–G289');
+    expect(plan.decisions).toHaveLength(3);
+    expect(plan.effortWhen).toBe('coordinator, 2026-10-08 evening');
   });
 });

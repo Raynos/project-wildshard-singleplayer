@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { posix } from 'node:path';
 import { readMemoryReport } from '../memory-report-data.mjs';
 import { parsePlan,parsePlaytest } from './markdown.mjs';
+import { RECOUNT_PREFIX,newestRecount,parseRecountReadme,readRecountJson,readSharePlatform } from './progress.mjs';
 import { readAdminBundle,readLoadingReport,readItemizedReport } from './validate.mjs';
 
 const MAX_TEXT_BYTES=32_000_000;
@@ -24,7 +25,8 @@ export function stableJson(value){
   };
   return `${JSON.stringify(sort(value),null,2)}\n`;
 }
-/** @typedef {{revision:string;paths:readonly string[];read:(path:string)=>Uint8Array}} CommittedTree */
+/** `platform` runs `node scripts/shard-platform.mjs --json` on exactly this revision (never the shared working tree).
+ * @typedef {{revision:string;paths:readonly string[];read:(path:string)=>Uint8Array;platform:()=>unknown}} CommittedTree */
 /** Read only an explicit immutable tree. Report captures, scripts and unrelated diagnostics are never glob-imported.
  * @param {CommittedTree} tree @returns {{bundle:import('./types.mjs').AdminBundle;files:Map<string,Uint8Array>}} */
 export function collectAdminData(tree){
@@ -84,7 +86,23 @@ export function collectAdminData(tree){
     for(const asset of paths)if(asset.startsWith(directory)&&isMedia(asset)){addMedia(asset);own.push(media.at(-1));}
     const raw=text(path);return parsePlaytest(raw.text,raw.source,own.filter(row=>row!==undefined));
   });
+  // Progress: the share measured on this revision, and the newest committed effort recount with its chart. Both required.
+  const share=readSharePlatform(tree.platform());
+  const folder=newestRecount(paths),chart=`${folder}/share-vs-hours.jpg`;
+  const recountJson=`${folder}/effort.json`,recountReadme=`${folder}/README.md`;
+  /** @type {import('./types.mjs').EffortRecount} */
+  let effort;
+  if(paths.includes(recountJson)){
+    const raw=text(recountJson),data=readRecountJson(JSON.parse(raw.text),recountJson);
+    effort={folder,date:data.asOf.slice(0,10),asOf:data.asOf,confidence:data.confidence,format:'json',source:raw.source,chart,shards:data.shards,totals:data.totals,finish:data.finish};
+  }else{
+    if(!paths.includes(recountReadme))throw new Error(`Missing committed effort recount: ${recountReadme} (or effort.json)`);
+    const raw=text(recountReadme),data=parseRecountReadme(raw.text,recountReadme),date=folder.slice(RECOUNT_PREFIX.length,RECOUNT_PREFIX.length+10);
+    effort={folder,date,asOf:date,confidence:data.confidence,format:'readme',source:raw.source,chart,shards:data.shards,totals:data.totals,finish:[]};
+  }
+  if(!paths.includes(chart))throw new Error(`Missing committed effort chart: ${chart}`);
+  if(!media.some(row=>row.path===chart))addMedia(chart);
   const rawPlan=text('docs/plans/SHARD-PLATFORM.md');
-  const bundle=readAdminBundle({schema:'wildshard-admin/1',revision:tree.revision,memory,loading:{status:loadingReports.length > 0?'available':'unavailable',reports:loadingReports,missing:loadingReports.length > 0?[]:['No committed SF67 loading-benchmark/1 report at progress/loading/sf67/**/report.json']},playtests,plan:parsePlan(rawPlan.text,rawPlan.source),media:media.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0)});
+  const bundle=readAdminBundle({schema:'wildshard-admin/1',revision:tree.revision,memory,loading:{status:loadingReports.length > 0?'available':'unavailable',reports:loadingReports,missing:loadingReports.length > 0?[]:['No committed SF67 loading-benchmark/1 report at progress/loading/sf67/**/report.json']},playtests,plan:parsePlan(rawPlan.text,rawPlan.source),progress:{share,effort},media:media.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0)});
   return {bundle,files};
 }

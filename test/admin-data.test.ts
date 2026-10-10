@@ -10,6 +10,7 @@ import { expect,it } from 'vitest';
 import { committedAdminTree,exportedAdminTree,writeAdminData } from '../scripts/admin-data.mjs';
 import { collectAdminData,stableJson } from '../scripts/admin-data/collect.mjs';
 import { markdownTables,parsePlan,tableCells } from '../scripts/admin-data/markdown.mjs';
+import { parseRecountReadme,readSharePlatform } from '../scripts/admin-data/progress.mjs';
 import { readAdminBundle,readLoadingReport } from '../scripts/admin-data/validate.mjs';
 
 const pin='a'.repeat(40);
@@ -59,6 +60,24 @@ const playtest=`# Playtest
 const memory={schema:'memory-report/1',pin,device:'Simulator',settings:{cold:true},cap:{bytes:1_000_000_000},poses:[{name:'worst-crossing',measured:null,accounted:{total:null,allocations:[],storageTotals:{ram:null,gpu:null},unattributed:{ram:null,gpu:null}},missing:['No complete crossing observation']}]};
 const itemized={protocol:'Historical capacity is not resident RAM',situations:[{id:'road',title:'Road',subtitle:'Historical',pin,build:'aaaaaaa-xyz',settings:'phone',heapSource:'other-process',wcBytes:600,glBytes:100,totalBytes:700,vmmapRegionsDirtyBytes:{overlapping:700.5},blocks:[{side:'RAM',owner:'unattributed',system:'resident remainder',conf:'U',bytes:400.5}]}]};
 const loading={schema:'loading-benchmark/1',pin,device:'Simulator',runs:[{shard:'sample',cache:'cold',timeToPlayableMs:100,phases:[{name:'kit',startMs:20,endMs:80,owner:'sample/kit'}],longTasks:[{startMs:20,durationMs:60,owner:'sample/kit'}]}],missing:[]};
+const proofs={boot:true,headless:true,replay:true,ledger:true,gridReady:true,compatible:true,transitional:false};
+const share={
+  _template:{publicLines:950,customLines:50,runtimeLines:0,trustedRuntimeLines:0,publicShare:0.95,legacy:{generators:1,data:1,runtime:1},baseline:550,ceiling:0,enforced:true,milestones:proofs},
+  'far-reach':{publicLines:40,customLines:60,runtimeLines:1130,trustedRuntimeLines:430,publicShare:0.4,legacy:{generators:1,data:1,runtime:1},baseline:6889,ceiling:1377,enforced:false,milestones:{...proofs,boot:false,transitional:true}},
+};
+const recount='progress/shard-platform/effort-recount-2026-10-09';
+const recountReadme=`# M3 effort recount, 2026-10-09
+
+Confidence is low to medium: the hours spent are measured.
+
+| shard | agent-hours spent | agent-hours remaining | effort % done | share % (HEAD) |
+|---|---|---|---|---|
+| Template 1 | 57 | 0 | 100 % | 90.4 |
+| Sky Reach | 20 | ~50 | 28 % | 9.6 |
+| Shared systems | 41 | ~100 | 29 % | — |
+
+**Overall:** about 205 agent-hours spent and about 950 left, so 18 % done (13 % without Template 1).
+`;
 function inputs():Map<string,string>{return new Map([
   ['docs/plans/SHARD-PLATFORM.md',plan],
   ['art/playtest/round-1/README.md',playtest],
@@ -67,8 +86,13 @@ function inputs():Map<string,string>{return new Map([
   ['progress/memory/sf64-report/pages/report.json',JSON.stringify(memory)],
   ['progress/memory/sf64-report/pages/road.jpg','image'],
   ['progress/memory/itemized-2026-10-08/itemized.json',JSON.stringify(itemized)],
+  [`${recount}/README.md`,recountReadme],
+  [`${recount}/share-vs-hours.jpg`,'chart'],
+  ['progress/shard-platform/effort-recount-2026-10-08/README.md','# older, unreadable'],
 ]);}
-function tree(files=inputs()){return {revision:pin,paths:[...files.keys()],read:(path:string)=>{const value=files.get(path);if(value===undefined)throw new Error('Missing fixture');return new TextEncoder().encode(value);}};}
+function tree(files=inputs()){return {revision:pin,paths:[...files.keys()],read:(path:string)=>{const value=files.get(path);if(value===undefined)throw new Error('Missing fixture');return new TextEncoder().encode(value);},platform:()=>structuredClone(share)};}
+/** A stand-in share script for fixture repositories: prints the fixture rows, as `--json` does. */
+const shareScript=`console.log(${JSON.stringify(JSON.stringify(share))});\n`;
 
 it('collects typed reports without merging native footprint, storage estimates or missing values',()=>{
   const {bundle,files}=collectAdminData(tree());
@@ -88,8 +112,13 @@ it('collects typed reports without merging native footprint, storage estimates o
   expect(bundle.plan.waitingForJake.map(row=>row.id)).toEqual(['SF1','G1']);
   expect(bundle.playtests[0]?.findings[0]?.media).toEqual(['art/playtest/round-1/clip-01-crash.mp4','art/playtest/round-1/still.jpg']);
   expect(bundle.playtests[0]?.tables[0]?.rows[0]?.cells[1]).toBe('**Not reproduced**');
-  expect(bundle.media).toHaveLength(3);
-  expect(files.size).toBe(2); // Equal image bytes across reports share one output blob.
+  expect(bundle.media).toHaveLength(4);
+  expect(files.size).toBe(3); // Equal image bytes across reports share one output blob.
+  expect(bundle.progress.share.shards.map(row=>[row.slug,row.proofsPassing,row.ceiling])).toEqual([['_template',6,0],['far-reach',5,1377]]);
+  expect(bundle.progress.effort).toMatchObject({folder:recount,date:'2026-10-09',format:'readme',confidence:'low to medium',chart:`${recount}/share-vs-hours.jpg`,finish:[]});
+  expect(bundle.progress.effort.shards.map(row=>[row.name,row.spentHours,row.remainingHours,row.approximate,row.effortPercent])).toEqual([
+    ['Template 1',57,0,false,100],['Sky Reach',20,50,true,28],['Shared systems',41,100,true,29]]);
+  expect(bundle.progress.effort.totals).toEqual([{label:'M3',spentHours:205,remainingHours:950,remainingRange:null,effortPercent:18}]);
   expect(readAdminBundle(JSON.parse(stableJson(bundle)))).toEqual(bundle);
 });
 
@@ -141,10 +170,13 @@ it('pins an immutable Git tree and excludes dirty, staged and untracked report c
   try{
     git('init','--quiet');git('config','user.email','fixture@example.test');git('config','user.name','Fixture');
     for(const [path,value]of inputs())put(path,value);
+    put('scripts/shard-platform.mjs',shareScript);
     git('add','.');git('commit','--quiet','-m','Committed evidence');
     const pinned=committedAdminTree(root,'HEAD');
     const before=stableJson(collectAdminData(pinned).bundle);
+    expect(collectAdminData(pinned).bundle.progress.share).toEqual(collectAdminData(tree()).bundle.progress.share); // the committed share script really ran
     put('docs/plans/SHARD-PLATFORM.md','BROKEN WORKING TREE');git('add','docs/plans/SHARD-PLATFORM.md');
+    put('scripts/shard-platform.mjs','process.exit(3);\n'); // a dirty share script never runs either
     put('progress/loading/sf67/untracked/report.json',JSON.stringify(loading));
     expect(stableJson(collectAdminData(committedAdminTree(root,'HEAD')).bundle)).toBe(before);
     git('commit','--quiet','-m','Later broken plan');
@@ -159,8 +191,10 @@ it('pins an immutable Git tree and excludes dirty, staged and untracked report c
 it('accepts an explicit clean-export snapshot with a full pin, never a silent checkout fallback',()=>{
   const root=mkdtempSync(join(tmpdir(),'admin-export-'));
   try{
-    for(const [path,value]of inputs()){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);}
+    for(const [path,value]of [...inputs(),['scripts/shard-platform.mjs',shareScript]]){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);}
     expect(stableJson(collectAdminData(exportedAdminTree(root,pin)).bundle)).toBe(stableJson(collectAdminData(tree()).bundle));
+    rmSync(join(root,'scripts/shard-platform.mjs'));
+    expect(()=>collectAdminData(exportedAdminTree(root,pin))).toThrow('Missing share script');
     expect(()=>exportedAdminTree(root,'HEAD')).toThrow('full committed revision');
     mkdirSync(join(root,'.git'));
     expect(()=>exportedAdminTree(root,pin)).toThrow('Git checkout');
@@ -172,4 +206,62 @@ it('refuses incompatible SF64 versions and identifies builds without treating in
   expect(()=>collectAdminData(tree(source))).toThrow('Unsupported memory report');
   const clean=inputs();clean.set('art/playtest/round-1/README.md',playtest.replace('## Top 10 problems', 'Includes fix `123456789`.\n## Top 10 problems'));
   expect(collectAdminData(tree(clean)).bundle.playtests[0]?.builds).toEqual(['abcdef123','abcdef1-xyz']);
+});
+
+it('fails loudly without the share script, its ceilings, a recount or the recount chart (no silent fallback)',()=>{
+  expect(()=>collectAdminData({...tree(),platform:()=>{throw new Error('Missing share script scripts/shard-platform.mjs');}})).toThrow('Missing share script');
+  const noCeiling=structuredClone(share);Reflect.deleteProperty(noCeiling['far-reach'],'ceiling');
+  expect(()=>collectAdminData({...tree(),platform:()=>noCeiling})).toThrow('far-reach.ceiling');
+  expect(()=>collectAdminData({...tree(),platform:()=>({})})).toThrow('no shards');
+  const noRecount=new Map([...inputs()].filter(([path])=>!path.startsWith('progress/shard-platform/')));
+  expect(()=>collectAdminData(tree(noRecount))).toThrow('Missing committed effort recount');
+  const noChart=inputs();noChart.delete(`${recount}/share-vs-hours.jpg`);
+  expect(()=>collectAdminData(tree(noChart))).toThrow('Missing committed effort chart');
+  const noTable=inputs();noTable.set(`${recount}/README.md`,'# M3 effort recount\n\nConfidence is low.\n');
+  expect(()=>collectAdminData(tree(noTable))).toThrow('no table');
+  const noConfidence=inputs();noConfidence.set(`${recount}/README.md`,recountReadme.replace('Confidence is low to medium: the','The'));
+  expect(()=>collectAdminData(tree(noConfidence))).toThrow('confidence');
+});
+
+it('prefers the recount effort.json, with M3 and Part A totals, ranges and finish times',()=>{
+  const json={date:'2026-10-10T10:45:00Z',shards:[
+    {slug:'_template',name:'Template 1',hoursSpent:57.6,hoursRemaining:0,effortPct:100},
+    {slug:'far-reach',name:'Sky Reach',hoursSpent:26.8,hoursRemaining:18,effortPct:60},
+    {slug:'shared-systems',name:'Shared systems',hoursSpent:59.2,hoursRemaining:85,effortPct:41,sharePct:null}],
+  overall:{m3HoursSpent:300,m3EffortPct:44,m3HoursRemaining:378,m3HoursRemainingRange:[270,550],partAHoursSpent:630,partAHoursRemaining:420,partAEffortPct:60,
+    confidence:'medium on hours spent; low-medium on hours remaining',
+    finishRange:{todayPace:{wallClockHours:[42,80],from:'2026-10-12T05:00:00Z',to:'2026-10-13T19:00:00Z',central:'2026-10-12T18:00:00Z'}}}};
+  const source=inputs();
+  source.set('progress/shard-platform/effort-recount-2026-10-10/effort.json',JSON.stringify(json));
+  source.set('progress/shard-platform/effort-recount-2026-10-10/README.md','# not read when effort.json exists');
+  source.set('progress/shard-platform/effort-recount-2026-10-10/share-vs-hours.jpg','new chart');
+  const {effort}=collectAdminData(tree(source)).bundle.progress;
+  expect(effort).toMatchObject({folder:'progress/shard-platform/effort-recount-2026-10-10',date:'2026-10-10',asOf:'2026-10-10T10:45:00Z',format:'json',
+    confidence:'medium on hours spent; low-medium on hours remaining'});
+  expect(effort.shards.map(row=>[row.slug,row.spentHours,row.remainingHours,row.effortPercent])).toEqual([['_template',57.6,0,100],['far-reach',26.8,18,60],['shared-systems',59.2,85,41]]);
+  expect(effort.totals).toEqual([{label:'M3',spentHours:300,remainingHours:378,remainingRange:[270,550],effortPercent:44},{label:'Part A',spentHours:630,remainingHours:420,remainingRange:null,effortPercent:60}]);
+  expect(effort.finish).toEqual([{label:'todayPace',central:'2026-10-12T18:00:00Z',from:'2026-10-12T05:00:00Z',to:'2026-10-13T19:00:00Z'}]);
+  source.set('progress/shard-platform/effort-recount-2026-10-10/effort.json',JSON.stringify({...json,overall:{...json.overall,m3EffortPct:undefined}}));
+  expect(()=>collectAdminData(tree(source))).toThrow('m3EffortPct');
+});
+
+it('reads a README-only recount whose totals are a bold M3 row and a Part A paragraph',()=>{
+  const readme=`# M3 effort recount, 2026-10-10
+
+| shard | port agent-h spent (last 12 h) | share now / 12 h ago | proofs of 6 | agent-h left | effort % done |
+|---|---|---|---|---|---|
+| Template 1 | 57.6 (0.3) | 90.4 / 90.4 % | 6 | 0 | 100 % |
+| Blender Template | 0 port, 13.7 other (0) | 90.2 / 90.2 % | 6 | ~3 (13 custom lines, SF55) | ~82 % |
+| **M3** | **300 (82)** | | | **~380 (270–550)** | **44 %** |
+
+**Part A:** about 630 agent-hours spent in the logged era, and about
+420 left, so **60 % by effort**.
+
+Confidence is medium for the hours spent and low to medium for the hours left. The rates come from the bake phase.
+`;
+  const parsed=parseRecountReadme(readme,'r.md');
+  expect(parsed.confidence).toBe('medium for the hours spent and low to medium for the hours left');
+  expect(parsed.shards.map(row=>[row.name,row.spentHours,row.remainingHours,row.effortPercent])).toEqual([['Template 1',57.6,0,100],['Blender Template',0,3,82]]);
+  expect(parsed.totals).toEqual([{label:'M3',spentHours:300,remainingHours:380,remainingRange:null,effortPercent:44},{label:'Part A',spentHours:630,remainingHours:420,remainingRange:null,effortPercent:60}]);
+  expect(()=>readSharePlatform([])).toThrow('not an object');
 });
