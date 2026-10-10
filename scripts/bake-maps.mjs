@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
+import { installInit } from './parity/init.mjs';
 import { MAP_METRES, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
 
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -162,14 +163,21 @@ try {
     const settings = mapSettings(dir);
     const context = await browser.newContext({ viewport: { width: TILE + 100, height: TILE + 100 }, deviceScaleFactor: 1, serviceWorkers: 'block' });
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // Developer-only shards boot too
-    // the session's seed pinned as the parity harness pins it (scripts/parity/init.mjs): a live page salts its seed from
-    // crypto, so a shard's cosmetic stream (Sky Reach's island meshes) drew a different world, and map, on every bake (op-sky81)
-    await context.addInitScript(() => { window.__wildshardHarness = { seed: 0x2545f491, capture: null }; });
+    // the parity harness's page (scripts/parity/init.mjs), so two bakes of one build are the same bytes: the session's seed
+    // and Math.random pinned (a live page salts its seed from crypto: Sky Reach's cosmetic stream drew different island
+    // meshes, op-sky81), the capture clock (every frame 1/30 s of game time), the animals held where they spawn, and the
+    // world's frames held at ws:ready until the bake advances them (a wall-clock wait moved creatures, rotors and drifting
+    // things by however many frames the machine drew, op-sky82)
+    await installInit(context, { lane: 'bake-maps', sha: '', browser: 'chromium', capture: 30 });
     const page = await context.newPage();
     try {
       await page.goto(`${base}?chunk=${encodeURIComponent(slug)}&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && !document.querySelector('.ws-load')), null, { timeout: 180_000, polling: 250 });
-      await page.waitForTimeout(6000); // late streamed pieces and models
+      // late streamed pieces and models load with the world held; then exactly 6 s of game time (180 capture frames) run,
+      // and anything those frames streamed in loads, held again, before the bake
+      await page.waitForTimeout(6000);
+      await page.evaluate(() => window.__parity.advance(180));
+      await page.waitForTimeout(3000);
       const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, keep: settings.keep, hideStanding: settings.hideStanding, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove });
       const colourPng = join(work, `colour-${slug}.png`), heightPng = join(work, `height-${slug}.png`), stylePath = join(work, `style-${slug}.json`);
       writeFileSync(colourPng, Buffer.from(out.colour.slice(out.colour.indexOf(',') + 1), 'base64'));
