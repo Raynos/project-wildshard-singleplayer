@@ -231,3 +231,47 @@ Pilot 16:16:48–16:17:09 UTC, 2026-10-10; no quiet window requested. Preview,
 Safari, Inspector and proxy closed. Raw scratch SHA-256
 `c8c1fa7be5488786a6db97025d75bb23c3a35e98121a0bfec0d69ee60d15a658`.
 Proof `.git/proofs/20261010T111519-sf22-safari-task-clock-pilot-86332.json`.
+
+
+## Page-callback diagnostic: gaps remain outside captured callbacks
+
+Same `0b191cf2a` runtime, Auto / Developer off / phone 2× and the same
+shaped held-input Driftwood → Signal → Driftwood route. This diagnostic
+wraps page rAF, timers, queued microtasks and explicit Promise callbacks; it
+measures synchronous **wall intervals**, not CPU time. Native `await`
+continuations are not covered, nested intervals overlap, and registration
+metadata/timing adds overhead. It therefore carries **no normative cadence
+or warm-task credit**. Focused Node checks preserve argument/receiver,
+return/error, timer handles, bounds and ownership-safe restoration. The
+page's deliberate timer calibration measured exactly 8 ms.
+
+Both routes completed without refusal or game error; 394 explicit shader
+warm-ups and **zero draw/driver compiles** remain. Sync crossings were
+19 / 0 / 10 / 0 ms, demand waits 3 / 3 / 2 / 3 ms. Diagnostic cadence p95
+50 / p99 65 ms, same-session standing p95 34 ms. Forward load median
+18.11; return 19.00 (raw route load ranges retained).
+
+Within routes, the observer recorded **619 rAF, nine timer and one explicit
+fulfilled-Promise callback** at least 5 ms. Maximum timer wall time was
+11 ms; the explicit Promise callback was 5 ms. A **50 ms rAF interval** at
+65,853–65,903 ms agrees with the completed game-frame ring (update 25 /
+render 25 ms), after Driftwood activation. That is a real measured frame
+callback; it does not attribute its internal systems or native driver cost.
+
+The 165 ms gap at 29,413 ms still spans Signal `kit` / `afterKit` / `play`
+(29,249–29,411 ms), but only a 5 ms recorded rAF callback overlaps it.
+A 157 ms return-road gap during Driftwood `world` contains a 10 ms recorded
+callback; other 102–129 ms road gaps contain none above threshold. This
+**does not exonerate preparation**: async continuations and native waits
+remain unmeasured. The observer saw 89,548 callback registrations;
+registration stacks stop after 2,000, so later callback source is retained
+without an exact registration callsite. Rows did not truncate.
+
+The next distinct diagnostic records raw rAF delivery and wall time of
+existing GL calls without adding GL queries, separating delivery/skipped
+frames from observed native API stalls. No GPU-duration inference.
+
+Run 16:21:13–16:22:55 UTC, 2026-10-10; no quiet window requested. All owned
+resources closed. Raw scratch `attempt-0b191-safari-callbacks.json`, SHA-256
+`d4e0699f9feea6f3efa9207c8bd7c62aa6a3b35ff977c257f44072346434eee9`.
+Proof `.git/proofs/20261010T112017-sf22-safari-callback-owners-2840.json`.
