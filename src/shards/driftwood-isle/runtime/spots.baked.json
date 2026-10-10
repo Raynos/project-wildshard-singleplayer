@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "4be2dab62d09c0a440894420f8cfa98cf582c29f",
- "build": "4be2dab-mv1mz1h5",
+ "revision": "b1654e450873ff9a981e2430a0f89b04b62dac79",
+ "build": "b1654e4-mv1ntneu",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -40,7 +40,8 @@
   "src/shards/driftwood-isle/quest/people.ts": "43ca08a3ee14ecb95819a2501b0bd9d9e887849432b8b773f90fe699ea512c70",
   "src/shards/driftwood-isle/quest/questLine.ts": "10e533fae101d846c1358473e4ca443a7ec7dba44e6c874e787d49f8e5c61c6f",
   "src/shards/driftwood-isle/quest/rows.ts": "a0b5a0a506a9879e179da0c7380ad682d44f1bcf3f02eb6f00e3058be781b947",
-  "src/shards/driftwood-isle/runtime/finale.ts": "62f2a6e884ecd3c54d3dd86494c9f5104399242121d2d7ee68845af0cb6b6e21",
+  "src/shards/driftwood-isle/runtime/finale.ts": "c02b2b0a29cf941ee9301d9dfaa7d5091e9f001e5643878ff891be8fffa2b978",
+  "src/shards/driftwood-isle/runtime/ziplineLayout.ts": "95ee0573ce4b1439611f5762a2e902f7d0bcc3aa1a22dfe8b8a389bd3c56ff84",
   "src/shards/driftwood-isle/shard.config.ts": "3b2d8f56bfe05061c4bcf38913a8568d3bc392c108ec5e03f8f1a3cd228dfcff",
   "src/shards/driftwood-isle/world/BlenderIsland.ts": "aef0bae6b5e16600b9abb8ccfe5f69cbc04a5210625ce84f2381452c8c82b686",
   "src/shards/driftwood-isle/world/Boat.ts": "9cfe636c2f2fb30b0973fef6f5bc4d22601331fb09ac92811fe8e3936dc3e6f8",
@@ -60,7 +61,7 @@
   "src/shards/driftwood-isle/world/Trailside.ts": "7493b7b734822850c360dde3c1b83293a46d5587bed52dc11c831504cc14b5ef",
   "src/shards/driftwood-isle/world/Waterfall.ts": "0d925a010d7125d202713984b8f9021fe7c270f83585351ce5cb10935aad5b26",
   "src/shards/driftwood-isle/world/Wreck.ts": "b9dbb1de863875443ec1b96df8bdfe2fff42cc3e3feaa86ff79f6de4e948a05e",
-  "src/shards/driftwood-isle/world/Zipline.ts": "2b7bd65bbfc1b87d1d6f932b76a8e568d9386c4e079846a03eaaf2e60def3c25",
+  "src/shards/driftwood-isle/world/Zipline.ts": "743dab08348d39f10472155405e339d6065f29c06149843c5d4c31a63e7e157e",
   "src/shards/driftwood-isle/world/blenderArea.ts": "150fb247d8bddf05f77871a88d4e3668ee8b8d5b6ddcdf643787a09d57ef6dcf",
   "src/shards/driftwood-isle/world/build.ts": "cbc8053c7c4b42acebe79ea1773aae089724c801374ab92a2ba3130c280ee0bd",
   "src/shards/driftwood-isle/world/coverTint.ts": "aea1401c88756b17f43af11d011539a046c8ad380ab6c964a738fcd102d4efd6",
@@ -401,6 +402,28 @@
  "reward": {
   "x": -96.21572111113656,
   "y": 9.568160017513259,
-  "z": 105.52632596242425
+  "z": 105.52632596242425,
+  "yaw": 2.5132741228718345,
+  "pitch": 0.6632251157578453,
+  "phase": 0.745
+ },
+ "zipline": {
+  "top": {
+   "x": 116.80870125700497,
+   "y": 33.55979897744159,
+   "z": 56.6249609037573
+  },
+  "bottom": {
+   "x": 132,
+   "y": 0.8549076442718511,
+   "z": 12
+  },
+  "sag": 1.6,
+  "prompt": {
+   "x": 116.74424917158824,
+   "y": 35.05979897744159,
+   "z": 56.81429111446186,
+   "radius": 2.4
+  }
  }
 }

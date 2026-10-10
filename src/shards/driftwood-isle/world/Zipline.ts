@@ -24,7 +24,8 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { zipline, ziplineGeometry, ZiplineLayout, type ZiplineSpec } from '../models/zipline';
+import { zipline, ziplineGeometry } from '../models/zipline';
+import { ZiplineLayout, type ZiplineSpec } from '../runtime/ziplineLayout';
 
 
 const HANG = 2.9;   // the eye rides ~1.2 m under the wire, below the T-bar: the trolley stays out of the view

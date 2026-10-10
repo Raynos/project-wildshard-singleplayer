@@ -42,7 +42,8 @@ const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: 
 const Row = v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: finite, prompt: v.optional(v.strictObject(xyz)),
   collider: v.optional(v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, rot: finite, yTop: finite, yBottom: finite })) });
 const Prompt = v.strictObject({ label: v.string(), ...xyz, radius: finite });
-const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt, reward: v.strictObject(xyz) });
+const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt, reward: v.strictObject({ ...xyz, yaw: finite, pitch: finite, phase: finite }),
+  zipline: v.strictObject({ top: v.strictObject(xyz), bottom: v.strictObject(xyz), sag: finite, prompt: v.strictObject({ ...xyz, radius: finite }) }) });
 /** The page's placements (scripts/bake-driftwood-spots.mjs), strictly. */
 export type DriftwoodSpots = v.InferOutput<typeof Spots>;
 /** Driftwood's baked interactable spots, parsed strictly. */

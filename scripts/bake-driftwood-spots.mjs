@@ -46,8 +46,12 @@ try {
     const prompts = shell.interactables.map(p => ({ label: p.label, x: p.position.x, y: p.position.y, z: p.position.z, radius: p.radius }));
     const talk = prompts.filter(p => p.label === 'Talk to Wendell'), sword = prompts.filter(p => /iron sword|guards the rack/u.test(p.label));
     if (talk.length !== 1 || sword.length !== 1) throw new Error(`Driftwood prompts: ${JSON.stringify(prompts.map(p => p.label))}`);
-    const reward = adv.finale.rewardAt;
-    return { rows, talk: talk[0], sword: sword[0], reward: { x: reward.x, y: reward.y, z: reward.z } };
+    const reward = adv.finale.rewardAt, pose = adv.finale.rewardPose, zip = adv.zipline;
+    if (!pose || !zip?.lay?.spec) throw new Error('Driftwood reward/zipline capture port missing');
+    const point = p => ({ x: p.x, y: p.y, z: p.z });
+    const zipline = { top: point(zip.lay.spec.top), bottom: point(zip.lay.spec.bottom), sag: zip.lay.spec.sag ?? 1.6,
+      prompt: { ...point(zip.prompt.position), radius: zip.prompt.radius } };
+    return { rows, talk: talk[0], sword: sword[0], reward: { x: reward.x, y: reward.y, z: reward.z, yaw: pose.yaw, pitch: pose.pitch, phase: pose.phase }, zipline };
   };
   const first = await page.evaluate(capture), second = await page.evaluate(capture);
   if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Driftwood spots changed between independent captures');

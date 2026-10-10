@@ -22,7 +22,7 @@ import declaration from '../data/director.json' with { type: 'json' };
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;
 
-export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3 }
+export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3; rewardPose: { yaw: number; pitch: number; phase: number } }
 
 /** The finale reads only these quest, combat and presentation ports; a replay drives the shipping installer. */
 export type FinaleAdventure = Pick<Adventure, 'flags' | 'place' | 'floorAt' | 'setAnchor' | 'spine' | 'complete'>;
@@ -104,11 +104,12 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
 
   // ── per frame: wake on approach, the boss bar, the reward view ──
   let started = false, completed = false;
+  const rewardPose = { yaw: Math.atan2(-planet.x, -planet.z), pitch: Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1)), phase: GOLDEN };
   const reward = new QuestRewardBeat({ scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
     dayNight: w.sky.dayNight, ...(adv.spine === null ? {} : { objective: adv.spine.objective.root }),
     ...(w.setViewmodel === undefined ? {} : { setViewmodel: w.setViewmodel }), sting: () => { w.music.sting('chunk'); } }, {
     kicker: 'The Sealed Ring · opened', title: 'Driftwood Isle', subtitle: 'The planet in the ring, at golden hour',
-    at: rewardAt, yaw: Math.atan2(-planet.x, -planet.z), pitch: Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1)), phase: GOLDEN,
+    at: rewardAt, ...rewardPose,
     when: () => directed ? started : flags.has('dead:captain') && !flags.has('seen:reward') && Math.hypot(w.player.position.x - rewardAt.x, w.player.position.z - rewardAt.z) < 7,
     finish: () => { if (!directed) flags.set('seen:reward'); return adv.complete?.showAfterReward() === true; },
   });
@@ -116,7 +117,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     encounter.update(dt, app.clock.now);
     if (!directed) reward.update(dt);
   }, 'shard.driftwood-isle.installFinale');
-  return { captain: () => captain, rewardAt,
+  return { captain: () => captain, rewardAt, rewardPose,
     observe: () => ({ altar: Number(flags.has('used:altar')), dead: Number(flags.has('dead:captain')), seen: Number(flags.has('seen:reward')),
       'player-x': w.player.position.x, 'player-z': w.player.position.z, 'reward-x': rewardAt.x, 'reward-z': rewardAt.z }),
     publish: (key) => {
