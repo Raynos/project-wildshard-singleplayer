@@ -191,7 +191,8 @@ it('pins an immutable Git tree and excludes dirty, staged and untracked report c
 it('accepts an explicit clean-export snapshot with a full pin, never a silent checkout fallback',()=>{
   const root=mkdtempSync(join(tmpdir(),'admin-export-'));
   try{
-    for(const [path,value]of [...inputs(),['scripts/shard-platform.mjs',shareScript]]){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);}
+    const files=inputs();files.set('scripts/shard-platform.mjs',shareScript);
+    for(const [path,value]of files){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);}
     expect(stableJson(collectAdminData(exportedAdminTree(root,pin)).bundle)).toBe(stableJson(collectAdminData(tree()).bundle));
     rmSync(join(root,'scripts/shard-platform.mjs'));
     expect(()=>collectAdminData(exportedAdminTree(root,pin))).toThrow('Missing share script');
