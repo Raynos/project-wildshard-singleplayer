@@ -1,0 +1,3274 @@
+{
+ "version": {
+  "build": "c314dad-mv2bier4",
+  "time": "2026-10-10T11:35:35.269Z"
+ },
+ "started": "2026-10-10T11:46:52.720Z",
+ "shards": {
+  "sunscar-dunes": {
+   "errors": [],
+   "shots": {
+    "arrive": {
+     "feet": {
+      "x": -277.49999261709934,
+      "y": 0.020099976366327654,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": null,
+     "current": null,
+     "residents": [],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 1,
+      "weights": {},
+      "air": [
+       0.95,
+       0.56,
+       0.44
+      ],
+      "grade": [
+       0,
+       0.8,
+       1,
+       0.95,
+       0.99,
+       1.07
+      ],
+      "roadSky": 1,
+      "skies": {},
+      "chain": {
+       "owner": null,
+       "weight": 0,
+       "lut": false,
+       "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+       ],
+       "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    },
+    "home": {
+     "feet": {
+      "x": -317.82405072219893,
+      "y": 0.019999238480083448,
+      "z": 0.00043471971713775415
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:playing",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": "sunscar-dunes",
+     "current": "sunscar-dunes",
+     "residents": [
+      "sunscar-dunes"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "sunscar-dunes",
+      "highway": 0,
+      "weights": {
+       "sunscar-dunes": 1
+      },
+      "air": [
+       0.048,
+       0.034,
+       0.084
+      ],
+      "grade": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "roadSky": 0,
+      "skies": {
+       "sunscar-dunes": {
+        "weight": 1,
+        "drawn": true,
+        "bytes": 0,
+        "reserved": 0
+       }
+      },
+      "chain": {
+       "owner": "sunscar-dunes",
+       "weight": 1,
+       "lut": false,
+       "values": [
+        0.12,
+        0,
+        0.12,
+        0,
+        0
+       ],
+       "post": [
+        0.15,
+        0.9,
+        0.3,
+        0.55,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "sunscar-dunes",
+        "weight": 1,
+        "vol": [
+         1,
+         0.55
+        ],
+        "chroma": 0.0006,
+        "grain": 0.12,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": []
+    },
+    "in8": {
+     "feet": {
+      "x": -313,
+      "y": 0.019999238480083448,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:playing",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": "sunscar-dunes",
+     "current": "sunscar-dunes",
+     "residents": [
+      "sunscar-dunes"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "sunscar-dunes",
+      "highway": 0,
+      "weights": {
+       "sunscar-dunes": 1
+      },
+      "air": [
+       0.048,
+       0.034,
+       0.084
+      ],
+      "grade": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "roadSky": 0,
+      "skies": {
+       "sunscar-dunes": {
+        "weight": 1,
+        "drawn": true,
+        "bytes": 0,
+        "reserved": 0
+       }
+      },
+      "chain": {
+       "owner": "sunscar-dunes",
+       "weight": 1,
+       "lut": false,
+       "values": [
+        0.12,
+        0,
+        0.12,
+        0,
+        0
+       ],
+       "post": [
+        0.15,
+        0.9,
+        0.3,
+        0.55,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "sunscar-dunes",
+        "weight": 1,
+        "vol": [
+         1,
+         0.55
+        ],
+        "chroma": 0.0006,
+        "grain": 0.12,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": []
+    },
+    "line": {
+     "feet": {
+      "x": -305,
+      "y": 0.019999238480083448,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:playing",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": "sunscar-dunes",
+     "current": "sunscar-dunes",
+     "residents": [
+      "sunscar-dunes"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "sunscar-dunes",
+      "highway": 0.5,
+      "weights": {
+       "sunscar-dunes": 0.5
+      },
+      "air": [
+       0.499,
+       0.297,
+       0.262
+      ],
+      "grade": [
+       0,
+       0.9,
+       1,
+       0.975,
+       0.995,
+       1.035
+      ],
+      "roadSky": 1,
+      "skies": {
+       "sunscar-dunes": {
+        "weight": 0.5,
+        "drawn": true,
+        "bytes": 0,
+        "reserved": 0
+       }
+      },
+      "chain": {
+       "owner": "sunscar-dunes",
+       "weight": 0.5,
+       "lut": false,
+       "values": [
+        0.12,
+        0,
+        0.12,
+        0,
+        0
+       ],
+       "post": [
+        0.275,
+        0.95,
+        0.19,
+        0.45,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "sunscar-dunes",
+        "weight": 0.5,
+        "vol": [
+         0.5,
+         0.55
+        ],
+        "chroma": 0.0003,
+        "grain": 0.06,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": []
+    },
+    "out8": {
+     "feet": {
+      "x": -297,
+      "y": 0.019999238480083448,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:playing",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": null,
+     "current": "sunscar-dunes",
+     "residents": [
+      "sunscar-dunes"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 1,
+      "weights": {
+       "sunscar-dunes": 0
+      },
+      "air": [
+       0.95,
+       0.56,
+       0.44
+      ],
+      "grade": [
+       0,
+       0.8,
+       1,
+       0.95,
+       0.99,
+       1.07
+      ],
+      "roadSky": 1,
+      "skies": {
+       "sunscar-dunes": {
+        "weight": 0,
+        "drawn": false,
+        "bytes": 0,
+        "reserved": 0
+       }
+      },
+      "chain": {
+       "owner": "sunscar-dunes",
+       "weight": 0,
+       "lut": false,
+       "values": [
+        0.12,
+        0,
+        0.12,
+        0,
+        0
+       ],
+       "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "sunscar-dunes",
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    }
+   },
+   "cell": {
+    "instance": "sunscar-dunes",
+    "slug": "sunscar-dunes",
+    "cell": [
+     -1,
+     0
+    ],
+    "shows": "far proxy"
+   },
+   "curve": [
+    {
+     "x": -277.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -277.7,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -277.8,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -278.1,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -278.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -278.8,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -279.4,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -279.8,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -280.8,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -282.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -282.8,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -284.4,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -285.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -287,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -288,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -289,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -290.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -292,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -293.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -295,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -296.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": -298,
+     "z": 0,
+     "inside": null,
+     "highway": 0.989,
+     "weights": {
+      "sunscar-dunes": 0.011
+     }
+    },
+    {
+     "x": -299,
+     "z": 0,
+     "inside": null,
+     "highway": 0.956,
+     "weights": {
+      "sunscar-dunes": 0.044
+     }
+    },
+    {
+     "x": -300.3,
+     "z": 0,
+     "inside": null,
+     "highway": 0.889,
+     "weights": {
+      "sunscar-dunes": 0.111
+     }
+    },
+    {
+     "x": -301.3,
+     "z": 0,
+     "inside": null,
+     "highway": 0.82,
+     "weights": {
+      "sunscar-dunes": 0.18
+     }
+    },
+    {
+     "x": -302,
+     "z": 0,
+     "inside": null,
+     "highway": 0.765,
+     "weights": {
+      "sunscar-dunes": 0.235
+     }
+    },
+    {
+     "x": -302.5,
+     "z": 0,
+     "inside": null,
+     "highway": 0.725,
+     "weights": {
+      "sunscar-dunes": 0.275
+     }
+    },
+    {
+     "x": -303,
+     "z": 0,
+     "inside": null,
+     "highway": 0.687,
+     "weights": {
+      "sunscar-dunes": 0.313
+     }
+    },
+    {
+     "x": -303.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.648,
+     "weights": {
+      "sunscar-dunes": 0.352
+     }
+    },
+    {
+     "x": -303.8,
+     "z": 0,
+     "inside": null,
+     "highway": 0.609,
+     "weights": {
+      "sunscar-dunes": 0.391
+     }
+    },
+    {
+     "x": -304.3,
+     "z": 0,
+     "inside": null,
+     "highway": 0.569,
+     "weights": {
+      "sunscar-dunes": 0.431
+     }
+    },
+    {
+     "x": -304.7,
+     "z": 0,
+     "inside": null,
+     "highway": 0.529,
+     "weights": {
+      "sunscar-dunes": 0.471
+     }
+    },
+    {
+     "x": -305.1,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.489,
+     "weights": {
+      "sunscar-dunes": 0.511
+     }
+    },
+    {
+     "x": -305.5,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.449,
+     "weights": {
+      "sunscar-dunes": 0.551
+     }
+    },
+    {
+     "x": -306,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.409,
+     "weights": {
+      "sunscar-dunes": 0.591
+     }
+    },
+    {
+     "x": -306.4,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.369,
+     "weights": {
+      "sunscar-dunes": 0.631
+     }
+    },
+    {
+     "x": -306.8,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.331,
+     "weights": {
+      "sunscar-dunes": 0.669
+     }
+    },
+    {
+     "x": -307.3,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.293,
+     "weights": {
+      "sunscar-dunes": 0.707
+     }
+    },
+    {
+     "x": -307.7,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.257,
+     "weights": {
+      "sunscar-dunes": 0.743
+     }
+    },
+    {
+     "x": -308.1,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.222,
+     "weights": {
+      "sunscar-dunes": 0.778
+     }
+    },
+    {
+     "x": -308.6,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.188,
+     "weights": {
+      "sunscar-dunes": 0.812
+     }
+    },
+    {
+     "x": -309,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.157,
+     "weights": {
+      "sunscar-dunes": 0.843
+     }
+    },
+    {
+     "x": -309.4,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.128,
+     "weights": {
+      "sunscar-dunes": 0.872
+     }
+    },
+    {
+     "x": -309.8,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.101,
+     "weights": {
+      "sunscar-dunes": 0.899
+     }
+    },
+    {
+     "x": -310.3,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.077,
+     "weights": {
+      "sunscar-dunes": 0.923
+     }
+    },
+    {
+     "x": -310.7,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.056,
+     "weights": {
+      "sunscar-dunes": 0.944
+     }
+    },
+    {
+     "x": -311.1,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.037,
+     "weights": {
+      "sunscar-dunes": 0.963
+     }
+    },
+    {
+     "x": -311.6,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.023,
+     "weights": {
+      "sunscar-dunes": 0.977
+     }
+    },
+    {
+     "x": -312,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.011,
+     "weights": {
+      "sunscar-dunes": 0.989
+     }
+    },
+    {
+     "x": -312.4,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0.004,
+     "weights": {
+      "sunscar-dunes": 0.996
+     }
+    },
+    {
+     "x": -312.9,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -313.3,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -313.7,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -314.1,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -314.6,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -315,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -315.4,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -315.9,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -316.3,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -316.7,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -317.2,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    },
+    {
+     "x": -317.6,
+     "z": 0,
+     "inside": "sunscar-dunes",
+     "highway": 0,
+     "weights": {
+      "sunscar-dunes": 1
+     }
+    }
+   ],
+   "route": []
+  },
+  "nalati-grasslands": {
+   "errors": [],
+   "shots": {
+    "arrive": {
+     "feet": {
+      "x": 277.50000708754874,
+      "y": 0.019997712600161366,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": null,
+     "current": null,
+     "residents": [],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 1,
+      "weights": {},
+      "air": [
+       0.95,
+       0.56,
+       0.44
+      ],
+      "grade": [
+       0,
+       0.8,
+       1,
+       0.95,
+       0.99,
+       1.07
+      ],
+      "roadSky": 1,
+      "skies": {},
+      "chain": {
+       "owner": null,
+       "weight": 0,
+       "lut": false,
+       "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+       ],
+       "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    },
+    "home": {
+     "feet": {
+      "x": 317.7527602652674,
+      "y": 0.019998978918056465,
+      "z": 0.0009057455969743444
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:playing",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": "nalati-grasslands",
+     "current": "nalati-grasslands",
+     "residents": [
+      "nalati-grasslands"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "nalati-grasslands",
+      "highway": 0,
+      "weights": {
+       "nalati-grasslands": 1
+      },
+      "air": [
+       0.62,
+       0.78,
+       0.98
+      ],
+      "grade": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "roadSky": 0,
+      "skies": {},
+      "chain": {
+       "owner": "nalati-grasslands",
+       "weight": 1,
+       "lut": false,
+       "values": [
+        0,
+        0,
+        0,
+        0,
+        0
+       ],
+       "post": [
+        0,
+        1,
+        0.08,
+        0,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": []
+    },
+    "in8": {
+     "feet": {
+      "x": 313,
+      "y": 0.019998978918056465,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:playing",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": "nalati-grasslands",
+     "current": "nalati-grasslands",
+     "residents": [
+      "nalati-grasslands"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "nalati-grasslands",
+      "highway": 0,
+      "weights": {
+       "nalati-grasslands": 1
+      },
+      "air": [
+       0.62,
+       0.78,
+       0.98
+      ],
+      "grade": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "roadSky": 0,
+      "skies": {},
+      "chain": {
+       "owner": "nalati-grasslands",
+       "weight": 1,
+       "lut": false,
+       "values": [
+        0,
+        0,
+        0,
+        0,
+        0
+       ],
+       "post": [
+        0,
+        1,
+        0.08,
+        0,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": []
+    },
+    "line": {
+     "feet": {
+      "x": 305,
+      "y": 0.019998978918056465,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:playing",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": null,
+     "current": "nalati-grasslands",
+     "residents": [
+      "nalati-grasslands"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 0.5,
+      "weights": {
+       "nalati-grasslands": 0.5
+      },
+      "air": [
+       0.785,
+       0.67,
+       0.71
+      ],
+      "grade": [
+       0,
+       0.9,
+       1,
+       0.975,
+       0.995,
+       1.035
+      ],
+      "roadSky": 0.5,
+      "skies": {},
+      "chain": {
+       "owner": "nalati-grasslands",
+       "weight": 0.5,
+       "lut": false,
+       "values": [
+        0,
+        0,
+        0,
+        0,
+        0
+       ],
+       "post": [
+        0.2,
+        1,
+        0.08,
+        0.175,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    },
+    "out8": {
+     "feet": {
+      "x": 297,
+      "y": 0.019998978918056465,
+      "z": 0
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:playing",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": null,
+     "current": "nalati-grasslands",
+     "residents": [
+      "nalati-grasslands"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 1,
+      "weights": {},
+      "air": [
+       0.95,
+       0.56,
+       0.44
+      ],
+      "grade": [
+       0,
+       0.8,
+       1,
+       0.95,
+       0.99,
+       1.07
+      ],
+      "roadSky": 1,
+      "skies": {},
+      "chain": {
+       "owner": null,
+       "weight": 0,
+       "lut": false,
+       "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+       ],
+       "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    }
+   },
+   "cell": {
+    "instance": "nalati-grasslands",
+    "slug": "nalati-grasslands",
+    "cell": [
+     1,
+     0
+    ],
+    "shows": "far proxy"
+   },
+   "curve": [
+    {
+     "x": 277.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 277.7,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 278,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 278.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 278.9,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 279.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 280.1,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 280.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 281.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 282.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 283.4,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 284.4,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 286,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 287.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 288.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 290,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 291.8,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 293.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 294.5,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 296.3,
+     "z": 0,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 298,
+     "z": 0,
+     "inside": null,
+     "highway": 0.989,
+     "weights": {
+      "nalati-grasslands": 0.011
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0.1,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 298.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nalati-grasslands": 0.02
+     }
+    },
+    {
+     "x": 299.5,
+     "z": 0,
+     "inside": null,
+     "highway": 0.934,
+     "weights": {
+      "nalati-grasslands": 0.066
+     }
+    },
+    {
+     "x": 300.7,
+     "z": 0,
+     "inside": null,
+     "highway": 0.866,
+     "weights": {
+      "nalati-grasslands": 0.134
+     }
+    },
+    {
+     "x": 301.6,
+     "z": 0,
+     "inside": null,
+     "highway": 0.798,
+     "weights": {
+      "nalati-grasslands": 0.202
+     }
+    },
+    {
+     "x": 302.2,
+     "z": 0,
+     "inside": null,
+     "highway": 0.751,
+     "weights": {
+      "nalati-grasslands": 0.249
+     }
+    },
+    {
+     "x": 302.7,
+     "z": 0,
+     "inside": null,
+     "highway": 0.712,
+     "weights": {
+      "nalati-grasslands": 0.288
+     }
+    },
+    {
+     "x": 303.1,
+     "z": 0,
+     "inside": null,
+     "highway": 0.674,
+     "weights": {
+      "nalati-grasslands": 0.326
+     }
+    },
+    {
+     "x": 303.5,
+     "z": 0,
+     "inside": null,
+     "highway": 0.635,
+     "weights": {
+      "nalati-grasslands": 0.365
+     }
+    },
+    {
+     "x": 304,
+     "z": 0,
+     "inside": null,
+     "highway": 0.596,
+     "weights": {
+      "nalati-grasslands": 0.404
+     }
+    },
+    {
+     "x": 304.4,
+     "z": 0,
+     "inside": null,
+     "highway": 0.556,
+     "weights": {
+      "nalati-grasslands": 0.444
+     }
+    },
+    {
+     "x": 304.8,
+     "z": 0,
+     "inside": null,
+     "highway": 0.516,
+     "weights": {
+      "nalati-grasslands": 0.484
+     }
+    },
+    {
+     "x": 305.3,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.469,
+     "weights": {
+      "nalati-grasslands": 0.531
+     }
+    },
+    {
+     "x": 305.6,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.442,
+     "weights": {
+      "nalati-grasslands": 0.558
+     }
+    },
+    {
+     "x": 306.1,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.402,
+     "weights": {
+      "nalati-grasslands": 0.598
+     }
+    },
+    {
+     "x": 306.5,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.363,
+     "weights": {
+      "nalati-grasslands": 0.637
+     }
+    },
+    {
+     "x": 306.9,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.324,
+     "weights": {
+      "nalati-grasslands": 0.676
+     }
+    },
+    {
+     "x": 307.3,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.287,
+     "weights": {
+      "nalati-grasslands": 0.713
+     }
+    },
+    {
+     "x": 307.8,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.251,
+     "weights": {
+      "nalati-grasslands": 0.749
+     }
+    },
+    {
+     "x": 308.2,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.216,
+     "weights": {
+      "nalati-grasslands": 0.784
+     }
+    },
+    {
+     "x": 308.6,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.183,
+     "weights": {
+      "nalati-grasslands": 0.817
+     }
+    },
+    {
+     "x": 309.1,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.152,
+     "weights": {
+      "nalati-grasslands": 0.848
+     }
+    },
+    {
+     "x": 309.5,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.123,
+     "weights": {
+      "nalati-grasslands": 0.877
+     }
+    },
+    {
+     "x": 309.9,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.097,
+     "weights": {
+      "nalati-grasslands": 0.903
+     }
+    },
+    {
+     "x": 310.4,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.073,
+     "weights": {
+      "nalati-grasslands": 0.927
+     }
+    },
+    {
+     "x": 310.8,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.052,
+     "weights": {
+      "nalati-grasslands": 0.948
+     }
+    },
+    {
+     "x": 311.2,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.035,
+     "weights": {
+      "nalati-grasslands": 0.965
+     }
+    },
+    {
+     "x": 311.6,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.02,
+     "weights": {
+      "nalati-grasslands": 0.98
+     }
+    },
+    {
+     "x": 312.1,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.01,
+     "weights": {
+      "nalati-grasslands": 0.99
+     }
+    },
+    {
+     "x": 312.5,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0.003,
+     "weights": {
+      "nalati-grasslands": 0.997
+     }
+    },
+    {
+     "x": 312.9,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 313.4,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 313.8,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 314.2,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 314.7,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 315.1,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 315.5,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 315.9,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 316.4,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 316.8,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 317.2,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    },
+    {
+     "x": 317.6,
+     "z": 0,
+     "inside": "nalati-grasslands",
+     "highway": 0,
+     "weights": {
+      "nalati-grasslands": 1
+     }
+    }
+   ],
+   "route": []
+  },
+  "nine-dragon-stack": {
+   "errors": [],
+   "shots": {
+    "arrive": {
+     "feet": {
+      "x": 554.9999994329197,
+      "y": 0.020099932972516443,
+      "z": -277.5000079727096
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:far proxy"
+     ],
+     "inside": null,
+     "current": null,
+     "residents": [],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 1,
+      "weights": {},
+      "air": [
+       0.95,
+       0.56,
+       0.44
+      ],
+      "grade": [
+       0,
+       0.8,
+       1,
+       0.95,
+       0.99,
+       1.07
+      ],
+      "roadSky": 1,
+      "skies": {},
+      "chain": {
+       "owner": null,
+       "weight": 0,
+       "lut": false,
+       "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+       ],
+       "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    },
+    "home": {
+     "feet": {
+      "x": 554.9990442483954,
+      "y": 0.020099504417875502,
+      "z": -317.81647791549483
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:playing"
+     ],
+     "inside": "nine-dragon-stack",
+     "current": "nine-dragon-stack",
+     "residents": [
+      "nine-dragon-stack"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "nine-dragon-stack",
+      "highway": 0,
+      "weights": {
+       "nine-dragon-stack": 1
+      },
+      "air": [
+       0.6,
+       0.56,
+       0.64
+      ],
+      "grade": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "roadSky": 0,
+      "skies": {},
+      "chain": {
+       "owner": "nine-dragon-stack",
+       "weight": 1,
+       "lut": false,
+       "values": [
+        0.1,
+        0,
+        0.1,
+        0,
+        0
+       ],
+       "post": [
+        0.6,
+        0.9,
+        0.3,
+        0.55,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "nine-dragon-stack",
+        "weight": 1,
+        "vol": [
+         1,
+         0.3
+        ],
+        "chroma": 0.0006,
+        "grain": 0.12,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": []
+    },
+    "in8": {
+     "feet": {
+      "x": 555,
+      "y": 0.020099504417875502,
+      "z": -313
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:playing"
+     ],
+     "inside": "nine-dragon-stack",
+     "current": "nine-dragon-stack",
+     "residents": [
+      "nine-dragon-stack"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "nine-dragon-stack",
+      "highway": 0,
+      "weights": {
+       "nine-dragon-stack": 1
+      },
+      "air": [
+       0.6,
+       0.56,
+       0.64
+      ],
+      "grade": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "roadSky": 0,
+      "skies": {},
+      "chain": {
+       "owner": "nine-dragon-stack",
+       "weight": 1,
+       "lut": false,
+       "values": [
+        0.1,
+        0,
+        0.1,
+        0,
+        0
+       ],
+       "post": [
+        0.6,
+        0.9,
+        0.3,
+        0.55,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "nine-dragon-stack",
+        "weight": 1,
+        "vol": [
+         1,
+         0.3
+        ],
+        "chroma": 0.0006,
+        "grain": 0.12,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": []
+    },
+    "line": {
+     "feet": {
+      "x": 555,
+      "y": 0.020099504417875502,
+      "z": -305
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:playing"
+     ],
+     "inside": "nine-dragon-stack",
+     "current": "nine-dragon-stack",
+     "residents": [
+      "nine-dragon-stack"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": "nine-dragon-stack",
+      "highway": 0.5,
+      "weights": {
+       "nine-dragon-stack": 0.5
+      },
+      "air": [
+       0.775,
+       0.56,
+       0.54
+      ],
+      "grade": [
+       0,
+       0.9,
+       1,
+       0.975,
+       0.995,
+       1.035
+      ],
+      "roadSky": 0.5,
+      "skies": {},
+      "chain": {
+       "owner": "nine-dragon-stack",
+       "weight": 0.5,
+       "lut": false,
+       "values": [
+        0.1,
+        0,
+        0.1,
+        0,
+        0
+       ],
+       "post": [
+        0.5,
+        0.95,
+        0.19,
+        0.45,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": "nine-dragon-stack",
+        "weight": 0.5,
+        "vol": [
+         0.5,
+         0.3
+        ],
+        "chroma": 0.0003,
+        "grain": 0.06,
+        "target": [
+         402,
+         681
+        ],
+        "depth": "scene",
+        "sceneDepth": true
+       }
+      }
+     },
+     "bands": []
+    },
+    "out8": {
+     "feet": {
+      "x": 555,
+      "y": 0.020099504417875502,
+      "z": -297
+     },
+     "cells": [
+      "pine-hollow:far proxy",
+      "_template:far proxy",
+      "sunscar-dunes:far proxy",
+      "driftwood-isle:frozen",
+      "nalati-grasslands:far proxy",
+      "far-reach:far proxy",
+      "blender-template:far proxy",
+      "pastel-plain:far proxy",
+      "nine-dragon-stack:playing"
+     ],
+     "inside": null,
+     "current": "nine-dragon-stack",
+     "residents": [
+      "nine-dragon-stack"
+     ],
+     "frame": {
+      "installed": true,
+      "faded": 3,
+      "owner": null,
+      "highway": 1,
+      "weights": {},
+      "air": [
+       0.95,
+       0.56,
+       0.44
+      ],
+      "grade": [
+       0,
+       0.8,
+       1,
+       0.95,
+       0.99,
+       1.07
+      ],
+      "roadSky": 1,
+      "skies": {},
+      "chain": {
+       "owner": null,
+       "weight": 0,
+       "lut": false,
+       "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+       ],
+       "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1,
+        -1
+       ],
+       "fx": {
+        "carrier": null,
+        "weight": 0,
+        "vol": [
+         0,
+         0.55
+        ],
+        "chroma": 0,
+        "grain": 0,
+        "target": [
+         1,
+         1
+        ],
+        "depth": "scene",
+        "sceneDepth": false
+       }
+      }
+     },
+     "bands": [
+      {
+       "visible": true,
+       "colour": [
+        0.95,
+        0.45,
+        0.1
+       ]
+      },
+      {
+       "visible": true,
+       "colour": [
+        0.72,
+        0.68,
+        0.78
+       ]
+      }
+     ]
+    }
+   },
+   "cell": {
+    "instance": "nine-dragon-stack",
+    "slug": "nine-dragon-stack",
+    "cell": [
+     1,
+     -1
+    ],
+    "shows": "far proxy"
+   },
+   "curve": [
+    {
+     "x": 555,
+     "z": -277.5,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -277.7,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -277.9,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -278.3,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -278.8,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -279.7,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -280.4,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -280.9,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -282.1,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -283,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -283.6,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -285.3,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -287,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -288,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -289.2,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -290.7,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -292.2,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -293.7,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -295.2,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -296.5,
+     "inside": null,
+     "highway": 1,
+     "weights": {}
+    },
+    {
+     "x": 555,
+     "z": -297.5,
+     "inside": null,
+     "highway": 0.997,
+     "weights": {
+      "nine-dragon-stack": 0.003
+     }
+    },
+    {
+     "x": 555,
+     "z": -298.3,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nine-dragon-stack": 0.02
+     }
+    },
+    {
+     "x": 555,
+     "z": -298.3,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nine-dragon-stack": 0.02
+     }
+    },
+    {
+     "x": 555,
+     "z": -298.3,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nine-dragon-stack": 0.02
+     }
+    },
+    {
+     "x": 555,
+     "z": -298.3,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nine-dragon-stack": 0.02
+     }
+    },
+    {
+     "x": 555,
+     "z": -298.3,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nine-dragon-stack": 0.02
+     }
+    },
+    {
+     "x": 555,
+     "z": -298.3,
+     "inside": null,
+     "highway": 0.98,
+     "weights": {
+      "nine-dragon-stack": 0.02
+     }
+    },
+    {
+     "x": 555,
+     "z": -299.5,
+     "inside": null,
+     "highway": 0.934,
+     "weights": {
+      "nine-dragon-stack": 0.066
+     }
+    },
+    {
+     "x": 555,
+     "z": -300.7,
+     "inside": null,
+     "highway": 0.866,
+     "weights": {
+      "nine-dragon-stack": 0.134
+     }
+    },
+    {
+     "x": 555,
+     "z": -301.6,
+     "inside": null,
+     "highway": 0.797,
+     "weights": {
+      "nine-dragon-stack": 0.203
+     }
+    },
+    {
+     "x": 555,
+     "z": -302.3,
+     "inside": null,
+     "highway": 0.746,
+     "weights": {
+      "nine-dragon-stack": 0.254
+     }
+    },
+    {
+     "x": 555,
+     "z": -302.7,
+     "inside": null,
+     "highway": 0.707,
+     "weights": {
+      "nine-dragon-stack": 0.293
+     }
+    },
+    {
+     "x": 555,
+     "z": -303.2,
+     "inside": null,
+     "highway": 0.668,
+     "weights": {
+      "nine-dragon-stack": 0.332
+     }
+    },
+    {
+     "x": 555,
+     "z": -303.6,
+     "inside": null,
+     "highway": 0.629,
+     "weights": {
+      "nine-dragon-stack": 0.371
+     }
+    },
+    {
+     "x": 555,
+     "z": -304,
+     "inside": null,
+     "highway": 0.59,
+     "weights": {
+      "nine-dragon-stack": 0.41
+     }
+    },
+    {
+     "x": 555,
+     "z": -304.5,
+     "inside": null,
+     "highway": 0.55,
+     "weights": {
+      "nine-dragon-stack": 0.45
+     }
+    },
+    {
+     "x": 555,
+     "z": -304.9,
+     "inside": null,
+     "highway": 0.51,
+     "weights": {
+      "nine-dragon-stack": 0.49
+     }
+    },
+    {
+     "x": 555,
+     "z": -305.3,
+     "inside": "nine-dragon-stack",
+     "highway": 0.476,
+     "weights": {
+      "nine-dragon-stack": 0.524
+     }
+    },
+    {
+     "x": 555,
+     "z": -305.7,
+     "inside": "nine-dragon-stack",
+     "highway": 0.436,
+     "weights": {
+      "nine-dragon-stack": 0.564
+     }
+    },
+    {
+     "x": 555,
+     "z": -306.1,
+     "inside": "nine-dragon-stack",
+     "highway": 0.396,
+     "weights": {
+      "nine-dragon-stack": 0.604
+     }
+    },
+    {
+     "x": 555,
+     "z": -306.5,
+     "inside": "nine-dragon-stack",
+     "highway": 0.357,
+     "weights": {
+      "nine-dragon-stack": 0.643
+     }
+    },
+    {
+     "x": 555,
+     "z": -307,
+     "inside": "nine-dragon-stack",
+     "highway": 0.319,
+     "weights": {
+      "nine-dragon-stack": 0.681
+     }
+    },
+    {
+     "x": 555,
+     "z": -307.4,
+     "inside": "nine-dragon-stack",
+     "highway": 0.281,
+     "weights": {
+      "nine-dragon-stack": 0.719
+     }
+    },
+    {
+     "x": 555,
+     "z": -307.8,
+     "inside": "nine-dragon-stack",
+     "highway": 0.245,
+     "weights": {
+      "nine-dragon-stack": 0.755
+     }
+    },
+    {
+     "x": 555,
+     "z": -308.3,
+     "inside": "nine-dragon-stack",
+     "highway": 0.211,
+     "weights": {
+      "nine-dragon-stack": 0.789
+     }
+    },
+    {
+     "x": 555,
+     "z": -308.7,
+     "inside": "nine-dragon-stack",
+     "highway": 0.178,
+     "weights": {
+      "nine-dragon-stack": 0.822
+     }
+    },
+    {
+     "x": 555,
+     "z": -309.1,
+     "inside": "nine-dragon-stack",
+     "highway": 0.148,
+     "weights": {
+      "nine-dragon-stack": 0.852
+     }
+    },
+    {
+     "x": 555,
+     "z": -309.6,
+     "inside": "nine-dragon-stack",
+     "highway": 0.119,
+     "weights": {
+      "nine-dragon-stack": 0.881
+     }
+    },
+    {
+     "x": 555,
+     "z": -310,
+     "inside": "nine-dragon-stack",
+     "highway": 0.093,
+     "weights": {
+      "nine-dragon-stack": 0.907
+     }
+    },
+    {
+     "x": 555,
+     "z": -310.4,
+     "inside": "nine-dragon-stack",
+     "highway": 0.07,
+     "weights": {
+      "nine-dragon-stack": 0.93
+     }
+    },
+    {
+     "x": 555,
+     "z": -310.8,
+     "inside": "nine-dragon-stack",
+     "highway": 0.05,
+     "weights": {
+      "nine-dragon-stack": 0.95
+     }
+    },
+    {
+     "x": 555,
+     "z": -311.3,
+     "inside": "nine-dragon-stack",
+     "highway": 0.032,
+     "weights": {
+      "nine-dragon-stack": 0.968
+     }
+    },
+    {
+     "x": 555,
+     "z": -311.7,
+     "inside": "nine-dragon-stack",
+     "highway": 0.019,
+     "weights": {
+      "nine-dragon-stack": 0.981
+     }
+    },
+    {
+     "x": 555,
+     "z": -312.1,
+     "inside": "nine-dragon-stack",
+     "highway": 0.008,
+     "weights": {
+      "nine-dragon-stack": 0.992
+     }
+    },
+    {
+     "x": 555,
+     "z": -312.6,
+     "inside": "nine-dragon-stack",
+     "highway": 0.002,
+     "weights": {
+      "nine-dragon-stack": 0.998
+     }
+    },
+    {
+     "x": 555,
+     "z": -313,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -313.4,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -313.8,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -314.3,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -314.7,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -315.1,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -315.6,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -316,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -316.4,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -316.9,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    },
+    {
+     "x": 555,
+     "z": -317.3,
+     "inside": "nine-dragon-stack",
+     "highway": 0,
+     "weights": {
+      "nine-dragon-stack": 1
+     }
+    }
+   ],
+   "route": []
+  }
+ },
+ "finished": "2026-10-10T11:49:07.348Z"
+}
