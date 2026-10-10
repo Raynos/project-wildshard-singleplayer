@@ -26,6 +26,8 @@ import { resourceScope } from '../app/resources';
  */
 import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, type BootStep, type ByteKey } from './steps';
 import { expectedDurations, saveTimings, type Timings } from './timing';
+import { paceYield, presenting } from '../core/framePacing';
+import { WORK_SLICE_MS } from '../core/workSlice';
 
 export interface StepProgress {
   /** Progress in the step's own unit; the step's contribution becomes max(previous, done / (total + 1)). */
@@ -85,12 +87,19 @@ export interface PlanOptions {
   yieldTask?: (() => Promise<void>) | null;
 }
 
-/** End the current task: the next step starts in a fresh one (a MessageChannel hop — no 4 ms timer clamp). */
-export const macrotask = (): Promise<void> => new Promise((resolve) => {
+/** One MessageChannel hop: a fresh task with no 4 ms timer clamp. */
+const messageHop = (): Promise<void> => new Promise((resolve) => {
   const c = new MessageChannel();
   c.port1.onmessage = () => { c.port1.close(); resolve(); };
   c.port2.postMessage(0);
 });
+
+/**
+ * End the current task: the next step starts in a fresh one (a MessageChannel hop — no 4 ms timer clamp). In play (the
+ * engine loop drawing, `presenting()`, op-hitch26) with a frame due, it waits until the loop has drawn that frame instead:
+ * Blink can run queued port messages back to back with no frame between them.
+ */
+export const macrotask = (): Promise<void> => paceYield(messageHop);
 
 /**
  * A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between
@@ -98,13 +107,16 @@ export const macrotask = (): Promise<void> => new Promise((resolve) => {
  */
 export function slicer(budgetMs = 30, progress?: StepProgress): Slice {
   let t0 = performance.now();
+  // in play (a grid cell built on the road while the engine loop draws, op-hitch26) a stretch is a work slice, not a loading
+  // task: the loading screen's ~100 ms rule becomes the frame floor's
+  const budget = (): number => (presenting() ? Math.min(budgetMs, WORK_SLICE_MS) : budgetMs);
   const next = async (): Promise<void> => { await macrotask(); t0 = performance.now(); };
   const slice = async (done?: number, total?: number, detail?: string): Promise<void> => {
     if (done !== undefined && total !== undefined) progress?.set(done, total, detail);
-    if (performance.now() - t0 < budgetMs) return;
+    if (performance.now() - t0 < budget()) return;
     await next();
   };
-  return Object.assign(slice, { due: (): Promise<void> | null => (performance.now() - t0 < budgetMs ? null : next()) });
+  return Object.assign(slice, { due: (): Promise<void> | null => (performance.now() - t0 < budget() ? null : next()) });
 }
 
 /** A `slicer()` yield point, plus `due()` on the same clock for code that pauses inside a step (`placeSliced`'s `due`):

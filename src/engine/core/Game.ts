@@ -35,6 +35,8 @@ import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
+import { noteFrameDrawn, setFramePacing } from './framePacing';
+import { onSettingChange, setting } from '../ui/Settings';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
@@ -876,6 +878,7 @@ export class Game {
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;
+      noteFrameDrawn(done); // sliced builds in play pace their stretches to drawn frames (framePacing.ts)
       this.app.cpu.end();
       this.workMs[this.frameI] = work; this.frameCount++;
       this.updateMs[this.frameI] = renderAt - lastRun; this.renderMs[this.frameI] = done - renderAt;
@@ -887,6 +890,9 @@ export class Game {
     };
     this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
+    // op-hitch26: sliced builds in play pace themselves to these frames only with the default-off Developer tool on
+    setFramePacing(setting('buildPacing') === 'on');
+    this.engineScope.onDispose(onSettingChange('buildPacing', (v) => { setFramePacing(v === 'on'); }));
     setLoopState('running');
     loop();
   }

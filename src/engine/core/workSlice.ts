@@ -4,7 +4,8 @@
  * A grid cell admits its world on the road, in play, so every synchronous stretch of a builder lands between two drawn
  * frames. A 60 Hz frame leaves about 16.7 ms: the game's own update and render take ~4–7 ms on the desktop, so a build
  * stretch above ~8 ms costs a frame. Builders check `slice.due()` inside their loops and `await slice.yield()` when it
- * is; the yield is a fresh timer task, so a due frame draws between two stretches.
+ * is; the yield is a fresh timer task, or, in play with a frame due (`framePacing.ts`), a wait until the engine loop has drawn
+ * it: Blink may run timer tasks back to back before its rendering update.
  *
  *   const slice = workSlice();
  *   for (const item of items) { work(item); if (slice.due()) await slice.yield(); }
@@ -12,6 +13,7 @@
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { diagnosticNow } from './clock';
+import { paceYield } from './framePacing';
 
 /** The longest synchronous stretch a sliced builder runs before it lets a frame through (ms). */
 export const WORK_SLICE_MS = 8;
@@ -42,7 +44,8 @@ export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): Work
   let start = diagnosticNow();
   const slice: WorkSlice = {
     due: () => diagnosticNow() - start >= budgetMs,
-    yield: async () => { await yieldTask(owner); start = diagnosticNow(); },
+    // in play with a frame due, the stretch ends only once the loop has drawn it (op-hitch26: timer tasks ran back to back)
+    yield: async () => { await paceYield(() => yieldTask(owner), owner); start = diagnosticNow(); },
     check: () => (slice.due() ? slice.yield() : undefined),
   };
   return slice;

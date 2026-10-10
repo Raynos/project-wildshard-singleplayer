@@ -55,7 +55,9 @@ import { Terrain } from '@wildshard/engine/world/Terrain';
 import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
-import { CHUNK_SIZE } from '@wildshard/engine/core/config';
+import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
+import { workSlice } from '@wildshard/engine/core/workSlice';
+import { heightAt } from '@wildshard/engine/world/Heightfield';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { setting } from '@wildshard/engine/ui/Settings';
 import type { ShardManifest } from '../shard/manifest';
@@ -121,6 +123,26 @@ type LayeredBackdrop = NonNullable<Awaited<ReturnType<SkyRig['layeredBackdrop']>
 /** a layered sky's volumetric light: the page's chain never has one to hand (G232 hands a region's clock the page's saturation, SF63 its god rays) */
 const NO_VOL: Parameters<LayeredBackdrop['attachPost']>[0]['vol'] = { setSun: () => undefined, setFogColor: () => undefined, setStrength: () => undefined };
 
+/**
+ * The terrain collider's lattice (`terrainGrid` in @wildshard/engine/physics/terrain: TERRAIN_RES² heights over the chunk), sampled
+ * under the cell's bound frame a band of rows per work slice (op-hitch26, E435 frame floor): sampling a shard's terrain function
+ * at every vertex in one go was a 0.13 s task on Nalati's road entry. Same lattice, same order, same heights.
+ */
+async function slicedTerrainGrid(run: (rows: () => number) => number, left: () => boolean): Promise<Float32Array> {
+  const res = TERRAIN_RES, d = CHUNK_SIZE / (res - 1), half = CHUNK_SIZE / 2, out = new Float32Array(res * res), slice = workSlice();
+  for (let next = 0; ;) {
+    const from = next;
+    next = run(() => {
+      let iz = from;
+      do { for (let ix = 0; ix < res; ix++) out[iz * res + ix] = heightAt(ix * d - half, iz * d - half); iz++; } while (iz < res && !slice.due());
+      return iz;
+    });
+    if (next >= res) return out;
+    await slice.yield();
+    if (left()) throw new Error('Regional world left while sampling its ground');
+  }
+}
+
 function simLevel(level: LevelSpec): SimLevel {
   const { spawn } = level;
   return { version: 1, id: level.id, seed: level.seed ?? 0, ground: { size: CHUNK_SIZE, height: 0 },
@@ -175,7 +197,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const host = withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
         heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
       // The real ground of the region's level, sampled from its own bound heightfield (never the home's).
-      frame.run(app, () => { addTerrain(host.physics); });
+      const groundGrid = await slicedTerrainGrid((rows) => frame.run(app, rows), left);
+      frame.run(app, () => { addTerrain(host.physics, groundGrid); });
       ports.install?.(host, request);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its collision');
