@@ -127,7 +127,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # SF74 W0 / W15: a release pin whose exact SHA passed push CI (typecheck-lint, this job's test:checks, build and
-      # chunk check, plus all eight vitest shards and coverage) reuses that proof: no typecheck, lint, test or extra vite
+      # chunk check, plus all eight vitest shards) reuses that proof: no typecheck, lint, test or extra vite
       # build here (24.5 min → ~4 min on 2026-10-09). `vercel build` below still runs `pnpm build` (gen, tsc, shardfiles,
       # vite build) and the chunk check reads its dist. Unproven historical pins still run everything.
       - name: Typecheck
@@ -238,10 +238,10 @@ jobs:
 
   # Push / PR CI runs the vitest suite once, split over parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"; E454, Jake
   # 2026-10-07: CI must be fast, so 6 ways: each 3-way shard took ~4.5 min and was the run's critical path; SF74 W16,
-  # 2026-10-09: 8 ways, each 6-way shard took a median 3.6-4.4 min of a 5.6 min run). Each
-  # shard writes its istanbul coverage; the `coverage` job merges them (scripts/coverage-merge.mjs measures what one
-  # unsharded run measures) and runs the coverage ratchet. A red shard, merge or ratchet fails the run, and deploy-pin's
-  # newest-ci-green only takes a push run whose every job passed.
+  # 2026-10-09: 8 ways, each 6-way shard took a median 3.6-4.4 min of a 5.6 min run). No coverage here (Jake, G287,
+  # 2026-10-09: coverage instrumentation made the headless suites time out, 36 red runs, and added a dependent hop):
+  # .github/workflows/coverage.yml runs the 8 shards with coverage, the merge and the ratchet nightly and on a milestone
+  # dispatch. A red shard fails the run, and deploy-pin's newest-ci-green only takes a push run whose every job passed.
   vitest:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -274,37 +274,4 @@ jobs:
       - name: Vitest shard ${{ matrix.shard }}/8
         run: |
           pnpm gen
-          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --coverage --coverage.reporter=json --reporter=dot --reporter=github-actions
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vitest-coverage-${{ matrix.shard }}
-          path: coverage/coverage-final.json
-          retention-days: 1
-          if-no-files-found: error
-
-  coverage:
-    needs: vitest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      # the merge and the ratchet are dependency-free node scripts: no install
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            /scripts/coverage-merge.mjs
-            /scripts/coverage-ratchet.mjs
-            /test/coverage-ratchet.json
-          sparse-checkout-cone-mode: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: vitest-coverage-*
-          path: shards
-      - name: Merge coverage and ratchet
-        run: |
-          test "$(find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)" = 8 # every shard's coverage, or the ratchet reads a partial run
-          node scripts/coverage-merge.mjs --out coverage/coverage-summary.json shards/vitest-coverage-*/coverage-final.json
-          node scripts/coverage-ratchet.mjs
+          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --reporter=dot --reporter=github-actions

@@ -12,8 +12,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **Push / PR CI runs vitest once, in 8 parallel shard jobs** (E429; 8 since SF74 W16): `typecheck-lint` runs
   typecheck and lint; `build-and-deploy` runs `pnpm run test:checks`' commands (the node checks of `pnpm test`) and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build; `vitest`
-  (matrix 1–8) runs `vitest run --shard=i/8 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs`
-  (the same numbers as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. **A push that only touches
+  (matrix 1–8) runs `vitest run --shard=i/8`, **without coverage** (Jake, G287). **Coverage runs nightly and at
+  milestones** (`.github/workflows/coverage.yml`: 09:23 UTC, or `gh workflow run coverage [-f sha=<candidate>]`): the
+  same 8 shards under `--coverage`, merged with `scripts/coverage-merge.mjs` (the same numbers as one unsharded run),
+  then `scripts/coverage-ratchet.mjs`; it holds no release, and a coverage drop is found there, not per push. **A push that only touches
   `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; CI's sparse checkout drops those
   paths, so it would re-test the parent's tree): that SHA never becomes a release candidate, and production's
   "newest proven main" is its newest code ancestor, so compare `version.json` with the newest CI-green SHA, not the
@@ -23,14 +25,14 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate's cache** (2026-10-09): the gate runs `vitest related` and skips unchanged
   bake / audit steps (GIT.md), so a transitive break the cache missed shows up here first; fix it like any red run.
-- **CI's vitest is Linux x64 under coverage: other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
+- **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /
     asin / pow`, or `**` with a non-integer exponent): they round differently on arm64 and x64. Install
     `test/fake/portableMath.ts` for the file (`installPortableMath()`), keep its terrain analytic, and check the digest
     under x64 Node too (Rosetta: nodejs.org's darwin-x64 build, `NAPI_RS_NATIVE_LIBRARY_PATH` pointing at
     `@rolldown/binding-darwin-x64`). Comparing two runs inside one process needs none of this.
-  - **Headless suites' budget:** a test's local time under `--coverage` stays under a third of its timeout. A restore
+  - **Headless suites' budget:** a test's local time under `--coverage` stays under a third of its timeout (the nightly coverage run uses the same timeouts). A restore
     checkpoint costs 10–20 s under coverage (the string round trip of the native world), so: one checkpoint per test
     (`it.each`), one string round trip per checkpoint, continuations compared with `expectSameSimSnapshot`
     (`test/fake/simSnapshot.ts`), never `toEqual` on whole snapshots nor serialising both sides to compare. A walk tape

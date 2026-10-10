@@ -1,0 +1,85 @@
+name: coverage
+# Coverage nightly plus a dispatch at each milestone, not on every push (Jake, G287, 2026-10-09; speed audit #7: the
+# coverage instrumentation of all 8 push-CI shards caused 36 red runs of headless-runtime timeouts on 10-09, and the merge
+# job added a dependent hop). Push CI (deploy.yml) runs the same 8 vitest shards without coverage; this run instruments
+# them, merges the shards with scripts/coverage-merge.mjs (the numbers one unsharded run measures) and runs the coverage
+# ratchet (scripts/coverage-ratchet.mjs, test/coverage-ratchet.json). It holds no release: deploy-pin's newest-ci-green
+# reads push runs of deploy.yml only. Milestone: `gh workflow run coverage` (add -f sha=<candidate> to measure a SHA).
+on:
+  schedule:
+    - cron: '23 9 * * *'   # 04:23 CT, main's head (after the 08:41 UTC gpu-gate)
+  workflow_dispatch:
+    inputs:
+      sha: { description: Commit to measure (default the branch head), type: string, required: false }
+concurrency:
+  group: coverage-${{ inputs.sha || github.sha }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  vitest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      # links the @wildshard/* workspace packages (E432), so it stays before vitest
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Vitest shard ${{ matrix.shard }}/8 with coverage
+        run: |
+          pnpm gen
+          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --coverage --coverage.reporter=json --reporter=dot --reporter=github-actions
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage-${{ matrix.shard }}
+          path: coverage/coverage-final.json
+          retention-days: 3
+          if-no-files-found: error
+
+  coverage:
+    needs: vitest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # the merge and the ratchet are dependency-free node scripts: no install
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          sparse-checkout: |
+            /scripts/coverage-merge.mjs
+            /scripts/coverage-ratchet.mjs
+            /test/coverage-ratchet.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vitest-coverage-*
+          path: shards
+      - name: Merge coverage and ratchet
+        run: |
+          test "$(find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)" = 8 # every shard's coverage, or the ratchet reads a partial run
+          node scripts/coverage-merge.mjs --out coverage/coverage-summary.json shards/vitest-coverage-*/coverage-final.json
+          node scripts/coverage-ratchet.mjs

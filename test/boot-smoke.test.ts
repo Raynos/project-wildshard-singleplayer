@@ -92,7 +92,15 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   expect(workflow).toContain("- name: Checks and build (parallel)\n        if: env.DEPLOY != 'true'\n        run: node scripts/ci-checks.mjs");
   expect(workflow).toContain('\n  typecheck-lint:\n');
   expect(workflow).toContain('shard: [1, 2, 3, 4, 5, 6, 7, 8]');
-  expect(workflow).toContain("find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)\" = 8");
+  // G287: push CI runs the shards without coverage; coverage.yml instruments them, merges and ratchets nightly + milestones.
+  expect(workflow).not.toContain('--coverage');
+  const coverage = readFileSync('.github/workflows/coverage.yml', 'utf8');
+  expect(coverage).toContain('shard: [1, 2, 3, 4, 5, 6, 7, 8]');
+  expect(coverage).toContain('--coverage --coverage.reporter=json');
+  expect(coverage).toContain("find shards -path 'shards/vitest-coverage-*/coverage-final.json' | wc -l)\" = 8");
+  expect(coverage).toMatch(/schedule:\n {4}- cron: '[^']+'/u);
+  expect(coverage).toContain('workflow_dispatch:');
+  expect(coverage).not.toMatch(/^ {2}(push|pull_request):/mu);
   expect(job).toContain(`group: boot-smoke-\${{ matrix.part }}-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
   // SF74 W16: the boot and HOVER legs run at once; `verdict` publishes the one exact-SHA status from both.
   expect(job).toContain('part: [boot, hover]');

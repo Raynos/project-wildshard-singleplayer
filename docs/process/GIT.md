@@ -9,8 +9,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   must pass the CI gates on a clean export of the tree (`tsc --noEmit`, `oxlint`, `node scripts/check-css.mjs`,
   `vite build`), not just the files you touched. The pre-push gate does this for you (below).
 - **The gpu-gate parity jobs run nightly and at milestones, not on every push** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`); the node checks still run per push.
+- **Coverage runs nightly and at milestones, not on every push** (Jake, G287, 2026-10-09): push CI runs the 8 vitest
+  shards without `--coverage`; `.github/workflows/coverage.yml` instruments them, merges and runs the coverage ratchet
+  at 09:23 UTC and on `gh workflow run coverage` (DEPLOY.md).
   Historical (E357 Z4): **The per-push CI gate** stays green: the `macos-15` parity jobs for every shard and the template, and
-  the node checks (layers, ratchets, contracts, the asset audit, `gen-shards --check`, coverage). Keep the nightly
+  the node checks (layers, ratchets, contracts, the asset audit, `gen-shards --check`). Keep the nightly
   `gpu-perf` run on Jake's Mac enabled.
 - **Strict means strict.** `tsconfig.json` has every strictness flag on, and `.oxlintrc.json` is type-aware with every
   category at error and zero warnings allowed. Fix the type, never the gate: no `any`, no non-null `!`, no
