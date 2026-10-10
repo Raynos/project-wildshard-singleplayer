@@ -211,6 +211,7 @@ it('collects each test file once and serializes the build, native continuation a
     'test/proof/compatibility/determinism.test.ts',
     'test/proof/driftwood-isle/reef.test.ts',
     'test/proof/driftwood-isle/replay.test.ts',
+    'test/proof/driftwood-isle/zipline.test.ts',
     'test/proof/nine-dragon-stack/headless.test.ts',
     'test/sdk-repo-build.test.ts',
     'test/shardfile-splat-admission.test.ts',
