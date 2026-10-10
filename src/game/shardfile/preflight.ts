@@ -29,10 +29,16 @@ export function preflightShardfile(input: unknown): void {
 
   let bytes = 0;
   const encoder = new TextEncoder();
+  // SF67: an ASCII string's UTF-8 length is its length; only others are encoded (a TextEncoder copy of every string of the
+  // source was ~40 % of the template's 120-200 ms cached-product task at 4x CPU)
+  const utf8Length = (text: string): number => {
+    for (let i = 0; i < text.length; i++) if ((text.codePointAt(i) ?? 0) > 0x7f) return encoder.encode(text).length;
+    return text.length;
+  };
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
-    add(encoder.encode(JSON.stringify(value)).length);
+    add(utf8Length(JSON.stringify(value)));
   };
   const visit = (value: unknown): void => {
     if (typeof value === 'string') { string(value, limits.textCharacters); return; }
