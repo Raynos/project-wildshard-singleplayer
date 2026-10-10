@@ -89,6 +89,7 @@
     "./looks/keyedSkyRows": "./looks/keyedSkyRows.ts",
     "./species/clips": "./species/clips.ts",
     "./species/riggedHulls": "./species/riggedHulls.ts",
+    "./compendium/trophyWall": "./compendium/trophyWall.ts",
     "./species/riggedHullRows": "./species/riggedHullRows.ts",
     "./items/lashView": "./items/lashView.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",
