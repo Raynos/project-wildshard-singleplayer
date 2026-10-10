@@ -6,6 +6,7 @@ import { Pass, ToneMappingEffect, ToneMappingMode, type EffectComposer } from 'p
 import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/perflog';
 import { bootTraceActive } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
+import type { OffscreenPass } from './look';
 import type { Game } from '../core/Game';
 import { chunkShadowCastersSliced } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
@@ -654,6 +655,19 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
 
 
 
+
+/**
+ * Link an offscreen pass's programs before its first draw (op-hitch47): `compileAsync` with the pass's own target bound,
+ * so the programs carry that target's keys (a render target's draws skip tone mapping and the output conversion), and
+ * resolves once the driver has linked them (KHR_parallel_shader_compile where there is one). The target is restored.
+ */
+export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPass): Promise<void> {
+  const prior = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
+  let linked: Promise<unknown>;
+  renderer.setRenderTarget(pass.target);
+  try { linked = renderer.compileAsync(pass.scene, pass.camera); } finally { renderer.setRenderTarget(prior, face, mip); }
+  await linked;
+}
 
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,

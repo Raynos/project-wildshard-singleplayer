@@ -1,5 +1,5 @@
 import { loadBakedSky, loadLUT, preloadBakedTextures } from '@wildshard/engine/boot/bakedApi';
-import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
+import type { OffscreenPass, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import { setting, type OptionValue } from '@wildshard/engine/ui/Settings';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -215,6 +215,9 @@ export class KeyedSky {
     await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
     return dn;
   }
+
+  /** the environment pass `bind` draws first (op-hitch47): a grid cell's layer links it before it binds this sky */
+  get environmentPass(): OffscreenPass { return { scene: this.envScene, camera: this.envCam, target: this.envEquirect }; }
 
   /** hand over the lights, fog, disc, clouds and far haze (once they exist); applies the current time */
   bind(targets: SkyBackdropTargets): void { this.T = targets; this.apply(true); this.refreshEnvironment(); }
@@ -573,6 +576,7 @@ export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean): S
       dispose: () => { if (skies.get(sky) === keyed) skies.delete(sky); keyed.dispose(); },
       gpuBytes: () => keyed.gpuBytes(),
       gpuCeiling: () => keyed.gpuCeiling(),
+      environmentPass: keyed.environmentPass,
     };
   };
 }

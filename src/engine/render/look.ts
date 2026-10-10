@@ -1,4 +1,4 @@
-import type { Color, DirectionalLight, Fog, Group, HemisphereLight, Material, Mesh, Object3D, Sprite, Texture, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { Camera, Color, DirectionalLight, Fog, Group, HemisphereLight, Material, Mesh, Object3D, Sprite, Texture, Vector3, PerspectiveCamera, Scene, WebGLRenderer, WebGLRenderTarget } from 'three';
 import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
 import type { GradeEffect } from '../core/Grade';
@@ -341,6 +341,15 @@ export interface SkyBackdrop {
   gpuBytes?: () => number;
   /** the most GPU bytes it can hold (its resident key cap, environment and PMREM targets): what a layer reserves (G223) */
   gpuCeiling?: () => number;
+  /**
+   * The offscreen pass its `bind` draws first (its environment, before the PMREM filter): a grid cell's layer links its
+   * programs against that target (`compileOffscreenPass`) before it attaches the backdrop, so the frame it binds in does not
+   * wait on a link (op-hitch47: a 34 ms blocking link in the frame Pine's cell sky attached). Optional data, read once.
+   */
+  environmentPass?: OffscreenPass;
 }
+
+/** An offscreen draw: what `renderer.render(scene, camera)` into `target` draws (`compileOffscreenPass`). */
+export interface OffscreenPass { readonly scene: Object3D; readonly camera: Camera; readonly target: WebGLRenderTarget }
 export interface SkyBackdropContext { sky: Sky; scene: Scene; renderer: WebGLRenderer; level: LevelSpec; tier: Tier; look: { vol: number; fogDist: number; sat: number; ambient: number; sky: number } | null }
 export type SkyBackdropFactory = (c: SkyBackdropContext) => Promise<SkyBackdrop>;

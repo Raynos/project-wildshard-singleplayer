@@ -47,6 +47,7 @@ import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { LookStrategy } from '@wildshard/engine/render/look';
+import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
@@ -288,6 +289,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                   // G321: its world-anchored sky pieces stand at the region's root, where its level's frame is drawn
                   origin: () => regionOrigin.setFromMatrixPosition(view.root.matrixWorld) });
                 if (layered === null) return null;
+                // op-hitch47: attaching binds its clock, which draws its environment pass at once: link that pass first
+                const pass = layered.backdrop.environmentPass;
+                if (pass !== undefined) await compileOffscreenPass(game.renderer, pass);
                 made.backdrop = layered.backdrop;
                 // Attachment binds the clock and creates its PMREM. Read that environment after attach, not before.
                 made.environment = () => layered.layer.holder.environment;

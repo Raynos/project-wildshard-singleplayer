@@ -66,6 +66,19 @@ export async function preloadBakedTextures(): Promise<number> {
 }
 
 /**
+ * Fetch a lossless common bake (`/assets/baked/common/*.bin`) the build has, when no boot has loaded it, so a later
+ * `bakedBytes` finds it (op-hitch47: a grid region's cloud layer on a page whose level never declared the cloud field
+ * marched the fbm on the main thread, 37-53 ms of the frame its cell's sky attached in). A missing file resolves too.
+ */
+export async function loadCommonBytes(url: string): Promise<void> {
+  if (NOBAKE || raw.has(url) || !url.startsWith(COMMON) || !(url in publicBytes())) return;
+  try {
+    const r = await fetch(versionedUrl(url));
+    if (r.ok) raw.set(url, new Uint8Array(await r.arrayBuffer()));
+  } catch (e) { console.warn(`[baked] ${url}: ${(e as Error).message}`); }
+}
+
+/**
  * A lossless common bake's bytes (`/assets/baked/common/*.bin`) when the level declared it and it arrived with exactly
  * `length` bytes, else null (the caller computes the same bytes itself). The bytes are shared: never write into them.
  */

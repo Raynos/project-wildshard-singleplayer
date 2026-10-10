@@ -258,7 +258,9 @@ export class SkyRig {
       seedLayerTargets(layer, options.level);
       if (options.sun?.disc === false) layer.targets.disc.visible = false;
       if (options.sun?.halo === false && layer.targets.halo !== null) layer.targets.halo.visible = false;
-      const backdrop = await factory({ sky: layerKeyedSky(this, layer), scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
+      // op-hitch47: the engine cloud layer's fbm arrives as the common bake while the backdrop builds, not marched in its frame
+      const cloudField = options.clouds !== false ? this.visual.loadCloudField() : Promise.resolve();
+      const [backdrop] = await Promise.all([factory({ sky: layerKeyedSky(this, layer), scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null }), cloudField]);
       if (options.planet !== false) this.layerPlanet(layer, options.level); // before the layer binds the clock (its crisp disc)
       if (options.clouds !== false && backdrop.clouds === undefined) this.layerClouds(layer, options.level);
       return { layer, backdrop };

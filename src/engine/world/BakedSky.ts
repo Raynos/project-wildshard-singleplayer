@@ -11,6 +11,7 @@
  */
 import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
+import { nextDrawnFrame, presenting } from '../core/framePacing';
 
 /** log2 of the brightest value the pair holds — keep in step with scripts/bake-sky.mjs */
 const GAIN_MAX = 16;
@@ -125,6 +126,15 @@ async function blobOf(url: string): Promise<Blob> {
   return res.blob();
 }
 
+/** The last caller's drawn-frame turn (`drawnFrameTurn`). */
+let turn: Promise<void> = Promise.resolve();
+/** The next drawn frame after every earlier caller's: one decoded key a frame. */
+function drawnFrameTurn(): Promise<void> {
+  const mine = turn.then(() => nextDrawnFrame());
+  turn = mine;
+  return mine;
+}
+
 /** The HDRI as HDRLoader would have returned it, from the gain-mapped pair. */
 export async function loadBakedSky(urls: { color: string; gain: string }): Promise<THREE.DataTexture> {
   const [color, gain] = await Promise.all([blobOf(urls.color), blobOf(urls.gain)]);
@@ -132,6 +142,9 @@ export async function loadBakedSky(urls: { color: string; gain: string }): Promi
   const { width, height, data } = offthread
     ? await decodeInWorker(color, gain).catch((e: unknown) => { console.warn(`[sky] ${String(e)}; decoding on the main thread`); return decodeHere(color, gain); })
     : await decodeHere(color, gain);
+  // op-hitch47: in play (buildPacing), each decoded key resolves on a drawn frame of its own, so the caller's upload of it
+  // starts a frame: two keys decoded together were uploaded back to back, 35 ms of the frame a grid cell's sky attached in
+  if (presenting()) await drawnFrameTurn();
   const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.HalfFloatType);
   tex.colorSpace = THREE.LinearSRGBColorSpace;
   tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;

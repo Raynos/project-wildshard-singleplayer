@@ -95,7 +95,7 @@ export const LAYER_DOME_REACH = 0.75;
  * What a layer runs of a backdrop: a level's whole `SkyBackdrop` fits, and so does a fixed sky that only binds its own light
  * and draws a dome (G242's road sky; no clock, no post).
  */
-export type LayeredSkyBackdrop = Pick<SkyBackdrop, 'lut' | 'bind' | 'update' | 'rebuild'> & Partial<Pick<SkyBackdrop, 'clouds' | 'dressing' | 'dispose' | 'gpuBytes'>>;
+export type LayeredSkyBackdrop = Pick<SkyBackdrop, 'lut' | 'bind' | 'update' | 'rebuild'> & Partial<Pick<SkyBackdrop, 'clouds' | 'dressing' | 'dispose' | 'gpuBytes' | 'environmentPass'>>;
 
 /** One shared value the layer moves: held before it writes, blended toward its own, put back at the next frame. */
 interface Slot { readonly save: () => void; readonly blend: (w: number) => void; readonly undo: () => void }

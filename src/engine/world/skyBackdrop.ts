@@ -8,7 +8,7 @@ import type { SkySpec } from '../level/data';
 import { levelBakedId, type LevelSpec } from '../level/spec';
 import type { SkyDressing } from '../render/look';
 import { loadHDR } from '../core/assets';
-import { bakedBytes, bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
+import { bakedBytes, bakedTexture, loadCommonBytes, preloadBakedTextures } from '../boot/bakedTextures';
 import { CLOUD_FIELD_N, cloudFieldPixels } from './cloudField';
 import { cloudTexture, ctx2d, giantTexture, planetTexture } from './skyTextures';
 import { CLOUD_FIELD_URL } from '../boot/bakedApi';
@@ -150,6 +150,10 @@ export class SkyBackdropView {
     this.scope.onDispose(() => { tex.dispose(); });
     this.cloudTex = tex;
     return tex;
+  }
+  /** Load the common cloud bake before `cloudField()` would march the fbm on the main thread (a grid region's cloud layer, op-hitch47). */
+  async loadCloudField(): Promise<void> {
+    if (this.cloudTex === null) await loadCommonBytes(CLOUD_FIELD_URL);
   }
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   buildClouds(): void {
