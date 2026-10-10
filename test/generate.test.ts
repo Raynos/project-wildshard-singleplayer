@@ -13,7 +13,7 @@ import { createServer } from 'node:http';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pinned output digests are part of build admission.
 import { createHash } from 'node:crypto';
 import { compareGeneration } from '../scripts/generation-linux.mjs';
-import { discoverGeneration, generationInputs, generateShardJob, prepareGeneration, reportGeneration, type GenerationComparison, type ShardGenerationJob } from '../scripts/generate.mjs';
+import { discoverGeneration, generationInputs, generationRetention, generateShardJob, prepareGeneration, reportGeneration, type GenerationComparison, type ShardGenerationJob } from '../scripts/generate.mjs';
 
 const roots:string[]=[];
 afterEach(()=>{vi.restoreAllMocks();for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -30,6 +30,16 @@ function fixture():{root:string;job:ShardGenerationJob} {
   return {root,job};
 }
 describe('G292 shard generation entry',()=>{
+  it('G318 uses measured cold time and exact output size, with warm/unknown and boundary values ineligible',()=>{
+    const {root,job}=fixture();
+    const small=generationRetention(root,job.outputs,30.001);
+    expect(small[0]).toMatchObject({bytes:9,coldSeconds:30.001,policy:'retain small + expensive'});
+    expect(generationRetention(root,job.outputs,30)[0]?.policy).toContain('candidate');
+    expect(generationRetention(root,job.outputs,null)[0]?.policy).toContain('candidate');
+    const file=job.outputs[0];if(file===undefined)throw new Error('Missing output');
+    writeFileSync(resolve(root,file),new Uint8Array(2_000_000));
+    expect(generationRetention(root,job.outputs,31)[0]?.policy).toContain('candidate');
+  });
   it('restores only admitted build outputs, checks the complete job and keeps its key when outputs disappear',async()=>{
     const {root,job}=fixture(),cacheDir=resolve(root,'cache'),output=job.outputs[0];
     if(output===undefined) throw new Error('Missing fixture output');
@@ -74,8 +84,8 @@ describe('G292 shard generation entry',()=>{
     const {root,job}=fixture(),cacheDir=resolve(root,'cache');
     const before=readFileSync(resolve(root,job.outputs[0] ?? ''));
     const cold=await generateShardJob(root,job,{cacheDir});
-    expect(cold.hit).toBe(false);expect(readFileSync(resolve(root,job.outputs[0] ?? ''))).toEqual(before);
-    const warm=await generateShardJob(root,job,{cacheDir});expect(warm.hit).toBe(true);expect(warm.hashes).toEqual(cold.hashes);
+    expect(cold.hit).toBe(false);expect(cold.retention[0]?.coldSeconds).toBeGreaterThan(0);expect(readFileSync(resolve(root,job.outputs[0] ?? ''))).toEqual(before);
+    const warm=await generateShardJob(root,job,{cacheDir});expect(warm.hit).toBe(true);expect(warm.retention[0]?.coldSeconds).toBeNull();expect(warm.hashes).toEqual(cold.hashes);
     const fresh=await generateShardJob(root,job,{cacheDir,forceCompare:true});expect(fresh.hit).toBe(false);expect(fresh.hashes).toEqual(cold.hashes);
     rmSync(resolve(root,job.outputs[0] ?? ''));
     await generateShardJob(root,job,{cacheDir,restore:true});expect(readFileSync(resolve(root,job.outputs[0] ?? ''))).toEqual(before);

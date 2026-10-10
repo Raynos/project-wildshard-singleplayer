@@ -10,11 +10,12 @@ import { generationOutputHashes, runGenerationJob } from './generation-cache.mjs
 import { captureOutcome, capturePreview, generationBrowserDigest } from './generation-capture.mjs';
 import { externalGenerationInputs, generationTools } from './generation-sources.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
+import { outputPolicy } from './generation-inventory.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
 const Descriptor = v.strictObject({id:v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
-const infrastructure=['scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs'];
+const infrastructure=['scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
 const sharedHelpers=new Set(['bake-check.mjs','bake-loader.mjs','bake-input-hashes.mjs','bake-output.mjs']);
 
@@ -84,6 +85,15 @@ function nodeProducer(cwd,command) {
   });
 }
 
+/** G318 disposition of verified outputs, using only this job's actual cold producer time, never cache/lease wait.
+ * The shared producer duration covers all its outputs; unknown warm duration grants no committed exception.
+ * Header and regenerate-and-compare requirements remain separate from size/time eligibility.
+ * @param {string} directory @param {string[]} outputs @param {number|null} coldSeconds */
+export function generationRetention(directory, outputs, coldSeconds) {
+  return outputs.map(file => ({file,bytes:statSync(resolve(directory,file)).size,coldSeconds,
+    policy:outputPolicy({bytes:statSync(resolve(directory,file)).size,seconds:coldSeconds,darwinOnly:null,blender:false,frozen:false})}));
+}
+
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
  * @param {{cacheDir?:string,forceCompare?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
@@ -102,9 +112,12 @@ export async function generateShardJob(root,descriptor,options={}) {
   const collected=generationInputs(root,[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog]);
   // Produced bytes are not source inputs. Explicit schema seeds remain inputs until their imports are separated.
   const inputs=Object.fromEntries(Object.entries(collected).filter(([file])=>!job.outputs.includes(file) || job.seedOutputs.includes(file)));
+  /** @type {number|null} */
+  let coldSeconds=null;
   const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
     ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
     generate:async directory=>{
+      const coldStarted=performance.now();
       const tree=realpathSync(mkdtempSync(resolve(tmpdir(),'wildshard-generation-')));
       try {
         for(const file of Object.keys(inputs)) {const to=resolve(tree,file);mkdirSync(dirname(to),{recursive:true});copyFileSync(resolve(root,file),to);}
@@ -125,6 +138,7 @@ export async function generateShardJob(root,descriptor,options={}) {
         if(untouched.length>0) throw new Error(`Generator did not write declared outputs: ${untouched.join(', ')}`);
         generationOutputHashes(tree,job.outputs);
         for(const file of job.outputs) {const to=resolve(directory,file);mkdirSync(dirname(to),{recursive:true});copyFileSync(resolve(tree,file),to);}
+        coldSeconds=(performance.now()-coldStarted)/1000;
       } finally {rmSync(tree,{recursive:true,force:true});}
     }
   });
@@ -141,7 +155,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   }));
   if(different.length>0) throw new Error(`Committed generated output differs: ${different.join(', ')}. No source output was overwritten.`);
   if(options.restore===true) for(const file of restoreOutputs) if(!existsSync(resolve(root,file))) {mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));}
-  return result;
+  return {...result,retention:generationRetention(result.directory,job.outputs,coldSeconds)};
 }
 
 /** Build-time report phase: declarations are validated and unregistered producers are explicit; outputs stay committed.

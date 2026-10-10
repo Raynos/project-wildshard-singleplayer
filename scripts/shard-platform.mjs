@@ -175,6 +175,8 @@ export function shardLines(root = ROOT) {
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
   const moduleUsers = new Map();
   for (const [slug, files] of Object.entries(shardFiles)) {
+    // G312: templates are authoring fixtures, never an independent consumer of a platform system.
+    if (slug === RULES.template) continue;
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path));
     while (queue.length > 0) {
       const path = queue.pop();
@@ -192,7 +194,7 @@ export function shardLines(root = ROOT) {
   }
   const privateModules = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
-    if (users.size >= RULES.publicUserCount || users.has(RULES.template) || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
+    if (users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
     if (lines > 0) privateModules.get([...users][0]).push({ path, lines });
   }
@@ -220,21 +222,23 @@ export function shardLines(root = ROOT) {
   // SF54 dissolved the kit, so no shard-unique kit lines remain to count as custom (the former kit-only column).
   const out = {};
   for (const [slug, files] of Object.entries(shardFiles)) {
-    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 }, legacyShare: 0, conversion: null };
+    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 }, legacyShare: 0, conversion: null };
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       // Keep the historical physical TS-only comparison explicitly separate from the current authored measure.
       if (RULES.typescript.test(path)) row.legacy[top === 'generators' || top === 'data' ? top : 'runtime'] += text(path).split('\n').length - 1;
       const lines = count(path);
+      // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
+      if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
       if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)) shardRuntimeLines += lines;
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
       if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top)) additionalGlslLines += shaderLines;
       const category = shaderLines > 0 ? { publicCode: false, trusted: false } : classify(slug, path);
       row[category.publicCode ? 'publicLines' : 'customLines'] += lines;
-      if (category.trusted) row.trustedRuntimeLines += lines;
-      if (top === 'runtime' || category.trusted) row.runtimeLines += lines;
+      if (!path.endsWith('.as') && category.trusted) row.trustedRuntimeLines += lines;
+      if (!path.endsWith('.as') && (top === 'runtime' || category.trusted)) row.runtimeLines += lines;
     }
     row.publicShare = hasSdk && row.publicLines + row.customLines > 0 ? row.publicLines / (row.publicLines + row.customLines) : 0;
     row.legacyShare = row.publicShare;
@@ -306,7 +310,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       const passed = measure.passed ?? (row.publicShare >= 0.8 && row.runtimeLines <= ceiling);
       console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed ? 'PASS' : 'FAIL').padEnd(10)} ${(row.legacyShare * 100).toFixed(1).padStart(7)} %  ${measure.metric === 'runtime-vs-legacy' ? RULES.enforcement : (slug in recorded.enforced ? 'old enforced' : 'old reported')}`);
       console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
-      console.log(`  raw GLSL ${measure.rawGlslLines} lines (${measure.additionalGlslLines} additional to runtime TS); content ${JSON.stringify(shardContent(slug, ROOT, products))}`);
+      console.log(`  raw GLSL ${measure.rawGlslLines} lines (${measure.additionalGlslLines} additional to runtime TS); AssemblyScript ${row.assemblyScriptLines} lines (report-only, no cap); content ${JSON.stringify(shardContent(slug, ROOT, products))}`);
     }
   }
   if (process.argv.includes('--check')) {

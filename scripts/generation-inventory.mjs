@@ -5,13 +5,12 @@ import { pathToFileURL } from 'node:url';
 import { writeFileSync } from 'node:fs';
 import * as v from 'valibot';
 
-/** G292 retention decision; an unknown duration is never called expensive.
+/** G318 retention decision; an unknown duration is never called expensive. Darwin alone grants no exception.
  * @param {{bytes:number,seconds:number|null,darwinOnly:boolean|null,blender:boolean,frozen:boolean}} row */
 export function outputPolicy(row) {
   if (row.frozen) return 'retain frozen baseline';
   if (row.blender) return 'retain Blender (G293)';
-  if (row.darwinOnly === true) return 'retain Darwin normative';
-  if (row.bytes < 200_000 && row.seconds !== null && row.seconds > 60) return 'retain small + expensive';
+  if (Number.isSafeInteger(row.bytes) && row.bytes >= 0 && row.bytes < 2_000_000 && row.seconds !== null && Number.isFinite(row.seconds) && row.seconds > 30) return 'retain small + expensive';
   return 'build/cache candidate; retain pending proof';
 }
 
@@ -94,8 +93,8 @@ export function inventoryOutputs(root, revision = 'HEAD') {
 export function inventoryMarkdown(inventory) {
   const {pin,rows}=inventory, total=rows.reduce((sum,row)=>sum+row.bytes,0);
   return [`# G292 committed generated outputs\n\nSource: committed ${pin}. Report-only: no output is deleted or uncommitted by this inventory.\n\n`,
-    `${rows.length} files, ${total} bytes. Blender GLBs remain committed (G293); Darwin-normative outputs remain committed. Other outputs default to build-time + content-hash cache. A committed exception requires **both** <200,000 bytes and a measured cold regenerate time >60 s. Missing timing is not an exception.\n\n`,
-    `Generation times are not consistently recorded per producer in the existing receipts. They remain unavailable here; the shared runner records elapsedMs on real cold executions. Darwin-only = yes only where the existing byte oracle explicitly restricts itself to macOS; unknown is not a portability claim.\n\n`,
+    `${rows.length} files, ${total} bytes. Blender GLBs remain committed (G293), and frozen legacy baselines stay sealed. Other outputs default to build-time + content-hash cache. G318 permits a committed output only with **both** <2,000,000 bytes and a measured cold regenerate time >30 s. Missing timing and Darwin-only provenance grant no exception. Eligible text outputs also need a DO-NOT-EDIT header and regenerate-and-compare proof (G292).\n\n`,
+    `Generation times are not consistently recorded per producer in the existing receipts. They remain unavailable here; the shared runner reports coldSeconds around the actual producer, excluding lease waits and warm cache hits. Darwin-only = yes only where the existing byte oracle explicitly restricts itself to macOS; unknown is not a portability claim.\n\n`,
     `Unresolved producer rows are migration blockers, not permission to delete their outputs. Frozen legacy outputs remain sealed. The table covers baked/GPU directories, maps, native captures, packs, checkpoint files, compiled shard blobs, marked generated TS, declared data outputs and Blender target outputs. Authored data and third-party input assets are not generated outputs.\n\n`,
     `| Committed output | Bytes | Producer | Cold seconds | Darwin-only exact | G292 disposition |\n|---|---:|---|---:|---|---|\n`,
     rows.map(row=>`| ${row.path} | ${row.bytes} | ${row.generator ?? 'UNRESOLVED'} | unavailable | ${row.darwinOnly === true ? 'yes' : 'unproven'} | ${row.policy} |`).join('\n'), `\n`].join('');

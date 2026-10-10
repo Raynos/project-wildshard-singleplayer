@@ -15,13 +15,14 @@ afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,for
 
 describe('G292 output inventory', () => {
   it('requires both measured expense and small size, preserving normative and Blender inputs', () => {
-    const row = {bytes:199_999,seconds:null,darwinOnly:null,blender:false,frozen:false};
+    const row = {bytes:1_999_999,seconds:null,darwinOnly:null,blender:false,frozen:false};
     expect(outputPolicy(row)).toContain('candidate');
-    expect(outputPolicy({...row,seconds:61})).toBe('retain small + expensive');
-    expect(outputPolicy({...row,seconds:61,bytes:200_000})).toContain('candidate');
-    expect(outputPolicy({...row,seconds:60})).toContain('candidate');
+    expect(outputPolicy({...row,seconds:30.001})).toBe('retain small + expensive');
+    expect(outputPolicy({...row,seconds:31,bytes:2_000_000})).toContain('candidate');
+    expect(outputPolicy({...row,seconds:30})).toContain('candidate');
+    expect(outputPolicy({...row,seconds:Infinity})).toContain('candidate');
     expect(outputPolicy({...row,blender:true})).toBe('retain Blender (G293)');
-    expect(outputPolicy({...row,darwinOnly:true})).toBe('retain Darwin normative');
+    expect(outputPolicy({...row,darwinOnly:true})).toContain('candidate');
     expect(outputPolicy({...row,frozen:true})).toBe('retain frozen baseline');
   });
   it('recognizes content outputs without classifying authored rows as generated', () => {

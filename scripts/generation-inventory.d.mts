@@ -1,4 +1,4 @@
-/** Measured evidence used by the G292 retention policy. Unknowns never qualify for an exception. */
+/** Measured evidence used by the G318 retention policy. Unknowns never qualify for an exception. */
 export interface OutputEvidence { bytes:number; seconds:number|null; darwinOnly:boolean|null; blender:boolean; frozen:boolean }
 /** Committed output with exact Git size and explicit unavailable producer evidence. */
 export interface InventoryRow extends OutputEvidence { path:string; generator:string|null; policy:string }

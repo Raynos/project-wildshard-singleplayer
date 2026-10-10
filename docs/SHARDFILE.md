@@ -1224,15 +1224,17 @@ caller remains responsible for product admission and the library lease.
 `node scripts/shard-platform.mjs --json` reports conversion against each primary
 shard's registered frozen `<slug>-legacy` TypeScript inventory. The numerator is
 nonblank authored runtime TS, additional raw GLSL, and deduplicated platform code
-with only that primary user. A second primary user or the template makes a shared
-module public; frozen copies do not supply users. Moving code to engine, game or
+with only that primary user. Two real primary shards make a shared module public;
+the template and frozen copies do not supply users (G312). Moving code to engine, game or
 SDK does not remove its attribution. Tests and generated/baked outputs never
 contribute; ordinary authored generator/data TS is outside runtime TS, but raw
 shader literals in those folders and `.glsl` files remain custom. Shader lines
 already within counted runtime TS are not added twice. SF59 graph nodes are data.
 The frozen denominator remains TypeScript, including its authored generators/data,
 with the same generated/test exclusion. The new definition is report-only;
-existing historical enforcement stays active during base repair.
+existing historical enforcement stays active during base repair. Authored
+AssemblyScript has its own report-only line column, with no cap (G315); it does
+not enter the TypeScript ratio or trusted-runtime ceiling.
 
 The same command reads `public/shardfiles/<folder>/shard.json`, or another emitted
 product directory supplied with `--products=<directory>`. It reports L0/L1 tiles,
@@ -1250,3 +1252,13 @@ passing native witness, while conversion's `compatible` is false and
 `transitional` is true as long as trusted runtime simulation remains. This includes
 Nine Dragon's current native headless worker even if its recorded witness says
 `compatible: true`; passing continuations do not imply a data-owned simulation.
+
+
+**Committed generated outputs (G318).** `scripts/generate.mjs` reports exact
+output bytes and measured cold producer seconds. Other than committed Blender
+GLBs (G293) and sealed legacy baselines, an output qualifies for commitment only
+when regeneration exceeds 30 s **and** the output is smaller than 2,000,000
+bytes. Unknown timing, warm cache hits, lease waits and Darwin-only provenance
+grant no exception. Eligible text outputs still need a DO-NOT-EDIT header and
+regenerate-and-compare proof. The inventory reports missing evidence rather than
+deleting unproven outputs. Build-time generation uses the content-hash cache.

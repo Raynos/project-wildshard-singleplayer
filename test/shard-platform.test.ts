@@ -48,7 +48,7 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/data/row.ts', "import './helper';\nexport const row = 1;\n");
       put('src/shards/alpha/generators/build.ts', "import '@wildshard/sdk/runtime/play';\n");
       put('src/shards/alpha/behaviour/tick.as', "import '@wildshard/sdk/runtime/play';\nexport function tick(): i32 { return 1; }\n");
-      expect(alpha(root)).toMatchObject({ publicLines: 0, customLines: 7, runtimeLines: 7, trustedRuntimeLines: 7 });
+      expect(alpha(root)).toMatchObject({ publicLines: 0, customLines: 7, runtimeLines: 5, trustedRuntimeLines: 5, assemblyScriptLines: 2 });
       expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 0 } }, shardLines(root)).join(',')).toContain('trusted-SDK lines, ceiling 0');
     });
   });
@@ -111,7 +111,7 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/behaviour/main.as', "import { helper } from './helper';\nexport function tick(): i32 { return helper(); }\n");
       put('src/shards/alpha/behaviour/helper.as', 'export function helper(): i32 { return 1; }\n');
       put('src/shards/alpha/runtime/extra.as', 'export function legacy(): i32 { return 2; }\n');
-      expect(alpha(root)).toMatchObject({ publicLines: 3, customLines: 1, runtimeLines: 1, legacy: { generators: 0, data: 0, runtime: 0 } });
+      expect(alpha(root)).toMatchObject({ publicLines: 3, customLines: 1, runtimeLines: 0, assemblyScriptLines: 4, legacy: { generators: 0, data: 0, runtime: 0 } });
       put('src/shards/alpha/behaviour/helper.as', "import '@wildshard/engine/private';\nexport function helper(): i32 { return 1; }\n");
       expect(alpha(root)).toMatchObject({ publicLines: 0, customLines: 5 });
     });
@@ -176,7 +176,7 @@ describe('SF6 platform measures', () => {
       expect(checkShares({ baseline: { alpha: 10 }, enforced: { alpha: 0 } }, shardLines(root)).join(',')).toContain('ceiling 0');
     });
   });
-  it('G294 deduplicates transitive single-user modules, resolves real facade exports and grants public use to two primaries or the template', () => {
+  it('G294/G312 deduplicates transitive single-user modules and requires two real primaries, never a template', () => {
     fixture((root, put) => {
       put('src/sdk/package.json', JSON.stringify({ name: '@wildshard/sdk', exports: { './family': './impl/facade.ts' } }));
       put('src/sdk/impl/facade.ts', "import { a } from '@wildshard/game/a';\nexport const family = a;\n");
@@ -212,7 +212,21 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/runtime/a.ts', "import '@wildshard/sdk/rows';\n");
       expect(alpha(root).conversion.gameSystemAttribution.lines).toBe(1);
       put('src/shards/_template/data/row.ts', "import '@wildshard/sdk/rows';\n");
-      expect(alpha(root).conversion.gameSystemAttribution.lines).toBe(0);
+      expect(alpha(root).conversion.gameSystemAttribution.lines).toBe(1);
+      expect(shardLines(root)['_template']?.conversion.gameSystemAttribution.lines).toBe(0);
+    });
+  });
+  it('G315 reports authored AssemblyScript separately with no cap or change to the TypeScript ratio', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/runtime/a.ts', 'export const a = 1;\n');
+      const before = alpha(root).conversion;
+      put('src/shards/alpha/behaviour/brain.as', '// ignored comment\nexport function think(): i32 {\n  return 1;\n}\n');
+      put('src/shards/alpha/runtime/brain.as', 'export function act(): i32 {\n  return 2;\n}\n');
+      put('src/shards/alpha/behaviour/brain.generated.as', 'export const generated: i32 = 1;\n');
+      put('src/shards/alpha/tests/fixture.as', 'export const fixture: i32 = 1;\n');
+      expect(alpha(root).assemblyScriptLines).toBe(6);
+      expect(alpha(root).runtimeLines).toBe(1);
+      expect(alpha(root).conversion).toEqual(before);
     });
   });
   it('prints proof flags separately from transitional gameplay; percentages alone never imply compatible', () => {
