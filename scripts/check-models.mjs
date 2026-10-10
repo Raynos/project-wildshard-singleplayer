@@ -118,6 +118,9 @@ export const DONE = {
     'src/shards/nalati-grasslands/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
   },
   'nine-dragon-stack': {
+    'src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
+    'src/shards/nine-dragon-stack/runtime/kit/classKit.ts': { why: "the kit system's class builder (SHARD-PLATFORM M3, moved from Nine Dragon's vm/geo.ts, whose legacy copy keeps its entry): a close-up geometry library merged per rigid group (held gear's parts); it draws nothing of its own", counts: { mergeGeometries: 1 } },
+    'src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts': { why: "a grapple tool's practice course (SHARD-PLATFORM M3, moved from Nine Dragon's playground/GrapplePlayground.ts, whose entry still covers its frozen legacy copy): a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nine-dragon-stack/vm/swordSupport.ts': { why: "Gear: the jian's hidden support rig (the old kit wood sword, unchanged) that sets the animated arms' blade reach (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/nine-dragon-stack/playground/GrapplePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nine-dragon-stack/world/install.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision; its collider-only pieces are fabric too (the tower fronts, the crossings\' decks and rails, the Well\'s grapple guard). The balustrade over the Well and every gate\'s posts collide as their models (E346)', counts: { 'registry add with object': 1 } },
@@ -172,10 +175,7 @@ export const DONE = {
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
-    'src/game/systems/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/game/systems/kit/mergedPrimitives.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own", counts: { mergeGeometries: 1 } },
-    'src/game/systems/kit/classKit.ts': { why: "the kit system's class builder (SHARD-PLATFORM M3, moved from Nine Dragon's vm/geo.ts, whose legacy copy keeps its entry): a close-up geometry library merged per rigid group (held gear's parts); it draws nothing of its own", counts: { mergeGeometries: 1 } },
-    'src/game/systems/tools/hookCourse.ts': { why: "a grapple tool's practice course (SHARD-PLATFORM M3, moved from Nine Dragon's playground/GrapplePlayground.ts, whose entry still covers its frozen legacy copy): a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
   },
 };
 
