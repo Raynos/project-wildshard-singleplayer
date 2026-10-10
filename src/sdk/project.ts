@@ -19,6 +19,7 @@ import { performanceReport, performanceReportLines, performanceTargetIssues } fr
 import { bakeAuthoredWorld } from './bake/authoredWorld';
 import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
+import { buildBehaviourProject } from './buildBehaviour';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -106,6 +107,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
 export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+  await buildBehaviourProject(project);
   const loaded = await readProjectAssets(project), assets = loaded.assets, shard = validateProject(loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);

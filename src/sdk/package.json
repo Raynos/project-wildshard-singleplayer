@@ -119,7 +119,8 @@
     "./skinnedModel": "./skinnedModel.ts",
     "./bake/skinned": "./bake/skinned.ts",
     "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts",
-    "./runtime/prompts": "./runtime/prompts.ts"
+    "./runtime/prompts": "./runtime/prompts.ts",
+    "./buildBehaviour": "./buildBehaviour.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -451,6 +452,10 @@
       "./runtime/prompts": {
         "types": "./dist/types/sdk/runtime/prompts.d.ts",
         "default": "./dist/runtime/prompts.js"
+      },
+      "./buildBehaviour": {
+        "types": "./dist/types/sdk/buildBehaviour.d.ts",
+        "default": "./dist/buildBehaviour.js"
       }
     }
   }

@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native equality checks the complete compiled byte array.
 import { Buffer } from 'node:buffer';
 import { expect, it } from 'vitest';
-import { compileDirectorSource } from '../scripts/bake/directorSource';
+import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
 
 it.each(['driftwood-isle', 'nalati-grasslands', 'pine-hollow'])('reproduces %s director outputs through the retained SDK TypeScript bake', async slug => {
   const root = `src/shards/${slug}`;
-  const baked = await compileDirectorSource(readFileSync(`${root}/behaviour/director.as`, 'utf8'));
+  const baked = await compileBehaviourModule(readFileSync(`${root}/behaviour/director.as`, 'utf8'));
   expect(Buffer.from(baked.bytes).equals(readFileSync(`${root}/assets/${baked.module}`))).toBe(true);
   if (slug !== 'nalati-grasslands') {
     const embedded: unknown = JSON.parse(readFileSync(`${root}/behaviour/director.json`, 'utf8'));

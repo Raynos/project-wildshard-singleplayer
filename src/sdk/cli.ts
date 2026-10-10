@@ -10,6 +10,7 @@ import { readShardfileSource } from './sourceReader';
 import { assetOverdraw } from './assets';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI releases its author server on termination.
 import process from 'node:process';
+import { buildBehaviourProject } from './buildBehaviour';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -26,7 +27,7 @@ async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Arr
 /** Run the author CLI; returns only after validation/build completes. */
 export async function runCli(args: readonly string[]): Promise<void> {
   const [command, input, output, buildFlag] = args;
-  if (input === undefined) throw new Error('usage: wildshard new <project> | build <project> [output] | validate <project|shard.json> | dev <project> [port]');
+  if (input === undefined) throw new Error('usage: wildshard new <project> | build <project> [output] [--product-only] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
   if (command === 'new') { newProject(resolve(input), input.split('/').reverse().find((part) => part !== '') ?? ''); return; }
   if (command === 'dev') {
     const port = output === undefined ? 0 : Number(output);
@@ -36,6 +37,10 @@ export async function runCli(args: readonly string[]): Promise<void> {
     console.info(`wildshard dev: ${server.url}`); return;
   }
   if (command === 'build') {
+    if (output === '--behaviour-only' && (buildFlag === undefined || buildFlag === '--check')) {
+      const files = await buildBehaviourProject(resolve(input), { check: buildFlag === '--check' });
+      console.info(`built ${files.length} native behaviour outputs`); return;
+    }
     if (buildFlag !== undefined && buildFlag !== '--product-only') throw new Error('unknown build flag');
     const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(buildFlag === '--product-only' ? { client: null } : {}), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }

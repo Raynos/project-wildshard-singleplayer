@@ -17,14 +17,16 @@ const run = (args, command = process.execPath) => {
 };
 // SF74 W24 (speed audit #10): the push gate caches each node baker on its own inputs (`--list-node`, then
 // `--node-only --only=<baker>` per cached step), so one touched src file re-runs only the bakers that read it.
-const NODE_BAKERS = ['chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places'];
+const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places'];
 if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n')); process.exit(0); }
 const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
 if (only !== undefined && !nodeOnly) { console.error('bake-check: --only needs --node-only'); process.exit(64); }
 for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   // Fixed-model metadata retains unrounded doubles; libm can differ by a final ulp from the macOS-authored bake.
-  if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
+  if (baker === 'directors') {
+    for (const slug of ['driftwood-isle', 'nalati-grasslands', 'pine-hollow']) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', `import { runCli } from './src/sdk/cli.ts'; await runCli(['build', 'src/shards/${slug}', '--behaviour-only', '--check']);`]);
+  } else if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
     console.info('bake-check: driftwood-fixed-models skipped (byte-exact on macOS, where the bake is made)');
   } else {
     const entry = baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker}.mjs` : `scripts/bake-${baker}.mjs`;
