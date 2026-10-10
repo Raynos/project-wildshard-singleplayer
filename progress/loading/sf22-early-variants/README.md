@@ -531,3 +531,14 @@ Raw scratch `attempt-7738-desktop.json` SHA-256
 `attempt-7738-safari.json`
 `7f061a1c896591f192337f52222e2c24cc045335ba16d30c2eca0b425490ea84`.
 Proof `.git/proofs/20261010T125830-sf22-native-raf-matched-69715.json`.
+
+## G308 pause (2026-10-10)
+
+SF22 pauses for SF78/SF77 base repair. The last clean native-rAF run
+(`77380da36`, receipt `d548e4793`) is desktop PASS; Safari remains
+36 ms p95 against 34 ms standing (1 ms timestamp quantum), so cadence
+is open. World-hook overlap is a scheduling hypothesis, not CPU attribution.
+The queued world-pacing ABBA diagnostic was cancelled before acquiring
+quiet, a build, a browser or the Simulator; it produced no timing verdict.
+All owned measurement resources are closed. Resume with the controlled
+world-pacing comparison after the base work, keeping the unchanged cadence gate.
