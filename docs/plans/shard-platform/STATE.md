@@ -38,7 +38,7 @@
 | sp-x5 | DS0.2 game plugin/* · DS0.3 guards · SF77 metric |
 | sp-x6 | Nalati replay red · DS0.1 Nine (`d4d5fdbdf`) · DS0.4 scripts → shards |
 
-**Landed today (Jake picks):** G321/G324 own sky + loadout (`53f340273`, `6bbe05e5a`, `20882ab8c`), G322 (`83015cc79`), G327 (`7db9de2cd`).
+**Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
 **Follow-up:** fresh SDK tarball install fails until npm publishes `@loaders.gl/worker-utils@4.5.4` (core 4.5.4 needs it); pin core 4.5.3 in the SDK if it lingers (op-blend42). G328 proofs pass (`f4863d186`).
 
