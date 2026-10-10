@@ -137,7 +137,11 @@ describe('SF6 platform measures', () => {
       const frozen = { 'manifest.ts': 'export const manifest = 1;\n', 'plugin.ts': 'export const plugin = 1;\n',
         'data/rows.ts': 'export const row = 1;\n'.repeat(2), 'generators/build.ts': 'export const build = 1;\n'.repeat(2),
         'runtime/old.ts': 'export const old = 1;\n'.repeat(4), 'runtime/output.baked.ts': 'export const padded = 1;\n'.repeat(100),
-        'test/old.test.ts': 'export const test = 1;\n'.repeat(100) };
+        'test/old.test.ts': 'export const test = 1;\n'.repeat(100),
+        'data/movers.ts': `// DO-NOT-EDIT: generated table\n${'export const mover = 1;\n'.repeat(100)}`,
+        'data/key.ts': '/* authored row */\n\nexport const key = 1; // suffix\n',
+        'runtime/old.as': 'export function old(): i32 { return 1; }\n',
+        'runtime/old.d.ts': 'export declare const old: number;\n' };
       for (const [path, source] of Object.entries(frozen)) put(`src/shards/alpha-legacy/${path}`, source);
       put('lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: { 'alpha-legacy': {
         primary: 'alpha', source: 'a'.repeat(40), files: Object.fromEntries(Object.keys(frozen).map(path => [path, 'b'.repeat(64)])),
@@ -149,8 +153,8 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/runtime/output.ts', `// @generated\n${'export const padded = 1;\n'.repeat(100)}`);
       put('src/shards/alpha/behaviour/tick.as', 'export function tick(): i32 { return 1; }\n');
       const row = alpha(root);
-      expect(row.conversion).toEqual({ metric: 'runtime-vs-legacy', customRuntimeLines: 2, shardRuntimeLines: 2, legacyLines: 10,
-        legacyFolder: 'alpha-legacy', legacyRevision: 'a'.repeat(40), runtimeShare: 0.2, passed: true,
+      expect(row.conversion).toEqual({ metric: 'runtime-vs-legacy', customRuntimeLines: 2, shardRuntimeLines: 2, legacyLines: 11,
+        legacyFolder: 'alpha-legacy', legacyRevision: 'a'.repeat(40), runtimeShare: 2 / 11, passed: true,
         gameSystemAttribution: { status: 'import-graph', review: 'pending-opus-audit', lines: 0, modules: [] } });
       expect(row.legacyShare).toBe(row.publicShare);
       expect(row.publicShare).toBeLessThan(0.8); // the old share cannot veto the new pass
@@ -158,7 +162,7 @@ describe('SF6 platform measures', () => {
       const policy = { baseline: { alpha: 1 }, enforced: { alpha: 0 } }; // old ceilings are not the frozen denominator
       expect(checkShares(policy, shardLines(root)).join(',')).toContain('ceiling 0'); // report-only keeps the old gate
       put('src/shards/alpha/adapter.ts', "import '@wildshard/sdk/rows';\n");
-      expect(alpha(root).conversion).toMatchObject({ customRuntimeLines: 5, shardRuntimeLines: 3, runtimeShare: 0.5, passed: false });
+      expect(alpha(root).conversion).toMatchObject({ customRuntimeLines: 5, shardRuntimeLines: 3, runtimeShare: 5 / 11, passed: false });
       expect(checkShares(policy, shardLines(root)).join(',')).not.toContain('exceeds 20 %');
     });
   });

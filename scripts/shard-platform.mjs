@@ -30,6 +30,11 @@ const LIST = 'lint/shard-platform.json';
 const sourceFile = /\.(?:tsx?|as)$/u;
 const publicFolder = /^(?:data|behaviour|quests)\//u;
 // G291/G294's classification table. Audit findings adjust these rules explicitly, never hidden import heuristics.
+// Unit on BOTH sides: nonblank physical lines after parser comment removal, in .ts/.tsx only;
+// .as, .d.ts and tests do not enter the G291 ratio. Generated/baked paths and marked output
+// headers are excluded on BOTH sides, including frozen data/ tables. Authored data/ and
+// generators/ ARE included in the frozen denominator, but excluded from current runtime.
+// G294 adds one-user game/SDK modules to the numerator; shard-local lines alone are not it.
 const RULES = {
   typescript: /\.tsx?$/u,
   runtimeExcludedFolders: new Set(['generators', 'data']),
