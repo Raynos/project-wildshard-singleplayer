@@ -157,6 +157,8 @@ interface LitHooks {
   /** whether the model keeps any specular (the graph declared `sunSpecular`) */
   readonly specular: boolean;
 }
+/** a clone's placeholder until `copy` hands it the source's hooks: the plain physical light, no grade */
+const UNLIT_HOOKS: LitHooks = { sun: () => { throw new Error('GraphLitMaterial: hooks missing (copy one with clone())'); }, ambient: null, grade: null, specular: true };
 const isNodeValue = (v: unknown): v is Node => typeof v === 'object' && v !== null && Reflect.get(v, 'isNode') === true;
 /** the lighting context's accumulators are vec3 var nodes */
 const isVec3Node = (v: unknown): v is Node<'vec3'> => isNodeValue(v);
@@ -216,10 +218,15 @@ class GraphLightingModel extends PhysicalLightingModel {
   }
 }
 
-/** a standard node material lit by a graph's lighting stage, its lit colour graded when the graph says so */
+/**
+ * a standard node material lit by a graph's lighting stage, its lit colour graded when the graph says so. `clone()` (the
+ * viewmodel's transparent copy, for one) builds `new this.constructor()` with no hooks and then `copy`s: `copy` carries the
+ * hooks over, so a cloned graph material keeps its lighting stage.
+ */
 class GraphLitMaterial extends MeshStandardNodeMaterial {
-  private readonly hooks: LitHooks;
-  constructor(hooks: LitHooks) { super(); this.hooks = hooks; }
+  private hooks: LitHooks;
+  constructor(hooks: LitHooks = UNLIT_HOOKS) { super(); this.hooks = hooks; }
+  override copy(source: MeshStandardNodeMaterial): this { super.copy(source); if (source instanceof GraphLitMaterial) this.hooks = source.hooks; return this; }
   override setupLightingModel(): PhysicalLightingModel { return new GraphLightingModel(this.hooks); }
   override setupLighting(builder: NodeBuilder): Node {
     const lit = super.setupLighting(builder);

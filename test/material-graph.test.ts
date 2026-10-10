@@ -284,6 +284,15 @@ describe('SF59 step 6: the lighting stage', () => {
     expect(plain.material.setupLightingModel().constructor.name).toBe('PhysicalLightingModel');
     expect(plain.material.toneMapped).toBe(true);
   });
+  it('keeps the lighting stage and grade through clone() (the viewmodel clones a held model\'s material; G169 pastel plain)', () => {
+    const c = compileGraph(lit());
+    const copy = c.material.clone();
+    if (!(copy instanceof MeshStandardNodeMaterial)) throw new Error('standard');
+    expect(copy.constructor).toBe(c.material.constructor);
+    expect(Reflect.get(copy, 'hooks')).toBe(Reflect.get(c.material, 'hooks'));
+    expect(Reflect.get(Reflect.get(copy, 'hooks'), 'grade')).not.toBeNull();
+    expect(copy.setupLightingModel().constructor.name).not.toBe('PhysicalLightingModel');
+  });
 });
 
 describe('SF59 step 6: the toon and painterly presets', () => {
