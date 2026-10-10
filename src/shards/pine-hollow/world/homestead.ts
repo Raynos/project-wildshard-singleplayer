@@ -4,12 +4,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '@wildshard/engine/core/assets';
 import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { paintCanvas } from '@wildshard/sdk/looks/canvasAtlas';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { BuildingLife } from '@wildshard/sdk/props/buildingLife';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
@@ -17,6 +17,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
+import { END_GRAIN_PAINT, GLOW_PAINT, NOISE_PAINT } from '../data/cabinPaint';
 import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../data/cabinLook';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
@@ -111,63 +112,16 @@ async function loadMats(sky: Sky): Promise<Mats> {
 }
 
 function makeEndGrainTexture() {
-  const c = document.createElement('canvas'); c.width = c.height = 256;
-  const g = c.getContext('2d');
-  if (g === null) throw new Error('Cabin: no 2d canvas context');
-  g.fillStyle = '#9d8b6c'; g.fillRect(0, 0, 256, 256);
-  const rng = new Rng(SEED + 31);
-  // weathering speckle
-  for (let i = 0; i < 6000; i++) { g.fillStyle = rng.next() < 0.5 ? 'rgba(60,45,30,0.25)' : 'rgba(200,185,160,0.2)'; g.fillRect(rng.range(0, 256), rng.range(0, 256), 1 + rng.range(0, 2), 1 + rng.range(0, 2)); }
-  for (let r = 4; r < 128; r += 3 + rng.range(0, 4)) {
-    g.beginPath();
-    for (let a = 0; a <= 64; a++) {
-      const th = (a / 64) * Math.PI * 2;
-      const rr = r * (1 + 0.05 * Math.sin(th * 3 + r) + 0.03 * Math.sin(th * 7));
-      const x = 128 + Math.cos(th) * rr, y = 128 + Math.sin(th) * rr;
-      if (a > 0) g.lineTo(x, y); else g.moveTo(x, y);
-    }
-    g.closePath();
-    g.strokeStyle = rng.next() < 0.5 ? 'rgba(70,50,30,0.5)' : 'rgba(110,85,55,0.35)';
-    g.lineWidth = 0.8 + rng.range(0, 1.4);
-    g.stroke();
-  }
-  g.strokeStyle = 'rgba(40,28,15,0.8)';
-  for (let i = 0; i < 7; i++) { const th = rng.range(0, Math.PI * 2), l = rng.range(50, 122); g.lineWidth = 1 + rng.range(0, 2); g.beginPath(); g.moveTo(128 + Math.cos(th) * 8, 128 + Math.sin(th) * 8); g.lineTo(128 + Math.cos(th + 0.05) * l, 128 + Math.sin(th + 0.05) * l); g.stroke(); }
-  g.strokeStyle = '#3d2c1c'; g.lineWidth = 9; g.beginPath(); g.arc(128, 128, 124, 0, Math.PI * 2); g.stroke();
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+  const t = new THREE.CanvasTexture(paintCanvas(END_GRAIN_PAINT, { SEED })); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 
+/** the lamps' soft glow (../data/cabinPaint.ts `GLOW_PAINT`) */
 export function makeGlowTexture(): THREE.CanvasTexture {
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d');
-  if (g === null) throw new Error('Cabin: no 2d canvas context');
-  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
+  return new THREE.CanvasTexture(paintCanvas(GLOW_PAINT));
 }
 
 function makeNoiseTexture() {
-  const s = 128, c = document.createElement('canvas'); c.width = c.height = s;
-  const g = c.getContext('2d');
-  if (g === null) throw new Error('Cabin: no 2d canvas context');
-  const img = g.createImageData(s, s);
-  const rng = new Rng(SEED + 77);
-  const oct = [8, 16, 32].map((n) => { const a = new Float32Array(n * n); for (let i = 0; i < a.length; i++) a[i] = rng.next(); return { n, a }; });
-  const sm = (t: number) => t * t * (3 - 2 * t);
-  for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
-    let v = 0, amp = 0.55, sum = 0;
-    for (const { n, a } of oct) {
-      const fx = (x / s) * n, fy = (y / s) * n, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = sm(fx - x0), ty = sm(fy - y0);
-      const q = (i: number, j: number) => a[((j + n) % n) * n + ((i + n) % n)] ?? 0;
-      const vv = (q(x0, y0) * (1 - tx) + q(x0 + 1, y0) * tx) * (1 - ty) + (q(x0, y0 + 1) * (1 - tx) + q(x0 + 1, y0 + 1) * tx) * ty;
-      v += vv * amp; sum += amp; amp *= 0.5;
-    }
-    const b = Math.floor((v / sum) * 255), i = (y * s + x) * 4;
-    img.data[i] = img.data[i + 1] = img.data[i + 2] = b; img.data[i + 3] = 255;
-  }
-  g.putImageData(img, 0, 0);
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  const t = new THREE.CanvasTexture(paintCanvas(NOISE_PAINT, { SEED })); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
 
 let noiseTex: THREE.Texture | undefined;
