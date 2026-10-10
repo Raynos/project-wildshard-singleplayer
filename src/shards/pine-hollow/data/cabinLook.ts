@@ -3,6 +3,7 @@
 // hearth particles' program and kinds, and how the homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
 import type { BuildingLifeLook } from '@wildshard/sdk/props/buildingLife';
 import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import type { RiseParticleRow } from '@wildshard/sdk/looks/riseParticles';
 
 /** the rough_pine_door scan is a saturated orange-red: pulled toward a weathered grey-brown */
 export const CABIN_DOOR_EDITS: readonly ShaderEditRow[] = [
@@ -65,18 +66,8 @@ export const CABIN_MOSS_EDITS: readonly ShaderEditRow[] = [
         }` },
 ];
 
-/** One hearth particle kind: its life (s), rise (m), spread (m), size from birth to death (m), wind (m/s, world), blend. */
-export interface CabinParticleKind {
-  readonly life: number;
-  readonly rise: number;
-  readonly spread: number;
-  readonly size: readonly [number, number];
-  readonly wind: readonly [number, number, number];
-  readonly blend: 'normal' | 'additive';
-}
-
 /** the chimney smoke, the hearth flames and their embers */
-export const CABIN_PARTICLE_KINDS: Readonly<Record<'smoke' | 'flame' | 'ember', CabinParticleKind>> = {
+export const CABIN_PARTICLE_KINDS: Readonly<Record<'smoke' | 'flame' | 'ember', RiseParticleRow>> = {
   smoke: { life: 11.0, rise: 12.0, spread: 0.25, size: [0.7, 4.6], wind: [1.6, 0.0, 0.45], blend: 'normal' },
   flame: { life: 0.85, rise: 0.95, spread: 0.36, size: [0.95, 0.3], wind: [0, 0, 0], blend: 'additive' },
   ember: { life: 2.8, rise: 3.4, spread: 0.4, size: [0.04, 0.012], wind: [0.3, 0, 0.15], blend: 'additive' },

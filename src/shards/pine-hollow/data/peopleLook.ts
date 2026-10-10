@@ -1,4 +1,5 @@
 import type { PrimitivePartRow } from '@wildshard/sdk/kit/primitiveParts';
+import type { StandInPersonRow } from '@wildshard/sdk/npc/standInPerson';
 
 /**
  * The hamlet's stand-in people (PINE-HOLLOW-REMASTER PH-C1 / C6) as primitive parts in add order (@wildshard/sdk/kit/primitiveParts,
@@ -106,3 +107,21 @@ export const NPC_TRADER_BODY: readonly PrimitivePartRow[] = [
   { kind: 'sphere', args: [0.095, 10, 6, 0, 6.283185307179586, 1.5707963267948966, 1.5707963267948966], color: '#2e2620', at: [0, 1.68, 0.02, 0, 0, 0, 1, 0.9, 0.95] },
   { kind: 'cylinder', args: [0.12, 0.115, 0.13, 12], color: '#4a3a2a', at: [0, 1.82] },
 ];
+
+/**
+ * The people's numbers (@wildshard/sdk/npc/standInPerson): a 0.56 m square collider from 0.3 m under the feet to 1.8 m
+ * over them, the talk prompt at 1.6 m, drawn inside 140 m and casting a shadow inside 45 m, turning to face you inside
+ * 9 m; the stand-in walks at 0.72 m/s, 0.72 m a cycle; the lantern's flame a small over-bright sphere; the ranger points
+ * toward the old-growth 5.5 – 8 s into every 9 s of talk; the stand-in breathes and sways as it talks.
+ */
+export const NPC_FIGURE: StandInPersonRow = {
+  collider: { half: 0.28, top: 1.8, bottom: 0.3 },
+  talkHeight: 1.6,
+  drawDistance: 140,
+  shadowDistance: 45,
+  noticeRadius: 9,
+  walk: { speed: 0.72, cycle: 0.72 },
+  flame: { radius: 0.035, widthSegments: 8, heightSegments: 6, color: [2.4, 1.35, 0.45] },
+  point: { period: 9, from: 5.5, to: 8 },
+  sway: { breathe: 0.006, breatheRate: 1.7, talk: 0.025, talkRate: 2.3 },
+};

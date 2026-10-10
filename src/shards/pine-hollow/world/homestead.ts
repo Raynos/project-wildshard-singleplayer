@@ -1,6 +1,5 @@
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '@wildshard/engine/core/assets';
 import { SEED } from '@wildshard/engine/core/config';
@@ -11,6 +10,9 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { paintCanvas } from '@wildshard/sdk/looks/canvasAtlas';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { installMossOverlay } from '@wildshard/sdk/looks/mossOverlay';
+import { riseParticleMaterial } from '@wildshard/sdk/looks/riseParticles';
+import { flattenGlbParts, loadLodGlb } from '@wildshard/sdk/kit/lodGlb';
 import { BuildingLife } from '@wildshard/sdk/props/buildingLife';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -131,41 +133,21 @@ const cabinNight = { uShade: { value: 1 }, uLamps: { value: 1 } };
 /** the phone's pooled cabin lights (PH-L3) */
 const SHARED_CABIN_LIGHTS = 2;
 
-/** Billboard particle material driven entirely by uTime (no per-frame CPU work). */
+/** Billboard particle material driven entirely by uTime (no per-frame CPU work): @wildshard/sdk/looks/riseParticles, one program for smoke / flame / ember (../data/cabinLook.ts) */
 function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
   noiseTex ??= cacheUntilDisposed(makeNoiseTexture(), () => { noiseTex = undefined; });
-  const cfg = CABIN_PARTICLE_KINDS[kind];
-  const uniforms: Record<string, THREE.IUniform> = {
-    uTime: { value: 0 }, uLife: { value: cfg.life }, uRise: { value: cfg.rise }, uSpread: { value: cfg.spread },
-    uSize: { value: new THREE.Vector2(cfg.size[0], cfg.size[1]) }, uWind: { value: new THREE.Vector3(...cfg.wind) }, tNoise: { value: noiseTex },
-    uSunDir: { value: sky.sunDir }, uSunColor: { value: sky.sunColor }, uShade: cabinNight.uShade, uLamps: cabinNight.uLamps, // the sky's own: the clock moves them
-    ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), uKind: { value: { smoke: 0, flame: 1, ember: 2 }[kind] },
-  };
-  return new THREE.ShaderMaterial({
-    // one program for smoke / flame / ember (../data/cabinLook.ts `CABIN_PARTICLE_GLSL`: the kind is a uniform branch)
-    uniforms, transparent: true, depthWrite: false, blending: cfg.blend === 'additive' ? THREE.AdditiveBlending : THREE.NormalBlending, fog: true, side: THREE.DoubleSide,
-    vertexShader: CABIN_PARTICLE_GLSL.vertex,
-    fragmentShader: CABIN_PARTICLE_GLSL.fragment,
-  });
+  // the sky's own sun (the clock moves it) and the night's hold, shared by every kind
+  return riseParticleMaterial(CABIN_PARTICLE_KINDS[kind], { smoke: 0, flame: 1, ember: 2 }[kind], CABIN_PARTICLE_GLSL,
+    { noise: noiseTex, uniforms: { uSunDir: { value: sky.sunDir }, uSunColor: { value: sky.sunColor }, uShade: cabinNight.uShade, uLamps: cabinNight.uLamps } });
 }
 
-/** `instanceof THREE.Mesh` narrows to `Mesh<any, any>`; this keeps the default generics */
-const isMesh = (o: THREE.Object3D): o is THREE.Mesh => 'isMesh' in o;
-
 /**
- * Procedural moss / lichen overlay: value-noise patches in world space, denser where the `moss`
- * vertex attribute is high (eaves, foundation base) and on faces turned away from the sun, with a
- * soft normal bump along the patch edges (the GLSL edits: ../data/cabinLook.ts `CABIN_MOSS_EDITS`).
+ * Procedural moss / lichen overlay (@wildshard/sdk/looks/mossOverlay, the GLSL edits ../data/cabinLook.ts `CABIN_MOSS_EDITS`):
+ * denser where the `moss` vertex attribute is high (eaves, foundation base) and on faces turned away from the sun; the
+ * roof's full strength and up-only, the stone's 0.6 — uniforms, so roof and stone share one program.
  */
 function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | 'stone') {
-  const strength = kind === 'roof' ? 1.0 : 0.6;
-  patchShader(mat, 'pine.cabin-moss', PATCH_ORDER.material, (shader) => {
-    attachFogUniforms(shader);
-    shader.uniforms['uMossSun'] = { value: sky.sunDir };
-    shader.uniforms['uMossStrength'] = { value: strength };
-    shader.uniforms['uMossUpOnly'] = { value: kind === 'roof' ? 1.0 : 0.0 };
-    editShader(shader, CABIN_MOSS_EDITS); // ../data/cabinLook.ts
-  }, { mode: 'replace', key: 'cabin-moss' }); // strength / upOnly are uniforms: roof and stone share one program
+  installMossOverlay(mat, { id: 'pine.cabin-moss', key: 'cabin-moss', sunDir: sky.sunDir, strength: kind === 'roof' ? 1.0 : 0.6, upOnly: kind === 'roof', edits: CABIN_MOSS_EDITS });
 }
 
 // ───────────────────────────── the homestead ─────────────────────────────
@@ -303,21 +285,12 @@ export class Cabins extends BuildingLife implements BuildingOwner {
 
 // ───────────────────────────── glTF helpers ─────────────────────────────
 
-const lodLoader = new GLTFLoader();
+/** a model library's LOD glTF (@wildshard/sdk/kit/lodGlb) */
 export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
-  return new Promise<{ scene: THREE.Group }>((resolve, reject) => { lodLoader.load(`/assets/models/${id}/${id}_lod.glb`, resolve, undefined, reject); });
+  return loadLodGlb(`/assets/models/${id}/${id}_lod.glb`);
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */
 export function prepModel(scene: THREE.Object3D, sky: Sky): PropPart[] {
-  scene.updateMatrixWorld(true);
-  const out: PropPart[] = [];
-  scene.traverse((m) => {
-    if (!isMesh(m)) return;
-    const mat = m.material as THREE.MeshStandardMaterial;
-    for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.aoMap]) if (t) t.anisotropy = 8;
-    sky.setupMaterial(mat);
-    out.push({ geometry: m.geometry, material: mat, matrix: m.matrixWorld.clone() });
-  });
-  return out;
+  return flattenGlbParts(scene, (m) => { sky.setupMaterial(m); });
 }
