@@ -16,9 +16,9 @@
 //    material adds `albedo × poolLight × uLpGain.x` to its wash and, on wet ground, a broad glossy sheen
 //    `poolLight × wet × uLpGain.y` (the wet stone's blurred reflection of the pool's light).
 import { type Data3DTexture, Vector3 } from 'three';
-import { type VolumeBox, blankLightVolume } from '@wildshard/sdk/looks/lightVolume';
+import { type VolumeBox, blankLightVolume } from '../../runtime/looks/lightVolume';
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
-import { LIGHTVOL_UNIFORMS } from '../../data/light';
+import { LIGHTVOL_UNIFORMS } from '../../runtime/looks/light';
 // SHARD-PLATFORM M3: the uniforms' rows, LP_MAX and the GLSL (`LIGHTVOL_GLSL`) are data (data/light.ts); the bake is the
 // SDK's light volume (@wildshard/sdk/looks/lightVolume, look/light/install.ts); this module keeps the two boxes and the uniforms.
 

@@ -3,8 +3,8 @@
 // shopfronts, lamps, neon signs, lightboxes) and its lit interior-mapped windows into PoolLights for the light volume
 // (@wildshard/sdk/looks/lightVolume). Every number here was tuned in the loop against the round-8 targets (round-9-lab-light/README.md).
 import { Color, type Matrix4, Vector3, type Vector4 } from 'three';
-import type { PoolLight } from '@wildshard/sdk/looks/lightVolume';
-import { POOL } from '../../data/light';
+import type { PoolLight } from '../../runtime/looks/lightVolume';
+import { POOL } from '../../runtime/looks/light';
 // SHARD-PLATFORM M3: the pools' tuning is data (data/light.ts POOL, colours as hex).
 
 /** the clean room's Emitter (emitters.ts), structurally */

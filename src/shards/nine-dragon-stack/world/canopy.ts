@@ -20,10 +20,10 @@
 // SHARD-PLATFORM M3: the foliage program's GLSL, its rows and the crown's uniforms are data (data/canopy.ts); the card
 // canopy (@wildshard/sdk/looks/cardCanopy) draws them.
 import type { Mesh } from 'three';
-import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
+import type { Emitter } from '../runtime/looks/vertexSpill';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { type CanopyGeometry as PlatformCanopyGeometry, buildCardCanopy } from '@wildshard/sdk/looks/cardCanopy';
-import { DOME_B_CROWN, FOLIAGE_PROGRAMS, LEAF_ATLAS } from '../data/canopy';
+import { type CanopyGeometry as PlatformCanopyGeometry, buildCardCanopy } from '../runtime/looks/cardCanopy';
+import { DOME_B_CROWN, FOLIAGE_PROGRAMS, LEAF_ATLAS } from '../runtime/looks/canopy';
 import { LOOK_FRAGMENTS, type Shared } from '../look/style';
 
 /** the canopy's baked geometry over a plan's lumps: the painted cards and the darker core under them */

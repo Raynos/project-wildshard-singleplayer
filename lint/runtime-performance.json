@@ -3301,6 +3301,1422 @@
     "src/shards/pine-hollow/runtime/kit/primitiveParts.ts:unbounded-loop:d39a22472352acf970d335f48d880e0f7d4238c5b14ce87f36b35b37f647b76b": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:5848c1564e071891aa746629cbfd4129e6e54638013a927676fbd49f13887c1d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:dcd464874cf9fd4d9b05d68fd0f8ec57604b3f3c619079e2340f370e3c6f9fba": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:3f4613a5a94f9a12bf6aa4cc2c8c071bbd6a905a2168ffea844ec7294f815a4b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:e863b364e777ae20032926b2996696be532352076a92715b54fafa5bdec542b4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:746c540f79a499f1d9044cb1159a900f8c2984cd2b51cd92311bb8d2f036c78a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:9f7b5f15f404ba972a82c46b270e25034b79decce0ad1de6bdb4b3ecbd9731f5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:8c63f71ea8bedd9865117f220dcc21eee100ba7ec2c2888b91b3cd903d31c152": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:14c69a7c4c5bd2b220c0a7e15d539b9830071ddec7c59f59c3471c510ca173fb": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:299760005a9109ceac379ee83ad52dc0148877120ac7b0bd28db98cd4637ea8b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:619d1d93a88d9d5fe30ad5308b13478e31a80f6cef85cd142bb28656690b9e5d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:78b9886ae23cc9f91191264e5cfde676e82c1e8a837d30c41dda2eea6d657c83": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:f3eececb32ebe0136c96ce20757cb3952288cd8730c8e99f3bf6f5aa90fbe22e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:4e8111c1879e11ea0c867160849cec1ebddbfaabbfe3cda43cb24aa4fe038502": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:90c3efd7b0b2ed5b9e5d4b0214eae4d82dbe43b6d61bc124648be16c062f7471": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:fe5ad81e94f68c7be5c461ef25bb72e90f60a989f380df169b13477d251120fd": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:ba0d43740463cf08ad1cceb34323b9ecab2002b8c551e539f650c7ff48459a71": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/classKit.ts:unbounded-loop:c6a6e857f7f7f08533b2fa5abdf49d17f29fdb0d638e457aa778c4e39847262d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:451bfa0919b56b6a5b053c977ba92474a81e5d8ce3360669b6892bd115d94785": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:6f9497094a0cfb733948f5d39f6e2024ab5a863edb9961c24a330d52f2b476a1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:ebec0c91e76b19392a8a9ee6072d4e8e19c245c594de3c965ae7d6a6eb52ed0e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:5d053b4274f53a69623656a138b9b91676f38848d42aa33958a36169435718a0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:069d17370c6513306aadc414b7dc723b9a8d9e4bce79bd0377ef981941774bee": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:70a59142d66201f3fce1abae0382213a4a8e40aca2d6c6c89414bef75c204877": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:96dffd5c0f7e150c566543d7c00712e9c580863ab20f46b0fce899aca7980040": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/clothTopology.ts:unbounded-loop:2526baffaf7bdb5b5f34a1eb9ff19d6488f5ab96c178f153a8c1eccdf6f0e487": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/drawnInto.ts:unbounded-loop:41193f23be81afea6b091e239207ee1d413e423a2eacde067983cca7b87317f6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/drawnInto.ts:unbounded-loop:301fd65eb664e16103f16518af7fab407b58eaa96659c1eeb09efd9745320a3e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/drawnInto.ts:unbounded-loop:c8bed59271848d6d430c6ebe894c9d512b48fa6cc30f50b45405cf3b1e4f91a9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/kitConvert.ts:async:88d26e13005d544ebc30f2eb6da9791ecc0a01c173e6b737375021f5ca757318": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/kitConvert.ts:unbounded-loop:acb5590ebc221f39106a576169d8324403bebbb7986c222a069e87bc35ba448c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/kitConvert.ts:unbounded-loop:d352bcf23dca80c253f5fefe3cb6d711feba284eca1978d9f7c0c29bb1518cef": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/kitConvert.ts:unbounded-loop:02781dbafb8d05025d53fd2b2a14a0ae4df7a3114ab558170d702e726616d1be": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/kitMeshes.ts:unbounded-loop:6ac3221dd199bd51d4d7a95ca410c0812c00a01a586d318aa5d6c62d7cd8b503": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/kitMeshes.ts:unbounded-loop:df5b8f324478bdb93cceb03851039a15b94fd393fa3c7761aee006a5fa4b23c1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:raw-render:37de407479eab2fb53f78a51a1a54eec96688320644c6949e20c0f81ee958ad6": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:05b0d29d0daab939ad3fc9e80e963215c0d2dd7da699046d76532e160ddcc30b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:d13a2742f9a3d6430976563f2c16ddd9d29f8c9209ab03f09461a517f0fbe9a2": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:c47dfe1bd6ea889a112a881cf30d8bd11ff76a6f50b0fa12666526404b28893d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:565fbff14b6614751b2d545e9128ecc0e01bc116eaaaafd0e3075e259bcb1420": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:6c1b58902e844ea9f2e3bf218743d4699cd47b0e42c7ed55a8fb43e164b0975c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:564ec1d6c66b617ad4039b0a7adf7543958b71113fb8ae7e7ffb1cb815436e37": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:eef5caad61729569e8df533ab2a0adde5a49c5c9ff366a71ad6aabeef7353938": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:24d4d148a3dcbc6dee8fcc0a38d8ac590a3830b54a1c006680e5364cfb185b7a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:3bb7d219b10e0022532d924dc31abb77da12f49d78432fc0706bb90dd3b2b794": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:8aa70fa787c7eab4b1bb3e0aec6c282aa214786bff606042e42212efbb700d3b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:8060df0ad2f70604773539dd7504d4a4fc1dadaab24f8ffad4ba9948ac8e4e18": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:df68a0f347375326d02be4ee4a25c987f72a34aaf5f6784745d3d7985643656d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/propGlb.ts:unbounded-loop:4a1b29a78e730bcd07a31b773131285c2a8998b3ccd7d1efed2b47d5eb733860": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:85d3fce1caff913541cf939152e43b556ee4a4bf9c65d889a2a77e8304c6eba7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:044a7fd7ff41f3b75acbf01d054121b93f13d0a7ec680e82b474afc84a004237": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:46382ee7867b8e624b0f5a8223354056b11dbf406cf9e43031676a6f12eacf26": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:6cd321d0b9221542a2dcd8140ef1a0ccda073b43bf53ac24e5148428e8a90cd7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:e2422c62c0ccf8f0e6dc41a65b12c06a646d43dda79efee46185cbcacd1c7ba4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:f138d00f1b68a37e4da551a836cd26d8755e1132ff99f38048b4f59253146b00": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:a5f10609e9751a1383e48f58b85b167285e91878e8834a3b61d2e1d30c88ebe0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:bd1ed21de283e6a9986f1c54f821f4a08fc0feb3d8500f043e75b68cb1566705": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/ruledKit.ts:unbounded-loop:3a91071d50d946708ef841ae6ecd93e1ccb0409289e33fff90c72e82314913b5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:85d3fce1caff913541cf939152e43b556ee4a4bf9c65d889a2a77e8304c6eba7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:044a7fd7ff41f3b75acbf01d054121b93f13d0a7ec680e82b474afc84a004237": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:26f5098a9121a22fd3cb777f9d46b86cd11861d5a3fef2c047d70726ce28c6c5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:54e20fc6d81ca7ed096d4f431805ee1068782afe88cba4bbf50ae152d531dd43": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:99603e32e015fab0d1fff412dc1d01e54a9dfbbe03386a6bf29bc2d2a99e071c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:2a64eb4ccbb62313f9f4292b74fe14ca21b4889c2cebb2a12415dd0720a9f01e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:ebb95b5909bb6ae6817074e0c94cc9f76ccb16d6b4ca34f50e0cafa0d8256ab2": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:4872b63e9b18ccb0ad35ab7f11b1128bed37f45544bd14ce91c0f0f38bdf0ff9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:82aa739dfff3fefbbbbb6a55a677b0e5e13d0cbc484ccf377b2db4f872bbcf95": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:64a8a48702ec3dc3960b1aaa4effe6419db310e549fd38cf78cd26d33d340bfd": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:20718e5ce6d78511185ac60e8e4ffda14c546460431671ffd379fdcd6bf413de": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:b2e027fc9b8d2d61eb13018a884b2be34493a06a00935b189785787fe5779ca2": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:1f6e0745dafd674ebd18e7281c09bfb51bb427a845eb7dcd9280c515d6ecce0e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:c9ede3c6fdb3b569ccf1fe298064be9fb018ebf25e81ea06d888a1834e017bc9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:ddbe88243a27485acaa612e32e456708a2f205b255168ea3f5d23e5d51de933b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:957139d2f72eabec6f4084ba8167bc3ae3f792fb2604afbf6a2c4c21e6dc2768": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:104447a97be646096b7ca1491ef2997c0b8c5bc4dd970e0d54056c58dc7bda56": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts:unbounded-loop:7d78df7b6a79dfeab234b29ab70d7d2a8d44999a4b4dafe2dfa2d53960f1928d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:2e65d5d5f7c62f2b8cf4629e4feba498b57ef29eab0c42ae80a51bca9f9d8d1a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:1589940e3b1d91ef97d013916853a125d35db2e15fdf4b911103e6450d6138cf": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:66ab535000237dea508cc1f61eb9862c6a968f8cdafe42dcd171b12dc0f4c023": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:3459c3e1798b96618e32c19c30ddc1e46dd8b65363df1f6bf89f30efb8909126": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:fe85cf4edc3aa83428d5f3c43e4989def92d4aff2e19fbb88b0dcec6a701d17c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:2a70cd1be5583d328bf3506b01a16ad169403845fc7e00568e521070bb9dfe97": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:d98c7255571cb4348cc20e9cdd5dc167732c73a94386d1ef0154011791b7a032": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/kit/tangentKit.ts:unbounded-loop:cfe9866838ac4e7c27dd3106734d087c3db1c2944a2bf30febf09d1879317f1c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/aoTuning.ts:raw-render:db2a96a7ac53e82ebeb9a10fa84bf613e12f963a9d1483963079483e49469b28": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/aoTuning.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 3,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:unbounded-loop:cca3faa90818c821d75f702c427680d9330ccf58f88e8d855157fe8a4afe5712": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:unbounded-loop:c682300de40c3c293b0a7b0585de8a98228f268d955d7053e5c4054fe36bbac0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:frame-allocation:306bc1219ba02aa1a968740e64d8a59f68b94ce065e2b12550862d25e5111174": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:frame-allocation:dbce2a4c1de637414c45f6ee55e9c91484c7a15aa142be9b246dd8a80b8ef66c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:frame-allocation:ce9555b8ef4ec3ffa8168000737d2167c61818396d41c56b8784cb816bfbb2e3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:frame-allocation:475088d1ee2fae74b237ec597091be451469c207b89a1c724250c6bd6a019887": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:frame-allocation:bb8152d0e3329cfa8ad099c35e77f3dffc9ff066c335dad2dc7928449a126710": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:unbounded-loop:532cf6fdb15e05571ce7e6be00df069fff84914b031495ca603addc03e349c84": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/burstFx.ts:unbounded-loop:7c4ca77b455823169f2897ccf2479678635bcfae7d724f27761560acf4600a03": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/fogBands.ts:unbounded-loop:36afeac824f5266cd39dfaab7e63b8155028bda5e2e2354b2ddca5c09ad24690": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:36e3e97d7803f44e6142430270fd3ec12552429515554ab046b853479ed327f4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:90b1b50e01c70e9cfa11a2b015276260b6dde04c9c687080847cea8a37e98ec6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:a8fd9fb16e9085071c2f61992d94ac8ee9f25f13973c02669c39ee2006537530": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:63480870e57fbaabb2a90142f5065e38adbfd0b02f6dfb6d672740cef481ca35": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:21e632b8c2312d4d19786634e8dbda0c60126b0610c33bb0ad1a284ce1ebee1b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:2f2ee353dd41a2bf2ff15b7c7f7a7c01e0ea99ebe2b5137a8412d3c283e5d9fc": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:472ff6b1e713d91585967f52456c16253bab97f9469cb0c029f6b367b7a0c8c3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:04f666ffebe50c13cbc446e7bc508ad8a082f907bfa1f5ec4224a2f0d8c20f48": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:unbounded-loop:7ea64947d23b779c2a1e8cc18210ac8dcf508ab7a3a8d478c4198fa77637e962": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:frame-allocation:638466b6beeab5fb31e1ffe734f4f3da5905c11d5745844f1edb508213b303b9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:frame-allocation:1295ca84a3b700a2e439627fc3d845d82985f3a1019eb137d1527f011de28af7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/hangingLanterns.ts:frame-allocation:544203a6fee7c76cba22d25cc2cd0564ea74b57000a6eb51f87fe07d8ed0d0b6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:6c2682e614662ee01af0992659f506fc8d2cb5f4d78268e8120dc560c7cfc9a6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:a13cbe4c8d66a4b4ab34ea25682cd39f84cfe8961b77d26837b6927eb57590fb": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:effc802bc6a69c52941b824b33fd872dbbd06b4d73ad891e8d2fdb58e61ec5fb": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:98877adfb912f72e6d15a3cd23ef504912c4f23343b59fd7e667e55df9370581": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:3a55007d99cfb4d386870da18b18b5139b8c7e480bdd3521be82db9be8fb1959": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:c521da4f29708bfba550381adc7364c581063f26b8ec0cebe1812abac0706532": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lightVolume.ts:unbounded-loop:45bb8109b052449551db127304af16c728251d0a3a76139e41535082f64aefca": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lutTexture.ts:unbounded-loop:4ab837b00726d438ed4a5b3887aaa7bb550332aa085f6319017e9618ec17de63": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lutTexture.ts:unbounded-loop:81849b7aff7f7f6e0bcbabaab1e1d6bac3206a9dab82a07d92357e689f77efb5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/lutTexture.ts:unbounded-loop:561922e0e58b6c865bd97c853cb3a8e80f68aac7928d0ae9a4584c621a17cadc": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/mistGeometry.ts:unbounded-loop:cb52104abd4542299fbd87571c403601aace30fb232a0b51d46a5f6c59a3bd66": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/mistGeometry.ts:unbounded-loop:4c509012cbf863d449f665a2369d689480fabc7d368d362fe79a79c85ffdb0cc": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/mistGeometry.ts:unbounded-loop:f3d94193eb96071de72a016dd95241abcceeeb0ff89620c148f9da1a355b405d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/mistGeometry.ts:unbounded-loop:6388fb469f49d2a79117b150e0e56db51730dcacd47e9b6cd762c6a541f0db34": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/mistGeometry.ts:unbounded-loop:fd82571fd61c9688cec936387d8dc17c4f56b22e38d840dd8ec152e0453bc913": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/mistGeometry.ts:unbounded-loop:08e463aa6d51ce25c88e8eb434dc6c31366f52238d85a67c47a9817fcd156ed7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:dom:c8e6a9539e06501a45204aa28fd2e4701e8a44894d5916d1f885fe6d7abccacf": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:raw-render:b5b41edfef9f6c97a5562c23e5faeda7ef9555a89abcf417fe1fc0a4e3200f4e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:unbounded-loop:335a04771c73d25df45903418cefbd716364e3bdc512b9fa705009c1b683159f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:unbounded-loop:d05053fa02f3c170db0ffb095a6af3f86d28043493ad5024dcf858ad77ff28ca": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/paintArray.ts:unbounded-loop:db6ec33d074cec761c5592f4be0695101bf58206f2b9313aff51792c74613ef7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/reflectionCards.ts:unbounded-loop:39e98770fde39a2f8a320c6aac9c80662ad71262dc3e3bcb889143e59adb796c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/reflectionCards.ts:unbounded-loop:7bfaf726b4f1d6dc8aea2e34821dabe42a8426374fb81edbf42b3f134c7eb06c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:a9cbdaa96c8584dd8c1fdc7c18ed6fd26e7c963da0421451ce0075b0ed0e433a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:b41f4cf832bb919d43b6b9d3992be7c54035c3afc3a14ade35d902f4e48e7966": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:e5e85bb9e5b1da38aaec1e5688cf8af86ff2260aa6defcced48257c712196c97": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:3f80838a1a792e9faca0eed0803d137fb354f4fe079aa62e5ccd3652973dd5c2": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:232f1da599aa912eaccdcade41ee4d608d4fd3d1907029fbd04b61e8b2231b96": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:950c1731ed5ef449f8fc7cc9135995c3b929de8352bf1651d3cc102550a217a8": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:a35b1d46b6fb0bdc9487d8b2cf5d50a67f25dba67890cad8d35ee4d314742fb3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:46ee05caeebdf70595fe0474c21c6258c89ecd26f6aa40a02376080142d77ad6": {
+      "count": 5,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:0aa31970d66b328fd2f55b818d5e351762d0811771b368d669ec310ce1e2bbd0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:e5703b799392c378bc095a983a3ea078338a60ef0d4a9b4c4a4e0bd0610f802a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:b17d9601cd6fc7f8c82351082368104b508327320c262cfc523a66216bfe6128": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:4a1c766a9b01ca87ac7d14d881f81641334ac7ddb018d7f25dfa685b09632639": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:7174c54bd098bd9b098aec43f78a0ecce88b1891b01435873134b8ba1c1313e1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:fdc14611ef04cc572aa3dbf83150e7e82f43d0d4b7ef8fbea924eb79b3c25e6c": {
+      "count": 3,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:7e86a45e598d9451553b9fc4633430fbbb49817dd90317507543d03e68fec7d6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:0590fbd66b5282d3bd9d9e90db0d888e50674e9b9671ee1e52d014a650ece6b0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:raw-render:ddf43b4c196dc842613a4b57f6da4aae0e7f44bb63b3e41eaf0cf70dd2b6dcac": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:raw-render:90ddb022d37337b28ac5598a63ea68102ac77908380329a07f0f7e0c35106d75": {
+      "count": 3,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:5d911138ec3f2d0d3c791894fd61f1cb102f0fe1d0b328853f8edd38cd9e9ac7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:1145415e1ba1ea5057ea261e6186576a96cd1810794bc1c2c621956f1d9d2a4d": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:f941f5a569ea48069fde9a53959bb3aa563828e2a2a028a5bde71063cac3b954": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:523e066415a3b9b74fb12d15e3e5a30c2d3e1626f44049199e3b7b13e2d1c01f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:a167412f4323d7364bea14291a79260c8140da211e4b05e2ca68f416830cd7c9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:2fd4c511fddc0feef30f27ddfa729d06e2c73dbe1588b583a88e1b39b13fde8e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:57ed065847e76ab7e4e896ec5e86dc7683e6dafbf385c7d9e083a9ade7073de7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:468f57d26d3903d0d70d3cfdff34a4d428c029d9157843ee930fe56294fec8ff": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:35ae072c746e39af27dbe53ffd454aad0360e6023a2f45a3ae922bc219e36433": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:e2163e7dc8a49b64140ee638bc31cedb6ef1347a366b639803a66019158b712a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:34713b265e48b9071774a1b158b6f901b4e9a7476f9d354964e773f5e3759c79": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:cf4080265ea2369e40962e5778d60c14c1f32991cd609e5dc5191113ff2720ea": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:6c9d0252895c3bdd44b445360a31d4d36b5beba2bfc8aeda010b5988e6335e67": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:5e1319d5a9230283041bf7bd94044f54731272b40e010928e63356a97eded904": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:1c7eefa70a69f0c9f8ee2595c83bac4fd06a18212175bf919441d5c038c7bb2d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:57b273584f9dfdd8a7371df55a095bb7f3f197bbf7e71ec6265629670bdeadaa": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:3238a90a9664175ac7b5fb6a1beb426f5d2c6d2009284dd5381afa74c93cdd5e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:raw-render:2f2f05ed1da5821231f57f98197bb78f726a61598ea25b8126b4f5e5c18e7664": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:ee1b7f5b8b7d92d0f10e136e7875ee4136a9688a02fd636377a4b0c81eeb3641": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:frame-allocation:42ca2e54e4b5b8bbace76e2aae6d59f9cdb9981ddd6063fb3c71707e7619ff06": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/renderPass.ts:unbounded-loop:00df16382027963dc078ab8167da717906d2cc63b6429d8c1d608257dd4f29ee": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:unbounded-loop:a0bba2e6b0f5e922d11cb5d4ce5abe2c1efe7cc7f986a13c7a471b97fdd6de90": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:unbounded-loop:67daa3fabc205822610563cc23af62d2590b5ca56950768b1e58c347b0862b4c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:unbounded-loop:e1b0b0882ec2b83628cc1694817695fd44871f904f7a6892225f884d61fa5303": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:unbounded-loop:ffe1564886f1dd298fed08fe5c762f194c2bd490ac7cc1887c927763d833893e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:unbounded-loop:e1ddf1f3ef444b0b747b1726bab5b82da6afc64ede2ff24686e0f3fe9521945b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:unbounded-loop:24a766cd0b78258bf817146c52511005ee3c31bc5a6f3608cf473cfa03708d95": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/ropeFilament.ts:frame-allocation:d48ad581374943fb851d60dc1d1602e235afc1d3f91d11fd9566f59c2fea9586": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:d927a90f56789a4e3bb4b44ac3dee5f76f47810f6d228a08990f7b530b201f4e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:945df9f123c2cd71c354f3bbf63c381b5d317410642069fbf66d9e0e23ebc492": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:15d5c9d4ad82fa0d4e08d69dc8f911fe2a33cf5e225b13076e37917c3707ee7c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:a9529bf5073c836d295cd7a9ffab00cd44b8038359ce5a3f0aa9fc4ea127fef8": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:bb8152d0e3329cfa8ad099c35e77f3dffc9ff066c335dad2dc7928449a126710": {
+      "count": 12,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:d36cd84f6f7b44197bd65f88396b1bd66ba7bf1b8de092a2c49323ff85c523fb": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:3a5b95833e8ce1daba7c8e0cf641e368ad7744d692e7cc349186a4b702eb808f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:9f4f814956d8d038ced40f1ef6d995a9937d131d307eb08de6b5b913f3c7f4a7": {
+      "count": 4,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:d38f56e3f9d03bdd1f18f6bd7423d90ac3d7856188b2b4e4f3db1894651d3811": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:b8aeddc81e4f7c7f765a56ab0f23affd3030640a3231cb391726dee8d6021994": {
+      "count": 3,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:38b075362d7276741db9e5667332a5e13b6268cc585e1f04dd781b34009ac4f9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:41e8e361b6c2c9ab8ece681567ee5eb029b7516b6cca0319e1771c3945a18100": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:aa921f498c64f6be40e0678edf4ecb81e52d94e83c4a3c17737f07ed8b3353ed": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:dccd6dc37321b68d1d0c79683782989775f971613e4e0f3a11db3a11582e2ce3": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:c52cdc894d883425c827a908ddbe12d5b935ae1f489c2a36029e51007f8a4f7b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:eb332d62cd042ba9db5588170c85f04790db9a3ee5e9b717855a24e2ea19f0b0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:7d75fcc2f44b514a72c9f0b3c016af7bf61822f26434942cbc55c7f505aa33f9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:da8ab9cca7d4437d9b1869d1b41f9f184754f03300586843179b51a4a181e679": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:338b7431c4f380015390da70bfc029e1eda0446c3840c065b78bc01e0629ab8d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:702e6a612e6acdec861b47b5366837c83b41e09e1fe14c7491555e05f7e3f206": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:fe30d6099825073332b776516eb5710074d902b2ac619687259329ea9d9b55c1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:b9b8980ab30fa509748c2dfa423eb33b4fb03c572548310c1bfb823dfd7e2fed": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:f0d9bdd39bb60454995dadc82d616e9fd112cbef2e3ee7daacbcc772662d3f53": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:48fbd4b9d0398e9294d818c391f4ca3b299975bef168836ce75047652d4575e3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:4ab89c9a2d3a447159f2ff9fa7c569967e9a53867cc49902ba5d7fcb2cafa8b8": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:33f64dc10d4d7719b54a3d0bdad9b97f63a8d4825b29d62b69ea7414f5e0b55b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:8b201ba89273eef5778ec5264f5a670de602cdeb57c71fdad25aa9b37c46d212": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:4d9abe245c97bb0458152eb5d600898343cd2a364ee270ff9a3b37687e014a29": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:9dae3a38fc6d243057b3d6c67b95f12fa52cc6d9913d266847e8c47dff65376e": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:a87e34b1cb5fa618c1f50a1491605a004f5913ccd33cb25c410f0ff9a0db17d5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:686737860f4580dc9d67d97b3358a34acf422ef6186e823a2a613f7f0405cee7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:84f713b1ebf8b9a41ab5fc7618873d039b177d6e5dcf54034c52c1a040a981ce": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:fd6bd3dabe3b3165985e22cffb19e82a87893376b4dc32ba024c299b83cab283": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:461f4fc0b617de4eb1ea285131eae59d7aa99d220aba208eaa26dabd7c579541": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:9ee1c39177fb5bfa422a8b71b0b5b8f99658d48d1eef47a1c192c6b8a29aeaab": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:0311067be5647dca16e3aec90d1850ab33da0209350d95770992a7f27bfcb114": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:08206ca8e85d6ce6c97eae2dab10d0cbf48b3e5e4e2e392476575dfcf7699b34": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:d172e25f85ca7fb3bb44b440526522a972201b65d13a3ab98969652ce25b0ae5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:5f18b0dbe93ebebfbae6a086e2e4317def544f06d7077bb45cf375d1102f2ba2": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:d0a76f6b1cb9ff983166a877c332cee9ca2eda6cea0e3ab9c4e5115012fb5f12": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:df5937fc694cb2ed9bef7bc105bfcf07ff86319ff7849ec5e41f298e374ea9f0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:61f1de3b7d2776a90ea9b0134ec9cdde0902acbd96853fbc51e655ef606abdca": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:ea4e4a2c6ab3d070f2c85114597130e5052bb40cc7fd978f536ea6a3c85105f1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:9237e93fd879ead9a1bae780975642076eafe3f01e4d4782693abdc12e330418": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:a95a1a93dafb490114e58b10648933af7cb6dffc60c8c76ec24088e0739c45a9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:0bbf1580b685fb74e25b3090582e517ed2c9ff3247d5f906119a5d38b264dfba": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:unbounded-loop:c8a7348200d2ab20447dd728a02f3d781147f281b2ca1b828cea15547174bef5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/strandCloth.ts:frame-allocation:2220a821f66bd4830e7f430afb9e0814e3fd822ceb50a17fad83f688adb621ca": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:89123909cacdcb639898efdd61c6aa9393b2a30a571ed0920375cbdb06c8d6b7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:35cc2ef9c3f360ecdeada17da88902c1a398de5ec010a95e49487bcfcd17f469": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:6b37f80a589e233f638e15df5cc8b5a77e72945ba0a6bfc72d6c910380d6afda": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:1334d5503778a6ebed07b0e1b432bf81bcb6324403dd1835304e4dab71298875": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:669568c31750e0e369dfb31456fecc3960d5c25fcd372332e647f6adf078bb1b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:013e8ea1051a6ac83c5e8db5723bc99257ac0f9a4338edf88ff7b0d17902085a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/vertexSpill.ts:unbounded-loop:b6e083938e7f7239c489684db933ac6f74660b36fbfeb97287e89724505f299a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/weave.ts:unbounded-loop:938e7778fbad13237c430f9d07bc8628ba77c16c9adfe578c847c064ff0a5835": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/weave.ts:unbounded-loop:db5fee1885dd3e19de376c194e6cf3506dc153b3a8ebda67ef99c1af2a6903f3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/weave.ts:unbounded-loop:9d65b5c52adf4882577a5c2eedb651e1aa1249bd4be1b06cdd923ca07a8bb963": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/weave.ts:unbounded-loop:4f4187b1d86a7e43c8059a46721c3dc0f086fe75459c64048269c7261f15e459": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/looks/weave.ts:unbounded-loop:167a7b46c4d97bd38850f9255d1a6b5888ef970ae254f67b1a63e1c09e7756ac": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:unbounded-loop:99b9f64070217845ff9638cd831e072d131e21d4eefb5682402247bfca6f9048": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:frame-allocation:f95d89a52ec891ce0ad66127069c2ac9fdd793afb1a2f71b41be25a581fee3d3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:unbounded-loop:6586adbde13bc36e2f546a0491303af374a01e1955547c924676424898221a88": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:frame-allocation:1118942b4ba381c1d821a2b5de64d6284bbefa647ad454ee6c1ab02b2b18f810": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/props/edgeDecks.ts:frame-allocation:8d8757c7745b7a5e6876b7474b3072757af0393306236ce4ecdb9591349cb143": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/props/moverCopies.ts:unbounded-loop:943692b1ddeadc059ddf11d1290a191a5b27be3422912003848e634c73fe0804": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/fontWait.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/fontWait.ts:async:88d26e13005d544ebc30f2eb6da9791ecc0a01c173e6b737375021f5ca757318": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:ca958fcf8a078077c410ba21f8df447820b5627e9df65fb8fec2373a4a3db81f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:dfb31458694c50702fcbd39736f3731f014bfd1894af7d9dced2cef6628e33ba": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:14046cdf87b4b7dbfc3c82c896c291b5467a02784b7d2206419c8e903f91e646": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:b74266a8c20fded7f92bbfebd77c244fa5bdc93f7f553b298efcf40ff83a9f1b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:dad7c9cce601aa8b48be50ce3eadb0342f7b1027c5b4cc752f228e9260700694": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:970c6e7340492070f46b5b481b2fe91564d3a6538528ebcaddefdc7563d2a9cc": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:cfab67677fc79622597104f741062a618bfea8e15b6adb918d142f1195bebcc9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:c3c34e535ba0d794ba683e2ce36c7649d9e0a2268bbf555850b48b03c37b1cc7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:c90970d8733f57dd384943d78a115cf2106affcf498016f08296941043f93020": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:6450a467c9ccff5256ab505ad0a88205ead16880270894a1ff292579408fb778": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:dom:c8e6a9539e06501a45204aa28fd2e4701e8a44894d5916d1f885fe6d7abccacf": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:raw-render:c758ee5338f12a69cffced2d20ac11b2cf013ff5d2f1b0b76e33b6070e3a7208": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:e7e71bb4e1bdead5ef13c6cc805b223f8f65d9f052a67877e5279f6b8c0f6704": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:02fc8f34f63571b0b53e2b6578bfc554ac1a54ece8518e27bcca63a4ce4d372e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:7c6b39cd08ec06b102f9bd01e2ae58b12d9572d335632b7cf35483a62a5c6b61": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:a8c6797734f30b2a1cb8a78ff6d3b9c6fbc0e753ec9cab89417374ff50cca6ad": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:dc379440b7e88426ca2e81a556ed5592b15722f05e033193a301769a5d6bed30": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:d0a925625bba50d70b2805ada4c1db06e461d6567e52f08423ca4d5a7ea6dd64": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:de7122eae3551f83329f0706625659a9b60af4ef10aa219fd73ffaefdb22e7d3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:7768dd42abe0bc35ac200ad6a832c0f747051b1e891a02cee326d1f84d114de3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:55b1416e31ac17dc97567e2661cde9015b0be638df78c652007f60ea80f608f6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:462b94ae94dbb5f58950d2cf633022c3bbba64a687e11de74418305f8de7f97a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/glyphField.ts:unbounded-loop:a7d8998a3fda9f52faaf9c0119ebbcc00570356867eff9593b1455e58c984ca6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/neonText.ts:unbounded-loop:2b26b345a4a047223adf89b8a90992ecbd7b0b8bc3894920533dcadf80a9acea": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/neonText.ts:unbounded-loop:3a91071d50d946708ef841ae6ecd93e1ccb0409289e33fff90c72e82314913b5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/neonText.ts:unbounded-loop:72b3958fe1b8fc3fdddefbfca902301ee6e4e58354022fad2858a7da36f8e8f4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/neonText.ts:unbounded-loop:bcaab709ee4504f453ff62524b4d2d6080cc8008215463aa223042c4d298f4f8": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:dom:c8e6a9539e06501a45204aa28fd2e4701e8a44894d5916d1f885fe6d7abccacf": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:raw-render:9349db9c3bd9d49807f45870a9ef3fb4c1ccfcfab74a54adf0a6f45d94b942c7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:raw-render:6b0fb44f69b3e7ba81771aee7bb0eb4899edcc1693c914550687b4d8d77072a5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:unbounded-loop:0ebe25c9345aa19398ddca8894965fc8bfb62d311613b311f914ccfaf40c46da": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:unbounded-loop:decd2f8be2ed994ec109d2d91d39d170bf5301704a64b2ee0be55b71609a7de8": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:unbounded-loop:f3eeb27bca58b535b08848e045bb89420366ad93273261c437c2cb5e4c6d646b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:unbounded-loop:119bae7401a42fc3fb3ec26b0fdd1ebe7799fe55bdb0e89c2ce5946044521a15": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/signs/signAtlas.ts:unbounded-loop:61354847440aa4a3868e848fe9bbc35e8443ffdf1648e80e74f8c306edd6b1a1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:raw-render:69b596be39ff37a6803b2ade307fd0ddfef51031844a17c0d12fadf8492168d8": {
+      "count": 3,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:1ec5f72a45072270a7a1356c2efb7f80145bc85a15776ef3878b6b625eb6555d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:ad96b6297d422b66a937428a4401e274efafea680da3ff212566965a035450c3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:raw-render:14a7c8382d98507819d4738db4765309ea16d8b4e19c55a5307322e195511ce2": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:dom:c8e6a9539e06501a45204aa28fd2e4701e8a44894d5916d1f885fe6d7abccacf": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:b761cf618d32ac87ccca54608a672398cc4c7af571e290d290c435cf36af3abf": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:dom:c94698ca52ee00a6568cda7c4ecbab20031d6f36a8be8bac1a36adca1daabcd7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:4b8a01abfb7cbedca5772f6e1c478446dc76d30b4151c631223353313e551436": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:6b7609e4b0c3039d472c0fd26850456fbe5865bc8e8110f99c091f04ce284c04": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:6be48db006d2f193b7bf97f658967177e0fd33d09edfe29c5fbac4931c6b949e": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:frame-allocation:010d878c8c13581d813d56048cce819be2b527b4daf827c29abe1ce0e11ba6c4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:frame-allocation:46ee05caeebdf70595fe0474c21c6258c89ecd26f6aa40a02376080142d77ad6": {
+      "count": 2,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:frame-allocation:92e526aba0eaac5a14673dacfc0e7e059d8d6b21935a7d5a51ac7d1adc64b948": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:frame-allocation:96b8f58de1f87026e72bc530664a911327338115b13012f2f9e7309247a5104d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:frame-allocation:f60dd01b81d11ca952d01cdc837e7f8f62554d0a17baf29acf298d4a26a4ddd5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:9a6baa4cfeaef4bf2d31a6b5260b01bcc31059e9a6524aa8f3c18c9c7ad0299d": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:16adc29cdd0627f16ddf5bbc25fa137f107b036d296c574c1ee34e1f49686a7f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:97d97bf81213fd880d2b0b78b961c859e689357b890cf59f4275be707f9c4b06": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:a7a006d873dbd55d553078e2d8f9c2c9e0f71a7f4f0f18b30e301d57e37c2696": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/grappleAim.ts:unbounded-loop:e89776da9c71e4266dbd69aed0e2bbaee0b351c43098bdf1aa56d43747a297b5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:caeec7e46df02aa1a7cac03aeadc09124df15a76accc1d7f48b6604627757e65": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:d4b1638ad62881b00f6388d8d5eeb790371ef457b5e737e7700f77a01c7078a5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:4926e763620a1f91b6b200ceb3ef7542215010c048452421112248e9c753e0c4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:e0666bba248ff1872bb90505393b664b60ccbee78c2ccee9461d72cc656138e4": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:d2ccc8af07558c3e90b531fcca8781257061772d05421ea3aad5d345370d2144": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:fe11a8e0454d825f890bf18cd8b2d28af7118b4b09ead1ea9d6f9b69d4e14f0a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:c7d36cff1626bc0bf66b3aab45d38f4d34d82af4d120b4ecce2a18ef7ca96f3f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:2a16189efc74776544a31d45f30d8bd47245d2371b5d5e504bef78cffff70580": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:565992c9d64c6a9d1742a75fe9bbf4ea985b5d91cbf41f4eefc1f4581d9e9694": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:37058497fce38020e734672f5de09a40132d8fc172d9b79c3d7062a2a812249a": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:99deebadb5212dc6571c6ed8c8fab42a0b090c9698a2656433488619b8f64c38": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:2f205c8773497e7b3ace287db8a7e305da1eca3f27da3ff357cb805e6e2a5884": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:8f194dcb60b9e499d490a63570d830a15d086f8d18cbdea0fb07454d1ef34215": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:e43d7bb10ccf6947911b9ceb33f21ebf4aa56d4ae4cf0146f618f455a3768726": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:frame-allocation:ff0a2c664fc6385f70217ea1a8e98ff097e9a8827f2d5b4afc0335d7becea11e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:3dc1e9b0505fb0cbcaf72941dd37caa8f0113225c74d11afd30de33a5637602c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:7c8d8aaee74db6b8b468eb3d6299e07319f9b00cae44e60c7880ad076e31b645": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:4a5efa4bbb89eb5d48bf988add5b47474ab783d5146483fa9801bf39bb51acf7": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:0759d1e551aa4c4203e9050dc9eac035a36646c9c3f1c2863a3cf84a85323091": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:1cd7906215cd64394a004231e7a17b5c3c30e134df5597611654434a7aae2de3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts:unbounded-loop:84fe1f9f68514666bcac8a1f55550c9862e5d21319f3d5454ba8950009445efa": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:23b2f5721cf6e1dd29535d8432e412da890eb4e49cb42cd5170778c2e0be4cd9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:1a3d9fb3645e1e3053f311d5adf43cfa21a8919c097654cbb2f0d6d2fa538e8f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:raw-render:37de407479eab2fb53f78a51a1a54eec96688320644c6949e20c0f81ee958ad6": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:raw-render:47007c5ea0c14eb37ad296f07b8fbf750e6e6e3bed67e7a6049ff6c9d6603b73": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:raw-render:7137caee0606c99dd8e6e1bbbb7269bee0c17c2a0264afddcd19e5347f66fc51": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 6,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:94bcfa4cef3776ebf5e1f9bd2e5164dee8f11c36fbe71bee71275907dcc2611b": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:7f28a2b4ecc9fd727e2007dd6bea3f1c6c76e8b55836d63c01a5a22e130ab343": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:raw-render:8f40df007df4e9dc8992382827d68b4181820edf7eeffa8e0a6b832b56a2b124": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:7244532c301c7dd59bce584a89d26761c9bd17bd1a38e7d03882ff0736a1a583": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:ca08e46fbf1e951c5105249581d7f2261ef6f2cbef5fe02d72ad21e79e3c8ec5": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:758730cf73a79460e0f199fee112e87096d745c9977debadb47e6a124bf38e66": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:8e65737542935ca326d3d018c281cec340caeabacece4f52fc122b56d3f22b06": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:0691e0a4ae8dc5820e9fdfd06682471a2e8e0fa2a917437fbce5d39aba9cae95": {
+      "count": 4,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:99fa3304f4a76a49f33e3b329013d5dc745836102c983a7ef2f4cd0a1628c583": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:46f646ebe0d41a7ff09e0e2b4370b037100b3884be3f8ce726c3b00091e23db0": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:90716fc46bde7c3c8e5465fca835c9284b07f62d1904205bfcdfdd93e6bbe55c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:b795d45adf0eb635956888a7f872f516bfce0fbaf317741cf3f96aeba6f3dc40": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:4fb01a92fc4abedfab0f84eacd31d043627e90b221026eaf020830171459de5c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:bb8152d0e3329cfa8ad099c35e77f3dffc9ff066c335dad2dc7928449a126710": {
+      "count": 3,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:90e386821539cd8a52b0bce23bce199e3f944796962b2940621d98d621b095f1": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:041ad0295b1d3fb37fe9578fc88ce5db5ba91b130ab167819295a546b3ddef07": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:f3d6b94455b81f71389947f192287433ed2ad1323465d686bedcbb93f333bd6f": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:1b6c861a23b2615efcbdc834861d30bb0267f65bd96b2244c55e3ac35d5a1d5c": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:a5a7786f94b6b95d4c311f6a3e549752d0d5ea5fd086a1bd80279e11dd89b2c3": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:unbounded-loop:5fe7fee6e5a4cab6baea58dd06a922c14e5098b87978b62f8739ac5e13fdb5c9": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/fpArmsRig.ts:frame-allocation:09a6d610a6ee466e7e1a2cdf9e588bf1826646d17ca5608ef6d7d9ed263b8e8e": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/viewmodel/inkedRig.ts:unbounded-loop:ea45ba32bb46cd10a4c24c6425d42326d25bea12733e86fbe82df329417d8b50": {
+      "count": 1,
+      "row": "SF79 DS0.1 G303 verbatim move-back"
     }
   }
 }

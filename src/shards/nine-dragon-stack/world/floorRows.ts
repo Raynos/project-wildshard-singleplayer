@@ -10,7 +10,7 @@
 // footprint admits), and an end wall closes each deck.
 import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, frameCollider, inFrame as sdkInFrame, spanCollider } from '@wildshard/sdk/props/edgeDecks';
+import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, frameCollider, inFrame as sdkInFrame, spanCollider } from '../runtime/props/edgeDecks';
 import { DECK, DECK_CAP } from '../data/decks';
 import { PLAZA, Y0 } from '../layout';
 import { DECK_PORTALS, SQUARE_FLOOR, deckFloorId, type ShardEdge } from './portalPlan';

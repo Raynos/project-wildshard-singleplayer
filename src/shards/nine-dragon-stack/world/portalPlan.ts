@@ -5,7 +5,7 @@
 // (world/portals.ts), the walk-in ride (world/portalRide.ts), the tests and the format's declared portal links (SF8c,
 // `portalLinks`) all read this one plan.
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/config';
-import { type EdgePortal, type PortalLinkRow, type Pose, type RingPortal, type ShardEdge as Edge, edgeArrival, edgePortals, exitNodeId, exitRoad, inRingPortal, ringPortalLinks } from '@wildshard/sdk/portals/ringPortals';
+import { type EdgePortal, type PortalLinkRow, type Pose, type RingPortal, type ShardEdge as Edge, edgeArrival, edgePortals, exitNodeId, exitRoad, inRingPortal, ringPortalLinks } from '../runtime/portals/ringPortals';
 import { DECK_RING_SHORT, PORTAL_FLOORS, PORTAL_TRIGGER, SQUARE_ARRIVAL_AT, SQUARE_RING, SQUARE_ROUTE_TURNS } from '../data/portals';
 import { Y0 } from '../layout';
 

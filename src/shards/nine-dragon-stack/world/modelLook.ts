@@ -7,8 +7,8 @@ import { type BufferGeometry, Group, type Material, Mesh, type ShaderMaterial } 
 import { modelContext, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { SignAtlasView } from '@wildshard/sdk/looks/signs';
-import type { NeonTextView } from '@wildshard/sdk/looks/neonText';
+import type { SignAtlas as SignAtlasView } from '../runtime/signs/signAtlas';
+import type { NeonText as NeonTextView } from '../runtime/signs/neonText';
 import type { SignStyle } from '../data/signs';
 import { type SpecimenBake, loadSpecimens } from './specimens';
 

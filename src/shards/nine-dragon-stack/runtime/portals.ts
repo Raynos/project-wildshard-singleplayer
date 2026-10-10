@@ -1,5 +1,5 @@
 import type { PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
-import { type RideHost, installHostRide } from '@wildshard/sdk/portals/hostRide';
+import { type RideHost, installHostRide } from './portals/hostRide';
 import { playerRider, portalRide, type PortalRide } from '../world/portalRide';
 import { rideFeats, type NineFacts } from '../world/feats';
 

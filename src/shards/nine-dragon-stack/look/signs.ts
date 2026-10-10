@@ -2,7 +2,7 @@
 // world's builders hang signs into, each sign's board going into the kit it is given. The board behind a tube is vertex
 // colour, so the neon shader glows the tubes (HDR, into the bloom) while the board stays a dark ink mass.
 import type { Vector3 } from 'three';
-import { signBoardBox, signSize as boardSize, type SignBoardSink, type SignBuilderView, type SignPlace as SdkSignPlace } from '@wildshard/sdk/looks/signs';
+import { signBoardBox, signSize as boardSize, type SignBoardSink, type SignBuilder as SignBuilderView, type SignPlace as SdkSignPlace } from '../runtime/signs/signAtlas';
 import { SIGN_STYLES, type SignStyle } from '../data/signs';
 import type { Kit } from '../world/kit';
 

@@ -2,7 +2,7 @@
 // (@wildshard/sdk/viewmodel/fpArmsRig) — its sockets, the tassel / talisman / muzzle attach points and the blade's span
 // when the GLB's extras give none, the exporter's attribute renames, the cloth's colliders, the held moves, the framing
 // weights, the look lag and the trail. vm/fpArms.ts dresses the rig (materials, knot, halo, cloth); its head describes it.
-import type { FpArmsRow } from '@wildshard/sdk/viewmodel/fpArmsRig';
+import type { FpArmsRow } from "./armsTypes";
 
 /** where the rig and its maps live */
 export const ARMS_BASE = '/assets/nine-dragon/viewmodel/';

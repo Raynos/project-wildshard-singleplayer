@@ -9,10 +9,10 @@
 // SHARD-PLATFORM M3: the card sets are the SDK's reflection cards (@wildshard/sdk/looks/reflectionCards); the card
 // program's GLSL and row, the look, the cut and the stair's row are data (data/streaks.ts).
 import { type Mesh, Vector4 } from 'three';
-import { type ReflectCardProgram, type StairCardPlan, reflectionCards, stairReflectionCards } from '@wildshard/sdk/looks/reflectionCards';
+import { type ReflectCardProgram, type StairCardPlan, reflectionCards, stairReflectionCards } from '../runtime/looks/reflectionCards';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
-import { STAIR_CARDS, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../data/streaks';
+import type { Emitter } from '../runtime/looks/vertexSpill';
+import { STAIR_CARDS, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../runtime/looks/streaks';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 
 const STREAK_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, STREAK_PROGRAMS);

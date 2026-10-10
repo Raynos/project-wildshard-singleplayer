@@ -11,8 +11,8 @@
 // SHARD-PLATFORM M3: the program's GLSL and row and the default screen are data (data/scroll.ts).
 import { type ShaderMaterial, type Texture, Vector2, Vector4 } from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { loadWrappedTexture } from '@wildshard/sdk/looks/wrappedTexture';
-import { SCROLL_DEFAULTS, SCROLL_PROGRAMS, SCROLL_TEX } from '../data/scroll';
+import { loadWrappedTexture } from '../runtime/looks/wrappedTexture';
+import { SCROLL_DEFAULTS, SCROLL_PROGRAMS, SCROLL_TEX } from '../runtime/looks/scroll';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 
 const SCROLL_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, SCROLL_PROGRAMS);

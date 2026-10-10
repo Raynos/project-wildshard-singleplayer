@@ -4,7 +4,7 @@
 // entry and a tap target on the kit's mesh, one `place` per model per kit, its piece `nds-<model>@<kit>`.
 import type { Mesh } from 'three';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
-import { type DrawnPlaced, registerDrawnInto } from '@wildshard/sdk/kit/drawnInto';
+import { type DrawnPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
 import type { InKit } from './ctx';
 import type { Kit } from './kit';
 

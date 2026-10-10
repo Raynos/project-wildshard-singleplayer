@@ -7,8 +7,8 @@
 //  - GLSL (data/light.ts `GRADE_GLSL`): `vec3 gradeLut(vec3 srgb)`, the composite's LAST colour step (after toSRGB, before grain):
 //    one trilinear texture3D fetch.
 import type { Color, Data3DTexture } from 'three';
-import { LUT_TEXEL_SPLICES, identityLutTexture, loadLutTexture } from '@wildshard/sdk/looks/lutTexture';
-import type { SkyRamp } from '../../data/light';
+import { LUT_TEXEL_SPLICES, identityLutTexture, loadLutTexture } from '../../runtime/looks/lutTexture';
+import type { SkyRamp } from '../../runtime/looks/light';
 // SHARD-PLATFORM M3: the GLSL and the blue-hour ramp are data (data/light.ts: GRADE_GLSL, BLUE_HOUR).
 
 export function gradeUniforms(): { uLut: { value: Data3DTexture }; uLutAmt: { value: number } } {

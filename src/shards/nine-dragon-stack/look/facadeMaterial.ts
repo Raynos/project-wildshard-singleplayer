@@ -10,7 +10,7 @@
 // SHARD-PLATFORM M3: the programs are rows in data/facadeLook.ts on the SDK shader family; this module makes the materials.
 import { type ShaderMaterial, type IUniform, Vector2 } from 'three';
 import { ShaderFamily, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { FACADE_PROGRAMS, FACADE_UNIFORMS } from '../data/facadeLook';
+import { FACADE_PROGRAMS, FACADE_UNIFORMS } from '../runtime/looks/facadeLook';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 
 export type Uniforms = Record<string, IUniform>;

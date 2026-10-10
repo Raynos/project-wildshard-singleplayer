@@ -5,7 +5,7 @@ import { panFromYaw } from '../../src/engine/audio/util';
 import { Scope } from '../../src/engine/app/scope';
 import type { SampleLoop } from '../../src/engine/audio/Audio';
 import type { AudioMixer } from '../../src/engine/audio/levelAudio';
-import { AmbienceBeds, PositionalLoops } from '../../src/engine/audio/AmbienceBeds';
+import { AmbienceBeds, PositionalLoops } from '@wildshard/engine/audio/AmbienceBeds';
 import { CuePlayer, cueFiles, decodeCueSet } from '../../src/engine/audio/Cues';
 import { SetScore, scoreFiles, decodeScore } from '../../src/engine/audio/SetScore';
 import { ndPick, createNdAudio, SCORE_SET } from '../../src/shards/nine-dragon-stack/runtime/audio/files';

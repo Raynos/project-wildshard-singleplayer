@@ -2,11 +2,11 @@
 // the grapple's dragon hooks and the minimap's floor plan.
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
-import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
+import type { Emitter } from '../runtime/looks/vertexSpill';
 import { Dressing } from './facade/dressing';
 import { KitX } from './hero/kitx';
-import { KitSet } from '@wildshard/sdk/kit/kitSet';
-import type { DrawnCopy } from '@wildshard/sdk/kit/drawnInto';
+import { KitSet } from '../runtime/kit/kitSet';
+import type { DrawnCopy } from '../runtime/kit/drawnInto';
 import type { SignSink } from '../look/signs';
 import { Rng } from '@wildshard/engine/core/rng';
 import { WELL, Y0 } from '../layout';

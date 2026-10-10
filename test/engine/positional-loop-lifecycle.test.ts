@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../../src/engine/app/scope';
-import { PositionalLoops } from '../../src/engine/audio/AmbienceBeds';
+import { PositionalLoops } from '@wildshard/engine/audio/AmbienceBeds';
 import { AmbienceZones } from '../../src/engine/audio/ambience';
 import type { AudioMixer } from '../../src/engine/audio/levelAudio';
 

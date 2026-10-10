@@ -3,11 +3,11 @@
 // HEAD tuning. No global of its own and no URL switches: `__nd.light({...})` sets a variant for A/B captures.
 import type { Color, Data3DTexture, Vector3, Vector4 } from 'three';
 import { SQUARE_BOX, WELL_BOX } from './lightvol';
-import { type BakeStats, bakeLightVolumeSliced } from '@wildshard/sdk/looks/lightVolume';
+import { type BakeStats, bakeLightVolumeSliced } from '../../runtime/looks/lightVolume';
 import { type EmitterLike, type WindowLike, gatherPools, isLamp } from './pools';
 import { loadLut } from './grade';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { LIGHT_DEFAULTS, LP_MAX, LUT_URL, type LightSettings } from '../../data/light';
+import { LIGHT_DEFAULTS, LP_MAX, LUT_URL, type LightSettings } from '../../runtime/looks/light';
 // SHARD-PLATFORM M3: the settings, the lab's tuning and the LUT's URL are data (data/light.ts).
 
 interface LightUniforms {

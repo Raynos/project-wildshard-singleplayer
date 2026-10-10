@@ -6,7 +6,7 @@ import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedColliderDesc, bakedColliderSchemas } from '@wildshard/sdk/props/bakedColliders';
+import { bakedColliderDesc, bakedColliderSchemas } from './props/bakedColliders';
 import { portalLinkEntries } from '@wildshard/game/shardfile/portalLink';
 import { provePortalLinks } from '@wildshard/game/shardfile/portalLinkProof';
 import { JIAN_ROW } from '../vm/jianRow';

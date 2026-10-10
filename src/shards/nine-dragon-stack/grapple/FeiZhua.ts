@@ -14,7 +14,7 @@
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Tool } from '@wildshard/engine/combat/Tool';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installGrappleAim } from '@wildshard/sdk/tools/grappleAim';
+import { installGrappleAim } from '../runtime/tools/grappleAim';
 import { FEI_ZHUA_ROW } from './row';
 import { GRAPPLE_CONTEXT } from './context';
 import { ndRuntime } from '../runtime/state';

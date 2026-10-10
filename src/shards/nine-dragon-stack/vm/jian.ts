@@ -7,7 +7,7 @@ import {
   AddEquation, BufferGeometry, Color, CustomBlending, DoubleSide, Float32BufferAttribute, OneFactor, ShaderMaterial, Uint32BufferAttribute, Vector2, Vector3, ZeroFactor,
 } from 'three';
 import { E, type Geo, type Look, curve, v3 } from './geo';
-import { CLS } from '../data/vmLook';
+import { CLS } from '../runtime/looks/vmLook';
 
 /** the blade's measures (m) */
 export const JIAN = {

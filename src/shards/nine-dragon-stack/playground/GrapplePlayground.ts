@@ -8,7 +8,7 @@
  * GRAPPLE / JUMP → ZIP relabel, markers, rope and FX, on these hooks only.
  */
 import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
-import { HookCoursePlayground } from '@wildshard/sdk/tools/hookCourse';
+import { HookCoursePlayground } from '../runtime/tools/hookCourse';
 import { FeiZhua } from '../grapple/FeiZhua';
 import { GRAPPLE_COURSE } from '../data/grappleCourse';
 

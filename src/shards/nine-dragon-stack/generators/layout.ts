@@ -17,7 +17,7 @@ import { peekQueued, restoreQueued } from '../world/props3d';
 import { crossingColliders, wellSheets } from '../world/wellBounds';
 import { banyanOut } from '../world/banyanPlan';
 import { type SignPlace, type SignSink, signBoard, signSize } from '../look/signs';
-import { NeonText } from '@wildshard/sdk/looks/neonText';
+import { NeonText } from '../runtime/signs/neonText';
 import { geometryWriter } from './bakeWrite';
 import type { Placement } from '@wildshard/engine/models/model';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from '../world/layoutBake';

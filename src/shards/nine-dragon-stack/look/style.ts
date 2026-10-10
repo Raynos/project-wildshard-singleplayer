@@ -17,17 +17,17 @@ import { Color, type ShaderMaterial, type Texture, type IUniform, Vector2, Vecto
 import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, setUniforms, uniformsFrom, type UniformRows, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
-import { FLAG, PAINT_GLSL } from '../data/paint';
+import { FLAG, PAINT_GLSL } from '../runtime/looks/paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light/lightvol';
-import { LIGHTVOL_GLSL } from '../data/light';
+import { LIGHTVOL_GLSL } from '../runtime/looks/light';
 import { METAL, SUTRA } from '../util';
-import { silkWeaveTexture } from '@wildshard/sdk/looks/weave';
-import { fogBandWindow } from '@wildshard/sdk/looks/fogBands';
+import { silkWeaveTexture } from '../runtime/looks/weave';
+import { fogBandWindow } from '../runtime/looks/fogBands';
 import {
   EMIT_FOG as LOOK_EMIT_FOG, FOG_GLSL as LOOK_FOG, NOISE_GLSL as LOOK_NOISE, PAPER_GLSL as LOOK_PAPER, PROGRAMS, SHARED_UNIFORMS,
   STONES_GLSL as LOOK_STONES, BANDS, LOOKS, type LookName,
-} from '../data/look';
+} from '../runtime/looks/look';
 
 /** the splices only the shard knows (the datum, the flagstones, paint, light) */
 export const LOOK_FRAGMENTS: Readonly<Record<string, string>> = { y0: String(Y0), flagRh: FLAG.rh.toFixed(3), paint: PAINT_GLSL, lightvol: LIGHTVOL_GLSL };

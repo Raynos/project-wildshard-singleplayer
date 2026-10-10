@@ -12,7 +12,7 @@
  * Every hook is a gold ring at a pad's near lip, 1.9 m over its floor: the zip flies past the ring and drops onto the pad
  * (Traversal.ts `landingFor`, the PAST side). Nothing stands under a lip within 12 m, so no zip lands short in the pit.
  */
-import type { HookCourseRow } from '@wildshard/sdk/tools/hookCourse';
+import type { HookCourseRow } from "./courseTypes";
 
 export const GRAPPLE_COURSE: HookCourseRow = {
   id: 'grapple', title: 'Grapple playground', chip: 'Grapple',

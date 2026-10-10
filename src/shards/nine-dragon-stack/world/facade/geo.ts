@@ -1,7 +1,7 @@
 // The facade kit's builder is the SDK's tangent kit (@wildshard/sdk/kit/tangentKit, SHARD-PLATFORM M3, the kit system):
 // this keeps the names the facade grammar uses, and the pattern kinds the Jiehua program draws (aPat.x).
-import { AXIS_X, AXIS_Y, AXIS_Z, TangentKit, type TangentLook } from '@wildshard/sdk/kit/tangentKit';
-import { EDGE } from '@wildshard/sdk/kit/ruledKit';
+import { AXIS_X, AXIS_Y, AXIS_Z, TangentKit, type TangentLook } from '../../runtime/kit/tangentKit';
+import { EDGE } from '../../runtime/kit/ruledKit';
 
 /** pattern kinds the material draws (aPat.x) */
 export const K = {

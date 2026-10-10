@@ -4,8 +4,8 @@
 // (SF8c) between the declared nodes of shard.config.ts. Renderer-free (SF72): the ride runs the same in the page
 // (world/portalVeil.ts draws its fade in the HUD) and in the headless host (runtime/portals.ts).
 import type { PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
-import { type PortalPlayer as Player, type PortalRide as Ride, type PortalRideState as RideState, type PortalRider as Rider, playerRider as sdkPlayerRider, walkInRide } from '@wildshard/sdk/portals/walkInRide';
-import type { RideSlot } from '@wildshard/sdk/portals/rideVeil';
+import { type PortalPlayer as Player, type PortalRide as Ride, type PortalRideState as RideState, type PortalRider as Rider, playerRider as sdkPlayerRider, walkInRide } from '../runtime/portals/walkInRide';
+import type { RideSlot } from '../runtime/portals/rideVeil';
 import source from '../shard.config';
 import { PORTAL_FADE as FADE, PORTAL_TRIGGER } from '../data/portals';
 import { DECK_PORTALS, SQUARE_PORTAL } from './portalPlan';

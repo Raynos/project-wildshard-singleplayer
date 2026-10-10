@@ -18,7 +18,7 @@
 // - The hull (inkHullMaterial): back faces pushed out a constant pixel width along an averaged normal; living classes
 //   swell and thin along the stroke (a dry brush), built classes stay ruled. The glow gets none.
 import { BackSide, DataTexture, Matrix3, ShaderMaterial, type Texture, Vector4 } from 'three';
-import { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } from '../data/vmLook';
+import { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } from '../runtime/looks/vmLook';
 import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
 import { JIAN_DECALS, JIAN_DECAL_UV } from '../data/decals';

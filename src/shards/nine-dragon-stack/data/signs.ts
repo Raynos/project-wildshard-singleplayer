@@ -2,9 +2,9 @@
 // lightboxes in the mono atlas, gold-lettered plaques, paper strips, banners, the talisman and the blade's etch in the
 // colour atlas; the SDF neon's look; the atlases' sizes per tier. Real words (麵 牙科 火鍋 茶 藥房 旅館 …) in a Kai /
 // Song regular script.
-import type { NeonTextLook } from '@wildshard/sdk/looks/neonText';
-import type { SignAtlasLayout, SignSegment, SignStep, SignStyleRow } from '@wildshard/sdk/looks/signs';
-import type { SignModelParams, SignModelRow, SignVariantRow } from '@wildshard/sdk/looks/signModel';
+import type { NeonTextLook } from "./neonTypes";
+import type { SignAtlasLayout, SignSegment, SignStep, SignStyleRow } from "./signTypes";
+import type { SignModelParams, SignModelRow, SignVariantRow } from "./signModelTypes";
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';

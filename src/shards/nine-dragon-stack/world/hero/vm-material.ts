@@ -13,10 +13,10 @@
 // The classes, the GLSL and the tuning are data (data/heroVm.ts); the decal atlas is rows (data/decals.ts); this module makes the material.
 import { type Color, type DataTexture, ShaderMaterial, type Texture, type Vector3 } from 'three';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { plainWeaveTexture } from '@wildshard/sdk/looks/weave';
+import { plainWeaveTexture } from '../../runtime/looks/weave';
 import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
 import { HERO_DECALS, HERO_DECAL_UV } from '../../data/decals';
-import { HERO_VM, HERO_VM_FS, HERO_VM_UNIFORMS, HERO_VM_VS } from '../../data/heroVm';
+import { HERO_VM, HERO_VM_FS, HERO_VM_UNIFORMS, HERO_VM_VS } from '../../runtime/looks/heroVm';
 
 /** material classes (the Kit's `kind` slot, aPat.x); values clear of the architecture kinds 0–8 */
 export const VM: typeof HERO_VM = HERO_VM;

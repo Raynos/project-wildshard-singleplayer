@@ -1,7 +1,7 @@
 // Nine Dragon's living cloth as data (SHARD-PLATFORM M3): the jian's red silk tassel and yellow paper talisman as rows on
 // the SDK strand cloth (@wildshard/sdk/looks/strandCloth). vm/cloth.ts builds their topology in the viewmodel's
 // geometry; vm/fpArms.ts steps them against the fist, the forearm and the guard.
-import type { ClothSheetRow, StrandTasselRow } from '@wildshard/sdk/looks/strandCloth';
+import type { ClothSheetRow, StrandTasselRow } from "./clothTypes";
 
 /** the red silk tassel: bushy and long, prominent in front of the grip (round-6 style A, target-1) */
 export const TASSEL = {

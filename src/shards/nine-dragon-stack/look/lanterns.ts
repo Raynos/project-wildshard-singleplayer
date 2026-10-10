@@ -13,8 +13,8 @@
 // data/lanterns.ts's LANTERN_ROW.
 import type { BufferGeometry } from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { HangingLanterns, clearHangingLanterns, hangingLanternPositions, lanternLathe, lanternString as sdkLanternString, updateHangingLanterns } from '@wildshard/sdk/looks/hangingLanterns';
-import { LANTERN_PROGRAMS, LANTERN_ROW, LOD_DOT as LANTERN_LOD_DOT, LOD_NEAR as LANTERN_LOD_NEAR } from '../data/lanterns';
+import { HangingLanterns, clearHangingLanterns, hangingLanternPositions, lanternLathe, lanternString as sdkLanternString, updateHangingLanterns } from '../runtime/looks/hangingLanterns';
+import { LANTERN_PROGRAMS, LANTERN_ROW, LOD_DOT as LANTERN_LOD_DOT, LOD_NEAR as LANTERN_LOD_NEAR } from '../runtime/looks/lanterns';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 
 const LANTERN_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, LANTERN_PROGRAMS);

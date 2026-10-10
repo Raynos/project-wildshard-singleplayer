@@ -14,10 +14,10 @@
 // poster wall (concrete ×2 + the poster). GPU memory 1024² × 9 × 4 B × 4/3 = 50 MB as RGBA8 (the lab); ~12.6 MB as ASTC
 // 4×4 / ETC2 in a KTX2 array for shipping. Download: the JPEGs, 3.65 MB. Findings: round-9-lab-texture/README.md.
 import type { DataArrayTexture } from 'three';
-import { loadPaintArray, paintArrayPlaceholder } from '@wildshard/sdk/looks/paintArray';
+import { loadPaintArray, paintArrayPlaceholder } from '../runtime/looks/paintArray';
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { paintSize, type NdTier } from '../tier';
-import { LAYERS, PAINT_UNIFORMS, SURF as PAINT_SURF } from '../data/paint';
+import { LAYERS, PAINT_UNIFORMS, SURF as PAINT_SURF } from '../runtime/looks/paint';
 
 // SHARD-PLATFORM M3: the layers, the surfaces, the flagstone layout, the uniforms' rows and the GLSL are data
 // (data/paint.ts); the SDK's paint array (@wildshard/sdk/looks/paintArray) loads them.

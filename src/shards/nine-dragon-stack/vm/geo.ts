@@ -1,7 +1,7 @@
 // The viewmodel's geometry builder is the SDK's class kit (@wildshard/sdk/kit/classKit, SHARD-PLATFORM M3, the kit
 // system) over this shard's material classes (data/vmLook.ts CLS), under the names the viewmodel's pieces use.
-import { CLASS_EDGE, ClassKit, type ClassLook, classCurve, v3 as classV3 } from '@wildshard/sdk/kit/classKit';
-import { CLS } from '../data/vmLook';
+import { CLASS_EDGE, ClassKit, type ClassLook, classCurve, v3 as classV3 } from '../runtime/kit/classKit';
+import { CLS } from '../runtime/looks/vmLook';
 
 /** how a viewmodel piece looks */
 export type Look = ClassLook;

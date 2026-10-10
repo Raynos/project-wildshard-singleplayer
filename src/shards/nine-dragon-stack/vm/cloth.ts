@@ -4,10 +4,10 @@
 // viewmodel's geometry (~1.5 k vertices in all), drawn by the viewmodel program + its ink hull; the fu decal on both faces
 // of the talisman.
 import type { BufferGeometry } from 'three';
-import { ClothSheet, type ClothCapsule, StrandTassel, clothPenetration } from '@wildshard/sdk/looks/strandCloth';
-import { tubeTopology, sheetTopology } from '@wildshard/sdk/kit/clothTopology';
+import { ClothSheet, type ClothCapsule, StrandTassel, clothPenetration } from '../runtime/looks/strandCloth';
+import { tubeTopology, sheetTopology } from '../runtime/kit/clothTopology';
 import { Geo, type Look } from './geo';
-import { CLS } from '../data/vmLook';
+import { CLS } from '../runtime/looks/vmLook';
 import { TALISMAN, TASSEL, TASSEL_DARK_EVERY } from '../data/cloth';
 
 /** a capsule the cloth may not enter (the fist round the grip, the forearm, the guard): segment a → b, radius r */

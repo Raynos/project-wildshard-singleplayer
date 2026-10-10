@@ -23,13 +23,13 @@
 import { type AnimationClip, DoubleSide, Group, type Matrix3, Mesh, type ShaderMaterial, type Texture, Vector3 } from 'three';
 import { Talisman, Tassel, penetration } from './cloth';
 import { Geo, v3 } from './geo';
-import { CLS } from '../data/vmLook';
+import { CLS } from '../runtime/looks/vmLook';
 import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
-import { plainWeaveTexture } from '@wildshard/sdk/looks/weave';
+import { plainWeaveTexture } from '../runtime/looks/weave';
 import { buildHalo } from './jian';
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms } from './materials';
-import { FpArmsRig, type FpArmsRigView, type FpArmsState, armRigBake, armRigContract, rigRoot, takeRigScene } from '@wildshard/sdk/viewmodel/fpArmsRig';
-import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '@wildshard/sdk/viewmodel/inkedRig';
+import { FpArmsRig, type FpArmsRig as FpArmsRigView, type FpArmsState, armRigBake, armRigContract, rigRoot, takeRigScene } from '../runtime/viewmodel/fpArmsRig';
+import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '../runtime/viewmodel/inkedRig';
 import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
 import { app } from '@wildshard/engine/app/runtime';
 import type { NdTier } from '../tier';

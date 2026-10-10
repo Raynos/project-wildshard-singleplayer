@@ -8,7 +8,7 @@
 // is capped (the fill cost), and a disc too dim to see is collapsed before rasterising.
 import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, type ShaderMaterial, Uint16BufferAttribute, Vector4 } from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { HALO, HALO_PROGRAMS } from '../../data/light';
+import { HALO, HALO_PROGRAMS } from '../../runtime/looks/light';
 import { LOOK_FRAGMENTS, type Shared } from '../style';
 import { type EmitterLike, isLamp } from './pools';
 

@@ -23,8 +23,8 @@ import { chars } from './util';
 import { glyphLayout } from './tier';
 import { KAI_STACK } from './data/signs';
 import { FONT_LOAD } from './data/worldDressing';
-import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
-import { GlyphField } from '@wildshard/sdk/looks/neonText';
+import { waitForFonts } from './runtime/signs/fontWait';
+import { GlyphField } from './runtime/signs/glyphField';
 
 
 /** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */

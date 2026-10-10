@@ -3,8 +3,8 @@
 // emitters' grid now ended between slabs) bakes the same `aSpill` with any yield cadence.
 import { describe, expect, it } from 'vitest';
 import { BoxGeometry, BufferAttribute, Color, Vector3 } from 'three';
-import { bakeLightVolume, bakeLightVolumeSliced, type PoolLight } from '../../src/game/systems/looks/lightVolume';
-import { bakeSpill, type Emitter } from '../../src/game/systems/looks/vertexSpill';
+import { bakeLightVolume, bakeLightVolumeSliced, type PoolLight } from '../../src/shards/nine-dragon-stack/runtime/looks/lightVolume';
+import { bakeSpill, type Emitter } from '../../src/shards/nine-dragon-stack/runtime/looks/vertexSpill';
 
 const lights: PoolLight[] = Array.from({ length: 40 }, (_, i) => ({
   at: new Vector3((i % 7) * 3 - 9, (i % 3) * 2, Math.floor(i / 7) * 4 - 10), color: new Color(0.2 + (i % 5) * 0.15, 0.6, 1 - (i % 4) * 0.2),

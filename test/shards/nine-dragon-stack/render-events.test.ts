@@ -4,7 +4,7 @@ import { App } from '../../../src/engine/app/app';
 import { Scope } from '../../../src/engine/app/scope';
 import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
 import { JiehuaEffect } from '../../../src/shards/nine-dragon-stack/look/render/jiehua';
-import { BLEED } from '../../../src/shards/nine-dragon-stack/data/passes';
+import { BLEED } from '../../../src/shards/nine-dragon-stack/runtime/looks/passes';
 import { glowUniforms } from '../../../src/shards/nine-dragon-stack/look/light/glow';
 import { gradeUniforms } from '../../../src/shards/nine-dragon-stack/look/light/grade';
 import { installRenderEvents } from '../../../src/shards/nine-dragon-stack/look/renderEvents';

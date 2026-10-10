@@ -24,7 +24,7 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { meshopt, prune } from '@gltf-transform/functions';
 import { MeshoptEncoder } from 'meshoptimizer';
 import { rigIO, SRC, bindSkeleton, ARM } from './skeleton.mjs';
-import { armConst, buildBones, measure, twoBone, LEFT_HAND, RIGHT_HAND } from '../../../../src/game/systems/viewmodel/armRig.ts';
+import { armConst, buildBones, measure, twoBone, LEFT_HAND, RIGHT_HAND } from '@wildshard/game/systems/viewmodel/armRig';
 
 const positional = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 /** --raw: no meshopt (build.sh meshopts the build into public/, as every Blender target) */

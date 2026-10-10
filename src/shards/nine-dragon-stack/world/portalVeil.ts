@@ -1,7 +1,7 @@
 // G224 (E435): the portals' fade veil in the HUD, on the SDK's ride veil (@wildshard/sdk/portals/rideVeil). The ride
 // itself is renderer-free in world/portalRide.ts and runs the same in the headless host (runtime/portals.ts); this is only
 // the page's view of its fade (data/portals.ts PORTAL_VEIL).
-import { installRideVeil } from '@wildshard/sdk/portals/rideVeil';
+import { installRideVeil } from '../runtime/portals/rideVeil';
 import { portalRide, type PortalRide, type PortalRider, type PortalSlot } from './portalRide';
 import { rideFeats, type NineFacts } from './feats';
 import { PORTAL_VEIL } from '../data/portals';

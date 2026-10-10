@@ -1,7 +1,7 @@
 // The hero's generated props: a glb as kit geometry is the SDK's (@wildshard/sdk/kit/propGlb, SHARD-PLATFORM M3), under
 // the names the jian, the crowd, the lion and the props use; the guard's seat on the jian stays here.
 import { Matrix4, Vector3 } from 'three';
-import { type PropGlbOptions, loadPropGlb, propGlbBox } from '@wildshard/sdk/kit/propGlb';
+import { type PropGlbOptions, loadPropGlb, propGlbBox } from '../../runtime/kit/propGlb';
 
 /** how a TRELLIS prop becomes Kit-compatible geometry */
 export type GlbOpt = PropGlbOptions;
