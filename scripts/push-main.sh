@@ -54,8 +54,35 @@ for _ in 1 2 3 4 5 6; do
   # once, so GitHub's SSH session never idles through a 6-minute gate (2026-10-09: "Connection to github.com closed by
   # remote host" after a 385 s gate, and the whole gate ran again).
   if [ "${SKIP_VERCEL_GATE:-}" != 1 ]; then
-    bash scripts/vercel-tree-gate.sh "$tip"; rc=$?
-    [ "$rc" = 0 ] || { record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"; exit "$rc"; }
+    gout="$(mktemp -t push-gate)"
+    bash scripts/vercel-tree-gate.sh "$tip" 2>&1 | tee "$gout"; rc=${PIPESTATUS[0]}
+    if [ "$rc" != 0 ]; then
+      record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
+      # SF74 W25 (speed audit #11): a red tip still lets the commits before the break through. Probe the failing test
+      # files on the unpushed verified regeneration commits, gate the newest that passes, push it when green (twice at
+      # most: a prefix's own gate can name other files). GREEN_PREFIX=0 turns it off.
+      red_tip="$tip"
+      for _p in 1 2; do
+        [ "${GREEN_PREFIX:-1}" != 0 ] && [ -f scripts/green-prefix.mjs ] || break
+        prefix="$(node scripts/green-prefix.mjs "$red_tip" "$gout")"
+        [ -n "$prefix" ] || break
+        t1=$SECONDS
+        bash scripts/vercel-tree-gate.sh "$prefix" > "$gout" 2>&1; prc=$?
+        sed 's/^/  prefix: /' "$gout"
+        if [ "$prc" = 0 ]; then
+          pahead="$(git rev-list --count "origin/main..$prefix")"
+          echo "push-main: pushing green prefix $(git rev-parse --short "$prefix") ($pahead of $ahead commits); $(git rev-parse --short "$tip") stays red"
+          git push origin "$prefix:refs/heads/main"; prc=$?
+          record "$prefix" "$pahead" 0 "$((SECONDS - t1))" "$prc"
+          [ "$prc" = 0 ] && echo "push-main: green prefix pushed: origin/main = $(git rev-parse --short "$prefix")"
+          break
+        fi
+        red_tip="$prefix"
+      done
+      rm -f "$gout"
+      exit "$rc"
+    fi
+    rm -f "$gout"
   fi
   echo "push-main: pushing $ahead commit(s) to origin main ($(git rev-parse --short "$tip")) …"
   git push origin "$tip:refs/heads/main"; rc=$?

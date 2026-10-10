@@ -149,6 +149,10 @@ while [ -e "$pending" ]; do
   fi
   echo "$tip" > "$red"
   note "RED ${tip:0:9} rc=$rc in $((SECONDS - t0)) s: $why ($out)"
+  # SF74 W25: push-main.sh pushed the commits before the break (scripts/green-prefix.mjs); the ping below then names
+  # only the lanes still in the red range.
+  prefix_line="$(grep -E '^push-main: green prefix pushed' "$out" | tail -1)"
+  [ -n "$prefix_line" ] && note "${prefix_line#push-main: }"
   ping_red "$tip" "$out" "$why"
 done
 exit 0
