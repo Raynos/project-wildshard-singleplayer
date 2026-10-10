@@ -3138,6 +3138,7 @@ const ORIGINAL = [
           "/assets/nine-dragon/paint/tiles.jpg",
           "/assets/nine-dragon/paint/wood.jpg",
           "/assets/nine-dragon/baked/layout.bin",
+          "/assets/nine-dragon/baked/specimens.bin",
           "/assets/nine-dragon/lab/walker.glb",
           "/assets/nine-dragon/lab/sitter.glb",
           "/assets/nine-dragon/lab/grapple/dragon-hook.glb",
