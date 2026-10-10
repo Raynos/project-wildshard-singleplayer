@@ -122,7 +122,12 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     phases.titleMs = Date.now() - started;
     if (mode === 'standalone') {
       await page.locator('.ws-main-select').click();
-      await page.locator('.ws-menu-play').click();
+      // Developer on shows LEGACY (.ws-menu-play) | SHARDFILE; a shardfile-only card (the Blender Template) has LEGACY
+      // disabled, so its case enters through SHARDFILE, as a player's only way in
+      const play = page.locator('.ws-menu-play'), shardfile = page.locator('.ws-menu-shardfile');
+      await play.waitFor();
+      const viaShardfile = await shardfile.isVisible() && await shardfile.isEnabled() && await play.isDisabled();
+      await (viaShardfile ? shardfile : play).click();
     } else {
       // The real grid button writes its one-shot intent and deliberately changes the document.
       gridNavigationIntent = true;

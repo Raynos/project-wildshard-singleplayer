@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "tilesHash": "019d2db2798cce16078a9731bc5544aa2667ede55011856fa24e586934f5d155",
+  "tilesHash": "a508e99d552408a02c095912ea6cd43968326fde76d8eb7984fb4c497654a721",
   "image": "/assets/blender-template/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 10646
+  "bytes": 9758
 }

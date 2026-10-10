@@ -1,20 +1,21 @@
 {
-  "why": "SF55 automatic map of the Blender clay world; the authored GLB and declaration are the map inputs.",
+  "why": "SF55 automatic map of the Blender clay world; the authored GLB and declaration are the map inputs. G320: baked from assets/world.glb in Node (scripts/bake-map-glb.mjs), no game page.",
+  "from": "assets/world.glb",
   "style": {
     "kind": "ground",
     "smooth": 3,
     "shade": 0.3,
     "classes": [
       {
-        "match": "#f2f0e8",
+        "match": "#d6d1ca",
         "fill": "#f4f1e6"
       },
       {
-        "match": "#e0d9c8",
+        "match": "#bfbbb5",
         "fill": "#e6dcc6"
       },
       {
-        "match": "#9b9b9d",
+        "match": "#8a8b90",
         "fill": "#8e939c",
         "edge": "#4a4f58"
       },
@@ -29,7 +30,7 @@
       "min": 6,
       "classes": [
         {
-          "match": "#9b9b9d",
+          "match": "#8a8b90",
           "fill": "#7f8590",
           "edge": "#3e434c"
         },

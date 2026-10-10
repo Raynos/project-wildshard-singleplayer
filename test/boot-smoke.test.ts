@@ -67,7 +67,9 @@ it('boots public Pine through real SHARD SELECT as well as Driftwood, Developer 
   expect(source).toContain("data: mode === 'grid' || developer");
   expect(source).toContain("url.searchParams.set('chunk', shard)");
   expect(source).toContain("page.locator('.ws-main-select').click()");
-  expect(source).toContain("page.locator('.ws-menu-play').click()");
+  // Developer on: a shardfile-only card (LEGACY disabled) enters through SHARDFILE
+  expect(source).toContain("play = page.locator('.ws-menu-play'), shardfile = page.locator('.ws-menu-shardfile')");
+  expect(source).toContain('await (viaShardfile ? shardfile : play).click()');
   expect(source).toContain('value.shard === shard && value.grid === null');
   expect(source).toContain('started + 90000');
   expect(source).toContain('grid spawn is under a collider'); // E463

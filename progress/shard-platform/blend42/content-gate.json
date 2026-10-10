@@ -1,0 +1,52 @@
+{
+ "product": "HEAD a21816808 build (serve-build --head)",
+ "runtimeLines": 0,
+ "trustedRuntimeLines": 0,
+ "publicShare": 0.9015151515151515,
+ "assemblyScriptLines": 23,
+ "conversion": {
+  "metric": "legacy-share",
+  "customRuntimeLines": 62,
+  "passed": null
+ },
+ "milestones": {
+  "boot": true,
+  "headless": true,
+  "replay": true,
+  "ledger": true,
+  "gridReady": true,
+  "compatible": true,
+  "transitional": false,
+  "witnessCompatible": true
+ },
+ "content": {
+  "status": "built",
+  "product": "../../../../../private/tmp/wildshard-serve/20261010-165425-4402/dist/shardfiles/blender-template/shard.json",
+  "privateBinaries": [],
+  "tiles": {
+   "total": 80,
+   "l0": 64,
+   "l1": 16
+  },
+  "files": {
+   "total": 150,
+   "kinds": {
+    "glb": 82,
+    "binary": 65,
+    "image": 1,
+    "ktx2": 1,
+    "wasm": 1
+   },
+   "platformBinaries": 65
+  },
+  "colliders": {
+   "descriptors": 0,
+   "shapes": 0,
+   "meshTiles": 64,
+   "meshPanels": 1,
+   "heightfield": false
+  },
+  "trustedSimulation": false,
+  "structuralWorld": true
+ }
+}

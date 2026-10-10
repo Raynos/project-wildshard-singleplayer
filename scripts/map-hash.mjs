@@ -22,11 +22,12 @@ export const MAP_METRES = 500;
  * part of the hash), "keep" (names whose subtree a "hide" pattern never reaches: Sky Reach's playable isles' keels share
  * the sky isles' model names) and "hideStanding" (the "hide" patterns whose hidden meshes also hide the instances that stand
  * on them: the firs on Sky Reach's decorative sky isles live in the archipelago's one instanced forest), with a "why".
- * @param {string} shardDir @returns {{inputs: string[], hide: string[], heightHide: string[], keep: string[], hideStanding: string[], clipBelow: number | null, clipAbove: number | null, style: ({kind: string} & Record<string, unknown>) | null}}
+ * "from" (G320): the shard's own world GLB (one of its inputs), baked in Node by scripts/bake-map-glb.mjs, not from a game page.
+ * @param {string} shardDir @returns {{inputs: string[], hide: string[], heightHide: string[], keep: string[], hideStanding: string[], clipBelow: number | null, clipAbove: number | null, style: ({kind: string} & Record<string, unknown>) | null, from: string | null}}
  */
 export function mapSettings(shardDir) {
   const own = join(shardDir, 'look', 'map.json');
-  if (!existsSync(own)) return { inputs: DEFAULT_MAP_INPUTS, hide: [], heightHide: [], keep: [], hideStanding: [], clipBelow: null, clipAbove: null, style: null };
+  if (!existsSync(own)) return { inputs: DEFAULT_MAP_INPUTS, hide: [], heightHide: [], keep: [], hideStanding: [], clipBelow: null, clipAbove: null, style: null, from: null };
   const parsed = JSON.parse(readFileSync(own, 'utf8'));
   const list = (key) => {
     const value = parsed[key];
@@ -39,7 +40,9 @@ export function mapSettings(shardDir) {
   if (parsed.clipAbove !== undefined && typeof parsed.clipAbove !== 'number') throw new Error(`${own}: clipAbove must be metres`);
   const style = parsed.style ?? null;
   if (style !== null && (typeof style !== 'object' || !['isle', 'void', 'ground'].includes(style.kind))) throw new Error(`${own}: style.kind must be isle, void or ground`);
-  return { inputs: list('inputs') ?? DEFAULT_MAP_INPUTS, hide: list('hide') ?? [], heightHide: list('heightHide') ?? [], keep: list('keep') ?? [], hideStanding: list('hideStanding') ?? [], clipBelow: parsed.clipBelow ?? null, clipAbove: parsed.clipAbove ?? null, style };
+  // G320: "from" names the shard's own world GLB; scripts/bake-map-glb.mjs bakes that map in Node, never from a game page
+  if (parsed.from !== undefined && (typeof parsed.from !== 'string' || !parsed.from.endsWith('.glb') || !(list('inputs') ?? []).includes(parsed.from))) throw new Error(`${own}: from must name a .glb listed in inputs`);
+  return { inputs: list('inputs') ?? DEFAULT_MAP_INPUTS, hide: list('hide') ?? [], heightHide: list('heightHide') ?? [], keep: list('keep') ?? [], hideStanding: list('hideStanding') ?? [], clipBelow: parsed.clipBelow ?? null, clipAbove: parsed.clipAbove ?? null, style, from: parsed.from ?? null };
 }
 /** @param {string} shardDir */
 export const mapInputs = (shardDir) => mapSettings(shardDir).inputs;

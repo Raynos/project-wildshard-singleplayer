@@ -31,6 +31,8 @@ const TILE = 1000, HEIGHT = 900, OUT = 1000;
 
 const stampPath = (dir) => join(dir, 'look', 'map.baked.json');
 const todo = mapShards(root).filter(({ slug, dir }) => {
+  // G320: a map with "from" (its world GLB) is baked by scripts/bake-map-glb.mjs in Node, never from the game page
+  if (mapSettings(dir).from !== null) return false;
   if (only) return only.includes(slug);
   if (process.argv.includes('--all') || !existsSync(stampPath(dir))) return true;
   return JSON.parse(readFileSync(stampPath(dir), 'utf8')).tilesHash !== mapTilesHash(dir);

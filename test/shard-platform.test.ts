@@ -301,4 +301,18 @@ describe('SF6 platform measures', () => {
       expect(shardContent('alpha', root).status).toBe('invalid');
     });
   });
+
+  it('G304 credits binaries a schema row hands to the platform decoder as tiles, and the map stamp is not a private binary', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/look/map.baked.json', '{"tilesHash":"x"}');
+      put('public/shardfiles/alpha/shard.json', JSON.stringify({ tiles: [{ lod: 0 }], runtime: null, nativeGround: null,
+        files: [{ hash: 'mesh', kind: 'glb' }, { hash: 'chunk', kind: 'binary' }, { hash: 'door', kind: 'binary' }, { hash: 'height', kind: 'binary' },
+          { hash: 'heightCollider', kind: 'binary' }, { hash: 'lut', kind: 'binary' }, { hash: 'opaque', kind: 'binary' }],
+        meshCollision: { tiles: [{ file: 'chunk' }], panels: [{ file: 'door' }] },
+        terrain: { collider: 'heightCollider', tiles: [{ file: 'height' }] }, look: { grade: { lut: 'lut' } } }));
+      expect(shardContent('alpha', root)).toMatchObject({ status: 'built', structuralWorld: false,
+        files: { total: 7, kinds: { glb: 1, binary: 6 }, platformBinaries: 5 },
+        privateBinaries: ['shard.json files:opaque (opaque binary; decoder ownership requires audit)'] });
+    });
+  });
 });

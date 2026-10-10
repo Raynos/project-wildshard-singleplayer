@@ -25,6 +25,14 @@ await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias
 // Ship declarations without requiring the repository's internal workspace packages.
 execFileSync('pnpm', ['exec', 'tsc', '-b', '--force', 'tsconfig.layers.json'], { cwd: root, stdio: 'inherit' });
 const seen = new Set();
+// SF79 publishes some modules under an older specifier (`./shardfile/moverRuntime` → `./plugin/mover.ts`): a declaration
+// is emitted at, and points to, the module its layer's exports name, never a path built from the specifier.
+const layerExports = new Map();
+function defining(layer, module) {
+  if (!layerExports.has(layer)) layerExports.set(layer, JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')).exports ?? {});
+  const target = layerExports.get(layer)[`./${module}`];
+  return typeof target === 'string' && target.startsWith('./') && target.endsWith('.ts') && !target.endsWith('.d.ts') ? target.slice(2, -3) : module;
+}
 function declaration(layer, module) {
   const key = `${layer}/${module}`;
   if (seen.has(key)) return;
@@ -35,7 +43,8 @@ function declaration(layer, module) {
   let text = readFileSync(existsSync(source) ? source : resolve(root, `src/${layer}/${module}.d.ts`), 'utf8');
   // Relative import declarations are illegal inside ambient modules; the equivalent type query remains portable.
   if (key === 'engine/types/n8ao') text = text.replace("import type { Renderer } from '@wildshard/engine/render/renderer';", "type Renderer = import('@wildshard/engine/render/renderer').Renderer;");
-  text = text.replaceAll(/(['"])@wildshard\/(engine|game|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, dependency) => {
+  text = text.replaceAll(/(['"])@wildshard\/(engine|game|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, specifier) => {
+    const dependency = defining(dependencyLayer, specifier);
     declaration(dependencyLayer, dependency);
     const from = resolve(root, `src/sdk/dist/types/${layer}`, module, '..');
     const to = resolve(root, `src/sdk/dist/types/${dependencyLayer}/${dependency}`);
@@ -43,7 +52,9 @@ function declaration(layer, module) {
     return `${quote}${relative(from, to).replaceAll('\\', '/')}${quote}`;
   });
   // Relative declaration imports remain in the same copied module tree.
-  for (const match of text.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)) {
+  // Doc comments may quote example imports (game/shard/manifest.ts: `import('./look/render')`); only code is scanned.
+  const code = text.replaceAll(/\/\*[\s\S]*?\*\//gu, '').replaceAll(/^\s*\/\/.*$/gmu, '');
+  for (const match of code.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)) {
     const dependency = relative(resolve(root, `src/${layer}`), resolve(root, `src/${layer}`, module, '..', match[2]));
     if (!dependency.startsWith('..')) declaration(layer, dependency.replace(/\.js$/u, ''));
   }
