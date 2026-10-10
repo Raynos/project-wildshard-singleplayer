@@ -31,6 +31,8 @@ Blender Template (8th) is 97 %. The rest needs SDK systems: an offline skinned b
 - Grids: pass.
 - Desktop: 7/8. The Pine cabin is GPU-bound at vsync; the label fix `64b9b57ef` is in, and its rerun is queued to sp-x5.
 
+**P0 SF75 (grid intent lost after SHARD SELECT → title → INFINITE WILDSHARD):** owned by **sp-x5** (Codex), started 19:15.
+
 **Codex lanes:**
 - **sp-x1:** Nalati witness (elites, Kokbori, Qyran, Qara, ghosts done).
 - **sp-x2:** Pine King activation (lands before the cabin bake).
