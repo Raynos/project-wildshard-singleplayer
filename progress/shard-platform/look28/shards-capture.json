@@ -1,0 +1,1121 @@
+{
+  "version": {
+    "build": "68af120-mv2plxs5",
+    "time": "2026-10-10T18:10:14.890Z"
+  },
+  "started": "2026-10-10T18:45:48.194Z",
+  "shards": {
+    "driftwood-isle": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "driftwood-isle-select": {
+          "name": "driftwood-isle-select",
+          "frame": {
+            "local": [
+              0,
+              1.21,
+              -194
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1"
+            ],
+            "nine": null
+          }
+        },
+        "driftwood-isle-grid-A": {
+          "name": "driftwood-isle-grid-A",
+          "home": true,
+          "route": null,
+          "frame": {
+            "local": [
+              0,
+              1.21,
+              -194
+            ],
+            "inside": "driftwood-isle",
+            "owner": "driftwood-isle",
+            "chain": {
+              "owner": "driftwood-isle",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        },
+        "driftwood-isle-grid-B": {
+          "name": "driftwood-isle-grid-B",
+          "home": true,
+          "route": null,
+          "frame": {
+            "local": [
+              0,
+              1.21,
+              -194
+            ],
+            "inside": "driftwood-isle",
+            "owner": "driftwood-isle",
+            "chain": {
+              "owner": "driftwood-isle",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.00001604528012788542,
+        "y": 1.2145817604243347,
+        "z": -194.0000473829686,
+        "heading": -1.2246467991473532e-16
+      }
+    },
+    "pine-hollow": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "pine-hollow-select": {
+          "name": "pine-hollow-select",
+          "frame": {
+            "local": [
+              0,
+              0.02,
+              -235
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "GodRaysEffect@0.9",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0.12"
+            ],
+            "nine": null
+          }
+        },
+        "pine-hollow-grid-A": {
+          "name": "pine-hollow-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              0.02,
+              -235
+            ],
+            "inside": "pine-hollow",
+            "owner": "pine-hollow",
+            "chain": {
+              "owner": "pine-hollow",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.2251,
+                -0.015,
+                0.2,
+                0.2,
+                0.2
+              ],
+              "post": [
+                0.55,
+                0.85,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "pine-hollow",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.27772
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0.12",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        },
+        "pine-hollow-grid-B": {
+          "name": "pine-hollow-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              0.02,
+              -235
+            ],
+            "inside": "pine-hollow",
+            "owner": "pine-hollow",
+            "chain": {
+              "owner": "pine-hollow",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.2253,
+                -0.015,
+                0.2,
+                0.2,
+                0.2
+              ],
+              "post": [
+                0.55,
+                0.85,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "pine-hollow",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.27798
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0.12",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.000001885423262619479,
+        "y": 0.02009977626221371,
+        "z": -234.99999238869168,
+        "heading": -1.2246467991473532e-16
+      }
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "nalati-grasslands-select": {
+          "name": "nalati-grasslands-select",
+          "frame": {
+            "local": [
+              0,
+              0.02,
+              232
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass"
+            ],
+            "colour": [],
+            "nine": null
+          }
+        },
+        "nalati-grasslands-grid-A": {
+          "name": "nalati-grasslands-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              0.02,
+              232
+            ],
+            "inside": "nalati-grasslands",
+            "owner": "nalati-grasslands",
+            "chain": {
+              "owner": "nalati-grasslands",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "GradeV2Effect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        },
+        "nalati-grasslands-grid-B": {
+          "name": "nalati-grasslands-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              0.02,
+              232
+            ],
+            "inside": "nalati-grasslands",
+            "owner": "nalati-grasslands",
+            "chain": {
+              "owner": "nalati-grasslands",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "GradeV2Effect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 1.9150424761943396e-7,
+        "y": 0.020099637447856367,
+        "z": 231.99999822446543,
+        "heading": -3.141592653589793
+      }
+    },
+    "far-reach": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "far-reach-select": {
+          "name": "far-reach-select",
+          "frame": {
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "GodRaysEffect@0.12",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          }
+        },
+        "far-reach-grid-A": {
+          "name": "far-reach-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          },
+          "probes": []
+        },
+        "far-reach-grid-B": {
+          "name": "far-reach-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "SkyNeutralToneEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.0000013435500600678107,
+        "y": 30.019945004343754,
+        "z": -5.5000225281035515,
+        "heading": -3.141592653589793
+      }
+    },
+    "sunscar-dunes": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "sunscar-dunes-select": {
+          "name": "sunscar-dunes-select",
+          "frame": {
+            "local": [
+              0,
+              21.3,
+              69.99
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1"
+            ],
+            "nine": null
+          }
+        },
+        "sunscar-dunes-grid-A": {
+          "name": "sunscar-dunes-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              21.3,
+              70
+            ],
+            "inside": "sunscar-dunes",
+            "owner": "sunscar-dunes",
+            "chain": {
+              "owner": "sunscar-dunes",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.12,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.15,
+                0.9,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        },
+        "sunscar-dunes-grid-B": {
+          "name": "sunscar-dunes-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              21.3,
+              70
+            ],
+            "inside": "sunscar-dunes",
+            "owner": "sunscar-dunes",
+            "chain": {
+              "owner": "sunscar-dunes",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.12,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.15,
+                0.9,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 0.0021444185963446216,
+        "y": 21.302351581020478,
+        "z": 69.99617404413675,
+        "heading": -3.141592653589793
+      }
+    },
+    "template": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "template-select": {
+          "name": "template-select",
+          "frame": {
+            "local": [
+              0,
+              1.21,
+              -194
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1"
+            ],
+            "nine": null
+          }
+        },
+        "template-grid-A": {
+          "name": "template-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              1.2,
+              -194
+            ],
+            "inside": "template-2",
+            "owner": "template-2",
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@0",
+              "BrightnessContrastEffect@0",
+              "GradeEffect@0",
+              "GradeLookEffect@0",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        },
+        "template-grid-B": {
+          "name": "template-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              1.15,
+              -194
+            ],
+            "inside": "template-2",
+            "owner": "template-2",
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@0",
+              "BrightnessContrastEffect@0",
+              "GradeEffect@0",
+              "GradeLookEffect@0",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.00001604528012788542,
+        "y": 1.214481760426861,
+        "z": -194.00004657470754,
+        "heading": -1.2246467991473532e-16
+      }
+    }
+  },
+  "finished": "2026-10-10T18:52:17.673Z"
+}

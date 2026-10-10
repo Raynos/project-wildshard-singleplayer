@@ -1,0 +1,2152 @@
+{
+  "version": {
+    "build": "68af120-mv2plxs5",
+    "time": "2026-10-10T18:10:14.890Z"
+  },
+  "started": "2026-10-10T18:19:24.226Z",
+  "shards": {
+    "nine-dragon-stack": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "nine-dragon-stack-select": {
+          "name": "nine-dragon-stack-select",
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "NdJiehuaEffect@1"
+            ],
+            "nine": {
+              "frame": [
+                0,
+                0,
+                0
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303,
+              "uniforms": {
+                "uTime": 13.1358,
+                "uCam": [
+                  0.95,
+                  126.7,
+                  7.5
+                ],
+                "uRootAt": [
+                  0,
+                  0,
+                  0
+                ],
+                "uRes": [
+                  804,
+                  1362
+                ],
+                "uDpr": 0.8,
+                "uNear": 0.08,
+                "uSutra": 0,
+                "uLinePx": 2.1,
+                "uGroundPx": 4.2,
+                "uLineFade": [
+                  120,
+                  330
+                ],
+                "uInkMid": 110,
+                "uInk0": [
+                  0.012,
+                  0.01,
+                  0.01
+                ],
+                "uInk1": [
+                  0.114,
+                  0.112,
+                  0.107
+                ],
+                "uLineFog": 1.7,
+                "uGoldDim": [
+                  0.195,
+                  0.114,
+                  0.023
+                ],
+                "uLightDir": [
+                  0.349,
+                  0.857,
+                  0.379
+                ],
+                "uShade": [
+                  0.275,
+                  0.323,
+                  0.456
+                ],
+                "uPool": 0.06,
+                "uStain": 0.1,
+                "uMottle": 0.12,
+                "uWeave": 0.08,
+                "uSilkPaper": 0.12,
+                "uWashTint": [
+                  0.9,
+                  0.93,
+                  1
+                ],
+                "uWinWarm": [
+                  0.823,
+                  0.397,
+                  0.107
+                ],
+                "uWinCool": [
+                  0.687,
+                  0.839,
+                  0.791
+                ],
+                "uWinDark": [
+                  0.102,
+                  0.117,
+                  0.138
+                ],
+                "uSutraWin": [
+                  0.807,
+                  0.479,
+                  0.102
+                ],
+                "uFogBase": 0.01,
+                "uFogStart": 16,
+                "uFogBaseCol": [
+                  0.479,
+                  0.539,
+                  0.644
+                ],
+                "uBands": [
+                  [
+                    212,
+                    6,
+                    0.022,
+                    0
+                  ],
+                  [
+                    152,
+                    3,
+                    0.008,
+                    0
+                  ],
+                  [
+                    103,
+                    2.5,
+                    0.015,
+                    1
+                  ],
+                  [
+                    84,
+                    3,
+                    0.018,
+                    1
+                  ],
+                  [
+                    64,
+                    3,
+                    0.018,
+                    1
+                  ],
+                  [
+                    44,
+                    4,
+                    0.05,
+                    1
+                  ],
+                  [
+                    -30,
+                    5,
+                    0.045,
+                    0
+                  ],
+                  [
+                    -110,
+                    5,
+                    0.06,
+                    0
+                  ],
+                  [
+                    -190,
+                    5,
+                    0.1,
+                    0
+                  ],
+                  [
+                    -236,
+                    5,
+                    0.12,
+                    0
+                  ],
+                  [
+                    -400,
+                    1,
+                    0,
+                    0
+                  ]
+                ],
+                "uBandCols": [
+                  [
+                    0.672,
+                    0.708,
+                    0.761
+                  ],
+                  [
+                    0.584,
+                    0.617,
+                    0.672
+                  ],
+                  [
+                    0.539,
+                    0.591,
+                    0.672
+                  ],
+                  [
+                    0.515,
+                    0.565,
+                    0.651
+                  ],
+                  [
+                    0.479,
+                    0.539,
+                    0.631
+                  ],
+                  [
+                    0.451,
+                    0.515,
+                    0.604
+                  ],
+                  [
+                    0.342,
+                    0.407,
+                    0.515
+                  ],
+                  [
+                    0.109,
+                    0.144,
+                    0.238
+                  ],
+                  [
+                    0.025,
+                    0.042,
+                    0.112
+                  ],
+                  [
+                    0.008,
+                    0.016,
+                    0.045
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ]
+                ],
+                "uBandWin": [
+                  2,
+                  1,
+                  1
+                ],
+                "uSkyTop": [
+                  0.159,
+                  0.296,
+                  0.578
+                ],
+                "uSkyHorizon": [
+                  0.451,
+                  0.546,
+                  0.687
+                ],
+                "uSkyline": [
+                  1,
+                  1,
+                  1.5,
+                  2.6
+                ],
+                "uGlint": [
+                  3,
+                  0.28,
+                  2,
+                  0.1
+                ],
+                "uAccentFog": 0.35,
+                "uFlag": [
+                  0.5,
+                  0.8,
+                  0,
+                  0.3
+                ],
+                "uFlagJoint": 0.012,
+                "uGroundY": 125,
+                "uTilePitch": [
+                  0.24,
+                  0.22
+                ],
+                "uPaintFlag": 0.18,
+                "uPaintStone": [
+                  0.2,
+                  0,
+                  0.65
+                ],
+                "uShaft": [
+                  -28,
+                  -190,
+                  0,
+                  16
+                ],
+                "uShaftK": [
+                  0.01,
+                  125,
+                  0.003,
+                  30
+                ],
+                "uShaftLit": 0.8,
+                "uFogDeep": [
+                  0.3,
+                  70,
+                  18,
+                  0.2
+                ],
+                "uDeepAir": [
+                  0.08,
+                  0.13,
+                  0.25,
+                  0
+                ],
+                "uDeepAir2": [
+                  0,
+                  8,
+                  30,
+                  0
+                ],
+                "uPuff": [
+                  1,
+                  2
+                ],
+                "uDeepAmb": [
+                  0.45,
+                  4,
+                  50,
+                  1
+                ],
+                "uWetSky": [
+                  0.15,
+                  0.08
+                ],
+                "uDry": 0,
+                "uSilver": [
+                  0.402,
+                  0.451,
+                  0.539
+                ],
+                "uGold": [
+                  0.584,
+                  0.361,
+                  0.068
+                ],
+                "uPaper": [
+                  0.012,
+                  0.024,
+                  0.068
+                ],
+                "uPaperDeep": [
+                  0.004,
+                  0.01,
+                  0.025
+                ],
+                "uPaintK": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "uPaintK2": [
+                  0.5,
+                  0.5,
+                  1,
+                  1
+                ],
+                "uPaintInk": [
+                  0.025,
+                  0.042,
+                  0.084
+                ],
+                "uLpMinA": [
+                  -30.5,
+                  122.5,
+                  -175.5
+                ],
+                "uLpInvA": [
+                  0.007,
+                  0.02,
+                  0.005
+                ],
+                "uLpMinB": [
+                  -30.75,
+                  -100.75,
+                  -46.75
+                ],
+                "uLpInvB": [
+                  0.029,
+                  0.004,
+                  0.015
+                ],
+                "uLpGain": [
+                  1,
+                  0.55,
+                  0.35,
+                  1
+                ],
+                "uLpSky": 0.15,
+                "uLpAmb": 0.9,
+                "uLpSpec": [
+                  1,
+                  0.9,
+                  2.6,
+                  0.45
+                ],
+                "uLpRim": [
+                  0.8,
+                  1.2,
+                  3,
+                  0
+                ],
+                "uLpCut": [
+                  0.4,
+                  0.15,
+                  0.3,
+                  0.8
+                ],
+                "uLpAmber": [
+                  0.8,
+                  1.4,
+                  0.28,
+                  0.42
+                ],
+                "uLeaf": [
+                  [
+                    0.004,
+                    0.007,
+                    0.005
+                  ],
+                  [
+                    0.007,
+                    0.014,
+                    0.01
+                  ],
+                  [
+                    0.013,
+                    0.027,
+                    0.019
+                  ],
+                  [
+                    0.026,
+                    0.047,
+                    0.031
+                  ],
+                  [
+                    0.05,
+                    0.076,
+                    0.04
+                  ]
+                ],
+                "uWash": [
+                  0.18,
+                  0.45,
+                  0.26,
+                  1
+                ],
+                "uLeafInk": [
+                  1.6,
+                  0.9,
+                  0.5,
+                  0.15
+                ],
+                "uPlate": 1,
+                "fogSunDir": [
+                  0.931,
+                  0.139,
+                  -0.339
+                ],
+                "fogSunColor": [
+                  0.6,
+                  0.66,
+                  0.8
+                ],
+                "fogHeight": 85,
+                "fogHeightFalloff": 0.05,
+                "fogHeightDensity": 0.004,
+                "fogDistDensity": 0.004,
+                "fogEdge": [
+                  0,
+                  236,
+                  252,
+                  10
+                ]
+              },
+              "meshes": {
+                "canopy": "V#1,V#1,V#1",
+                "kit:paifang": "V#1",
+                "kit:east-shops": "V#1",
+                "kit:north-shops": "V#1",
+                "kit:south-shops": "V#1",
+                "kit:street-shops": "V#1",
+                "kit:blades": "V#1",
+                "kit:bridges": "V#1",
+                "kit:monorail": "V#1",
+                "kit:deck": "V#1",
+                "kit:crown": "V#1",
+                "kit:stair-foot": "V#1",
+                "kit:stair-terraces": "V#1",
+                "kit:well-rim": "V#1",
+                "kit:well-r": "V#1",
+                "kit:well-l-up": "V#1",
+                "kit:well-l-deep": "V#1",
+                "kit:well-x-hi": "V#1",
+                "kit:well-x-lo": "V#1",
+                "kit:well-c-main": "V#1",
+                "kit:well-c-ext": "V#1",
+                "kit:well-c-gates": "V#1",
+                "kit:entries": "V#1",
+                "kit:facade-signs": "V#1",
+                "kit:bridges-a": "V#1",
+                "kit:deck-a": "V#1",
+                "kit:well-r-a": "V#1",
+                "kit:well-l-a": "V#1",
+                "kit:well-c-a": "V#1",
+                "facade-shell": "V#1",
+                "facade-eave": "V#864",
+                "facade-balconyTimber": "V#61",
+                "facade-balconyTimber:lod1": "V#71",
+                "facade-plant": "V#223",
+                "facade-lantern": "V#41",
+                "facade-lantern:lod1": "V#224",
+                "facade-acUnit": "V#116",
+                "facade-acUnit:lod1": "V#274",
+                "facade-box": "V#1451",
+                "facade-cage": "V#22",
+                "facade-cage:lod1": "V#190",
+                "facade-laundryOut": "V#84",
+                "facade-rail": "V#116",
+                "facade-rail:lod1": "V#903",
+                "facade-laundryAlong": "V#90",
+                "facade-pipe": "V#197",
+                "facade-dish": "V#21",
+                "facade-balcony": "V#7",
+                "facade-balcony:lod1": "V#29",
+                "facade-planter": "V#13",
+                "facade-tank": "V#54",
+                "facade-shack": "V#45",
+                "facade-antenna": "V#148",
+                "facade-balconySolid": "V#37",
+                "facade-windows": "V#9912",
+                "neon": "V#1,V#1",
+                "streaks": "Vnf#1",
+                "streaks-stair": "Vnf#1,Vnf#1,Vnf#1,Vnf#1,Vnf#1",
+                "signs": "V#1",
+                "sky": "Vnf#1",
+                "screens": "V#1",
+                "sheets": "V#1",
+                "steam": "Vnf#1"
+              },
+              "scene": {
+                "fog": {
+                  "type": "Fog",
+                  "color": [
+                    0.358,
+                    0.432,
+                    0.592
+                  ],
+                  "near": 1,
+                  "far": 1000000
+                },
+                "background": "tex",
+                "environment": "tex",
+                "cam": {
+                  "near": 0.08,
+                  "far": 2600,
+                  "fov": 93.01050490332493
+                },
+                "renderer": {
+                  "toneMapping": 0,
+                  "exposure": 1,
+                  "out": "srgb"
+                }
+              },
+              "mats": {
+                "canopy": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {
+                    "INNER": ""
+                  },
+                  "own": {},
+                  "prog": 0
+                },
+                "kit:north-shops": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uFogScale": 1
+                  },
+                  "prog": 0
+                },
+                "facade-shell": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uInk": [
+                      0.012,
+                      0.01,
+                      0.01
+                    ],
+                    "uInkFar": [
+                      0.114,
+                      0.112,
+                      0.107
+                    ],
+                    "uSky": [
+                      0.503,
+                      0.552,
+                      0.644
+                    ],
+                    "uFacadeWash": [
+                      0.745,
+                      0.768,
+                      0.863
+                    ],
+                    "uShrink": [
+                      0,
+                      0
+                    ]
+                  },
+                  "prog": 0
+                },
+                "sky": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uSkyCloud": [
+                      0.45,
+                      1.4
+                    ]
+                  },
+                  "prog": 0
+                }
+              }
+            }
+          }
+        },
+        "nine-dragon-stack-grid-A": {
+          "name": "nine-dragon-stack-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.1,
+                0,
+                0.1,
+                0,
+                0
+              ],
+              "post": [
+                0.6,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "nine-dragon-stack",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.3
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0.12",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "frame": [
+                555,
+                0,
+                -555
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 0,
+              "uniforms": {
+                "uTime": 16.9904,
+                "uCam": [
+                  0.95,
+                  126.7,
+                  7.5
+                ],
+                "uRootAt": [
+                  555,
+                  0,
+                  -555
+                ],
+                "uRes": [
+                  1,
+                  1
+                ],
+                "uDpr": 1,
+                "uNear": 0.08,
+                "uSutra": 0,
+                "uLinePx": 2.1,
+                "uGroundPx": 4.2,
+                "uLineFade": [
+                  120,
+                  330
+                ],
+                "uInkMid": 110,
+                "uInk0": [
+                  0.012,
+                  0.01,
+                  0.01
+                ],
+                "uInk1": [
+                  0.114,
+                  0.112,
+                  0.107
+                ],
+                "uLineFog": 1.7,
+                "uGoldDim": [
+                  0.195,
+                  0.114,
+                  0.023
+                ],
+                "uLightDir": [
+                  0.349,
+                  0.857,
+                  0.379
+                ],
+                "uShade": [
+                  0.275,
+                  0.323,
+                  0.456
+                ],
+                "uPool": 0.06,
+                "uStain": 0.1,
+                "uMottle": 0.12,
+                "uWeave": 0.08,
+                "uSilkPaper": 0.12,
+                "uWashTint": [
+                  0.9,
+                  0.93,
+                  1
+                ],
+                "uWinWarm": [
+                  0.823,
+                  0.397,
+                  0.107
+                ],
+                "uWinCool": [
+                  0.687,
+                  0.839,
+                  0.791
+                ],
+                "uWinDark": [
+                  0.102,
+                  0.117,
+                  0.138
+                ],
+                "uSutraWin": [
+                  0.807,
+                  0.479,
+                  0.102
+                ],
+                "uFogBase": 0.01,
+                "uFogStart": 16,
+                "uFogBaseCol": [
+                  0.479,
+                  0.539,
+                  0.644
+                ],
+                "uBands": [
+                  [
+                    212,
+                    6,
+                    0.022,
+                    0
+                  ],
+                  [
+                    152,
+                    3,
+                    0.008,
+                    0
+                  ],
+                  [
+                    103,
+                    2.5,
+                    0.015,
+                    1
+                  ],
+                  [
+                    84,
+                    3,
+                    0.018,
+                    1
+                  ],
+                  [
+                    64,
+                    3,
+                    0.018,
+                    1
+                  ],
+                  [
+                    44,
+                    4,
+                    0.05,
+                    1
+                  ],
+                  [
+                    -30,
+                    5,
+                    0.045,
+                    0
+                  ],
+                  [
+                    -110,
+                    5,
+                    0.06,
+                    0
+                  ],
+                  [
+                    -190,
+                    5,
+                    0.1,
+                    0
+                  ],
+                  [
+                    -236,
+                    5,
+                    0.12,
+                    0
+                  ],
+                  [
+                    -400,
+                    1,
+                    0,
+                    0
+                  ]
+                ],
+                "uBandCols": [
+                  [
+                    0.672,
+                    0.708,
+                    0.761
+                  ],
+                  [
+                    0.584,
+                    0.617,
+                    0.672
+                  ],
+                  [
+                    0.539,
+                    0.591,
+                    0.672
+                  ],
+                  [
+                    0.515,
+                    0.565,
+                    0.651
+                  ],
+                  [
+                    0.479,
+                    0.539,
+                    0.631
+                  ],
+                  [
+                    0.451,
+                    0.515,
+                    0.604
+                  ],
+                  [
+                    0.342,
+                    0.407,
+                    0.515
+                  ],
+                  [
+                    0.109,
+                    0.144,
+                    0.238
+                  ],
+                  [
+                    0.025,
+                    0.042,
+                    0.112
+                  ],
+                  [
+                    0.008,
+                    0.016,
+                    0.045
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ]
+                ],
+                "uBandWin": [
+                  2,
+                  1,
+                  1
+                ],
+                "uSkyTop": [
+                  0.159,
+                  0.296,
+                  0.578
+                ],
+                "uSkyHorizon": [
+                  0.451,
+                  0.546,
+                  0.687
+                ],
+                "uSkyline": [
+                  1,
+                  1,
+                  1.5,
+                  2.6
+                ],
+                "uGlint": [
+                  3,
+                  0.28,
+                  2,
+                  0.1
+                ],
+                "uAccentFog": 0.35,
+                "uFlag": [
+                  0.5,
+                  0.8,
+                  0,
+                  0.3
+                ],
+                "uFlagJoint": 0.012,
+                "uGroundY": 125,
+                "uTilePitch": [
+                  0.24,
+                  0.22
+                ],
+                "uPaintFlag": 0.18,
+                "uPaintStone": [
+                  0.2,
+                  0,
+                  0.65
+                ],
+                "uShaft": [
+                  -28,
+                  -190,
+                  0,
+                  16
+                ],
+                "uShaftK": [
+                  0.01,
+                  125,
+                  0.003,
+                  30
+                ],
+                "uShaftLit": 0.8,
+                "uFogDeep": [
+                  0.3,
+                  70,
+                  18,
+                  0.2
+                ],
+                "uDeepAir": [
+                  0.08,
+                  0.13,
+                  0.25,
+                  0
+                ],
+                "uDeepAir2": [
+                  0,
+                  8,
+                  30,
+                  0
+                ],
+                "uPuff": [
+                  1,
+                  2
+                ],
+                "uDeepAmb": [
+                  0.45,
+                  4,
+                  50,
+                  1
+                ],
+                "uWetSky": [
+                  0.15,
+                  0.08
+                ],
+                "uDry": 0,
+                "uSilver": [
+                  0.402,
+                  0.451,
+                  0.539
+                ],
+                "uGold": [
+                  0.584,
+                  0.361,
+                  0.068
+                ],
+                "uPaper": [
+                  0.012,
+                  0.024,
+                  0.068
+                ],
+                "uPaperDeep": [
+                  0.004,
+                  0.01,
+                  0.025
+                ],
+                "uPaintK": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "uPaintK2": [
+                  0.5,
+                  0.5,
+                  1,
+                  1
+                ],
+                "uPaintInk": [
+                  0.025,
+                  0.042,
+                  0.084
+                ],
+                "uLpMinA": [
+                  -30.5,
+                  122.5,
+                  -175.5
+                ],
+                "uLpInvA": [
+                  0.007,
+                  0.02,
+                  0.005
+                ],
+                "uLpMinB": [
+                  -30.75,
+                  -100.75,
+                  -46.75
+                ],
+                "uLpInvB": [
+                  0.029,
+                  0.004,
+                  0.015
+                ],
+                "uLpGain": [
+                  1,
+                  0.55,
+                  0.35,
+                  1
+                ],
+                "uLpSky": 0.15,
+                "uLpAmb": 0.9,
+                "uLpSpec": [
+                  1,
+                  0.9,
+                  2.6,
+                  0.45
+                ],
+                "uLpRim": [
+                  0.8,
+                  1.2,
+                  3,
+                  0
+                ],
+                "uLpCut": [
+                  0.4,
+                  0.15,
+                  0.3,
+                  0.8
+                ],
+                "uLpAmber": [
+                  0.8,
+                  1.4,
+                  0.28,
+                  0.42
+                ],
+                "uLeaf": [
+                  [
+                    0.004,
+                    0.007,
+                    0.005
+                  ],
+                  [
+                    0.007,
+                    0.014,
+                    0.01
+                  ],
+                  [
+                    0.013,
+                    0.027,
+                    0.019
+                  ],
+                  [
+                    0.026,
+                    0.047,
+                    0.031
+                  ],
+                  [
+                    0.05,
+                    0.076,
+                    0.04
+                  ]
+                ],
+                "uWash": [
+                  0.18,
+                  0.45,
+                  0.26,
+                  1
+                ],
+                "uLeafInk": [
+                  1.6,
+                  0.9,
+                  0.5,
+                  0.15
+                ],
+                "uPlate": 1,
+                "fogSunDir": [
+                  0.384,
+                  0.768,
+                  0.512
+                ],
+                "fogSunColor": [
+                  1,
+                  0.98,
+                  0.92
+                ],
+                "fogHeight": 85,
+                "fogHeightFalloff": 0.05,
+                "fogHeightDensity": 0.0004,
+                "fogDistDensity": 0.0001,
+                "fogEdge": [
+                  0,
+                  236,
+                  252,
+                  10
+                ]
+              },
+              "meshes": {
+                "canopy": "V#1,V#1,V#1",
+                "kit:paifang": "V#1",
+                "kit:east-shops": "V#1",
+                "kit:north-shops": "V#1",
+                "kit:south-shops": "V#1",
+                "kit:street-shops": "V#1",
+                "kit:blades": "V#1",
+                "kit:bridges": "V#1",
+                "kit:monorail": "V#1",
+                "kit:deck": "V#1",
+                "kit:crown": "V#1",
+                "kit:stair-foot": "V#1",
+                "kit:stair-terraces": "V#1",
+                "kit:well-rim": "V#1",
+                "kit:well-r": "V#1",
+                "kit:well-l-up": "V#1",
+                "kit:well-l-deep": "V#1",
+                "kit:well-x-hi": "V#1",
+                "kit:well-x-lo": "V#1",
+                "kit:well-c-main": "V#1",
+                "kit:well-c-ext": "V#1",
+                "kit:well-c-gates": "V#1",
+                "kit:entries": "V#1",
+                "kit:facade-signs": "V#1",
+                "kit:bridges-a": "V#1",
+                "kit:deck-a": "V#1",
+                "kit:well-r-a": "V#1",
+                "kit:well-l-a": "V#1",
+                "kit:well-c-a": "V#1",
+                "facade-shell": "V#1",
+                "facade-eave": "V#2655",
+                "facade-balconyTimber": "V#601",
+                "facade-balconyTimber:lod1": "h#0",
+                "facade-plant": "V#1146",
+                "facade-lantern": "V#772",
+                "facade-lantern:lod1": "h#0",
+                "facade-acUnit": "V#1340",
+                "facade-acUnit:lod1": "h#0",
+                "facade-box": "V#4254",
+                "facade-cage": "V#784",
+                "facade-cage:lod1": "h#0",
+                "facade-laundryOut": "V#269",
+                "facade-rail": "V#2924",
+                "facade-rail:lod1": "h#0",
+                "facade-laundryAlong": "V#460",
+                "facade-pipe": "V#510",
+                "facade-dish": "V#184",
+                "facade-balcony": "V#141",
+                "facade-balcony:lod1": "h#0",
+                "facade-planter": "V#228",
+                "facade-tank": "V#184",
+                "facade-shack": "V#166",
+                "facade-antenna": "V#513",
+                "facade-balconySolid": "V#146",
+                "facade-windows": "V#9912",
+                "neon": "V#1,V#1",
+                "streaks": "Vnf#1",
+                "streaks-stair": "Vnf#1,Vnf#1,Vnf#1,Vnf#1,Vnf#1",
+                "signs": "V#1",
+                "sky": "Vnf#1",
+                "screens": "V#1",
+                "sheets": "V#1",
+                "steam": "Vnf#1"
+              },
+              "scene": {
+                "fog": {
+                  "type": "Fog",
+                  "color": [
+                    0.6,
+                    0.56,
+                    0.64
+                  ],
+                  "near": 1,
+                  "far": 1000000
+                },
+                "background": [
+                  0.332,
+                  0.386,
+                  0.456
+                ],
+                "environment": null,
+                "cam": {
+                  "near": 0.08,
+                  "far": 2600,
+                  "fov": 93.01050490332493
+                },
+                "renderer": {
+                  "toneMapping": 0,
+                  "exposure": 1,
+                  "out": "srgb"
+                }
+              },
+              "mats": {
+                "canopy": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {
+                    "INNER": ""
+                  },
+                  "own": {},
+                  "prog": 0
+                },
+                "kit:north-shops": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uFogScale": 1
+                  },
+                  "prog": 0
+                },
+                "facade-shell": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uInk": [
+                      0.012,
+                      0.01,
+                      0.01
+                    ],
+                    "uInkFar": [
+                      0.114,
+                      0.112,
+                      0.107
+                    ],
+                    "uSky": [
+                      0.503,
+                      0.552,
+                      0.644
+                    ],
+                    "uFacadeWash": [
+                      0.745,
+                      0.768,
+                      0.863
+                    ],
+                    "uShrink": [
+                      0,
+                      0
+                    ]
+                  },
+                  "prog": 0
+                },
+                "sky": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uSkyCloud": [
+                      0.45,
+                      1.4
+                    ]
+                  },
+                  "prog": 0
+                }
+              }
+            }
+          },
+          "probes": []
+        },
+        "nine-dragon-stack-grid-B": {
+          "name": "nine-dragon-stack-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "NdJiehuaEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "frame": [
+                555,
+                0,
+                -555
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303,
+              "uniforms": {
+                "uTime": 15.8919,
+                "uCam": [
+                  0.95,
+                  126.7,
+                  7.5
+                ],
+                "uRootAt": [
+                  555,
+                  0,
+                  -555
+                ],
+                "uRes": [
+                  804,
+                  1362
+                ],
+                "uDpr": 0.8,
+                "uNear": 0.08,
+                "uSutra": 0,
+                "uLinePx": 2.1,
+                "uGroundPx": 4.2,
+                "uLineFade": [
+                  120,
+                  330
+                ],
+                "uInkMid": 110,
+                "uInk0": [
+                  0.012,
+                  0.01,
+                  0.01
+                ],
+                "uInk1": [
+                  0.114,
+                  0.112,
+                  0.107
+                ],
+                "uLineFog": 1.7,
+                "uGoldDim": [
+                  0.195,
+                  0.114,
+                  0.023
+                ],
+                "uLightDir": [
+                  0.349,
+                  0.857,
+                  0.379
+                ],
+                "uShade": [
+                  0.275,
+                  0.323,
+                  0.456
+                ],
+                "uPool": 0.06,
+                "uStain": 0.1,
+                "uMottle": 0.12,
+                "uWeave": 0.08,
+                "uSilkPaper": 0.12,
+                "uWashTint": [
+                  0.9,
+                  0.93,
+                  1
+                ],
+                "uWinWarm": [
+                  0.823,
+                  0.397,
+                  0.107
+                ],
+                "uWinCool": [
+                  0.687,
+                  0.839,
+                  0.791
+                ],
+                "uWinDark": [
+                  0.102,
+                  0.117,
+                  0.138
+                ],
+                "uSutraWin": [
+                  0.807,
+                  0.479,
+                  0.102
+                ],
+                "uFogBase": 0.01,
+                "uFogStart": 16,
+                "uFogBaseCol": [
+                  0.479,
+                  0.539,
+                  0.644
+                ],
+                "uBands": [
+                  [
+                    212,
+                    6,
+                    0.022,
+                    0
+                  ],
+                  [
+                    152,
+                    3,
+                    0.008,
+                    0
+                  ],
+                  [
+                    103,
+                    2.5,
+                    0.015,
+                    1
+                  ],
+                  [
+                    84,
+                    3,
+                    0.018,
+                    1
+                  ],
+                  [
+                    64,
+                    3,
+                    0.018,
+                    1
+                  ],
+                  [
+                    44,
+                    4,
+                    0.05,
+                    1
+                  ],
+                  [
+                    -30,
+                    5,
+                    0.045,
+                    0
+                  ],
+                  [
+                    -110,
+                    5,
+                    0.06,
+                    0
+                  ],
+                  [
+                    -190,
+                    5,
+                    0.1,
+                    0
+                  ],
+                  [
+                    -236,
+                    5,
+                    0.12,
+                    0
+                  ],
+                  [
+                    -400,
+                    1,
+                    0,
+                    0
+                  ]
+                ],
+                "uBandCols": [
+                  [
+                    0.672,
+                    0.708,
+                    0.761
+                  ],
+                  [
+                    0.584,
+                    0.617,
+                    0.672
+                  ],
+                  [
+                    0.539,
+                    0.591,
+                    0.672
+                  ],
+                  [
+                    0.515,
+                    0.565,
+                    0.651
+                  ],
+                  [
+                    0.479,
+                    0.539,
+                    0.631
+                  ],
+                  [
+                    0.451,
+                    0.515,
+                    0.604
+                  ],
+                  [
+                    0.342,
+                    0.407,
+                    0.515
+                  ],
+                  [
+                    0.109,
+                    0.144,
+                    0.238
+                  ],
+                  [
+                    0.025,
+                    0.042,
+                    0.112
+                  ],
+                  [
+                    0.008,
+                    0.016,
+                    0.045
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ]
+                ],
+                "uBandWin": [
+                  2,
+                  1,
+                  1
+                ],
+                "uSkyTop": [
+                  0.159,
+                  0.296,
+                  0.578
+                ],
+                "uSkyHorizon": [
+                  0.451,
+                  0.546,
+                  0.687
+                ],
+                "uSkyline": [
+                  1,
+                  1,
+                  1.5,
+                  2.6
+                ],
+                "uGlint": [
+                  3,
+                  0.28,
+                  2,
+                  0.1
+                ],
+                "uAccentFog": 0.35,
+                "uFlag": [
+                  0.5,
+                  0.8,
+                  0,
+                  0.3
+                ],
+                "uFlagJoint": 0.012,
+                "uGroundY": 125,
+                "uTilePitch": [
+                  0.24,
+                  0.22
+                ],
+                "uPaintFlag": 0.18,
+                "uPaintStone": [
+                  0.2,
+                  0,
+                  0.65
+                ],
+                "uShaft": [
+                  -28,
+                  -190,
+                  0,
+                  16
+                ],
+                "uShaftK": [
+                  0.01,
+                  125,
+                  0.003,
+                  30
+                ],
+                "uShaftLit": 0.8,
+                "uFogDeep": [
+                  0.3,
+                  70,
+                  18,
+                  0.2
+                ],
+                "uDeepAir": [
+                  0.08,
+                  0.13,
+                  0.25,
+                  0
+                ],
+                "uDeepAir2": [
+                  0,
+                  8,
+                  30,
+                  0
+                ],
+                "uPuff": [
+                  1,
+                  2
+                ],
+                "uDeepAmb": [
+                  0.45,
+                  4,
+                  50,
+                  1
+                ],
+                "uWetSky": [
+                  0.15,
+                  0.08
+                ],
+                "uDry": 0,
+                "uSilver": [
+                  0.402,
+                  0.451,
+                  0.539
+                ],
+                "uGold": [
+                  0.584,
+                  0.361,
+                  0.068
+                ],
+                "uPaper": [
+                  0.012,
+                  0.024,
+                  0.068
+                ],
+                "uPaperDeep": [
+                  0.004,
+                  0.01,
+                  0.025
+                ],
+                "uPaintK": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "uPaintK2": [
+                  0.5,
+                  0.5,
+                  1,
+                  1
+                ],
+                "uPaintInk": [
+                  0.025,
+                  0.042,
+                  0.084
+                ],
+                "uLpMinA": [
+                  -30.5,
+                  122.5,
+                  -175.5
+                ],
+                "uLpInvA": [
+                  0.007,
+                  0.02,
+                  0.005
+                ],
+                "uLpMinB": [
+                  -30.75,
+                  -100.75,
+                  -46.75
+                ],
+                "uLpInvB": [
+                  0.029,
+                  0.004,
+                  0.015
+                ],
+                "uLpGain": [
+                  1,
+                  0.55,
+                  0.35,
+                  1
+                ],
+                "uLpSky": 0.15,
+                "uLpAmb": 0.9,
+                "uLpSpec": [
+                  1,
+                  0.9,
+                  2.6,
+                  0.45
+                ],
+                "uLpRim": [
+                  0.8,
+                  1.2,
+                  3,
+                  0
+                ],
+                "uLpCut": [
+                  0.4,
+                  0.15,
+                  0.3,
+                  0.8
+                ],
+                "uLpAmber": [
+                  0.8,
+                  1.4,
+                  0.28,
+                  0.42
+                ],
+                "uLeaf": [
+                  [
+                    0.004,
+                    0.007,
+                    0.005
+                  ],
+                  [
+                    0.007,
+                    0.014,
+                    0.01
+                  ],
+                  [
+                    0.013,
+                    0.027,
+                    0.019
+                  ],
+                  [
+                    0.026,
+                    0.047,
+                    0.031
+                  ],
+                  [
+                    0.05,
+                    0.076,
+                    0.04
+                  ]
+                ],
+                "uWash": [
+                  0.18,
+                  0.45,
+                  0.26,
+                  1
+                ],
+                "uLeafInk": [
+                  1.6,
+                  0.9,
+                  0.5,
+                  0.15
+                ],
+                "uPlate": 1,
+                "fogSunDir": [
+                  0.384,
+                  0.768,
+                  0.512
+                ],
+                "fogSunColor": [
+                  1,
+                  0.98,
+                  0.92
+                ],
+                "fogHeight": 85,
+                "fogHeightFalloff": 0.05,
+                "fogHeightDensity": 0.0004,
+                "fogDistDensity": 0.0001,
+                "fogEdge": [
+                  0,
+                  236,
+                  252,
+                  10
+                ]
+              },
+              "meshes": {
+                "canopy": "V#1,V#1,V#1",
+                "kit:paifang": "V#1",
+                "kit:east-shops": "V#1",
+                "kit:north-shops": "V#1",
+                "kit:south-shops": "V#1",
+                "kit:street-shops": "V#1",
+                "kit:blades": "V#1",
+                "kit:bridges": "V#1",
+                "kit:monorail": "V#1",
+                "kit:deck": "V#1",
+                "kit:crown": "V#1",
+                "kit:stair-foot": "V#1",
+                "kit:stair-terraces": "V#1",
+                "kit:well-rim": "V#1",
+                "kit:well-r": "V#1",
+                "kit:well-l-up": "V#1",
+                "kit:well-l-deep": "V#1",
+                "kit:well-x-hi": "V#1",
+                "kit:well-x-lo": "V#1",
+                "kit:well-c-main": "V#1",
+                "kit:well-c-ext": "V#1",
+                "kit:well-c-gates": "V#1",
+                "kit:entries": "V#1",
+                "kit:facade-signs": "V#1",
+                "kit:bridges-a": "V#1",
+                "kit:deck-a": "V#1",
+                "kit:well-r-a": "V#1",
+                "kit:well-l-a": "V#1",
+                "kit:well-c-a": "V#1",
+                "facade-shell": "V#1",
+                "facade-eave": "V#864",
+                "facade-balconyTimber": "V#61",
+                "facade-balconyTimber:lod1": "V#71",
+                "facade-plant": "V#223",
+                "facade-lantern": "V#41",
+                "facade-lantern:lod1": "V#224",
+                "facade-acUnit": "V#116",
+                "facade-acUnit:lod1": "V#274",
+                "facade-box": "V#1451",
+                "facade-cage": "V#22",
+                "facade-cage:lod1": "V#190",
+                "facade-laundryOut": "V#84",
+                "facade-rail": "V#116",
+                "facade-rail:lod1": "V#902",
+                "facade-laundryAlong": "V#90",
+                "facade-pipe": "V#197",
+                "facade-dish": "V#21",
+                "facade-balcony": "V#7",
+                "facade-balcony:lod1": "V#29",
+                "facade-planter": "V#13",
+                "facade-tank": "V#53",
+                "facade-shack": "V#45",
+                "facade-antenna": "V#148",
+                "facade-balconySolid": "V#37",
+                "facade-windows": "V#9912",
+                "neon": "V#1,V#1",
+                "streaks": "Vnf#1",
+                "streaks-stair": "Vnf#1,Vnf#1,Vnf#1,Vnf#1,Vnf#1",
+                "signs": "V#1",
+                "sky": "Vnf#1",
+                "screens": "V#1",
+                "sheets": "V#1",
+                "steam": "Vnf#1"
+              },
+              "scene": {
+                "fog": {
+                  "type": "Fog",
+                  "color": [
+                    0.6,
+                    0.56,
+                    0.64
+                  ],
+                  "near": 1,
+                  "far": 1000000
+                },
+                "background": [
+                  0.332,
+                  0.386,
+                  0.456
+                ],
+                "environment": null,
+                "cam": {
+                  "near": 0.08,
+                  "far": 2600,
+                  "fov": 93.01050490332493
+                },
+                "renderer": {
+                  "toneMapping": 0,
+                  "exposure": 1,
+                  "out": "srgb"
+                }
+              },
+              "mats": {
+                "canopy": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {
+                    "INNER": ""
+                  },
+                  "own": {},
+                  "prog": 0
+                },
+                "kit:north-shops": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uFogScale": 1
+                  },
+                  "prog": 0
+                },
+                "facade-shell": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uInk": [
+                      0.012,
+                      0.01,
+                      0.01
+                    ],
+                    "uInkFar": [
+                      0.114,
+                      0.112,
+                      0.107
+                    ],
+                    "uSky": [
+                      0.503,
+                      0.552,
+                      0.644
+                    ],
+                    "uFacadeWash": [
+                      0.745,
+                      0.768,
+                      0.863
+                    ],
+                    "uShrink": [
+                      0,
+                      0
+                    ]
+                  },
+                  "prog": 0
+                },
+                "sky": {
+                  "type": "ShaderMaterial",
+                  "fog": false,
+                  "toneMapped": true,
+                  "transparent": false,
+                  "defines": {},
+                  "own": {
+                    "uSkyCloud": [
+                      0.45,
+                      1.4
+                    ]
+                  },
+                  "prog": 0
+                }
+              }
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 0.9500049714891996,
+        "y": 125.01997508883505,
+        "z": 7.49999659289979,
+        "heading": 2.9321531433504737
+      }
+    },
+    "driftwood-isle": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: browserContext.close: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /Users/raynos/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-",
+        "off: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "on: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26"
+      ]
+    },
+    "pine-hollow": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async standalone (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:113:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "off: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "on: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26"
+      ]
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async standalone (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:113:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "off: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "on: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26"
+      ]
+    },
+    "far-reach": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async standalone (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:113:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "off: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "on: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26"
+      ]
+    },
+    "sunscar-dunes": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async standalone (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:113:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "off: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "on: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26"
+      ]
+    },
+    "template": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async standalone (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:113:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "off: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26",
+        "on: browser.newContext: Target page, context or browser has been closed\n    at async context (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:25:15)\n    at async gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:134:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look28/capture.mjs:234:26"
+      ]
+    }
+  },
+  "finished": "2026-10-10T18:20:45.105Z"
+}
