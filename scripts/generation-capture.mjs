@@ -15,6 +15,9 @@ export function captureOutcome(text) {
   return JSON.stringify(payload);
 }
 
+/** Exact executable identity for page captures and standalone Chromium generators. */
+export function generationBrowserDigest() { return createHash('sha256').update(readFileSync(chromium.executablePath())).digest('hex'); }
+
 /** Read and fence a pinned preview's build; the producer already enforces the same revision in its own capture.
  * @param {{url:string,revision:string}} spec */
 export async function capturePreview(spec) {
@@ -24,6 +27,6 @@ export async function capturePreview(spec) {
   if(!response.ok) throw new Error(`Capture preview unavailable: ${String(response.status)}`);
   const {build}=v.parse(Version,await response.json());
   if(!build.startsWith(`${preview.revision.slice(0,7)}-`)) throw new Error(`Capture preview revision mismatch: ${build}`);
-  const browserDigest=createHash('sha256').update(readFileSync(chromium.executablePath())).digest('hex');
+  const browserDigest=generationBrowserDigest();
   return {url:preview.url,revision:preview.revision,build,browserDigest};
 }

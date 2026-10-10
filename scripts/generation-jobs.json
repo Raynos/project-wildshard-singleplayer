@@ -685,6 +685,111 @@
           "-version"
         ]
       ]
+    },
+    {
+      "id": "nalati-bodies",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs",
+        "--generation-shard=nalati-grasslands"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/nalati-grasslands/terrain.bin"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/bodies.bin",
+        "src/shards/nalati-grasslands/data/bodies.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/nalati-grasslands/data/bodies.json"
+      ]
+    },
+    {
+      "id": "nalati-places",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs",
+        "--generation-shard=nalati-grasslands"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "budgets"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/places.bin",
+        "public/assets/nalati/baked/specimens.bin",
+        "public/assets/nalati/baked/dressing.bin",
+        "src/shards/nalati-grasslands/data/places.json",
+        "src/shards/nalati-grasslands/data/placeSpecimens.json",
+        "src/shards/nalati-grasslands/data/dressingGeos.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/nalati-grasslands/data/places.json",
+        "src/shards/nalati-grasslands/data/placeSpecimens.json",
+        "src/shards/nalati-grasslands/data/dressingGeos.json"
+      ],
+      "browser": true
+    },
+    {
+      "id": "nalati-physics",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs",
+      "command": [
+        "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/runtime/physics.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
     }
   ]
 }

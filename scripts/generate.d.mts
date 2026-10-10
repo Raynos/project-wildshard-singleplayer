@@ -1,6 +1,6 @@
 import type { GenerationResult } from './generation-cache.mjs';
 /** Explicit shard-owned command and conservative declared repository input closure. */
-export interface ShardGenerationJob { id:string; shard:string; entry:string; command:string[]; inputRoots:string[]; outputs:string[]; platform:'portable'|'native'|'darwin';seedOutputs?:string[];capture?:boolean;recordedInputs?:boolean;externalInputs?:{path:string;url:string;sha256:string}[];toolCommands?:string[][] }
+export interface ShardGenerationJob { id:string; shard:string; entry:string; command:string[]; inputRoots:string[]; outputs:string[]; platform:'portable'|'native'|'darwin';seedOutputs?:string[];capture?:boolean;browser?:boolean;recordedInputs?:boolean;externalInputs?:{path:string;url:string;sha256:string}[];toolCommands?:string[][] }
 /** Hash a bounded source tree, excluding dependency folders; reject symlinks. */
 export function generationInputs(root:string,roots:string[]):Record<string,string>;
 /** Walk shard generators and expose every unregistered bake entry point. */

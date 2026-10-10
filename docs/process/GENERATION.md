@@ -54,3 +54,8 @@ match exactly. This exception cannot be applied to arbitrary outputs or combined
 Node jobs that read active-level terrain explicitly preload `scripts/generation-level.mjs` after the TypeScript loader,
 with `--generation-shard=<slug>`. It installs that one real manifest, without discovering or loading other shards. The
 preload and the manifest belong to the declared input closure; a missing composition root never falls back to a fake level.
+
+A standalone browser-backed generator declares `browser: true` even when it needs no running preview (Nalati places).
+Its Chromium executable digest participates in the key; it uses exact bytes for both cache and committed comparisons.
+Run these jobs through `scripts/browser-lane.sh` too. This differs from `capture`, which fences a page build and has the
+explicit top-level capture-provenance comparison described above.
