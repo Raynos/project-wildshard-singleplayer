@@ -19,7 +19,7 @@ import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineLoadout } from '../../../src/shards/pine-hollow/loadout/loadout';
 import type { PineHollowSfx } from '../../../src/shards/pine-hollow/runtime/audio/sfx';
 import { LEVER, LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
-import type { LeverRifle } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import type { LeverRifleWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { legacyDouble } from '../../fake/FakeGame';
 
 it('reinstalls real bolt input and weapon cues exactly once per entry and cancels the pending echo on leave', () => {
@@ -33,7 +33,7 @@ it('reinstalls real bolt input and weapon cues exactly once per entry and cancel
   const shots: string[] = [];
   const current = legacyDouble<Weapon>({ enabled: true, ammoSelect: () => { cycles++; } });
   const weapons = legacyDouble<EquipmentService>({ enabled: true, current, events: app.events });
-  const rifle = legacyDouble<LeverRifle>({ row: LEVER, state: legacyDouble<LeverRifle['state']>({ reserve: 3 }) });
+  const rifle = legacyDouble<LeverRifleWeapon>({ row: LEVER, state: legacyDouble<LeverRifleWeapon['state']>({ reserve: 3 }) });
   const longbow = legacyDouble<Bow>({ row: LONGBOW, state: legacyDouble<Bow['state']>({ bolts: 4 }) });
   const cues = new CombatCues();
   try {

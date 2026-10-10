@@ -24,7 +24,7 @@ import type { Bow } from '@wildshard/game/weapons/Bow';
 import { PLAIN_BOLT, type BoltMod } from '@wildshard/sdk/items/boltCrossbow';
 import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
 import { bindLongbowCharge } from './events';
-import type { LeverRifle } from '../runtime/weapons/LeverRifle';
+import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';
 import { QUIVER_MAX } from '../weapons/Longbow';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
@@ -65,7 +65,7 @@ const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, sch
 export interface PineLoadoutHost {
   /** Retain ammunition data while transient input, cues and echo timers belong to the entered cell. */
   context?: ShardContext;
-  scope: Scope; cues: CombatCues; scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: CrossbowWeapon | null; rifle: LeverRifle; longbow: Bow;
+  scope: Scope; cues: CombatCues; scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: CrossbowWeapon | null; rifle: LeverRifleWeapon; longbow: Bow;
   inventory: Inventory; owned: Owned; hud: HUD; audio: Audio; params: URLSearchParams;
 }
 

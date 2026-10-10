@@ -12,7 +12,7 @@ import type { SkyRig } from '../../../src/engine/world/skyRig';
 import type { Inventory } from '../../../src/game/Inventory';
 import type { Owned } from '../../../src/game/loot/Owned';
 import type { Bow } from '../../../src/game/weapons/Bow';
-import type { LeverRifle } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import type { LeverRifleWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import type { CrossbowWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { bindRuntimeState } from '../../../src/game/shardfile/hybridRows';
 import source from '../../../src/shards/pine-hollow/shard.config';
@@ -24,7 +24,7 @@ it('C26 restores current special ammunition through the real installer and leave
   const scope = app.engineScope.child('pine.ammo.c26'), key = `${appIdentity().savePrefix}pine-hollow`;
   const saved = { pitch: 4, broadhead: 7, rounds: 19, arrows: 8 };
   localStorage.setItem(key, JSON.stringify({ keys: { loadout: { v: 1, data: saved } } }));
-  const rifle = legacyDouble<LeverRifle>({ row: LEVER, state: legacyDouble<LeverRifle['state']>({ reserve: 0, ammo: 0 }) });
+  const rifle = legacyDouble<LeverRifleWeapon>({ row: LEVER, state: legacyDouble<LeverRifleWeapon['state']>({ reserve: 0, ammo: 0 }) });
   const longbow = legacyDouble<Bow>({ row: LONGBOW, state: legacyDouble<Bow['state']>({ bolts: 0 }) });
   const current = legacyDouble<Weapon>({ enabled: true, id: 'crossbow', ammoSelect: () => undefined });
   const crossbow = legacyDouble<CrossbowWeapon>({ boltMaterial: new MeshStandardMaterial(), state: legacyDouble<CrossbowWeapon['state']>({ bolts: 30, loaded: true, reloading: false }) });

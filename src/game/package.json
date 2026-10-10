@@ -182,6 +182,7 @@
     "./systems/items/lashWeapon": "./systems/items/lashWeapon.ts",
     "./systems/items/magazineFirearm": "./systems/items/magazineFirearm.ts",
     "./systems/items/boltCrossbow": "./systems/items/boltCrossbow.ts",
+    "./systems/items/leverFirearm": "./systems/items/leverFirearm.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",

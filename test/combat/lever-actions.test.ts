@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { LEVER_VIEW, LeverRifle, type LeverRifleWeapon } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { LeverAction } from '../../src/shards/pine-hollow/weapons/leverAction';
 import { legacyActor, invokeLegacy } from '../fake/legacyActor';
 import { FakeGame } from '../fake/FakeGame';
@@ -8,7 +8,7 @@ function fixture(tube = 0, chambered = false, reserve = 21) {
   const game = new FakeGame(), fired = vi.fn(), rounds = vi.fn(), ended = vi.fn(), cycles = vi.fn();
   const state = { reserve, ammo: tube + (chambered ? 1 : 0), reloadProgress: 0, loaded: chambered, reloading: false };
   const act = new LeverAction(state); act.tube = tube; act.chambered = chambered; act.hammerCocked = false;
-  const lever = legacyActor(LeverRifle.prototype, { equipEvents: undefined, state, act, freezeCycle: null,
+  const lever = legacyActor(LeverRifle.prototype, { equipEvents: undefined, view: LEVER_VIEW, state, act, freezeCycle: null,
     sinceEmpty: 99, active: true, enabled: true,
     onDry: undefined, onReloadStart: undefined, onReloadEnd: ended, onRoundIn: rounds, onCycle: cycles,
     fire: fired, ejectCase: () => undefined,
@@ -23,7 +23,7 @@ function fixture(tube = 0, chambered = false, reserve = 21) {
 }
 
 /** the rifle's action (weapons/leverAction.ts), read through the legacy double */
-const actOf = (lever: LeverRifle): LeverAction => { const act: unknown = Reflect.get(lever, 'act'); if (!(act instanceof LeverAction)) throw new Error('no action'); return act; };
+const actOf = (lever: LeverRifleWeapon): LeverAction => { const act: unknown = Reflect.get(lever, 'act'); if (!(act instanceof LeverAction)) throw new Error('no action'); return act; };
 
 describe('lever action traces (09 W13)', () => {
   it.each([[0, false, 21, 6, 15], [3, true, 21, 3, 18], [0, false, 2, 2, 0]] as const)('reload tube=%s chamber=%s reserve=%s feeds %s rounds', (tube, chambered, reserve, fed, left) => {

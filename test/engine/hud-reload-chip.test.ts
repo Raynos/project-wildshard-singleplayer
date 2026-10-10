@@ -8,7 +8,7 @@ import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { LEVER, CROSSBOW, LONGBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { SWORD } from '../../src/game/weapons/starterEquipment';
-import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { LeverRifle, type LeverRifleWeapon } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { LeverAction } from '../../src/shards/pine-hollow/weapons/leverAction';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
@@ -49,7 +49,7 @@ describe('J13 magazine chip reload', () => {
   it('taps through the real lever reload method', () => {
     const state = { ammo: 4, magazine: 7, reserve: 21, reloading: false, reloadProgress: 0, loaded: true }, act = new LeverAction(state);
     act.tube = 3;
-    const f = fixture(), lever: LeverRifle = legacyActor(LeverRifle.prototype, {
+    const f = fixture(), lever: LeverRifleWeapon = legacyActor(LeverRifle.prototype, {
       state, act, equipEvents: undefined, onReloadStart: undefined,
       hooks: { reloadStart: () => { invokeLegacy(lever, 'syncState'); } },
     });
