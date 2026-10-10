@@ -15,6 +15,7 @@ import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCo
 
 import { ironSwordGeometry } from '../src/shards/driftwood-isle/generators/ironSword.ts';
 import { coverGeometry } from '../src/shards/driftwood-isle/generators/groundCover.ts';
+import { originalTrailside } from './bake/driftwoodTrailside.mjs';
 import { originalCove } from './bake/driftwoodCove.mjs';
 
 const assets = new URL('../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
@@ -50,4 +51,7 @@ write(new URL('../src/shards/driftwood-isle/data/coverLook.json', import.meta.ur
 const cove = originalCove();
 for (const [name, geometry] of Object.entries(cove.geometry)) emit(`cove-${name}`, geometry);
 write(new URL('../src/shards/driftwood-isle/data/coveBake.json', import.meta.url), `${JSON.stringify(cove.metadata, null, 2)}\n`);
+const trail = originalTrailside();
+emit('trailside', trail.geometry);
+write(new URL('../src/shards/driftwood-isle/data/trailsideBake.json', import.meta.url), `${JSON.stringify(trail.metadata, null, 2)}\n`);
 material.dispose();

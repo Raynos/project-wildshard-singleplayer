@@ -1,0 +1,178 @@
+{
+  "ask": "E435",
+  "slice": "G285: Trailside static weld to generator and baked model geometry",
+  "base": "05ac2351acf6ba686c784b34e649f2a76b67dd50",
+  "landingParent": "87f5757232bc1bda2582d634723b265849d9c9c2",
+  "asset": {
+    "path": "/assets/driftwood-isle/baked/fixed-models/trailside.glb",
+    "bytes": 3250144
+  },
+  "originalSourceComparison": {
+    "method": "original committed Trailside source versus baked native builder, same retained WSTR height authority",
+    "attributes": [
+      "position",
+      "color"
+    ],
+    "vertices": 116040,
+    "legacyColliders": 204,
+    "worldColliders": 263,
+    "colliders": 467,
+    "placements": [
+      202,
+      2,
+      130
+    ]
+  },
+  "nativeParity": {
+    "build": "05ac235-mv1zjakg",
+    "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+    "method": "original versus baked geometry on the actual trail; native material, shadows, placement and frozen clock; both signs, rope fences and trestle stairs",
+    "rows": [
+      {
+        "pose": "sign 5,-150",
+        "eye": [
+          8.5,
+          2.9082895874977117,
+          -145.5
+        ],
+        "aim": [
+          5,
+          1.308289587497712,
+          -150
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 27328
+      },
+      {
+        "pose": "sign -14,-62",
+        "eye": [
+          -10.5,
+          20.48963944091797,
+          -57.5
+        ],
+        "aim": [
+          -14,
+          18.889639440917968,
+          -62
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 18281
+      },
+      {
+        "pose": "plateau fence",
+        "eye": [
+          -32.5,
+          4.760091344642639,
+          -123.5
+        ],
+        "aim": [
+          -36,
+          3.0600913446426388,
+          -128
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 41025
+      },
+      {
+        "pose": "shrine fence",
+        "eye": [
+          -79.7382421004777,
+          7.4590145699217505,
+          48.46376252784714
+        ],
+        "aim": [
+          -83.2382421004777,
+          5.75901456992175,
+          43.96376252784714
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 26940
+      },
+      {
+        "pose": "lookout trestle",
+        "eye": [
+          17.48970317840576,
+          14.124190330505371,
+          -13.89259147644043
+        ],
+        "aim": [
+          13.989703178405762,
+          11.82419033050537,
+          -18.39259147644043
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 234901
+      },
+      {
+        "pose": "shrine trestle",
+        "eye": [
+          -54.28125,
+          13.580862045288086,
+          -13.535221099853516
+        ],
+        "aim": [
+          -57.78125,
+          11.280862045288085,
+          -18.035221099853516
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 239424
+      }
+    ]
+  },
+  "shares": {
+    "before": {
+      "publicLines": 1955,
+      "customLines": 14210,
+      "runtimeLines": 5332,
+      "trustedRuntimeLines": 2828,
+      "publicShare": 0.12094030312403341,
+      "legacy": {
+        "generators": 1170,
+        "data": 1532,
+        "runtime": 19254
+      }
+    },
+    "after": {
+      "publicLines": 2088,
+      "customLines": 14128,
+      "runtimeLines": 5332,
+      "trustedRuntimeLines": 2828,
+      "publicShare": 0.12876171682289098,
+      "legacy": {
+        "generators": 1319,
+        "data": 1533,
+        "runtime": 19172
+      }
+    }
+  },
+  "checks": {
+    "focusedTests": 67,
+    "strict": "passed",
+    "touchedLint": "passed",
+    "fixedGeometryBake": "byte-identical",
+    "voxelAO": "byte-identical",
+    "geometryTable": "byte-identical",
+    "nativePhysicsAndSpots": "payload-identical, source fences recaptured",
+    "map": "rebaked from native scene",
+    "resources": "browser and preview closed"
+  }
+}

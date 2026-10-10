@@ -6,13 +6,14 @@
  *
  * E306 / E315 M1: the fence post, the signpost and the plank step are models
  * (src/shards/driftwood-isle/models/trailside.ts). The trail builds them in its layout's order from one stream, between
- * what is its own — the ropes sagging between the posts, the steps' side rails, the trestle stairs — welds it all into
- * the one mesh and places each model `drawnInto` it (its copies, its card, its colliders: pieces `trail-*`). The trail's
+ * what is its own — the ropes sagging between the posts, the steps' side rails, the trestle stairs. The offline
+ * generator welds these into one baked mesh; this builder admits it and places each model `drawnInto` it
+ * (its copies, its card, its colliders: pieces `trail-*`). The trail's
  * own piece (`trailside`, main.ts) keeps the steps' and the stairs' treads (`worldColliderDescs`); `colliderDescs` is
  * the whole trail's, as before (the navmesh bake reads it). A dev page's or the bake's trail registers its models in a
  * registry nothing reads.
  *
- *   const trailside = new Trailside(sky).build({ fences, steps, signs });
+ *   const trailside = new Trailside(sky).build(Trailside.forIsland());
  *   scene.add(trailside.mesh); its registry piece.push(...trailside.colliders);
  *
  * `Trailside.forIsland()` is Driftwood's layout: fences along the plateau ramp and the plateau's
@@ -20,35 +21,18 @@
  * the hut fork.
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import { modelContext, type ModelBuild, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../models/trailside';
+import { fencePost, plankStep, signpost, trailMaterial } from '../models/trailside';
 
-export interface FenceSpec { path: [number, number][]; spacing?: number }
-export interface StepsSpec { from: [number, number]; to: [number, number]; width?: number }
-/** a trestle stair down a cliff the path crosses: straight from the top (on the upper ground) to the bottom (on the path below) */
-export interface FlightSpec { top: [number, number]; bottom: [number, number]; width?: number }
-export interface SignSpec { x: number; z: number; /** arrow boards, top down: heading in radians (0 = +z: world (sin, cos)) and the place lettered on it */ arrows: { toward: number; label?: string }[] }
-export interface TrailsideSpec { fences: FenceSpec[]; steps: StepsSpec[]; signs: SignSpec[]; flights?: FlightSpec[] }
+import { copyTrailsideGeometry } from '../boot/trailsideGeometry';
+import { flightOf, islandTrailsideSpec, type TrailsideSpec, type StepsSpec, type FlightSpec } from './trailsideLayout';
 
-/** a polyline moved `d` m to its left (negative: right), for fences either side of a path's centreline */
-function offset(path: [number, number][], d: number): [number, number][] {
-  return path.map(([x, z], i) => {
-    const a = path[Math.max(0, i - 1)] ?? [x, z], b = path[Math.min(path.length - 1, i + 1)] ?? [x, z];
-    const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1;
-    return [x - (dz / l) * d, z + (dx / l) * d];
-  });
-}
-
-const isParts = (b: ModelBuild): b is readonly ModelPart[] => Array.isArray(b);
-
+/** The placed native trail weld with its existing terrain-following collision law. */
 export class Trailside {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
@@ -60,47 +44,7 @@ export class Trailside {
   constructor(private sky: Sky) {}
 
   /** Driftwood Isle's layout (see the PATHS / PLATEAU / HEADLAND constants in the def) */
-  static forIsland(): TrailsideSpec {
-    return {
-      fences: [
-        // both sides of the plateau ramp (the path runs x = −30 from z = −142 up to −104)
-        { path: [[-36, -144], [-36, -128], [-36, -112], [-35, -100]] },
-        { path: [[-24, -144], [-24, -128], [-24, -112], [-25, -100]] },
-        // the plateau's seaward rim, from the ramp top round the south-east
-        { path: [[-20, -98], [-6, -100], [6, -94], [14, -82], [18, -68], [16, -52]] },
-        // the headland ramp's outer (south-east) edge, 1.8 m off the steps' centreline (x = z), clear of their 2.4 m
-        { path: [[41.3, 38.7], [51.3, 48.7], [61.3, 58.7], [71.3, 68.7], [81.3, 78.7]] },
-        // (M4) rope fences along the other paths' open stretches: both sides of the shrine approach, the wreck path's
-        // seaward side, the pier landing's dune path, the hut → lookout path over the flats
-        { path: offset([[-72, 20], [-80, 45], [-88, 70], [-94, 88]], 3.4) },
-        { path: offset([[-72, 20], [-80, 45], [-88, 70], [-94, 88]], -3.4) },
-        { path: offset([[62, 0], [80, -1.5], [100, -2], [124, 1.5]], -3.4), spacing: 3.2 },
-        // the pier's landing (Pier landing: the deck steps down onto the sand at z ≈ −152): rope fences lead off it
-        { path: [[2.9, -151], [2.9, -146], [-1.5, -141], [-10, -138]] },
-        { path: [[-2.9, -151], [-6.5, -147.5], [-15, -146], [-22, -142]] },
-        { path: offset([[-8, -50], [14, -24], [17, 8]], 3.4), spacing: 3.2 },
-      ],
-      steps: [
-        { from: [-30, -140], to: [-30, -106] },
-        { from: [46, 46], to: [86, 86] },
-      ],
-      // the hut plateau's rim where the lookout and shrine paths leave it: a 12 m cliff each, inside the Blender cove
-      // (its ground is baked, so no grading there — PHYSICS.md §P9b, the user's pick: trestle stairs). Lines found by a
-      // search for the lowest stair (≤ 35°) whose treads never sink into the rock.
-      flights: [
-        { top: [10.8, -27.8], bottom: [15.4, -8.6] },
-        { top: [-52, -30], bottom: [-61.7, -5.9] },
-      ],
-      // E318 (Jake: "letter them"): each board names the place it points to, along the path you take there (the boards
-      // pointed south, at the pier and the plateau's rim, before: 2.9 / 2.5 rad are world (sin, cos) ≈ (0.2, −1))
-      signs: [
-        // pier landing (on the sand): ← the hut, up the fenced path west; ↗ the lookout on the headland, in sight from here
-        { x: 5, z: -150, arrows: [{ toward: -1.27, label: 'HUT' }, { toward: 0.35, label: 'LOOKOUT' }] },
-        // hut fork: ↗ the lookout and the wreck (one path to the fork at the bridge's foot), ↖ the shrine
-        { x: -14, z: -62, arrows: [{ toward: 0.45, label: 'LOOKOUT' }, { toward: 0.75, label: 'WRECK' }, { toward: -0.87, label: 'SHRINE' }] },
-      ],
-    };
-  }
+  static forIsland(): TrailsideSpec { return islandTrailsideSpec(); }
 
   /** the game's: the trail's own piece (`trailside`: its weld drawn, its steps' and stairs' treads) after its models' */
   place(registry: WorldRegistry): this {
@@ -110,127 +54,10 @@ export class Trailside {
 
   /** the models placed (pieces `trail-fence-posts`, `trail-signposts`, `trail-steps`) and the weld built */
   build(spec: TrailsideSpec): this {
-    const ctx = modelContext(this.sky);
-    const rng = new Rng(SEED ^ 0x7a11);
-    const parts: THREE.BufferGeometry[] = [];
-    const add = trailPart(parts, rng);
-    // a model's copy, built here from the trail's stream, stood at (x, y, z) and welded in; its world box kept
-    const box = new THREE.Box3();
-    const weld = (built: ModelBuild, x: number, y: number, z: number, boxes: number[]): boolean => {
-      const part = isParts(built) ? built[0] : undefined;
-      if (!part) return false;
-      const g = part.geometry.translate(x, y, z);
-      parts.push(g);
-      g.computeBoundingBox();
-      box.copy(g.boundingBox ?? box);
-      boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
-      return true;
-    };
-    const posts: { pls: Placement<Record<string, never>>[]; boxes: number[] } = { pls: [], boxes: [] };
-    const signs: { pls: Placement<SignpostParams>[]; boxes: number[] } = { pls: [], boxes: [] };
-    const planks: { pls: Placement<PlankStepParams>[]; boxes: number[] } = { pls: [], boxes: [] };
-    const beam = (a: THREE.Vector3, b: THREE.Vector3, r: number, col: THREE.Color) => {
-      const len = a.distanceTo(b), g = new THREE.CylinderGeometry(r, r, len, 4, 1, true);
-      g.translate(0, len / 2, 0);
-      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize()));
-      g.translate(a.x, a.y, a.z);
-      add(g, col, 0.04);
-    };
-
-    // ── rope fences: a post every `spacing` metres along the polyline, rope in three sagging pieces ──
-    for (const f of spec.fences) {
-      const spacing = f.spacing ?? 2.6;
-      const line: THREE.Vector3[] = [];
-      for (let i = 0; i < f.path.length - 1; i++) {
-        const pa = f.path[i], pb = f.path[i + 1];
-        if (!pa || !pb) continue;
-        const [ax, az] = pa, [bx, bz] = pb;
-        const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / spacing));
-        for (let k = i === 0 ? 0 : 1; k <= n; k++) { const t = k / n; const x = ax + (bx - ax) * t, z = az + (bz - az) * t; line.push(new THREE.Vector3(x, heightAt(x, z), z)); }
-      }
-      // thick weathered pilings, a rope lashing under the cap, the rope sagging in a catenary between them (E43)
-      for (const p of line) {
-        if (weld(fencePost.build(ctx, {}, rng), p.x, p.y, p.z, posts.boxes)) posts.pls.push({ x: p.x, y: p.y, z: p.z });
-        this.colliders.push({ x: p.x, z: p.z, hw: 0.16, hd: 0.16, rot: 0, yTop: p.y + 1.2, yBottom: p.y - 1 });
-      }
-      for (let i = 0; i < line.length - 1; i++) {
-        const pa = line[i], pb = line[i + 1];
-        if (!pa || !pb) continue;
-        const a = pa.clone().setY(pa.y + 1.0), b = pb.clone().setY(pb.y + 1.0);
-        const seg = 6, sag = 0.1 + a.distanceTo(b) * 0.06;
-        let prev = a;
-        for (let k = 1; k <= seg; k++) {
-          const t = k / seg, q = a.clone().lerp(b, t); q.y -= sag * 4 * t * (1 - t);
-          beam(prev, q, 0.035, C.rope); prev = q;
-        }
-      }
-    }
-    // ── plank steps: treads every 0.7 m along a climb, each let into the slope ──
-    // A tread rolls with the ground across it (E118): where a climb crosses a hillside — the headland ramp past its crest —
-    // a level tread at its centre's height sank its uphill end into the sand. The side rails follow the ground in short
-    // runs instead of one straight beam from the bottom to the top (that one went metres under the crest).
-    this.steps = spec.steps;
-    for (const s of spec.steps) {
-      const w = s.width ?? 2.4;
-      const dx = s.to[0] - s.from[0], dz = s.to[1] - s.from[1], len = Math.hypot(dx, dz), n = Math.floor(len / 0.7);
-      const ang = Math.atan2(dx, dz), ax = Math.cos(ang), az = -Math.sin(ang); // the tread's local +x (across), in the world
-      const at = (t: number): [number, number] => [s.from[0] + dx * t, s.from[1] + dz * t];
-      for (let i = 0; i <= n; i++) {
-        const [x, z] = at(i / n), hw = w / 2;
-        const lo = heightAt(x - ax * hw, z - az * hw), hi = heightAt(x + ax * hw, z + az * hw);
-        const y = Math.max(heightAt(x, z), (lo + hi) / 2);
-        const params: PlankStepParams = { w, roll: Math.atan2(hi - lo, w), yaw: ang, dark: i % 2 === 1 };
-        if (weld(plankStep.build(ctx, params, rng), x, y, z, planks.boxes)) planks.pls.push({ x, y, z, params });
-      }
-      const runs = Math.max(1, Math.round(len / 2.8));
-      for (const side of [-1, 1]) {
-        const o = side * (w / 2 + 0.05);
-        const rail = (t: number): THREE.Vector3 => { const [x, z] = at(t), rx = x + ax * o, rz = z + az * o; return new THREE.Vector3(rx, heightAt(rx, rz) + 0.1, rz); };
-        for (let r = 0; r < runs; r++) {
-          const a = rail(r / runs), b = rail((r + 1) / runs), l = a.distanceTo(b) + 0.06;
-          const g = new THREE.BoxGeometry(0.12, 0.18, l);
-          g.translate(0, 0, l / 2 - 0.03);
-          g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), b.clone().sub(a).normalize()));
-          g.translate(a.x, a.y, a.z);
-          add(g, C.plankDark, 0.05);
-        }
-      }
-    }
-    // ── trestle stairs: treads on two stringers, posts down to the ground every ~2.4 m, a handrail each side ──
-    this.flights = spec.flights ?? [];
-    for (const f of this.flights) {
-      const fl = flightOf(f), { ux, uz, sx, sz, w, m, run, rise } = fl;
-      const at = (al: number, ac: number, y: number) => new THREE.Vector3(f.bottom[0] + ux * al + sx * ac, y, f.bottom[1] + uz * al + sz * ac);
-      const yaw = Math.atan2(ux, uz);
-      for (let i = 0; i < m; i++) {
-        const c = at((i + 0.5) * run, 0, fl.yb + (i + 1) * rise - 0.035);
-        const g = new THREE.BoxGeometry(w + rng.range(-0.03, 0.03), 0.07, run + 0.04); g.rotateY(yaw); g.translate(c.x, c.y, c.z);
-        add(g, i % 3 === 0 ? C.plankDark : C.plank, 0.05);
-      }
-      const len = fl.len, slope = rise / run;
-      for (const s of [-1, 1]) {
-        const ac = s * (w / 2 + 0.07);
-        // the stringer under the tread ends, then posts to the ground and a rail 1 m over the treads
-        beam(at(-0.2, ac, fl.yb - 0.12), at(len + 0.1, ac, fl.yt - 0.1), 0.09, C.plankDark);
-        beam(at(0, ac, fl.yb + 0.95), at(len, ac, fl.yt + 0.95), 0.045, C.plankDark);
-        const n = Math.max(2, Math.ceil(len / 2.4));
-        for (let k = 0; k <= n; k++) {
-          const al = (k / n) * len, y = fl.yb + al * slope, p = at(al, ac, y), g = heightAt(p.x, p.z);
-          beam(new THREE.Vector3(p.x, Math.min(g, y) - 0.4, p.z), new THREE.Vector3(p.x, y + 1.0, p.z), 0.08, C.post);
-        }
-      }
-    }
-
-    // ── signposts: a post with an arrow board per direction, stacked ──
-    for (const sg of spec.signs) {
-      const y = heightAt(sg.x, sg.z);
-      const params: SignpostParams = { arrows: sg.arrows.map((a) => a.toward), labels: sg.arrows.map((a) => a.label ?? '') };
-      if (weld(signpost.build(ctx, params, rng), sg.x, y, sg.z, signs.boxes)) signs.pls.push({ x: sg.x, y, z: sg.z, params });
-      this.colliders.push({ x: sg.x, z: sg.z, hw: 0.12, hd: 0.12, rot: 0, yTop: y + 2.4, yBottom: y - 1 });
-    }
-
-    const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
-    geo.computeBoundingSphere();
+    const { geometry: geo, metadata } = copyTrailsideGeometry(spec);
+    const ctx = modelContext(this.sky), { posts, signs, planks } = metadata;
+    this.steps = spec.steps; this.flights = spec.flights ?? [];
+    this.colliders.push(...metadata.colliders);
     this.mesh = new THREE.Mesh(geo, trailMaterial(ctx));
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
     const into = (boxes: number[]): { object: THREE.Mesh; boxes: Float32Array } => ({ object: this.mesh, boxes: Float32Array.from(boxes) });
@@ -257,7 +84,7 @@ export class Trailside {
     const out: ColliderDesc[] = [];
     for (const s of this.steps) out.push(...stepTreads(s));
     for (const f of this.flights) {
-      const fl = flightOf(f), { ux, uz, sx, sz, w, m } = fl;
+      const fl = flightOf(f, heightAt), { ux, uz, sx, sz, w, m } = fl;
       // the treads (solid down to the foot of the flight), and a rail each side along the slope, 1.1 m over them
       out.push({ kind: 'treads', from: { x: f.bottom[0], y: fl.yb, z: f.bottom[1] }, to: { x: f.bottom[0] + ux * fl.len, y: fl.yt, z: f.bottom[1] + uz * fl.len }, width: w, count: m });
       const pitch = Math.atan2(fl.yt - fl.yb, fl.len), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-pitch, Math.atan2(ux, uz), 0, 'YXZ'));
@@ -268,15 +95,6 @@ export class Trailside {
     }
     return out;
   }
-}
-
-/** A flight's frame: along (bottom → top) and across unit vectors, its width, tread count, run and rise per tread. */
-function flightOf(f: FlightSpec) {
-  const dx = f.top[0] - f.bottom[0], dz = f.top[1] - f.bottom[1], len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
-  const yb = heightAt(f.bottom[0], f.bottom[1]), yt = heightAt(f.top[0], f.top[1]) + 0.02;
-  // risers ≤ 0.28 m and treads ≥ 0.36 m deep (the character's stair rule, below)
-  const m = Math.max(1, Math.ceil((yt - yb) / 0.28));
-  return { ux, uz, sx: uz, sz: -ux, len, yb, yt, w: f.width ?? 1.8, m, run: len / m, rise: (yt - yb) / m };
 }
 
 /**

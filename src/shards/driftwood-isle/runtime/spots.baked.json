@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "2498ef7c8",
- "build": "2498ef7-mv1z3piu",
+ "revision": "05ac2351acf6ba686c784b34e649f2a76b67dd50",
+ "build": "05ac235-mv1zjakg",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -25,7 +25,7 @@
   "src/shards/driftwood-isle/data/islandLook.ts": "e5accdd588373eddf2063ca6e2b4195a6f19df80f801b2ac614ac71869ae005b",
   "src/shards/driftwood-isle/data/items.ts": "198fcb5fa13d3061adadc97ae09fccea392a06aace78649183839bbb73802e64",
   "src/shards/driftwood-isle/data/ledger.ts": "8cae1a67ef0b84feb291803461f5a683ac28cac5a0fc7c715765d8d4dcb0f257",
-  "src/shards/driftwood-isle/data/modelFiles.ts": "936b6a047c6d57280cc44f219b806c5058e7d3b06e9d1746eeb1c22f24fd7390",
+  "src/shards/driftwood-isle/data/modelFiles.ts": "07d73e35a373d33757ea031c2b0063ef57c3fbbcb15a967af7c7705b4e4374f2",
   "src/shards/driftwood-isle/data/oceanGlsl.ts": "2f7b902f9f248abfccd7333e77ecbd123177f8b08edd44d24bd83e5ee1403f6d",
   "src/shards/driftwood-isle/data/oceanLook.ts": "b0d4bbf46e56b3628d4e43923795f2d37315f07429f12c4481a5648302982439",
   "src/shards/driftwood-isle/data/quests.ts": "d9ec83bdeb9644c1f2a711ade27af5d79be082cf8966c31187510a32c23b33b2",
@@ -37,6 +37,7 @@
   "src/shards/driftwood-isle/data/spawns.ts": "1b0558f83ccd2feaf219f93dcd1df0f3ed8e87665ac63a3c5ae4780d7f11c7b6",
   "src/shards/driftwood-isle/data/toonGlsl.ts": "3bde826d0105b1d2b4f02098f9df4f5ccd2f748b9efad7be5134f50f75eac98b",
   "src/shards/driftwood-isle/data/toonLook.ts": "f7677acaf8b6219d1788fc57d0f1884a3973d0bd8964baaae0c44a9151ad7a6c",
+  "src/shards/driftwood-isle/data/trailsideBake.json": "aa26c9f40d945cc85d35a6d24b84befe064a91af0f3d63d2228b9ff33900ba4b",
   "src/shards/driftwood-isle/data/trophyLayout.ts": "06fad79bbf29b62f3f05f4a3ac089c45ef2aa2065c4e1ee889f5264ceba8aac0",
   "src/shards/driftwood-isle/data/trophySlots.json": "b0a53b6590343723d34c79846a95502d9c9e18ac89b3444249539e564a187841",
   "src/shards/driftwood-isle/data/waterfallGlsl.ts": "d3d57d4a80f4ce330a5cdbb2821877afff6af154869066b18d1189856fc793ad",
@@ -79,7 +80,7 @@
   "src/shards/driftwood-isle/world/RopeBridge.ts": "5018e2f506689b59dadae702ba220f82d2bc6b8d0aafeb43db3a3d7d8c05dcc1",
   "src/shards/driftwood-isle/world/Seabed.ts": "d4e66bcb3492eb293f8ae7bdc215443151b2eca99179bdb76f37f4764a25a72e",
   "src/shards/driftwood-isle/world/Shrine.ts": "7519d76d4a31334e9382e5f97ee19781362af41df437087554d352ad9711f2c4",
-  "src/shards/driftwood-isle/world/Trailside.ts": "7493b7b734822850c360dde3c1b83293a46d5587bed52dc11c831504cc14b5ef",
+  "src/shards/driftwood-isle/world/Trailside.ts": "0f49ab228667d03c7412f6d10e232114427df47987e1163aea3ccb9ea7547993",
   "src/shards/driftwood-isle/world/Waterfall.ts": "8b094862f0d4f95b2e831ee8bd92e737a0f46455c0ad1952970ae2248e2fd01b",
   "src/shards/driftwood-isle/world/Wreck.ts": "b9dbb1de863875443ec1b96df8bdfe2fff42cc3e3feaa86ff79f6de4e948a05e",
   "src/shards/driftwood-isle/world/Zipline.ts": "743dab08348d39f10472155405e339d6065f29c06149843c5d4c31a63e7e157e",
@@ -93,7 +94,8 @@
   "src/shards/driftwood-isle/world/places.ts": "8531294ab878c6f7f6755f752dbd54b993d4243b4101eb986f2e67dfe4610295",
   "src/shards/driftwood-isle/world/rockKit.ts": "eacd8612ea17d8d63be719472222cc6cc2a79183980833e1fc3b1d916c595723",
   "src/shards/driftwood-isle/world/sea.ts": "58a5d2acb1422f5aa6b4c47c9bc3bc5d8c39c841e45c17216acd4432e8bca6c1",
-  "src/shards/driftwood-isle/world/systems.ts": "74bb20a6653d38a06e315bb6eb80386e17226cd008d06a16a749a71d4b375e95"
+  "src/shards/driftwood-isle/world/systems.ts": "74bb20a6653d38a06e315bb6eb80386e17226cd008d06a16a749a71d4b375e95",
+  "src/shards/driftwood-isle/world/trailsideLayout.ts": "77a3ef42deae6401a9d878e4a37a287f9d648b4198a02b94e7d2a3e6ed16c80d"
  },
  "rows": [
   {

@@ -1,3 +1,4 @@
+import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
 import { modelGeometry } from '@wildshard/sdk/modelGeometry';
@@ -22,6 +23,7 @@ export function fixedGeometryReady(): boolean { return ready; }
 /** Called explicitly by the world hook before any synchronous placement or later loot factory. Explicit bytes admit the same templates in Node fixtures. */
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
   await Promise.all([
+    loadTrailsideGeometry(bytes),
     loadCoveGeometry(bytes),
     loadCoverGeometry(bytes),
     IRON_SWORD_BLADE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.ironSwordFittings)),

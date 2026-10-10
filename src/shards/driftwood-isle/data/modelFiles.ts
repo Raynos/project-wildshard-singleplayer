@@ -1,5 +1,6 @@
 /** Fixed low-poly geometry, baked offline without changing its vertex colours or wind channels. */
 export const FIXED_MODEL_FILES = {
+  trailside: '/assets/driftwood-isle/baked/fixed-models/trailside.glb',
   coveStructure: '/assets/driftwood-isle/baked/fixed-models/cove-structure.glb',
   coveRocks: '/assets/driftwood-isle/baked/fixed-models/cove-rocks.glb',
   coveGlow: '/assets/driftwood-isle/baked/fixed-models/cove-glow.glb',
