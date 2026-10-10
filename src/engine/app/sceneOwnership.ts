@@ -95,10 +95,12 @@ function markResourceOwner(resource: Disposable3, scope: Scope): void {
 export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetService, 'isAcquired'>): void {
   if (scope.disposed || delegatedScenes.has(root)) throw new Error('Scene subtree requires one live owner');
   const capture = (): void => {
-    for (const resource of sceneResources(root, scope)) if (!assets.isAcquired(resource)) {
+    const delegated: DelegatedScene[] = [];
+    for (const resource of collectSceneResources(root, scope, delegated)) if (!assets.isAcquired(resource)) {
       ownSceneResource(resource, scope);
     }
-    for (const child of root.children) captureDelegatedScenes(child);
+    // Keep parent adoption before child capture, without a second full walk to rediscover the delegated roots.
+    for (const child of delegated) child.capture();
   };
   delegatedScenes.set(root, { scope, capture });
   scope.onDispose(() => {
@@ -112,11 +114,14 @@ function captureDelegatedScenes(root: Object3D): void {
 }
 
 /** Resources a caller may own; explicit subtree owners are respected even when passed as the root. */
-export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> {
+export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> { return collectSceneResources(root, owner); }
+function collectSceneResources(root: Object3D, owner?: Scope, delegatedRoots?: DelegatedScene[]): Set<Disposable3> {
   const { resources, visit: collect } = resourceCollector();
   const visit = (node: Object3D): void => {
     const delegated = delegatedScenes.get(node);
-    if (delegated !== undefined && (node !== root || delegated.scope !== owner)) return;
+    if (delegated !== undefined && (node !== root || delegated.scope !== owner)) {
+      delegatedRoots?.push(delegated); return;
+    }
     if (node instanceof InstancedMesh || node instanceof BatchedMesh) resources.add(node);
     for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
       // BatchedMesh.dispose owns its private aggregate geometry and internal textures.

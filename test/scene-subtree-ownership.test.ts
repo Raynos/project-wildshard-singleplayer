@@ -111,3 +111,25 @@ it('walks shared containers once per capture and discovers their changed late re
   expect(geometryDispose).toHaveBeenCalledOnce(); expect(materialDispose).toHaveBeenCalledOnce(); expect(lateDispose).toHaveBeenCalledOnce();
   early.dispose();
 });
+
+
+it('finds nested delegated owners in one tree walk, preserving parent-first resource ownership', () => {
+  const page = new Scope('page'), outer = page.child('outer'), inner = page.child('inner'), assets = new AssetService();
+  const scene = new Scene(), root = new Group(), nested = new Group(), shared = new Texture();
+  const material = new MeshBasicMaterial({ map: shared }), geometry = new BoxGeometry();
+  const freed = vi.spyOn(shared, 'dispose'); scene.add(root);
+  let parent = root, reads = 0;
+  for (let depth = 0; depth < 32; depth++) {
+    const group = new Group(), children = group.children; parent.add(group); parent = group;
+    Object.defineProperty(group, 'children', { get: () => { reads++; return children; } });
+  }
+  parent.add(new Mesh(geometry, material), nested); nested.add(new Mesh(geometry, material));
+  ownSceneTree(root, outer, assets); ownSceneTree(nested, inner, assets);
+  const ownership = new SceneOwnership(scene, page, assets); reads = 0; ownership.capture();
+  expect(reads).toBe(32); expect(outer.census.textures).toBe(1); expect(inner.census.textures).toBe(0);
+  inner.dispose(); expect(freed).not.toHaveBeenCalled();
+  const late = new Texture(), lateMaterial = new MeshBasicMaterial({ map: late }), lateFreed = vi.spyOn(late, 'dispose');
+  parent.add(new Mesh(new BoxGeometry(), lateMaterial)); outer.dispose();
+  expect(freed).toHaveBeenCalledOnce(); expect(lateFreed).toHaveBeenCalledOnce();
+  page.dispose(); expect(Object.values(page.census).every(count => count === 0)).toBe(true);
+});
