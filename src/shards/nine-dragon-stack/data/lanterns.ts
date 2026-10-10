@@ -2,6 +2,7 @@
 // switches and the lantern program's GLSL and row (its colours and gain as uniform rows), for the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); `@{name}` splices what look/style.ts passes the family.
 import type { ShaderProgramRow } from '@wildshard/sdk/looks/shaderFamily';
+import type { HangingLanternRow } from '@wildshard/sdk/looks/hangingLanterns';
 import { EMIT_FOG, FOG_GLSL, NOISE_GLSL } from './look';
 
 /** the near / far switch (m) */
@@ -91,3 +92,12 @@ export const LANTERN_PROGRAMS = {
     uniforms: { uHot: { rgb: 0xff6a3c }, uRim: { rgb: 0x9a0e0a }, uCapCol: { rgb: 0x3a2a18 }, uTassel: { rgb: 0xb3241a }, uGain: 1.5 },
   },
 } as const satisfies Readonly<Record<string, ShaderProgramRow>>;
+
+/** the red paper lantern on the SDK's hanging lanterns: a 0.27 m × 0.48 m body hung 0.3 m under its hook, its red glow,
+ *  the LOD switches above and its 0.5 m bound round a centre 0.1 m under the pivot */
+export const LANTERN_ROW: HangingLanternRow = {
+  radius: 0.27, halfHeight: 0.24, drop: 0.3,
+  glow: { color: 0xff4a4a, w: 0.5, h: 0.5, power: 0.18, spill: 0.3 },
+  near: LOD_NEAR, dot: LOD_DOT, bound: 0.5, boundDrop: 0.1,
+  names: { near: 'lanterns-near', far: 'lanterns-far', dot: 'lanterns-dot' },
+};
