@@ -175,6 +175,22 @@ says so.
   --shots-file` on a clean HEAD export (`scripts/serve-build.sh --head`): `pt-grapple`, the teaser's real grapple from a
   start look 6° right and 3° up (a new frame 0: the rail and the stone lion), landing on the lower gallery; `pt-grid`, the
   grid's own sky-down reveal for 8.5 s (the 3 × 3 world from above, then down to Driftwood's pier under the end cards).
+- **The lapses (PT5)**: `lapse.mjs` / `lapse-cut.mjs` and `lapses/*.mjs` render each stage's build with a free camera.
+  Driftwood: 6 stages from d845c26c1 (243; 3a83028ec and 54e85c542 never load) to 2d2c5815a (660). Nine Dragon's stages
+  do not read as growth (neon from its first commit), so week 2's lapse is §2.2's fallback, the Pine Hollow remaster:
+  2d2c5815a (660) → 1b60e0435 (1,162) → 19a434635 (2,495), so its band's chapter count is the picture's own. Sky Reach: 5
+  archive stages 54e37d4dd (3,117) → 6066f959c (3,927), then a crane at c9aaa62ab ending on the player's eye at (0, −5.5),
+  the week-3 hover's frame 0 (the hover now spawns there in its warm-up so frame 0 is settled).
+- **The rewind, final**: fire frame 118 (the day-22 kill searched at 120 Hz with the final ramp, since the hip spread
+  draws per rendered frame), ramp [[1.9677, 1], [1.9833, 0.05], [2.0833, 0.05], [2.1233, 1]], cut from 0.25 s: shot
+  47.72 s, cuts 48.07 / 48.72 / 49.36 s, the stag drops at 49.92 s.
+- **The score**: MiniMax seed 404 of four (`score-jobs.json`): quiet, then entries at 0:11 / 0:21 / 0:31 and a hit at
+  50.4 s, so it grows chapter by chapter on its own; the stem split was dropped (the model lock queue ran an hour of
+  other agents' video jobs). In-point 0.46 s puts its hit on the kill; the breath ducks it 40 dB.
+- **The mix**: `mixbuild.py` → the shared `mix.py`: each play clip carries its take's own recorded sound (PT8's
+  `era-audio.mjs` / `era-sfx.mjs`), each lapse its build's bed, the rewind the four builds' beds swapped at its cuts,
+  day 1's own crossbow shot, day 22's kill and impact, the trailer riser / impact / sub drop; −14 LUFS.
+- **The cut**: `assemble.mjs` → the shared `edit.mjs`: 15 clips, 8 cards, 60.00 s.
 
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 

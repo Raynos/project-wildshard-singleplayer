@@ -6,7 +6,8 @@
 // config: { work: <scratch dir>, titles: <titles.mjs output dir (one PNG sequence per card id)>, mix: <wav or "-">,
 //   takes: { <shot name>: <take dir (edit.mjs frame format: %06d.jpg + meta.json)> }  — d01-hunt, w1-combo, d15-square,
 //          w2-gallop, w3-hover, w3-whip, rewind (cut-rewind.py --frames-out), pt-grapple, pt-grid
-//   lapses: { driftwood, nine-dragon, sky-reach: <1920×1080 60 fps full-frame clip> } (missing → a black stand-in),
+//   lapses: { driftwood, pine-hollow, sky-reach: <1920×1080 60 fps full-frame clip> } (missing → a grey stand-in),
+//   edlOnly: true writes edl.json and stops (mixbuild.py times the mix from it),
 //   edit: { <shot>: { in, dur } } overrides of the in-points below }
 // The lapse pictures are set into the authoring frame's inset (titles.html window.insetAt: 1440 × 810 at (480, 135);
 // Sky Reach's last `open` s grow it to full-bleed with an in-out cubic) as finished `video` clips; the frame cards
@@ -31,7 +32,7 @@ const BEATS = [
   { shot: 'd01-hunt', ...pick('d01-hunt', 0.2, 5) },
   { lapse: 'driftwood', dur: 6, card: 'frame-week1' },
   { shot: 'w1-combo', ...pick('w1-combo', 0.1, 4) },
-  { lapse: 'nine-dragon', dur: 6, card: 'frame-week2' },
+  { lapse: 'pine-hollow', dur: 6, card: 'frame-week2' }, // the remaster: Nine Dragon's stages don't read as growth (PT5)
   { shot: 'd15-square', ...pick('d15-square', 2.6, 2) },
   { shot: 'w2-gallop', ...pick('w2-gallop', 0.3, 2) },
   { lapse: 'sky-reach', dur: 8, card: 'frame-week3', open: 2 },
@@ -81,4 +82,4 @@ const edl = { size: [1920, 1080], clips, titles, rebuild: true };
 const EDL = join(W, 'edl.json');
 writeFileSync(EDL, JSON.stringify(edl, null, 1));
 console.log(`[assemble] ${clips.length} clips, ${titles.length} cards, ${at.toFixed(2)} s → ${EDL}`);
-execFileSync('node', [join(import.meta.dirname, '../steam-trailer/edit.mjs'), FR, EDL, cfg.titles, cfg.mix ?? '-', OUT], { stdio: 'inherit' });
+if (!cfg.edlOnly) execFileSync('node', [join(import.meta.dirname, '../steam-trailer/edit.mjs'), FR, EDL, cfg.titles, cfg.mix ?? '-', OUT], { stdio: 'inherit' });
