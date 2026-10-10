@@ -15,7 +15,8 @@ import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { POND } from '../layout';
-import { npcMaterial, PartKit } from '../models/people';
+import { PartKit } from '@wildshard/sdk/kit/primitiveParts';
+import { npcMaterial } from '../models/people';
 import { ZIP_LAUNCH_V, ZIP_START, ZIP_VMAX, ZipWire, type ZipState } from './zipWire';
 
 interface Rider { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean }

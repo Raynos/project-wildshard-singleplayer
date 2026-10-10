@@ -22,10 +22,11 @@ import type { BirdMesh, BirdSet } from '../life/birdModels';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { PosedInstances, PosedPacker, type PosedInstancesLook, type PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
+import { spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import * as vb from 'valibot';
+import { WILDLIFE_LOOK } from '../data/wildlifeLook';
 import wildJson from '../data/wildlife.json' with { type: 'json' };
 import { fetchBake } from '../world/bakeBytes';
 
@@ -100,34 +101,12 @@ export function useWildShapes(bytes: Uint8Array): void { shapes = wildShapes(byt
 /** whether the bake has been read */
 export const wildlifeBaked = (): boolean => shapes !== null;
 
-/** the shared geometry's arrays, filled from baked kinds and the modelled birds in draw order */
-class Packer {
-  readonly pos: number[] = []; readonly nor: number[] = []; readonly col: number[] = []; readonly pivot: number[] = [];
-  readonly info: number[] = []; readonly tex: number[] = []; readonly idx: number[] = [];
+/** the shared geometry's arrays (@wildshard/sdk/looks/posedInstances), filled from baked kinds and the modelled birds in draw order */
+class Packer extends PosedPacker {
   /** a procedural kind from the bake (nothing while the bake is absent) */
   baked(kind: WildKind): void {
     const s = shapes?.get(kind);
-    if (s === undefined) return;
-    const base = this.pos.length / 3;
-    this.pos.push(...s.pos); this.nor.push(...s.nor); this.col.push(...s.col); this.pivot.push(...s.pivot); this.info.push(...s.info); this.tex.push(...s.tex);
-    for (const i of s.idx) this.idx.push(base + i);
-  }
-  /** one vertex: its place, normal, colour, the part's pivot, (part, kind, roughness, emissive), (atlas uv, textured, pose) */
-  vert(p: V3, n: V3, c: THREE.Color, pivot: V3, info: readonly [number, number, number, number], tex: readonly [number, number, number, number]): void {
-    this.pos.push(p[0], p[1], p[2]); this.nor.push(n[0], n[1], n[2]); this.col.push(c.r, c.g, c.b); this.pivot.push(pivot[0], pivot[1], pivot[2]);
-    this.info.push(...info); this.tex.push(...tex);
-  }
-  geometry(): THREE.BufferGeometry {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
-    g.setAttribute('aPivot', new THREE.Float32BufferAttribute(this.pivot, 3));
-    // the scalars packed into two vec4s (WebGL's 16 attribute slots: the instance matrix takes four of them)
-    g.setAttribute('aInfo', new THREE.BufferAttribute(new Float32Array(this.info), 4));
-    g.setAttribute('aTexV', new THREE.BufferAttribute(new Float32Array(this.tex), 4));
-    g.setIndex(this.idx);
-    return g;
+    if (s !== undefined) this.block(s);
   }
 }
 
@@ -155,154 +134,56 @@ function modelled(b: Packer, m: BirdMesh): void {
 }
 
 // ─────────────── the mesh ───────────────
-const VERT_HEAD = /* glsl */`#include <common>
-attribute vec3 aPivot; attribute vec4 aInfo; attribute vec4 aTexV;   // (part, kind, roughness, emissive), (uv, textured, pose)
-attribute vec4 aAnim; attribute vec4 aAnim2;
-varying float vWlRough; varying float vWlEmis; varying vec2 vWlUv; varying float vWlTex;
-vec3 wlPos;
-vec3 wlRx(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x, v.y * c - v.z * s, v.y * s + v.z * c); }
-vec3 wlRy(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x * c + v.z * s, v.y, -v.x * s + v.z * c); }
-vec3 wlRz(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x * c - v.y * s, v.x * s + v.y * c, v.z); }
-vec3 wlRot(vec3 v, vec3 k, float a) { float c = cos(a), s = sin(a); return v * c + cross(k, v) * s + k * dot(k, v) * (1.0 - c); }`;
+/** the look's rows (../data/wildlifeLook.ts) with the hare's neck spliced into its vertex edits */
+const LOOK: PosedInstancesLook = { ...WILDLIFE_LOOK, edits: spliceEdits(WILDLIFE_LOOK.edits, { hareNeck: HARE_NECK.map((v) => v.toFixed(3)).join(', ') }) };
 
-const VERT_ANIM = /* glsl */`
-vec3 objectNormal = vec3( normal );
-{
-  vec3 p = position, n = objectNormal, pv = aPivot;
-  float part = aInfo.x, aKind = aInfo.y, aVar = aTexV.w;
-  vWlRough = aInfo.z; vWlEmis = aInfo.w; vWlUv = aTexV.xy; vWlTex = aTexV.z;
-  if (part == 1.0 || part == 2.0) {
-    // a wing: shortened as it folds, flapped about the body axis at the shoulder; folding also stands its chord on edge
-    // (leading edge up) and sweeps it back, so a folded wing lies flat along the flank over the tail, not out like a plate
-    float side = part == 1.0 ? -1.0 : 1.0, fold = aAnim.y, shut = smoothstep(0.4, 1.0, fold);
-    vec3 q = p - pv;
-    q.x *= 1.0 - 0.42 * fold; q.z *= 1.0 - 0.5 * shut;
-    q = wlRz(q, aAnim.x * side); n = wlRz(n, aAnim.x * side);
-    q = wlRx(q, -1.35 * shut); n = wlRx(n, -1.35 * shut);
-    float sw = fold * 1.5 * side;
-    q = wlRy(q, sw); n = wlRy(n, sw);
-    q.x += side * 0.45 * abs(pv.x) * shut;
-    p = q + pv;
-  } else if (part == 3.0) {
-    // the head: pitched (+ = down) about the neck, then turned about the world's vertical (the body may be upright)
-    vec3 q = wlRx(p - pv, aAnim.w); n = wlRx(n, aAnim.w);
-    vec3 up = vec3(0.0, cos(aAnim2.z), sin(aAnim2.z));
-    q = wlRot(q, up, aAnim.z); n = wlRot(n, up, aAnim.z);
-    p = q + pv;
-  } else if (part == 4.0) {
-    float a = aAnim2.y * 1.4;
-    p = wlRx(p - pv, a) + pv; n = wlRx(n, a);
-  } else if (part == 13.0 || part == 14.0) {
-    float a = part == 13.0 ? aAnim.x : aAnim.y;
-    p = wlRx(p - pv, a) + pv; n = wlRx(n, a);
-  } else if (part == 11.0 || part == 12.0) {
-    if (part == 12.0) { p = wlRx(p - pv, -aAnim.w) + pv; n = wlRx(n, -aAnim.w); }
-    vec3 hn = vec3(${HARE_NECK.map((v) => v.toFixed(3)).join(', ')});
-    vec3 q = wlRy(p - hn, aAnim2.y); n = wlRy(n, aAnim2.y);
-    q = wlRx(q, aAnim.z); n = wlRx(n, aAnim.z);
-    p = q + hn;
-  }
-  // another kind's vertex collapses to a point: this instance draws only its own model (and, for a modelled bird, only
-  // its pose: perched or flying, aAnim2.w)
-  if (abs(aKind - aAnim2.x) > 0.5 || (aVar > -0.5 && abs(aVar - aAnim2.w) > 0.5)) p = vec3(0.0);
-  wlPos = p; objectNormal = n;
-}`;
-
+/** the forest's small wildlife: one posed-instances draw (@wildshard/sdk/looks/posedInstances) of the four kinds */
 export class WildlifeMesh {
   readonly mesh: THREE.InstancedMesh;
+  readonly capacity: number;
   /** the owl's eye-shine (0 by day → 1 at night) */
-  readonly glow = { value: 0 };
-  private readonly anim: THREE.InstancedBufferAttribute;
-  private readonly anim2: THREE.InstancedBufferAttribute;
-  private readonly m = new THREE.Matrix4(); private readonly q = new THREE.Quaternion(); private readonly e = new THREE.Euler();
-  private readonly p = new THREE.Vector3(); private readonly s = new THREE.Vector3();
-  private n = 0;
-  private static readonly ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+  readonly glow: { value: number };
+  private readonly posed: PosedInstancesView;
 
-  /** the modelled birds' atlas (a white texel until `useBirds`) */
-  private readonly atlas: { value: THREE.Texture };
-
-  constructor(sky: Sky, readonly capacity: number) {
-    this.anim = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim.setUsage(THREE.DynamicDrawUsage);
-    this.anim2 = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim2.setUsage(THREE.DynamicDrawUsage);
-    const geo = this.build(null);
-    const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-    white.colorSpace = THREE.SRGBColorSpace; white.needsUpdate = true;
-    this.atlas = { value: white };
-
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
-    const glow = this.glow, atlas = this.atlas;
-    patchShader(mat, 'pine.wildlife', PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      shader.uniforms['uWlGlow'] = glow;
-      shader.uniforms['uWlTex'] = atlas;
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', VERT_HEAD)
-        .replace('#include <beginnormal_vertex>', VERT_ANIM)
-        .replace('#include <begin_vertex>', 'vec3 transformed = wlPos;');
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', `#include <common>\nvarying float vWlRough; varying float vWlEmis; uniform float uWlGlow; varying vec2 vWlUv; varying float vWlTex; uniform sampler2D uWlTex;
-// the owl's eyes in the atlas: its yellow irises (linear), where the eye-shine glows at night
-float wlEye(vec3 t) { return smoothstep(0.3, 0.5, t.r) * smoothstep(0.18, 0.3, t.g) * (1.0 - smoothstep(0.2, 0.45, t.b / max(t.r, 1e-3))); }`)
-        .replace('#include <color_fragment>', '#include <color_fragment>\nvec3 wlTexel = vec3(1.0);\nif (vWlTex > 0.5) { wlTexel = texture2D(uWlTex, vWlUv).rgb; diffuseColor.rgb *= wlTexel; }')
-        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = vWlRough;')
-        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(1.0, 0.72, 0.22) * vWlEmis * uWlGlow * 1.4 * (vWlTex > 0.5 ? wlEye(wlTexel) : 1.0);');
-    }, { mode: 'replace', key: 'pine-wildlife' });
-    sky.setupMaterial(mat);
-    this.mesh = new THREE.InstancedMesh(geo, mat, capacity);
-    this.mesh.name = 'pine-wildlife';
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.frustumCulled = false;
-    this.mesh.castShadow = false;
-    this.mesh.receiveShadow = true;
-    // parked at zero scale until the first frame packs the live ones (the boot's precompile sees a drawn instance)
-    for (let i = 0; i < capacity; i++) this.mesh.setMatrixAt(i, WildlifeMesh.ZERO);
-    this.mesh.instanceMatrix.needsUpdate = true;
+  constructor(sky: Sky, capacity: number) {
+    this.capacity = capacity;
+    this.posed = new PosedInstances(sky, capacity, LOOK, () => WildlifeMesh.packed(null));
+    this.mesh = this.posed.mesh;
+    this.glow = this.posed.glow;
   }
 
   /** the shared geometry: the hare (and, without `birds`, the procedural birds) + the modelled birds' two poses each */
-  private build(birds: BirdSet | null): THREE.InstancedBufferGeometry {
+  private static packed(birds: BirdSet | null): THREE.BufferGeometry {
     const b = new Packer();
     if (birds) { for (const m of birds.meshes) modelled(b, m); } else { b.baked(KIND.raven); b.baked(KIND.owl); b.baked(KIND.woodpecker); }
     b.baked(KIND.hare);
-    const src = b.geometry();
-    const geo = new THREE.InstancedBufferGeometry();
-    for (const [k, v] of Object.entries(src.attributes)) geo.setAttribute(k, v);
-    geo.setIndex(src.getIndex());
-    geo.setAttribute('aAnim', this.anim); geo.setAttribute('aAnim2', this.anim2);
-    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5);
-    return geo;
+    return b.geometry();
   }
 
   /** the modelled birds (birdModels.ts) in place of the procedural ones: same draw, same program — a new geometry and the
    *  atlas bound to the sampler that was there from the start (uploaded now, not on the first frame that draws one) */
   useBirds(birds: BirdSet, renderer: Renderer): void {
     const old = this.mesh.geometry;
-    this.mesh.geometry = this.build(birds);
-    this.atlas.value = birds.atlas;
-    renderer.initTexture(birds.atlas);
+    this.mesh.geometry = this.posed.wrap(WildlifeMesh.packed(birds), true);
+    this.posed.useAtlas(birds.atlas, renderer);
     old.dispose();
   }
 
+  /** `src` on an instanced geometry carrying this mesh's per-instance pose (no bounding sphere: a specimen's cut-down model) */
+  wrap(src: THREE.BufferGeometry): THREE.InstancedBufferGeometry { return this.posed.wrap(src, false); }
+
   /** vertices in the shared geometry (all four models) */
-  get vertexCount(): number { return this.mesh.geometry.getAttribute('position').count; }
+  get vertexCount(): number { return this.posed.vertexCount; }
 
   /** start a frame: no instance drawn until `add`ed */
-  begin(): void { this.n = 0; }
-  /** draw `w` this frame (the live instances are packed at the front: nothing parked costs a vertex) */
+  begin(): void { this.posed.begin(); }
+  /** draw `w` this frame (the live instances are packed at the front: nothing parked costs a vertex); a modelled bird's
+   *  pose: flying (legs tucked, or wings open on a hop) → the spread model, else the perched one */
   add(w: WildPose): void {
-    if (this.n >= this.capacity) return;
-    const i = this.n++;
-    this.e.set(-w.pitch, w.yaw, w.roll, 'YXZ');
-    this.q.setFromEuler(this.e);
-    this.m.compose(this.p.set(w.x, w.y, w.z), this.q, this.s.setScalar(w.scale));
-    this.mesh.setMatrixAt(i, this.m);
-    const a = this.anim.array, b = this.anim2.array, k = i * 4;
-    a[k] = w.a0; a[k + 1] = w.a1; a[k + 2] = w.a2; a[k + 3] = w.a3;
-    // a modelled bird's pose: flying (legs tucked, or wings open on a hop) → the spread model, else the perched one
-    b[k] = w.kind; b[k + 1] = w.b1; b[k + 2] = w.b2; b[k + 3] = w.b1 > 0.5 || w.a1 < 0.5 ? 1 : 0;
+    this.posed.add(w.x, w.y, w.z, w.pitch, w.yaw, w.roll, w.scale, w.a0, w.a1, w.a2, w.a3, w.kind, w.b1, w.b2, w.b1 > 0.5 || w.a1 < 0.5 ? 1 : 0);
   }
-  commit(): void { this.mesh.count = this.n; this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true; this.anim2.needsUpdate = true; }
+  /** draw exactly the instances added since `begin` */
+  commit(): void { this.posed.commit(); }
 }
 
 // ─────────────── the models (E306 / E315 M5) ───────────────
@@ -322,18 +203,13 @@ const REST: Readonly<Record<WildKind, Partial<Omit<WildPose, 'kind'>>>> = {
 };
 
 /** one kind's own model in the shared geometry's layout (WildlifeMesh's `build`, the other kinds left out): the hare, or a
- *  bird — its two generated poses when `birds` has landed, else the procedural one; `from` lends the per-instance pose */
-function kindGeometry(kind: WildKind, birds: BirdSet | null, from: THREE.BufferGeometry): THREE.InstancedBufferGeometry {
+ *  bird — its two generated poses when `birds` has landed, else the procedural one; `wild` lends the per-instance pose */
+function kindGeometry(kind: WildKind, birds: BirdSet | null, wild: WildlifeMesh): THREE.InstancedBufferGeometry {
   const b = new Packer();
   if (kind === KIND.hare) b.baked(kind);
   else if (birds) { for (const m of birds.meshes) if (m.kind === kind) modelled(b, m); }
   else b.baked(kind);
-  const src = b.geometry();
-  const geo = new THREE.InstancedBufferGeometry();
-  for (const [k, v] of Object.entries(src.attributes)) geo.setAttribute(k, v);
-  geo.setIndex(src.getIndex());
-  geo.setAttribute('aAnim', from.getAttribute('aAnim')); geo.setAttribute('aAnim2', from.getAttribute('aAnim2'));
-  return geo;
+  return wild.wrap(b.geometry());
 }
 
 /**
@@ -345,7 +221,7 @@ export function wildlifeSpecimen(ctx: ModelContext, kind: WildKind, birds: BirdS
   const wild = new WildlifeMesh(ctx.sky, 1);
   let set: BirdSet | null = null;
   if (birds !== null && ctx.renderer !== null) { wild.useBirds(birds, ctx.renderer); set = birds; } // the atlas bound as the life code binds it
-  wild.mesh.geometry = kindGeometry(kind, set, wild.mesh.geometry);
+  wild.mesh.geometry = kindGeometry(kind, set, wild);
   wild.begin();
   wild.add({ ...newPose(kind), ...REST[kind] });
   wild.commit();

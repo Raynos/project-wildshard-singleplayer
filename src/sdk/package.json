@@ -144,6 +144,8 @@
     "./kit/sweptKit": "./kit/sweptKit.ts",
     "./kit/tangentKit": "./kit/tangentKit.ts",
     "./kit/propGlb": "./kit/propGlb.ts",
+    "./kit/primitiveParts": "./kit/primitiveParts.ts",
+    "./looks/posedInstances": "./looks/posedInstances.ts",
     "./kit/kitParts": "./kit/kitParts.ts",
     "./looks/keyedSkyDay": "./looks/keyedSkyDay.ts",
     "./looks/keyedSky": "./looks/keyedSky.ts",
