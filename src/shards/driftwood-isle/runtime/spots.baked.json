@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "a67a7d92229be8aa9d6fda03142f6b7b2aa1fcbe",
- "build": "a67a7d9-mv24vu73",
+ "revision": "4d28acbd378b1a4b30750eb0ce5edb51c9480f11",
+ "build": "4d28acb-mv275i4a",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -46,6 +46,7 @@
   "src/shards/driftwood-isle/data/toonLook.ts": "f7677acaf8b6219d1788fc57d0f1884a3973d0bd8964baaae0c44a9151ad7a6c",
   "src/shards/driftwood-isle/data/traderLook.ts": "be240aa6faa04dc22e224ae83f2515bbc43e7162108b5200436f894e8f3b9715",
   "src/shards/driftwood-isle/data/trailsideBake.json": "aa26c9f40d945cc85d35a6d24b84befe064a91af0f3d63d2228b9ff33900ba4b",
+  "src/shards/driftwood-isle/data/trailsideRows.ts": "b2804497cc810741c50470142b3cc8a791d5020de3bfa2dcd6c3250743faf58e",
   "src/shards/driftwood-isle/data/trophyLayout.ts": "06fad79bbf29b62f3f05f4a3ac089c45ef2aa2065c4e1ee889f5264ceba8aac0",
   "src/shards/driftwood-isle/data/trophySlots.json": "b0a53b6590343723d34c79846a95502d9c9e18ac89b3444249539e564a187841",
   "src/shards/driftwood-isle/data/waterfallGlsl.ts": "d3d57d4a80f4ce330a5cdbb2821877afff6af154869066b18d1189856fc793ad",
@@ -103,7 +104,7 @@
   "src/shards/driftwood-isle/world/rockKit.ts": "eacd8612ea17d8d63be719472222cc6cc2a79183980833e1fc3b1d916c595723",
   "src/shards/driftwood-isle/world/sea.ts": "58a5d2acb1422f5aa6b4c47c9bc3bc5d8c39c841e45c17216acd4432e8bca6c1",
   "src/shards/driftwood-isle/world/systems.ts": "74bb20a6653d38a06e315bb6eb80386e17226cd008d06a16a749a71d4b375e95",
-  "src/shards/driftwood-isle/world/trailsideLayout.ts": "77a3ef42deae6401a9d878e4a37a287f9d648b4198a02b94e7d2a3e6ed16c80d"
+  "src/shards/driftwood-isle/world/trailsideLayout.ts": "ebc860d872078301e4cc988e6621a127c9217aaed40122f5c8d864d9c70d21c8"
  },
  "rows": [
   {
