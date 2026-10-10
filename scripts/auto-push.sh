@@ -94,12 +94,19 @@ ping_red() {
   origin="$(git rev-parse origin/main)"
   [ "$(head -1 "$pinged" 2>/dev/null)" = "origin $origin" ] || printf 'origin %s\n' "$origin" > "$pinged"
   lanes="$(lanes_for "origin/main..$tip")"
+  # SF74 W25: green-prefix.mjs bisected the failing files to one commit; ping that commit's lane only (2026-10-09 19:37:
+  # a red from one commit pinged two lanes that had nothing to do with it).
+  local bad who="One of your commits is in the unpushed range."
+  bad="$(sed -n 's/^green-prefix: first bad commit (guess): \([0-9a-f]\{7,40\}\).*/\1/p' "$out" | tail -1)"
+  if [ -n "$bad" ] && git cat-file -e "$bad^{commit}" 2>/dev/null; then
+    lanes="$(lanes_for "$bad^..$bad")"; who="Your commit $bad is the first one where the failing tests fail (bisected on clean exports)."
+  fi
   case "$why" in *receipt*) lanes="$(printf '%s\nwildshard-new\n' "$lanes" | sort -u)" ;; esac
   for lane in $lanes; do
     # once per lane per red streak: a lane committing into a red range hears about it once, not on every commit
     grep -qxF "$lane" "$pinged" 2>/dev/null && continue
     echo "$lane" >> "$pinged"
-    herdr agent prompt "$lane" "[auto-push] $why at $(git rev-parse --short "$tip"): nothing reaches origin until it is green. One of your commits is in the unpushed range. Log: $out. ${tail_lines} Fix it and commit; the pusher retries on the next commit." >/dev/null 2>&1 \
+    herdr agent prompt "$lane" "[auto-push] $why at $(git rev-parse --short "$tip"): nothing reaches origin until it is green. $who Log: $out. ${tail_lines} Fix it and commit; the pusher retries on the next commit." >/dev/null 2>&1 \
       && note "pinged $lane" || note "ping to $lane failed"
   done
 }
