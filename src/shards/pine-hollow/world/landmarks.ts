@@ -37,7 +37,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { makeGlowTexture, type Cabins } from './homestead';
 import {
-  LOOKOUT, ZIPLINE, CREEK_BRIDGE, E_ROAD, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
+  LOOKOUT, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
 } from '../layout';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
@@ -49,6 +49,7 @@ import { canoe } from '../models/canoe';
 import { contractBoard } from '../models/contractBoard';
 import { caveArch, openCaveArch } from '../models/caveArch';
 import { loadTimber, placeFloors, timberFrame, type Floor, type TimberFacts } from './timber';
+import { ZIP_YAW, bridgeSite, landingSite, loadSiteTimbers } from './timberSites';
 import { fireLookout, fireLookoutFacts, loadFireLookout } from '../models/fireLookout';
 import { ziplineLanding, ziplineLandingFacts } from '../models/ziplineLanding';
 import { creekFootbridge, creekFootbridgeFacts } from '../models/creekFootbridge';
@@ -62,24 +63,9 @@ const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
 
 // ───────────────────────────── the fire lookout, the zipline and the footbridge (models: ../chunks/pine-hollow/models/) ─────
 
-/** the tower (and landing) turn: local −Z points from the lookout down the cable to the landing */
-/** the tower / landing turn (exported for the ride and the vista bench, PH-C1 / C8) */
-export const ZIP_YAW = Math.atan2(ZIPLINE.from.x - ZIPLINE.to.x, ZIPLINE.from.z - ZIPLINE.to.z);
 
 // ───────────────────────────── the creek footbridge (the E road over the gully) ─────────────────────────────
 
-function bridgeFrame(): { x: number; z: number; yaw: number; half: number } {
-  // along the E road through the crossing: from its previous vertex to its next
-  const i = E_ROAD.findIndex(([x, z]) => x === CREEK_BRIDGE.x && z === CREEK_BRIDGE.z);
-  const a = E_ROAD[i - 1] ?? E_ROAD[0], b = E_ROAD[i + 1] ?? E_ROAD[1];
-  const dx = (b?.[0] ?? 1) - (a?.[0] ?? 0), dz = (b?.[1] ?? 0) - (a?.[1] ?? 0);
-  return { x: CREEK_BRIDGE.x, z: CREEK_BRIDGE.z, yaw: Math.atan2(-dz, dx), half: 12 };
-}
-
-/** the ground under a timber's own (x, z), relative to its frame's height (a site-fitted model's `ground`) */
-function siteGround(frame: THREE.Matrix4, y: number): (lx: number, lz: number) => number {
-  return (lx, lz) => { const w = V(lx, 0, lz).applyMatrix4(frame); return heightAt(w.x, w.z) - y; };
-}
 
 /** the highest deck rectangle over (x, z) */
 function floorIn(floors: readonly Floor[], x: number, z: number): number | undefined {
@@ -173,16 +159,15 @@ export class PineLandmarks implements PineLandmarksHandle {
   async build(cabins: Cabins | null, registry: WorldRegistry | null = null): Promise<this> {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const ctx = pineModels(this.sky);
-    await Promise.all([loadTimber(ctx), loadFireLookout(ctx)]);
+    await Promise.all([loadTimber(ctx), loadFireLookout(ctx), loadSiteTimbers(ctx)]);
     // the timber landmarks (models), one task each, at the frames their world-space builders used
     const ly = ground(LOOKOUT.x, LOOKOUT.z), lookoutAt = timberFrame(LOOKOUT.x, ly, LOOKOUT.z, ZIP_YAW);
     this.placeTimber(fireLookout, lookoutAt, ZIP_YAW, undefined, () => fireLookoutFacts(ctx, fireLookout.defaults), 'pine-lookout', registry);
     const topAt = fireLookoutFacts(ctx, fireLookout.defaults).anchors;
     await macrotask();
-    const zy = ground(ZIPLINE.to.x, ZIPLINE.to.z), landingAt = timberFrame(ZIPLINE.to.x, zy, ZIPLINE.to.z, ZIP_YAW);
-    const landingSite = { ground: siteGround(landingAt, zy) };
-    this.placeTimber(ziplineLanding, landingAt, ZIP_YAW, landingSite, () => ziplineLandingFacts(ctx, landingSite), 'pine-zip-landing', registry);
-    const bottomAt = ziplineLandingFacts(ctx, landingSite).anchors;
+    const landingAt = landingSite().at, atSite = { site: 'world' } as const;
+    this.placeTimber(ziplineLanding, landingAt, ZIP_YAW, atSite, () => ziplineLandingFacts(ctx, atSite), 'pine-zip-landing', registry);
+    const bottomAt = ziplineLandingFacts(ctx, atSite).anchors;
     const world = (v: V3 | undefined, frame: THREE.Matrix4): V3 => (v ?? V(0, 0, 0)).clone().applyMatrix4(frame);
     this.zip = { top: world(topAt['zipTop'], lookoutAt), bottom: world(bottomAt['zipBottom'], landingAt), launch: world(topAt['launch'], lookoutAt), landing: world(bottomAt['landing'], landingAt) };
     // the steel cable between the two gantries
@@ -190,10 +175,8 @@ export class PineLandmarks implements PineLandmarksHandle {
     const cable = place(zipCable, [{ x: top.x, y: top.y, z: top.z, params: { span: [bottom.x - top.x, bottom.y - top.y, bottom.z - top.z] } }], { ctx, draw: 'single', registry, piece: { id: 'pine-zip-cable' } });
     if (registry === null) this.group.add(cable.object);
     await macrotask();
-    const bf = bridgeFrame();
-    const by = (ground(bf.x - bf.half, bf.z) + ground(bf.x + bf.half, bf.z)) / 2, bridgeAt = timberFrame(bf.x, by, bf.z, bf.yaw);
-    const bridgeSite = { half: bf.half, ground: siteGround(bridgeAt, by) };
-    this.placeTimber(creekFootbridge, bridgeAt, bf.yaw, bridgeSite, () => creekFootbridgeFacts(ctx, bridgeSite), 'pine-footbridge', registry);
+    const bridge = bridgeSite();
+    this.placeTimber(creekFootbridge, bridge.at, bridge.yaw, atSite, () => creekFootbridgeFacts(ctx, atSite), 'pine-footbridge', registry);
     await macrotask();
     this.crags = await crags;
     await this.buildProps(cabins, registry);

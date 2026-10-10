@@ -15,7 +15,7 @@ it.each(['phone', 'desktop'] as const)('preserves the frozen %s image and KTX2 b
     const sources = bootSources(tier, tex), added = worldReads(tier, tex);
     const coats = sources.props.filter((url) => COAT.test(url)), sets = sources.props.filter((url) => VIEWMODEL.test(url));
     expect({ ...sources, props: sources.props.filter((url) => !added.includes(url) && !COAT.test(url) && !VIEWMODEL.test(url)) }).toEqual(before[tier][tex]);
-    expect(added).toHaveLength(15); // G285: the cabins', this tier's crag skin, the streams' and the lookout's bakes among them
+    expect(added).toHaveLength(16); // G285: the cabins', this tier's crag skin, the streams', the lookout's and the site timbers' bakes among them
     expect(added.every((url) => sources.props.includes(url))).toBe(true);
     expect(coats.slice().sort()).toEqual(tex === 'ktx2' ? Object.values(bakedCoats[tier]).sort() : []);
     expect(coats).toHaveLength(tex === 'ktx2' ? 16 : 0);

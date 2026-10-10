@@ -16,10 +16,8 @@ import { SEED } from '@wildshard/engine/core/config';
 import { boxUV } from '../world/logKit';
 import { ZIPLINE } from '../layout';
 import { Timber, V } from '../world/timber';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { LOOKOUT_NAME, LOOKOUT_SEED, type LookoutRows } from '../models/fireLookout';
-
-type ColliderRow = LookoutRows['colliders'][number];
+import { TimberRecorder } from './timberBake';
 
 type V3 = THREE.Vector3;
 
@@ -213,45 +211,11 @@ function buildLookout(t: Timber): void {
   t.anchors['zipTop'] = V(0, deck + LAUNCH.cable, z1 + 0.1); t.anchors['launch'] = V(0, deck, z1 + 0.5);
 }
 
-/** the attributes every part carries, in the binary's order (non-indexed, float32) */
-const ATTRS = [['position', 3], ['normal', 3], ['uv', 2]] as const;
-
 /** The bake: the lookout built at the level seed, its parts' and glass's attribute blocks in one binary, the rest as rows. */
 export function bakeFireLookout(): { bin: Uint8Array; rows: Omit<LookoutRows, 'bin' | 'bytes'> } {
   const t = new Timber(LOOKOUT_NAME, LOOKOUT_SEED);
   buildLookout(t);
-  const blocks: Float32Array[] = [];
-  const counts = (list: readonly THREE.BufferGeometry[]): number[] => list.map((g0) => {
-    const g = g0.index ? g0.toNonIndexed() : g0;
-    if (Object.keys(g.attributes).sort().join(',') !== 'normal,position,uv') throw new Error(`[lookout] a part carries ${Object.keys(g.attributes).join(',')}`);
-    for (const [name, size] of ATTRS) {
-      const a = g.getAttribute(name);
-      if (!(a.array instanceof Float32Array) || a.itemSize !== size || a.normalized) throw new Error(`[lookout] ${name} is not float32 x ${String(size)}`);
-      blocks.push(a.array.slice(0, a.count * size));
-    }
-    return g.getAttribute('position').count;
-  });
-  const { parts, glass } = t.built();
-  const partRows = [...parts].map(([key, list]) => ({ key, counts: counts(list) }));
-  const glassRow = counts(glass);
-  const bin = new Uint8Array(blocks.reduce((n, b) => n + b.byteLength, 0));
-  let at = 0;
-  for (const b of blocks) { bin.set(new Uint8Array(b.buffer, b.byteOffset, b.byteLength), at); at += b.byteLength; }
-  const facts = t.facts();
-  const xyz = (p: V3): [number, number, number] => [p.x, p.y, p.z];
-  const anchors = Object.fromEntries(Object.entries(facts.anchors).map(([k, p]) => [k, xyz(p)]));
-  return { bin, rows: { seed: SEED, parts: partRows, glass: glassRow, colliders: facts.colliders.map(colliderRow), floors: [...facts.floors], anchors } };
-}
-
-/** +0 for -0 (JSON writes both as 0; a quaternion's -0 turns nothing) */
-const z0 = (n: number): number => n + 0;
-
-/** a collider as its row: the timber kit's boxes (turned by a yaw or a quaternion) and treads, wood or stone */
-function colliderRow(c: ColliderDesc): ColliderRow {
-  const surface = c.surface === 'wood' || c.surface === 'stone' ? { surface: c.surface } : {};
-  if (c.surface !== undefined && !('surface' in surface)) throw new Error(`[lookout] a collider of ${c.surface}`);
-  if (c.kind === 'treads') return { kind: 'treads', from: { ...c.from }, to: { ...c.to }, width: c.width, count: c.count, ...surface };
-  if (c.kind !== 'box') throw new Error(`[lookout] a ${c.kind} collider`);
-  return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }),
-    ...(c.rot === undefined ? {} : { rot: { x: z0(c.rot.x), y: z0(c.rot.y), z: z0(c.rot.z), w: z0(c.rot.w) } }), ...surface };
+  const recorder = new TimberRecorder();
+  const row = recorder.record(t);
+  return { bin: recorder.bin(), rows: { seed: SEED, ...row } };
 }
