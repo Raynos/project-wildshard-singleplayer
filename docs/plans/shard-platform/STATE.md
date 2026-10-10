@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 06:30 CT.** Councils done. Part A only.
+**2026-10-10 06:50 CT.** Councils done. Part A only.
 
 **Milestones**
 - **M1:** done.
@@ -12,13 +12,13 @@
 
 **Live:** production `7f51e883a`.
 
-**Shares (80/20)**
+**Shares (old public/custom measure; G291 replaces it: custom runtime TS ≤ 20 % of the frozen legacy folder, sp-x2 rewriting the metric)**
 
 | Shard | Share |
 |---|---|
 | Template | 95.5 % |
 | Fixtures | 95.7 % |
-| Nine | 70.4 % |
+| Nine | 70.8 % |
 | Signal | 64.1 % |
 | Sky | 45.8 % |
 | Pine | 24.5 % |
@@ -33,7 +33,7 @@ Opus: two lanes, graphics/UI only.
 
 | Lane | Work |
 |---|---|
-| op-nine18 | Nine look slices toward 80/20 |
+| op-sky88 | Sky view code → generators + data rows (no isles) |
 | op-look19 | SF19b: each shard's look under one frame (G94/G95/G96) |
 
 Codex, each queued three deep:
@@ -41,7 +41,7 @@ Codex, each queued three deep:
 | Lane | Queue |
 |---|---|
 | sp-x1 | Nalati elites → species / AS brains · Nalati witness → compatible · SF24 Nalati events |
-| sp-x2 | Pine quests → quest runtime · SF24 Pine events · Antler King → the boss system |
+| sp-x2 | G291 metric in shard-platform.mjs · Antler King → the boss system |
 | sp-x4 | Driftwood creatures → species brains · Driftwood quests · SF24 Driftwood finale |
 | sp-x5 | SF22 Safari cadence · SF75 telemetry · SF58 hardening |
 | sp-x6 | SF30 movers done (566779cf3) · SF34 template modes landing · Sky flock keeper → species homes |
@@ -61,6 +61,7 @@ sp-x3 is an idle retired pane with no work assigned.
 **Rows:** SF36 done · SF59 done · SF34 engine done · SF63 parity done · SF22 desktop PASS.
 
 **Decisions:**
+- G290: every output generated from in-repo SDK TypeScript, never a one-time bake. G291: 80/20 vs legacy size; one-shard game systems under Opus audit.
 - Bakes are cost-gated (shrine / shipwreck refused, Nalati dressing plan refused, kurgan interior refused).
 - SF22 cadence counts within one 0.1 ms quantum; warm-up compiles count only if their task exceeds 50 ms.
 
