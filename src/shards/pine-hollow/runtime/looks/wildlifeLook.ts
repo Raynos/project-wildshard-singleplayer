@@ -1,4 +1,4 @@
-import type { PosedInstancesLook } from '@wildshard/sdk/looks/posedInstances';
+import type { PosedInstancesLook } from '@wildshard/game/systems/looks/posedInstances';
 
 /**
  * Pine Hollow's small wildlife (PINE-HOLLOW-REMASTER PH-M5) as one posed-instances draw (@wildshard/sdk/looks/posedInstances):

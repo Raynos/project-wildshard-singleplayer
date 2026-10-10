@@ -38,7 +38,7 @@ import { CAVE_FRAME, SKIN_TILE, loadCragSkin, type CragPlace, type CragSkin } fr
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { CAVE_LOOK, CRAG_EDITS } from '../data/cragLook';
+import { CAVE_LOOK, CRAG_EDITS } from '../runtime/looks/cragLook';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';

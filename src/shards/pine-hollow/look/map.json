@@ -74,5 +74,13 @@
         }
       ]
     }
-  }
+  },
+  "inputs": [
+    "shard.config.ts",
+    "layout.ts",
+    "world",
+    "generators",
+    "models",
+    "runtime/looks"
+  ]
 }

@@ -26,7 +26,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PosedInstances, PosedPacker, type PosedInstancesLook, type PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
 import { spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import * as vb from 'valibot';
-import { WILDLIFE_LOOK } from '../data/wildlifeLook';
+import { WILDLIFE_LOOK } from '../runtime/looks/wildlifeLook';
 import wildJson from '../data/wildlife.json' with { type: 'json' };
 import { fetchBake } from '../world/bakeBytes';
 

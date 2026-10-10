@@ -21,7 +21,7 @@ import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
 import { makeMistTexture } from '@wildshard/game/systems/looks/particles';
 import * as v from 'valibot';
 import streamJson from '../data/streams.json' with { type: 'json' };
-import { SPRAY_ANCHORS, SPRAY_PROGRAMS } from '../data/streamLook';
+import { SPRAY_ANCHORS, SPRAY_PROGRAMS } from '../runtime/looks/streamLook';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { fetchBake } from './bakeBytes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';

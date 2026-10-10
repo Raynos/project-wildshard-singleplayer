@@ -19,7 +19,7 @@ export function pinePhysicsInputs(root) {
       else if (accept(path)) paths.push(relative(root, join(root, path)));
     }
   };
-  for (const dir of ['data', 'world', 'models', 'species', 'combat']) walk(`src/shards/pine-hollow/${dir}`, path => /\.(?:ts|json)$/u.test(path));
+  for (const dir of ['data', 'world', 'models', 'species', 'combat', 'runtime/looks']) walk(`src/shards/pine-hollow/${dir}`, path => /\.(?:ts|json)$/u.test(path));
   walk('src/game/systems/species', path => path.endsWith('.ts'));
   walk('public/assets/pine-hollow/creatures', path => path.endsWith('.glb'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));
