@@ -23,6 +23,7 @@ import { installAtmosphere } from '../world/Atmosphere';
 import { installFogPatch } from '../render/fogPatches';
 import { setAnisotropy } from './assets';
 import { SkyRig as Sky } from '../world/skyRig';
+import type { BackdropLayer } from '../world/backdropLayer';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
@@ -668,6 +669,14 @@ export class Game {
    * materials, the shadow-depth variants, the sky background and the post chain — with progress
    * (src/engine/boot/precompile.ts). Returns the distinct material count.
    */
+
+  /** Warm an attached sky against the allocated composer's actual target before exposing it.
+   * Before buildComposer, ordinary boot shader/first-frame stages own preparation; attachment
+   * and its environment remain valid without reading the not-yet-created composer. */
+  async warmSkyLayer(layer: Pick<BackdropLayer, 'prepare'>): Promise<void> {
+    const composer = this._composer;
+    if (composer !== null) await layer.prepare(this.renderer, this.camera, composer.inputBuffer);
+  }
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,

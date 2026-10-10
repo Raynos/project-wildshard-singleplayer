@@ -2560,3 +2560,8 @@ every painted slice to the layer owner. Chromium retains its ordinary
 whole-world preparation. `sceneJobs(scene, target, per, roots)` can restrict the
 material inventory to explicit roots without replacing the target scene's
 lighting, fog or environment; omitted roots keep the whole-scene inventory.
+
+`Game.warmSkyLayer(layer)` calls the attached layer's preparation only after the
+composer exists, using its actual input target. During early boot it leaves
+preparation to the ordinary shader / first-frame stages, preserving the
+attached sky's environment and ownership without reading `Game.composer` early.

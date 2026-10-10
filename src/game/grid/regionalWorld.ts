@@ -230,7 +230,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 // and its shafts where the page carries a cinematic chain's (SF63 follow-up)
                 const post = look.post?.(cell.instance) ?? null;
                 if (post !== null) layered.backdrop.attachPost({ vol: post.vol ?? NO_VOL, rays: post.rays, hueSat: post.hueSat });
-                return { ...layered, prepare: () => layered.layer.prepare(game.renderer, game.camera, game.composer.inputBuffer) };
+                return { ...layered, prepare: () => game.warmSkyLayer(layered.layer) };
               } });
               // its LUT: the drawn backdrop's (it loaded the level's), else the level's own file when it has no backdrop
               if (outcome === 'drawn') {

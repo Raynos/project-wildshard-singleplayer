@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle fixture uses the production native Rapier binary.
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { DataTexture, Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3 } from 'three';
+import { DataTexture, Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3, PerspectiveCamera, WebGLRenderTarget } from 'three';
 import { ownSceneResource } from '../src/engine/app/sceneOwnership';
 import { registerSpecies, speciesDef } from '../src/engine/entities/species/registry';
 import { App } from '../src/engine/app/app';
@@ -281,8 +281,18 @@ it('hands the same resolved look backdrop to the regional sky and keeps it alive
   } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });
 
+it('uses only an allocated composer target for attached-sky preparation', async () => {
+  const f = fixture(), target = new WebGLRenderTarget(1, 1), camera = new PerspectiveCamera();
+  const prepare = vi.fn(() => Promise.resolve());
+  try {
+    await f.game.warmSkyLayer({ prepare }); expect(prepare).not.toHaveBeenCalled();
+    Reflect.set(f.game, '_composer', { inputBuffer: target }); Reflect.set(f.game, 'camera', camera);
+    await f.game.warmSkyLayer({ prepare }); expect(prepare).toHaveBeenCalledExactlyOnceWith(f.game.renderer, camera, target);
+  } finally { target.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
 it('borrows the sky environment created by attachment without taking or repeating its native disposal', async () => {
-  const f = fixture(), environment = new DataTexture(), disposed = vi.fn<() => void>();
+  const f = fixture(), environment = new DataTexture(), disposed = vi.fn<() => void>(), prepare = vi.fn(() => Promise.resolve());
   f.allocator.markMeasuredPage(f.claim.id);
   environment.addEventListener('dispose', disposed);
   const skyOwner = f.scope.child('fixture sky'); ownSceneResource(environment, skyOwner);
@@ -291,7 +301,7 @@ it('borrows the sky environment created by attachment without taking or repeatin
   Reflect.set(f.world.sky, 'scopeLevelLook', () => null);
   Reflect.set(f.world.sky, 'layeredBackdrop', () => Promise.resolve({
     backdrop: { dispose: noop, gpuBytes: () => 4, gpuCeiling: () => 4, lut: null },
-    layer: { holder, attach: () => { holder.environment = environment; }, weight: 0, state: () => ({ weight: 0, drawn: false, bytes: 4 }),
+    layer: { holder, prepare, attach: () => { holder.environment = environment; }, weight: 0, state: () => ({ weight: 0, drawn: false, bytes: 4 }),
       dispose: () => { skyOwner.dispose(); } },
   }));
   const level: LevelSpec = { ...f.region, look: () => Promise.resolve({ compose: () => ({}), backdrop: () => { throw new Error('The fixture sky owns its build'); } }) };
@@ -305,7 +315,7 @@ it('borrows the sky environment created by attachment without taking or repeatin
     prepared.world(view); await prepared.beforeWarm?.();
     const scene = view.root.children.find(child => child instanceof Scene);
     if (!(scene instanceof Scene)) throw new Error('Missing regional scene');
-    expect(scene.environment).toBe(environment); expect(disposed).not.toHaveBeenCalled();
+    expect(scene.environment).toBe(environment); expect(disposed).not.toHaveBeenCalled(); expect(prepare).not.toHaveBeenCalled();
     prepared.region.dispose();
     expect(scene.environment).toBeNull(); expect(disposed).toHaveBeenCalledOnce();
   } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }

@@ -24,3 +24,18 @@ retirement or failure releases the admitted sky instead of exposing it.
 Focused fixtures cover ordering / retirement and the limited material
 inventory against unchanged page lighting. A matched route is still needed
 for performance credit; this scheduling slice adds no shader or look variant.
+
+The early-boot follow-up routes this through `Game.warmSkyLayer`: a regional
+sky can attach before the composer exists, so ordinary boot preparation owns
+that case. A ready composer uses its real input target. The native regional
+fixture covers attachment-created environment ownership before composer build
+and the ready-composer fixture checks the exact preparation arguments.
+
+The `5d2e888e4` Simulator diagnostic stopped on the return to Driftwood:
+`play` refused with `Invalid director observation`; the source was retired
+and the road wall correctly stayed closed. All browser / native resources
+closed. Loads were 99–102 forward and 26–102 returning: no timing credit.
+Before refusal, the exact-source journal had six draw-time shader calls
+(four far-proxy, two sword); the previous ten sky / march calls were absent.
+This incomplete run is not an SF22 pass. Raw scratch evidence remains at
+`attempt-5d2-attached-sky-failed.json` beside the existing owner diagnostic.
