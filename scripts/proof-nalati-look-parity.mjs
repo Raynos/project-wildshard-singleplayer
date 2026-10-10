@@ -4,8 +4,10 @@
 // scene render (no post) with the day clock pinned to the pose's hour and paused, every material's time at 10, the
 // viewmodel hidden, read back whole and hashed, with the render's draws and triangles; the WebGL allocation census's total
 // GPU bytes; the linked program count and a hash of every shader source the page compiled; any shader compile error;
-// every registered piece's colliders, hashed. Creatures keep moving between captures, so two runs of one build can
-// differ by a few hundred pixels: `--raw=<dir>` keeps each frame's RGBA so `--compare` can count the differing pixels.
+// every registered piece's colliders, hashed. The page runs on the capture clock (30 fps, as scripts/parity.mjs): the one
+// frame drawn before the harness gate holds the world advances 1/30 s, not the wall-clock gap since the clock's last read
+// (0.2-0.5 ms in 0.1 ms steps), which moved the day clock, the sun, the wind and the cloud drift and with them most of every
+// frame's pixels from run to run (op-nalati86). `--raw=<dir>` keeps each frame's RGBA so `--compare` counts differing pixels.
 //   scripts/browser-lane.sh node scripts/proof-nalati-look-parity.mjs --url=<DEVSERVER preview> --output=<summary.json> [--raw=<dir>]
 //   node scripts/proof-nalati-look-parity.mjs --compare=<base.json>,<candidate.json>
 import { chromium, devices } from 'playwright';
@@ -50,7 +52,7 @@ const browser = await chromium.launch({ headless: true, args: ['--use-angle=meta
 try {
   for (const tier of ['phone', 'desktop']) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-    await installInit(context, { lane: 'nalati-look-parity', sha: version.build, browser: 'chromium', tier });
+    await installInit(context, { lane: 'nalati-look-parity', sha: version.build, browser: 'chromium', capture: 30, tier });
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
     // every shader source the page compiles, hashed (a byte that moved in any program shows here)
     await context.addInitScript(() => {

@@ -7,7 +7,7 @@
 // welded, in four byte lanes, zlib-compressed) to public/assets/nalati/baked/{places,specimens}.bin and its rows (the raw
 // binary's hash and size, the places' / specimens' rows) to src/shards/nalati-grasslands/data/{places,placeSpecimens}.json,
 // which the page reads (src/shards/nalati-grasslands/world/placeBake.ts).
-// `--check` (Node, the stale gate's cheap half): reruns the generator in Node and compares every row number and every
+// `--check` (Node, the stale gate: bake-check.mjs's node baker `nalati-places`, macOS only): reruns the generator in Node and compares every row number and every
 // expanded vertex float with the committed bake, within 1e-9 for the rows' doubles and 2^-20 for the stored float32s (a
 // last-bit double difference can round a float32 one step), failing on any structural difference.
 // Usage: scripts/browser-lane.sh node scripts/bake-nalati-places.mjs    (run in a clean export)
@@ -29,7 +29,8 @@ function shuffle(bin) {
   for (let i = 0; i < n; i++) for (let b = 0; b < 4; b++) out[b * n + i] = bin[i * 4 + b] ?? 0;
   return out;
 }
-function unshuffle(lanes) {
+/** The raw binary from its shipped lanes (every 4-byte word's first bytes, then its second …). */
+export function unshuffle(lanes) {
   const n = lanes.length / 4, out = new Uint8Array(lanes.length);
   for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
   return out;
@@ -37,8 +38,8 @@ function unshuffle(lanes) {
 const stamp = (bin, rows) => ({ bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length, rows });
 const terrainBuffer = () => { const b = readFileSync(TERRAIN); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); };
 
-/** each geometry of a bake expanded to its per-vertex floats (welded ones through their index) */
-function expanded(json, bin, geos) {
+/** Each geometry of a bake expanded to its per-vertex floats (welded ones through their index). */
+export function expanded(json, bin, geos) {
   const out = [];
   let at = 0;
   const words = (n) => { const v = new DataView(bin.buffer, bin.byteOffset + at, n * 4); at += n * 4; return v; };
@@ -52,8 +53,8 @@ function expanded(json, bin, geos) {
   return out;
 }
 const near = (a, b, tol = 1e-9) => a === b || Math.abs(a - b) <= tol * Math.max(1, Math.abs(a), Math.abs(b));
-/** two rows trees alike: the same shape, strings, booleans, and numbers within 1e-9 (welded counts aside) */
-function alike(a, b, path, skip, tol = 1e-9) {
+/** Two row trees alike: the same shape, strings, booleans, and numbers within 1e-9 (welded counts aside); else the first difference. */
+export function alike(a, b, path, skip, tol = 1e-9) {
   if (typeof a === 'number' && typeof b === 'number') return near(a, b, tol) ? null : `${path}: ${String(a)} vs ${String(b)}`;
   if (typeof a !== typeof b || Array.isArray(a) !== Array.isArray(b) || (a === null) !== (b === null)) return `${path}: differs in kind`;
   if (typeof a !== 'object' || a === null) return a === b ? null : `${path}: ${String(a)} vs ${String(b)}`;
@@ -63,60 +64,76 @@ function alike(a, b, path, skip, tol = 1e-9) {
   return null;
 }
 
-if (process.argv.includes('--check')) {
+/** The committed places and specimens bakes (rows, raw binary) as the page reads them. */
+export function committedPlaces() {
+  return Object.fromEntries([['places', 'places.bin', 'places.json'], ['specimens', 'specimens.bin', 'placeSpecimens.json']].map(([file, bin, json]) => {
+    const rows = JSON.parse(readFileSync(resolve(DATA, json), 'utf8')), raw = unshuffle(new Uint8Array(inflateSync(readFileSync(resolve(OUT, bin)))));
+    if (raw.length !== rows.bytes || createHash('sha256').update(raw).digest('hex') !== rows.bin) throw new Error(`bake-nalati-places: ${bin} is not its rows' binary`);
+    return [file, { rows, raw }];
+  }));
+}
+
+/** The first difference between a committed bake and a rebake's rows and binary (rows within 1e-9, floats within 2^-20), or null. */
+export function bakeDifference(file, committed, made, geos) {
+  const rowsDiff = alike(committed.rows.rows, made.rows, file, (k) => k === 'count' || k === 'geometry');
+  if (rowsDiff !== null) return rowsDiff;
+  const a = expanded(committed.rows, committed.raw, geos), b = expanded({ rows: made.rows }, made.bin, geos);
+  if (a.length !== b.length) return `${file}: ${String(a.length)} vs ${String(b.length)} geometries`;
+  for (let i = 0; i < a.length; i++) { const d = alike(a[i], b[i], `${file} geometry ${String(i)}`, () => false, 2 ** -20); if (d !== null) return d; }
+  return null;
+}
+
+if (import.meta.main && process.argv.includes('--check')) {
+  // Linux's libm differs from the Mac's in the last ulp (Pine's crags, CI 38008817381), and a last-bit difference can tip a
+  // painter's branch; the gate runs where the bakes are made (the local push gate on macOS)
+  if (process.platform !== 'darwin') { console.info('bake-nalati-places: --check skipped (checked on macOS, where the bake is made)'); process.exit(0); }
   const { bakeNalatiPlacesOnTerrain } = await import('../src/shards/nalati-grasslands/generators/places.ts');
-  const node = bakeNalatiPlacesOnTerrain(terrainBuffer());
+  const node = bakeNalatiPlacesOnTerrain(terrainBuffer()), committed = committedPlaces();
   let failed = false;
-  for (const { file, bin, json, made, geos } of [
-    { file: 'places', bin: 'places.bin', json: 'places.json', made: node.places, geos: (r) => r.meshes },
-    { file: 'specimens', bin: 'specimens.bin', json: 'placeSpecimens.json', made: node.specimens, geos: (r) => r.parts },
-  ]) {
-    const committed = JSON.parse(readFileSync(resolve(DATA, json), 'utf8')), shipped = unshuffle(new Uint8Array(inflateSync(readFileSync(resolve(OUT, bin)))));
-    if (shipped.length !== committed.bytes || createHash('sha256').update(shipped).digest('hex') !== committed.bin) { console.error(`bake-nalati-places: ${bin} is not its rows' binary`); failed = true; continue; }
-    const rowsDiff = alike(committed.rows, made.rows, file, (k) => k === 'count' || k === 'geometry');
-    const a = expanded(committed, shipped, geos), b = expanded({ rows: made.rows }, made.bin, geos);
-    let geoDiff = a.length === b.length ? null : `${file}: ${String(a.length)} vs ${String(b.length)} geometries`;
-    for (let i = 0; geoDiff === null && i < a.length; i++) geoDiff = alike(a[i], b[i], `${file} geometry ${String(i)}`, () => false, 2 ** -20);
-    if (rowsDiff !== null || geoDiff !== null) { console.error(`bake-nalati-places: the committed ${file} bake is stale: ${rowsDiff ?? geoDiff}`); failed = true; }
+  for (const { file, made, geos } of [{ file: 'places', made: node.places, geos: (r) => r.meshes }, { file: 'specimens', made: node.specimens, geos: (r) => r.parts }]) {
+    const diff = bakeDifference(file, committed[file], made, geos);
+    if (diff !== null) { console.error(`bake-nalati-places: the committed ${file} bake is stale: ${diff}`); failed = true; }
   }
   if (failed) process.exit(1);
   console.info('bake-nalati-places: the places and specimens bakes match a Node rebake (rows within 1e-9, floats within 2^-20)');
   process.exit(0);
 }
 
-const { chromium } = await import('playwright');
-const { build } = await import('vite');
-const bundle = await build({
-  configFile: false, logLevel: 'error', root,
-  // an IIFE has no import.meta: the modules that resolve asset URLs against it resolve them against the bake page
-  define: { 'import.meta.url': JSON.stringify('http://bake.invalid/') },
-  build: { write: false, minify: false, lib: { entry: resolve(root, 'src/shards/nalati-grasslands/generators/places.ts'), formats: ['iife'], name: 'NalatiPlaces', fileName: () => 'places.js' } },
-});
-const output = (Array.isArray(bundle) ? bundle[0] : bundle).output.find((o) => o.type === 'chunk');
-if (!output) throw new Error('bake-nalati-places: vite produced no chunk');
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
-let baked;
-try {
-  const page = await (await browser.newContext()).newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(String(e)));
-  // a blank page on an http origin (the bundle resolves asset URLs against it; nothing is fetched: every request 404s)
-  await page.route('**/*', (route) => (route.request().url() === 'http://bake.invalid/' ? route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }) : route.fulfill({ status: 404, body: '' })));
-  await page.goto('http://bake.invalid/');
-  await page.addScriptTag({ content: output.code });
-  if (errors.length > 0) throw new Error(`bake-nalati-places: the bundle failed to load: ${errors.join('; ')}`);
-  baked = await page.evaluate((terrainB64) => {
-    const bytes = Uint8Array.from(atob(terrainB64), (c) => c.codePointAt(0) ?? 0);
-    const out = window.NalatiPlaces.bakeNalatiPlacesOnTerrain(bytes.buffer);
-    const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCodePoint(...u8.subarray(i, i + 0x8000)); return btoa(s); };
-    return { places: { rows: JSON.stringify(out.places.rows), bin: b64(out.places.bin) }, specimens: { rows: JSON.stringify(out.specimens.rows), bin: b64(out.specimens.bin) }, ua: navigator.userAgent };
-  }, Buffer.from(readFileSync(TERRAIN)).toString('base64'));
-  if (errors.length > 0) throw new Error(`bake-nalati-places: page errors: ${errors.join('; ')}`);
-} finally { await browser.close(); }
-mkdirSync(OUT, { recursive: true });
-for (const { name, json, part } of [{ name: 'places', json: 'places.json', part: baked.places }, { name: 'specimens', json: 'placeSpecimens.json', part: baked.specimens }]) {
-  const bin = new Uint8Array(Buffer.from(part.bin, 'base64')), packed = deflateSync(shuffle(bin), { level: 9 });
-  writeFileSync(resolve(OUT, `${name}.bin`), packed);
-  writeFileSync(resolve(DATA, json), `${JSON.stringify(stamp(bin, JSON.parse(part.rows)))}\n`);
-  console.info(`nalati ${name}: ${String(bin.length)} → ${String(packed.length)} zlib (baked/${name}.bin) in ${baked.ua.split(' ').find((w) => w.startsWith('Chrome/')) ?? 'Chromium'}`);
+if (import.meta.main) {
+  const { chromium } = await import('playwright');
+  const { build } = await import('vite');
+  const bundle = await build({
+    configFile: false, logLevel: 'error', root,
+    // an IIFE has no import.meta: the modules that resolve asset URLs against it resolve them against the bake page
+    define: { 'import.meta.url': JSON.stringify('http://bake.invalid/') },
+    build: { write: false, minify: false, lib: { entry: resolve(root, 'src/shards/nalati-grasslands/generators/places.ts'), formats: ['iife'], name: 'NalatiPlaces', fileName: () => 'places.js' } },
+  });
+  const output = (Array.isArray(bundle) ? bundle[0] : bundle).output.find((o) => o.type === 'chunk');
+  if (!output) throw new Error('bake-nalati-places: vite produced no chunk');
+  const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+  let baked;
+  try {
+    const page = await (await browser.newContext()).newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    // a blank page on an http origin (the bundle resolves asset URLs against it; nothing is fetched: every request 404s)
+    await page.route('**/*', (route) => (route.request().url() === 'http://bake.invalid/' ? route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }) : route.fulfill({ status: 404, body: '' })));
+    await page.goto('http://bake.invalid/');
+    await page.addScriptTag({ content: output.code });
+    if (errors.length > 0) throw new Error(`bake-nalati-places: the bundle failed to load: ${errors.join('; ')}`);
+    baked = await page.evaluate((terrainB64) => {
+      const bytes = Uint8Array.from(atob(terrainB64), (c) => c.codePointAt(0) ?? 0);
+      const out = window.NalatiPlaces.bakeNalatiPlacesOnTerrain(bytes.buffer);
+      const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCodePoint(...u8.subarray(i, i + 0x8000)); return btoa(s); };
+      return { places: { rows: JSON.stringify(out.places.rows), bin: b64(out.places.bin) }, specimens: { rows: JSON.stringify(out.specimens.rows), bin: b64(out.specimens.bin) }, ua: navigator.userAgent };
+    }, Buffer.from(readFileSync(TERRAIN)).toString('base64'));
+    if (errors.length > 0) throw new Error(`bake-nalati-places: page errors: ${errors.join('; ')}`);
+  } finally { await browser.close(); }
+  mkdirSync(OUT, { recursive: true });
+  for (const { name, json, part } of [{ name: 'places', json: 'places.json', part: baked.places }, { name: 'specimens', json: 'placeSpecimens.json', part: baked.specimens }]) {
+    const bin = new Uint8Array(Buffer.from(part.bin, 'base64')), packed = deflateSync(shuffle(bin), { level: 9 });
+    writeFileSync(resolve(OUT, `${name}.bin`), packed);
+    writeFileSync(resolve(DATA, json), `${JSON.stringify(stamp(bin, JSON.parse(part.rows)))}\n`);
+    console.info(`nalati ${name}: ${String(bin.length)} → ${String(packed.length)} zlib (baked/${name}.bin) in ${baked.ua.split(' ').find((w) => w.startsWith('Chrome/')) ?? 'Chromium'}`);
+  }
 }

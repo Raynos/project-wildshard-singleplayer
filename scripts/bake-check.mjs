@@ -21,7 +21,7 @@ const run = (args, command = process.execPath) => {
 };
 // SF74 W24 (speed audit #10): the push gate caches each node baker on its own inputs (`--list-node`, then
 // `--node-only --only=<baker>` per cached step), so one touched src file re-runs only the bakers that read it.
-const NODE_BAKERS = ['chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies'];
+const NODE_BAKERS = ['chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places'];
 if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n')); process.exit(0); }
 const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
