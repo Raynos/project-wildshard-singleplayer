@@ -44,6 +44,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
   let seaTime: { value: number } | null = null;
   let glowUpdate: ((t: number) => void) | null = null;
   return { mode: 'extend',
+    // the clean chain is declared as well as composed, so a grid cell carries it without composing (absent: cinematic)
+    chain: 'clean',
     dispose: () => { for (const texture of pending) texture.dispose(); pending.clear(); },
     // `c.fx` builds the CINEMATIC chain when nothing is built yet, so the clean chain is asked first and `fx` only after
     // it (E399: destructuring `fx` in the parameters, or reading it before `engineChain('clean')`, makes the clean ask
