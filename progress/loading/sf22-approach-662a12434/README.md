@@ -180,3 +180,35 @@ circuit includes it and omits the diagnostic callback/program-key observers.
 
 Immutable raw diagnostic: `attempt-7e2a-attached-pmrem.json` in the scratch directory above. All owned resources
 closed. Memory remains G269's phone verdict; the Simulator image-fallback refusal remains unchanged.
+
+## Full six-cell circuit with the closing-owner fence
+
+The matched Chromium Metal phone-tier run on `e2b543bf75c447d2856118d008fac374c7d840c5` completed in 536 seconds:
+all six entries, twelve physical crossings and five runtime activations, with zero refusals, page errors or network
+failures. The network remained 5 Mbit/s with 22 injected 3/10-second stalls. Every required preparation completed
+before entry; readiness waits were 2.3–3.2 ms and entry commits at most 0.2 ms. Runtime activation maxima were
+Pine 3.1, Nalati 5.4, Sky 1.4, Signal 1.0 and Driftwood return 1.3 ms. **The crossing-install gate passed**:
+maximum synchronous crossing work was Pine departure at 32.0 ms (save 2.1, frame 0.0, leave 29.9).
+Other departure totals were Driftwood 17.1, Nalati 15.0, template 30.7, Sky 19.2 and Signal 6.0 ms.
+This is a complete measured pass for this circuit, not an isolated causal credit for the cleanup fix.
+
+**SF22 overall remains open.** Drawn-frame p95 was 33.4 ms against the unchanged 33.3 ms gate (p99 33.5;
+maximum 316.7). Both ten-second standing samples drew exactly 300 frames and also measured p95 33.4 ms.
+The mobile loop intentionally caps at 30 Hz; 1000/30 is 33.333… ms, and Chromium timestamps quantize this into
+33.3/33.4 ms. This observation does not change the limit or turn the recorded cadence failure into a pass.
+Signal's first visible draw coincided with a 314 ms task despite its 1.0 ms activation hook. First-entered-second
+shader calls were Pine 14, Nalati 18, Sky 0, Signal 62 and Driftwood return 12. The crossroads window contained
+182 calls, including background approach preparation; that run did not distinguish explicit warm-up from draw
+calls, so its zero-compilation gate remains failed rather than attributing all calls to first-draw compilation.
+
+World/afterKit wall intervals remained large: Pine world 52.3 s and afterKit 18.0 s; Nalati world 29.4 s and
+afterKit 13.5 s; Sky world 46.2 s. These include awaited work, not CPU-task time. Per-route one-minute load medians
+were 19.00, 16.79, 19.47, 13.89, 27.47 and 35.53; timings are under load. Memory stays G269's phone verdict;
+the Simulator image-fallback refusal remains unchanged. All owned proof resources closed.
+
+The run predates `62f70259f` (preceding shadow light variants), `d15464944` (one delegated resource walk), and
+`dbef738da` (the whole regional view's authored sibling lights). Signal's `ctx.root` light exists during world
+construction beside its native scene, so native-scene-only future lighting omitted it. The new fixture covers
+that exact topology and hidden descendants without changing any drawn light. No live saving is credited yet.
+Immutable raw artifact: `attempt-e2b543-closing-owner-full.json` in the scratch directory above; no raw archive
+is committed. The next matched run adds synchronous renderer.compile phase labels and retains the original gate.
