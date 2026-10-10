@@ -40,6 +40,8 @@
 
 **Landed today (Jake picks):** G321/G324 own sky + loadout (`53f340273`, `6bbe05e5a`, `20882ab8c`), G322 (`83015cc79`), G327 (`7db9de2cd`).
 
+**Follow-up:** fresh SDK tarball install fails until npm publishes `@loaders.gl/worker-utils@4.5.4` (core 4.5.4 needs it); pin core 4.5.3 in the SDK if it lingers (op-blend42). G328 proofs pass (`f4863d186`).
+
 **Decisions:** G290–G328 in the plan; `design-system.md` is the route.
 
 **Jake (open picks; details `docs/reviews/shard-platform-open-picks.md`):**
