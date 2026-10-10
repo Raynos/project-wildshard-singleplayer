@@ -22,9 +22,9 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { CRAG_GLSL } from '../data/cragGlsl';
+import { CRAG_GLSL } from '../runtime/shaders/cragGlsl';
 
-/** the GLSL below is data (data/cragGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/cragGlsl.ts); `@{name}` splices the fragments this module passes */
 const CRAG_GLSL_FAMILY = new ShaderFamily(CRAG_GLSL, {});
 
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────

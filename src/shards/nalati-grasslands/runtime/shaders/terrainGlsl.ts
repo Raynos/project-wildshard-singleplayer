@@ -1,4 +1,4 @@
-// SHARD-PLATFORM M3 (look-family rows): terrainSurface.ts's GLSL as data for the SDK shader family (@wildshard/sdk/looks/shaderFamily).
+// SHARD-PLATFORM M3 (look-family rows): terrainSurface.ts's trusted custom GLSL used by the shader family (@wildshard/sdk/looks/shaderFamily).
 // `@{name}` splices another fragment here, or what terrainSurface.ts passes (another module's GLSL, a number from the layout).
 export const TERRAIN_GLSL = {
   VERT_PARS: /* glsl */`

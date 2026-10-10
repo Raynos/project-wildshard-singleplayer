@@ -20,7 +20,7 @@ export function nalatiPhysicsInputs(root) {
     }
   };
   // data/runtimeCost.ts is the memory model's calibration (SF57), never an actor or collider recipe
-  for (const dir of ['data', 'world', 'models', 'species', 'combat', 'creatures', 'ride']) walk(`src/shards/nalati-grasslands/${dir}`, path => /\.(?:ts|json)$/u.test(path) && !path.endsWith('data/runtimeCost.ts'));
+  for (const dir of ['data', 'world', 'models', 'species', 'combat', 'creatures', 'ride', 'runtime/shaders']) walk(`src/shards/nalati-grasslands/${dir}`, path => /\.(?:ts|json)$/u.test(path) && !path.endsWith('data/runtimeCost.ts'));
   walk('src/game/systems/species', path => path.endsWith('.ts'));
   walk('public/assets/nalati/models', path => path.endsWith('.rigged.glb'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));

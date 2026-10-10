@@ -1,4 +1,4 @@
-// SHARD-PLATFORM M3 (look-family rows): combat/stormTitanLook.ts's GLSL as data for the SDK shader family (@wildshard/sdk/looks/shaderFamily).
+// SHARD-PLATFORM M3 (look-family rows): combat/stormTitanLook.ts's trusted custom GLSL used by the shader family (@wildshard/sdk/looks/shaderFamily).
 // `@{name}` splices another fragment here, or what combat/stormTitanLook.ts passes (another module's GLSL, a number from the layout).
 export const STORM_TITAN_GLSL = {
   TITAN_NOISE_GLSL: /* glsl */`

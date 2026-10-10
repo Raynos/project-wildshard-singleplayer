@@ -41,9 +41,9 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { BOWL_GLSL } from '../data/bowlGlsl';
+import { BOWL_GLSL } from '../runtime/shaders/bowlGlsl';
 
-/** the GLSL below is data (data/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
 const BOWL_GLSL_FAMILY = new ShaderFamily(BOWL_GLSL, {});
 
 const PHONE = TIER === 'phone';

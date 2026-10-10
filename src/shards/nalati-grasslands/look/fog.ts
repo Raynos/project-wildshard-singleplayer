@@ -18,9 +18,9 @@ import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { ungrade } from './grade';
 import { PANO_FOG_SRGB } from './panoramaData';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { FOG_GLSL } from '../data/fogGlsl';
+import { FOG_GLSL } from '../runtime/shaders/fogGlsl';
 
-/** the GLSL below is data (data/fogGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/fogGlsl.ts); `@{name}` splices the fragments this module passes */
 const FOG_GLSL_FAMILY = new ShaderFamily(FOG_GLSL, {});
 
 /** the LUT: scene-linear (already un-graded), half float, RepeatWrapping on the azimuth */

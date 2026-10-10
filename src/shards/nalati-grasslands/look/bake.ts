@@ -21,9 +21,9 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { registerOffscreenPreparation } from '@wildshard/sdk/looks/offscreenPreparation';
-import { LOOK_BAKE_GLSL_DATA } from '../data/lookBakeGlsl';
+import { LOOK_BAKE_GLSL_DATA } from '../runtime/shaders/lookBakeGlsl';
 
-/** the GLSL below is data (data/lookBakeGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/lookBakeGlsl.ts); `@{name}` splices the fragments this module passes */
 const LOOK_BAKE_GLSL_DATA_FAMILY = new ShaderFamily(LOOK_BAKE_GLSL_DATA, {});
 
 const LAYER = 7;

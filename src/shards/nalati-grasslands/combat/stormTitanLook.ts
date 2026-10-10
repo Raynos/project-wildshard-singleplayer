@@ -20,9 +20,9 @@ import { TIER } from '@wildshard/engine/core/tier';
  */
 import * as THREE from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { STORM_TITAN_GLSL } from '../data/stormTitanGlsl';
+import { STORM_TITAN_GLSL } from '../runtime/shaders/stormTitanGlsl';
 
-/** the GLSL below is data (data/stormTitanGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/stormTitanGlsl.ts); `@{name}` splices the fragments this module passes */
 const STORM_TITAN_GLSL_FAMILY = new ShaderFamily(STORM_TITAN_GLSL, {});
 
 

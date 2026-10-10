@@ -27,9 +27,9 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { SteppeStorm as Weather, Strike } from './Weather';
 import type { SkyLook } from '../look/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { WEATHER_FX_GLSL } from '../data/weatherFxGlsl';
+import { WEATHER_FX_GLSL } from '../runtime/shaders/weatherFxGlsl';
 
-/** the GLSL below is data (data/weatherFxGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/weatherFxGlsl.ts); `@{name}` splices the fragments this module passes */
 const WEATHER_FX_GLSL_FAMILY = new ShaderFamily(WEATHER_FX_GLSL, {});
 
 export interface WeatherFXOpts { phone: boolean; seed: number }
@@ -40,7 +40,7 @@ const CURTAIN_R = 745;
 const BOLT_SEGS = 220;
 const PUDDLES = 110;
 
-// the deck's and the curtains' shared storm body (STORM_GLSL) and the fog (FOG_GLSL) are fragments of data/weatherFxGlsl.ts
+// the deck's and the curtains' shared storm body (STORM_GLSL) and the fog (FOG_GLSL) are fragments of runtime/shaders/weatherFxGlsl.ts
 
 /** a soft radial sprite (the telegraph glow, the fire at a struck tree) */
 function glowTexture(inner: string, outer: string): THREE.CanvasTexture {

@@ -1,7 +1,7 @@
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { RAIN_GLSL } from '../data/rainGlsl';
+import { RAIN_GLSL } from '../runtime/shaders/rainGlsl';
 
-/** the GLSL below is data (data/rainGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/rainGlsl.ts); `@{name}` splices the fragments this module passes */
 const RAIN_GLSL_FAMILY = new ShaderFamily(RAIN_GLSL, {});
 
 export const RAIN_PROGRAM = {

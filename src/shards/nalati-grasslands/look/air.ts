@@ -13,9 +13,9 @@ import type { SkyDressing } from '@wildshard/engine/render/look';
 import { addFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { AIR_GLSL } from '../data/airGlsl';
+import { AIR_GLSL } from '../runtime/shaders/airGlsl';
 
-/** the GLSL below is data (data/airGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/airGlsl.ts); `@{name}` splices the fragments this module passes */
 const AIR_GLSL_FAMILY = new ShaderFamily(AIR_GLSL, {});
 
 /**

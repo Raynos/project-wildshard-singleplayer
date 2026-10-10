@@ -11,9 +11,9 @@ import * as THREE from 'three';
 import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { SMOKE_GLSL } from '../data/smokeGlsl';
+import { SMOKE_GLSL } from '../runtime/shaders/smokeGlsl';
 
-/** the GLSL below is data (data/smokeGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/smokeGlsl.ts); `@{name}` splices the fragments this module passes */
 const SMOKE_GLSL_FAMILY = new ShaderFamily(SMOKE_GLSL, {});
 
 interface Emitter { x: number; y: number; z: number; puffs: number; rise: number; s0: number; s1: number; life: number; dense: number }

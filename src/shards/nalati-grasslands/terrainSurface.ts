@@ -27,9 +27,9 @@ import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake'
 import { SNOW_LINE, GLACIER } from './layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { TERRAIN_GLSL } from './data/terrainGlsl';
+import { TERRAIN_GLSL } from './runtime/shaders/terrainGlsl';
 
-/** the GLSL below is data (data/terrainGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/terrainGlsl.ts); `@{name}` splices the fragments this module passes */
 const TERRAIN_GLSL_FAMILY = new ShaderFamily(TERRAIN_GLSL, {});
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;

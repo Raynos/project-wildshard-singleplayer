@@ -26,9 +26,9 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { BUTTERFLIES, BUTTERFLY_HUES, FLY_SCALE, halfBirdGeo, RAPTORS, wingGeo } from '../../models/ambientLife';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { MOTES_GLSL } from '../../data/motesGlsl';
+import { MOTES_GLSL } from '../../runtime/shaders/motesGlsl';
 
-/** the GLSL below is data (data/motesGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/motesGlsl.ts); `@{name}` splices the fragments this module passes */
 const MOTES_GLSL_FAMILY = new ShaderFamily(MOTES_GLSL, {});
 
 const PHONE = TIER === 'phone';

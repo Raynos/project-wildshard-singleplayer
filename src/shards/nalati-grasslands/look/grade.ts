@@ -17,9 +17,9 @@ import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
 import type { EngineKnobs, LookReplaceContext } from '@wildshard/engine/render/look';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { GRADE_GLSL } from '../data/gradeGlsl';
+import { GRADE_GLSL } from '../runtime/shaders/gradeGlsl';
 
-/** the GLSL below is data (data/gradeGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/shaders/gradeGlsl.ts); `@{name}` splices the fragments this module passes */
 const GRADE_GLSL_FAMILY = new ShaderFamily(GRADE_GLSL, {});
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
