@@ -1,6 +1,6 @@
 /**
  * Castaway — Wendell, the marooned sailor who gives Driftwood Isle's quest (A1, D5). Built with the low-poly kit
- * (src/engine/world/lowpolyKit.ts: LowPolyKit + the shared lowPolyMaterial): a lanky old salt in a torn blue-and-white striped
+ * (his meshes are rows, data/castawayLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyMaterial): a lanky old salt in a torn blue-and-white striped
  * shirt, rolled canvas trousers, bare feet, a rope belt, a frayed straw hat over a big grey beard, leaning on a
  * driftwood staff — and his campfire beside him (stone ring, logs, flames, a smoke column you can see from the pier:
  * the breadcrumb the intro objective points at).
@@ -27,21 +27,12 @@
 import * as THREE from 'three';
 import { loadFaceHead, type FaceHead } from './faceHeads';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { log, rock, plank } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { buildKitMesh } from '@wildshard/sdk/kit/kitParts';
 import { SmokeColumn, type SmokeColumnSet } from '@wildshard/sdk/looks/smokeColumn';
-import { CASTAWAY_SMOKE } from '../data/castawayLook';
+import { CASTAWAY_ARM, CASTAWAY_BODY, CASTAWAY_CAMP, CASTAWAY_FLAMES, CASTAWAY_HEAD, CASTAWAY_SMOKE } from '../data/castawayLook';
 
-const C = {
-  skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',
-  shirt: '#e9e3d4', stripe: '#3d6fae', trousers: '#b59f77', trousersDark: '#8f7b58', rope: '#b9a57a', staff: '#9a7b58',
-  eye: '#1d1a18', stone: '#7d7f84', stoneDark: '#5d5f64', log: '#6a4a2e', char: '#2a2320', ember: '#ff7a2a', flame: '#ffc15a', core: '#fff0b0',
-};
-
-const M = new THREE.Matrix4();
-const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0, s: [number, number, number] = [1, 1, 1]): THREE.Matrix4 =>
-  M.compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(...s));
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 const NECK = 1.52, SHOULDER = V(-0.21, 1.4, 0);   // right shoulder (the model faces +Z; its right is −X)
@@ -100,7 +91,11 @@ export class Castaway {
   private glanceT = 0; private glanceYaw = 0;
   private fireLocal: THREE.Vector3;
 
-  constructor(private sky: Sky, private feet: Pos, fire: Pos) {
+  private readonly sky: Sky;
+  private readonly feet: Pos;
+
+  constructor(sky: Sky, feet: Pos, fire: Pos) {
+    this.sky = sky; this.feet = feet;
     this.bodyYaw = feet.yaw ?? 0;
     // the fire in the NPC's frame (the group is placed at his feet, rotated with him)
     const dx = fire.x - feet.x, dz = fire.z - feet.z, c = Math.cos(-this.bodyYaw), s = Math.sin(-this.bodyYaw);
@@ -114,80 +109,28 @@ export class Castaway {
     this.group.rotation.y = this.bodyYaw;
     this.group.name = 'castaway';
 
-    // ── body (turns with the figure) ──
-    const k = new LowPolyKit(0xca57a);
-    for (const sx of [-1, 1]) {
-      // bare feet, shins, rolled trouser cuffs, thighs
-      k.add(new THREE.BoxGeometry(0.11, 0.07, 0.24), C.skin, { matrix: at(sx * 0.1, 0.035, 0.04), wobble: 0.01 });
-      k.add(log(V(sx * 0.1, 0.06, 0), V(sx * 0.1, 0.42, 0.01), 0.05, 0.055, 6), C.skin);
-      k.add(log(V(sx * 0.1, 0.4, 0.01), V(sx * 0.1, 0.5, 0.01), 0.085, 0.085, 7), C.trousersDark);
-      k.add(log(V(sx * 0.1, 0.48, 0.01), V(sx * 0.11, 0.98, 0), 0.075, 0.095, 7), C.trousers);
-    }
-    k.add(log(V(0, 0.9, 0), V(0, 1.02, 0), 0.19, 0.19, 8), C.trousers);
-    k.add(new THREE.TorusGeometry(0.19, 0.022, 4, 10).rotateX(Math.PI / 2), C.rope, { matrix: at(0, 1.02, 0) });
-    k.add(log(V(0.12, 1.0, 0.17), V(0.14, 0.86, 0.19), 0.018, 0.012, 4), C.rope);  // the knot's tail
-    // the shirt: stacked stripe bands, a little barrel-chested, a torn hem
-    for (let i = 0; i < 6; i++) {
-      const y0 = 1.02 + i * 0.075, r0 = 0.19 + Math.sin((i / 6) * Math.PI) * 0.035, r1 = 0.19 + Math.sin(((i + 1) / 6) * Math.PI) * 0.035;
-      k.add(log(V(0, y0, 0), V(0, y0 + 0.075, 0), r0, i === 5 ? 0.15 : r1, 8), i % 2 ? C.stripe : C.shirt, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.72]), jitter: 0.04 });
-    }
-    k.add(log(V(0, 1.47, 0), V(0, 1.55, 0.01), 0.07, 0.06, 6), C.skin);   // the neck
-    // the left arm hangs, hand on the staff
-    k.add(log(V(0.21, 1.42, 0), V(0.25, 1.15, 0.05), 0.058, 0.05, 6), C.shirt);
-    k.add(log(V(0.25, 1.15, 0.05), V(0.27, 0.93, 0.14), 0.045, 0.04, 6), C.skin);
-    k.add(new THREE.IcosahedronGeometry(0.05, 0), C.skin, { matrix: at(0.27, 0.9, 0.16) });
-    k.add(log(V(0.3, 0, 0.2), V(0.26, 1.35, 0.14), 0.03, 0.028, 5, 0.3), C.staff, { wobble: 0.008 });
-    k.add(rock(0.06, 0, k.rng, 1, 0.3), C.staff, { matrix: at(0.26, 1.37, 0.14) });
-    this.body = new THREE.Mesh(k.finish({ ao: { floorY: 0, strength: 0.45 } }), mat);
+    // ── body (turns with the figure), campfire (fire-local, stays put while he turns), head, arm, flames: data/castawayLook.ts ──
+    this.body = new THREE.Mesh(buildKitMesh(CASTAWAY_BODY), mat);
     this.body.castShadow = true; this.body.receiveShadow = true;
-    // ── the campfire (fire-local, stays put while he turns): a ring of stones, crossed logs, char ──
-    const cf = new LowPolyKit(0xca57e);
     const f = this.fireLocal;
-    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; cf.add(rock(0.16, 0, cf.rng, 0.7, 0.3), i % 2 ? C.stone : C.stoneDark, { matrix: at(f.x + Math.cos(a) * 0.55, f.y + 0.06, f.z + Math.sin(a) * 0.55) }); }
-    cf.add(new THREE.CylinderGeometry(0.42, 0.45, 0.04, 9), C.char, { matrix: at(f.x, f.y + 0.02, f.z) });
-    for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI + 0.3; cf.add(log(V(f.x + Math.cos(a) * 0.42, f.y + 0.05, f.z + Math.sin(a) * 0.42), V(f.x - Math.cos(a) * 0.1, f.y + 0.3, f.z - Math.sin(a) * 0.1), 0.05, 0.04, 5), C.log); }
-    // a log seat and a stick propped over the fire
-    cf.add(log(V(f.x - 1.1, f.y + 0.16, f.z + 0.6), V(f.x - 1.1, f.y + 0.16, f.z - 0.7), 0.17, 0.16, 7), C.log);
-    cf.add(plank(0.9, 0.05, 0.03, cf.rng), C.staff, { matrix: at(f.x + 0.3, f.y + 0.4, f.z - 0.35, 0.6, 0, 0.5) });
-    this.camp = new THREE.Mesh(cf.finish({ ao: { floorY: 0, strength: 0.45 } }), mat);
+    this.camp = new THREE.Mesh(buildKitMesh(CASTAWAY_CAMP, f), mat);
     this.camp.castShadow = true; this.camp.receiveShadow = true;
 
-    // ── head (pivot at the neck): face, nose, eyes, the beard, the straw hat ──
-    const h = new LowPolyKit(0xca57b);
-    h.add(new THREE.IcosahedronGeometry(0.115, 1), C.skin, { matrix: at(0, 0.11, 0, 0, 0, 0, [0.92, 1.05, 0.95]), wobble: 0.006 });
-    h.add(new THREE.ConeGeometry(0.03, 0.07, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.12) });
-    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.028, 0.02, 0.01), C.eye, { matrix: at(sx * 0.042, 0.135, 0.108) });
-    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.05, 0.016, 0.02), C.beardDark, { matrix: at(sx * 0.042, 0.162, 0.105, 0, 0, sx * 0.15) });  // bushy brows
-    const beard = new THREE.ConeGeometry(0.1, 0.26, 7);
-    beard.rotateX(Math.PI);
-    h.add(beard, C.beard, { matrix: at(0, -0.06, 0.075, 0, -0.3), wobble: 0.012, jitter: 0.12 });   // hangs from the jaw, the face stays clear
-    h.add(new THREE.BoxGeometry(0.16, 0.035, 0.03), C.beard, { matrix: at(0, 0.075, 0.115) });   // moustache
-    h.add(new THREE.CylinderGeometry(0.3, 0.32, 0.025, 10), C.hat, { matrix: at(0, 0.2, 0, 0, 0.08), wobble: 0.02, jitter: 0.1 });  // the brim, tipped back
-    h.add(new THREE.CylinderGeometry(0.1, 0.13, 0.13, 8), C.hatDark, { matrix: at(0, 0.27, -0.01, 0, 0.08), wobble: 0.01 });
-    h.add(new THREE.CylinderGeometry(0.132, 0.132, 0.03, 8), C.band, { matrix: at(0, 0.225, -0.005, 0, 0.08) });
-    this.head = new THREE.Mesh(h.finish({ ao: false }), mat);
+    // the code head (pivot at the neck)
+    this.head = new THREE.Mesh(buildKitMesh(CASTAWAY_HEAD), mat);
     this.head.position.set(0, NECK, 0.01);
     // E343 (Jake's pick D): the generated head (Hunyuan3D-2 from a codex portrait in the island's toon look, its own paint,
     // cut at its neck, the faceted post) replaces this code head — its stand-in — as soon as the ~35 KB file is in
 
 
-    // ── the right arm (pivot at the shoulder, hanging along −Y) ──
-    const a = new LowPolyKit(0xca57c);
-    a.add(log(V(0, 0, 0), V(-0.03, -0.27, 0.02), 0.058, 0.05, 6), C.shirt);
-    a.add(log(V(-0.03, -0.27, 0.02), V(-0.04, -0.5, 0.04), 0.045, 0.04, 6), C.skin);
-    a.add(new THREE.IcosahedronGeometry(0.05, 0), C.skin, { matrix: at(-0.04, -0.55, 0.04) });
-    this.arm = new THREE.Mesh(a.finish({ ao: false }), mat);
+    // the right arm (pivot at the shoulder, hanging along −Y)
+    this.arm = new THREE.Mesh(buildKitMesh(CASTAWAY_ARM), mat);
     this.arm.position.copy(SHOULDER);
 
-    // ── flames (unlit, bloom) ──
-    const fl = new LowPolyKit(0xca57d);
-    fl.add(new THREE.ConeGeometry(0.26, 0.7, 6), C.ember, { matrix: at(0, 0.35, 0), wobble: 0.03, jitter: 0.12 });
-    fl.add(new THREE.ConeGeometry(0.15, 0.55, 5), C.flame, { matrix: at(0.08, 0.3, 0.04, 0.4), wobble: 0.02 });
-    fl.add(new THREE.ConeGeometry(0.13, 0.5, 5), C.flame, { matrix: at(-0.09, 0.27, -0.05, 1.2), wobble: 0.02 });
-    fl.add(new THREE.ConeGeometry(0.08, 0.6, 5), C.core, { matrix: at(0, 0.32, 0), wobble: 0.01 });
+    // flames (unlit, bloom)
     const flameMat = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(1.8, 1.8, 1.8) });
     flameMat.name = 'castaway-flame';
-    this.flames = new THREE.Mesh(fl.finish({ ao: false }), flameMat);
+    this.flames = new THREE.Mesh(buildKitMesh(CASTAWAY_FLAMES), flameMat);
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
     // ── smoke: one Points cloud rising off the fire, drifting a little downwind ──

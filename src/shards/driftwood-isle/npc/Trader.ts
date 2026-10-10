@@ -1,7 +1,7 @@
 /**
  * Trader — Driftwood Isle's travelling trader (E314, Jake's pick on board 9: "a trader at Wendell's hut"): the second
  * NPC, who keeps the shop at the hut while Wendell (./Castaway.ts) stays the quest giver. Built exactly as Wendell is —
- * the low-poly kit (src/engine/world/lowpolyKit.ts: LowPolyKit + the shared lowPolyMaterial), flat-shaded vertex colour, his
+ * the low-poly kit (her meshes are rows, data/traderLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyMaterial), flat-shaded vertex colour, his
  * proportions and scale — a sea-weathered woman in a teal headscarf knotted at the nape (gold trim, two tails that lift
  * in the wind), gold hoop earrings, a sleeveless orange tunic over a cream shirt with short puffed sleeves, a red sash knotted at the hip, a
  * leather satchel on a strap across her chest, brown trousers tucked into travel boots, one fist on her hip.
@@ -24,20 +24,11 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
-import { log, rope } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { buildKitMesh } from '@wildshard/sdk/kit/kitParts';
+import { TRADER_BODY, TRADER_FORE, TRADER_HEAD, TRADER_UPPER } from '../data/traderLook';
 
-const C = {
-  skin: '#a86e48', skinDark: '#8a5636', hair: '#2b1f19', eye: '#1d1a18', lips: '#8f4538',
-  scarf: '#2f9490', scarfDark: '#23706d', scarfTrim: '#e2bf62', gold: '#d8a93c',
-  tunic: '#dd7a2e', tunicB: '#cf6f27', trim: '#9e4a22', shirt: '#eee6d6', shirtB: '#d9ceb8', sash: '#7a3a34',
-  trousers: '#6f5a45', boot: '#5a3d27', bootDark: '#46301f', leather: '#7a5234', leatherDark: '#5e3f27',
-};
-
-const M = new THREE.Matrix4();
-const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0, s: [number, number, number] = [1, 1, 1]): THREE.Matrix4 =>
-  M.compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(...s));
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 const NECK = 1.48, SHOULDER = V(-0.19, 1.4, 0);   // right shoulder (the model faces +Z; her right is −X)
@@ -71,93 +62,23 @@ export class Trader {
   /** extra culling: things drawn with her (her counter) hide with her past TRADER_NEAR_R */
   readonly companions: THREE.Object3D[] = [];
 
-  constructor(private sky: Sky) {}
+  private readonly sky: Sky;
+
+  constructor(sky: Sky) { this.sky = sky; }
 
   build(): this {
     const mat = lowPolyMaterial(this.sky);
     this.group.name = 'trader';
 
-    // ── body (turns with the figure) ──
-    const k = new LowPolyKit(0x7ade1);
-    for (const sx of [-1, 1]) {
-      // travel boots with a turned-down cuff, then the trousers down to them
-      k.add(new THREE.BoxGeometry(0.1, 0.08, 0.23), C.boot, { matrix: at(sx * 0.09, 0.04, 0.035), wobble: 0.008 });
-      k.add(log(V(sx * 0.09, 0.06, 0), V(sx * 0.09, 0.31, 0.005), 0.06, 0.058, 6), C.boot);
-      k.add(log(V(sx * 0.09, 0.29, 0.005), V(sx * 0.09, 0.35, 0.005), 0.069, 0.069, 7), C.bootDark);
-      k.add(log(V(sx * 0.09, 0.33, 0.005), V(sx * 0.095, 0.68, 0), 0.07, 0.08, 7), C.trousers);
-    }
-    // the tunic's skirt, flared to the knee, a darker hem band
-    k.add(log(V(0, 0.56, 0), V(0, 0.62, 0), 0.258, 0.252, 9), C.trim, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]), jitter: 0.05 });
-    k.add(log(V(0, 0.6, 0), V(0, 1.0, 0), 0.25, 0.19, 9), C.tunic, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]), jitter: 0.05 });
-    // the sash, knotted at her left hip, its two tails lifting in the wind
-    k.add(log(V(0, 0.96, 0), V(0, 1.07, 0), 0.2, 0.195, 8), C.sash, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]) });
-    k.add(new THREE.IcosahedronGeometry(0.045, 0), C.sash, { matrix: at(0.17, 1.0, 0.08) });
-    k.add(log(V(0.17, 0.99, 0.09), V(0.2, 0.78, 0.11), 0.03, 0.018, 4), C.sash, { sway: { w: 0.35, hang: true } });
-    k.add(log(V(0.15, 0.99, 0.1), V(0.155, 0.8, 0.14), 0.028, 0.016, 4), C.sash, { sway: { w: 0.35, hang: true } });
-    // the torso: stacked bands like Wendell's shirt, a little narrower at the shoulders; plain orange, two shades
-    for (let i = 0; i < 6; i++) {
-      const y0 = 1.06 + i * 0.068, r0 = 0.178 + Math.sin((i / 6) * Math.PI) * 0.028, r1 = 0.178 + Math.sin(((i + 1) / 6) * Math.PI) * 0.028;
-      k.add(log(V(0, y0, 0), V(0, y0 + 0.068, 0), r0, i === 5 ? 0.14 : r1, 8), i % 2 ? C.tunicB : C.tunic, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.74]), jitter: 0.04 });
-    }
-    // the collar: a rust band and the cream shirt's V at the throat
-    k.add(log(V(0, 1.43, 0), V(0, 1.47, 0), 0.148, 0.12, 8), C.trim, { matrix: at(0, 0, 0, 0, 0, 0, [1, 1, 0.8]) });
-    k.add(new THREE.BoxGeometry(0.12, 0.12, 0.02), C.shirt, { matrix: at(0, 1.4, 0.108, 0, -0.25, Math.PI / 4) });
-    k.add(log(V(0, 1.45, 0), V(0, 1.53, 0.01), 0.058, 0.053, 6), C.skin);   // the neck
-    // the satchel riding on her right hip, behind the hanging arm, its strap over her left shoulder
-    k.add(new THREE.BoxGeometry(0.2, 0.17, 0.08), C.leather, { matrix: at(-0.18, 0.92, -0.15, -0.55), wobble: 0.006 });
-    k.add(new THREE.BoxGeometry(0.21, 0.07, 0.09), C.leatherDark, { matrix: at(-0.18, 0.99, -0.148, -0.55) });
-    k.add(new THREE.BoxGeometry(0.03, 0.03, 0.02), C.gold, { matrix: at(-0.2, 0.96, -0.2, -0.55) });
-    k.add(rope([V(-0.14, 1.02, -0.17), V(-0.24, 1.03, -0.04), V(-0.2, 1.05, 0.1), V(-0.1, 1.15, 0.157), V(0.02, 1.28, 0.158), V(0.12, 1.4, 0.12), V(0.15, 1.47, 0.02)], 0.017), C.leatherDark);
-    k.add(rope([V(0.15, 1.47, 0.02), V(0.12, 1.4, -0.12), V(0.02, 1.28, -0.158), V(-0.08, 1.14, -0.17), V(-0.14, 1.02, -0.17)], 0.017), C.leatherDark);
-    // the left arm: fist on her hip, elbow out — the shirt's short sleeve, a gold bangle
-    const S = V(0.19, 1.4, 0), E = V(0.31, 1.17, -0.05), H = V(0.215, 1.0, 0.035);
-    const along = (a: THREE.Vector3, b: THREE.Vector3, t: number) => new THREE.Vector3().lerpVectors(a, b, t);
-    k.add(log(S, along(S, E, 0.5), 0.066, 0.06, 6), C.shirt);   // the shirt's short puffed sleeve
-    k.add(log(along(S, E, 0.44), along(S, E, 0.54), 0.064, 0.058, 6), C.shirtB);
-    k.add(log(along(S, E, 0.5), E, 0.047, 0.044, 6), C.skin);
-    k.add(log(E, H, 0.044, 0.038, 6), C.skin);
-    k.add(new THREE.TorusGeometry(0.045, 0.011, 4, 8), C.gold, { matrix: lookAlong(along(E, H, 0.78), E, H) });
-    k.add(new THREE.IcosahedronGeometry(0.048, 0), C.skin, { matrix: at(H.x, H.y, H.z, 0, 0, 0, [0.85, 1.05, 1]) });
-    this.body = new THREE.Mesh(k.finish({ ao: { floorY: 0, strength: 0.45 } }), mat);
+    // ── body (turns with the figure), head (pivot at the neck), the right arm's upper arm (pivot at the shoulder, hanging
+    // along −Y) and forearm (pivot at the elbow): data/traderLook.ts ──
+    this.body = new THREE.Mesh(buildKitMesh(TRADER_BODY), mat);
     this.body.castShadow = true; this.body.receiveShadow = true;
-
-    // ── head (pivot at the neck): face, the teal headscarf, hoops ──
-    const h = new LowPolyKit(0x7ade2);
-    h.add(new THREE.IcosahedronGeometry(0.11, 1), C.skin, { matrix: at(0, 0.11, 0, 0, 0, 0, [0.9, 1.05, 0.95]), wobble: 0.005 });
-    h.add(new THREE.ConeGeometry(0.026, 0.06, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.112) });
-    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.026, 0.02, 0.01), C.eye, { matrix: at(sx * 0.04, 0.132, 0.1) });
-    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.046, 0.011, 0.02), C.hair, { matrix: at(sx * 0.041, 0.158, 0.098, 0, 0, sx * 0.12) });   // arched brows
-    h.add(new THREE.BoxGeometry(0.05, 0.014, 0.012), C.lips, { matrix: at(0, 0.058, 0.098) });
-    h.add(new THREE.BoxGeometry(0.13, 0.022, 0.03), C.hair, { matrix: at(0, 0.172, 0.088) });   // the fringe under the scarf
-    for (const sx of [-1, 1]) {
-      h.add(new THREE.BoxGeometry(0.02, 0.06, 0.04), C.hair, { matrix: at(sx * 0.093, 0.13, 0.035) });   // hair at the temples
-      h.add(new THREE.TorusGeometry(0.03, 0.006, 4, 9).rotateY(Math.PI / 2), C.gold, { matrix: at(sx * 0.1, 0.045, 0.012) });   // big gold hoops
-    }
-    // the scarf: a dome over the crown tipped back (brow clear, nape covered), a trim band round its rim, the knot and tails
-    const SCARF = at(0, 0.12, -0.012, 0, -0.6, 0, [1, 0.95, 1.08]).clone();
-    h.add(new THREE.SphereGeometry(0.128, 10, 5, 0, Math.PI * 2, 0, Math.PI * 0.56), C.scarf, { matrix: SCARF, wobble: 0.004 });
-    h.add(new THREE.TorusGeometry(0.128, 0.017, 4, 12).rotateX(Math.PI / 2).translate(0, -0.022, 0), C.scarfTrim, { matrix: SCARF });
-    h.add(new THREE.IcosahedronGeometry(0.046, 0), C.scarfDark, { matrix: at(0, 0.06, -0.13, 0, 0, 0, [1.1, 0.85, 0.9]) });
-    for (const sx of [-1, 1]) {
-      h.add(new THREE.ConeGeometry(0.042, 0.19, 4), sx < 0 ? C.scarf : C.scarfDark,
-        { matrix: at(sx * 0.03, -0.04, -0.165, sx * 0.25, 0.4, sx * 0.12, [1, 1, 0.35]), sway: { w: 0.6, hang: true } });
-    }
-    this.head = new THREE.Mesh(h.finish({ ao: false }), mat);
+    this.head = new THREE.Mesh(buildKitMesh(TRADER_HEAD), mat);
     this.head.position.set(0, NECK, 0.01);
-
-    // ── the right arm: upper arm (pivot at the shoulder, hanging along −Y), forearm (pivot at the elbow) ──
-    const u = new LowPolyKit(0x7ade3);
-    u.add(log(V(0, 0, 0), V(-0.015, -0.13, 0.01), 0.066, 0.06, 6), C.shirt);   // the short puffed sleeve
-    u.add(log(V(-0.012, -0.115, 0.01), V(-0.016, -0.15, 0.011), 0.064, 0.058, 6), C.shirtB);   // its hem
-    u.add(log(V(-0.015, -0.14, 0.011), V(-0.03, ELBOW_Y, 0.02), 0.047, 0.044, 6), C.skin);
-    this.upper = new THREE.Mesh(u.finish({ ao: false }), mat);
+    this.upper = new THREE.Mesh(buildKitMesh(TRADER_UPPER), mat);
     this.upper.position.copy(SHOULDER);
-    const f = new LowPolyKit(0x7ade4);
-    f.add(log(V(0, 0.01, 0), V(-0.01, -0.23, 0.02), 0.044, 0.038, 6), C.skin);
-    f.add(new THREE.TorusGeometry(0.045, 0.011, 4, 8).rotateX(Math.PI / 2), C.gold, { matrix: at(-0.008, -0.185, 0.016) });
-    f.add(new THREE.BoxGeometry(0.075, 0.1, 0.035), C.skin, { matrix: at(-0.012, -0.28, 0.024), wobble: 0.006 });   // an open hand
-    f.add(new THREE.BoxGeometry(0.022, 0.05, 0.024), C.skin, { matrix: at(0.03, -0.26, 0.04, 0, 0.3, 0.4) });        // the thumb
-    this.fore = new THREE.Mesh(f.finish({ ao: false }), mat);
+    this.fore = new THREE.Mesh(buildKitMesh(TRADER_FORE), mat);
     this.fore.position.set(-0.03, ELBOW_Y, 0.02);
     this.upper.add(this.fore);
 
@@ -256,8 +177,3 @@ function ease(u: number): number {
 
 function wrap(a: number): number { return Math.atan2(Math.sin(a), Math.cos(a)); }
 
-/** a matrix putting a ring (a torus in the XY plane) at p, square to the segment a → b */
-function lookAlong(p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): THREE.Matrix4 {
-  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3().subVectors(b, a).normalize());
-  return new THREE.Matrix4().compose(p, q, new THREE.Vector3(1, 1, 1));
-}

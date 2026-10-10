@@ -83,6 +83,7 @@
     "./systems/kit/sweptKit": "./systems/kit/sweptKit.ts",
     "./systems/kit/tangentKit": "./systems/kit/tangentKit.ts",
     "./systems/kit/propGlb": "./systems/kit/propGlb.ts",
+    "./systems/kit/kitParts": "./systems/kit/kitParts.ts",
     "./systems/looks/keyedSkyDay": "./systems/looks/keyedSkyDay.ts",
     "./systems/looks/keyedSky": "./systems/looks/keyedSky.ts",
     "./systems/looks/keyedSkyRows": "./systems/looks/keyedSkyRows.ts",
