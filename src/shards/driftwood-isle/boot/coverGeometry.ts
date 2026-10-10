@@ -1,5 +1,5 @@
 import type { BufferGeometry } from 'three';
-import { modelGeometry } from '@wildshard/sdk/modelGeometry';
+import { modelGeometry } from '../runtime/boot/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
 /** Immutable templates; runtime instance channels are attached only to independent copies. */

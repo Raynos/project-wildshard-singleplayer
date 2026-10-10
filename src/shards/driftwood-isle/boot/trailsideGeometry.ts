@@ -1,5 +1,5 @@
 import type { BufferGeometry } from 'three';
-import { modelGeometry } from '@wildshard/sdk/modelGeometry';
+import { modelGeometry } from '../runtime/boot/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 import bake from '../data/trailsideBake.json' with { type: 'json' };
 import { trailsideSpecKey, type TrailsideSpec } from '../world/trailsideLayout';

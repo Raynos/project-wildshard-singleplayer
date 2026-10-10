@@ -211,7 +211,6 @@
     "./items/coneStrikes": "./items/coneStrikes.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
-    "./modelGeometry": "./modelGeometry.ts",
     "./skinnedModel": "./skinnedModel.ts",
     "./bake/skinned": "./bake/skinned.ts",
     "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts",

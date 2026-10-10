@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
-import { modelGeometry } from '../src/sdk/modelGeometry';
+import { modelGeometry } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
 import { staticGlb } from '../src/sdk/bake/glb';
 
 function fixture(): { geometry: BufferGeometry; material: MeshStandardMaterial } {
@@ -12,7 +12,7 @@ function fixture(): { geometry: BufferGeometry; material: MeshStandardMaterial }
   return { geometry, material: new MeshStandardMaterial({ vertexColors: true }) };
 }
 const bake = (source: ReturnType<typeof fixture>): Uint8Array => staticGlb([{ ...source, customAttributes: { _SWAY: 'aSway' } }]);
-describe('SDK baked model geometry', () => {
+describe('Driftwood private baked model geometry', () => {
   it('loads once, preserves exact geometry channels and hands independent copies to runtime owners', async () => {
     const source = fixture(), asset = modelGeometry('fixed.glb', { _sway: 'aSway' }), bytes = bake(source);
     expect(() => asset.copy()).toThrow('not loaded');

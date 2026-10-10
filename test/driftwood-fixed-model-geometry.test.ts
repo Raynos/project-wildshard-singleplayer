@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { MeshStandardMaterial } from 'three';
-import { modelGeometry } from '../src/sdk/modelGeometry';
+import { modelGeometry } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { captainHatGeometry } from '../src/shards/driftwood-isle/generators/captainHat';
 import { boatGeometry } from '../src/shards/driftwood-isle/generators/boat';

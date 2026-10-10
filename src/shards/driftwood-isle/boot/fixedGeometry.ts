@@ -1,7 +1,7 @@
 import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
-import { modelGeometry } from '@wildshard/sdk/modelGeometry';
+import { modelGeometry } from '../runtime/boot/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
 /** Immutable CPU templates only; every model receives a deep mutable geometry copy. */

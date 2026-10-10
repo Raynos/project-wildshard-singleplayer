@@ -1,5 +1,5 @@
 import { Box3, Matrix4, Vector3, type BufferGeometry } from 'three';
-import { modelGeometry } from '@wildshard/sdk/modelGeometry';
+import { modelGeometry } from '../runtime/boot/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 import bake from '../data/coveBake.json' with { type: 'json' };
 import { coveSpecKey, type CoveSpec } from '../world/coveLayout';

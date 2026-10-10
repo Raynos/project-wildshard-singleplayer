@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { MeshStandardMaterial, InstancedBufferAttribute } from 'three';
 import { staticGlb } from '../../../src/sdk/bake/glb';
-import { modelGeometry } from '../../../src/sdk/modelGeometry';
+import { modelGeometry } from '../../../src/shards/driftwood-isle/runtime/boot/modelGeometry';
 import { coverGeometry, coverLook } from '../../../src/shards/driftwood-isle/generators/groundCover';
 import COVER_LOOK from '../../../src/shards/driftwood-isle/data/coverLook.json' with { type: 'json' };
 import { loadCoverGeometry, copyCoverGeometry } from '../../../src/shards/driftwood-isle/boot/coverGeometry';

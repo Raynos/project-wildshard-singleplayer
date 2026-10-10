@@ -2453,6 +2453,26 @@
     "src/shards/pine-hollow/runtime/viewmodel/staveBow.ts:unbounded-loop:945c7af6d6285e4ea50af3de6ed2c25590a9effddeb38e096da085a0b2afb5cd": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/driftwood-isle/runtime/boot/modelGeometry.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/boot/modelGeometry.ts:raw-render:37de407479eab2fb53f78a51a1a54eec96688320644c6949e20c0f81ee958ad6": {
+      "count": 2,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/boot/modelGeometry.ts:unbounded-loop:d67e49ec19086b8e4b8a67788df0f7fe7761d378524bb49a9919b5d8ea1f844d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/boot/modelGeometry.ts:unbounded-loop:e6017c3ebb1713136c1fbce5f81090b2f5b34816442d8548b8d89244a24aae04": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/boot/modelGeometry.ts:unbounded-loop:22e1cea37f37738b21536d9a8f1097b68ee77f076c98fabb0637a177cc06ef79": {
+      "count": 1,
+      "row": "SF46"
     }
   }
 }
