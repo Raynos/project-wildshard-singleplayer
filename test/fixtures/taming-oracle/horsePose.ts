@@ -1,0 +1,99 @@
+// Frozen horse postPose at c7c6ddd9b; only its explicit wind port and renderer-free context type differ.
+import type { AnimalRigContext } from '../../../src/engine/entities/animalRig';
+import { smooth01, bump, clamp } from '../../../src/engine/entities/species/rigs';
+const decayKnob = (m: Record<string, number>, k: string, dt: number, rate: number): number => {
+  const v = m[k] ?? 0;
+  if (v > 0) m[k] = Math.max(0, v - dt * rate);
+  return v;
+};
+
+/** Frozen shipping overlays; original expressions from c7c6ddd9b. */
+export function shippingHorsePose(c: AnimalRigContext, wind: { readonly x: number; readonly z: number; readonly strength: number }): void {
+  const b = c.bones, m = c.mem;
+  const body = b['body'], n1 = b['neck1'], n2 = b['neck2'], head = b['head'], m1 = b['mane1'], m2 = b['mane2'];
+  const t1 = b['tail'], t2 = b['tail2'], t3 = b['tail3'];
+  if (body === undefined || n1 === undefined || n2 === undefined || head === undefined || m1 === undefined || m2 === undefined || t1 === undefined || t2 === undefined || t3 === undefined) return;
+  const dt = c.dt;
+  // eased knobs
+  const ez = (k: string, target: number, rate: number): number => { const cur = m[`_${k}`] ?? 0; const v = cur + (target - cur) * Math.min(1, dt * rate); m[`_${k}`] = v; return v; };
+  const alive = c.alive;
+  const rear = smooth01(ez('rear', alive ? clamp(m['rear'] ?? 0, 0, 1) : 0, 3.5));
+  const buck = ez('buck', alive ? clamp(m['buck'] ?? 0, 0, 1) : 0, 5);
+  const kick = alive ? bump(1 - clamp(decayKnob(m, 'kick', dt, 1.8), 0, 1), 0, 1) * ((m['kick'] ?? 0) > 0 ? 1 : 0) : 0;
+  const stamp = alive ? bump(1 - clamp(decayKnob(m, 'stamp', dt, 2.5), 0, 1), 0, 1) * ((m['stamp'] ?? 0) > 0 ? 1 : 0) : 0;
+  const toss = alive ? bump(1 - clamp(decayKnob(m, 'toss', dt, 2), 0, 1), 0, 1) * ((m['toss'] ?? 0) > 0 ? 1 : 0) : 0;
+  const headUp = ez('headUp', alive ? clamp(m['headUp'] ?? 0, 0, 1) : 0, 3);
+  const pin = ez('pin', alive ? clamp(m['pin'] ?? 0, 0, 1) : 0, 6);
+  const speed = c.speed;
+  const run = clamp((speed - 3) / 9, 0, 1);
+  // Animal.ts rewrites the body bone's y every frame but never its z: keep the bind z and set z absolutely
+  const bz = (m['_bz'] ??= body.position.z);
+  body.position.z = bz;
+
+  // rearing: pivot on the hind feet (raise the body bone so the hips stay put), forelegs fold, neck up
+  if (rear > 0.001) {
+    const th = rear * 0.78;
+    body.rotation.x -= th;
+    body.position.y += 0.6 * Math.sin(th);
+    body.position.z = bz - 0.31 * (1 - Math.cos(th));
+    n1.rotation.x -= 0.35 * rear; head.rotation.x += 0.25 * rear;
+    for (const s of ['L', 'R'] as const) {
+      const sh = b[`F${s}_shoulder`], ca = b[`F${s}_carpus`], fe = b[`F${s}_fetlock`], hp = b[`B${s}_hip`], stf = b[`B${s}_stifle`];
+      const paw = s === 'L' ? Math.sin(c.t * 7) : Math.sin(c.t * 7 + 2);   // the forelegs paw the air
+      if (sh !== undefined) sh.rotation.x -= (0.5 + 0.25 * paw) * rear;
+      if (ca !== undefined) ca.rotation.x += 1.5 * rear;
+      if (fe !== undefined) fe.rotation.x += 0.4 * rear;
+      if (hp !== undefined) hp.rotation.x += th * 0.85;
+      if (stf !== undefined) stf.rotation.x += 0.25 * rear;
+    }
+  }
+  // bucking: the hind end thrown up, head down, a side twist
+  if (buck > 0.001) {
+    const ph = Math.sin(c.t * 6.5);
+    const up = Math.max(0, ph) * buck;
+    body.rotation.x += 0.4 * up - 0.1 * Math.max(0, -ph) * buck;
+    body.rotation.z += 0.15 * (m['buckDir'] ?? 1) * up;
+    body.position.y += 0.12 * Math.abs(ph) * buck;
+    n1.rotation.x += 0.45 * up;
+    for (const s of ['L', 'R'] as const) { const hp = b[`B${s}_hip`], stf = b[`B${s}_stifle`]; if (hp !== undefined) hp.rotation.x += 0.9 * up; if (stf !== undefined) stf.rotation.x -= 0.5 * up; }
+  }
+  // the hind kick: weight forward, both hind legs lash back
+  if (kick > 0.001) {
+    body.rotation.x += 0.3 * kick;
+    n1.rotation.x += 0.4 * kick;
+    for (const s of ['L', 'R'] as const) { const hp = b[`B${s}_hip`], hk = b[`B${s}_hock`]; if (hp !== undefined) hp.rotation.x += 1.2 * kick; if (hk !== undefined) hk.rotation.x -= 0.5 * kick; }
+  }
+  if (stamp > 0.001) { const sh = b['FR_shoulder'], ca = b['FR_carpus']; if (sh !== undefined) sh.rotation.x -= 0.5 * stamp; if (ca !== undefined) ca.rotation.x += stamp; }
+  // grazing: the generic graze (pose.grazeNeck 0) only nods the head; a horse drops the whole neck from the withers and
+  // tucks the head back toward vertical so the muzzle reaches the grass (solved offline for this rig: neck1 1.7, neck2 0.1,
+  // head −1.2 in total)
+  const graze = ez('graze', alive && c.state === 'graze' && c.speed < 0.3 ? 1 : 0, 2.2);
+  if (graze > 0.001) { n1.rotation.x += 1.35 * graze; n2.rotation.x -= 0.1 * graze; head.rotation.x -= 1.55 * graze; }
+  // ridden (Mount.ts `turnLead` −1..1, + = left): the neck bends into the rein before the body turns — eased here (~0.3 s),
+  // so a turn reads as the head leading and the body following, never a snap; the head sits a little over the neck's bend
+  const lead = ez('turnLead', alive ? clamp(m['turnLead'] ?? 0, -1, 1) : 0, 3.2);
+  if (Math.abs(lead) > 0.001) { n1.rotation.y += 0.2 * lead; n2.rotation.y += 0.2 * lead; head.rotation.y += 0.16 * lead; head.rotation.z -= 0.06 * lead; }
+  // head high + ears forward (watching); ears pinned (warning); a toss
+  n1.rotation.x -= 0.28 * headUp + 0.35 * toss;
+  n2.rotation.x -= 0.1 * headUp;
+  head.rotation.x += 0.15 * headUp + 0.3 * toss;
+  const eL = b['earL'], eR = b['earR'];
+  if (eL !== undefined) eL.rotation.x += 1.2 * pin - 0.3 * headUp;
+  if (eR !== undefined) eR.rotation.x += 1.2 * pin - 0.3 * headUp;
+  // mane: falls to one side, swings with the stride, streams back at speed
+  // (the locks fall to the right in the model; the bones lift them back and out at speed and swing them with the stride)
+  // the steppe wind lifts the mane and the tail even standing (wildEnv.wind: the gusts' strength, which side it comes from)
+  const w = wind, ws = w.strength * (1 - run);
+  const across = w.x * Math.cos(c.yaw) - w.z * Math.sin(c.yaw);   // + = the wind blows toward the horse's left
+  const gust = 0.6 + 0.4 * Math.sin(c.t * 0.9 + c.seed * 5) + 0.25 * Math.sin(c.t * 3.7 + c.seed);
+  const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.1 + 0.22 * run) + 0.05 * Math.sin(c.t * 1.7 + c.seed * 3) + 0.03 * Math.sin(c.t * 4.1 + c.seed)
+    + ws * gust * (0.25 * across + 0.06 * Math.sin(c.t * 5.3 + c.seed * 2));
+  m1.rotation.set(-0.35 * run - 0.1 * rear, 0, 0.25 * run + swing * 0.7);
+  m2.rotation.set(-0.45 * run - 0.1 * rear, 0, 0.3 * run + swing);
+  // tail: the dock lifts when running (Animal.ts' gallopTail), the hair lags and streams
+  const lag = Math.sin(c.phase * Math.PI * 2 - 2.0);
+  t2.rotation.set(-0.2 * run + 0.06 * lag * run + 0.3 * buck - 0.12 * ws * gust, 0, 0.1 * Math.sin(c.t * 1.1 + c.seed * 4) * (1 - run) + 0.08 * lag * run + 0.3 * ws * gust * across);
+  t3.rotation.set(-0.35 * run + 0.08 * lag * run - 0.15 * ws * gust, 0, 0.14 * Math.sin(c.t * 1.1 - 0.8 + c.seed * 4) * (1 - run) + 0.1 * lag * run + 0.35 * ws * gust * across);
+  void t1;
+}
+

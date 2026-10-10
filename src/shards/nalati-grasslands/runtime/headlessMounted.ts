@@ -29,7 +29,11 @@ const Saved = v.strictObject({ version: v.literal(1), horse: v.nullable(v.string
 export interface NalatiMountedPlayer {
   readonly body: MountedBody; readonly rider: MountedRider;
   readonly mounted: boolean; readonly horse: AnimalSim | null;
-  readonly mount: (id: string) => boolean; readonly dismount: (thrown?: boolean) => void;
+  readonly mount: (id: string, breaking?: boolean) => boolean;
+  /** Only the taming owner may register/retire an actually adopted horse. */
+  readonly addMountable: (a: AnimalSim) => void; readonly removeMountable: (a: AnimalSim) => void; readonly dismount: (thrown?: boolean) => void;
+  /** Actual registration order, for the page's strict nearest ride-action selector. */
+  readonly mountables: readonly AnimalSim[];
   readonly phase: (id: string) => number;
 }
 const installed = new WeakMap<SimHost, NalatiMountedPlayer>();
@@ -75,6 +79,7 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
   for (let i = 0; i < Math.min(64, ports.mountable.length); i++) {
     const id = ports.mountable[i]; if (id === undefined || !poses.has(id)) throw new Error('Invalid Nalati mountable identity');
   }
+  const mountables = ports.mountable.map(id => { const a = host.entities.get(id); if (a === undefined) throw new Error('Missing native mountable'); return a; });
   const poseRows = [...poses].map(([id, pose]) => ({ id, pose }));
   const dismount = (thrown = false): void => {
     const a = horse; if (a === null) return;
@@ -143,12 +148,13 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     if (horse !== null) body.placeRider(dt, 1, a, rider, world);
   } };
   host.usePlayerDriver(driver);
-  const mount = (id: string): boolean => {
+  const mount = (id: string, breaking = false): boolean => {
     const a = host.entities.get(id);
-    if (horse !== null || a === undefined || !a.alive || a.driven || !available.has(id)) return false;
+    if (horse !== null || a === undefined || !a.alive || a.driven || (!available.has(id) && !(breaking && ports.groups.herds.some(h => h.stallion === a)))) return false;
     host.setBoard(false); horse = a;
     const h = herd(a); if (h !== null) h.setRidden(a); else a.mem['ridden'] = 1;
     a.setMotion(a.yaw, 0, 2); body.heading = a.yaw; body.speed = 0; body.wUp = 0; body.yawRate = 0;
+    body.breaking = breaking;
     body.target = 0; body.rateIn = 0; body.turnIn = 0; body.sector = 2; body.jumpQueued = false;
     a.driven = true; a.yOffset = 0; body.feet.copy(a.position);
     body.jostles = 0; body.shoveX = body.shoveZ = 0; body.jolt = 0;
@@ -188,7 +194,7 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     }, restore: value => {
       const state = v.parse(Saved, value), checked = new MountedBody(HORSE_SPEED); checked.restoreBody(state.body);
       const a = state.horse === null ? null : host.entities.get(state.horse);
-      if (a === undefined || (state.horse === null) !== (state.motor === null) || (a !== null && (!available.has(a.entityId) || !a.driven))
+      if (a === undefined || (state.horse === null) !== (state.motor === null) || (a !== null && ((!available.has(a.entityId) && !(checked.breaking && ports.groups.herds.some(h => h.stallion === a))) || !a.driven))
         || state.poses.length !== poses.size || new Set(state.poses.map(([id]) => id)).size !== poses.size) throw new Error('Invalid mounted continuation identity');
       // Validate all pose wires before mutating the installed law.
       for (let i = 0; i < Math.min(64, state.poses.length); i++) {
@@ -220,6 +226,21 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
   }, 'afterBodies');
   // The current motor changes after native restore. Capture the slot, not an expired wrapper/world.
   host.scope.onDispose(() => { body.motor?.dispose(); body.motor = null; poses.clear(); installed.delete(host); });
-  const out: NalatiMountedPlayer = { body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase };
+  const addMountable = (a: AnimalSim): void => {
+    if (host.entities.get(a.entityId) !== a || a.kind !== 'horse' || a.variant !== 'tulpar' || available.has(a.entityId)
+      || poses.size >= 64) throw new Error('Foreign Nalati adopted mount');
+    const pose = new AnimalPoseLaw({ dims: a.dims, custom: true,
+      ...(HORSE_SPECIES.gait === undefined ? {} : { gait: HORSE_SPECIES.gait }),
+      ...(HORSE_SPECIES.pose === undefined ? {} : { pose: HORSE_SPECIES.pose }) });
+    a.mem['owned'] = 1; poses.set(a.entityId, pose); poseRows.push({ id: a.entityId, pose }); available.add(a.entityId); mountables.push(a);
+  };
+  const removeMountable = (a: AnimalSim): void => {
+    if (host.entities.get(a.entityId) !== a || a === horse || a.kind !== 'horse' || a.variant !== 'tulpar'
+      || !available.delete(a.entityId)) throw new Error('Foreign Nalati mount removal');
+    const registered = mountables.indexOf(a); if (registered === -1) throw new Error('Missing adopted mount'); mountables.splice(registered, 1);
+    poses.delete(a.entityId); const at = poseRows.findIndex(row => row.id === a.entityId); if (at === -1) throw new Error('Missing adopted pose');
+    poseRows.splice(at, 1);
+  };
+  const out: NalatiMountedPlayer = { body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, addMountable, removeMountable, mountables };
   installed.set(host, out); return out;
 }

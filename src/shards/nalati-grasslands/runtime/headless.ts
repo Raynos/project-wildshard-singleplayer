@@ -1,3 +1,4 @@
+import { installNalatiTaming, nalatiTamingOf } from './headlessTaming';
 import { proveNalatiEntryways } from './headlessEntryways';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, type SimHost, type SimLevel, type SimValue } from '@wildshard/engine/sim';
@@ -244,7 +245,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
   bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; stream: RngState; wildStream: RngState;
 } {
   const { bake } = ports, s = bakedSamplers(ports.grid);
-  host.useBodyBands({ present: a => !ports.elites.absent.has(a), rate: a => a.driven || a.state === 'sidestep' || ports.elites.pinned.has(a) ? 'always' : 'ai' });
+  host.useBodyBands({ present: a => !ports.elites.absent.has(a) && (!('hidden' in a) || a.hidden !== true), rate: a => a.driven || a.state === 'sidestep' || ports.elites.pinned.has(a) ? 'always' : 'ai' });
   const roster = nalatiBootRoster({ normalY: (x, z) => s.normalAt(x, z)[1], heightAt: s.heightAt, waterLevel: () => TERRAIN.waterLevel(), wetAt: nalatiWetAt }, ports.clock);
   if (roster.bodies.length !== bake.actors.length || JSON.stringify(roster.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.id) }))) !== JSON.stringify(bake.herds))
     throw new Error('Nalati roster diverges from the page\'s list');
@@ -320,19 +321,21 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const manager = (): NalatiHostCreatures => { const value = installed.creatures; if (value === undefined) throw new Error('Nalati elite used before manager install'); return value; };
     // The page's elite rules run after weather and BEFORE Wildlife. Setup adopts the already rolled boot actors;
     // a restoring install only reconnects saved identities after the manager has reinstalled its deferred roster.
-    const elites = installNalatiElites(host, { bindings, heightAt, ledges: bake.ledges, phase: () => clock.dayPhase, storm: () => env.storm,
+    const elites = installNalatiElites(host, { bindings, taming: () => nalatiTamingOf(host) ?? null, heightAt, ledges: bake.ledges, phase: () => clock.dayPhase, storm: () => env.storm,
       environment: () => env, packs: () => groups.packs,
       spawnPack: (x, z, variants) => manager().spawnElitePack(x, z, variants), retirePack: pack => { manager().retirePack(pack); },
       bodies: () => installed.creatures?.bodies ?? bodies.map(b => b.actor), herd: () => groups.herds[1] ?? null,
       spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
+    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, rideUpdate: dt => { nalatiTamingOf(host)?.update(dt); }, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
     // The same two camp identities and authored road order as ride/ride.ts; taming adds other mountables later.
-    const mountable = bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId);
-    installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, surfaceAt, wetAt: nalatiWetAt,
+    const mountable = [...bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId), ...manager().bondedHorseIds()];
+    const mounted = installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, surfaceAt, wetAt: nalatiWetAt,
       inBounds: (x, z, margin) => Math.abs(x) < NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) < NALATI_GROUND_SIZE / 2 - margin,
       roads: [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL] });
+    const rest = HITCH_HORSE_SPOTS[0]; if (rest === undefined) throw new Error('Missing Nalati hitch rest');
+    installNalatiTaming(host, { groups, creatures: manager(), mounted, environment: env, context, rest });
     scare = (x, z) => { manager().scare(x, z, 60); };
     if (!context.restoring) elites.initialize();
   } };

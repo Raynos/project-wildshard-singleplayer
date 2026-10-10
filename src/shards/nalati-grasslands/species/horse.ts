@@ -1,6 +1,7 @@
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
-import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
+import type { SpeciesDef, AnimalSpecies, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, smooth01, bump, clamp } from '@wildshard/engine/entities/species/rigs';
 import { engineString } from '@wildshard/engine/strings';
 
@@ -69,7 +70,8 @@ const decayKnob = (m: Record<string, number>, k: string, dt: number, rate: numbe
   return v;
 };
 
-function horsePostPose(c: RigAnimCtx): void {
+/** Shipping mane, rear and head overlays on either real view bones or owned native joints. */
+export function poseNalatiHorse(c: AnimalRigContext, wind: { readonly x: number; readonly z: number; readonly strength: number }): void {
   const b = c.bones, m = c.mem;
   const body = b['body'], n1 = b['neck1'], n2 = b['neck2'], head = b['head'], m1 = b['mane1'], m2 = b['mane2'];
   const t1 = b['tail'], t2 = b['tail2'], t3 = b['tail3'];
@@ -144,7 +146,7 @@ function horsePostPose(c: RigAnimCtx): void {
   // mane: falls to one side, swings with the stride, streams back at speed
   // (the locks fall to the right in the model; the bones lift them back and out at speed and swing them with the stride)
   // the steppe wind lifts the mane and the tail even standing (wildEnv.wind: the gusts' strength, which side it comes from)
-  const w = wildEnv.wind, ws = w.strength * (1 - run);
+  const w = wind, ws = w.strength * (1 - run);
   const across = w.x * Math.cos(c.yaw) - w.z * Math.sin(c.yaw);   // + = the wind blows toward the horse's left
   const gust = 0.6 + 0.4 * Math.sin(c.t * 0.9 + c.seed * 5) + 0.25 * Math.sin(c.t * 3.7 + c.seed);
   const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.1 + 0.22 * run) + 0.05 * Math.sin(c.t * 1.7 + c.seed * 3) + 0.03 * Math.sin(c.t * 4.1 + c.seed)
@@ -235,7 +237,7 @@ export const HORSE_SPECIES: SpeciesDef = {
     waryTime: 20, waryBoost: 1.3, herdAlertRadius: 20, herdBoltDelayMin: 0.2, herdBoltDelayMax: 0.8, impactSpook: 15, impactAlert: 40,
   },
   build: buildHorse,
-  postPose: horsePostPose,
+  postPose: c => { poseNalatiHorse(c, wildEnv.wind); },
   tick: 'ai',
   act: actHorse,
   think: thinkHorse,

@@ -27,7 +27,7 @@ const Entry = v.strictObject({ id: v.picklist(['aqbars', 'kokbori', 'argymaq']),
   lockHp: finite, seenSig: v.boolean(), leashT: finite, lastHit: v.nullable(finite), forced: v.boolean() });
 const Script = v.strictObject({ animal: v.nullable(v.string()), phase2: v.boolean(), keeper: v.unknown() });
 const PackScript = v.strictObject({ animal: v.nullable(v.string()), phase2: v.boolean(), keeper: v.unknown(), pack: v.nullable(v.pipe(finite, v.integer(), v.minValue(0))) });
-const Saved = v.strictObject({ version: v.literal(1), clocks: v.strictObject({ saveT: finite, lastDusk: v.boolean() }),
+const Saved = v.strictObject({ version: v.literal(1), argDetached: v.exactOptional(v.literal(true)), clocks: v.strictObject({ saveT: finite, lastDusk: v.boolean() }),
   records: v.record(v.string(), RecordValue), entries: v.tuple([Entry, Entry, Entry]), aqbars: Script, kokbori: PackScript, argymaq: Script });
 export const NALATI_ELITES_STEP = 'nalati.elites';
 type NativeEliteScript = EliteCoreScript<AnimalSim>;
@@ -52,12 +52,13 @@ export function installNalatiElites(host: SimHost, ports: {
   readonly retire: (a: AnimalSim) => void; readonly herd: () => ArgymaqHerd<AnimalSim> | null;
   readonly heightAt: (x: number, z: number) => number; readonly ledges: readonly AqbarsLedge[];
   readonly phase: () => string; readonly storm: () => boolean;
+  readonly taming?: () => { readonly phase: string; readonly tulpar: AnimalSim | null } | null;
 }): NalatiNativeElites {
   const aqDef = NALATI_ELITE_DEFS['aqbars'], argDef = NALATI_ELITE_DEFS['argymaq'], kbDef = NALATI_ELITE_DEFS['kokbori'];
   if (aqDef === undefined || argDef === undefined || kbDef === undefined) throw new Error('Missing Nalati elite definitions');
   const silent = (): void => undefined, tell = { setTime: silent, ring: silent, lane: silent, hide: silent };
   const head = new Vector3(), dir = new Vector3(), knocked = { x: 0, z: 0 };
-  let adopted = false;
+  let adopted = false, argDetached = false;
   const aqState: { animal: AnimalSim | null; phase2: boolean } = { animal: null, phase2: false };
   const argState: { animal: AnimalSim | null; phase2: boolean } = { animal: null, phase2: false };
   const kbState: { animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null } = { animal: null, phase2: false, pack: null };
@@ -91,8 +92,11 @@ export function installNalatiElites(host: SimHost, ports: {
   }
   const argPorts = { player: host.player, phase2: () => argState.phase2, lane: tell,
     signature: markArgSignature,
-    // No fake mount. The page ride/taming law is the next SF72 slice, so this path cannot grant the horse yet.
-    taming: (): null => null, adopted: (): never => { throw new Error('Nalati mounted reward is not hosted yet'); } };
+    taming: () => ports.taming?.() ?? null, adopted: (tul: AnimalSim): void => {
+      if (ports.taming === undefined || argDetached || host.entities.get(tul.entityId) !== tul || tul.variant !== 'tulpar') throw new Error('Nalati adopted reward has no native owner');
+      tul.scale = 1.3; core.won('argymaq'); argDetached = true;
+      // Species/gameplay fact filing remains an explicit witness gap; this is only the actual keeper completion.
+    } };
   const arg = new ArgymaqKeeper<AnimalSim>(argPorts);
   const aqFrame = (dt: number, t: number, engaged: boolean, leashing: boolean): void => { pin(aqState.animal, engaged); aq.tick(aqState.animal, dt, t, engaged, leashing); };
   const aqScript: NativeEliteScript = {
@@ -140,7 +144,7 @@ export function installNalatiElites(host: SimHost, ports: {
     enterPhase2: () => { kbState.phase2 = true; kb.enterPhase2(kbState.animal); }, trophy: silent,
     tick: kbFrame,
   };
-  const argFrame = (dt: number, t: number, engaged: boolean): void => { pin(argState.animal, engaged); arg.tick(argState.animal, ports.herd(), dt, t, engaged); };
+  const argFrame = (dt: number, t: number, engaged: boolean): void => { pin(argState.animal, engaged); arg.tick(argState.animal, argDetached ? null : ports.herd(), dt, t, engaged); };
   const argScript: NativeEliteScript = {
     def: argDef, get animal() { return argState.animal; },
     spawn: () => {
@@ -156,7 +160,7 @@ export function installNalatiElites(host: SimHost, ports: {
   };
   core.add(aqScript); core.add(kbScript); core.add(argScript);
   host.onStep(NALATI_ELITES_STEP, dt => { core.update(dt, host.clock.now); }, {
-    snapshot: () => ({ version: 1, clocks: core.clocks(), records: Object.fromEntries(Object.entries(core.records()).map(([id, r]) => [id, { ...r }])), entries: core.entries.map(e => ({ id: e.script.def.id, state: e.state,
+    snapshot: () => ({ version: 1, ...(argDetached ? { argDetached: true } : {}), clocks: core.clocks(), records: Object.fromEntries(Object.entries(core.records()).map(([id, r]) => [id, { ...r }])), entries: core.entries.map(e => ({ id: e.script.def.id, state: e.state,
       timer: e.timer, waitDusk: e.waitDusk, discovered: e.discovered, bannerArmed: e.bannerArmed, farT: e.farT, phase2: e.phase2,
       beatT: e.beatT, lockHp: e.lockHp, seenSig: e.seenSig, leashT: e.leashT, lastHit: e.lastHit === -Infinity ? null : e.lastHit, forced: e.forced })),
       aqbars: { animal: aqScript.animal?.entityId ?? null, phase2: aqState.phase2, keeper: aq.snapshot() },
@@ -174,7 +178,7 @@ export function installNalatiElites(host: SimHost, ports: {
       };
       const a = body(s.aqbars.animal, 'leopard'), h = body(s.argymaq.animal, 'argymaq'), k = body(s.kokbori.animal, 'kokbori');
       const pack = s.kokbori.pack === null ? null : ports.packs()[s.kokbori.pack];
-      if ((a !== null && a.variant !== 'aqbars') || (h !== null && h !== ports.herd()?.stallion)
+      if ((a !== null && a.variant !== 'aqbars') || (h !== null && s.argDetached !== true && h !== ports.herd()?.stallion)
         || (k !== null && k.variant !== 'kokbori') || (k === null) !== (pack === null) || pack === undefined
         || (pack !== null && (pack.members.length !== 5 || pack.members.some((m, i) => m.kind !== 'wolf' || m.entityId !== `creature:${String(Number(k?.entityId.slice(9)) + i + 1)}`)))
         || s.entries[0].phase2 !== s.aqbars.phase2 || s.entries[1].phase2 !== s.kokbori.phase2 || s.entries[2].phase2 !== s.argymaq.phase2) throw new Error('Incompatible Nalati elite binding');
@@ -185,7 +189,8 @@ export function installNalatiElites(host: SimHost, ports: {
       aq.restore(s.aqbars.keeper); arg.restore(s.argymaq.keeper); kb.restore(s.kokbori.keeper);
       aqState.animal = a; aqState.phase2 = s.aqbars.phase2; argState.animal = h; argState.phase2 = s.argymaq.phase2;
       kbState.animal = k; kbState.phase2 = s.kokbori.phase2; kbState.pack = pack;
-      adopted = true;
+      adopted = true; argDetached = s.argDetached === true;
+      if (argDetached && (s.entries[2].state !== 'retired' || !s.records['argymaq'].retired)) throw new Error('Invalid detached Argymaq keeper');
       core.restoreClocks(s.clocks, s.records);
       s.entries.forEach((entry, i) => { const e = core.entries[i]; if (e === undefined) throw new Error('Missing Nalati elite entry');
         const { id: _id, lastHit, ...rest } = entry; Object.assign(e, rest, { lastHit: lastHit ?? -Infinity }); pin(e.script.animal, e.state === 'engaged'); });

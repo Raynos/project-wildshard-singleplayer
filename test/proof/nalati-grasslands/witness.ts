@@ -8,6 +8,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { NALATI_NAVMESH_ASSET, NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest } from '../../fake/simState';
 
 /** Gaps are gameplay requirements, not exemptions; a boot/replay proof cannot certify the whole shard. */
@@ -50,7 +51,8 @@ export async function nalatiNativeWitness(replay: boolean): Promise<object> {
     const entries = plan.proveEntries(first);
     assert.equal(entries.lanes, 92, 'Every native opening needs all 23 capsule lanes');
     assert.ok(entries.steps > 0);
-    return { entries, entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
+    const taming = await nalatiTamingWitness(rapier, assets, replay);
+    return { taming, entries, entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
       headless: { status: 'partial', stage: 'gameplay-coverage', nativeBoot: true, actors: 35, colliders, ticksExecuted, checkpointHash },
       ...(replay ? { replay: { status: 'partial', checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60, suffixHash, wholeShard: false } } : {}) };
   } finally {
