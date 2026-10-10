@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { CubeUVReflectionMapping, DataTexture, Group, PerspectiveCamera, Scene, WebGLRenderTarget, WebGLRenderer } from 'three';
+import { CubeUVReflectionMapping, DataTexture, Group, PointLight, PerspectiveCamera, Scene, WebGLRenderTarget, WebGLRenderer } from 'three';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
 import type { ProgramLike } from '../src/engine/boot/perflog';
 import { collectTextures, includeFutureLights, runPrecompile, type CompileJob } from '../src/engine/render/precompile';
@@ -45,4 +45,17 @@ it('borrows the admitted future PMREM layout for world jobs without changing the
   for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
   try { await expect(runPrecompile(renderer, new PerspectiveCamera(), jobs, 0)).rejects.toBe(failure); }
   finally { expect(page.environment).toBe(road); road.dispose(); entered.dispose(); }
+});
+
+it('warms the whole parked view while borrowing the bound native scene environment', () => {
+  const page = new Scene(), view = new Group(), native = new Scene(), authored = new Group(), environment = new DataTexture();
+  page.add(new PointLight(), new PointLight(), view); view.visible = false; view.add(native, authored);
+  native.environment = environment; authored.add(new PointLight());
+  const hidden = new Group(); hidden.visible = false; hidden.add(new PointLight()); authored.add(hidden);
+  const root = new Group(), job: CompileJob = { label: 'world', root, target: page, rt: null };
+  includeFutureLights([job], page, view, native.environment);
+  expect(root.children.filter(object => object instanceof PointLight)).toHaveLength(1);
+  expect(job.environment).toBe(environment); expect(view.visible).toBe(false); expect(page.environment).toBeNull();
+  expect(authored.children[0]?.parent).toBe(authored); expect(native.environment).toBe(environment);
+  environment.dispose();
 });

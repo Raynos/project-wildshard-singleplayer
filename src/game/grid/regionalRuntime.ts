@@ -309,7 +309,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               for (const animal of localPlay.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               // G217 stays up until the actual page composer has warmed this newly entered world and kit.
               await foundation.beforeWarm?.();
-              await request.page.world.game.warmEnteredFrame(owner);
+              // Authored ctx.root is a sibling of the native scene under this view; its lights draw on entry too.
+              await request.page.world.game.warmEnteredFrame(owner, view.root);
               restored = true;
             },
           };

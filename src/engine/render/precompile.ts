@@ -141,15 +141,22 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
  * target's visible traversal; live visibility, intensity, parents and the page's drawn light count stay unchanged.
  * A future scene's environment is likewise borrowed during compile: a parked sky can have a different PMREM layout
  * from the road. Post/background jobs targeting another scene keep that scene's lighting. */
-export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.Scene, future: THREE.Object3D): void {
+export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.Scene, future: THREE.Object3D,
+  environment: THREE.Texture | null = future instanceof THREE.Scene ? future.environment : null): void {
   if (future === target) return;
   const visible = new Set<THREE.Light>();
   target.traverseVisible(object => { if (object instanceof THREE.Light) visible.add(object); });
   const added: THREE.Light[] = [];
-  future.traverseVisible(object => { if (object instanceof THREE.Light && !visible.has(object)) added.push(object); });
+  const visit = (object: THREE.Object3D): void => {
+    // Only the parked root is hidden by admission; authored descendant visibility still governs the future draw.
+    if (object !== future && !object.visible) return;
+    if (object instanceof THREE.Light && !visible.has(object)) added.push(object);
+    for (const child of object.children) visit(child);
+  };
+  visit(future);
   for (const job of jobs) if (job.target === target) {
     for (const light of added) job.root.add(light.clone(false));
-    if (future instanceof THREE.Scene && future.environment !== null) job.environment = future.environment;
+    if (environment !== null) job.environment = environment;
   }
 }
 
@@ -406,6 +413,7 @@ export async function runPrecompile(
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
     /** A parked content subtree whose lights become visible on entry; no live light/visibility change. */ futureLighting?: THREE.Object3D;
+    /** The installing scene's PMREM when futureLighting includes sibling content outside that scene. */ futureEnvironment?: THREE.Texture;
     /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'> } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
@@ -445,7 +453,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
       ? shadowJobs(scene, rt) : [];
-    if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting);
+    if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle fixture uses the production native Rapier binary.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it, vi } from 'vitest';
-import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Group, Scene, Vector3 } from 'three';
+import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, PointLight, Group, Scene, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
@@ -106,9 +106,11 @@ it('requires a real foundation and exact whole-runtime lease before constructing
 it('prepares the complete claimed world on the road with inactive equipment and native services, then activates it', async () => {
   const f = fixture(), before = Object.getOwnPropertyDescriptors(f.runtime), prepared = await f.regional(f.request);
   const warm = vi.spyOn(f.world.game, 'warmEnteredFrame');
+  const authoredLight = new PointLight();
   let built: ShardPlayHost | null = null, ticks = 0;
   class Runtime extends ShardPlugin {
     override async world(ctx: ShardContext): Promise<void> {
+      ctx.root.add(authoredLight);
       ctx.piece({ id: 'prepared.deck', name: 'Deck', category: 'props', file: 'runtime/index.ts', colliders: [{ kind: 'box', x: 0, y: 1, z: 0, hx: 1, hy: 0.5, hz: 1 }] });
       await Promise.resolve();
       expect(ctx.app.registry).not.toBe(f.homeRegistry);
@@ -137,7 +139,11 @@ it('prepares the complete claimed world on the road with inactive equipment and 
     expect(f.world.game.scene.children[0]?.visible).toBe(false); expect(f.equipment.service.current).toBe(f.road.current);
     expect(f.host.physics.world.colliders.len()).toBe(2); expect(f.home.world.colliders.len()).toBe(0);
     expect(f.herd).not.toHaveBeenCalled(); expect(f.app.systemIds(f.scope)).not.toContain('prepared.gameplay');
-    expect(warm).toHaveBeenCalledOnce(); expect(prepared.checkpoint()).toBe(true);
+    expect(warm).toHaveBeenCalledOnce();
+    const futureRoot = warm.mock.calls[0]?.[1];
+    expect(futureRoot).toBe(f.world.game.scene.children[0]);
+    expect(authoredLight.parent?.parent).toBe(futureRoot); expect(futureRoot?.visible).toBe(false);
+    expect(prepared.checkpoint()).toBe(true);
     const hooks = session.timings().completed.length;
     prepared.loadout.interior(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
     expect(session.timings().completed).toHaveLength(hooks + 1);

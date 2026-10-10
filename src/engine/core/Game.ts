@@ -671,14 +671,17 @@ export class Game {
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
-   * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets. */
-  async warmEnteredFrame(owner: Scope): Promise<void> {
+   * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.
+   * A retained view may supply its whole future root, including sibling authored lights outside the bound scene. */
+  async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
-    const futureLighting = this.scene;
+    const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
+    const futureEnvironment = futureScene.environment;
     const current = (): boolean => !owner.disposed;
     const { precompileLevel, warmComposerFrame } = await import('../render/precompile');
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting }), current);
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting,
+      ...(futureEnvironment === null ? {} : { futureEnvironment }) }), current);
   }
 
   /**
