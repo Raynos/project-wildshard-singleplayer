@@ -9,6 +9,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime';
+import { HeadlessSimulation } from '../../../src/sdk/headless';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
@@ -28,8 +29,9 @@ import { DECK_PORTALS, SQUARE_ROUTE } from '../../../src/shards/nine-dragon-stac
  * the HEAVY hold, then jumps the square's west balustrade onto the Well's south rim and aims, LOCKs and JUMPs the Fei Zhua
  * across the Well (runtime/grapple.ts over the page's own law, grapple/sim.ts): the lifting crossing, the safety cap open
  * while it flies. Headless: the whole tape, then the adapter's `finish` runs the
- * portal-link entry proof (every deck lane, every bound transfer). Replay: committed checkpoints mid-swing AND mid-ride
- * and mid-crossing restore exactly, then each short suffix is replayed twice to identical canonical state.
+ * portal-link entry proof (every deck lane, every bound transfer). Replay: generated checkpoints mid-swing AND mid-ride
+ * and mid-crossing restore exactly, then each short suffix matches in process and in the shipping worker, including
+ * every tick's canonical state and committed effects.
  * Ledger (G285): the same tape's committed `fact` effects (the ride home lands in Lantern Square; the Fei Zhua's lifting
  * crossing settles over the Well) go through the platform Ledger under their declared rules: each achievement granted
  * once, durably, and a session restored from the end re-emits nothing.
@@ -48,6 +50,7 @@ export const SCOPE = {
     'the Fei Zhua on the page\'s own law (grapple/sim.ts over the 31 baked dragon hooks): aim as the phone\'s portrait camera, LOCK, JUMP; fire, bite, lift, zip, vault and settle on the player\'s capsule; the east tower\'s ledge from the arrival and exact continuation mid-zip in headless-runtime.test.ts',
     'the ledger (data/ledger.ts): the ride home\'s landing in Lantern Square and the settled Well crossing emit their declared facts as committed effects; the platform Ledger grants each achievement once, durably, with no re-emission after a restore',
     'the Well crossing (gates / fragments): over the square\'s west balustrade onto the south rim, seen past the rim\'s rail and the safety cap, the lifting zip over the parapet onto a crossing\'s deck; the safety cap\'s baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)',
+    'shipping worker continuation from the mid-swing/portal and lifting-crossing checkpoints: each complete short suffix matches every canonical state and committed effect through transfer or settle',
   ],
   open: [],
   notApplicable: ['Jian contacts on real targets: Nine has no creatures; its row fires a zero-damage contact at nothing'],
@@ -210,6 +213,7 @@ function checkCheckpoint(name: CheckpointName, snapshot: string): object {
 
 export async function replayProof(rapier: Rapier, inputs: string, name: CheckpointName): Promise<object> {
   let sim: TickWorkerAdapter | undefined, replay: TickWorkerAdapter | undefined;
+  let worker: HeadlessSimulation | undefined;
   try {
     if (checkpointsFresh(inputs).status !== 'fresh') throw new Error('Stale Nine Dragon checkpoints; regenerate from current headless inputs');
     const saved = readCheckpoint(name), { from, to } = SLICES[name];
@@ -220,12 +224,22 @@ export async function replayProof(rapier: Rapier, inputs: string, name: Checkpoi
     const end = run(sim, from, to), hash = digest(end);
     sim.dispose(); sim = undefined;
     replay = await adapter(rapier, saved.snapshot);
-    const replayEnd = run(replay, from, to), replayHash = digest(replayEnd);
+    worker = await HeadlessSimulation.create(source, new Map(), saved.snapshot, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    let replayEnd = saved.snapshot;
+    for (let tick = from; tick < to; tick++) {
+      const effects: HeadlessEffect[] = [];
+      replayEnd = run(replay, tick, tick + 1, false, effects);
+      const commit = await worker.step([{ source: 'witness.tape', commands: tape(tick) }]);
+      if (digest(commit.snapshot) !== digest(replayEnd) || JSON.stringify(commit.effects) !== JSON.stringify(effects)) {
+        throw new Error(`Shipping worker continuation diverged at tick ${tick + 1}`);
+      }
+    }
+    const replayHash = digest(replayEnd);
     if (name === 'ride' && portals(end).ride.rides.length !== 1) throw new Error('The replay must finish the first portal transfer');
     if (name === 'crossing' && grapple(end).sim.phase !== 'idle') throw new Error('The replay must settle the Well crossing');
     return { status: replayHash === hash ? 'passed' : 'failed', checkpointCaptured: true, checkpoint: { tick: from, ...at },
-      suffixTicksExecuted: to - from, ticksExecuted: 2 * (to - from), hash, replayHash };
-  } catch (error) { return { status: 'failed', dependency: reason(error), checkpointCaptured: false, suffixTicksExecuted: 0 }; } finally { sim?.dispose(); replay?.dispose(); }
+      suffixTicksExecuted: to - from, ticksExecuted: 2 * (to - from), hash, replayHash, workerTicks: to - from, workerExact: true };
+  } catch (error) { return { status: 'failed', dependency: reason(error), checkpointCaptured: false, suffixTicksExecuted: 0 }; } finally { await worker?.dispose(); sim?.dispose(); replay?.dispose(); }
 }
 
 const identity = { instance: 'nine-dragon-stack-witness', shard: source.identity.slug, revision: source.identity.revision };

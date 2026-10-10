@@ -1,15 +1,17 @@
 # Six native shards: compatibility witnesses (E435 / §C / SF72)
 
-**Signal Dunes passes (`compatible: true`, SF72); the other five remain `compatible: false`.** Signal's witness
+**Signal Dunes, Sky Reach and Nine Dragon pass (`compatible: true`, SF72).** Their current native reports prove
+real gameplay, canonical replay and durable Ledger facts. Pine, Driftwood and Nalati retain `compatible: false`
+reports with partial native coverage; their per-shard reports describe that coverage. Signal's witness
 (`test/proof/sunscar-dunes/witness.ts`) runs its renderer-free trusted entry `runtime/headless.ts`, composed as the
 platform's trusted adapter composes it, on a tape of tick commands alone: it walks the signal quest from the spawn,
 lights the fire, fells the Dune Matriarch (no health, flag, position or fact is ever written), restores her
 storm-phase checkpoint byte-exactly in process and in the shipping worker (`HeadlessSimulation` + `trustedRuntime`),
-and feeds the committed facts to the real `Ledger`. The other five are executable audits of the real trusted
-entries, not headless gameplay implementations: no real runtime reaches a tick, no mid-encounter checkpoint is
-captured, and no replay hash is claimed. Their renderer-free extraction is separate work.
+and feeds the committed facts to the real `Ledger`. Nine additionally restores both its portal/sword and lifting
+crossing checkpoints in the shipping worker, comparing every suffix tick's state and effects. Hook-placement
+extraction remains a separate authoring task, not a compatibility failure.
 
-Audited from clean committed source `b13614a6e7bb218f691a5f3b7040510de13cb7e8` plus these test-only files,
+The original dependency inventory below was audited from clean committed source `b13614a6e7bb218f691a5f3b7040510de13cb7e8` plus these test-only files,
 using the template's unchanged `scripts/sim-node-loader.mjs`, plain Node 24.18.1, no browser/DOM shim.
 Every shard has `run.mjs`, `headless.test.ts`, `replay.test.ts`, `ledger.test.ts` and an unedited-result
 `compatibility.json` with source revision and invocation. `dependency-chains.json` records static
@@ -19,16 +21,19 @@ Run, for example:
 
 ```sh
 node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all
-# Exit 1; JSON includes compatible:false (Signal Dunes: exit 0, compatible:true). Modes: all, headless, replay, ledger.
+# Signal Dunes: exit 0, compatible:true. Modes: all, headless, replay, ledger.
 pnpm exec vitest run test/proof/compatibility test/proof/sunscar-dunes test/proof/far-reach test/proof/pine-hollow test/proof/driftwood-isle test/proof/nalati-grasslands test/proof/nine-dragon-stack
 ```
 
-Vitest checks the CLI's nonzero refusal and exact blocker, not success at gameplay. Separate native
+Vitest checks native gameplay and replay slices alongside the unfinished contracts' fail-closed reports. Separate native
 processes must produce identical reports. A future source/entry change that removes a blocker requires
 updating this audit and supplying the real runtime/replay proof; an importable entry alone cannot turn
 compatibility green. Unknown modes throw rather than emit a passing result.
 
-| Shard | Actual trusted entry | First runtime blocker | Full source / partial ledger |
+The following table retains the original boot inventory for the unfinished entries; their current partial
+headless adapters and coverage are recorded in the per-shard reports, rather than those historical refusal paths.
+
+| Shard | Audited trusted entry | Historical runtime blocker / passing witness | Full source / partial ledger |
 | --- | --- | --- | --- |
 | Signal Dunes | `sunscar-dunes/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay) | 2 rules, both from gameplay |
 | Sky Reach | `far-reach/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay); CI runs it in checkpointed slices | 2 rules, both from gameplay |
@@ -70,14 +75,21 @@ baked pieces, the 13 declared homes (1 dune ray, 10 sand skitterers, 2 dune stri
 stream and respawn clocks, the whip as its declared item row (contact on the head ball / body capsule, then the lane:
 the browser whip's rule, `weapons/lash.ts`), the signal quest and interactions on `host.flags`, the Matriarch's
 encounter on `BossBrain` with her body in the creature keeper, and the entry proof (92 lanes on the native terrain).
-Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,516,
-past the 10,000-tick floor), taking 15 creature blows that knock the player back as the browser's do (`feel.blow`,
-the host's shared shove law); her storm-phase checkpoint restores byte-exactly, the 1,926-tick suffix to her fall
+Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,339,
+past the 10,000-tick floor), taking 14 creature blows that knock the player back as the browser's do (`feel.blow`,
+the host's shared shove law); her storm-phase checkpoint restores byte-exactly, the 1,779-tick suffix to her fall
 hashes identically, and the source-checkout worker started from the same checkpoint commits the same 60th-tick bytes; both
-facts reach the durable `Ledger` once under their declared provenance and a restore re-emits nothing. Known, documented
-gaps (not modelled headless): prompt line of sight, a crack command not spending the whip's cooldown, the browser
-whip's unroll / second lash / pull / stagger, and no heavy attack in the tick protocol (the crank's double crack is a
-`script` command).
+facts reach the durable `Ledger` once under their declared provenance and a restore re-emits nothing.
+
+The current `data/headless.ts` lash rows close the old cooldown and lash-timing gaps: `installLashHost` uses the same
+`LashRuntime` as the browser weapon, including cooldown refusal, unroll, the heavy's second lash, pull and stagger.
+World crack commands start that lash and the quest row runs only when it lands; they also spend its cooldown.
+The crank's heavy world crack remains a `script` command. These are implemented mechanics; this whole-shard tape
+alone does not exercise every lash reaction. The player protocol now carries HEAVY, but Signal's `rowsHeadless`
+adapter still maps creature attack commands to light lashes only; held-heavy creature attacks remain a host gap.
+The other host gaps are prompt line of sight and nearest-prompt selection: `installInteractionRows` checks
+eye distance and row conditions, while a command explicitly names its row. Neither gap is hidden by the passing
+whole-shard report.
 
 ### Sky Reach (`far-reach`)
 

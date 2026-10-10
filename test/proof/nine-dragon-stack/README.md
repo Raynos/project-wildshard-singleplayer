@@ -85,8 +85,10 @@ the Well, and proves 92 entry lanes / 8 transfers. Replay no longer repeats that
 | `ride` (400) | Jian swing 1, held in the square ring before transfer | 60 | 120 |
 | `crossing` (940) | Lifting zip across the Well, safety cap open | 144 | 288 |
 
-Each test owns one committed checkpoint, checks exact canonical restoration, then runs two fresh adapters' short
-suffixes and compares canonical state hashes in the same process. No native transcendental-dependent terminal digest
+Each test owns one generated checkpoint, checks exact canonical restoration, then runs two fresh adapters' short
+suffixes. The shipping `HeadlessSimulation` worker restores the same checkpoint and executes the entire suffix:
+60 ticks through the portal transfer, or 144 ticks through the Well crossing's settle. Every worker tick must match
+the in-process canonical state and committed effects. No native transcendental-dependent terminal digest
 is used as a cross-platform oracle. The aggregate replay steps **408 ticks**, down from 1,768 (77% fewer); headless
 coverage is unchanged. Separate tests keep the portal / sword and Well continuation assertions, each with a 60 s budget.
 

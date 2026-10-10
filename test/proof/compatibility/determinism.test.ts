@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import { nativeCompatibility } from './native';
 import { signalWitness } from '../sunscar-dunes/native';
 import { skyWitness } from '../far-reach/native';
+import { nineWitness } from '../nine-dragon-stack/native';
 import { pineWitness } from '../pine-hollow/native';
 import { driftwoodWitness } from '../driftwood-isle/native';
 
@@ -37,9 +38,9 @@ it('sunscar-dunes reports identical passing whole-shard results in independent n
 
 // The short replay slices carry canonical state hashes; run.mjs all retains the uninterrupted whole-tape witness.
 it.each(['ride', 'crossing'])('nine-dragon-stack reports an identical %s replay in independent native processes (its whole tape is run.mjs all)', name => {
-  const first = nativeCompatibility('nine-dragon-stack', `replay-${name}`), second = nativeCompatibility('nine-dragon-stack', `replay-${name}`);
+  const first = nineWitness(`replay-${name}`), second = nineWitness(`replay-${name}`);
   expect(first.stderr).toBe(''); expect(first.status).toBe(0); expect(second).toEqual(first);
-  expect(JSON.parse(first.stdout)).toMatchObject({ transitional: false, replay: { status: 'passed' } });
+  expect(JSON.parse(first.stdout)).toMatchObject({ transitional: false, replay: { status: 'passed', workerExact: true } });
 }, 60_000);
 
 it('far-reach reports identical step → gale-wall replay slices in independent native processes (its whole tape is run.mjs all)', () => {

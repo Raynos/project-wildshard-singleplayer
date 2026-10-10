@@ -1,12 +1,11 @@
 {
   "audit": {
-    "sourceRevision": "38df10ae3297022a12c0bd1bcc6069ebe4320ef2",
-    "candidate": "this commit: G285 Nine declares its two feats as ledger rows (data/ledger.ts); the ride home into Lantern Square and the settled Well crossing emit them from the same tape; production colliders, map inputs and checkpoint payloads unchanged",
+    "sourceRevision": "0b191cf2a00033e4df82a63d8d8a7c001f56e5f3",
+    "candidate": "this commit: witness-only shipping-worker continuations for the existing Jian/portal and lifting-crossing checkpoints; production source, collider/map inputs and checkpoint payloads unchanged",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "the uninterrupted 1084-tick route, Jian combo/heavy, two portal rides, Well lifting crossing, 92 entry lanes / 8 transfers; exact canonical restore and short in-process replays at ticks 400 and 940; both declared ledger facts granted once from gameplay, durable, no re-emission after a restore; no creatures",
-    "runs": "two independent native processes, identical output",
-    "checkpointInputs": "0c916e57022789f68c528f680ef49748f16bc9ac71833846ef2488decd3592ea"
+    "scope": "the uninterrupted 1084-tick route, Jian combo/heavy, two portal rides, Well lifting crossing, 92 entry lanes / 8 transfers; exact canonical restore at ticks 400 and 940, every state and committed effect matches the shipping worker through the complete 60/144-tick suffixes; both declared Ledger facts granted once from gameplay, durable, no re-emission after restore; no creatures",
+    "runs": "two independent native processes, identical output; focused replay and determinism checks, strict and touched lint passed at unchanged deadlines"
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
@@ -21,7 +20,8 @@
     "the Jian's charged heavy on the tick protocol's HEAVY hold: a 40-tick charge from the square's arrival, released into one heavy swing on the same clock",
     "the Fei Zhua on the page's own law (grapple/sim.ts over the 31 baked dragon hooks): aim as the phone's portrait camera, LOCK, JUMP; fire, bite, lift, zip, vault and settle on the player's capsule; the east tower's ledge from the arrival and exact continuation mid-zip in headless-runtime.test.ts",
     "the ledger (data/ledger.ts): the ride home's landing in Lantern Square and the settled Well crossing emit their declared facts as committed effects; the platform Ledger grants each achievement once, durably, with no re-emission after a restore",
-    "the Well crossing (gates / fragments): over the square's west balustrade onto the south rim, seen past the rim's rail and the safety cap, the lifting zip over the parapet onto a crossing's deck; the safety cap's baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)"
+    "the Well crossing (gates / fragments): over the square's west balustrade onto the south rim, seen past the rim's rail and the safety cap, the lifting zip over the parapet onto a crossing's deck; the safety cap's baked colliders off exactly while it flies (NdRuntime.guardOpen), closed again on the settle, exact continuation mid-crossing with the cap open (headless-runtime.test.ts)",
+    "shipping worker continuation from the mid-swing/portal and lifting-crossing checkpoints: each complete short suffix matches every canonical state and committed effect through transfer or settle"
   ],
   "open": [],
   "notApplicable": [
@@ -78,8 +78,10 @@
       },
       "suffixTicksExecuted": 60,
       "ticksExecuted": 120,
-      "hash": "87a299ef727f7bdb811bbded19226167397c51af590c1125388fc445367882f1",
-      "replayHash": "87a299ef727f7bdb811bbded19226167397c51af590c1125388fc445367882f1"
+      "hash": "e46f0f30ac255845923becacd32014e6efb6e69d628b65084f0efb51949dc553",
+      "replayHash": "e46f0f30ac255845923becacd32014e6efb6e69d628b65084f0efb51949dc553",
+      "workerTicks": 60,
+      "workerExact": true
     },
     "crossing": {
       "status": "passed",
@@ -91,8 +93,10 @@
       },
       "suffixTicksExecuted": 144,
       "ticksExecuted": 288,
-      "hash": "717422c873ae8c5ca727c9822100538e0a188ba64d59869e15f2bef48c402d4c",
-      "replayHash": "717422c873ae8c5ca727c9822100538e0a188ba64d59869e15f2bef48c402d4c"
+      "hash": "b093ab31ff38be051cd2090b747beffeb72d50517035fa233aa99e40ba24b88b",
+      "replayHash": "b093ab31ff38be051cd2090b747beffeb72d50517035fa233aa99e40ba24b88b",
+      "workerTicks": 144,
+      "workerExact": true
     }
   },
   "declarations": {
