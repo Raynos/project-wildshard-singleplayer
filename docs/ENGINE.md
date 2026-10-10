@@ -774,6 +774,9 @@ with a descriptive error rather than attempting an upload from released pixels.
 that parked scene's future lights through detached light clones in compile jobs targeting the rendered root. This
 warms the first visible frame's light-count variants without showing the parked world, changing live light counts,
 or adding per-frame lighting work. Visible lights are not counted twice; unrelated post targets keep their own lighting.
+Shadow jobs also warm the preceding road light state: Three draws shadows before refreshing its light state, so
+the first entered shadow pass can still use that prior count. The subsequent pass uses the entered count. Both
+variants resolve during the sliced approach warm-up; the visible scene and its per-frame lights stay unchanged.
 An admitted regional sky finishes before warm-up. Its parked scene carries the sky's borrowed environment;
 compile jobs temporarily use that exact PMREM mapping and cube-UV height, then restore the road environment
 in `finally` before yielding or drawing. This changes compilation inputs only, with no new sky allocation,

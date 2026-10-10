@@ -441,7 +441,12 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
     if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt));
+    // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
+    // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
+    const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
+      ? shadowJobs(scene, rt) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting);
+    jobs.push(...previousShadows);
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current);
