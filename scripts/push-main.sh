@@ -103,4 +103,4 @@ for _ in 1 2 3 4 5 6; do
   [ "$rc" = 0 ] || exit "$rc"
 done
 echo "push-main: still commits left after 6 pushes — run it again" >&2
-exit 1
+exit 75 # pushed, but more landed meanwhile: auto-push.sh goes again rather than calling it red

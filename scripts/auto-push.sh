@@ -137,7 +137,7 @@ while [ -e "$pending" ]; do
   note "push ${tip:0:9} ($(git rev-list --count "origin/main..$tip") ahead)"
   PUSH_WAIT=1 "${approve[@]}" bash scripts/push-main.sh > "$out" 2>&1
   rc=$?
-  if [ "$rc" = 0 ]; then
+  if [ "$rc" = 0 ] || [ "$rc" = 75 ]; then # 75: push-main pushed six rounds and more landed meanwhile
     rm -f "$red" "$pinged"
     note "ok ${tip:0:9} in $((SECONDS - t0)) s"
     # Commits that landed during the push: push-main's own loop usually carried them; go again if not.
