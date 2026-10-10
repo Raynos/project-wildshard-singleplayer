@@ -66,7 +66,7 @@ async function buildData(ctx: SessionContext) {
   const menuLoad = deferExtras ? null : startMenuPreload(files, manifest);
   const audioLoad = deferExtras ? null : startAudioPreload(files, manifest, audioProfile);
   const deferredAudio = deferExtras ? startDeferredAudioPreload(files, manifest, audioProfile) : null;
-  startViewmodelTextures(manifest.boot?.viewmodelSets ?? false); // the crossbow's + rifle's textures, drawn in a worker while the world builds
+  void startViewmodelTextures(manifest.boot?.viewmodelSets ?? false); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const fieldModels = manifest.fieldModels?.() ?? null;
   return { ...ctx, loading, audioProfile, files, bootSteps, plan, step, menuLoad, audioLoad, deferredAudio, fieldModels };
 }

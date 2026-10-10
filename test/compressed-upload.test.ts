@@ -195,7 +195,7 @@ it('keeps the real baked bolt preload provisional until makeBoltAtlas finalizes 
       _renderer?: THREE.WebGLRenderer | null, current?: () => boolean, final?: boolean): Promise<T> => {
       await uploadCompressedTexture(renderer, value, current, final); return value;
     });
-    startViewmodelTextures(['bolt']); await viewmodelTexturesReady();
+    await startViewmodelTextures(['bolt']); await viewmodelTexturesReady();
     expect(prepare).toHaveBeenCalledTimes(3);
     for (const call of prepare.mock.calls) expect(call[3]).toBe(false);
     const atlas = makeBoltAtlas();

@@ -12,6 +12,7 @@ import type { Scope } from '../app/scope';
 import type { LevelAssets, TerrainField } from '../level/data';
 import type { LevelSpec } from '../level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { workSlice } from '../core/workSlice';
 
 /**
  * The boreal ground (PINE-HOLLOW PH-L8, `ChunkAssets.boreal`; a shard without it builds the plain shader above). Over the same
@@ -238,21 +239,64 @@ export function splatTerrainMaterial(layers: SplatLayers, ground: SplatGround): 
  * (SHARD-PLATFORM G227), so every tile vertex carries the chunk's own position, normal and weights.
  */
 export function terrainChunkGeometry(field: Pick<TerrainField, 'heightAt' | 'splatAt'>): THREE.BufferGeometry {
+  const steps = terrainChunkSteps(field);
+  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+}
+
+/** vertices / triangles between two yields of the chunk's build */
+const CHUNK_STEP = 8192;
+/**
+ * `terrainChunkGeometry` as steps, yielding between short stretches (SF63: the chunk's ground was 30 ms of one task on the
+ * desktop as a grid cell entered in play, several times that on the Simulator): the same float operations in the same
+ * order, so the same bytes; the normals are three's `computeVertexNormals`, step by step (`vertexNormalSteps`).
+ */
+export function* terrainChunkSteps(field: Pick<TerrainField, 'heightAt' | 'splatAt'>): Generator<void, THREE.BufferGeometry, undefined> {
   const res = TERRAIN_RES;
   const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, res - 1, res - 1);
   geo.rotateX(-Math.PI / 2);
   const pos = geo.getAttribute('position');
   const splat = new Float32Array(pos.count * 4);
   for (let i = 0; i < pos.count; i++) {
+    if (i > 0 && i % CHUNK_STEP === 0) yield;
     const x = pos.getX(i), z = pos.getZ(i);
     pos.setY(i, field.heightAt(x, z));
     const s = field.splatAt(x, z);
     splat.set(s, i * 4);
   }
   geo.setAttribute('splat', new THREE.BufferAttribute(splat, 4));
-  geo.computeVertexNormals();
+  yield* vertexNormalSteps(geo);
   geo.computeBoundingSphere();
   return geo;
+}
+
+/**
+ * three's `BufferGeometry.computeVertexNormals` for an indexed geometry that has its normal attribute, as steps: its own
+ * vector operations in its own order (zero, accumulate each face's cross product, normalise), so the same bytes. Any other
+ * geometry takes three's call whole.
+ */
+export function* vertexNormalSteps(geo: THREE.BufferGeometry): Generator<void, void, undefined> {
+  const index = geo.getIndex(), position = geo.getAttribute('position'), normal = geo.getAttribute('normal');
+  if (index === null || !(normal instanceof THREE.BufferAttribute) || normal.count !== position.count) { geo.computeVertexNormals(); return; }
+  for (let i = 0; i < normal.count; i++) { if (i > 0 && i % (CHUNK_STEP * 4) === 0) yield; normal.setXYZ(i, 0, 0, 0); }
+  const pA = new THREE.Vector3(), pB = new THREE.Vector3(), pC = new THREE.Vector3();
+  const nA = new THREE.Vector3(), nB = new THREE.Vector3(), nC = new THREE.Vector3();
+  const cb = new THREE.Vector3(), ab = new THREE.Vector3();
+  for (let i = 0; i < index.count; i += 3) {
+    if (i > 0 && i % (CHUNK_STEP * 3) === 0) yield;
+    const vA = index.getX(i), vB = index.getX(i + 1), vC = index.getX(i + 2);
+    pA.fromBufferAttribute(position, vA); pB.fromBufferAttribute(position, vB); pC.fromBufferAttribute(position, vC);
+    cb.subVectors(pC, pB); ab.subVectors(pA, pB); cb.cross(ab);
+    nA.fromBufferAttribute(normal, vA); nB.fromBufferAttribute(normal, vB); nC.fromBufferAttribute(normal, vC);
+    nA.add(cb); nB.add(cb); nC.add(cb);
+    normal.setXYZ(vA, nA.x, nA.y, nA.z); normal.setXYZ(vB, nB.x, nB.y, nB.z); normal.setXYZ(vC, nC.x, nC.y, nC.z);
+  }
+  yield;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < normal.count; i++) {
+    if (i > 0 && i % (CHUNK_STEP * 2) === 0) yield;
+    v.fromBufferAttribute(normal, i); v.normalize(); normal.setXYZ(i, v.x, v.y, v.z);
+  }
+  normal.needsUpdate = true;
 }
 
 /**
@@ -336,7 +380,11 @@ export class Terrain {
     const { assets } = binding === undefined ? activeLevel() : binding.level;
     const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain(captured)]); // baked heights/splat → captured frame
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
-    this.mesh = new THREE.Mesh(this.buildGeometry(captured.field), this.buildMaterial(layers, assets));
+    // the ground in work slices (it runs in play when a grid cell enters): the same bytes as terrainChunkGeometry
+    const steps = terrainChunkSteps(captured.field), slice = workSlice();
+    let step = steps.next();
+    while (step.done !== true) { if (slice.due()) await slice.yield(); step = steps.next(); }
+    this.mesh = new THREE.Mesh(step.value, this.buildMaterial(layers, assets));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
@@ -357,8 +405,6 @@ export class Terrain {
     this.group.add(this.mesh);
     return this;
   }
-
-  private buildGeometry(field: TerrainField) { return terrainChunkGeometry(field); }
 
   private buildMaterial(layers: SplatLayers, assets: LevelAssets | undefined) {
     this.material = splatTerrainMaterial(layers, groundSet({ assets }));

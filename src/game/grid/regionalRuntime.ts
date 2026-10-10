@@ -4,6 +4,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { bindConstructionEnvironment, ownedFacade, ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
@@ -196,6 +197,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       const world = { ...foundationWorld, game };
       if (world.physics !== host.physics || world.player !== request.page.world.player || world.game.renderer !== request.page.world.game.renderer) throw new Error('Regional world must keep the page renderer/player and destination physics');
       const skinRows: SkinDef[] = [];
+      // SF63: the viewmodel sets this cell's weapons wear, drawn in a worker while its world and creatures build, as the
+      // page boot does (session/data.ts). A grid entry never asked, so its weapons drew them on the main thread in kit
+      // build (Pine: 24 ms of walnut alone on the desktop, several times that on the Simulator). Started on its admission.
+      let viewmodelSets: Promise<void> | null = null;
       let localPlay: ShardPlayHost | null = null;
       let localRuntime: ShardRuntime | undefined;
       let stowed = false, restored = false, preparing = false;
@@ -208,6 +213,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       };
       const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
         scope, runtime: parent, retainRuntime: true, context: (owner, runtime) => {
+          viewmodelSets ??= startViewmodelTextures(request.manifest.boot?.viewmodelSets ?? false);
           localRuntime = runtime; runtime.world = { ...world, registry: view.registry }; runtime.play = null;
           runtime.interactables.length = 0; runtime.overhead.length = 0;
           for (const key of Reflect.ownKeys(runtime.hooks)) Reflect.deleteProperty(runtime.hooks, key);
@@ -261,6 +267,9 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const targets = authoredTargets(app.events, regional.animals, () => null);
               const build = runtime.buildEquipment;
               if (build === undefined) throw new Error('Regional kit did not install its equipment factory');
+              // a set that failed to arrive is drawn by its weapon as before: the head start is never a gate
+              await viewmodelSets?.catch((error: unknown) => { console.warn(`[viewmodel textures] ${request.cell.instance}`, error); });
+              if (left()) throw new Error('Regional runtime left while drawing its weapons\' textures');
               const kit = await ownerTask(owner, () => build(targets, request.page.play.nolock));
               if (left()) {
                 for (const weapon of [kit.primary, kit.rifle, kit.secondary, ...(kit.extras ?? [])]) weapon?.dispose();

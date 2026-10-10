@@ -5,6 +5,7 @@ import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, linearKtx2Texture, prepareCompressedTexture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
+import { workSlice } from './workSlice';
 import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 import { memorySaverOn, releaseOnUpload } from '../render/memorySaver';
@@ -174,7 +175,11 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     t.source.dataReady = false;          // allocate the storage (texStorage3D, all mip levels), upload nothing
     renderer.initTexture(t);
     let ctx: CanvasRenderingContext2D | null = null;
+    // SF63: a layer's copy is a native upload (Pine's twelve were one 26 ms stretch of a 133 ms task on the desktop, entering
+    // the cell in play): a frame may pass between layers. Nothing samples the array before it resolves.
+    const slice = workSlice();
     for (const [i, layer] of layers.entries()) {
+      await slice.check();
       let im: TexImageSource = layer;
       if (im.width !== n || im.height !== n) { // a layer of another size than its kind's largest: scale it on a canvas instead of failing the copy
         ctx ??= Object.assign(document.createElement('canvas'), { width: n, height: n }).getContext('2d');

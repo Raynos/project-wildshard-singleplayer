@@ -116,7 +116,8 @@ it.each([['road', false], ['inside', false], ['road', true]] as const)('admits a
     traveller.position.set(0, 0.5, 0); expect(session.gameplayReady()).toBe(false);
     expect(session.fallFloor()).toBe(-250); // No authored recovery before the interior world hook is ready.
     gridCells.enter({ instance: target.instance, slug: target.slug });
-    for (let i = 0; i < 50 && !session.gameplayReady(); i++) await Promise.resolve();
+    // macrotask turns: the entered kit waits for its viewmodel sets' worker (regionalRuntime: SF63)
+    for (let i = 0; i < 50 && !session.gameplayReady(); i++) await new Promise(resolve => { setTimeout(resolve, 0); });
     expect(session.gameplayReady()).toBe(true); expect([worlds, plays]).toEqual([1, 1]);
     expect(session.aimAnimals()).toBe(aimBodies);
     // The real entered bounds govern road-level landings, rather than a manifest's shipping bounds.

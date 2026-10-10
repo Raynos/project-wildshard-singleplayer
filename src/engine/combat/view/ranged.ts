@@ -107,11 +107,13 @@ async function adoptBakedSets(sets: readonly SetName[]): Promise<SetName[]> {
   return sets.filter((name) => !bakedSets.has(name));
 }
 
-export function startViewmodelTextures(requested: boolean | readonly SetName[]): void {
-  
+/** Draw the requested viewmodel sets in a worker (or adopt their baked KTX2 stand-ins) ahead of the weapons that wear
+ *  them: true / false = every set / the modern ones. Returns when every set has arrived or the worker gave up (the same
+ *  promise `viewmodelTexturesReady` hands out until the next call), so a caller that builds later can wait for its own. */
+export function startViewmodelTextures(requested: boolean | readonly SetName[]): Promise<void> {
   const names = typeof requested === 'boolean' ? (requested ? [...CLASSIC_SETS, ...MODERN_SETS] : [...MODERN_SETS]) : requested;
   const wanted = names.filter((n) => !pixelCache.has(n) && !bakedSets.has(n));
-  if (wanted.length === 0) { texturesReady = Promise.resolve(); return; }
+  if (wanted.length === 0) { texturesReady = Promise.resolve(); return texturesReady; }
   texturesReady = (async () => {
   const sets = await adoptBakedSets(wanted);
   if (sets.length === 0) return;
@@ -135,6 +137,7 @@ export function startViewmodelTextures(requested: boolean | readonly SetName[]):
     worker.postMessage({ sets }, []);
   });
   })();
+  return texturesReady;
 }
 /** Resolves when the worker has delivered every set it was asked for (or gave up); awaited by the weapon step. */
 export function viewmodelTexturesReady(): Promise<void> { return texturesReady; }

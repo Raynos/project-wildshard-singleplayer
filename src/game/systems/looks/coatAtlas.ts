@@ -70,8 +70,11 @@ type Steps<T = void> = Generator<void, T, undefined>;
 function drain<T>(steps: Steps<T>): T {
   for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
 }
-/** texels between two yields of a per-texel pass */
-const TEXEL_CHUNK = 4096;
+/** texels between two yields of a per-texel pass (the marks' noise is ~6 µs a texel on the desktop: 4096 made 25 ms steps) */
+const TEXEL_CHUNK = 1024;
+/** atlas texels a rasteriser covers between two yields, besides its every 256 triangles (a big chart's triangles are many
+ *  texels each: 256 of them made a 26 ms step) */
+const RASTER_CHUNK = 16384;
 /** a coat being painted in slices: `finish` paints the rest now (a synchronous caller needs the bytes) */
 const painting = new WeakMap<THREE.Texture, { finish: () => void }>();
 /** every sliced paint still running, by its texture */
@@ -113,8 +116,9 @@ function* surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: bool
   const nTri = idx ? idx.count / 3 : P.count / 3;
   const vi = (t: number, k: number): number => (idx ? idx.getX(t * 3 + k) : t * 3 + k);
   const sx = [0, 0, 0], sy = [0, 0, 0], ids = [0, 0, 0];
+  let covered0 = 0;
   for (let t = 0; t < nTri; t++) {
-    if ((t & 255) === 255) yield;
+    if ((t & 255) === 255 || covered0 >= RASTER_CHUNK) { covered0 = 0; yield; }
     for (let k = 0; k < 3; k++) {
       const i = vi(t, k); ids[k] = i;
       sx[k] = U.getX(i) * w; sy[k] = (flipY ? 1 - U.getY(i) : U.getY(i)) * h;
@@ -124,6 +128,7 @@ function* surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: bool
     if (Math.abs(d) < 1e-9) continue;
     const bx0 = Math.max(0, Math.floor(Math.min(x0, x1, x2))), bx1 = Math.min(w - 1, Math.ceil(Math.max(x0, x1, x2)));
     const by0 = Math.max(0, Math.floor(Math.min(y0, y1, y2))), by1 = Math.min(h - 1, Math.ceil(Math.max(y0, y1, y2)));
+    covered0 += Math.max(0, bx1 - bx0 + 1) * Math.max(0, by1 - by0 + 1);
     const [i0, i1, i2] = ids as [number, number, number];
     for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
       const px = x + 0.5, py = y + 0.5;
@@ -197,8 +202,9 @@ function* rasterTris(geo: THREE.BufferGeometry, w: number, h: number, flipY: boo
   visit: (o: number, l0: number, l1: number, l2: number, i0: number, i1: number, i2: number) => void): Steps {
   const U = geo.getAttribute('uv'), idx = geo.getIndex();
   const nTri = idx ? idx.count / 3 : U.count / 3;
+  let area = 0;
   for (let t = 0; t < nTri; t++) {
-    if ((t & 255) === 255) yield;
+    if ((t & 255) === 255 || area >= RASTER_CHUNK) { area = 0; yield; }
     const i0 = idx ? idx.getX(t * 3) : t * 3, i1 = idx ? idx.getX(t * 3 + 1) : t * 3 + 1, i2 = idx ? idx.getX(t * 3 + 2) : t * 3 + 2;
     if (!want(i0, i1, i2)) continue;
     const x0 = U.getX(i0) * w, x1 = U.getX(i1) * w, x2 = U.getX(i2) * w;
@@ -208,6 +214,7 @@ function* rasterTris(geo: THREE.BufferGeometry, w: number, h: number, flipY: boo
     if (Math.abs(d) < 1e-9) continue;
     const bx0 = Math.max(0, Math.floor(Math.min(x0, x1, x2))), bx1 = Math.min(w - 1, Math.ceil(Math.max(x0, x1, x2)));
     const by0 = Math.max(0, Math.floor(Math.min(y0, y1, y2))), by1 = Math.min(h - 1, Math.ceil(Math.max(y0, y1, y2)));
+    area += Math.max(0, bx1 - bx0 + 1) * Math.max(0, by1 - by0 + 1);
     for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
       const px = x + 0.5, py = y + 0.5;
       const l0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) / d;
@@ -368,7 +375,7 @@ function* applyFlapFill(m: FlapMap, px: Uint8ClampedArray, W: number, H: number)
       const horiz = pass % 2 === 0, out = new Float32Array(n * k), ow = new Float32Array(n);
       const len = horiz ? W : H, lines = horiz ? H : W;
       for (let li = 0; li < lines; li++) {
-        if ((li & 31) === 31) yield;
+        if ((li & 1) === 1) yield;   // 32 lines made a 76 ms step on the desktop
         blurLine(cur, wts, mask, out, ow, k, len, R, horiz ? li * W : li, horiz ? 1 : W);
       }
       cur = out; wts = ow;

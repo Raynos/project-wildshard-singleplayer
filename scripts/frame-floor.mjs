@@ -55,11 +55,18 @@ const travelGl = glObserver === 'on' ? GL_INIT : '';
 // .cpuprofile goes to the named scratch folder, a per-long-task inclusive summary goes in the row. Diagnostic: no timing credit.
 const cpuProfileDir = flag('cpu-profile', '');
 if (cpuProfileDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(cpuProfileDir))) throw new Error('--cpu-profile=<existing dir> profiles desktop grid travel legs only');
+// op-hitch27: opt-in GL-call timing on BOTH surfaces (`--gl-time`): the heavy WebGL calls (uploads, shader compile / link
+// queries, draws) are timed per frame, and each long frame of a whole-drive row carries its GL split, so a Simulator
+// long frame says whether it was an image upload, a program link or a first draw. Diagnostic: no timing credit.
+const glTime = args.includes('--gl-time');
+if (glTime && gridScenario === 'baseline') throw new Error('--gl-time attributes grid drive long frames only');
+const GL_TIMED = ['texImage2D', 'texSubImage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'compressedTexImage3D', 'compressedTexSubImage3D', 'texStorage2D', 'texStorage3D', 'copyTexSubImage3D', 'generateMipmap', 'compileShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getUniformLocation', 'getActiveUniform', 'getActiveAttrib', 'bufferData', 'bufferSubData', 'readPixels', 'clientWaitSync', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'clear', 'blitFramebuffer', 'invalidateFramebuffer'];
+const GL_TIME_SCRIPT = !glTime ? '' : `(()=>{const W=window,acc=new Map();W.__frameFloorGlTake=()=>{if(acc.size===0)return null;const o={};for(const[k,v]of acc)o[k]=[Math.round(v[0]*10)/10,v[1]];acc.clear();return o;};for(const C of[W.WebGLRenderingContext,W.WebGL2RenderingContext]){if(!C)continue;const p=C.prototype;for(const n of ${JSON.stringify(GL_TIMED)}){const f=p[n];if(typeof f!=='function'||f.__ffTimed)continue;const w=function(...a){const t=performance.now();try{return f.apply(this,a);}finally{const d=performance.now()-t,e=acc.get(n);if(e){e[0]+=d;e[1]++;}else acc.set(n,[d,1]);}};w.__ffTimed=true;p[n]=w;}}})();`;
 const LONGTASK_SCRIPT = cpuProfileDir === '' ? '' : `window.__frameFloorLongTasks=[];try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.__frameFloorLongTasks.push([e.startTime,e.duration]);}).observe({type:'longtask',buffered:true});}catch{}`;
 if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--cpu-profile=<scratch dir>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--cpu-profile=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -166,7 +173,7 @@ function sample(n) {
   if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
   meter.enabled = true;
   return new Promise((resolve, reject) => {
-    const interval = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
+    const interval = [], longAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
     let idleChecks = 0, checkedAt = -1;
     const finished = () => {
       if (!whole) return interval.length >= n;
@@ -183,10 +190,10 @@ function sample(n) {
     const tick = (timestamp) => {
       const now = performance.now();
       if (g.frameCount !== count) {
-        const delta = g.frameCount - count;
+        const delta = g.frameCount - count, glFrame = window.__frameFloorGlTake?.() ?? null; // --gl-time: this interval's GL calls
         if (!first) {
           // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.
-          interval.push(timestamp - last); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
+          interval.push(timestamp - last); if (timestamp - last > 50 && longAt.length < 400) longAt.push(glFrame === null ? [Math.round(last), Math.round(timestamp - last)] : [Math.round(last), Math.round(timestamp - last), glFrame]); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
           const i = (g.frameI + g.frameMs.length - 1) % g.frameMs.length;
           ring.push(g.frameMs[i]); work.push(g.workMs[i]); calls.push(g.lastFrame.calls); triangles.push(g.lastFrame.triangles);
           const cpu = meter.snapshot();
@@ -208,7 +215,7 @@ function sample(n) {
         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames
-        longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length },
+        longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length, at: longAt },
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
         cpu: { enabled: meter.snapshot().enabled, frames: cpuFrames, owners: [...cpuOwners].map(([id, row]) => ({ id, samples: row.ms.length, p95Ms: pct(row.ms, 0.95), maxMs: pct(row.ms, 1), calls: row.calls })) },
@@ -346,17 +353,20 @@ async function measureShard(driver, shard, deadline) {
         const driven = await moving; if (driven.error) throw driven.error;
         await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
         const whole = await wholeDrive; if (whole.error) throw whole.error;
-        const cpuProfile = driver.profile && profileStart !== null ? summarizeTravelProfile(await driver.profile.stop(), profileStart, await driver.evaluate('window.__frameFloorLongTasks ?? []'), plan.name) : null;
+        const rawProfile = driver.profile && profileStart !== null ? await driver.profile.stop() : null;
+        if (rawProfile !== null) await saveProfileMaps(rawProfile);
+        const cpuProfile = rawProfile === null ? null : summarizeTravelProfile(rawProfile, profileStart, await driver.evaluate('window.__frameFloorLongTasks ?? []'), plan.name);
         const witness = driven.value, failures = gridFloorWitnessFailures(witness);
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         scenarios.push(witness);
         rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface) });
-        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...whole.value, ...(cpuProfile === null ? {} : { cpuProfile }) };
+        const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
+        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...whole.value, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), ...(cpuProfile === null ? {} : { cpuProfile }) };
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));
         await sleep(settleMs);
         const standing = await driver.evaluate(`(${sample.toString()})(${frames})`);
         rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
-        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms; interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
       }
       if (gridCellPose !== null) {
         // the entered cell's own pose (its local frame), held standing once its runtime is ready again
@@ -386,8 +396,35 @@ async function measureShard(driver, shard, deadline) {
 }
 
 /** Long tasks inside a profiled travel leg, each with its heaviest inclusive frames (function url:line); raw profile kept in scratch. */
+/** Each long frame (>50 ms, [startMs, ms] on the page clock) attributed to the runtime hook it overlapped
+ *  (`instance:hook`, from the grid's runtimeTiming), else `between hooks`: where a whole drive's long frames came from,
+ *  on either surface, with no profiler running. */
+function longFrameHooks(at, completed) {
+  const out = new Map();
+  for (const [start, ms, gl] of at ?? []) {
+    const hit = completed.find((t) => start < t.end && start + ms > t.start);
+    const key = hit === undefined ? 'between hooks' : `${hit.instance}:${hit.hook}`;
+    const row = out.get(key) ?? { hook: key, frames: 0, maxMs: 0, totalMs: 0, gl: {} };
+    row.frames++; row.maxMs = Math.max(row.maxMs, ms); row.totalMs += ms; out.set(key, row);
+    // --gl-time: [ms, calls] per WebGL method in those frames
+    for (const [method, [glMs, calls]] of Object.entries(gl ?? {})) { const sum = row.gl[method] ?? [0, 0]; row.gl[method] = [Math.round((sum[0] + glMs) * 10) / 10, sum[1] + calls]; }
+  }
+  return [...out.values()].sort((a, b) => b.totalMs - a.totalMs).map((row) => Object.assign(row, { gl: Object.fromEntries(Object.entries(row.gl).sort((a, b) => b[1][0] - a[1][0]).slice(0, 8)) }));
+}
+/** The preview's hidden source maps for every script the profile sampled, saved beside it (`<dir>/maps/<file>.map`): the
+ *  preview build is deleted when the run ends, and the summary's frames are minified. */
+async function saveProfileMaps(profile) {
+  mkdirSync(join(cpuProfileDir, 'maps'), { recursive: true });
+  const urls = new Set(profile.nodes.map((node) => node.callFrame.url).filter((url) => /^https?:.*\.js$/u.test(url)));
+  for (const url of urls) {
+    const out = join(cpuProfileDir, 'maps', `${url.split('/').pop()}.map`);
+    if (existsSync(out)) continue;
+    try { const response = await fetch(`${url}.map`); if (response.ok) writeFileSync(out, await response.text()); }
+    catch { /* a script without a map stays minified in offline resolution */ }
+  }
+}
 function summarizeTravelProfile(profile, startedAt, longTasks, name) {
-  writeFileSync(join(cpuProfileDir, `${name}-${Date.now()}.cpuprofile`), JSON.stringify(profile));
+  const file = join(cpuProfileDir, `${name}-${Date.now()}.cpuprofile`); writeFileSync(file, JSON.stringify(profile));
   const nodes = new Map(profile.nodes.map((node) => [node.id, node])), parent = new Map();
   for (const node of profile.nodes) for (const child of node.children ?? []) parent.set(child, node.id);
   const label = (node) => { const f = node.callFrame; return `${f.functionName === '' ? '(anonymous)' : f.functionName} ${f.url.split('/').pop()}:${f.lineNumber + 1}`; };
@@ -407,7 +444,7 @@ function summarizeTravelProfile(profile, startedAt, longTasks, name) {
     const top = (map, k) => [...map].filter(([key]) => !/^\((root|program|idle)\)/u.test(key)).sort((a, b) => b[1] - a[1]).slice(0, k).map(([key, ms]) => `${Math.round(ms)} ms ${key}`);
     return { start: Math.round(s), ms: Math.round(d), inclusive: top(inclusive, 18), self: top(self, 8) };
   });
-  return { note: 'Diagnostic CPU attribution (sampling profiler on): no timing credit', longTasks: tasks.length, longTaskMs: tasks.reduce((sum, task) => sum + task.ms, 0), tasks };
+  return { note: 'Diagnostic CPU attribution (sampling profiler on): no timing credit', longTasks: tasks.length, longTaskMs: tasks.reduce((sum, task) => sum + task.ms, 0), file, startedAt, tasks }; // file + startedAt: re-resolve the raw profile offline (source maps)
 }
 function webkit(wsUrl) {
   const ws = new WebSocket(wsUrl), pending = new Map();
@@ -462,7 +499,7 @@ async function worker() {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
       context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
-      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${travelGl}` });
+      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${travelGl}` });
       let errors = [], profiler = null;
       driver = {
         load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
@@ -562,10 +599,10 @@ async function main() {
     const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
     const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
     const helper = join(dist, 'frame-floor-safari.html');
-    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${travelGl}</script>`));
+    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -574,7 +611,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
