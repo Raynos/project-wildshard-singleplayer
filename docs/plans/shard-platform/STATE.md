@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 16:10 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-10 18:25 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -29,9 +29,7 @@
 
 | Lane | Work |
 |---|---|
-| op-sky36 | G321 Sky's whole sky in its cell (`20882ab8c`) · isles board |
-| op-hitch37 | first-use programs (`3680ede2e`) · Sim timing |
-| op-ship38 | G325 audio on first tap · G326 public cards · template card |
+| op-hitch45 | WebKit frame-paced world-build yields (Nine 233 ms Sim) |
 | sp-x1 | DS0.1 Nalati + Sky move-back · Nalati witness |
 | sp-x2 | DS0.1 Pine move-back |
 | sp-x4 | DS0.1 Driftwood + Signal move-back |
