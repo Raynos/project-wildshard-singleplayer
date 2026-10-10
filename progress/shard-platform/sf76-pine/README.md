@@ -21,3 +21,10 @@ Weapon/viewmodel copies remain verbatim. The SF76 exact-source transfer
 guard now supports their 92 existing runtime-performance occurrences.
 The item classes additionally expose SF2 inheritance counts (8 -> 11,
 Weapon 1 -> 4), which require the corresponding move-only provenance rule.
+
+The glove-hands and stave-bow implementations now live verbatim in
+`runtime/viewmodel/`; their SDK facades are deleted. Two dependent rows
+move with their trusted runtime types. Pin `2841ba47cd1c3c9d2d2afc8188e1ec4529ce5396`:
+actual physics payload and map image remain exact. Seventeen focused
+weapon/cache/loadout checks, root strict and touched lint pass; 46 existing
+performance-debt occurrences transfer through immutable source hashes.

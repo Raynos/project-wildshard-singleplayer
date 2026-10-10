@@ -1,8 +1,8 @@
 import { cyl, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, box, edgeWear, stripExtra } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbowWeapon } from '@wildshard/sdk/items/boltCrossbow';
-import { WeaponHands, coatMaterialParams, holdDef, type HandHold, type WeaponHandsView } from '@wildshard/sdk/viewmodel/gloveHands';
-import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../../data/handsLook';
+import { WeaponHands, coatMaterialParams, holdDef, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
+import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../viewmodel/handsLook';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import { boltFlightStep } from '../../../weapons/crossbow/flight';
 import * as THREE from 'three';

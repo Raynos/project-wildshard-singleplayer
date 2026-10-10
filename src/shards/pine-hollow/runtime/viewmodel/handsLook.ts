@@ -1,6 +1,6 @@
-// Pine Hollow's first-person hands as data (SHARD-PLATFORM M3, the viewmodel system @wildshard/sdk/viewmodel/gloveHands):
+// Pine Hollow's first-person hands as data (SHARD-PLATFORM M3, the viewmodel system ./gloveHands):
 // the hunter's gloves on the Longbow, the crossbow and the lever-action (E322 F-M6, Jake's pick B: always on).
-import type { GloveHandsLook } from '@wildshard/sdk/viewmodel/gloveHands';
+import type { GloveHandsLook } from './gloveHands';
 
 /** The hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches (sRGB hex
  *  over nalatiArms' palette); the coat cuff's worn lip and its stitches. */

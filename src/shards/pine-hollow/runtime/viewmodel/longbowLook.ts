@@ -1,7 +1,7 @@
-// Pine Hollow's Longbow in first person as data (SHARD-PLATFORM M3, the viewmodel system @wildshard/sdk/viewmodel/staveBow):
+// Pine Hollow's Longbow in first person as data (SHARD-PLATFORM M3, the viewmodel system ./staveBow):
 // a yew self bow twice as tall as the starter recurve — the pale sapwood back, the orange-brown heartwood belly, a leather
 // grip with a band of amber, horn nocks, a linen string — its ash arrow, the hunter's gloves and the grip poses.
-import type { ArrowLook, GripPoseRow, StaveBowLook } from '@wildshard/sdk/viewmodel/staveBow';
+import type { ArrowLook, GripPoseRow, StaveBowLook } from './staveBow';
 import { HUNTER_HANDS } from './handsLook';
 
 /** The arrow: an ash shaft, a sinew-bound bodkin head, three grey-goose feathers (a white cock feather). */

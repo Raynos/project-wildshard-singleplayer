@@ -3,8 +3,8 @@ import { viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, box, cyl, st
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearmWeapon } from '@wildshard/sdk/items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '@wildshard/sdk/viewmodel/gloveHands';
-import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
+import { WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../viewmodel/gloveHands';
+import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../viewmodel/handsLook';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
