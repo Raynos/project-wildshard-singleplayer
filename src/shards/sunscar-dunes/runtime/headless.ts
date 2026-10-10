@@ -11,7 +11,8 @@ import { installSpeciesHomes } from '@wildshard/game/shardfile/speciesBrains';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
 import { SEED } from '../data/layout';
-import { installSignalWhip, WHIP_ID, type WhipCommand, type WhipWorldTarget } from './whip';
+import { installSignalWhip, WHIP_ID } from './whip';
+import type { LashCommand, LashTargetRow } from '@wildshard/game/systems/items/lashHost';
 import { installSignalQuest, type SignalSpots } from './quest';
 import { SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../quests/interactions';
 import { installSignalMatriarch } from './matriarch';
@@ -88,7 +89,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   const whip = shard.items.rows.find(row => row.id === WHIP_ID), spots = signalSpots();
   if (whip?.kind !== 'weapon') throw new Error('Signal Dunes declares its whip row');
   // the crack rows' spots (a crack row's `at` is `crack.<baked crack spot id>`)
-  const cracks = SIGNAL_INTERACTIONS.rows.flatMap((row): WhipWorldTarget[] => {
+  const cracks = SIGNAL_INTERACTIONS.rows.flatMap((row): LashTargetRow[] => {
     if (row.crack === undefined) return [];
     const spot = spots.crack.find(s => `crack.${s.id}` === row.at); if (spot === undefined) throw new Error(`Signal's crack row ${row.id} has no baked spot`);
     return [{ act: row.act, at: spot, radius: spot.radius, crack: row.crack }];
@@ -109,7 +110,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     const matriarch = installSignalMatriarch(host, { body: keeper.boss, fact, coins });
     // the browser disables the player's weapons through her intro (BossPorts.lockInput)
     // a crack command on a crack row's act (the crank's double crack, a waymark's light one) is the whip's own crack at that row's spot
-    const signalWhip = installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): WhipCommand[] => {
+    const signalWhip = installSignalWhip(host, whip, () => matriarch.locked() ? [] : context.commands().flatMap((command): LashCommand[] => {
       if (command.kind === 'player') return command.attack === undefined ? [] : [{ targetId: command.attack.targetId }];
       const crack = command.kind === 'script' && command.actorId === SIGNAL_INTERACT ? cracks.find(row => row.act === command.value) : undefined;
       return crack === undefined ? [] : [{ world: crack.act, heavy: crack.crack === 'heavy' }];

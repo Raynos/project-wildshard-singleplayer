@@ -258,6 +258,7 @@
     "./systems/effects/install": "./systems/effects/install.ts",
     "./systems/items/declared": "./systems/items/declared.ts",
     "./systems/items/lash": "./systems/items/lash.ts",
+    "./systems/items/lashHost": "./systems/items/lashHost.ts",
     "./systems/items/lashView": "./systems/items/lashView.ts",
     "./systems/items/lashHold": "./systems/items/lashHold.ts",
     "./systems/items/lashWeapon": "./systems/items/lashWeapon.ts",
