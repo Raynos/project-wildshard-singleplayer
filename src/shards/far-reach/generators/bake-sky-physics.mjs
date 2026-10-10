@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // Trusted SF72 metadata only: real native browser recipes remain the shipping source.
-// scripts/browser-lane.sh node scripts/bake-sky-physics.mjs --url=<clean candidate preview>
+// scripts/browser-lane.sh node src/shards/far-reach/generators/bake-sky-physics.mjs --url=<clean candidate preview>
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { skyPhysicsInputs } from './sky-physics-inputs.mjs';
-import { saveFixture } from './debug-settings.mjs';
+import { skyPhysicsInputs } from '../../../../scripts/sky-physics-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
 if (url === undefined) throw new Error('bake-sky-physics requires a clean-candidate --url');
 const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)

@@ -19,7 +19,7 @@ const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).di
 
 describe('Sky Reach bakes its rope bridges offline (SHARD-PLATFORM M3)', () => {
   // bit-exact on the platform that baked it (Linux CI's libm differs in the last ulp)
-  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-sky-world.mjs)', async () => {
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', async () => {
     const { bin: bytes, rows } = await bakeSkyBridges(publicFile);
     expect({ pack: sha(bytes), ...rows }).toEqual(bridgeRows);
     expect(sha(new Uint8Array(inflateSync(bin())))).toBe(bridgeRows.pack);

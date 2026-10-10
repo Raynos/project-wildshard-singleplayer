@@ -52,7 +52,7 @@ async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promi
 }
 
 describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
-  it('every committed piece is byte-exact against its generator (the stale gate: rerun scripts/bake-sky-world.mjs)', () => {
+  it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', () => {
     const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows]] as const;
     for (const [piece, { glb, ...rows }, committed] of pieces) {
       expect({ glb: sha(glb), ...rows }).toEqual(committed);

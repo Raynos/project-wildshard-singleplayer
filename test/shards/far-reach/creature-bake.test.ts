@@ -11,7 +11,7 @@ const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${u
 const bytes = (array: ArrayLike<number> & { buffer: ArrayBufferLike; byteOffset: number; byteLength: number }): Buffer => Buffer.from(array.buffer, array.byteOffset, array.byteLength);
 
 describe('Sky Reach creature bodies (SHARD-PLATFORM M3: the offline skinned-model bake)', () => {
-  it('the committed rigs are the generator\'s bytes (stale gate: rerun scripts/bake-sky-rigs.mjs)', async () => {
+  it('the committed rigs are the generator\'s bytes (stale gate: rerun src/shards/far-reach/generators/bake-sky-rigs.mjs)', async () => {
     const bakes = await bakeSkyCreatures(read);
     expect(Object.keys(bakes).sort()).toEqual([...SKY_CREATURES].sort());
     expect(readdirSync('public/assets/far-reach/rigs').sort()).toEqual(SKY_CREATURES.map((creature) => `${creature}.glb`).sort());

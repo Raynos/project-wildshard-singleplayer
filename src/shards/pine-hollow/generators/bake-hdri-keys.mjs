@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-sky-keys.mjs — Pine Hollow's day / night sky keys (PINE-HOLLOW-REMASTER PH-L2) as gain-mapped pairs.
+// bake-hdri-keys.mjs — Pine Hollow's day / night sky keys (PINE-HOLLOW-REMASTER PH-L2) as gain-mapped pairs.
 //
 // For every key in src/shards/pine-hollow/data/sky.ts (`keys`): take `public/assets/hdri/<id>_2k.hdr` when the repo has it, else fetch the
 // 2k .hdr from Poly Haven (CC0) into the OS temp dir (the .hdr is not committed), paint the HDRI's own sun (or moon) disc
@@ -16,18 +16,18 @@
 // The encoder is scripts/bake-sky.mjs's `encodeSky` (keep GAIN_MAX and the maths in step with both files; bake-sky.mjs is
 // left alone so its hash, and every shard's sky.json, do not change). A key whose pair exists is skipped.
 //
-//   node --import ./scripts/bake-loader.mjs scripts/bake-sky-keys.mjs [--force] [--only=night,day]
+//   node --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-hdri-keys.mjs [--force] [--only=night,day]
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { DataUtils } from 'three';
-import { PINE_SKY } from '../src/shards/pine-hollow/data/sky.ts';
+import { PINE_SKY } from '../data/sky.ts';
 
 const PINE_SKY_KEYS = PINE_SKY.keys;
 
-const ROOT = resolve(import.meta.dirname, '..');
+const ROOT = resolve(import.meta.dirname, '../../../..');
 const force = process.argv.includes('--force');
 const onlyArg = process.argv.find((a) => a.startsWith('--only='));
 const only = onlyArg ? onlyArg.slice(7).split(',') : null;

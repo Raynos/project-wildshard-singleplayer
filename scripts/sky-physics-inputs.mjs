@@ -15,7 +15,7 @@ export function skyPhysicsInputs(root) {
   };
   for (const dir of ['world', 'models', 'species']) walk(`src/shards/far-reach/${dir}`, path => path.endsWith('.ts'));
   walk('public/assets/far-reach', path => path.endsWith('.glb'));
-  // the baked world pieces' rows carry their colliders (SF72, scripts/bake-sky-world.mjs)
+  // the baked world pieces' rows carry their colliders (SF72, src/shards/far-reach/generators/bake-sky-world.mjs)
   walk('src/shards/far-reach/data', path => path.endsWith('.json'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));
 }

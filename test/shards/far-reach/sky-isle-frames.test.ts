@@ -11,7 +11,7 @@ const publicFile = (url: string): Uint8Array => new Uint8Array(readFileSync(new 
 
 describe('Sky Reach finds its sky-isle models\' unit frames offline (SHARD-PLATFORM M3)', () => {
   // bit-exact on the platform that baked it (Linux CI's libm differs in the last ulp)
-  it.runIf(platform === 'darwin')('the committed frames are exact against their generator (the stale gate: rerun scripts/bake-sky-world.mjs)', async () => {
+  it.runIf(platform === 'darwin')('the committed frames are exact against their generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', async () => {
     expect(await bakeSkyIsleFrames(publicFile)).toEqual(frames);
   });
 
