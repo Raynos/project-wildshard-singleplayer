@@ -14,3 +14,5 @@ is a finding. Seats may add scenarios; they stay.
 | S7 | **Sound.** With sound on, does the cut land on the music, and do gameplay moments have SFX? |
 | S8 | **No collision.** The trailer agent is mid-way through TRAILERS TR9 / CT1 and owns `scripts/steam-trailer/`. Can the progress trailer be built without editing their files under them or duplicating their rows? |
 | S9 | **Epic.** Name the one moment a viewer would rewind to. If there isn't one, that is a finding. |
+| S10 | **Receipts.** A commenter checks an on-screen number, date or SHA against the public commit log. Is every one generated from git by the render, with its SHA? (R1B, round 1) |
+| S11 | **Same spot, four builds.** A viewer can see the game get better at one fixed place and verb; no later build reads worse. (R1C, round 1) |

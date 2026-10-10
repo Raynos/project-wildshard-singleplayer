@@ -50,3 +50,12 @@ Keep the whole file under ~150 lines. Be concrete, cite evidence, no filler.
 - You should not need a game browser. If you must open one, run it through `scripts/browser-lane.sh`, muted, captured
   as an iPhone 16 Pro, and close it before you finish. No vite dev servers; no app builds.
 - Delete your private folder's throwaways before you finish.
+
+## Round 2 (the plan)
+
+The object is now the plan: **`docs/plans/PROGRESS-TRAILER.md`** (an execution plan: a finding counts if an executing
+agent would **fail, do the wrong thing, or have to guess**, or a claim is wrong against its evidence; COUNCIL.md's
+table). This is the plan's first review, so the surface is the whole plan, plus the battery S1–S10 walked through the
+plan (not v1). The register lists round 1 and how the plan answered it; a repeat of a closed row without new evidence
+is closed on sight. Write `round-2-seat-<A|B|C>.md`: findings table (IDs `R2<seat>-<k>`), battery walk, verdict line.
+No recommendation section this round: fixes go in each finding's Fix column. Under ~120 lines.

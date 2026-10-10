@@ -14,3 +14,5 @@ Frozen. A seat reopens a row only with new evidence (file and line, a quote, a s
 | L8 | Machine: at most 4 game browsers (every capture through `scripts/browser-lane.sh`), one app build machine-wide (`scripts/heavy-lane.py build`), no vite dev servers, muted test browsers. | AGENTS.md, docs/process/MACHINE.md |
 | L9 | Jake plays on an iPhone 17 Pro, portrait; every screenshot sent to him is iPhone portrait. (This governs screenshots and boards, not necessarily the trailer's master format: see L4.) | AGENTS.md |
 | L10 | Each shard keeps its own style (Driftwood low-poly toon, Nalati painterly, Pine Hollow photoreal PBR, …). | AGENTS.md |
+| L11 | **Jake's picks (PT0)**: 16:9 only, a 1920 × 1080 / 60 fps master; 60 s. No 9:16 cut. | question tool, 2026-10-09 |
+| L12 | The trailer agent's hooks landed in `64c6d84f0`: `capture.mjs --shots-file`, `cut.mjs --cut-file`, InputService held movement in `lib.mjs`, real sub-steps (`--sub 2` = 1/120 s). | herdr, 2026-10-09 |
