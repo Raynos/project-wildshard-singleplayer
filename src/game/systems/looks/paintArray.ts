@@ -9,6 +9,7 @@
 import { DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, RGBAFormat, UnsignedByteType } from 'three';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 
 /** A paint layer: its file name (`<name>.jpg`, and `<name>-a.jpg` with an alpha), the ratio scale it is stored at, and whether it has an alpha. */
 export interface PaintLayer { readonly name: string; readonly scale: number; readonly alpha: boolean }
@@ -59,7 +60,10 @@ export async function loadPaintArray(base: string, layers: readonly PaintLayer[]
     ]);
     return { rgb, alpha };
   }));
+  // op-hitch23: a frame between layers' read-backs (a grid cell loads this on the road, in play)
+  const slice = workSlice();
   for (const [i, layer] of compressed.entries()) {
+    if (slice.due()) await slice.yield();
     const rgb = await createImageBitmap(layer.rgb);
     let alpha: ImageBitmap | undefined;
     try {
@@ -69,6 +73,7 @@ export async function loadPaintArray(base: string, layers: readonly PaintLayer[]
       const off = i * S * S * 4;
       data.set(p, off);
       if (alpha !== undefined) {
+        if (slice.due()) await slice.yield();
         const pa = pixels(alpha, S);
         for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = pa[k * 4] ?? 128;
       } else {

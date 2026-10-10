@@ -1,5 +1,4 @@
-import { resourceScope } from '@wildshard/engine/app/resources';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 // Vertex light spill (SHARD-PLATFORM M3): everything that glows (signs, lanterns, lit shopfronts) is an emitter, and its
 // SPILL is baked once at build time into a per-vertex attribute (`aSpill`) of merged geometry: no per-pixel light loop.
 // Spill = Σ colour × strength / (1 + r² / R²), R = 2.2 · max(w, h) + 1.5, cut at 3R, via a spatial grid.
@@ -27,7 +26,11 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
   // The build occupies far less than ±1024 cells on each axis. A numeric key avoids millions of
   // short string allocations during the vertex pass (a long GC pause on iOS WebKit).
   const key = (x: number, y: number, z: number): number => (x + 1024) * 4194304 + (y + 1024) * 2048 + z + 1024;
+  // op-hitch23: sliced at the engine's work slice (a grid cell bakes this on the road, in play: one 114 ms stretch
+  // between two drawn frames on the desktop before), including the emitter grid and the step between geometries
+  const slice = workSlice();
   for (const e of emitters) {
+    if (slice.due()) await slice.yield();
     if (e.spill <= 0) continue;
     const R = 2.2 * Math.max(e.w, e.h) + 1.5;
     const r2 = R * R;
@@ -41,8 +44,8 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
       list.push(light);
     }
   }
-  let lastYield = diagnosticNow();
   for (const g of geos) {
+    if (slice.due()) await slice.yield();
     const pos = g.getAttribute('position');
     const nor = g.getAttribute('normal');
     if (!(pos instanceof BufferAttribute) || !(nor instanceof BufferAttribute)) continue;
@@ -67,10 +70,7 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
       out[o] = r;
       out[o + 1] = gg;
       out[o + 2] = b;
-      if ((i & 8191) === 8191 && diagnosticNow() - lastYield > 24) {
-        await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-        lastYield = diagnosticNow();
-      }
+      if ((i & 511) === 511 && slice.due()) await slice.yield();
     }
     g.setAttribute('aSpill', new Float32BufferAttribute(out, 3));
   }

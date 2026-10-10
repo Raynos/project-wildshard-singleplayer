@@ -18,7 +18,17 @@ import { STRINGS } from './strings';
 import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
 import { entryCapsFor } from './world/entries';
+import { WORDS } from './world/words';
+import { chars } from './util';
+import { glyphLayout } from './tier';
+import { KAI_STACK } from './data/signs';
+import { FONT_LOAD } from './data/worldDressing';
+import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
+import { GlyphField } from '@wildshard/sdk/looks/neonText';
 
+
+/** the characters the neon's glyph atlas draws (world/build.ts FONT_CHARS: a mismatch only loses the prepared atlas) */
+const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
 
 /** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
 const DECK_ZONE = 200;
@@ -29,6 +39,11 @@ type WorldBuilder = (ctx: ShardContext, caps: boolean) => Promise<{ world: NineD
 async function buildWorld(ctx: ShardContext, caps: boolean): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
+  // op-hitch23: the neon's glyph atlas is computed ahead in engine work slices (a grid cell builds this world on the road,
+  // in play: the atlas was one ~0.2 s stretch on the desktop); the build's constructor takes it. Same arguments as world/build.ts.
+  // (one prepared atlas per argument set: the build's constructor takes it, a repeat prepare finds it)
+  await waitForFonts(FONT_LOAD.specs, FONT_CHARS, FONT_LOAD.capMs);
+  await GlyphField.prepare(chars(FONT_CHARS), glyphLayout(render.tier), KAI_STACK);
   // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
