@@ -127,8 +127,6 @@ export const OPTION_VALUES = {
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   regionShadowFocus: ['off', 'tight'],                 // SF63: inside a grid cell whose level casts with the phone's split rig, the page's one cascade pulls in to 22 m at 2048² (SkyRig.focusCascade, src/game/grid/regionShadow.ts) — live
-  gridDeclaredLut: ['off', 'on'],                      // op-lut20: a grid cell carries the learned LUT its look declares (ExtendLook.lut, applied standalone inside its own compose; src/game/grid/regionalWorld.ts) — a reload
-  gridCellComposite: ['off', 'on'],                    // op-frame21 (SF63 / G158): a grid cell runs the post composite its look declares (ExtendLook.cell; src/game/grid/regionalWorld.ts, frame.ts) — a reload
   buildPacing: ['off', 'on'],                          // op-hitch26 (SF63): builds in play pace their stretches to drawn frames (src/engine/core/framePacing.ts) — live; a Developer tool, default off until a quiet floor
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
@@ -146,7 +144,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   tex: { def: 'auto', params: [], url: () => null },
   
-  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, regionShadowFocus: DEBUG_ONLY, gridDeclaredLut: DEBUG_ONLY, gridCellComposite: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, regionShadowFocus: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -214,7 +212,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     tex: option('tex'),
     
     
-    memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), regionShadowFocus: option('regionShadowFocus'), gridDeclaredLut: option('gridDeclaredLut'), gridCellComposite: option('gridCellComposite'), buildPacing: option('buildPacing'),
+    memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), regionShadowFocus: option('regionShadowFocus'), buildPacing: option('buildPacing'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

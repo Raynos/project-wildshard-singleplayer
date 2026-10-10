@@ -1,13 +1,12 @@
 // op-frame21 (E435, SF63 / G158): a look's own post composite (`ExtendLook.cell`) runs in the grid frame while its region
 // carries it: its display after the shell's tone mapping, its side passes before the colour pass, both faded / run by the
-// cell's owner weight; the row that turns it on defaults off.
+// cell's owner weight; always on (Jake G322).
 import { describe, expect, it, vi } from 'vitest';
 import { Color, Fog, PerspectiveCamera, Scene } from 'three';
 import { BlendFunction, BloomEffect, BrightnessContrastEffect, Effect, EffectPass, HueSaturationEffect, Pass, ToneMappingEffect, VignetteEffect, type EffectComposer } from 'postprocessing';
 import { GradeEffect } from '../src/engine/core/Grade';
 import { GridFrame, passEffects } from '../src/game/grid/frame';
 import { frameLookOf, regionChain, wholeChainKnobs } from '../src/game/grid/frameLook';
-import { setting } from '../src/engine/ui/Settings';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { Scope } from '../src/engine/app/scope';
@@ -21,8 +20,6 @@ const cells = [-1, 0, 1].flatMap((cx) => [-1, 0, 1].map((cz) => ({ instance: `${
 class SidePass extends Pass { constructor() { super('side'); this.needsSwap = false; } }
 
 describe('op-frame21 grid cell composite', () => {
-  it('defaults off', () => { expect(setting('gridCellComposite')).toBe('off'); });
-
   it('places a region\'s composite while resident, runs it only while its cell carries the frame, and removes it on release', () => {
     const scope = new Scope('frame21'), scene = new Scene(), camera = new PerspectiveCamera();
     scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);

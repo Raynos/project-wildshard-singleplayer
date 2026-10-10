@@ -19,12 +19,9 @@ export async function loadLUT(id: string): Promise<LookupTexture | null> {
 }
 /**
  * A look's declared LUT file (`ExtendLook.lut`) for an engine chain that carries the look without running its compose, as
- * `loadLUT`'s texture named `name`. Loaded only while pause ▸ Settings ▸ Debug ▸ Look ▸ the declared-LUT row
- * (`gridDeclaredLut`) is on, default off (op-lut20); else, or without a readable file, null.
+ * `loadLUT`'s texture named `name` (op-lut20; Jake G322: always carried); without a declared or readable file, null.
  */
 export async function loadCarriedLUT(url: string | undefined, name: string): Promise<LookupTexture | null> {
   if (url === undefined) return null;
-  const { setting } = await import('../ui/Settings');
-  if (setting('gridDeclaredLut') !== 'on') return null;
   return (await import('../world/lut')).loadLUTFile(url, name);
 }

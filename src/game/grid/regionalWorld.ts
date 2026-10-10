@@ -25,8 +25,8 @@
  *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
  *   its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
  *   materials as region-keyed program variants (`render/regionLook.ts`), freed with the resident scope.
- * - its own post composite (SF63 / G158, op-frame21): where its look declares one (`ExtendLook.cell`) and the default-off
- *   Debug row `gridCellComposite` is on, it is built once its world exists and run by the frame owner while it carries the
+ * - its own post composite (SF63 / G158, op-frame21): where its look declares one (`ExtendLook.cell`; Jake G322: always),
+ *   it is built once its world exists and run by the frame owner while it carries the
  *   frame (`FrameLookPort.composite`); a composite that is its whole chain carries a neutral engine chain beside it.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
@@ -59,7 +59,6 @@ import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { heightAt } from '@wildshard/engine/world/Heightfield';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { setting } from '@wildshard/engine/ui/Settings';
 import type { ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
@@ -225,8 +224,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // SF63 part 2: the region's scoped look, whose per-frame parts run only while its cell is entered
       let regionLook: ReturnType<SkyRig['scopeLevelLook']> = null;
       let skyReady = Promise.resolve();
-      // op-frame21: its look's own post composite, behind the default-off reload row (a look change on the grid)
-      const cellComposite = levelLook !== null && levelLook.mode !== 'replace' && setting('gridCellComposite') === 'on' ? levelLook.cell ?? null : null;
+      // op-frame21 / Jake G322: its look's own post composite, always carried in its cell
+      const cellComposite = levelLook !== null && levelLook.mode !== 'replace' ? levelLook.cell ?? null : null;
       let framePort: FrameLookPort | null = null, viewRoot: Object3D | null = null, composited = false;
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
