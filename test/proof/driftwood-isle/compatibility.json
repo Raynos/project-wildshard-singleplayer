@@ -3,17 +3,17 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring player tape, earned chest pack, Captain continuation and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "d41eca1050b82195eb7dd7a85fc99fdd4a04f9d3fd114e81a465a6c760a0e73e",
+  "inputs": "e70aa27f14c0b483c45c9c46a2d057cd0833ad9f6577d6335972a24844703e74",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
-    "Chest contents and pack restore are reproduced; underwater travel to the optional reef treasure, reward camera/player carry, zipline and every sea-glass path are not covered by this tape.",
+    "Chest contents, pack restore and the native zipline carry/landing continuation are reproduced; underwater travel to the optional reef treasure, travel to the zipline launch, reward camera/player carry and every sea-glass path are not covered by this tape.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
   ],
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "329c86b347d39c12ac2bcf57ba33fda93085e568c2d18b6e68d7361d30696c0c",
+    "hash": "6c35acf6fd03f9192a55790448453b480d205d591f34411bf1447502b35b8ab3",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -97,8 +97,8 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 916,
-    "hash": "428d2c514a0b036093b84063056906237ae546d0e4b2f490ac8eb499efef21d8",
-    "replayHash": "428d2c514a0b036093b84063056906237ae546d0e4b2f490ac8eb499efef21d8",
+    "hash": "0c1fce1b9da312fba465303bb24936a28319fd41277a67b6098b40bbb8395614",
+    "replayHash": "0c1fce1b9da312fba465303bb24936a28319fd41277a67b6098b40bbb8395614",
     "effects": [
       {
         "tick": 19120,

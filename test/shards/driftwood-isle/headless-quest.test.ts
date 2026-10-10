@@ -49,6 +49,44 @@ const pack = (host: SimHost): { counts: Record<string, number>; order: string[] 
 
 const facts = (): string[] => emitted.flatMap(e => e.kind === 'fact' ? [`${e.name}@${e.actorId}`] : []);
 
+it('rides the actual baked zipline through one player owner and restores its exact carried continuation without granting the feat early', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  const ride = (host: SimHost) => v.parse(v.object({ zipline: v.object({ riding: v.boolean(), s: v.number(), v: v.number() }) }), host.adapters.get(QUEST_STEP)?.snapshot()).zipline;
+  try {
+    const launch = spots.zipline.prompt;
+    press(original, DRIFTWOOD_ACT.zipline, { x: launch.x + 8, y: launch.y - 1.62, z: launch.z }, 0);
+    expect(ride(original).riding).toBe(false); expect(original.flags.has('used:zipline')).toBe(false);
+    // This is the real prompt at the captured launch, not a claim about the walk up to it.
+    press(original, DRIFTWOOD_ACT.zipline, { x: launch.x, y: launch.y - 1.62, z: launch.z }, 0);
+    expect(ride(original).riding).toBe(true);
+    original.playerImpulse.set(8, 2, -4);
+    for (let tick = 0; tick < 97; tick++) original.step({ moveX: 1, moveZ: -1, yaw: 0.7, dodge: true, jump: true });
+    expect(original.playerImpulse.lengthSq()).toBe(0); expect(original.playerDodge.t).toBe(0);
+    expect(original.playerFall.grounded).toBe(false); expect(ride(original).riding).toBe(true);
+    expect(original.flags.has('used:zipline')).toBe(false);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    expect(facts().filter(f => f.startsWith('driftwood.zipline@'))).toEqual([]);
+    let remaining = 0;
+    while (ride(original).riding && remaining++ < 600) {
+      const command = { moveX: 1, moveZ: -1, yaw: 0.7, dodge: true, jump: true } as const;
+      original.step(command); restored.step(command);
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    }
+    expect(ride(original).riding).toBe(false); expect(remaining).toBeLessThan(600);
+    expect(original.flags.has('used:zipline')).toBe(true); expect(restored.flags.has('used:zipline')).toBe(true);
+    // Each real host earns its one landing fact; repeating an out-of-reach command cannot earn another.
+    expect(facts().filter(f => f.startsWith('driftwood.zipline@'))).toHaveLength(2);
+    const landed = original.player.position.clone();
+    tape = [{ kind: 'script', actorId: ACTOR, value: DRIFTWOOD_ACT.zipline }];
+    original.step(still); restored.step(still); tape = [];
+    expect(ride(original).riding).toBe(false); expect(facts().filter(f => f.startsWith('driftwood.zipline@'))).toHaveLength(2);
+    for (let tick = 0; tick < 10; tick++) { original.step({ moveX: 1, moveZ: 0, yaw: 0 }); restored.step({ moveX: 1, moveZ: 0, yaw: 0 }); }
+    expect(original.player.position.distanceTo(landed)).toBeGreaterThan(0.1);
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { tape = []; restored?.dispose(); original.dispose(); }
+});
+
 it('keeps the optional reef chest in the pack across exact restore, with one treasure fact and no purse grant', () => {
   const original = boot(); let restored: SimHost | undefined;
   try {

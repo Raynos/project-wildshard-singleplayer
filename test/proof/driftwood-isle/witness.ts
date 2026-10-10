@@ -40,7 +40,7 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 export const OPEN = [
   'Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.',
   'Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.',
-  'Chest contents and pack restore are reproduced; underwater travel to the optional reef treasure, reward camera/player carry, zipline and every sea-glass path are not covered by this tape.',
+  'Chest contents, pack restore and the native zipline carry/landing continuation are reproduced; underwater travel to the optional reef treasure, travel to the zipline launch, reward camera/player carry and every sea-glass path are not covered by this tape.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',
 ];
 export const SCOPE = 'Real Sealed Ring player tape, earned chest pack, Captain continuation and emitted ledger facts; not whole-shard compatibility';
