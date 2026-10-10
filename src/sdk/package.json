@@ -150,6 +150,7 @@
     "./looks/emitterCards": "./looks/emitterCards.ts",
     "./looks/lightVolume": "./looks/lightVolume.ts",
     "./looks/paintArray": "./looks/paintArray.ts",
+    "./looks/lutTexture": "./looks/lutTexture.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/classKit": "./kit/classKit.ts",
     "./kit/ruledKit": "./kit/ruledKit.ts",

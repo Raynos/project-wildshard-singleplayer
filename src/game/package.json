@@ -278,6 +278,7 @@
     "./systems/looks/emitterCards": "./systems/looks/emitterCards.ts",
     "./systems/looks/lightVolume": "./systems/looks/lightVolume.ts",
     "./systems/looks/paintArray": "./systems/looks/paintArray.ts",
+    "./systems/looks/lutTexture": "./systems/looks/lutTexture.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./shard/list": "./shard/list.ts",

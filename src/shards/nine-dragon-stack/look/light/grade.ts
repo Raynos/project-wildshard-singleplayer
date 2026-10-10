@@ -6,50 +6,20 @@
 //    display sRGB out (scripts/fit-lut.py's format, fetched by the engine's one loader, `fetchLut`).
 //  - GLSL (data/light.ts `GRADE_GLSL`): `vec3 gradeLut(vec3 srgb)`, the composite's LAST colour step (after toSRGB, before grain):
 //    one trilinear texture3D fetch.
-import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, NoColorSpace, RGBAFormat, UnsignedByteType } from 'three';
-import { LUT_SIZE, fetchLut } from '@wildshard/engine/render/lut';
+import type { Color, Data3DTexture } from 'three';
+import { LUT_TEXEL_SPLICES, identityLutTexture, loadLutTexture } from '@wildshard/sdk/looks/lutTexture';
 import type { SkyRamp } from '../../data/light';
 // SHARD-PLATFORM M3: the GLSL and the blue-hour ramp are data (data/light.ts: GRADE_GLSL, BLUE_HOUR).
 
-export const LUT_N = LUT_SIZE;
-
-function identity(): Data3DTexture {
-  const d = new Uint8Array(LUT_N ** 3 * 4);
-  for (let b = 0; b < LUT_N; b++) for (let g = 0; g < LUT_N; g++) for (let r = 0; r < LUT_N; r++) {
-    const i = ((b * LUT_N + g) * LUT_N + r) * 4;
-    d[i] = Math.round((r / (LUT_N - 1)) * 255);
-    d[i + 1] = Math.round((g / (LUT_N - 1)) * 255);
-    d[i + 2] = Math.round((b / (LUT_N - 1)) * 255);
-    d[i + 3] = 255;
-  }
-  return lutTexture(d);
-}
-
-function lutTexture(data: Uint8Array): Data3DTexture {
-  const t = new Data3DTexture(data, LUT_N, LUT_N, LUT_N);
-  t.format = RGBAFormat;
-  t.type = UnsignedByteType;
-  t.colorSpace = NoColorSpace;
-  t.minFilter = LinearFilter;
-  t.magFilter = LinearFilter;
-  t.wrapS = t.wrapT = t.wrapR = ClampToEdgeWrapping;
-  t.unpackAlignment = 1;
-  t.needsUpdate = true;
-  return t;
-}
-
 export function gradeUniforms(): { uLut: { value: Data3DTexture }; uLutAmt: { value: number } } {
-  return { uLut: { value: identity() }, uLutAmt: { value: 0 } };
+  return { uLut: { value: identityLutTexture() }, uLutAmt: { value: 0 } };
 }
 
-/** fetch a fitted LUT (the engine's one loader); null (and a warning) when it is missing or the wrong size */
-export async function loadLut(url: string): Promise<Data3DTexture | null> {
-  const data = await fetchLut(url);
-  return data === null ? null : lutTexture(data);
-}
+/** fetch a fitted LUT (the SDK's LUT texture over the engine's one loader); null (and a warning) when it is missing or the wrong size */
+export const loadLut: typeof loadLutTexture = loadLutTexture;
 
 /** the LUT's texel-centre mapping, spliced into data/light.ts' GRADE_GLSL (`@{lutScale}`, `@{lutBias}`) */
-export const LUT_SPLICES: Readonly<Record<string, string>> = { lutScale: ((LUT_N - 1) / LUT_N).toFixed(6), lutBias: (0.5 / LUT_N).toFixed(6) };
+export const LUT_SPLICES: Readonly<Record<string, string>> = LUT_TEXEL_SPLICES;
 
 export interface SkyTargets { uFogBase: { value: number }; uFogBaseCol: { value: Color }; uSkyTop: { value: Color }; uSkyHorizon: { value: Color }; uBandCols: { value: Color[] } }
 
