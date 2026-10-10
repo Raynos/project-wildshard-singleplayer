@@ -887,19 +887,21 @@ const shardGameImports = rule('Shard code outside runtime imports the SDK, not t
 
 // G307: report-only during SF76; the standalone report enables this same rule without changing hard guards.
 const shardGamePlugins = rule('Trusted runtime imports only defining game plugin exports (G307)', (context) => {
+  if (!/^src\/shards\/[^/]+\//u.test(pathOf(context))) return {};
   if (legacySourcePath(pathOf(context)) !== null) return {};
-  const check = (node, source) => {
+  const check = (node, source, computed = false) => {
     // Load the same package surface used by public-index; no second list to drift.
     exported('@wildshard/game/shard/context');
-    const reason = gamePluginImportViolation(context.filename, source, packageExports.get('game') ?? {});
+    const reason = computed && shardGameImport(context.filename, source) ? 'game plugin module must be a literal exported path'
+      : gamePluginImportViolation(context.filename, source, packageExports.get('game') ?? {});
     if (reason !== null) report(context, node, `G307: ${reason}: ${source}`);
   };
   return {
-    ...importsVisitor(node => { check(node, importPrefix(node.source)); }),
-    TSImportType(node) { check(node, importPrefix(node.source)); },
+    ...importsVisitor(node => { check(node, importPrefix(node.source), computedSpecifier(node.source)); }),
+    TSImportType(node) { check(node, importPrefix(node.source), computedSpecifier(node.source)); },
     TSExternalModuleReference(node) { check(node, importPrefix(node.expression)); },
     CallExpression(node) {
-      if (node.callee.type === 'Identifier' && node.callee.name === 'require') check(node, importPrefix(node.arguments[0]));
+      if (node.callee.type === 'Identifier' && node.callee.name === 'require') check(node, importPrefix(node.arguments[0]), computedSpecifier(node.arguments[0]));
     },
   };
 });
