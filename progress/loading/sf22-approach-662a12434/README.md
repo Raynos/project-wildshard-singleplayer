@@ -156,3 +156,27 @@ and corroborates the attachment-order cause. The repeat predates `7e2a66d3a`.
 Immutable raw diagnostic: `attempt-1112-environment-disposal.json` in the scratch directory above. Scope callback
 timing and program-key snapshots run only in diagnostic mode in the next harness; the full-route timing run omits
 those extra observers. Memory remains the G269 phone verdict and the Simulator fallback refusal stays recorded.
+
+## Attached PMREM repeat and closing-owner fence
+
+The two-leg diagnostic on `7e2a66d3ae7cb70539846ec99e61e99cbb44c063` confirms the parked Pine scene now borrows
+its actual attached PMREM (CubeUV mapping 306, image height 512). Pine's first entered second issued **14 shader
+calls**, down from 70 in the preceding diagnostics; eight new programs remained, down from 33. Seven of those
+cache keys differ only in shadow-pass point-light count (warm five, draw two); the eighth is an object-flags variant.
+No pixel, light-count or residency change is inferred from those cache-key observations.
+
+Pine / Nalati activations were 3.4 / 5.7 ms and entry commits 0.2 ms each, with no refusals or errors. This is still
+**not an SF22 pass**: Pine departure was 45.3 ms (save 3.0, frame 0.0, leave 42.3). One-minute route-load medians
+were 23.87 / 39.07. Callback instrumentation attributed the largest direct cleanup to final scene-tree capture
+and detach: 8.1 ms under the regional world and 7.4 ms under its view. Nested totals overlap and instrumentation
+adds overhead; these are diagnostic attribution, not normative full-circuit timing or phone credit.
+
+`da41f86e72` fixes a concrete cleanup error exposed by that lifecycle: a scope marks itself closed before running
+its resource cleanups, so its final tree capture used to re-adopt and dispose its own just-freed textures again.
+Existing ownership by the same closing scope remains authoritative; unseen late resources are still captured and
+freed immediately. A real Scope fixture proves texture, geometry and material native disposal exactly once and
+an empty final census. This correctness fix has no measured crossing credit yet. The following full matched
+circuit includes it and omits the diagnostic callback/program-key observers.
+
+Immutable raw diagnostic: `attempt-7e2a-attached-pmrem.json` in the scratch directory above. All owned resources
+closed. Memory remains G269's phone verdict; the Simulator image-fallback refusal remains unchanged.
