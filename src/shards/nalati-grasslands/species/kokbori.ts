@@ -2,7 +2,7 @@ import { eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine/entities
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
+import { KOKBORI_DATA } from '../data/species/kokbori';
 
 
 
@@ -24,26 +24,19 @@ const SKY: Record<string, RGB> = {
   back: [0.4, 0.44, 0.5], side: [0.64, 0.68, 0.73], cream: [0.93, 0.94, 0.96], leg: [0.6, 0.64, 0.69], dark: [0.2, 0.22, 0.26],
   eye: [0.78, 0.9, 0.96], earIn: [0.7, 0.7, 0.74],
 };
+const { id: _id, brain: _brain, ...body } = KOKBORI_DATA;
 
+function coat(row: SpeciesDef['variants'][number]): SpeciesDef['variants'][number] { return { ...row, tint: SKY, traits: { ruff: 1.45 } }; }
 export const KOKBORI_SPECIES: SpeciesDef = {
-  lockable: true,
-  rigContract: { skeleton: 'kokbori.v1', clips: [], sockets: ['body', 'head'] },
+  ...body,
   kind: KOKBORI,
-  label: engineString('s_1dcfb937c1e2'),
+  rigContract: { skeleton: 'kokbori.v1', clips: [], sockets: ['body', 'head'] },
   fur: NO_FUR,
-  aggressive: true,
-  walkSpeed: 1.8,
-  chargeSpeed: 11,
-  chargeDamage: 22,
-  sounds: { call: 'wolf_howl', hurt: 'wolf_yelp', callEvery: [50, 120] },
   pose: { grazeNeck: 0.5, gallopTail: 0.3 },
   gait: { trot: 1.8, gallop: 5.6 },
-  variants: [
-    { id: 'kokbori', label: engineString('s_646884575438'), weight: 1, rarity: 'legendary', scale: [2.6, 2.6], hp: 650, tint: SKY, traits: { ruff: 1.45 } },
-  ],
+  variants: body.variants.map(coat),
   build: buildCanid,
   postPose: canidPostPose,
-  tick: 'ai',
   act: eliteAct,
   think: eliteThink,
   damageMul: eliteDamageMul,

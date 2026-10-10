@@ -1,7 +1,7 @@
 import { eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, bump, clamp } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
+import { LEOPARD_DATA } from '../data/species/leopard';
 
 import * as THREE from 'three';
 import { nalatiBody } from './bodies';
@@ -63,25 +63,16 @@ function felidPostPose(c: RigAnimCtx): void {
   t2.rotation.copy(_e);
 }
 
+const { id: _id, brain: _brain, ...body } = LEOPARD_DATA;
 export const LEOPARD_SPECIES: SpeciesDef = {
-  lockable: true,
-  rigContract: { skeleton: 'leopard.v1', clips: [], sockets: ['body', 'head'] },
+  ...body,
   kind: LEOPARD,
-  label: engineString('s_db2b04607d7a'),
+  rigContract: { skeleton: 'leopard.v1', clips: [], sockets: ['body', 'head'] },
   fur: NO_FUR,
-  aggressive: true,
-  walkSpeed: 1.4,
-  chargeSpeed: 11,
-  chargeDamage: 14,
-  sounds: { call: 'leopard_growl', hurt: 'leopard_growl', callEvery: [40, 90] }, // its own voice, not Pine Hollow's bear (NALATI-MERGE F6)
   pose: { grazeNeck: 0.3, gallopTail: 0.2 },
   gait: { trot: 2.2, gallop: 6 },
-  variants: [
-    { id: 'aqbars', label: engineString('s_0328e70c0b4f'), weight: 1, rarity: 'legendary', scale: [1.5, 1.5], hp: 700 },
-  ],
   build: buildFelid,
   postPose: felidPostPose,
-  tick: 'ai',
   act: eliteAct,
   think: eliteThink,
   damageMul: eliteDamageMul,

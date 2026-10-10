@@ -1,4 +1,5 @@
 import { AqbarsKeeper } from '../runtime/aqbarsKeeper';
+import { KokboriKeeper } from '../runtime/kokboriKeeper';
 import { ArgymaqKeeper } from '../runtime/argymaqKeeper';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
@@ -196,112 +197,34 @@ class Aqbars extends Base {
 
 // ─────────────────────────────── E2 · Kokbori, Mother of the Pack ───────────────────────────────
 
-type KbSt = 'den' | 'hold' | 'howl' | 'hunt' | 'home';
 class Kokbori extends Base {
-  private st: KbSt = 'den';
   private pack: PackController | null = null;
-  private howlT = 8; private stT = 0; private howlHit = -1; private cd = 0; private bit = false;
-  private rings: GroundTell;
-  constructor(def: EliteDef, env: Env) { super(def, env); this.rings = new GroundTell(env.game.scene, 'ring', new THREE.Color(0.9, 1.15, 1.4)); }
+  private readonly rings: GroundTell;
+  private readonly keeper: KokboriKeeper<Animal>;
+  constructor(def: EliteDef, env: Env) {
+    super(def, env); this.rings = new GroundTell(env.game.scene, 'ring', new THREE.Color(0.9, 1.15, 1.4));
+    this.keeper = new KokboriKeeper({ player: env.player, lair: def.lair, phase2: () => this.p2, pack: () => this.pack,
+      environment: () => wildEnv, random: () => app.rng.stream('ai').next(), rings: this.rings,
+      hurt: env.hurt, feed: env.feed, sound: env.sound, signature: () => { this.sig(); } });
+  }
   override spawn(): void {
-    const c = this.def.lair;
-    const a = this.spawnAt(KOKBORI, 'kokbori', c.x, c.z, Math.PI);
-    a.mem['howl'] = 0;
-    this.st = 'den'; this.howlT = 8;
+    const c = this.def.lair, a = this.spawnAt(KOKBORI, 'kokbori', c.x, c.z, Math.PI);
+    this.keeper.spawned(a);
     this.pack = this.env.wildlife?.spawnPack(c.x - 6, c.z + 4, ['grey', 'tawny', 'grey', 'dark', 'scout']) ?? null;
     if (this.pack) { this.pack.homeX = c.x; this.pack.homeZ = c.z; }
   }
   override despawn(): void {
-    this.rings.hide();
+    this.keeper.disposeTell();
     if (this.pack) for (const w of this.pack.members) if (w.alive) retire(this.env.animals, w);
-    this.pack = null;
-    super.despawn();
+    this.pack = null; super.despawn();
   }
-  override reset(): void { super.reset(); this.st = 'home'; this.rings.hide(); if (this.animal) this.animal.mem['howl'] = 0; }
-  override enterPhase2(): void {
-    super.enterPhase2();
-    const a = this.animal;
-    if (this.pack && a) { this.pack.homeX = a.position.x; this.pack.homeZ = a.position.z; this.pack.phase = 'regroup'; }
-    this.st = 'hunt'; this.cd = 1;
-    this.env.feed('Kokbori calls the pack back — and comes for you');
-  }
-  protected override damage(a: Animal, p: THREE.Vector3): number {
-    // the weak point: an arrow from HIDDEN (crouched in tall grass) — and she is never soft in the howl
-    const pl = this.env.player.position;
-    const hidden = wildEnv.playerCrouched && wildEnv.grassHeightAt(pl.x, pl.z) > 0.6;
-    void a;
-    return !this.melee(p) && hidden ? 2 : 1;
-  }
-  protected override think(a: Animal, c: ThinkCtx): void {
-    const tp = this.toPlayer(a);
-    a.lookTarget.copy(c.player); a.lookWeight = 1;
-    this.cd -= c.dt;
-    switch (this.st) {
-      case 'den': a.setMotion(tp.yaw, 0, 1.5); break;
-      case 'home': this.goHome(a, c, 6); if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 4) this.st = 'den'; break;
-      case 'hold': {
-        // 24–32 m out (close enough to read her over the grass), sliding round you — and off your line of sight when you look at her
-        const lookX = wildEnv.playerFwdX, lookZ = wildEnv.playerFwdZ;
-        const ux = (a.position.x - c.player.x) / Math.max(1, tp.d), uz = (a.position.z - c.player.z) / Math.max(1, tp.d);
-        const watched = lookX * ux + lookZ * uz > 0.9;
-        const side = watched ? 1 : 0;
-        const r = THREE.MathUtils.clamp(tp.d, 24, 32);
-        const ang = Math.atan2(ux, uz) + side * 0.6;
-        const gx = c.player.x + Math.sin(ang) * r, gz = c.player.z + Math.cos(ang) * r;
-        const gd = Math.hypot(gx - a.position.x, gz - a.position.z);
-        a.setMotion(gd > 2 ? Math.atan2(gx - a.position.x, gz - a.position.z) : tp.yaw, gd > 2 ? (watched ? 7 : 4) : 0, 3);
-        a.mem['low'] = watched ? 0.6 : 0.2;
-        break;
-      }
-      case 'howl': a.setMotion(a.yaw, 0, 1); break;
-      case 'hunt': {
-        a.mem['low'] = 0; a.mem['snarl'] = tp.d < 8 ? 1 : 0;
-        if (a.attackPhase >= 0) break;
-        if (tp.d < 3.5 && this.cd <= 0) { this.bit = false; a.startAttack(0.9); break; }
-        a.setMotion(this.chase(a, c, tp.d, tp.yaw), tp.d > 2.5 ? 8 : 0, 3.5);
-        break;
-      }
-      default: break;
-    }
-  }
-  protected override act(a: Animal, _c: ThinkCtx): void {
-    if (this.st !== 'hunt' || a.attackPhase < 0) return;
-    const tp = this.toPlayer(a);
-
-          a.setMotion(tp.yaw, 6, 4);
-          if (a.attackPhase >= 0.7 && !this.bit) { this.bit = true; if (tp.d < 3.2) this.env.hurt(a, 22); }
-          if (a.attackPhase >= 1) { a.cancelAttack(); this.cd = 1.8; }
-  }
+  override reset(): void { super.reset(); this.keeper.reset(this.animal); }
+  override enterPhase2(): void { super.enterPhase2(); this.keeper.enterPhase2(this.animal); }
+  protected override damage(a: Animal, p: THREE.Vector3): number { return this.keeper.damage(a, p); }
+  protected override think(a: Animal, c: ThinkCtx): void { this.keeper.think(a, c); }
+  protected override act(a: Animal, _c: ThinkCtx): void { this.keeper.act(a); }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.engagement(engaged);
-    const a = this.animal;
-    if (!a) return;
-    this.rings.setTime(t);
-    if (leashing && this.st !== 'home') this.st = 'home';
-    if (engaged && (this.st === 'den' || this.st === 'home')) { this.st = this.p2 ? 'hunt' : 'hold'; this.howlT = 3; }
-    this.stT += dt;
-    if (this.st === 'hold' && !this.p2) {
-      this.howlT -= dt;
-      if (this.howlT <= 0) { this.st = 'howl'; this.stT = 0; this.howlHit = a.lastHitT; this.sig(); this.env.sound('wolf_howl', a.position); }
-    }
-    if (this.st === 'howl') {
-      a.mem['howl'] = Math.min(1, this.stT / 0.3);
-      // pale rings ripple out from her
-      this.rings.ring(a.position.x, a.position.z, 2 + ((this.stT * 11) % 12), 0.85 * (1 - ((this.stT * 11) % 12) / 12));
-      if (a.lastHitT > this.howlHit) {
-        // hit mid-howl: it breaks — she staggers, the pack scatters
-        a.mem['howl'] = 0; this.rings.hide();
-        _v.set(Math.sin(a.yaw), 0, Math.cos(a.yaw)).negate(); a.stagger(_v, 1);
-        this.pack?.scare(a.position.x, a.position.z, 80);
-        this.env.feed('The howl breaks — the pack scatters');
-        this.st = 'hold'; this.howlT = 12;
-      } else if (this.stT > 1.2) {
-        a.mem['howl'] = 0; this.rings.hide();
-        if (this.pack) { this.pack.awareness = 1; this.pack.phase = 'encircle'; }
-        this.env.feed('PACK HOWL — the pack closes in');
-        this.st = 'hold'; this.howlT = 11 + app.rng.stream('ai').next() * 4;
-      }
-    } else if (a.mem['howl'] !== 0) a.mem['howl'] = 0;
+    this.engagement(engaged); this.keeper.tick(this.animal, dt, t, engaged, leashing);
   }
 }
 
