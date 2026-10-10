@@ -1,0 +1,384 @@
+{
+  "schema": 2,
+  "sha": "f92e0d933b46f0db358588ca8dbb07c972ba1936",
+  "runId": "66623-1791625624542",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-10T09:49:26.224Z",
+  "elapsedSeconds": 141.691,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "nine-dragon-stack"
+  ],
+  "surface": "desktop",
+  "developer": "on",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "glObserver": "off",
+  "travelGlCensus": false,
+  "harnessRevision": "9004f0fbad106c6d956594c3fc5346e159476b98",
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "nine-dragon-stack",
+          "complete": true,
+          "pass": true,
+          "seconds": 21.312,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "60c3bb3a-9acf-4f05-bedc-02e9ecab18b9",
+              "telemetry.heartbeat": {
+                "session": "932669d2-e723-4caa-895c-589d75ffa371",
+                "build": "f92e0d9-mv27oywe",
+                "level": "nine-dragon-stack",
+                "stage": "play",
+                "at": 1791625749986,
+                "fps": 60,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "04:49:05 rzpm +0s boot · nav navigate · ?chunk=nine-dragon-stack&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "04:49:07 rzpm +3s world ready · first-paint 64ms, first-contentful-paint 64ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791625745271,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18:nine-dragon-stack": {
+                  "renderer": 18.40000009536743,
+                  "sky": 57.299999713897705,
+                  "terrain": 0.20000028610229492,
+                  "cards": 1.9000000953674316,
+                  "forest": 2.5,
+                  "physics": 1.5,
+                  "edge": 10.199999809265137,
+                  "grass": 0,
+                  "cabins": 0.09999990463256836,
+                  "props": 1636.8000001907349,
+                  "animals": 0.8999996185302734,
+                  "weapon": 26.09999990463257,
+                  "menu": 6.800000190734863,
+                  "shaders": 409.1000003814697,
+                  "firstFrame": 126.39999961853027,
+                  "audio": 140.90000009536743
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "shard.nd.feizhua.input",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "fei-zhua.rope",
+              "player.update",
+              "shard.nd.world",
+              "shard.nd.audio",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "engine.effects",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "fei-zhua",
+              "hud.perf",
+              "engine.world.bounds",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.9500050571248574,
+              "y": 125.01239999359677,
+              "z": 7.4999921384108195,
+              "yaw": -0.20943951023931956,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-rail",
+                "x": 0.95,
+                "z": 7.5,
+                "y": 125,
+                "yaw": -0.20943951023931953,
+                "pitch": -0.06981317007977318
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 4.1,
+              "calls": 171,
+              "triangles": 1632347
+            },
+            {
+              "pose": {
+                "name": "well-edge",
+                "x": -19.5,
+                "z": 13.3,
+                "y": 125,
+                "yaw": 0,
+                "pitch": -0.17453292519943295
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 4,
+              "calls": 160,
+              "triangles": 1378282
+            },
+            {
+              "pose": {
+                "name": "stair-street",
+                "x": 18,
+                "z": 6,
+                "y": 125,
+                "yaw": -1.5707963267948966,
+                "pitch": 0.17453292519943295
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 4.2,
+              "calls": 146,
+              "triangles": 952257
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.9500050571248574,
+                "y": 125.01239999359677,
+                "z": 7.4999921384108195,
+                "yaw": -0.20943951023931956,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.5,
+              "callbackP99Ms": 17.7,
+              "callbackMaxMs": 17.7,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 4.2,
+              "calls": 171,
+              "triangles": 1640607,
+              "position": {
+                "x": 0.9500048692972998,
+                "y": 125.01997845177175,
+                "z": 7.499994502510574
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nine-dragon-stack",
+                    "samples": 120,
+                    "p95Ms": 0.40000009536743164,
+                    "maxMs": 0.40000057220458984,
+                    "calls": 1320
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "stair-street",
+                "x": 18,
+                "z": 6,
+                "y": 125,
+                "yaw": -1.5707963267948966,
+                "pitch": 0.17453292519943295
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.4,
+              "callbackP99Ms": 17.5,
+              "callbackMaxMs": 17.7,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 3.5,
+              "calls": 147,
+              "triangles": 952461,
+              "position": {
+                "x": 17.999991128619733,
+                "y": 125.01971133457482,
+                "z": 5.9999946760540706
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nine-dragon-stack",
+                    "samples": 120,
+                    "p95Ms": 0.3000006675720215,
+                    "maxMs": 0.5000004768371582,
+                    "calls": 1320
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-rail",
+                "x": 0.95,
+                "z": 7.5,
+                "y": 125,
+                "yaw": -0.20943951023931953,
+                "pitch": -0.06981317007977318
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.4,
+              "callbackP99Ms": 17.5,
+              "callbackMaxMs": 17.6,
+              "gameP95Ms": 16.7,
+              "workP95Ms": 3.4,
+              "calls": 170,
+              "triangles": 1632071,
+              "position": {
+                "x": 0.9500041680411948,
+                "y": 125.01987909288437,
+                "z": 7.500007286725914
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nine-dragon-stack",
+                    "samples": 120,
+                    "p95Ms": 0.39999961853027344,
+                    "maxMs": 0.40000057220458984,
+                    "calls": 1320
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}

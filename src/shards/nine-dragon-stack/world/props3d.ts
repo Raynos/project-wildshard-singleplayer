@@ -11,15 +11,7 @@
 // (E306 M4) the lion and the sets are models (../models/lion.ts, market.ts, balustradePanel.ts); this file keeps where
 // they stand — the queues the square's builders fill — and squareProps.ts places them.
 import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
-import type { GlbOpt } from './hero/glb';
-import { K } from './kit';
-import { BANYAN, GATE, PLAZA, STREET, WELL, Y0 } from '../layout';
-
-/** the wet granite of the balustrade, dark to light (the lab's ramp; the lion's own is models/lion.ts's) */
-const STONE_RAMP = [0x2f2f33, 0x45454a, 0x5b5b60, 0x6e6e73, 0x808086, 0x94949a];
-const WOOD_RAMP = [0x2a1d14, 0x3f2b1d, 0x563a26, 0x6e4a30, 0x86603f, 0xa07a55];
-const STEEL_RAMP = [0x3a3d44, 0x585d66, 0x7a808a, 0x9aa1ab, 0xb8bec6, 0xd2d6dc];
-const HUES = { skin: 0xb07a52, red: 0xa8321f, blue: 0x2f4f8e, green: 0x3f6a4a };
+import { GATE, PLAZA, STREET, WELL, Y0 } from '../layout';
 
 /**
  * which balustrade posts carry a lion (balustrade() leaves their lotus finial off): the two ends of the street run.
@@ -37,10 +29,6 @@ export const GATE_LIONS = {
   top: 0.96 * 0.95,
   scale: 2.4,
 } as const;
-
-/** a prop and where it stands (`off`: not drawn; the pots and lantern trios would each be a model if they came back, their
- *  red paper glowing: aMisc.x on the red hue class) */
-interface PropSpec { name: string; opt: GlbOpt; glowRed?: number; at: Matrix4[]; off?: boolean; maxTris?: number }
 
 const place = (x: number, y: number, z: number, yaw: number, s = 1): Matrix4 =>
   new Matrix4().compose(new Vector3(x, y, z), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), yaw), new Vector3(s, s, s));
@@ -97,39 +85,18 @@ export function peekQueued(): { lions: readonly Matrix4[]; sets: readonly (reado
   return { lions: queued, sets: [...sets] };
 }
 
-function specs(): PropSpec[] {
+/** the lions' placements (dome B's posts, then the queue other domes filled), emptying the queue. (The TRELLIS pots and
+ *  lantern trios are out since the budget round: two draws and 23 k triangles for four small props; the procedural lanterns
+ *  carry the banyan and the stall. The gate's pair is off since A2 round 1: style-A and the A2 targets have none; to bring
+ *  them back push `place(x, Y0 + GATE_LIONS.top, GATE_LIONS.z, ±0.2, GATE_LIONS.scale)` per spot and set square.ts
+ *  `lions: true`. Tried at half its triangles via crowd.ts `clusterLod`: the lion by the spawn went blobby.) */
+export function takeLions(): Matrix4[] {
   // the model faces glTF +z; on the Well's balustrade (x ≈ 0.2) a quarter turn faces the plaza, a little more the spawn
   const plaza = lionPosts('plaza', PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0), street = lionPosts('street', STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0);
   const lions = [...plaza, ...street].map((p) => place(p.x, p.y, p.z, Math.PI / 2 + 0.35, 1));
   lionCounts = { plaza: plaza.length, street: street.length, rim: queued.length };
   lions.push(...queued.splice(0));
-  // the gate's pair, facing the square, turned a little in toward the passage
-  // (the gate's pair is off since A2 round 1: style-A and the A2 targets have none, and the pedestals blocked A2's left /
-  // right views; to bring them back push `place(x, Y0 + GATE_LIONS.top, GATE_LIONS.z, ±0.2, GATE_LIONS.scale)` per spot
-  // and set square.ts `lions: true`)
-  return [
-    // (tried at half its triangles, `maxTris: 4000` via crowd.ts `clusterLod`: the lion by the spawn went blobby — reverted;
-    // the lever stays: −36 k if the lane ever needs it)
-    { name: 'lion', opt: { kind: K.stone, line: 0, ao: 0.85, ramp: STONE_RAMP, hues: {} }, at: lions },
-    // (the TRELLIS pots and lantern trios are out since the budget round: two draws and 23 k triangles for four small
-    // props; the procedural lanterns carry the banyan and the stall)
-    {
-      name: 'pots', opt: { kind: 0, line: 0, ao: 0.7, ramp: STEEL_RAMP, hues: { green: HUES.green, blue: HUES.blue, red: 0xc0392b, skin: 0x8a6a4a } }, off: true,
-      at: [
-        place(BANYAN.x - 4.5, Y0, BANYAN.z + 2.3, 0.3), // west of the earth-god shrine
-        place(GATE.posts[3] + 1.4, Y0, GATE.z + 1.7, -0.5), // east of the gate (the stall-corner pot read as a cobalt blob in domeb-2's foreground: reverted)
-      ],
-    },
-    {
-      name: 'lanterns', opt: { kind: 0, line: 0, ao: 0.5, ramp: WOOD_RAMP, hues: { red: 0xc8401f, skin: 0xc9a24a } }, glowRed: 2.6, off: true,
-      at: [place(BANYAN.x - 2.4, Y0 + 5.2, BANYAN.z + 2.0, 0.8, 1.1), place(BANYAN.x + 2.2, Y0 + 5.6, BANYAN.z + 1.4, -0.7, 1.1)],
-    },
-  ];
-}
-
-/** the lions' placements (dome B's posts, then the queue other domes filled), emptying the queue */
-export function takeLions(): Matrix4[] {
-  return specs().find((x) => x.name === 'lion')?.at ?? [];
+  return lions;
 }
 
 /** the last `takeLions`' lions by where they stand, as index lists into its order (M12: each named place's Set lists its lions) */

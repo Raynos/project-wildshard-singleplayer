@@ -20,9 +20,7 @@
 // Timing is the engine's sword timing (SwordMoves.ts): `arms.moves[name].timing` = { windup, slashEnd, total, sweep } —
 // light = SLASH, light2 = BACKHAND, light3 = FINISHER, heavy = HEAVY (after `charge`, CHARGE_BLEND 0.16 s). Chain a
 // combo by calling play(next) at slashEnd: the crossfade carries the arm from the follow-through into the next cut.
-import {
-  type AnimationClip, type BufferGeometry, DoubleSide, Group, Matrix3, Mesh, type Object3D, type ShaderMaterial, SkinnedMesh, type Texture, Vector3,
-} from 'three';
+import { type AnimationClip, DoubleSide, Group, type Matrix3, Mesh, type ShaderMaterial, type Texture, Vector3 } from 'three';
 import { Talisman, Tassel, penetration } from './cloth';
 import { Geo, v3 } from './geo';
 import { CLS } from '../data/vmLook';
@@ -30,7 +28,8 @@ import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
 import { plainWeaveTexture } from '@wildshard/sdk/looks/weave';
 import { buildHalo } from './jian';
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms } from './materials';
-import { FpArmsRig, type FpArmsRigView, type FpArmsState, type FpMeshData, armRigBake, armRigContract, rigRoot, sharedRigMaps, takeRigScene } from '@wildshard/sdk/viewmodel/fpArmsRig';
+import { FpArmsRig, type FpArmsRigView, type FpArmsState, armRigBake, armRigContract, rigRoot, takeRigScene } from '@wildshard/sdk/viewmodel/fpArmsRig';
+import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '@wildshard/sdk/viewmodel/inkedRig';
 import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
 import { app } from '@wildshard/engine/app/runtime';
 import type { NdTier } from '../tier';
@@ -52,26 +51,6 @@ function sharedDecals(tier: NdTier): Decals {
   return d;
 }
 
-/** the GLB's meshes: the ink hulls, and the toon bodies with their part's maps */
-function dressMesh(o: Mesh, ud: FpMeshData, rig: FpArmsRigView, u: VmUniforms, textures: Map<string, [Texture | null, Texture | null]>): 'hull' | 'body' {
-  if (ud.hull === true) {
-    const m = inkHullMaterial(u, ud.hullK ?? 1);
-    o.material = m;
-    o.renderOrder = -1;
-    rig.materials.push(m);
-    return 'hull';
-  }
-  const tex = ud.maps === undefined ? undefined : textures.get(ud.maps);
-  const rot = ud.assetRot === undefined ? null : new Matrix3().fromArray(ud.assetRot);
-  const m = vmMaterial(u, tex?.[0] ?? null, tex?.[1] ?? null, rot);
-  // the sleeves, cuffs and the gauntlet are open tubes: a swing looks into them, so their insides are drawn too
-  // (single-sided, the ink hull's back faces showed through as a black hole)
-  if (o instanceof SkinnedMesh) m.side = DoubleSide;
-  o.material = m;
-  rig.materials.push(m);
-  return 'body';
-}
-
 /** the living parts: the tassel's knot + cap, the strands, the talisman (root space), the halo on the weapon */
 function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: Tassel, talisman: Talisman): { knot: Group; halo: Mesh } {
   const kx = new Geo();
@@ -86,22 +65,11 @@ function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: Tassel, talisman:
   const cloth = vmMaterial(u);
   cloth.side = DoubleSide;
   rig.materials.push(hullThin, hullHair, body, cloth);
-  const hulled = (g: BufferGeometry, m: ShaderMaterial, parent: Object3D, hullNormals: boolean, hm = hullThin): void => {
-    if (hullNormals) {
-      const nor = g.getAttribute('normal');
-      g.setAttribute('aHullN', nor.clone());
-    }
-    const b = new Mesh(g, m), h = new Mesh(g, hm);
-    h.renderOrder = -1;
-    b.frustumCulled = false;
-    h.frustumCulled = false;
-    parent.add(h, b);
-  };
-  hulled(knotGeo, body, knot, true);
+  addInkedPair(knot, knotGeo, body, hullThin, true);
   rig.root.add(knot);
-  hulled(tassel.geo, body, rig.root, false, hullHair);
-  hulled(talisman.geo, cloth, rig.root, false);
-  hulled(talisman.cordGeo, body, rig.root, false);
+  addInkedPair(rig.root, tassel.geo, body, hullHair, false);
+  addInkedPair(rig.root, talisman.geo, cloth, hullThin, false);
+  addInkedPair(rig.root, talisman.cordGeo, body, hullThin, false);
   const h = buildHalo();
   const halo = new Mesh(h.geo, h.mat);
   halo.frustumCulled = false;
@@ -121,12 +89,13 @@ export class NineDragonArms extends FpArmsRig {
   private readonly knot: Group;
   private t = 0;
 
-  private constructor(scene: Group, clips: AnimationClip[], textures: Map<string, [Texture | null, Texture | null]>, silk: Texture, tier: NdTier) {
+  private constructor(scene: Group, clips: AnimationClip[], textures: InkedRigMaps, silk: Texture, tier: NdTier) {
     const tassel = new Tassel(), talisman = new Talisman();
     const u = vmUniforms(silk, sharedDecals(tier));
     const parts: { knot?: Group; halo?: Mesh } = {};
+    const look = { body: (maps: Texture | null, nrm: Texture | null, rot: Matrix3 | null) => vmMaterial(u, maps, nrm, rot), hull: (k: number) => inkHullMaterial(u, k) };
     super(scene, clips, ARMS, ARMS_CONTRACT, ARMS_BAKE, {
-      mesh: (o, ud, rig) => dressMesh(o, ud, rig, u, textures),
+      mesh: (o, ud, rig) => dressInkedMesh(o, ud, rig, look, textures),
       dress: (rig) => { Object.assign(parts, dressParts(rig, u, tassel, talisman)); },
     });
     if (parts.knot === undefined || parts.halo === undefined) throw new Error('nine-dragon: the arms were not dressed');
@@ -139,9 +108,7 @@ export class NineDragonArms extends FpArmsRig {
 
   static async load(tier: NdTier = app.render?.tier ?? 'desktop', url = RIG_URL): Promise<NineDragonArms> {
     const gltf = await takeRigScene(url);
-    const pairs = await Promise.all(ARMS_MAPS.map((n) => sharedRigMaps(ARMS_BASE, n)));
-    const textures = new Map<string, [Texture | null, Texture | null]>();
-    for (let i = 0; i < ARMS_MAPS.length; i++) textures.set(ARMS_MAPS[i] ?? '', pairs[i] ?? [null, null]);
+    const textures = await loadInkedRigMaps(ARMS_BASE, ARMS_MAPS);
     return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, plainWeaveTexture(), tier);
   }
 

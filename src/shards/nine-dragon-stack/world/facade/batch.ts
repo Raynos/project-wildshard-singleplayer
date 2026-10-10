@@ -1,19 +1,19 @@
 import { resourceScope } from '@wildshard/engine/app/resources';
 import type { ModelContext, Placement } from '@wildshard/engine/models/model';
-import { type InstancedCuller, type Placed, place } from '@wildshard/engine/models/place';
+import { type InstancedCuller, place } from '@wildshard/engine/models/place';
 // Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in: models too,
 // registered where they are drawn), the kit's pieces placed as models (../../models/facade.ts: one InstancedMesh per
 // piece), and instanced window quads.
 // E271/E272: facade multi-draw is prohibited on every platform/shard, not just phones.
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
-import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, type Object3D, PlaneGeometry, type ShaderMaterial } from 'three';
+import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, PlaneGeometry, type ShaderMaterial } from 'three';
 import type { Dressing } from './dressing';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import { BAKED, DRAWN_AS, SMALL, type PieceId } from './pieceIds';
 import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';
 import type { NdLook } from '../modelLook';
-import { triCount } from '@wildshard/sdk/cull/meshLod';
+import { namePlacedDraws } from '@wildshard/sdk/props/placedDraws';
 
 export interface FacadeStats { draws: number; tris: number; instances: number; windows: number; shellTris: number; perPiece: Record<string, [number, number]> }
 
@@ -32,18 +32,9 @@ export interface FacadeModels {
 /** the copies of one piece */
 interface Copy { m: Matrix4; c: Color }
 
-/**
- * Name a placed model's draws as the old hand-rolled batch was named (the budget ruler's lanes, the GPU ruler's groups
- * and the E283 culler's LOD names read them): the object and its level-0 mesh; returns level 0's triangles per copy.
- */
-export function nameDraws(placed: Placed, name: string): number {
-  placed.object.name = name;
-  const isBatch = (o: Object3D): o is InstancedMesh => o instanceof InstancedMesh;
-  const base = isBatch(placed.object) ? placed.object : placed.object.children.find(isBatch);
-  if (base === undefined) return 0;
-  base.name = name;
-  return triCount(base.geometry);
-}
+/** name a placed model's draws as the old hand-rolled batch was named (the budget ruler's lanes, the GPU ruler's groups and
+ *  the E283 culler's LOD names read them); level 0's triangles per copy */
+export const nameDraws: typeof namePlacedDraws = namePlacedDraws;
 
 export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeModels, opt: FacadeOptions = {}): Promise<{ group: Group; stats: FacadeStats }> {
   const group = new Group();

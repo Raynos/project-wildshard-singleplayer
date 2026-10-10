@@ -10,11 +10,12 @@
  * drawn past 85 m. The few-and-small pieces (couplets, shutters, sign boards, window ACs, the wash on street lines,
  * awnings: FACADE_BAKED, E315 second pass) are models too, baked into the facade shell — the towers' built fabric, one
  * merged mesh that is drawn anyway — so they cost no draw of their own: the grammar records every copy and batch.ts
- * registers them on the shell (`place` with `drawnInto`).
+ * registers them on the shell (`place` with `drawnInto`). SHARD-PLATFORM M3: the cards are rows (data/facadeModels.ts).
  */
 import type { BufferGeometry, Matrix4 } from 'three';
-import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
-import { DRAWN_AS, PIECE_LOD_FROM, SMALL, type PieceId } from '../world/facade/pieceIds';
+import { defineModel, type ModelContext, type ModelDef, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
+import { DRAWN_AS, PIECE_LOD_FROM, SMALL, type PieceId, isPiece } from '../world/facade/pieceIds';
+import { FACADE_MODEL_ROWS, type FacadeModelRow } from '../data/facadeModels';
 import { ndLook, need, specimen } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/facade.ts';
@@ -53,120 +54,24 @@ function lods(id: PieceId): { lods: readonly ModelLod<FacadeParams>[] } | Record
 
 const alias = (a: PieceId, label: string): ModelVariant<FacadeParams> => ({ id: a, label, params: { alias: a } });
 
-export const facadeBalcony = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-balcony', name: 'Balcony (railed)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('balcony'), ...lods('balcony'),
-});
-export const facadeBalconySolid = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-balcony-solid', name: 'Balcony (carved parapet)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('balconySolid'), ...lods('balconySolid'),
-});
-export const facadeBalconyTimber = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-balcony-timber', name: 'Timber veranda balcony', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('balconyTimber'), ...lods('balconyTimber'),
-});
-export const facadeCage = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-cage', name: 'Window cage', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  variants: [alias('cageS', 'Narrow (1.5 m)'), alias('cageW', 'Wide (2.7 m)')],
-  build: build('cage'), ...lods('cage'),
-});
-export const facadeAcUnit = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-ac-unit', name: 'Air-con condenser', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('acUnit'), ...lods('acUnit'),
-});
-export const facadePipe = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-pipe', name: 'Drain pipe', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('pipe'), ...lods('pipe'),
-});
-export const facadeLaundryOut = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-laundry-out', name: 'Laundry pole (out from the wall)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('laundryOut'), ...lods('laundryOut'),
-});
-export const facadeLaundryAlong = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-laundry-along', name: 'Laundry pole (along the wall)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('laundryAlong'), ...lods('laundryAlong'),
-});
-export const facadePlant = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-plant', name: 'Potted plant (sill)', category: 'nature', pipeline: 'code', file: FILE, defaults: {},
-  build: build('plant'), ...lods('plant'),
-});
-export const facadePlanter = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-planter', name: 'Planter trough', category: 'nature', pipeline: 'code', file: FILE, defaults: {},
-  build: build('planter'), ...lods('planter'),
-});
-export const facadeTank = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-tank', name: 'Rooftop water tank', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('tank'), ...lods('tank'),
-});
-export const facadeShack = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-shack', name: 'Rooftop shack (malachite · azurite roof)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('shack'), ...lods('shack'),
-});
-export const facadeBox = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-box', name: 'Wall box (ledge · bay box · gallery post)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  variants: [alias('ledge', 'Ledge'), alias('bayBox', 'Bay box'), alias('post', 'Gallery post')],
-  build: build('box'), ...lods('box'),
-});
-export const facadeEave = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-eave', name: 'Pent eave strip', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('eave'), ...lods('eave'),
-});
-export const facadeRail = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-rail', name: 'Lattice railing', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('rail'), ...lods('rail'),
-});
-export const facadeAntenna = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-antenna', name: 'Antenna mast', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('antenna'), ...lods('antenna'),
-});
-export const facadeDish = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-dish', name: 'Satellite dish', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('dish'), ...lods('dish'),
-});
-export const facadeLantern = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-lantern', name: 'Wall lantern (red paper, facade)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('lantern'), ...lods('lantern'),
-});
+const pieceOf = (s: string): PieceId => { if (!isPiece(s)) throw new Error(`facade: '${s}' is no facade piece (data/facadeModels.ts)`); return s; };
 
-// ── the few-and-small pieces baked into the shell (BAKED) ──
+/** one card of data/facadeModels.ts: the piece's geometry, its aliases as variants, its distance LOD unless the shell bakes it */
+function facadeModel(row: FacadeModelRow): ModelDef<FacadeParams> {
+  const id = pieceOf(row.piece);
+  return defineModel<FacadeParams>({
+    id: `nine-dragon-stack/${row.slug}`, name: row.name, category: row.category, pipeline: 'code', file: FILE, defaults: {},
+    ...(row.variants === undefined ? {} : { variants: row.variants.map(([a, label]) => alias(pieceOf(a), label)) }),
+    build: build(id), ...(row.baked === true ? {} : lods(id)),
+  });
+}
 
-export const facadeCouplet = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-couplet', name: 'Red paper couplet (春聯)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('couplet'),
-});
-export const facadeShutter = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-shutter', name: 'Roll shutter (a closed shop)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: build('shutter'),
-});
-export const facadeSignFlat = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-sign-flat', name: 'Flat sign board', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('signFlat'),
-});
-export const facadeSignBox = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-sign-box', name: 'Lit sign box', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('signBox'),
-});
-export const facadeAcBox = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-ac-box', name: 'Window air-con box', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('acBox'),
-});
-export const facadeWashLine = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-wash-line', name: 'Wash on a street line', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('washLine'),
-});
-export const facadeAwning = defineModel<FacadeParams>({
-  id: 'nine-dragon-stack/facade-awning', name: 'Striped window awning', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: build('awning'),
-});
+const CARDS = FACADE_MODEL_ROWS.map((row) => ({ row, model: facadeModel(row) }));
+const byPiece = (baked: boolean): Readonly<Partial<Record<PieceId, ModelDef<FacadeParams>>>> =>
+  Object.fromEntries(CARDS.filter((c) => (c.row.baked === true) === baked).map((c) => [pieceOf(c.row.piece), c.model]));
 
 /** the model each piece baked into the shell is (BAKED) */
-export const FACADE_BAKED: Readonly<Partial<Record<PieceId, typeof facadeBalcony>>> = {
-  couplet: facadeCouplet, shutter: facadeShutter, signFlat: facadeSignFlat, signBox: facadeSignBox, acBox: facadeAcBox, washLine: facadeWashLine, awning: facadeAwning,
-};
+export const FACADE_BAKED: Readonly<Partial<Record<PieceId, ModelDef<FacadeParams>>>> = byPiece(true);
 
 /** the model that draws each facade piece id (an alias draws as the piece it names in DRAWN_AS) */
-export const FACADE_MODELS: Readonly<Partial<Record<PieceId, typeof facadeBalcony>>> = {
-  balcony: facadeBalcony, balconySolid: facadeBalconySolid, balconyTimber: facadeBalconyTimber, cage: facadeCage, acUnit: facadeAcUnit,
-  pipe: facadePipe, laundryOut: facadeLaundryOut, laundryAlong: facadeLaundryAlong, plant: facadePlant, planter: facadePlanter, tank: facadeTank,
-  shack: facadeShack, box: facadeBox, eave: facadeEave, rail: facadeRail, antenna: facadeAntenna, dish: facadeDish, lantern: facadeLantern,
-};
+export const FACADE_MODELS: Readonly<Partial<Record<PieceId, ModelDef<FacadeParams>>>> = byPiece(false);

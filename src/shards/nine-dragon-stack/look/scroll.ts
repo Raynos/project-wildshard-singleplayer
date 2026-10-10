@@ -9,11 +9,9 @@
 // few px, so no moiré), a 1.2 m module seam grid, the 8 m steel frame; a faint row scan, a rolling refresh band, a few
 // dead diodes, and the bright clouds pushed over the bloom threshold (the post's Karis prefilter at 1.0 picks them up).
 // SHARD-PLATFORM M3: the program's GLSL and row and the default screen are data (data/scroll.ts).
-import { LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace, type ShaderMaterial, type Texture, TextureLoader, Vector2, Vector4 } from 'three';
+import { type ShaderMaterial, type Texture, Vector2, Vector4 } from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { phoneUrl } from '@wildshard/engine/boot/bytes';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { ktx2Texture } from '@wildshard/engine/core/ktx2';
+import { loadWrappedTexture } from '@wildshard/sdk/looks/wrappedTexture';
 import { SCROLL_DEFAULTS, SCROLL_PROGRAMS, SCROLL_TEX } from '../data/scroll';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 
@@ -40,18 +38,9 @@ const D = SCROLL_DEFAULTS;
 /** the default screen (data/scroll.ts) */
 export const SCROLL: ScrollOpt = { pitch: D.pitch, span: D.span, speed: D.speed, offset: D.offset, near: D.near, led: new Vector4(...D.led), grade: new Vector4(...D.grade), module: [...D.module] };
 
-export async function loadScroll(url: string): Promise<Texture> {
-  const compressed = await ktx2Texture(phoneUrl(url));
-  const t = compressed ?? await new TextureLoader().loadAsync(url);
-  t.colorSpace = SRGBColorSpace;
-  t.wrapS = RepeatWrapping;
-  t.minFilter = LinearMipmapLinearFilter;
-  t.magFilter = LinearFilter;
-  t.anisotropy = 4;
-  if (compressed === null) { t.generateMipmaps = true; t.needsUpdate = true; }
-  // (E264) the decoded painting (3.4 MB where it is not a KTX2 file) is on the GPU after the first draw
-  if (compressed === null) gpuOnlyTexture(t, 'Nine Dragon sky scroll (GPU only)');
-  return t;
+/** the sky scroll: wrapped along u, made GPU-only once drawn */
+export function loadScroll(url: string): Promise<Texture> {
+  return loadWrappedTexture(url, 'Nine Dragon sky scroll (GPU only)');
 }
 
 /** the knobs of one screen's program (typed handles, so a tuning write never goes through `any`) */

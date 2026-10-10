@@ -13,7 +13,7 @@
 // SHARD-PLATFORM M3: the programs, the shared uniforms and the presets are rows in data/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
-import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, type ShaderMaterial, type Texture, type IUniform, UnsignedByteType, Vector2, Vector3, Vector4 } from 'three';
+import { Color, type ShaderMaterial, type Texture, type IUniform, Vector2, Vector3, Vector4 } from 'three';
 import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, setUniforms, uniformsFrom, type UniformRows, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
@@ -22,7 +22,8 @@ import { FLAG, PAINT_GLSL } from '../data/paint';
 import { lightVolUniforms } from './light/lightvol';
 import { LIGHTVOL_GLSL } from '../data/light';
 import { METAL, SUTRA } from '../util';
-import { Rng } from '@wildshard/engine/core/rng';
+import { silkWeaveTexture } from '@wildshard/sdk/looks/weave';
+import { fogBandWindow } from '@wildshard/sdk/looks/fogBands';
 import {
   EMIT_FOG as LOOK_EMIT_FOG, FOG_GLSL as LOOK_FOG, NOISE_GLSL as LOOK_NOISE, PAPER_GLSL as LOOK_PAPER, PROGRAMS, SHARED_UNIFORMS,
   STONES_GLSL as LOOK_STONES, BANDS, LOOKS, type LookName,
@@ -52,30 +53,6 @@ export function lookPreset(name: LookName): UniformRows {
   };
 }
 
-/** a 256² plain-weave silk, normalised to the full range (the ink lab's: the first one was ±2 % and invisible) */
-function silkWeave(): DataTexture {
-  const N = 256, data = new Uint8Array(N * N), raw = new Float32Array(N * N);
-  const r = new Rng(77);
-  const warp = Array.from({ length: N / 2 }, () => r.range(-1, 1));
-  const weft = Array.from({ length: N / 2 }, () => r.range(-1, 1));
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const tx = x >> 1, ty = y >> 1;
-    const over = ((tx + ty) & 1) === 0;
-    const thread = over ? (warp[tx] ?? 0) * 0.5 : (weft[ty] ?? 0) * 0.5;
-    const slub = Math.sin((x + (weft[ty] ?? 0) * 11) * 0.13) * 0.18 + Math.sin((y + (warp[tx] ?? 0) * 9) * 0.11) * 0.18;
-    raw[y * N + x] = thread * 36 + slub * 44 + (r.next() - 0.5) * 22;
-  }
-  const sorted = Float32Array.from(raw).sort();
-  const lo = sorted[Math.floor(N * N * 0.01)] ?? -1, hi = sorted[Math.floor(N * N * 0.99)] ?? 1;
-  for (let i = 0; i < N * N; i++) data[i] = Math.max(0, Math.min(255, Math.round((((raw[i] ?? 0) - lo) / (hi - lo)) * 255)));
-  const t = new DataTexture(data, N, N, RedFormat, UnsignedByteType);
-  t.wrapS = t.wrapT = RepeatWrapping;
-  t.minFilter = LinearMipmapLinearFilter;
-  t.generateMipmaps = true;
-  t.needsUpdate = true;
-  return t;
-}
-
 export type Uniforms = Record<string, IUniform>;
 
 /** keeps the target's alpha (the silhouette's inverse depth) under a transparent pass */
@@ -91,7 +68,7 @@ function sharedUniforms(): UniformsOf<typeof SHARED_UNIFORMS> & {
     uGold: { value: c(METAL.gold) },
     uPaper: { value: c(SUTRA.indigo) },
     uPaperDeep: { value: c(SUTRA.deep) },
-    uSilk: { value: silkWeave() },
+    uSilk: { value: silkWeaveTexture() },
     // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths
     ...paintUniforms(),
     ...lightVolUniforms(),
@@ -118,20 +95,9 @@ export class Shared {
    * first whose bottom is at or under the eye, and a ray going up none after the last whose top is at or over it — and
    * past the first band the ray's far end cannot reach, no later one either. silkFog then walks only those bands, in the
    * same order, with the same test on each: the same fog, bit for bit. Off (z 0) if the bands ever stop running top to
-   * bottom.
+   * bottom (@wildshard/sdk/looks/fogBands).
    */
-  bandWindow(): void {
-    const B = this.u.uBands.value, cy = this.u.uCam.value.y;
-    let ordered = true, down = B.length, up = -1;
-    for (let k = 0; k < B.length; k++) {
-      const b = B[k], prev = B[k - 1];
-      if (b === undefined) continue;
-      if (prev !== undefined && (b.x + 3 * b.y > prev.x + 3 * prev.y || b.x - 3 * b.y > prev.x - 3 * prev.y)) ordered = false;
-      if (down === B.length && b.x - 3 * b.y <= cy) down = k;
-      if (b.x + 3 * b.y >= cy) up = k;
-    }
-    this.u.uBandWin.value.set(down, up, ordered ? 1 : 0);
-  }
+  bandWindow(): void { fogBandWindow(this.u.uBands.value, this.u.uCam.value.y, this.u.uBandWin.value); }
 }
 
 export function jiehuaMaterial(shared: Shared, opt: { alphaCut?: boolean; viewmodel?: boolean; doubleSide?: boolean } = {}): ShaderMaterial {

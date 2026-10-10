@@ -4,7 +4,7 @@
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
-import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4 } from 'three';
+import { Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4 } from 'three';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { installRenderEvents } from './renderEvents';
@@ -20,6 +20,9 @@ import { JiehuaEffect } from './render/jiehua';
 import { PASS_FAMILY } from './render/family';
 import { BLEED_PASS, HAZE_PASS, REFLECT_PASS } from '../data/passes';
 import { RowRenderPass, type RowRenderPassView } from '@wildshard/sdk/looks/renderPass';
+import { tuneAo } from '@wildshard/sdk/looks/aoTuning';
+import { meshesWithUniform } from '@wildshard/sdk/looks/uniformScan';
+import { AO_TUNING } from '../data/aoLook';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 
@@ -66,27 +69,8 @@ export function shardRender(): LookStrategy {
     sky: { clouds: false, planet: true },
     compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
-      // AO at the city's scale: 2.2 m reaches the eave's underside, the awning's shadow on the wall, the step's riser and
-      // the feet; an ink-blue occlusion (never black: the wash stays a wash); half res with a depth-aware upsample. It
-      // runs before the ink silhouette (the composite), so the lines stay crisp over it
-      const ao = c.fx.ao;
-      if (ao !== null) {
-        const k = ao.configuration;
-        k.aoRadius = 2.2;
-        k.distanceFalloff = 1;
-        k.intensity = 5;
-        k.aoSamples = c.tier === 'phone' ? 6 : 16;
-        k.denoiseSamples = c.tier === 'phone' ? 4 : 8;
-        k.denoiseIterations = c.tier === 'phone' ? 1 : 2;
-        k.denoiseRadius = 8;
-        k.color = new Color(0.07, 0.08, 0.13);
-        k.halfRes = true;
-        // n8ao fades its AO out with the scene's THREE.Fog distances (nothing else in the engine reads them: the Sky
-        // sets 1 … 1e6 and Atmosphere.ts does its own fog maths). Post AO darkens whatever colour the pixel ends up,
-        // the silk fog included: past ~25 m the fog is most of a far wall's colour, so the AO fades by 80 m — the Well's
-        // deep strata were speckled with it
-        if (c.scene.fog instanceof Fog) { c.scene.fog.near = 25; c.scene.fog.far = 80; }
-      }
+      // AO at the city's scale, faded with the fog (data/aoLook.ts)
+      tuneAo(c.fx.ao, AO_TUNING, c.tier === 'phone', c.scene);
       let reflect: RowRenderPassView | null = null;
       let haze: RowRenderPassView | null = null;
       let bleed: RowRenderPassView | null = null;
@@ -111,13 +95,7 @@ export function shardRender(): LookStrategy {
       jiehua.haze = haze;
       jiehua.refl = reflect;
       // the streak cards (look/streaks.ts): found by their own uniform
-      const cardOns: IUniform<number>[] = [];
-      const streaks: Object3D[] = [];
-      c.scene.traverse((o) => {
-        if (!(o instanceof Mesh) || !(o.material instanceof ShaderMaterial)) return;
-        const u = o.material.uniforms['uCardOn'];
-        if (u !== undefined && typeof u.value === 'number') { cardOns.push(u as IUniform<number>); streaks.push(o); }
-      });
+      const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.scene, 'uCardOn');
       const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; };
       setCardOn(reflect === null ? 1 : CARD_ON);
       if (reflect === null) {
