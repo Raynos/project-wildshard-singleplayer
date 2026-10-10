@@ -204,7 +204,7 @@
     "src/shards/pine-hollow/world/weather.ts": 3,
     "src/shards/sunscar-dunes/boot/files.ts": 1,
     "src/shards/sunscar-dunes/combat/creatures.ts": 2,
-    "src/shards/sunscar-dunes/combat/matriarch.ts": 5,
+    "src/shards/sunscar-dunes/combat/matriarch.ts": 2,
     "src/shards/sunscar-dunes/manifest.ts": 1,
     "src/shards/sunscar-dunes/plugin.ts": 6,
     "src/shards/sunscar-dunes/quest/install.ts": 5,
