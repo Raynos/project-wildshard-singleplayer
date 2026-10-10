@@ -8,13 +8,17 @@ import { captainHatGeometry } from '../src/shards/driftwood-isle/generators/capt
 import { boatGeometry } from '../src/shards/driftwood-isle/generators/boat';
 import { sailclothCapeGeometry } from '../src/shards/driftwood-isle/generators/sailclothCape';
 import { chimeGeometry } from '../src/shards/driftwood-isle/generators/seaGlassChime';
+import { plaquesGeometry } from '../src/shards/driftwood-isle/generators/trophyPlaques';
+import { PLAQUE_GAP } from '../src/shards/driftwood-isle/models/trophyPlaques';
 import { SlotGeometry } from '../src/engine/models/slots';
+
+import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter';
 
 const material = new MeshStandardMaterial({ vertexColors: true });
 describe('lossless offline model geometry', () => {
   it('retains every fixed model attribute, including wind weights, and copies cannot mutate the template', async () => {
     const boat = boatGeometry();
-    for (const [name, source] of [['captain-hat', captainHatGeometry()], ['sea-glass-chime', chimeGeometry().geometry], ['sailcloth-cape', sailclothCapeGeometry()], ['boat-hull', boat.hull], ['boat-sail', boat.sail], ['boat-gear', boat.gear]] as const) {
+    for (const [name, source] of [['captain-hat', captainHatGeometry()], ['sea-glass-chime', chimeGeometry().geometry], ['sailcloth-cape', sailclothCapeGeometry()], ['boat-hull', boat.hull], ['boat-sail', boat.sail], ['boat-gear', boat.gear], ['trophy-plaques', plaquesGeometry(PLAQUE_GAP).geometry], ['trophy-drop', plaquesGeometry(0).geometry], ['trade-counter', counterGeometry()]] as const) {
       const channels = source.hasAttribute('aSway') ? { _SWAY: 'aSway' } : {};
       const aliases = source.hasAttribute('aSway') ? { _sway: 'aSway' } : {};
       const bytes = new Uint8Array(readFileSync(`public/assets/driftwood-isle/baked/fixed-models/${name}.glb`));

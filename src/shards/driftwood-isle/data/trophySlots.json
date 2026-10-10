@@ -1,0 +1,42 @@
+{
+  "ranges": [
+    {
+      "start": 0,
+      "count": 1560
+    },
+    {
+      "start": 1560,
+      "count": 372
+    },
+    {
+      "start": 1932,
+      "count": 750
+    },
+    {
+      "start": 2682,
+      "count": 288
+    },
+    {
+      "start": 2970,
+      "count": 702
+    }
+  ],
+  "boards": [
+    {
+      "start": 0,
+      "count": 780
+    },
+    {
+      "start": 780,
+      "count": 780
+    }
+  ],
+  "empty": {
+    "bear": 1,
+    "boar": 3
+  },
+  "full": {
+    "bear": 2,
+    "boar": 4
+  }
+}

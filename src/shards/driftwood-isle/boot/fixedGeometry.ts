@@ -8,6 +8,9 @@ export const CAPE_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.cape, { _sway: 'aSw
 export const BOAT_HULL_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.boatHull);
 export const BOAT_SAIL_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.boatSail, { _sway: 'aSway' });
 export const BOAT_GEAR_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.boatGear);
+export const TROPHY_PLAQUES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.trophyPlaques);
+export const TROPHY_DROP_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.trophyDrop);
+export const COUNTER_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.tradeCounter, { _sway: 'aSway' });
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -17,6 +20,8 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array>)
     HAT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.chime)),
     CAPE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatHull)),
     BOAT_SAIL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatGear)),
+    TROPHY_PLAQUES_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.trophyPlaques)), TROPHY_DROP_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.trophyDrop)),
+    COUNTER_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.tradeCounter)),
   ]);
   ready = true;
 }

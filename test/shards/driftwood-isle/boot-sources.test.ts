@@ -22,6 +22,9 @@ describe('Driftwood boot sources (E357 S4.1, 08 §6.1 step 7)', () => {
       '/assets/driftwood-isle/baked/fixed-models/boat-hull.glb',
       '/assets/driftwood-isle/baked/fixed-models/boat-sail.glb',
       '/assets/driftwood-isle/baked/fixed-models/boat-gear.glb',
+      '/assets/driftwood-isle/baked/fixed-models/trade-counter.glb',
+      '/assets/driftwood-isle/baked/fixed-models/trophy-plaques.glb',
+      '/assets/driftwood-isle/baked/fixed-models/trophy-drop.glb',
       '/assets/driftwood-isle/baked/fixed-models/sea-glass-chime.glb',
     ]);
     expect(files.terrain).toHaveLength(1);

@@ -8,6 +8,11 @@ import { boatGeometry } from '../src/shards/driftwood-isle/generators/boat.ts';
 import { sailclothCapeGeometry } from '../src/shards/driftwood-isle/generators/sailclothCape.ts';
 import { chimeGeometry } from '../src/shards/driftwood-isle/generators/seaGlassChime.ts';
 
+import { plaquesGeometry } from '../src/shards/driftwood-isle/generators/trophyPlaques.ts';
+import { PLAQUE_GAP } from '../src/shards/driftwood-isle/models/trophyPlaques.ts';
+
+import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter.ts';
+
 const assets = new URL('../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');
 const write = (url, bytes) => {
@@ -28,4 +33,10 @@ for (const [part, geometry] of Object.entries(boatGeometry())) emit(`boat-${part
 const chime = chimeGeometry();
 emit('sea-glass-chime', chime.geometry);
 write(new URL('../src/shards/driftwood-isle/data/chimeSlots.json', import.meta.url), `${JSON.stringify(chime.ranges, null, 2)}\n`);
+const plaques = plaquesGeometry(PLAQUE_GAP), drop = plaquesGeometry(0);
+emit('trophy-plaques', plaques.geometry);
+emit('trophy-drop', drop.geometry);
+const { ranges, boards, empty, full } = plaques;
+write(new URL('../src/shards/driftwood-isle/data/trophySlots.json', import.meta.url), `${JSON.stringify({ ranges, boards, empty, full }, null, 2)}\n`);
+emit('trade-counter', counterGeometry());
 material.dispose();
