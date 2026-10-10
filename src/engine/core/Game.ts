@@ -8,6 +8,7 @@ import type { Phase } from '../app/systems';
 import { currentOwner, enterOwner } from '../app/ownership';
 import * as THREE from 'three';
 import { createRenderer, type Renderer } from '../render/renderer';
+import { CAMERA_FOV } from './config';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
@@ -399,7 +400,7 @@ export class Game {
       try { renderShadows(lights, scene, camera); } finally { camera.layers.mask = mask; }
       if (memorySaverOn()) shadowLights(lights, (rt) => { dropShadowColour(this.renderer, rt); }); // SF22d: three's maps keep their depth only
     };
-    this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
+    this.camera = new THREE.PerspectiveCamera(CAMERA_FOV, window.innerWidth / viewportHeight(), 0.08, 2600);
     this.viewmodel = new ViewmodelRoot();
     this.camera.add(this.viewmodel); this.rootScene.add(this.camera);
     this.engineScope.listen(window, 'resize', () => this.resize());

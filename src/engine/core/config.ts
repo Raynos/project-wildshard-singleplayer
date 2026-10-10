@@ -1,6 +1,8 @@
 // Chunk spec from sources/wildshard/FUNDAMENTALS.md — fixed for every shard.
 export const CHUNK_SIZE = 500;        // metres, square
 export const CHUNK_HALF = CHUNK_SIZE / 2;
+/** The page camera's vertical field of view at boot (degrees): what a level draws with until a weapon of its kit writes its own. */
+export const CAMERA_FOV = 72;
 export const CHUNK_DEPTH = 100;       // metres of rock under the surface (the floating slab)
 export const ROAD_WIDTH = 15;         // entry road at each edge midpoint
 export const ROAD_LENGTH = 60;        // must be >= 50m into the chunk

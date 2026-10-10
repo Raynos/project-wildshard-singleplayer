@@ -1,0 +1,345 @@
+{
+  "version": {
+    "build": "67291d2-mv2xco10",
+    "time": "2026-10-10T21:47:03.504Z"
+  },
+  "started": "2026-10-10T21:47:24.798Z",
+  "shards": {
+    "far-reach": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "far-reach-select": {
+          "name": "far-reach-select",
+          "frame": {
+            "look": {
+              "fog": [
+                0.871,
+                0.584,
+                0.468
+              ],
+              "env": 1,
+              "key": [
+                1,
+                0.644,
+                0.361
+              ],
+              "keyI": 2,
+              "sunDir": [
+                -0.136,
+                0.105,
+                -0.985
+              ],
+              "hemi": [
+                [
+                  0.578,
+                  0.565,
+                  0.716
+                ],
+                [
+                  0.342,
+                  0.314,
+                  0.413
+                ],
+                1.4
+              ],
+              "disc": true,
+              "layerDomes": 0,
+              "regionSky": null,
+              "sky": {
+                "pieces": {
+                  "far.painted-maelstrom": "own",
+                  "far.painted-sea": "own",
+                  "far.painted-sea.upper": "own",
+                  "far.cumulus": "own"
+                },
+                "roseFog": "276/296",
+                "envMap": null
+              },
+              "camera": {
+                "fov": 72,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0,
+                  31.7,
+                  -5.5
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "far.meadow",
+                    "vis": true,
+                    "count": 1,
+                    "uCam": [
+                      0,
+                      31.7,
+                      -5.5
+                    ],
+                    "uOrigin": [
+                      -8,
+                      -8
+                    ],
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ],
+                "floor": [],
+                "region": null
+              }
+            },
+            "loadout": {
+              "current": "far-fan",
+              "list": [
+                "far-fan"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "GodRaysEffect@0.12",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          }
+        },
+        "far-reach-grid-before": {
+          "name": "far-reach-grid-before",
+          "home": false,
+          "route": [],
+          "frame": {
+            "look": {
+              "fog": [
+                0.871,
+                0.584,
+                0.468
+              ],
+              "env": 1,
+              "key": [
+                1,
+                0.644,
+                0.361
+              ],
+              "keyI": 2,
+              "sunDir": [
+                -0.136,
+                0.105,
+                -0.985
+              ],
+              "hemi": [
+                [
+                  0.578,
+                  0.565,
+                  0.716
+                ],
+                [
+                  0.342,
+                  0.314,
+                  0.413
+                ],
+                1.4
+              ],
+              "disc": false,
+              "layerDomes": 1,
+              "regionSky": {
+                "far-reach": {
+                  "weight": 1,
+                  "drawn": true,
+                  "bytes": 0,
+                  "reserved": 0
+                }
+              },
+              "sky": {
+                "pieces": {
+                  "far.painted-maelstrom": 1,
+                  "far.painted-sea": 1,
+                  "far.painted-sea.upper": 1,
+                  "far.cumulus": 1
+                },
+                "roseFog": "39/39",
+                "envMap": null
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  -555
+                ],
+                "at": [
+                  0,
+                  31.7,
+                  -560.5
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "far.meadow",
+                    "vis": true,
+                    "count": 1,
+                    "uCam": [
+                      0,
+                      31.7,
+                      -560.5
+                    ],
+                    "uOrigin": [
+                      -8,
+                      -568
+                    ],
+                    "root": [
+                      0,
+                      0,
+                      -555
+                    ]
+                  }
+                ],
+                "floor": [
+                  {
+                    "name": "grid-void-floor",
+                    "vis": true,
+                    "opacity": 1,
+                    "transparent": false
+                  }
+                ],
+                "region": [
+                  0,
+                  0,
+                  -555
+                ]
+              }
+            },
+            "loadout": {
+              "current": "far-fan",
+              "list": [
+                "far-fan"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "SkyNeutralToneEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.0000013435500600678107,
+        "y": 30.019945004343754,
+        "z": -5.5000225281035515,
+        "heading": -3.141592653589793
+      }
+    }
+  },
+  "finished": "2026-10-10T21:48:12.136Z"
+}

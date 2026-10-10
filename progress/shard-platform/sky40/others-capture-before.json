@@ -1,0 +1,1787 @@
+{
+  "version": {
+    "build": "67291d2-mv2xco10",
+    "time": "2026-10-10T21:47:03.504Z"
+  },
+  "started": "2026-10-10T21:57:00.680Z",
+  "shards": {
+    "sunscar-dunes": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "sunscar-dunes-select": {
+          "name": "sunscar-dunes-select",
+          "frame": {
+            "look": {
+              "fog": [
+                0.048,
+                0.034,
+                0.084
+              ],
+              "env": 1,
+              "key": [
+                1,
+                0.68,
+                0.34
+              ],
+              "keyI": 1.85,
+              "sunDir": [
+                -0.34,
+                0.2,
+                -0.919
+              ],
+              "hemi": [
+                [
+                  0.156,
+                  0.084,
+                  0.065
+                ],
+                [
+                  0.195,
+                  0.058,
+                  0.019
+                ],
+                0.8
+              ],
+              "disc": false,
+              "layerDomes": 0,
+              "regionSky": null,
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/214",
+                "envMap": null
+              },
+              "camera": {
+                "fov": 72,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0.003,
+                  22.982,
+                  69.994
+                ]
+              },
+              "scene": {
+                "grass": [],
+                "floor": [],
+                "region": null
+              }
+            },
+            "loadout": {
+              "current": "sunscar-whip",
+              "list": [
+                "sunscar-whip"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              21.3,
+              69.99
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1"
+            ],
+            "nine": null
+          }
+        },
+        "sunscar-dunes-grid-before": {
+          "name": "sunscar-dunes-grid-before",
+          "home": false,
+          "route": [],
+          "frame": {
+            "look": {
+              "fog": [
+                0.048,
+                0.034,
+                0.084
+              ],
+              "env": 1,
+              "key": [
+                1,
+                0.68,
+                0.34
+              ],
+              "keyI": 1.85,
+              "sunDir": [
+                -0.34,
+                0.2,
+                -0.919
+              ],
+              "hemi": [
+                [
+                  0.156,
+                  0.084,
+                  0.065
+                ],
+                [
+                  0.195,
+                  0.058,
+                  0.019
+                ],
+                0.8
+              ],
+              "disc": false,
+              "layerDomes": 1,
+              "regionSky": {
+                "sunscar-dunes": {
+                  "weight": 1,
+                  "drawn": true,
+                  "bytes": 0,
+                  "reserved": 0
+                }
+              },
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/89",
+                "envMap": null
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  -555,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  -554.998,
+                  22.982,
+                  69.996
+                ]
+              },
+              "scene": {
+                "grass": [],
+                "floor": [
+                  {
+                    "name": "grid-void-floor",
+                    "vis": true,
+                    "opacity": 1,
+                    "transparent": false
+                  }
+                ],
+                "region": [
+                  -555,
+                  0,
+                  0
+                ]
+              }
+            },
+            "loadout": {
+              "current": "sunscar-whip",
+              "list": [
+                "sunscar-whip"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              21.3,
+              70
+            ],
+            "inside": "sunscar-dunes",
+            "owner": "sunscar-dunes",
+            "chain": {
+              "owner": "sunscar-dunes",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.12,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.15,
+                0.9,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 0.0021444185963446216,
+        "y": 21.302351581020478,
+        "z": 69.99617404413675,
+        "heading": -3.141592653589793
+      }
+    },
+    "driftwood-isle": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "driftwood-isle-select": {
+          "name": "driftwood-isle-select",
+          "frame": {
+            "look": {
+              "fog": [
+                0.36,
+                0.7,
+                1
+              ],
+              "env": 0.7,
+              "key": [
+                1,
+                0.97,
+                0.9
+              ],
+              "keyI": 2.7,
+              "sunDir": [
+                -0.636,
+                0.606,
+                -0.478
+              ],
+              "hemi": [
+                [
+                  0.198,
+                  0.279,
+                  0.905
+                ],
+                [
+                  0.807,
+                  0.479,
+                  0.279
+                ],
+                1.15
+              ],
+              "disc": true,
+              "layerDomes": 0,
+              "regionSky": null,
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/503",
+                "envMap": "PMREM.cubeUv"
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0,
+                  2.895,
+                  -194
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "ground-cover-tuft-far",
+                    "vis": false,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "ground-cover-tuft-far",
+                    "vis": true,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "ground-cover-tuft",
+                    "vis": false,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "ground-cover-tuft",
+                    "vis": true,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-beachgrass0",
+                    "vis": true,
+                    "count": 46,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-beachgrass1",
+                    "vis": true,
+                    "count": 47,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-beachgrass2",
+                    "vis": true,
+                    "count": 41,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft0",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft1",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft2",
+                    "vis": true,
+                    "count": 8,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft3",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ],
+                "floor": [],
+                "region": null
+              }
+            },
+            "loadout": {
+              "current": "sword",
+              "list": [
+                "sword",
+                "sword-iron"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              1.21,
+              -194
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1"
+            ],
+            "nine": null
+          }
+        },
+        "driftwood-isle-grid-before": {
+          "name": "driftwood-isle-grid-before",
+          "home": true,
+          "route": null,
+          "frame": {
+            "look": {
+              "fog": [
+                0.36,
+                0.7,
+                1
+              ],
+              "env": 0.7,
+              "key": [
+                1,
+                0.97,
+                0.9
+              ],
+              "keyI": 2.7,
+              "sunDir": [
+                -0.637,
+                0.604,
+                -0.478
+              ],
+              "hemi": [
+                [
+                  0.198,
+                  0.279,
+                  0.905
+                ],
+                [
+                  0.807,
+                  0.479,
+                  0.279
+                ],
+                1.15
+              ],
+              "disc": true,
+              "layerDomes": 4,
+              "regionSky": {
+                "driftwood-isle": {
+                  "weight": 1,
+                  "drawn": true,
+                  "bytes": 1720320,
+                  "reserved": 2752512
+                }
+              },
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/259",
+                "envMap": "PMREM.cubeUv"
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0,
+                  2.895,
+                  -194
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "ground-cover-tuft-far",
+                    "vis": false,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "ground-cover-tuft-far",
+                    "vis": true,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "ground-cover-tuft",
+                    "vis": false,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "ground-cover-tuft",
+                    "vis": true,
+                    "count": 0,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-beachgrass0",
+                    "vis": true,
+                    "count": 46,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-beachgrass1",
+                    "vis": true,
+                    "count": 47,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-beachgrass2",
+                    "vis": true,
+                    "count": 41,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft0",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft1",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft2",
+                    "vis": true,
+                    "count": 8,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "island-cover-both-tuft3",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ],
+                "floor": [
+                  {
+                    "name": "grid-void-floor",
+                    "vis": true,
+                    "opacity": 1,
+                    "transparent": false
+                  }
+                ],
+                "region": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            "loadout": {
+              "current": "sword",
+              "list": [
+                "sword",
+                "sword-iron"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              1.21,
+              -194
+            ],
+            "inside": "driftwood-isle",
+            "owner": "driftwood-isle",
+            "chain": {
+              "owner": "driftwood-isle",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.000016019538589207016,
+        "y": 1.2143817604293872,
+        "z": -194.0000464717414,
+        "heading": -1.2246467991473532e-16
+      }
+    },
+    "pine-hollow": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "pine-hollow-select": {
+          "name": "pine-hollow-select",
+          "frame": {
+            "look": {
+              "fog": [
+                0.74,
+                0.829,
+                0.891
+              ],
+              "env": 1.399,
+              "key": [
+                1,
+                0.796,
+                0.619
+              ],
+              "keyI": 4.497,
+              "sunDir": [
+                -0.885,
+                0.451,
+                -0.116
+              ],
+              "hemi": [
+                [
+                  0.342,
+                  0.399,
+                  0.574
+                ],
+                [
+                  0.09,
+                  0.051,
+                  0.023
+                ],
+                0.549
+              ],
+              "disc": true,
+              "layerDomes": 0,
+              "regionSky": null,
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/609",
+                "envMap": "PMREM.cubeUv"
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0,
+                  1.7,
+                  -235
+                ]
+              },
+              "scene": {
+                "grass": [],
+                "floor": [],
+                "region": null
+              }
+            },
+            "loadout": {
+              "current": "crossbow",
+              "list": [
+                "crossbow",
+                "rifle",
+                "bow"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              0.02,
+              -235
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "GodRaysEffect@0.9",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0.12"
+            ],
+            "nine": null
+          }
+        },
+        "pine-hollow-grid-before": {
+          "name": "pine-hollow-grid-before",
+          "home": false,
+          "route": [],
+          "frame": {
+            "look": {
+              "fog": [
+                0.74,
+                0.838,
+                0.915
+              ],
+              "env": 1.404,
+              "key": [
+                1,
+                0.824,
+                0.667
+              ],
+              "keyI": 4.48,
+              "sunDir": [
+                -0.872,
+                0.468,
+                -0.144
+              ],
+              "hemi": [
+                [
+                  0.344,
+                  0.413,
+                  0.604
+                ],
+                [
+                  0.087,
+                  0.052,
+                  0.025
+                ],
+                0.567
+              ],
+              "disc": true,
+              "layerDomes": 2,
+              "regionSky": {
+                "pine-hollow": {
+                  "weight": 1,
+                  "drawn": true,
+                  "bytes": 20971520,
+                  "reserved": 29360128
+                }
+              },
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/462",
+                "envMap": "PMREM.cubeUv"
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  555
+                ],
+                "at": [
+                  0,
+                  1.7,
+                  320
+                ]
+              },
+              "scene": {
+                "grass": [],
+                "floor": [
+                  {
+                    "name": "grid-void-floor",
+                    "vis": true,
+                    "opacity": 1,
+                    "transparent": false
+                  }
+                ],
+                "region": [
+                  0,
+                  0,
+                  555
+                ]
+              }
+            },
+            "loadout": {
+              "current": "crossbow",
+              "list": [
+                "crossbow",
+                "rifle",
+                "bow"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              0.02,
+              -235
+            ],
+            "inside": "pine-hollow",
+            "owner": "pine-hollow",
+            "chain": {
+              "owner": "pine-hollow",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.2201,
+                -0.015,
+                0.2,
+                0.2,
+                0.2
+              ],
+              "post": [
+                0.55,
+                0.85,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "pine-hollow",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.27014
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0.12",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.000003295676155833094,
+        "y": 0.02009975594410207,
+        "z": -234.99999041756863,
+        "heading": -1.2246467991473532e-16
+      }
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "nalati-grasslands-select": {
+          "name": "nalati-grasslands-select",
+          "frame": {
+            "look": {
+              "fog": [
+                0.589,
+                0.74,
+                0.987
+              ],
+              "env": 0.6,
+              "key": [
+                1,
+                0.85,
+                0.64
+              ],
+              "keyI": 2.8,
+              "sunDir": [
+                0.723,
+                0.619,
+                0.307
+              ],
+              "hemi": [
+                [
+                  0.359,
+                  0.515,
+                  0.848
+                ],
+                [
+                  0.237,
+                  0.225,
+                  0.086
+                ],
+                0.475
+              ],
+              "disc": false,
+              "layerDomes": 0,
+              "regionSky": null,
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/290",
+                "envMap": "PMREM.cubeUv"
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0,
+                  1.7,
+                  232
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "grass-v2-ring0",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-ring1",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-ring2",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-flowers",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-cards",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "nalati-grasslands/balbal:capped:0",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "nalati-grasslands/balbal:bare:0",
+                    "vis": true,
+                    "count": 8,
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ],
+                "floor": [],
+                "region": null
+              }
+            },
+            "loadout": {
+              "current": "bow",
+              "list": [
+                "sabre",
+                "rifle",
+                "bow",
+                "spear"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              0.02,
+              232
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass"
+            ],
+            "colour": [],
+            "nine": null
+          }
+        },
+        "nalati-grasslands-grid-before": {
+          "name": "nalati-grasslands-grid-before",
+          "home": false,
+          "route": [],
+          "frame": {
+            "look": {
+              "fog": [
+                0.62,
+                0.78,
+                0.98
+              ],
+              "env": 1,
+              "key": [
+                1,
+                0.85,
+                0.64
+              ],
+              "keyI": 2.8,
+              "sunDir": [
+                0.715,
+                0.643,
+                0.275
+              ],
+              "hemi": [
+                [
+                  0.359,
+                  0.515,
+                  0.848
+                ],
+                [
+                  0.237,
+                  0.225,
+                  0.086
+                ],
+                0.475
+              ],
+              "disc": false,
+              "layerDomes": 0,
+              "regionSky": {},
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/226",
+                "envMap": null
+              },
+              "camera": {
+                "fov": 86.8,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  555,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  555,
+                  1.7,
+                  232
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "grass-v2-ring0",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-ring1",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-ring2",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-flowers",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "grass-v2-cards",
+                    "vis": true,
+                    "count": 1,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "nalati-grasslands/balbal:capped:0",
+                    "vis": true,
+                    "count": 4,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "name": "nalati-grasslands/balbal:bare:0",
+                    "vis": true,
+                    "count": 8,
+                    "root": [
+                      555,
+                      0,
+                      0
+                    ]
+                  }
+                ],
+                "floor": [
+                  {
+                    "name": "grid-void-floor",
+                    "vis": true,
+                    "opacity": 1,
+                    "transparent": false
+                  }
+                ],
+                "region": [
+                  555,
+                  0,
+                  0
+                ]
+              }
+            },
+            "loadout": {
+              "current": "bow",
+              "list": [
+                "sabre",
+                "rifle",
+                "bow",
+                "spear"
+              ],
+              "tools": [
+                "tool.hoverboard"
+              ]
+            },
+            "local": [
+              0,
+              0.02,
+              232
+            ],
+            "inside": "nalati-grasslands",
+            "owner": "nalati-grasslands",
+            "chain": {
+              "owner": "nalati-grasslands",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "GradeV2Effect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 1.9603478933899465e-7,
+        "y": 0.02009963453747332,
+        "z": 231.99999822446543,
+        "heading": -3.141592653589793
+      }
+    },
+    "nine-dragon-stack": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "nine-dragon-stack-select": {
+          "name": "nine-dragon-stack-select",
+          "frame": {
+            "look": {
+              "fog": [
+                0.358,
+                0.432,
+                0.592
+              ],
+              "env": 0.5,
+              "key": [
+                0.55,
+                0.62,
+                0.85
+              ],
+              "keyI": 0.6,
+              "sunDir": [
+                0.931,
+                0.139,
+                -0.339
+              ],
+              "hemi": [
+                [
+                  0.159,
+                  0.238,
+                  0.392
+                ],
+                [
+                  0.023,
+                  0.025,
+                  0.034
+                ],
+                0.5
+              ],
+              "disc": true,
+              "layerDomes": 0,
+              "regionSky": null,
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/73",
+                "envMap": "PMREM.cubeUv"
+              },
+              "camera": {
+                "fov": 93.01,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  0,
+                  1.68,
+                  0
+                ],
+                "at": [
+                  0.95,
+                  126.7,
+                  7.5
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "kit:blades",
+                    "vis": true,
+                    "count": 1,
+                    "uCam": [
+                      0.95,
+                      126.7,
+                      7.5
+                    ],
+                    "root": [
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ],
+                "floor": [],
+                "region": null
+              }
+            },
+            "loadout": {
+              "current": "sword",
+              "list": [
+                "sword"
+              ],
+              "tools": [
+                "tool.hoverboard",
+                "tool.fei-zhua"
+              ]
+            },
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "NdJiehuaEffect@1"
+            ],
+            "nine": {
+              "frame": [
+                0,
+                0,
+                0
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303
+            }
+          }
+        },
+        "nine-dragon-stack-grid-before": {
+          "name": "nine-dragon-stack-grid-before",
+          "home": false,
+          "route": [],
+          "frame": {
+            "look": {
+              "fog": [
+                0.6,
+                0.56,
+                0.64
+              ],
+              "env": 1,
+              "key": [
+                1,
+                0.97,
+                0.9
+              ],
+              "keyI": 2.7,
+              "sunDir": [
+                -0.74,
+                0.616,
+                -0.27
+              ],
+              "hemi": [
+                [
+                  0.198,
+                  0.279,
+                  0.905
+                ],
+                [
+                  0.687,
+                  0.392,
+                  0.188
+                ],
+                0.9
+              ],
+              "disc": true,
+              "layerDomes": 0,
+              "regionSky": {},
+              "sky": {
+                "pieces": {},
+                "roseFog": "0/32",
+                "envMap": null
+              },
+              "camera": {
+                "fov": 93.01,
+                "near": 0.08,
+                "far": 2600,
+                "zoom": 1,
+                "aspect": 0.59,
+                "eye": [
+                  555,
+                  1.68,
+                  -555
+                ],
+                "at": [
+                  555.95,
+                  126.7,
+                  -547.5
+                ]
+              },
+              "scene": {
+                "grass": [
+                  {
+                    "name": "kit:blades",
+                    "vis": true,
+                    "count": 1,
+                    "uCam": [
+                      0.95,
+                      126.7,
+                      7.5
+                    ],
+                    "root": [
+                      555,
+                      0,
+                      -555
+                    ]
+                  }
+                ],
+                "floor": [
+                  {
+                    "name": "grid-void-floor",
+                    "vis": true,
+                    "opacity": 1,
+                    "transparent": false
+                  }
+                ],
+                "region": [
+                  555,
+                  0,
+                  -555
+                ]
+              }
+            },
+            "loadout": {
+              "current": "sword",
+              "list": [
+                "sword"
+              ],
+              "tools": [
+                "tool.hoverboard",
+                "tool.fei-zhua"
+              ]
+            },
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 1
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@0",
+              "VolumetricsEffect@0",
+              "BloomEffect@0",
+              "VignetteEffect@0",
+              "ToneMappingEffect@0",
+              "NdJiehuaEffect@1",
+              "HueSaturationEffect@0",
+              "BrightnessContrastEffect@0",
+              "GradeEffect@0",
+              "GradeLookEffect@0",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@0"
+            ],
+            "nine": {
+              "frame": [
+                555,
+                0,
+                -555
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 0.9500049900781913,
+        "y": 125.0198799542195,
+        "z": 7.49999659289979,
+        "heading": 2.9321531433504737
+      }
+    }
+  },
+  "finished": "2026-10-10T22:00:39.977Z"
+}

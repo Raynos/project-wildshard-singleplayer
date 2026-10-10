@@ -233,11 +233,14 @@ export class SkyReachPlugin extends ShardPlugin {
       return movers.pose(id);
     };
     const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vaneFlag(vane.id) }));
+    const eye = new Vector3();
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
-      const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
+      // the eye in the level's own frame (G321; the meadow stands at its root): inside a grid cell the root is at the cell's
+      // render offset and the page camera in the page's frame; standalone the root is the origin and this is the camera's own
+      const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
       // SF49-g (G183): the Rising Islets ride their movers (behaviour/islet.as, in the fixed step); draw them and their chains
       const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.update(moverPose); }
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
@@ -267,7 +270,8 @@ export class SkyReachPlugin extends ShardPlugin {
     boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
-      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, cam.position, dt); }
+      // each wake in the level's own frame (it stands at the root), as the meadow's eye
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, row.w.mesh.worldToLocal(cam.getWorldPosition(eye)), dt); }
     } });
     const roostHomes = boundedRows(ROOST_RAYS);
     for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = roostHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.roost.${String(i)}`, home).spawn(); if (a) this.roostRays.push(a); }

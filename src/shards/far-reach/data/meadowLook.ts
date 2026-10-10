@@ -101,7 +101,8 @@ export const MEADOW_PROGRAMS = {
         float tuftK = 0.7 + 0.7 * mh(tCell + 3.3);
         float dist = distance(p, uCam.xz);
         // off screen (behind, or a metre past either side) or out of reach: drop it before the loops
-        vec4 probe = projectionMatrix * viewMatrix * vec4(p.x, uCam.y - 1.5, p.y, 1.0);
+        // the blades are in the level's own frame (uCam too): its root's matrix places them, at a grid cell's offset (G321)
+        vec4 probe = projectionMatrix * viewMatrix * modelMatrix * vec4(p.x, uCam.y - 1.5, p.y, 1.0);
         if (dist > (layer > 0.5 ? NEAR : RANGE) || probe.w < -1.0 || abs(probe.x) > probe.w + 3.0) { cull(); return; }
         float y = -1.0e4, rim = 1.0, tall = 1.0, keep = 1.0;
         for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
@@ -176,7 +177,7 @@ export const MEADOW_PROGRAMS = {
           vH = cy; vAcross = 0.0; vSpecies = species;
         }
         vWorld = world;
-        gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
+        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(world, 1.0);
       }`,
     fragment: /* glsl */`
       uniform vec3 uCam; uniform vec3 uSun; uniform sampler2D uAtlas;

@@ -39,11 +39,12 @@
  *   home's grade fade is the first; SF59's per-shard post stacks (catalogue effects as data) hang here the same way.
  * Select a shard never builds this (grid page mode only).
  */
-import { Color, Data3DTexture, NoColorSpace, SRGBColorSpace, Uniform, UnsignedByteType, Vector3, WebGLRenderTarget, type Camera, type Scene, type Texture } from 'three';
+import { Color, Data3DTexture, NoColorSpace, PerspectiveCamera, SRGBColorSpace, Uniform, UnsignedByteType, Vector3, WebGLRenderTarget, type Camera, type Scene, type Texture } from 'three';
 import { BlendFunction, Effect, EffectAttribute, EffectPass, LookupTexture, LUT3DEffect, type EffectComposer, type Pass } from 'postprocessing';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
+import { CAMERA_FOV } from '@wildshard/engine/core/config';
 import type { LookCellPost } from '@wildshard/engine/render/look';
 import type { FarProxyView } from './farView';
 import { RoadSky, type RoadSkyPage } from './roadSky';
@@ -66,6 +67,8 @@ export interface GridFrameHost {
   readonly slices?: () => boolean;
   /** G242: the page's sky rig, which takes the road's dome and key light as its base layer (absent: the dome alone, no sun) */
   readonly sky?: () => RoadSkyPage | null;
+  /** G321: the camera's projection changed (the frame's lens blend): refit what derives from it (the shadow cascades) */
+  readonly refit?: () => void;
 }
 /** The engine chain's grade effects the frame fades, and on a neutral shell writes a region's grade into (G232). */
 export interface FramePostEffects {
@@ -117,6 +120,13 @@ export interface GridFrameState {
   readonly roadSky: number;
   /** G223: the regions' own skies laid over the one sky (instance → its readout); empty with the Debug row on A */
   readonly skies: Readonly<Record<string, ReturnType<FrameSkyLayer['state']>>>;
+  /**
+   * G321: the camera's vertical field of view as drawn, the road's, and each live region's own (its kit's last write, else
+   * the boot camera's `CAMERA_FOV`, as a standalone boot of it starts)
+   */
+  readonly lens: { readonly fov: number; readonly road: number; readonly regions: Readonly<Record<string, number>> };
+  /** G321: how much of the frame the live regions' own skies own (their weights' sum): the road's void floor fades by it */
+  readonly horizon: number;
   /**
    * G232: the region whose whole grade chain the page's grade carries (null: none), its weight, whether its LUT is drawn,
    * and the page's grade values as drawn: saturation, brightness, contrast, curve, vibrance
@@ -350,6 +360,13 @@ export class GridFrame {
   /** op-look30: the page's colour effects a whole-chain carrier fades out (built while one is resident and the pass installed) */
   private bypass: ChainBypass | null = null;
   private readonly roadSky = new RoadSky();
+  /** G321: each live region's own field of view, and the road's (`lens`) */
+  private readonly lenses = new Map<string, number>();
+  private roadFov = Number.NaN;
+  private lensWritten = Number.NaN;
+  /** G321: what fades by how much the regions' own skies own the frame (the road's void floor), and that share as told */
+  private readonly horizons = new Set<(owned: number) => void>();
+  private skyShare = 0;
   private readonly restore: (() => void)[] = [];
   private faded = 0;
   private installed = false;
@@ -405,6 +422,7 @@ export class GridFrame {
     if (instance === this.homeInstance) throw new Error('The home look is the frame itself; only a neighbour region contributes');
     if (this.live.has(instance)) throw new Error(`Grid frame already has a live look for ${instance}`);
     this.live.set(instance, look);
+    this.lenses.set(instance, CAMERA_FOV); // G321: its camera starts as a standalone boot of it starts
     const declared = this.hazes.get(instance);
     if (declared !== undefined) look.fog?.color.setRGB(...declared); // start from the base (else its own colour until the first draw)
     // SF63: its own display transform joins the shell's colour pass while it is resident (one recompile now, as it loads,
@@ -413,7 +431,7 @@ export class GridFrame {
     if (make !== undefined) { const display = make(); display.blendMode.opacity.value = 0; this.displays.set(instance, display); this.placeDisplay(display, true); }
     return () => {
       if (this.live.get(instance) !== look) return;
-      this.live.delete(instance);
+      this.live.delete(instance); this.lenses.delete(instance);
       if (this.carrier?.instance === instance) this.drop(); // at once: its LUT may be freed right after
       this.cine?.forget(instance);
       const display = this.displays.get(instance);
@@ -485,6 +503,16 @@ export class GridFrame {
     return () => { this.proxies.delete(view); };
   }
 
+  /**
+   * G321: be told, each frame, how much of the frame the live regions' own skies own (the sum of their cells' weights,
+   * 0..1): inside a cell whose shard draws its own sky its backdrop owns the horizon, so the road's void floor fades by it.
+   * Returns the release.
+   */
+  horizon(fade: (owned: number) => void): () => void {
+    this.horizons.add(fade); fade(this.skyShare);
+    return () => { this.horizons.delete(fade); };
+  }
+
   /** Hang a stack on an owner (an instance, or null for the road look); it is told that owner's weight each frame. */
   stack(owner: string | null, stack: FrameStack): () => void {
     let set = this.stacks.get(owner);
@@ -505,6 +533,11 @@ export class GridFrame {
       const w = owner === null ? this.weights.highway : this.weights.cells.get(owner) ?? 0;
       for (const stack of set) stack.weight(w);
     }
+    this.lens();
+    let owned = 0;
+    for (const instance of this.skies.keys()) owned += this.weights.cells.get(instance) ?? 0;
+    this.skyShare = Math.min(1, owned);
+    for (const fade of this.horizons) fade(this.skyShare);
     if (!this.installed) this.install();
     this.bypass?.apply(this.carrier !== null && this.wholes.has(this.carrier.instance) ? this.chainWeight : 0);
   }
@@ -700,6 +733,28 @@ export class GridFrame {
     this.roadSky.frame(this.host.camera.getWorldPosition(this.eye), this.air);
   }
 
+  /**
+   * G321: the camera each owner draws with. A live region's kit (equipped inside its cell) writes the field of view its own
+   * standalone boot would (a sword's Hor+ widening, a level's `camera.portraitFov`), or never touches it (Sky Reach's fan:
+   * the boot camera's `CAMERA_FOV`); the road's kit writes the road's. A write since the frame's own last one belongs to the
+   * owner holding the frame; the camera then draws the owners' fields of view blended by their weights, so the road's wider
+   * sword view never carries into a cell, and leaving puts the road's back exactly (its writer's cache still matches).
+   */
+  private lens(): void {
+    const camera = this.host.camera;
+    if (!(camera instanceof PerspectiveCamera)) return;
+    if (Number.isNaN(this.roadFov)) this.roadFov = camera.fov;
+    if (camera.fov !== this.lensWritten) {
+      const top = dominantOwner(this.weights);
+      if (top !== null && this.lenses.has(top)) this.lenses.set(top, camera.fov); else this.roadFov = camera.fov;
+    }
+    let fov = 0, rest = 1;
+    for (const [instance, own] of this.lenses) { const w = this.weights.cells.get(instance) ?? 0; fov += w * own; rest -= w; }
+    fov += Math.max(0, rest) * this.roadFov;
+    if (Math.abs(fov - camera.fov) > 1e-4) { camera.fov = fov; camera.updateProjectionMatrix(); this.host.refit?.(); }
+    this.lensWritten = camera.fov;
+  }
+
   /** the page's grade values as drawn (saturation, brightness, contrast, curve, vibrance; zeros before install) */
   private chainValues(): readonly [number, number, number, number, number] {
     const post = this.chainPost, look = this.lookEffect.values, r = (n: number): number => Math.round(n * 1e4) / 1e4;
@@ -724,6 +779,8 @@ export class GridFrame {
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
       roadSky: round(this.roadSky.drawn),
       skies: Object.fromEntries([...this.skies].map(([k, layer]) => [k, layer.state()])),
+      lens: { fov: round(this.host.camera instanceof PerspectiveCamera ? this.host.camera.fov : 0), road: round(this.roadFov), regions: Object.fromEntries([...this.lenses].map(([k, f]) => [k, round(f)])) },
+      horizon: round(this.skyShare),
       chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues(), post: this.postValues(), fx: this.cine?.state() ?? null,
         bypass: round(this.bypass?.weight() ?? 0) },
     };

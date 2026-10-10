@@ -150,6 +150,39 @@ describe('grid frame grade pieces', () => {
     expect(frameLookOf(scene)).toBeNull();
   });
 
+  it("G321: a live region's cell draws with its own field of view and its own sky owns the horizon, blended across the band; the road's come back exactly", () => {
+    const scene = new Scene(), camera = new PerspectiveCamera(86.8), scope = new Scope('g321-lens'), refit = vi.fn();
+    const feet = { x: 0, z: 0 }, home = cells[4];
+    if (home === undefined) throw new Error('no home cell');
+    const frame = new GridFrame({ host: { scene, camera, composer: () => { throw new Error('not built'); }, post: () => null, refit: () => { refit(); } }, scope, cells, home, half, feet: () => feet });
+    const owned: number[] = [];
+    const unhook = frame.horizon((w) => { owned.push(w); });
+    const at = (x: number): void => { feet.x = x; frame.frame(); };
+    at(half + 27.5); // on the road: the road kit's sword view (Hor+), untouched
+    expect(camera.fov).toBe(86.8); expect(frame.state().lens.road).toBe(86.8);
+    const port = frameLookOf(scene);
+    const sky = port?.sky;
+    if (port === null || sky === undefined) throw new Error('the frame binds its port to its scene');
+    const release = port.contribute('1,0', { fog: null });
+    at(pitch); // inside: a kit that never writes the field of view (a fan) draws with the boot camera's, as standalone
+    expect(camera.fov).toBe(72); expect(refit).toHaveBeenCalled();
+    expect(frame.state().lens.regions).toEqual({ '1,0': 72 });
+    at(pitch - half); // on its edge line: half and half
+    expect(camera.fov).toBeCloseTo((72 + 86.8) / 2, 3);
+    at(pitch); camera.fov = 99; camera.updateProjectionMatrix(); // its own kit writes its view (a level's portraitFov)
+    at(pitch); expect(camera.fov).toBe(99); expect(frame.state().lens.regions).toEqual({ '1,0': 99 });
+    at(half + 27.5); expect(camera.fov).toBe(86.8); // back on the road: the road's, exactly (its writer's cache still holds)
+    at(pitch); expect(camera.fov).toBe(99);         // and its own again on re-entry, with no new write
+    // the horizon: nothing owns it without a region sky; its sky's weight owns it inside the cell
+    expect(frame.state().horizon).toBe(0); expect(owned.every((w) => w === 0)).toBe(true);
+    const releaseSky = sky('1,0', { weight: () => undefined, state: () => ({ weight: 1, drawn: true, bytes: 0, reserved: 0 }) });
+    at(pitch); expect(frame.state().horizon).toBe(1); expect(owned.at(-1)).toBe(1);
+    at(pitch - half); expect(owned.at(-1)).toBeCloseTo(0.5, 2);
+    at(half + 27.5); expect(owned.at(-1)).toBe(0);
+    releaseSky(); release(); at(pitch); expect(camera.fov).toBe(86.8); expect(frame.state().horizon).toBe(0);
+    unhook(); scope.dispose();
+  });
+
   it("E452: a level's own grade as the frame's uniform grade (Pine: richer colour, more contrast, warm)", () => {
     const pine = regionGrade(toLevelSpec(PINE_HOLLOW));
     expect(pine.saturation).toBeGreaterThan(1.1); expect(pine.contrast).toBeCloseTo(1.25, 2); expect(pine.exposure).toBeLessThan(0);

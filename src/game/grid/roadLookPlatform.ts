@@ -41,7 +41,11 @@ export interface PlatformRoadInput {
   readonly admission: PlatformRenderAdmission;
 }
 /** The readouts and the roots the road budget measures. */
-export interface PlatformRoad { readonly road: RoadLookState; readonly seams: SeamLookState; readonly roots: readonly Object3D[] }
+export interface PlatformRoad {
+  readonly road: RoadLookState; readonly seams: SeamLookState; readonly roots: readonly Object3D[];
+  /** G321: the void floor's fade by how much a cell's own sky owns the horizon (`VoidLookState.fade`) */
+  readonly horizon: (owned: number) => void;
+}
 
 /** G144's preflight for the deck: the merged solid parts after clip and far LOD, and the grain array (every mip of every
  *  layer); admitted, the vertex buffers and the grain data keep no JS copy once uploaded (`gpuOnlyRoad`). */
@@ -85,7 +89,7 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
   const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission });
-  installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
+  const voidLook = installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
   const meshes: Mesh[] = [];
   yield;
   const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }, true);
@@ -113,5 +117,5 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   // the split/merge sources have already been copied into their final uploaded representation.
   parts.length = 0; seams.parts.length = 0;
   const roots = [...meshes, scene.getObjectByName('grid-boulevard'), scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
-  return { road, seams: seams.state, roots };
+  return { road, seams: seams.state, roots, horizon: voidLook.fade };
 }

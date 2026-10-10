@@ -33,6 +33,7 @@ void main() {
 }`;
 const fragment = /* glsl */ `
 uniform vec3 uLine;
+uniform float uOwned; // G321: how much a cell's own sky owns the horizon (0: the floor is whole)
 uniform vec3 uBase;
 uniform vec4 uRail; // minX, maxX, minZ, maxZ in the home frame
 varying vec2 vGrid;
@@ -46,6 +47,9 @@ float lines(vec2 p, float cell, float width) {
   return line * (1.0 - smoothstep(0.12, 0.45, max(w.x, w.y)));
 }
 void main() {
+  // G321: across a cell's edge band the floor thins out in a screen-door dither (no blending, no second program), so its
+  // shard's backdrop shows through where the floor leaves no depth; inside the cell the mesh is not drawn at all
+  if (uOwned > 0.0 && fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) < uOwned) discard;
   float minor = lines(vGrid, 20.0, 1.0);
   float major = lines(vGrid, 100.0, 1.6);
   float d = length(vWorld.xz - cameraPosition.xz);
@@ -62,10 +66,10 @@ void main() {
  * The void's floor material: black, unlit, cyan grid lines on the world grid, brightening toward the rectangle `rail`
  * (minX, maxX, minZ, maxZ in the home frame).
  */
-function voidFloorMaterial(home: GridCell, rail: readonly [number, number, number, number]): ShaderMaterial {
+function voidFloorMaterial(home: GridCell, rail: readonly [number, number, number, number], owned: { value: number }): ShaderMaterial {
   const material = new ShaderMaterial({
     vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
-    uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [...rail] } },
+    uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [...rail] }, uOwned: owned },
   });
   material.name = 'grid-void-floor';
   return material;
@@ -96,8 +100,15 @@ export function voidFloorPlan(): PlatformRenderBytePlan {
   return { id: 'road.void', jsBytes: bytes, gpuBytes: bytes };
 }
 
-/** The readout. */
-export interface VoidLookState { readonly rail: RailBox; readonly posts: number }
+/** The readout, and the floor's fade. */
+export interface VoidLookState {
+  readonly rail: RailBox; readonly posts: number;
+  /**
+   * G321: how much a cell's own sky owns the horizon (the grid frame's `horizon`, 0..1): the floor dithers out across the
+   * edge band and is not drawn at 1, so inside the cell its shard's backdrop, not the road's floor, meets the sky
+   */
+  readonly fade: (owned: number) => void;
+}
 
 /** A box builder for the rail and posts (sides and top, outward normals, vertex colours). */
 class SolidMesher {
@@ -133,12 +144,15 @@ export function installVoidLook(input: { readonly rail: RailBox; readonly home: 
   const { rail: box, home, scene, scope } = input, group = new Group();
   group.name = 'grid-void';
   const x0 = box.minX - home.origin.x, x1 = box.maxX - home.origin.x, z0 = box.minZ - home.origin.z, z1 = box.maxZ - home.origin.z;
+  const owned = { value: 0 };
+  let drawn: Mesh | null = null;
   const build = (owner: LookScope): void => {
-    const floorMaterial = voidFloorMaterial(home, [x0, x1, z0, z1]);
+    const floorMaterial = voidFloorMaterial(home, [x0, x1, z0, z1], owned);
     const floor = new Mesh(floorGeometry(box, home), floorMaterial);
+    floor.visible = owned.value < 1; drawn = floor;
     floor.name = 'grid-void-floor'; floor.frustumCulled = false;
     floor.castShadow = false; floor.receiveShadow = false; floor.matrixAutoUpdate = false; floor.updateMatrix(); group.add(floor);
-    owner.onDispose(() => { floor.removeFromParent(); floor.geometry.dispose(); floorMaterial.dispose(); });
+    owner.onDispose(() => { if (drawn === floor) drawn = null; floor.removeFromParent(); floor.geometry.dispose(); floorMaterial.dispose(); });
   };
   if (input.admission === undefined) build(scope); else input.admission.allocate(voidFloorPlan(), build);
   // the rail: thin beams along the four sides (unlit, the HUD's cyan); short dark posts carry it
@@ -160,5 +174,8 @@ export function installVoidLook(input: { readonly rail: RailBox; readonly home: 
   input.solid(uniformPart(rail.part(), 'white', true)); input.solid(uniformPart(posts.part(), 'white'));
   scene.add(group);
   scope.onDispose(() => { group.removeFromParent(); });
-  return { rail: box, posts: count };
+  return { rail: box, posts: count, fade: (w) => {
+    owned.value = Math.min(1, Math.max(0, w));
+    if (drawn !== null) drawn.visible = owned.value < 1;
+  } };
 }

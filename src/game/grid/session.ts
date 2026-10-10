@@ -312,6 +312,8 @@ export class GridSession {
       admission });
     this.strips = collisionStrips(strips);
     this.road = platformRoad.road; this.seams = platformRoad.seams;
+    // G321: inside a cell whose shard draws its own sky, its backdrop owns the horizon: the road's void floor fades by it
+    if (frame !== null) host.scope.onDispose(frame.horizon(platformRoad.horizon));
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     const roadRoots = platformRoad.roots;
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(roadRoots, camera, this.roadPlans); }, resident: () => roadResident(roadRoots, this.roadPlans) };
