@@ -10,7 +10,8 @@ import {
 } from 'three';
 import type { Ctx } from './ctx';
 import type { Shared } from '../look/style';
-import { DECK_PORTALS, RING, SQUARE_PORTAL, type Portal } from './portalPlan';
+import { DECK_PORTALS, SQUARE_PORTAL, type Portal } from './portalPlan';
+import { RING } from '../data/portals';
 import { FS_DISC, FS_RING, FS_SPARK, VS_DISC, VS_RING, VS_SPARK } from '../data/portalLook';
 
 /** sparks per portal */

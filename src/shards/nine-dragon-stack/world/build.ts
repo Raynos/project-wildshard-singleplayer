@@ -10,7 +10,7 @@
 import {
   type BufferGeometry, Color, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
-import { Ctx, type Piece } from './ctx';
+import { Ctx, type InKit, type Piece } from './ctx';
 import { Kit } from './kit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../models/inKit';
 import { paifang } from '../models/paifang';
@@ -52,7 +52,7 @@ import { glyphLayout, signLayout, type NdTier } from '../tier';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type HandedBatch, type InstancedCuller, type Placed, place } from '@wildshard/engine/models/place';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext } from './modelLook';
@@ -85,6 +85,17 @@ const CULL_R = 40;
 
 /** the wall kit's model per piece (ctx.put's pieces that are placed: models/wallKit.ts) */
 const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<object>>>> = { plant: galleryPlant };
+
+/** the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and brush-drawn
+ *  figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts), registered on
+ *  their kits' meshes in this order */
+/** one model drawn into the kits: its id, and its copies registered on their kits' meshes */
+interface InKitModel { readonly id: string; readonly register: (nd: ModelContext, copies: readonly InKit[], meshOf: (k: Kit) => Mesh | undefined) => InKitPlaced[] }
+const inKitModel = <P extends object>(model: ModelDef<P>): InKitModel => ({ id: model.id, register: (nd, copies, meshOf) => registerInKit(nd, copies, model, meshOf) });
+const IN_KIT: readonly InKitModel[] = [
+  inKitModel(brassDragonHook), inKitModel(drumStool), inKitModel(parkedScooter), inKitModel(mahjongTableModel), inKitModel(inkFigure), inKitModel(paifang), inKitModel(banyan), inKitModel(earthGodShrine),
+  inKitModel(kowloonSteleModel), inKitModel(noodleStallModel), inKitModel(hawkerStallModel), inKitModel(lotusFinial), inKitModel(laundryLineModel), inKitModel(landingPlanterModel), inKitModel(wellBalustrade), inKitModel(lotusPostModel), inKitModel(lampPostModel),
+];
 
 /** a placement from a copy's matrix (its translation is where it stands) */
 const at = (m: Matrix4, color?: Color): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
@@ -243,28 +254,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // brush-drawn figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts)
   // registered on their kits' meshes
   const meshOfKit = (k: Kit): Mesh | undefined => kitMeshes.get(kitName.get(k) ?? '');
-  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id, banyan.id, earthGodShrine.id, kowloonSteleModel.id, noodleStallModel.id, hawkerStallModel.id, lotusFinial.id, laundryLineModel.id, landingPlanterModel.id, wellBalustrade.id, lotusPostModel.id, lampPostModel.id]);
-  const inKit = ctx.inKit.filter((c) => !IN_KIT.has(c.model));
+  const inKit = ctx.inKit.filter((c) => !IN_KIT.some((m) => m.id === c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
-  const inKitPlaced: InKitPlaced[] = [
-    ...registerInKit(nd.ctx, ctx.inKit, brassDragonHook, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, drumStool, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, parkedScooter, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, mahjongTableModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, inkFigure, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, paifang, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, banyan, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, earthGodShrine, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, kowloonSteleModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, noodleStallModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, hawkerStallModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, lotusFinial, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, laundryLineModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, landingPlanterModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, wellBalustrade, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, lotusPostModel, meshOfKit),
-    ...registerInKit(nd.ctx, ctx.inKit, lampPostModel, meshOfKit),
-  ];
+  const inKitPlaced: InKitPlaced[] = IN_KIT.flatMap((model) => model.register(nd.ctx, ctx.inKit, meshOfKit));
   const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');

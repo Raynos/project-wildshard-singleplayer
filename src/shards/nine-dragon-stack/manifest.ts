@@ -26,6 +26,7 @@ import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { ND_BUDGET_INPUTS } from './budgets';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import { NINE_DRAGON_PLACES } from './places';
+import { ASSET_GLOBS, BOOT_FILES as FILES, COMPARE_ROWS, CREATURE_LOOK, LOADOUT, NINE_STRINGS, PLACE_AT, ROAD_PORTAL_PINS } from './data/manifest';
 import thumbnail from './thumbs/nine-dragon-stack.jpg';
 import heroPortrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import heroLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
@@ -36,39 +37,10 @@ import compareStairLive from './explore/nine-stair-live.jpg';
 import compareStairTarget from './explore/nine-stair-target.jpg';
 
 const SEED = 0x9d2a;
-/** where each named place sits on the plan, the middle of its layout.ts rectangle (PLAZA, STALL, STAIR, WELL) to the metre;
- *  the Well's galleries and crossings hang under its rim, so the rim names them */
-const PLACE_AT: Readonly<Record<string, { x: number; z: number; r: number }>> = {
-  'lantern-square': { x: 11, z: -3, r: 16 },
-  'night-market': { x: 19, z: -17, r: 6 },
-  'stair-street': { x: 46, z: 6, r: 24 },
-  'well-rim': { x: -14, z: -14, r: 18 },
-};
-/** the full map's name for each of the road's four portals (the decks at the cell's edge midpoints) */
-const ROAD_PORTAL_LABEL = 'Road portal';
 
-/** the world's files, declared so the loading bar counts them and the offline cache holds them */
-const TEX = ['concrete', 'flag', 'flag-a', 'flag2', 'flag2-a', 'lacquer', 'panel', 'poster', 'poster-a', 'stone', 'tiles', 'wood'];
-const FILES = [
-  ...TEX.map((t) => `/assets/nine-dragon/paint/${t}.jpg`),
-  // G285: the layout's offline bake (world/layoutBake.ts)
-  '/assets/nine-dragon/baked/layout.bin',
-  // G285: the code-built models' and the canopy's geometry (world/specimens.ts)
-  '/assets/nine-dragon/baked/specimens.bin',
-  '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
-  '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
-  ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),
-  '/assets/nine-dragon/lab/organic/leaf-atlas.webp', '/assets/nine-dragon/lab/organic/scroll.webp',
-  '/assets/nine-dragon/grade-lut-cleanroom.bin',
-  // the first-person arms (lab P8's rig: vm/arms.ts ARMS_FILES)
-  '/assets/nine-dragon/viewmodel/fp-rig.glb',
-  ...['hand-r', 'arm-r', 'fist-l', 'gauntlet'].flatMap((n) => [`/assets/nine-dragon/viewmodel/${n}-maps.webp`, `/assets/nine-dragon/viewmodel/${n}-nrm.webp`]),
-];
-
-const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
-    { id: 'gate', label: 'Lantern gate', model: 'nine-gate', target: 'art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg', live: compareGateLive, image: compareGateTarget },
-    { id: 'stair', label: 'Stair street', model: 'nine-stair', target: 'art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg', live: compareStairLive, image: compareStairTarget },
-  ] } satisfies NonNullable<ShardManifest['explore']>;
+const COMPARE_IMAGES = [{ live: compareGateLive, image: compareGateTarget }, { live: compareStairLive, image: compareStairTarget }];
+const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice },
+  compare: COMPARE_ROWS.flatMap((row, i) => { const art = COMPARE_IMAGES[i]; return art === undefined ? [] : [{ ...row, ...art }]; }) } satisfies NonNullable<ShardManifest['explore']>;
 
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
@@ -77,12 +49,12 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   gridShardfile: '/shardfiles/nine-dragon-stack/shard.json',
   trustedRuntime: { get slug() { return NINE_DRAGON_STACK.slug; }, entry: 'runtime/index.ts' },
   kitLook: 'pbr',
-  creatures: { lowPoly: false, waitForModels: false, furRim: false, tintRange: 0.2, oneMaterial: false },
+  creatures: CREATURE_LOOK,
   debugOptions: [],
   budgets: ND_BUDGET_INPUTS,
   uses: ['hover', 'explore', 'practice'],
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true, attackers: Infinity },
-  loadout: { weapons: ['weapon.jian'], tools: ['tool.fei-zhua', 'tool.hoverboard'], start: ['weapon.jian', 'tool.hoverboard'], pickups: [] },
+  loadout: LOADOUT,
   bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },
   species: [],
   encounters: [],
@@ -91,19 +63,19 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   boot: { steps: {}, files: () => FILES, sources: (tier, tex) => bootSources(tier, tex, FILES), audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image]), exploreGrapple] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
   audio: { bed: ND_SAMPLES.bed, samples: { omitLoops: ND_SAMPLES.omitLoops, omitShots: ND_SAMPLES.omitShots, loopGains: ND_SAMPLES.loopGains }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./runtime/audio/files')).createNdAudio() },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
-  assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg', 'public/assets/nine-dragon-stack/map/**'],
+  assetGlobs: ASSET_GLOBS,
   ktx2: () => import('./ktx2.generated'),
   order: 4,
   status: 'experimental',
   
   slug: 'nine-dragon-stack',
-  name: 'Nine Dragon Stack',
-  label: '(−2, +1)',
+  name: NINE_STRINGS.name,
+  label: NINE_STRINGS.label,
   seed: SEED,
   treeCount: 0,
   accent: 'iris', // G104: the HUD accent inside its grid cell
-  biome: 'Vertical neon city',
-  blurb: 'Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar gate, neon calligraphy and the Yamen Well dropping away into silk fog. A prototype fragment — the square, the Well\'s rim and the stair-street — rough edges everywhere.',
+  biome: NINE_STRINGS.biome,
+  blurb: NINE_STRINGS.blurb,
 
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
 
@@ -166,7 +138,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
       const at = PLACE_AT[id];
       return at === undefined ? [] : [{ id, name: label.charAt(0) + label.slice(1).toLowerCase(), ...at }];
     }),
-    ...(['north', 'east', 'south', 'west'] as const).map((edge, i) => ({ id: `portal-${edge}`, name: ROAD_PORTAL_LABEL, x: [0, 236, 0, -236][i] ?? 0, z: [236, 0, -236, 0][i] ?? 0, r: 8 })),
+    ...ROAD_PORTAL_PINS.map(({ edge, x, z }) => ({ id: `portal-${edge}`, name: NINE_STRINGS.roadPortal, x, z, r: 8 })),
   ],
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
   // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain

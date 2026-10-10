@@ -9,7 +9,7 @@ import { isFilled, newBoard, type Board } from '../src/shards/pine-hollow/quest/
 import { ALERT, EYE_HALF, EYE_OPEN, EYE_SHUT, STEALTH_GRASS_ROW, STEALTH_LAYER, STEALTH_ROW } from '../src/shards/nalati-grasslands/stealth';
 import { nameBox } from '../src/shards/nalati-grasslands/ride/HorseNamePrompt';
 import { HORSE_NAME_MAX } from '../src/shards/nalati-grasslands/ride/horseNames';
-import { PORTAL_VEIL } from '../src/shards/nine-dragon-stack/world/portalVeil';
+import { PORTAL_VEIL } from '../src/shards/nine-dragon-stack/data/portals';
 import { playgroundActive } from '../src/engine/practice/playground/hud';
 
 afterEach(() => { document.body.innerHTML = ''; });

@@ -17,12 +17,9 @@
 // - Built parts keep ruled lines (aFace/aMat.w edge bits); living parts get their outline from the hull's brush.
 // - The hull (inkHullMaterial): back faces pushed out a constant pixel width along an averaged normal; living classes
 //   swell and thin along the stroke (a dry brush), built classes stay ruled. The glow gets none.
-import {
-  BackSide, type Color, DataTexture, Matrix3, ShaderMaterial, type Texture,
-  type Vector2, type Vector3, Vector4,
-} from 'three';
+import { BackSide, DataTexture, Matrix3, ShaderMaterial, type Texture, Vector4 } from 'three';
 import { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } from '../data/vmLook';
-import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
+import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
 import { JIAN_DECALS, JIAN_DECAL_UV } from '../data/decals';
 import { decalScale, type NdTier } from '../tier';
@@ -39,29 +36,8 @@ export function decalAtlas(tier: NdTier): Decals {
 
 
 
-export interface VmUniforms {
-  uPal: { value: Color[] };
-  uSilk: { value: Texture };
-  uDecal: { value: Texture };
-  uEtch: { value: Vector4 };
-  uFu: { value: Vector4 };
-  uKey: { value: Vector3 };
-  uInk: { value: Color };
-  uLinePx: { value: number };
-  uSutra: { value: number };
-  uGold: { value: Color };
-  uEnvHi: { value: Color };
-  uEnvLo: { value: Color };
-  uBladeA: { value: Vector3 };
-  uBladeB: { value: Vector3 };
-  uSpill: { value: Vector4 };
-  uTune: { value: Vector4 };
-  uExposure: { value: number };
-  uDetail: { value: number };
-  uRes: { value: Vector2 };
-  uHullPx: { value: number };
-  uTime: { value: number };
-}
+/** the viewmodel program's live uniforms: data/vmLook.ts VM_UNIFORMS, the silk and the decal atlas */
+export type VmUniforms = UniformsOf<typeof VM_UNIFORMS> & { uSilk: { value: Texture }; uDecal: { value: Texture }; uEtch: { value: Vector4 }; uFu: { value: Vector4 } };
 
 export function vmUniforms(silk: Texture, decals: Decals): VmUniforms {
   return { uSilk: { value: silk }, uDecal: { value: decals.tex }, uEtch: { value: decals.etch }, uFu: { value: decals.fu }, ...uniformsFrom(VM_UNIFORMS) };
