@@ -58,7 +58,7 @@
 </header>
 
 <div class="trailer bk">
-  <video id="trailer" muted loop playsinline controls preload="none" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}"></video>
+  <video id="trailer" muted loop playsinline controls preload="metadata" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}"></video>
   <button class="play-btn" id="trailer-play" type="button" hidden aria-label="{{@Trailer · play button}}">▶</button>
   <span class="tag">{{Trailer · tag}}</span>
 </div>
@@ -360,12 +360,18 @@
   var trailer = document.getElementById("trailer");
   if (trailer && media.trailer && !still) {
     var tsrc = wide ? media.trailer.mp4 : media.trailer.mp4Phone;
-    // iOS in Low Power Mode refuses every autoplay: then a tap starts it, with sound and controls
+    // the source is set at once (preload=metadata): the native controls always have a video to play, and its poster and
+    // length show; a src set only at autoplay left a tap on the native play "playing" an empty video at 0:00
+    trailer.src = tsrc;
+    // iOS in Low Power Mode refuses every autoplay — rejecting it, or leaving it "playing" at 0:00 without a word: either
+    // way a tap starts it, with sound
     var tapBtn = document.getElementById("trailer-play");
-    var refused = function () { tapBtn.hidden = false; };
-    tapBtn.addEventListener("click", function () { tapBtn.hidden = true; trailer.muted = false; trailer.controls = true; start(trailer, tsrc, refused); });
-    if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { start(trailer, tsrc, refused); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
-    else start(trailer, tsrc, refused);
+    var refused = function () { if (trailer.currentTime === 0) { trailer.pause(); tapBtn.hidden = false; } };
+    trailer.addEventListener("playing", function () { tapBtn.hidden = true; });
+    tapBtn.addEventListener("click", function () { tapBtn.hidden = true; trailer.muted = false; start(trailer, tsrc, refused); });
+    var autoplay = function () { start(trailer, tsrc, refused); setTimeout(refused, 2500); };
+    if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { autoplay(); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
+    else autoplay();
   }
   document.querySelectorAll("[data-loop]").forEach(function (shot) {
     var m = media.loops && media.loops[shot.getAttribute("data-loop")];
