@@ -389,3 +389,37 @@ Raw scratch `attempt-c29b-desktop.json` SHA-256
 `7a16e6ffbcfd419a07ff96af8689e09818436a29c94832d52c2ae9f32054c5cd`.
 Proof `.git/proofs/20261010T120002-sf22-completed-draw-queued-44467.json`.
 All owned preview / browser / Simulator / Inspector / proxy resources closed.
+
+## Actual game-loop callback diagnostic: polling cadence aliases the draw
+
+Same `c29b3330a` runtime, Safari Auto subset, 17:23:55–17:25:36 UTC,
+2026-10-10. Quiet marker 17:22:49–17:25:44, removed in finally.
+Both routes complete without errors; 394 explicit warm-ups, zero draw/driver
+compiles. Route loads 26.99 / 19.93: diagnostic is under load, not a new
+normative timing pass. Observer identified the game callback; all 3,434
+route callbacks fit the bound, with 1,737 completed draws and no recovery
+hold/dead state. Existing registrations, callback arguments/receivers,
+returns/errors and invocation count are preserved by two Node fixtures.
+
+Actual game-callback wall p95 is 8 ms for drawn frames (maximum 61 ms);
+native rAF delivery gaps p95 17 / p99 39 ms, callback delivery lag p95
+1 / p99 3 ms. Actual game-callback start intervals give p95 36 / p99
+57 ms; standing start intervals give 34 ms. This still misses the unchanged
+cadence rule. The separate polling journal gives p95 46 / p99 63 ms:
+its timestamp belongs to the later observer rAF, not to the game draw it
+notices. All frame counters were observed without gaps, so this is timestamp
+aliasing rather than missing draws. Neither wall clock is CPU/GPU execution
+time. No frame-cap change is justified by these loaded timings.
+
+The measurement correction `scripts/sf22-drawn-frames.mjs` reads the
+existing Game clock's actual draw-start timestamp when its completed-draw
+counter changes. It never invokes a clock method, clamps an interval or
+forces a frame. Polling timestamps/intervals and missing counter increments
+remain separate in the raw record; missing draws must refuse cadence credit.
+Five focused cadence/sampler checks, strict and touched root lint pass.
+Fresh actual-clock matched verification is pending; Safari remains OPEN.
+
+Raw scratch `attempt-c29b-game-raf.json`, SHA-256
+`e339eae8dd98eb74130dbf4fe9070f670399de2d1064ef760abcff821a5db4f5`.
+Proof `.git/proofs/20261010T122109-sf22-game-loop-delivery-47457.json`.
+All owned preview / browser / Simulator / Inspector / proxy resources closed.
