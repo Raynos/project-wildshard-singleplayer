@@ -1,12 +1,12 @@
 {
  "version": 1,
- "revision": "e6db1b256805a0c4d4f933b104eed320304348f4",
- "build": "e6db1b2-mv1mhfvs",
+ "revision": "4be2dab62d09c0a440894420f8cfa98cf582c29f",
+ "build": "4be2dab-mv1mz1h5",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
   "src/engine/world/interact/Interactables.ts": "349c6db3318c4f6c4f8490dd76f0d311f4e575d4586ef64f0449a9cf359bfb2b",
-  "src/engine/world/interact/pickup.ts": "3f25e8e2cf7196748e2922eb421a51b6204669d24aec10e928c6943d4513062e",
+  "src/engine/world/interact/pickup.ts": "af294622afc9d73187b3d18b6a242d40f6b553c1b4f8b7a0f185ba5201eac4c2",
   "src/engine/world/interact/prompts.ts": "2f9808a795a325f05ff4bb969f4fc13304330a477b5ec27b143f44cc75b5e193",
   "src/shards/driftwood-isle/data/audio.ts": "2834128cd6a44e958ce6e03208684c1b72a59b5415be13ede0ad970fc59da7b3",
   "src/shards/driftwood-isle/data/brains.ts": "24de1cd953fca1e5c62097d0f86b63219cbcab3b8a7c7bfcb8328b0f5dd443e5",
