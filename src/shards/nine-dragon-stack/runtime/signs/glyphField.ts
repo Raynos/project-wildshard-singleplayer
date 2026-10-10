@@ -94,14 +94,21 @@ function* glyphFieldSteps(chars: readonly string[], layout: GlyphFieldLayout, fo
   while (size < cols * C) size *= 2;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (ctx === null) throw new Error('2d canvas unavailable');
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = `${weight} ${layout.fontPx}px ${font}`;
+  const raw = canvas.getContext('2d', { willReadFrequently: true });
+  if (raw === null) throw new Error('2d canvas unavailable');
+  raw.fillStyle = '#000';
+  raw.fillRect(0, 0, size, size);
+  raw.fillStyle = '#fff';
+  raw.textAlign = 'center';
+  raw.textBaseline = 'middle';
+  raw.font = `${weight} ${layout.fontPx}px ${font}`;
+  // op-hitch41: a 2D canvas queues its drawing until a read, so the first band read below rasterized every glyph in one
+  // stretch (Nine Dragon's 250 ms Simulator frame); a one-pixel read after each step's 8 glyphs rasterizes them there
+  let drawn = 0;
+  const ctx = {
+    fillText: (text: string, x: number, y: number): void => { raw.fillText(text, x, y); if (++drawn % 8 === 0) raw.getImageData(x, y, 1, 1); },
+    getImageData: (sx: number, sy: number, sw: number, sh: number): ImageData => raw.getImageData(sx, sy, sw, sh),
+  };
   for (const [i, ch] of list.entries()) {
     const cx = (i % cols) * C, cy = Math.floor(i / cols) * C;
     // CJK ideographs sit a touch high on 'middle': nudge down so the cell is centred on the ink
