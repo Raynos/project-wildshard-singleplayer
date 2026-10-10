@@ -234,3 +234,8 @@ the grid's grass reads paler and yellower than standalone, and the sky is a litt
 cells, SF59 / G285), the grid shell's floors and seam curtain +3 (Driftwood), Pine's crossbow viewmodel parts +5. About 30
 unnamed standard-material variants on each (fog-hooked, with no program key of their own) cannot be pinned to a commit
 without a bisect.
+
+**Pine after the SF73 fix** (sp-x5 `d486d5dde`, frozen copies read their inventoried baked folder). Re-read on `662a12434`,
+phone; JSON `parity-pine-phone-finish3.json`, board `board-pine-phone.jpg`: MAE entry-n 28.9 → **20.9**, forest-e 49.7 →
+**12.2**, forest-n 25.3 → **10.9**. Both sides now draw the same baked forest, so the conifer through the camera at forest-e
+is in both (as at cand3). What is left at entry-n is the grid sky's missing cirrus and cumulus.
