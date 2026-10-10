@@ -1,3 +1,4 @@
+import { proveNalatiEntryways } from './headlessEntryways';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, type SimHost, type SimLevel, type SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
@@ -282,7 +283,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati12.md): the remaining dusk/night/storm elite brains, the
  * Golden King and the Storm Titan, taming/companions, the weapons, the dusk / night spawns as the day clock
- * passes them, the quests and their facts, and the entry proof; `finish` refuses.
+ * passes them, the quests and their facts. The entry proof walks the installed native world.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
@@ -291,7 +292,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never the sabre or the bow: the weapons are declared items (data/items.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, install: (host, context) => {
+  return { level, ports: { ground: false, heightAt }, proveEntries: host => proveNalatiEntryways(host, shard.entryways, heightAt), install: (host, context) => {
     // the creature floor casts into this world at install, restoring too (the saved physics then replaces it)
     addNalatiWorld(host, bake);
     // The manifest's basinBody('river', TERRAIN): the Kunes and brook mask, at their shared rest level.

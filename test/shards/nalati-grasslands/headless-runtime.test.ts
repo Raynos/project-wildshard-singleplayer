@@ -46,7 +46,7 @@ function walk(host: SimHost): void { const t = host.state.tick; host.step({ move
 it('stands the player at the camp on the page\'s terrain grid, with no entry proof yet (finish refuses)', () => {
   expect(plan.level.seed).toBe(0x4a1a); expect(plan.level.player.at.z).toBe(232);
   expect(plan.level.player.at.y).toBeCloseTo(Math.max(0, heightAt(0, 232) + 0.1), 9);
-  expect(plan.proveEntries).toBeUndefined();
+  expect(plan.proveEntries).toBeTypeOf('function');
 });
 
 it('starts the page\'s day clock on the manifest\'s sun, in the day; a witness level starting at dusk refuses (its elites are not modelled)', () => {

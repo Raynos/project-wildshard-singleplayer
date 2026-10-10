@@ -1,29 +1,7 @@
 {
-  "audit": {
-    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nalati-grasslands/run.mjs all",
-    "exitStatus": 1,
-    "scope": "actual native boot and exact codec/restore suffix; declared ledger contract remains partial"
-  },
   "slug": "nalati-grasslands",
   "entry": "runtime/headless.ts",
   "compatible": false,
-  "headless": {
-    "status": "partial",
-    "stage": "gameplay-coverage",
-    "nativeBoot": true,
-    "actors": 35,
-    "colliders": 2696,
-    "ticksExecuted": 180,
-    "checkpointHash": "44e7920792a16d02378aee8fb1993e05745dfddd5c4afaac6a9bf1cafb88ce3b"
-  },
-  "replay": {
-    "status": "partial",
-    "checkpointCaptured": true,
-    "codecByteExact": true,
-    "suffixTicksExecuted": 60,
-    "suffixHash": "462facf8193b2c48b902f78aa18a0cbdcccac8a963d5aae98aa7cf4903ea668b",
-    "wholeShard": false
-  },
   "declarations": {
     "sourceLoaded": true,
     "quests": [
@@ -42,6 +20,10 @@
     "duplicateStable": true,
     "gameplayEmissionProven": false
   },
+  "entries": {
+    "lanes": 92,
+    "steps": 36896
+  },
   "missing": [
     "qyran",
     "qara-and-night-roster",
@@ -49,7 +31,28 @@
     "storm-titan",
     "taming",
     "sabre-and-held-heavy",
-    "quests-and-gameplay-ledger",
-    "entryways"
-  ]
+    "quests-and-gameplay-ledger"
+  ],
+  "headless": {
+    "status": "partial",
+    "stage": "gameplay-coverage",
+    "nativeBoot": true,
+    "actors": 35,
+    "colliders": 2696,
+    "ticksExecuted": 180,
+    "checkpointHash": "44e7920792a16d02378aee8fb1993e05745dfddd5c4afaac6a9bf1cafb88ce3b"
+  },
+  "replay": {
+    "status": "partial",
+    "checkpointCaptured": true,
+    "codecByteExact": true,
+    "suffixTicksExecuted": 60,
+    "suffixHash": "462facf8193b2c48b902f78aa18a0cbdcccac8a963d5aae98aa7cf4903ea668b",
+    "wholeShard": false
+  },
+  "audit": {
+    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nalati-grasslands/run.mjs all",
+    "exitStatus": 1,
+    "scope": "actual native boot and exact codec/restore suffix; all 92 terrain entry lanes walk 40m inward; remaining gameplay and ledger coverage stays partial"
+  }
 }

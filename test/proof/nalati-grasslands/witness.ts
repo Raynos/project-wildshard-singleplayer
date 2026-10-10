@@ -11,7 +11,7 @@ import { NALATI_NAVMESH_ASSET, NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } fr
 import { canonicalSimDigest } from '../../fake/simState';
 
 /** Gaps are gameplay requirements, not exemptions; a boot/replay proof cannot certify the whole shard. */
-export const NALATI_WITNESS_GAPS = ['qyran', 'qara-and-night-roster', 'golden-king', 'storm-titan', 'taming', 'sabre-and-held-heavy', 'quests-and-gameplay-ledger', 'entryways'] as const;
+export const NALATI_WITNESS_GAPS = ['qyran', 'qara-and-night-roster', 'golden-king', 'storm-titan', 'taming', 'sabre-and-held-heavy', 'quests-and-gameplay-ledger'] as const;
 
 /** Execute the shipping native installer and restore its complete codec continuation without a browser shim. */
 export async function nalatiNativeWitness(replay: boolean): Promise<object> {
@@ -45,8 +45,13 @@ export async function nalatiNativeWitness(replay: boolean): Promise<object> {
       suffixHash = canonicalSimDigest(snapshotSimHost(first));
       assert.equal(canonicalSimDigest(snapshotSimHost(restored)), suffixHash, 'Complete native suffix must match exactly');
     }
-    return { entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
-      headless: { status: 'partial', stage: 'gameplay-coverage', nativeBoot: true, actors: 35, colliders, ticksExecuted: first.state.tick, checkpointHash },
+    const ticksExecuted = first.state.tick;
+    if (plan.proveEntries === undefined) throw new Error('Native entry proof must be hosted');
+    const entries = plan.proveEntries(first);
+    assert.equal(entries.lanes, 92, 'Every native opening needs all 23 capsule lanes');
+    assert.ok(entries.steps > 0);
+    return { entries, entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
+      headless: { status: 'partial', stage: 'gameplay-coverage', nativeBoot: true, actors: 35, colliders, ticksExecuted, checkpointHash },
       ...(replay ? { replay: { status: 'partial', checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60, suffixHash, wholeShard: false } } : {}) };
   } finally {
     restored?.dispose(); first.dispose();
