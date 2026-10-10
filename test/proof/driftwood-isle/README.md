@@ -81,3 +81,13 @@ Hosting the actual reward carry changes the recorded tape from 19,816 to 19,843 
 now finishes its approach under the shipping eased carry, rather than continuing ordinary walking. The living
 Captain checkpoint remains tick 18,898 at 190 HP, the quest fact stays tick 19,681, and the exact replay suffix
 is 945 ticks. These are real gameplay outcomes with unchanged authored tuning.
+
+The grid-return admission fix widens only the declared director player-x/player-z inputs from +/-250 to +/-10000,
+because runtime construction observes the player before crossing the cell edge (the failed return was x=-256.631).
+The complete director declaration is part of its continuation: all three checkpoint hashes and the final digest
+therefore change deliberately. An exact decoded comparison proves each checkpoint differs only in those four
+contract min/max values; physics, player/actor state, RNG, script author memory, flags, pack and ledger profiles match.
+The compressed command tape is byte-identical at 19,843 ticks, Captain remains tick 18,898 at 190 HP, and every
+fact/effect tick and the 945-tick replay suffix remain unchanged. The official cache recorder authors the new small
+manifest and compatibility receipt; retained source gzip files stay untouched. Scoped proofs pass; whole-shard
+compatibility remains false for the existing open list.

@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring and reef journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "efe0eabadb48df4ca69fe25e2b93f985275dc5e3488ed83f702e7e17b90953d5",
+  "inputs": "e3340cca7df92d2d54806f2501ff8c6ebcdc96f6c571532e7af1e7b736d6864a",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "fdf52532f784711c50adc30d44b072ee01c6a3174eb58f0beebf5d6c25e4fcab",
+    "hash": "14b6044d8e4f42897b71242a66fa174e0a31d5b9336f88cc65034f9b869d7b9b",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -97,8 +97,8 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 945,
-    "hash": "4da8615a22051fd8c96fbcd73ceae891a6c602d4c1cb7cf44a0d0ae1df5b8a76",
-    "replayHash": "4da8615a22051fd8c96fbcd73ceae891a6c602d4c1cb7cf44a0d0ae1df5b8a76",
+    "hash": "bb0159065bbc72a0cbb223fe8770cf14427cafffecf6c9771878812564d70a5c",
+    "replayHash": "bb0159065bbc72a0cbb223fe8770cf14427cafffecf6c9771878812564d70a5c",
     "effects": [
       {
         "tick": 19681,
@@ -321,6 +321,6 @@
     "surfaced": true,
     "treasureCount": 1,
     "durableReload": true,
-    "hash": "22a12a3e975e254cb3f1a121b6ccdce1b9e71fa4ef617adc7e6707063ce8d8bb"
+    "hash": "ff637d1343a202345f78f99939d75eca8fb7ee55987873b77e8db4c2d754f67b"
   }
 }
