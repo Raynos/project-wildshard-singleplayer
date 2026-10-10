@@ -4,26 +4,13 @@
 // (lightvol.ts). Every number here was tuned in the loop against the round-8 targets (round-9-lab-light/README.md).
 import { Color, type Matrix4, Vector3, type Vector4 } from 'three';
 import type { PoolLight } from './lightvol';
+import { POOL } from '../../data/light';
+// SHARD-PLATFORM M3: the pools' tuning is data (data/light.ts POOL, colours as hex).
 
 /** the clean room's Emitter (emitters.ts), structurally */
 export interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 /** the facade grammar's WindowInst (facade/grammar.ts), structurally: win.y = lit (0 or 0.8–1.15) */
 export interface WindowLike { m: Matrix4; win: Vector4; light: Color }
-
-/** per source kind: strength k, radius r (m, scaled by the source's size where noted), reach in r, colour pull */
-export const POOL = {
-  /** paper lanterns: the candle light is amber, the paper's red only tints it */
-  // (render, round 14: Jake's "warm and deep around the gate" — the lanterns' pools ×1.4 and wider, a deeper amber)
-  lantern: { k: 0.5, r: 2.6, cut: 3.0, tint: new Color(0xff9448), redShare: 0.25 },
-  /** a lit shop interior (the emitter sits 0.1 m inside the shop's glazing, 1.6 m up) */
-  shop: { k: 2.3, rPerW: 0.5, rMin: 2.0, cut: 3.0, out: 0.9, tint: new Color(0xffa850) },
-  /** the square's street lamps (a warm sodium head 4.2 m up) */
-  lamp: { k: 3.8, r: 3.0, cut: 3.4, tint: new Color(0xffb468) },
-  /** neon signs and lightboxes: coloured, weaker, short */
-  sign: { k: 0.45, rPerSize: 0.55, rMin: 0.8, cut: 2.4 },
-  /** a lit window: warm light on its sill, the balcony floor under it and the wall around it */
-  window: { k: 0.2, r: 0.8, cut: 2.4, out: 0.45 },
-} as const;
 
 const tmpP = new Vector3(), tmpN = new Vector3();
 
@@ -43,17 +30,17 @@ export function gatherPools(src: PoolSources, scale: PoolScale = UNIT): PoolLigh
   const L = POOL.lantern;
   for (const e of src.lanterns) {
     const s = e.w / 0.5;
-    out.push({ at: e.at.clone(), color: L.tint.clone().lerp(e.color, L.redShare), k: L.k * s * scale.lantern, r: L.r * s, cut: L.cut });
+    out.push({ at: e.at.clone(), color: new Color(L.tint).lerp(e.color, L.redShare), k: L.k * s * scale.lantern, r: L.r * s, cut: L.cut });
   }
   // lit shops, stall counters, the shrine: the ctx emitters that are not lamps; weaker when their spill is (never
   // stronger: the stall's two 0.6 / 0.4 spill emitters washed the aerial square orange at ×2)
   const S = POOL.shop;
   for (const e of src.shops) {
     const k = S.k * Math.min(Math.max(e.spill / 0.3, 0.5), 1);
-    out.push({ at: e.at.clone(), color: S.tint.clone().lerp(e.color, 0.5), k: k * scale.shop, r: Math.max(S.rMin, S.rPerW * e.w), cut: S.cut });
+    out.push({ at: e.at.clone(), color: new Color(S.tint).lerp(e.color, 0.5), k: k * scale.shop, r: Math.max(S.rMin, S.rPerW * e.w), cut: S.cut });
   }
   const P = POOL.lamp;
-  for (const p of src.lamps) out.push({ at: p.clone(), color: P.tint.clone(), k: P.k * scale.lamp, r: P.r, cut: P.cut });
+  for (const p of src.lamps) out.push({ at: p.clone(), color: new Color(P.tint), k: P.k * scale.lamp, r: P.r, cut: P.cut });
   const G = POOL.sign;
   for (const e of src.signs) {
     if (e.spill <= 0) continue;

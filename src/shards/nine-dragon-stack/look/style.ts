@@ -16,9 +16,11 @@
 import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, type ShaderMaterial, type Texture, type IUniform, UnsignedByteType, Vector2, Vector3, Vector4 } from 'three';
 import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, setUniforms, uniformsFrom, type UniformRows, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { Y0 } from '../layout';
-import { FLAG, PAINT_GLSL, paintUniforms } from './paint';
+import { paintUniforms } from './paint';
+import { FLAG, PAINT_GLSL } from '../data/paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
-import { LIGHTVOL_GLSL, lightVolUniforms } from './light/lightvol';
+import { lightVolUniforms } from './light/lightvol';
+import { LIGHTVOL_GLSL } from '../data/light';
 import { METAL, SUTRA } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
 import {

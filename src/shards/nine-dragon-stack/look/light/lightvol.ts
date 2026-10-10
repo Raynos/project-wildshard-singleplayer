@@ -15,7 +15,10 @@
 //  - GLSL (`LIGHTVOL_GLSL`): `vec3 poolLight(vec3 wp, vec3 n)` = the irradiance at wp, shaped by the normal. The
 //    material adds `albedo × poolLight × uLpGain.x` to its wash and, on wet ground, a broad glossy sheen
 //    `poolLight × wet × uLpGain.y` (the wet stone's blurred reflection of the pool's light).
-import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, RGBAFormat, UnsignedByteType, Vector3, Vector4 } from 'three';
+import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, RGBAFormat, UnsignedByteType, Vector3 } from 'three';
+import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
+import { LIGHTVOL_UNIFORMS, LP_MAX } from '../../data/light';
+// SHARD-PLATFORM M3: the uniforms' rows, LP_MAX and the GLSL (`LIGHTVOL_GLSL`) are data (data/light.ts); this module bakes.
 
 export interface PoolLight {
   at: Vector3;
@@ -36,8 +39,6 @@ export interface VolumeBox { min: Vector3; max: Vector3; cell: number }
 export const SQUARE_BOX: VolumeBox = { min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 };
 export const WELL_BOX: VolumeBox = { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 };
 
-/** E is stored as √(E / MAX): MAX is the brightest irradiance the volume holds */
-export const LP_MAX = 12;
 
 function blank(): Data3DTexture {
   const t = new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1);
@@ -45,49 +46,11 @@ function blank(): Data3DTexture {
   return t;
 }
 
-/** uniforms the architecture programs share (add them to the clean room's Shared.u) */
-export function lightVolUniforms(): {
-  uLpVolA: { value: Data3DTexture }; uLpMinA: { value: Vector3 }; uLpInvA: { value: Vector3 };
-  uLpVolB: { value: Data3DTexture }; uLpMinB: { value: Vector3 }; uLpInvB: { value: Vector3 };
-  uLpGain: { value: Vector4 };
-  uLpSky: { value: number };
-  uLpAmb: { value: number };
-  uLpSpec: { value: Vector4 };
-  uLpRim: { value: Vector4 };
-  uLpCut: { value: Vector4 };
-  uLpAmber: { value: Vector4 };
-} {
-  return {
-    uLpVolA: { value: blank() }, uLpMinA: { value: new Vector3() }, uLpInvA: { value: new Vector3() },
-    uLpVolB: { value: blank() }, uLpMinB: { value: new Vector3() }, uLpInvB: { value: new Vector3() },
-    /** x: diffuse gain on the wash, y: wet sheen gain, z: underside keep (0 = light from above never reaches an underside), w: on / off */
-    uLpGain: { value: new Vector4(1.0, 0.5, 0.35, 1) },
-    /** the wet film's reflection of the blue-hour sky, added to the clean room's own fresnel term (0 = off): the
-     *  targets' wet ground is a lit blue-grey (L* 33 at the FP frames) */
-    uLpSky: { value: 0 },
-    /** the blue-hour AMBIENT: the sky light on every non-emissive wash (1 = the clean room). Emitters, pools and ink
-     *  are not scaled, so a lower ambient makes the lights read as light */
-    uLpAmb: { value: 1 },
-    /** (render) the lamplight's glossy lobe: the light field read along the reflection (x gain, y / z the two read
-     *  distances, m) on lacquer, wet stone and wet decks; w: how far the diffuse pool keeps its warmth off a grey wash
-     *  (0 = albedo × light as the clean room, 1 = the light's own colour at the wash's brightness) */
-    uLpSpec: { value: new Vector4(1, 0.9, 2.6, 0.45) },
-    /** (render) the rim: an edge turned away from the eye catches the light BEHIND it (x gain, y how far behind, m,
-     *  z the rim's power) — the crowd against the lit stall, the posts against the lanterns, wet lips against neon */
-    uLpRim: { value: new Vector4(0.8, 1.2, 3, 0) },
-    /** (render, E281) the pools' knee: E → E² / (E + x) + … so the faint field every lantern of the square adds up to
-     *  (the median cell holds ~0.1: a flat salmon wash on the whole floor) drops away and the pools read as pools round
-     *  their lights; y: how much of the rim an up-facing surface keeps (a floor's "rim" was the field under it, a warm
-     *  band toward the horizon); z: how much of the diffuse pool an up-facing surface keeps (wet stone under a cluster of
-     *  lanterns shows them as reflections — the streaks, the gloss lobe — not as a salmon fill: the gate's floor); w: the
-     *  soft ceiling (lpKnee) */
-    uLpCut: { value: new Vector4(0.4, 0.15, 0.3, 0.8) },
-    /** (render, E281) warm pools on the wet floor. The floor keeps only uLpCut.z of the pools (the lanterns' red-orange
-     *  field washed the gate's floor salmon), but the lit shops', stalls' and lamps' amber light (g / r ≥ z…w: a lantern's
-     *  pool sits at ~0.25, a shop's at ~0.47) lies on the stone in front of them: x the floor's keep of amber light, y a
-     *  warm sheen of it on wet stone (the light's own colour, not the dark wet albedo × it) */
-    uLpAmber: { value: new Vector4(0.8, 1.4, 0.28, 0.42) },
-  };
+/** uniforms the architecture programs share (add them to the clean room's Shared.u): the two volumes and data/light.ts'
+ *  rows (the min / inv vectors after their volume, in the old order) */
+export function lightVolUniforms(): { uLpVolA: { value: Data3DTexture }; uLpVolB: { value: Data3DTexture } } & UniformsOf<typeof LIGHTVOL_UNIFORMS> {
+  const { uLpMinA, uLpInvA, ...rest } = uniformsFrom(LIGHTVOL_UNIFORMS);
+  return { uLpVolA: { value: blank() }, uLpMinA, uLpInvA, uLpVolB: { value: blank() }, ...rest };
 }
 
 export interface BakeStats { lights: number; cells: number; ms: number; maxE: number }
@@ -159,81 +122,3 @@ export function bakeVolume(lights: readonly PoolLight[], box: VolumeBox, min: Ve
   inv.set(1 / (nx * c), 1 / (ny * c), 1 / (nz * c));
   return { tex, stats: { lights: used, cells: N, ms: performance.now() - t0, maxE } };
 }
-
-/**
- * poolLight(wp, n): the baked irradiance at a world point, shaped by the surface normal. `a` holds where the light
- * comes from (0 = below, 0.5 = level, 1 = above): a floor under a lantern takes all of it, a wall facing it most, an
- * underside only uLpGain.z of the light that comes from above (an awning over a lit shop still glows from below).
- */
-export const LIGHTVOL_GLSL = /* glsl */ `
-uniform highp sampler3D uLpVolA;
-uniform highp sampler3D uLpVolB;
-uniform vec3 uLpMinA;
-uniform vec3 uLpInvA;
-uniform vec3 uLpMinB;
-uniform vec3 uLpInvB;
-uniform vec4 uLpGain;
-uniform float uLpSky;
-uniform float uLpAmb;
-uniform vec4 uLpSpec;
-uniform vec4 uLpRim;
-uniform vec4 uLpCut;
-uniform vec4 uLpAmber;
-// (render, E281) how amber a light is (a shop's, a lamp's: 1; a lantern's red-orange, the neon: 0), judged on the raw
-// irradiance (the knee shifts the ratio); poolLight leaves the last read's in lpAmb
-float lpAmberness(vec3 E) { return smoothstep(uLpAmber.z, uLpAmber.w, E.g / max(E.r, 1e-4)) * step(E.b, E.g); }
-float lpAmb = 0.0;
-// (render, E281) the knee: E² / (E + k) keeps a lantern's pool (E ≫ k) and drops the faint field between them
-vec3 lpKnee(vec3 E) {
-  if (uLpCut.x > 0.0) E = E * E / (E + vec3(uLpCut.x));
-  // w: a soft ceiling (E / (1 + E / w)): under the gate's ~20 lanterns every face went one flat orange
-  if (uLpCut.w > 0.0) E = E / (1.0 + max(E.r, max(E.g, E.b)) / uLpCut.w);
-  return E;
-}
-vec4 lpSample(highp sampler3D v, vec3 wp, vec3 mn, vec3 iv) {
-  vec3 t = (wp - mn) * iv;
-  if (any(lessThan(t, vec3(0.0))) || any(greaterThan(t, vec3(1.0)))) return vec4(0.0, 0.0, 0.0, 0.5);
-  return texture(v, t);
-}
-vec3 poolLight(vec3 wp, vec3 n) {
-  if (uLpGain.w < 0.5) return vec3(0.0);
-  vec4 s = wp.y > uLpMinA.y ? lpSample(uLpVolA, wp, uLpMinA, uLpInvA) : lpSample(uLpVolB, wp, uLpMinB, uLpInvB);
-  vec3 E0 = s.rgb * s.rgb * ${LP_MAX.toFixed(1)};
-  lpAmb = lpAmberness(E0);
-  vec3 E = lpKnee(E0);
-  float fromUp = s.a * 2.0 - 1.0;
-  // facing: the light's mean direction is mostly vertical (up / down) with a level share; walls take the level share
-  float fUp = max(fromUp, 0.0), fDown = max(-fromUp, 0.0), fLevel = 1.0 - abs(fromUp);
-  float face = fUp * mix(uLpGain.z, 1.0, clamp(n.y * 0.5 + 0.5, 0.0, 1.0))
-             + fDown * clamp(0.6 - n.y * 0.6, 0.15, 1.0)
-             + fLevel * (abs(n.y) < 0.5 ? 1.0 : 0.85);
-  float keep = mix(uLpCut.z, max(uLpCut.z, uLpAmber.x), lpAmb);
-  return E * face * mix(1.0, keep, smoothstep(0.5, 0.9, n.y));
-}
-// (render) the raw irradiance at a point (no facing): what a glossy surface sees of the pools along its reflection
-vec3 lpRaw(vec3 wp) {
-  vec4 s = wp.y > uLpMinA.y ? lpSample(uLpVolA, wp, uLpMinA, uLpInvA) : lpSample(uLpVolB, wp, uLpMinB, uLpInvB);
-  return lpKnee(s.rgb * s.rgb * ${LP_MAX.toFixed(1)});
-}
-// (render) the lamplight's glossy lobe: the light field read at two points along the reflection vector R. A lantern
-// above a wet flagstone lights the stone's sheen where the reflection points at it (the view-dependent specular the
-// diffuse pool lacks); on the paifang's lacquer the lanterns in front of it glint along its posts and beams
-vec3 poolSpec(vec3 wp, vec3 R) {
-  if (uLpGain.w < 0.5 || uLpSpec.x <= 0.0) return vec3(0.0);
-  return (lpRaw(wp + R * uLpSpec.y) * 0.6 + lpRaw(wp + R * uLpSpec.z) * 0.4) * uLpSpec.x;
-}
-// (render) the rim light: at a grazing edge the light field just behind the surface (away from the eye) wraps it
-vec3 poolRim(vec3 wp, vec3 n, vec3 V) {
-  if (uLpGain.w < 0.5 || uLpRim.x <= 0.0) return vec3(0.0);
-  float e = pow(1.0 - clamp(dot(n, V), 0.0, 1.0), uLpRim.z);
-  if (e < 0.01) return vec3(0.0);
-  return lpRaw(wp - V * uLpRim.y + n * 0.2) * e * uLpRim.x * mix(1.0, uLpCut.y, smoothstep(0.5, 0.9, n.y));
-}
-// (render) the diffuse pool's albedo: the wash's colour pulled toward its own brightness so a warm light on grey stone
-// reads warm (albedo × amber on a blue-grey wash was a dull brown)
-vec3 poolAlbedo(vec3 col) {
-  float mx = max(col.r, max(col.g, col.b)), sat = (mx - min(col.r, min(col.g, col.b))) / max(mx, 1e-4);
-  // only the grey washes: a lacquer's red stays its own deep red under the lanterns
-  return mix(col, vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))) * 1.15, uLpSpec.w * (1.0 - smoothstep(0.2, 0.5, sat)));
-}
-`;

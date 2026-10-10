@@ -6,36 +6,8 @@ import { SQUARE_BOX, WELL_BOX, bakeVolume, type BakeStats } from './lightvol';
 import { type EmitterLike, type WindowLike, gatherPools, isLamp } from './pools';
 import { loadLut } from './grade';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-
-export interface LightSettings {
-  /** the light volume on / off, its diffuse gain on the wash, the wet stone's glossy sheen of it */
-  pools: number;
-  poolGain: number;
-  sheen: number;
-  /** the window glow in the fog (bloom alpha) on / off, its halo / veil gains, threshold and distance ramp (m) */
-  glow: number;
-  halo: number;
-  veil: number;
-  glowThr: number;
-  glowNear: number;
-  glowFar: number;
-  /** the learned LUT's strength (0 = off) */
-  grade: number;
-  /** the wet film's sky reflection on top of the fresnel term (0 = off) */
-  wetSky: number;
-  /** the blue-hour ambient on every non-emissive wash (1 = none) */
-  ambient: number;
-}
-
-/** the lab's tuning on the clean room at 3c39b36f (round-9-lab-light/README.md §What won); round 14: the pools are
- *  stronger (pools.ts), so the flat wet sheen 1.0 → 0.55 (the view-dependent lobe, lightvol.ts poolSpec, carries the gloss) */
-// (render, E281) the ambient 0.78 → 0.9: the mockups are high key (blue hour, not night). The wet film's sky sheen
-// 0.1 → 0.3 (pass 3) → 0.15 (round 2, the stair lane: the landings read pale pink from the sky; the targets' wet stone is
-// dark and carries the lights and the neon)
-export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 0.55, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.15, ambient: 0.9 };
-
-// refitted on the clean room's own frames after the merge (round 11; LOOK-LOOP.md step 6), not the lab's 3c39b36f fit
-export const LUT_URL = '/assets/nine-dragon/grade-lut-cleanroom.bin';
+import { LIGHT_DEFAULTS, LUT_URL, type LightSettings } from '../../data/light';
+// SHARD-PLATFORM M3: the settings, the lab's tuning and the LUT's URL are data (data/light.ts).
 
 interface LightUniforms {
   uLpVolA: { value: Data3DTexture }; uLpMinA: { value: Vector3 }; uLpInvA: { value: Vector3 };
