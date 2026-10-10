@@ -79,7 +79,7 @@ body.portrait #teaser .credits { bottom: 120px; font-size: 13px; letter-spacing:
 /* E466, the alpha trailer (the marketing site's look: the Cell logo, violet + cyan on the abyss). Every frame says alpha:
    the opening card, the corner bug (rendered once, a still over the whole cut), the end card */
 :root { --violet: #a487ff; --abyss: #050a12; }
-#alpha { background: var(--abyss); }
+#alpha { background: radial-gradient(ellipse at 50% 46%, rgba(5, 10, 18, 0.5), rgba(5, 10, 18, 0.82) 80%); } /* over in-engine footage */
 #alpha .center { position: absolute; left: 0; right: 0; top: 330px; text-align: center; }
 #alpha .mark { width: 92px; height: 92px; }
 #alpha .kicker { margin-top: 22px; font-size: 22px; letter-spacing: 0.7em; margin-left: 0.7em; color: var(--cyan); }
@@ -193,18 +193,18 @@ window.pose = (card, t, o) => {
     $('#teaser .cta').style.transform = 'translateY(' + (1 - ease(ramp(t, 1.15, 1.7))) * 12 + 'px)';
     $('#teaser .credits').style.opacity = ease(ramp(t, 1.5, 2.1));
   } else if (card === 'alpha') {
-    // o: { dur } — an opaque card (the abyss): the mark, the words, then out over its last 0.45 s
-    const m = ease(ramp(t, 0.1, 0.8));
-    $('#alpha .mark').style.opacity = m;
-    $('#alpha .mark').style.transform = `scale(${1.1 - 0.1 * m})`;
-    $('#alpha .kicker').style.opacity = ease(ramp(t, 0.3, 0.9));
-    const b = ease(ramp(t, 0.45, 1.25));
-    $('#alpha .big').style.opacity = b;
-    $('#alpha .big').style.filter = `blur(${(1 - b) * 10}px)`;
-    $('#alpha .big').style.letterSpacing = `${0.12 + 0.1 * (1 - b) + 0.015 * ramp(t, 1.25, o.dur)}em`;
-    $('#alpha .rule').style.transform = `scaleX(${inOut(ramp(t, 0.8, 1.5))})`;
-    $('#alpha .sub').style.opacity = ease(ramp(t, 1.1, 1.7));
+    // o: { dur } — whole from the first frame (a share sheet's thumbnail is frame 0, Jake 2026-10-09), a slow drift
+    // open, then out over its last 0.45 s; the veil goes with the words, the footage under it stays
+    $('#alpha .mark').style.opacity = 1;
+    $('#alpha .mark').style.transform = `scale(${1 + 0.03 * ramp(t, 0, o.dur)})`;
+    $('#alpha .kicker').style.opacity = 1;
+    $('#alpha .big').style.opacity = 1;
+    $('#alpha .big').style.filter = 'none';
+    $('#alpha .big').style.letterSpacing = `${0.12 + 0.02 * ramp(t, 0, o.dur)}em`;
+    $('#alpha .rule').style.transform = 'scaleX(1)';
+    $('#alpha .sub').style.opacity = 1;
     $('#alpha .center').style.opacity = out;
+    $('#alpha').style.opacity = out;
   } else if (card === 'bug') {
     $('#bug .pill').style.opacity = 1;
   } else if (card === 'caption') {

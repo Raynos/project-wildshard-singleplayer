@@ -8,7 +8,7 @@
 
 /**
  * The score: take 304 (70 s, a beat 0.905 s = 66 bpm half-time, a bar 3.62 s). Trailer time t plays source time t + OFF.
- *   src 0–10.4   the drone              → the alpha card (t 0–3.77)
+ *   src 0–10.4   the drone              → the alpha card over Sky Reach's cloud sea (t 0–3.77)
  *   src 10.37    the first soft onset   → the cold open (Driftwood from the sea)
  *   src 14.90    the hit (0.80)         → t 8.30, the shards run
  *   src 37.49    the breath             → t 30.89, the build beat (the hit inside it, src 42.90, is t 36.30)
@@ -21,7 +21,7 @@ export function cut({ TAKE, SFX, BUILD, BUG }) {
 
   // [trailer start, shot, in-point in the shot (s), grade?, flash?] — each clip runs to the next row's start
   const rows = [
-    [0.00, 'black', 0],
+    [0.00, 'sr-aerial', 0.1], // under the alpha card: in-engine from frame 0 (a share sheet's thumbnail is frame 0)
     [beat(10.37), 'd-open', 0.0],
     [beat(14.90), 'd-combo', 0.9, null, 0.12],
     [beat(16.71), 'd-lookout', 1.0],

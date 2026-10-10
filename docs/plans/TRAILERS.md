@@ -93,7 +93,7 @@ Research before the build (2026-10-09, two research lanes): which open video mod
 their licences for a shipped asset, and whether they run on the M5 Max; and the community's best practice (Reddit, X)
 for grey-blockout previs into AI video, camera direction, per-frame restyle and the finish. Findings:
 [trailers/research-2026-10-09.md](trailers/research-2026-10-09.md) (lead: B = LTX-2.5 + the Layout-To-Render IC-LoRA;
-Qwen-Image-2.1 is non-commercial, so shipped frames need an Apache-2.0 image model).
+image models: Qwen-Image-2.1 and OpenAI Image 2.5, Jake's call, §5).
 
 **CT1 tests all three on the same shot** (the shard docking into the grid, ~6 s, one Blender grey blockout plus one
 in-game capture as sources) and shows Jake one labelled A / B / C video. Then we feel it out: the winner, or a mix per
@@ -123,3 +123,6 @@ A Steam page trailer (FINISH-LINE SC4 keeps the 45 s cut), the app-store preview
   then A image-to-video, B grey → video-to-video remaster, C per-frame image-to-image (never text-to-image) from the
   grey or an in-game capture. *"You have to test all these approaches and feel it out, vibe it out."*
 - Shards (default, not asked): the six playable ones; the Template stays out.
+- **Image models for the cinematic: Qwen-Image-2.1 and OpenAI Image 2.5** (Jake, 2026-10-09: *"Use qwen image it's a
+  trailer fuck off with non commercial"*, *"you can use OpenAI image 2.5 as well as qwen image 2.1"*). No licence caveat
+  on the trailer's image model.
