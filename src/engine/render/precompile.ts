@@ -85,7 +85,7 @@ export function registerExteriorLighting(scene: THREE.Scene, owner: Scope, root:
   owner.onDispose(() => { held.roots.delete(root); if (held.roots.size === 0) exteriorLighting.delete(scene); });
 }
 
-function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget, shadows: boolean): CompileJob[] {
+function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[]): CompileJob[] {
   const state = exteriorLighting.get(scene);
   if (state === undefined) return [];
   const target = new THREE.Scene();
@@ -96,7 +96,9 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget, shadows: 
     for (const child of object.children) visit(child);
   };
   visit(scene);
-  const jobs = [...sceneJobs(scene, rt).jobs, ...familyCompileJobs(scene, rt), ...(shadows ? shadowJobs(scene, rt) : [])];
+  const jobs = roots === undefined
+    ? [...sceneJobs(scene, rt).jobs, ...familyCompileJobs(scene, rt), ...(shadows ? shadowJobs(scene, rt) : [])]
+    : sceneJobs(scene, rt, 1, roots).jobs;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
   for (const job of jobs) if (job.target === scene) job.target = target;
   return jobs;
@@ -174,6 +176,16 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
     jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt });
   }
   return { jobs, materials: mats.size };
+}
+
+/** Prepare newly resident roots against current page lighting and its declared exterior state before exposure.
+ * Borrow original materials and object flags in the ordinary painted compile/link/upload slices. Live parents,
+ * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice. */
+export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
+  target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
+  const { jobs, materials } = sceneJobs(scene, target, 1, roots);
+  jobs.push(...exteriorJobs(scene, target, false, roots));
+  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current);
 }
 
 /** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { DirectionalLight, Group, Light, PointLight, Scene, PerspectiveCamera, BoxGeometry, Mesh, MeshDepthMaterial, MeshStandardMaterial, WebGLRenderer, DataTexture, Fog, type Object3D } from 'three';
-import { includeFutureLights, precompileLevel, registerExteriorLighting, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
+import { includeFutureLights, prepareSceneRoots, precompileLevel, registerExteriorLighting, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
 
 import { Scope } from '../src/engine/app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
@@ -146,4 +146,37 @@ it('prepares the actual exterior light and null-environment keys without changin
     await precompileLevel(game, undefined, { chunkCasters: false, owner: programsOwner });
     expect(seen).toHaveLength(interiorCount); expect(seen.every(row => row.environment === environment)).toBe(true);
   } finally { insideOwner.dispose(); parkedOwner.dispose(); programsOwner.dispose(); composer.dispose(); material.dispose(); geometry.dispose(); environment.dispose(); installScopeEnvironment(prior); }
+});
+
+it('prepares newly streamed hidden roots for both page and exterior lighting before exposure', async () => {
+  const prior = scopeEnvironment();
+  installScopeEnvironment({ targetKind: () => 'other', frame: render => { queueMicrotask(() => { render(0); }); return 1; }, cancelFrame: () => undefined });
+  const page = new Scene(), inside = new Group(), root = new Group(), camera = new PerspectiveCamera();
+  const environment = new DataTexture(), owner = new Scope('inside');
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), mesh = new Mesh(geometry, material);
+  mesh.visible = false; root.add(mesh); page.add(new DirectionalLight(), inside, root); inside.add(new PointLight());
+  page.environment = environment; page.fog = new Fog(0xabcdef, 1, 100);
+  registerExteriorLighting(page, owner, inside, null);
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Fixture renderer');
+  const seen: { environment: object | null; lights: string[] }[] = [];
+  const commands = { extensions: { has: () => false }, info: { programs: [] }, getRenderTarget: () => null,
+    setRenderTarget: () => undefined, initTexture: () => undefined,
+    compile: (standIn: Object3D, view: PerspectiveCamera, target: Scene): void => {
+      standIn.traverse(object => { if (object instanceof Mesh) expect(object.material).toBe(material); });
+      expect(target.fog).toBe(page.fog); expect(mesh.parent).toBe(root); expect(mesh.visible).toBe(false);
+      expect(page.environment).toBe(environment); expect(inside.visible).toBe(true);
+      seen.push({ environment: target.environment, lights: lightInputs(target, standIn, view) });
+    } };
+  for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
+  try {
+    await prepareSceneRoots(renderer, camera, page, null, [root], () => !owner.disposed);
+    expect(seen).toEqual([
+      { environment, lights: ['DirectionalLight:false', 'PointLight:false'] },
+      { environment: null, lights: ['DirectionalLight:false'] },
+    ]);
+    owner.dispose(); seen.length = 0;
+    await expect(prepareSceneRoots(renderer, camera, page, null, [root], () => !owner.disposed)).rejects.toThrow('Shader warm-up owner left');
+    expect(seen).toHaveLength(0);
+  } finally { owner.dispose(); material.dispose(); geometry.dispose(); environment.dispose(); installScopeEnvironment(prior); }
 });

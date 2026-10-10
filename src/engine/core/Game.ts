@@ -678,6 +678,15 @@ export class Game {
     if (composer !== null) await layer.prepare(this.renderer, this.camera, composer.inputBuffer);
   }
 
+  /** Prepare newly streamed roots before exposure on WebKit, using the allocated composer target.
+   * Early boot retains ordinary whole-world preparation; other browsers retain their existing path. */
+  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
+    const composer = this._composer;
+    if (composer === null || !navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
+    const { prepareSceneRoots } = await import('../render/precompile');
+    await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current);
+  }
+
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
    * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.

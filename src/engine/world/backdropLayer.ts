@@ -43,7 +43,7 @@ import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 import type { Renderer } from '../render/renderer';
-import { runPrecompile, sceneJobs } from '../render/precompile';
+import { prepareSceneRoots } from '../render/precompile';
 
 /**
  * the layered dome's render order: after the page's sky pieces (−20 … −10), before the grid road sky (−9); a backdrop
@@ -253,8 +253,7 @@ export class BackdropLayer {
     if (this.disposed || this.scope.disposed) throw new Error('Backdrop layer left before preparation');
     if (this.backdrop === null) throw new Error('Backdrop layer preparation requires attachment');
     if (!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
-    const { jobs, materials } = sceneJobs(this.host.scene, target, 1, this.domes);
-    await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, () => !this.disposed && !this.scope.disposed);
+    await prepareSceneRoots(renderer, camera, this.host.scene, target, this.domes, () => !this.disposed && !this.scope.disposed);
   }
 
   /**

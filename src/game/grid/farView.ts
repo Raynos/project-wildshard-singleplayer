@@ -101,23 +101,48 @@ export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: 
 export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime; readonly positionalMask?: boolean }
 /**
  * The rings' ports for level `far` (compose with the tile ports through SF18b's `levelPorts`): `load` fetches and parses
- * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look; `upload` only attaches it.
+ * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look. Optional `prepare` borrows
+ * the admitted view while hidden; `upload` exposes that same view after preparation, and `discard` retires it.
  */
-export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared> }): {
+export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared>; prepare?: (view: FarProxyView) => Promise<void> }): {
   fetch: (tile: { instance: string }, done: (result: FarPrepared | Error) => void) => void;
   upload: (tile: { instance: string }, data: FarPrepared) => FarProxyView;
   discard: (tile: { instance: string }, data: FarPrepared) => void;
 } {
+  const staged = new WeakMap<FarPrepared, FarProxyView>();
   return {
     fetch: (tile, done) => {
       const run = async (): Promise<void> => {
         let result: FarPrepared | Error;
-        try { result = await options.load(tile.instance); } catch (error) { result = error instanceof Error ? error : new Error(String(error)); }
+        try {
+          const data = await options.load(tile.instance);
+          if (options.prepare !== undefined) {
+            let view: FarProxyView | undefined;
+            try {
+              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask);
+              view.mesh.visible = false;
+              await options.prepare(view);
+              staged.set(data, view);
+            } catch (error) {
+              if (view === undefined) data.geometry.dispose(); else view.dispose();
+              throw error;
+            }
+          }
+          result = data;
+        } catch (error) { result = error instanceof Error ? error : new Error(String(error)); }
         done(result);
       };
       void run();
     },
-    upload: (tile, data) => installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask),
-    discard: (_tile, data) => { data.geometry.dispose(); },
+    upload: (tile, data) => {
+      const view = staged.get(data);
+      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask);
+      staged.delete(data); view.mesh.visible = true;
+      return view;
+    },
+    discard: (_tile, data) => {
+      const view = staged.get(data); staged.delete(data);
+      if (view === undefined) data.geometry.dispose(); else view.dispose();
+    },
   };
 }

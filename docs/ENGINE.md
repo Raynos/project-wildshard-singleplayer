@@ -2565,3 +2565,13 @@ lighting, fog or environment; omitted roots keep the whole-scene inventory.
 composer exists, using its actual input target. During early boot it leaves
 preparation to the ordinary shader / first-frame stages, preserving the
 attached sky's environment and ownership without reading `Game.composer` early.
+
+`prepareSceneRoots(renderer, camera, scene, target, roots, current)` uses the
+ordinary sliced compile/link/upload path for newly resident roots against both
+the current page and its declared exterior lighting. It borrows the real
+materials, leaves the live scene untouched, and fences work to the resident
+owner. `Game.warmSceneRoots(roots, current)` supplies the real composer target
+on WebKit; early boot and Chromium retain ordinary whole-world preparation.
+The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
+proxy during fetch. Its upload exposes the same mesh and material; cancellation
+or failure disposes the staged view with its existing ring lease.

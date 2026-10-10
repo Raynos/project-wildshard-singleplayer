@@ -113,6 +113,8 @@ export interface GridSessionHost {
   readonly frame?: GridFrameHost & { readonly onLate: (fn: (dt: number) => void) => void };
   /** the page's renderer: shardfile neighbours' ring tiles compile their materials on it (absent: neighbours stay far proxies) */
   readonly renderer?: Renderer;
+  /** Prepare an admitted far view while hidden, before its budgeted visible upload. */
+  readonly prepareFar?: (view: FarProxyView) => Promise<void>;
 }
 /** What each cell shows today, for the readout and the report. */
 export type GridCellShows = 'playing' | 'frozen' | 'far proxy' | 'loading';
@@ -372,6 +374,7 @@ export class GridSession {
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
     host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
     const far = farRingPorts({
+      ...(host.prepareFar === undefined ? {} : { prepare: host.prepareFar }),
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
         let loaded: Awaited<ReturnType<typeof loadFar>>;

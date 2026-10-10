@@ -39,3 +39,13 @@ Before refusal, the exact-source journal had six draw-time shader calls
 (four far-proxy, two sword); the previous ten sky / march calls were absent.
 This incomplete run is not an SF22 pass. Raw scratch evidence remains at
 `attempt-5d2-attached-sky-failed.json` beside the existing owner diagnostic.
+
+Streamed far proxies now prepare their actual material / object variants on
+WebKit before visible ring upload, against the current page and its declared
+exterior light / environment inventory. The same admitted geometry, material
+and mesh are exposed after preparation; no extra ring claim or duplicate view
+is created. Cancellation and preparation failures retire the hidden view.
+Chromium's existing path stays unchanged. The attached-sky inventory shares
+this bounded preparation primitive. Focused lifecycle and lighting fixtures
+cover the ordering, resource identity and owner fences. Matched route results
+remain open; this slice claims no new cadence pass.
