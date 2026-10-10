@@ -1,6 +1,6 @@
 /**
  * The Well's balustrade (E281; E346): the heavy stone balustrade along Lantern Square's and its street's edge over the
- * Yamen Well — a plinth, chunky posts under square cap slabs, the panel wall, a top rail (../world/squareParts.ts
+ * Yamen Well — a plinth, chunky posts under square cap slabs, the panel wall, a top rail (../generators/squareParts.ts
  * `balustrade`, its two runs `WELL_RUNS`). It is placed once, drawn into the square cluster's kit (one merged mesh, the
  * neon spill baked in), so it costs no draw of its own; the world records the copy where it stands and build.ts
  * registers it there (`place` with `drawnInto`). Its carved panel faces, its lotus-bud finials and its guardian lions
@@ -16,10 +16,9 @@
 import { defineModel } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { PLAZA, WELL, Y0 } from '../layout';
-import { Kit } from '../world/kit';
-import { WELL_BALUSTRADE_AT, WELL_RUNS, balustrade } from '../world/squareParts';
+import { WELL_BALUSTRADE_AT } from '../world/specimenDims';
 import { RIM } from '../world/wellBounds';
-import { ndLook, need } from '../world/modelLook';
+import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/wellBalustrade.ts';
 
@@ -49,13 +48,6 @@ export const WELL_BALUSTRADE_COLLIDERS: readonly ColliderDesc[] = [
 
 export const wellBalustrade = defineModel({
   id: 'nine-dragon-stack/well-balustrade', name: 'The Well\'s balustrade', category: 'buildings', pipeline: 'code', file: FILE, defaults: {}, surface: 'stone',
-  build: (ctx) => [{
-    geometry: ctx.once('nds:well-balustrade', () => {
-      const k = new Kit();
-      for (const r of WELL_RUNS) balustrade(k, r.at - O.x, r.a0 - O.z, r.a1 - O.z, 0, false, false, undefined, undefined, false);
-      return k.build();
-    }),
-    material: need(ndLook(ctx).mat, 'the Jiehua program'),
-  }],
+  build: (ctx) => withSpecimens(ctx, 'nine-dragon-stack/well-balustrade', () => [{ geometry: specimen(ctx, 'well-balustrade'), material: need(ndLook(ctx).mat, 'the Jiehua program') }]),
   colliders: () => WELL_BALUSTRADE_COLLIDERS,
 });

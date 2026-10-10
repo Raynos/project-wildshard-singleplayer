@@ -5,7 +5,9 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
-import { BufferAttribute, type BufferGeometry, Color, Matrix4, Vector3 } from 'three';
+// oxlint-disable-next-line import/no-nodejs-modules -- The bake-vs-live cases run on the platform the bake was recorded on (Linux libm differs in the last ulp).
+import { platform } from 'node:process';
+import { Box3, BufferAttribute, type BufferGeometry, Color, Matrix4, Vector3 } from 'three';
 import { SignRecorder, bakeNineLayout, runLayout } from '../../../src/shards/nine-dragon-stack/generators/layout';
 import { Ctx } from '../../../src/shards/nine-dragon-stack/world/ctx';
 import { buildEntryDecks } from '../../../src/shards/nine-dragon-stack/world/entries';
@@ -14,7 +16,9 @@ import { merge } from '../../../src/shards/nine-dragon-stack/world/hero/kitx';
 import { LAYOUT_STAMP, LayoutBake, restoreLayout } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
 import { crossingColliders } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { peekQueued } from '../../../src/shards/nine-dragon-stack/world/props3d';
-import { banyanOut } from '../../../src/shards/nine-dragon-stack/world/banyan';
+import { banyanOut } from '../../../src/shards/nine-dragon-stack/world/banyanPlan';
+import { PIECES } from '../../../src/shards/nine-dragon-stack/generators/facadePieces';
+import { BAKED, type PieceId } from '../../../src/shards/nine-dragon-stack/world/facade/pieceIds';
 
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const shipped = (): Uint8Array => new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/nine-dragon/baked/layout.bin', import.meta.url))));
@@ -67,13 +71,13 @@ function records(ctx: Ctx, calls: unknown): unknown {
 }
 
 describe('Nine Dragon bakes its layout offline (G285)', () => {
-  it('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-nine-layout.mjs)', () => {
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-nine-layout.mjs)', () => {
     const bin = bakeNineLayout(), bytes = shipped();
     expect({ bin: sha(bin), bytes: bin.length }).toEqual({ bin: LAYOUT_STAMP.bin, bytes: LAYOUT_STAMP.bytes });
     expect(sha(bytes)).toBe(LAYOUT_STAMP.bin);
   });
 
-  it('restores the context the live builders fill: every kit, record, sign call and queue, and what the page adds after', () => {
+  it.runIf(platform === 'darwin')('restores the context the live builders fill: every kit, record, sign call and queue, and what the page adds after', () => {
     const liveSigns = new SignRecorder();
     const live = runLayout(liveSigns);
     const liveRecords = records(live, liveSigns.calls);
@@ -83,5 +87,22 @@ describe('Nine Dragon bakes its layout offline (G285)', () => {
     restoreLayout(new LayoutBake(shipped()), baked);
     expect(records(baked, bakedSigns.calls)).toEqual(liveRecords);
     expect(afterLayout(baked)).toEqual(liveKits);
+  }, 60_000);
+
+  it.runIf(platform === 'darwin')('merges the facade\'s small pieces into the shell at bake time exactly as the page\'s batch merged them at load', () => {
+    // the page before G285: the layout's shell, then world/facade/batch.ts appending every BAKED copy in placement order
+    const page = runLayout(new SignRecorder(), false), cache = new Map<PieceId, Builder>(), own: [string, number[]][] = [];
+    for (const p of page.fd.pieces) {
+      if (!BAKED.has(p.piece)) continue;
+      let b = cache.get(p.piece);
+      if (b === undefined) { b = PIECES[p.piece](); cache.set(p.piece, b); }
+      page.fd.shell.append(b, p.m, p.c);
+    }
+    for (const [id, b] of cache) { const box = b.bounds(new Box3()); own.push([id, [...box.min, ...box.max]]); }
+    const baked = new Ctx(new SignRecorder());
+    restoreLayout(new LayoutBake(shipped()), baked);
+    expect(fingerprint(baked.fd.shell.build())).toEqual(fingerprint(page.fd.shell.build()));
+    expect(baked.fd.shell.triangleCount).toBe(page.fd.shell.triangleCount);
+    expect([...baked.fd.merged].map(([id, b]) => [id, [...b.min, ...b.max]])).toEqual(own);
   }, 60_000);
 });

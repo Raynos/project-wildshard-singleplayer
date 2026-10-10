@@ -16,19 +16,20 @@
 // The terraces' kit is split per 32 m cell with a draw distance (ctx.cell / ctx.far), the paifang too.
 import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
 import type { Ctx } from '../world/ctx';
-import { buildGate } from '../world/gate';
+import { buildGate } from './gate';
 import { dressWall, spanStreet } from './facadeGrammar';
-import type { PieceId } from '../world/facade/pieces';
+import type { PieceId } from '../world/facade/pieceIds';
 import { KitX, merge } from '../world/hero/kitx';
 import { K, Kit, type Look } from '../world/kit';
-import { dragonHook } from '../world/props';
-import { hipRoof } from '../world/squareParts';
+import { dragonHook } from './props';
+import { hipRoof } from '../world/hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
 import { SURF } from '../look/paint';
 import type { SignPlace, SignSink } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
-import { ASHLAR, COPING, FLOWER_COLS, ICO0, PLANTER, landingPlanter, leafBush, leafLook, leafQuad, tint } from '../world/landingPlanter';
+import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
+import { PLANTER } from '../world/specimenDims';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
 

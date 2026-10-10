@@ -3,11 +3,13 @@
 // context's `once` (src/engine/models/model.ts). One context per built fragment: build.ts makes it first, fills the look as
 // each phase has made its part (the materials are created at the same points as before, so their order — which three's
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
-import type { BufferGeometry, Material, ShaderMaterial } from 'three';
-import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
+import { type BufferGeometry, Group, type Material, Mesh, type ShaderMaterial } from 'three';
+import { modelContext, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { type SignAtlas, SignBuilder } from '../look/signs';
+import type { SignAtlas } from '../look/signs';
 import type { NeonSigns } from '../look/neonsigns';
+import { type SpecimenBake, loadSpecimens } from './specimens';
 
 export interface NdLook {
   /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
@@ -31,24 +33,17 @@ export interface NdLook {
   canopy: { readonly core: Material; readonly cards: Material; readonly depth: Material } | null;
   /** the neon calligraphy (look/neonsigns.ts: its glyph atlas and its board / tube programs), the neon sign's specimen */
   calligraphy: NeonSigns | null;
-}
-
-/**
- * The signs a specimen's builder would hang (a plaque, couplets, menu strips, eave neon): counted, not drawn — signs are
- * their own models, drawn by the fragment's sign builder. A model built alone in its own space hands its builder one.
- */
-export class NoSigns extends SignBuilder {
-  skipped = 0;
-  override place(): { w: number; h: number } { this.skipped++; return { w: 0, h: 0 }; }
-  override tube(): void { this.skipped++; }
-  override light(): void { this.skipped++; }
+  /** G285: the code-built models' baked geometry (world/specimens.ts): what the page builds at load, loaded with the layout */
+  specimens: SpecimenBake | null;
+  /** …and what only the Explorer's specimens draw, fetched the first time one asks (`withSpecimens`) */
+  explorer: Promise<SpecimenBake> | SpecimenBake | null;
 }
 
 const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
 export function ndModelContext(renderer: Renderer | null): { ctx: ModelContext; look: NdLook } {
-  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null };
+  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null, specimens: null, explorer: null };
   const ctx = modelContext(null, renderer);
   ctx.once(KEY, () => look);
   return { ctx, look };
@@ -63,4 +58,40 @@ export function ndLook(ctx: ModelContext): NdLook {
 export function need<T>(v: T | null | undefined, what: string): T {
   if (v === null || v === undefined) throw new Error(`Nine Dragon models: ${what} is not built yet (world/build.ts fills the look before placing)`);
   return v;
+}
+
+/** a code-built model's geometry from the specimens bakes (world/specimens.ts), read once per model context under `key`
+ *  (the page's bake hands its bytes over: the context keeps the geometry) */
+export function specimen(ctx: ModelContext, key: string): BufferGeometry {
+  return ctx.once(`nds:${key}`, () => {
+    const look = ndLook(ctx), boot = need(look.specimens, 'the specimens bake'), explorer = look.explorer;
+    if (!boot.has(key) && explorer !== null && !(explorer instanceof Promise)) return explorer.geometry(key);
+    return boot.take(key);
+  });
+}
+
+/** a fresh copy of a baked model geometry (a model whose every build drew its own, as the movers' do) */
+export function bakedSpecimen(ctx: ModelContext, key: string): BufferGeometry {
+  return need(ndLook(ctx).specimens, 'the specimens bake').geometry(key);
+}
+
+/**
+ * An Explorer specimen whose geometry is in the Explorer's bake: its parts once the bake is in; until then the engine's
+ * loading box, filled when the bake lands (`loadingSpecimen`: the Explorer re-frames the card on `ws:model-ready`).
+ */
+export function withSpecimens(ctx: ModelContext, id: string, parts: () => readonly ModelPart[]): ModelBuild {
+  const look = ndLook(ctx);
+  if (look.explorer !== null && !(look.explorer instanceof Promise)) return parts();
+  const pending = look.explorer ?? loadSpecimens('explorer').catch((e: unknown) => { look.explorer = null; throw e; });
+  look.explorer = pending;
+  return loadingSpecimen(id, [1, 1, 1], async () => {
+    look.explorer = await pending;
+    const group = new Group();
+    for (const part of parts()) {
+      const mesh = new Mesh(part.geometry, part.material);
+      if (part.renderOrder !== undefined) mesh.renderOrder = part.renderOrder;
+      group.add(mesh);
+    }
+    return group;
+  });
 }

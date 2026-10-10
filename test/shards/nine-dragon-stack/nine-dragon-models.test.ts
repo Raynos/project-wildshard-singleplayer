@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { defineModel, definedModels, modelContext } from '../../../src/engine/models/model';
 import { type HandedBatch, place } from '../../../src/engine/models/place';
-import { BAKED, DRAWN_AS, PIECES, type PieceId } from '../../../src/shards/nine-dragon-stack/world/facade/pieces';
+import { BAKED, DRAWN_AS, PIECE_IDS } from '../../../src/shards/nine-dragon-stack/world/facade/pieceIds';
 import { FACADE_BAKED, FACADE_MODELS } from '../../../src/shards/nine-dragon-stack/models/facade';
 import { balustradePanel } from '../../../src/shards/nine-dragon-stack/models/balustradePanel';
 import { mahjongSitter, umbrellaWalker } from '../../../src/shards/nine-dragon-stack/models/crowd';
@@ -27,7 +27,7 @@ import { GUARD_Z0, PARAPET, WELL_BALUSTRADE_COLLIDERS, wellBalustrade } from '..
 import { lampPostModel, lotusPostModel } from '../../../src/shards/nine-dragon-stack/models/bridgePosts';
 import { GATE, PLAZA, WELL, Y0 } from '../../../src/shards/nine-dragon-stack/layout';
 import { STAIR_GATE } from '../../../src/shards/nine-dragon-stack/world/stairPlan';
-import { WELL_BALUSTRADE_AT } from '../../../src/shards/nine-dragon-stack/world/squareParts';
+import { WELL_BALUSTRADE_AT } from '../../../src/shards/nine-dragon-stack/world/specimenDims';
 import { RIM } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { placeCollider, poseOf } from '../../../src/engine/models/colliders';
 import type { ColliderDesc } from '../../../src/engine/world/registry';
@@ -94,7 +94,7 @@ describe('Nine Dragon models (E306 M4)', () => {
   });
 
   it('every facade piece the grammar places is drawn as a model, or baked into the shell as one', () => {
-    for (const id of Object.keys(PIECES) as PieceId[]) {
+    for (const id of PIECE_IDS) {
       if (BAKED.has(id)) { expect(FACADE_BAKED[id], id).toBeDefined(); continue; }
       // (an alias draws as the piece it names: batch.ts)
       const drawn = DRAWN_AS[id]?.as ?? id;

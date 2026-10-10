@@ -2,9 +2,10 @@ import type { Rng } from '@wildshard/engine/core/rng';
 // Small props, all ruled: people (brush-dark coats), mahjong tables, stools, scooters, the dragon hooks (the only gold in
 // reach, reserved for the grapple), laundry, pipes; plus the instanced lantern and air-con kit pieces.
 import { Box3, Vector3 } from 'three';
-import type { Ctx } from './ctx';
-import { E, K, Kit, type Look } from './kit';
+import type { Ctx } from '../world/ctx';
+import { E, K, Kit, type Look } from '../world/kit';
 import { METAL } from '../util';
+import type { LaundryKind } from '../world/specimenDims';
 
 const rot = (ox: number, oz: number, r: number): [number, number] => [ox * Math.cos(r) + oz * Math.sin(r), -ox * Math.sin(r) + oz * Math.cos(r)];
 
@@ -175,9 +176,6 @@ export function dragonHook(k: Kit, ctx: HookSink, base: Vector3, out: Vector3, r
 }
 
 const CLOTHES = [0xeceae2, 0x6f9ccf, 0xc23b22, 0xd9a441, 0xe8dfc9, 0x2e5fa3, 0x7fbf9a, 0xeceae2, 0x8a6a3a] as const;
-/** which laundry the laundry line model's copy is (../models/laundry.ts): strung between gallery posts (`laundry`), along
- *  a lower-Well front (well-lower-life.ts `laundryLine`), a pole out from a wall (`laundryPole`) */
-export type LaundryKind = 'gallery' | 'lower' | 'pole';
 
 /**
  * Record a laundry line drawn into `k` from its vertex `v0` on, strung from `a` to `b` — a copy of the laundry line model

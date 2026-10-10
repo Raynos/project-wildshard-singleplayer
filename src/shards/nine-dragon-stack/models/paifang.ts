@@ -1,7 +1,7 @@
 /**
  * The paifang (牌坊; dome B, E169; E281; E306 / E315 M4): the memorial gate — lacquer posts on Sumeru bases, drum
  * stones, painted beams, dense dougong, thick tiled roofs with a rafter soffit and ridge beasts, the gold-framed 九龍
- * plaque (../world/gate.ts `buildGate`). Four stand in the fragment, each drawn into its region's kit (the square's, the
+ * plaque (../generators/gate.ts `buildGate`). Four stand in the fragment, each drawn into its region's kit (the square's, the
  * stair's C2 terraces, the Well's two gate bridges), so they cost no draw of their own; the world records each where it
  * stands (models/inKit.ts's way, `drawnInto`). Its variants are three: the square's cinnabar and gold gate with bare
  * lacquer posts (E281, 14 m to the ridge beasts), the stair's lower one, and the gate bridges' in the hero lab's mineral
@@ -11,12 +11,10 @@
  * Every copy's posts collide as the model's own (E346): the square's and the gate bridges' lacquered posts, the stair's
  * post bases with their drum stones.
  */
-import { defineModel, type ModelContext, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
+import { defineModel, type ModelBuild, type ModelContext, type ModelVariant } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { type GateSpec, buildGate } from '../world/gate';
-import { Kit } from '../world/kit';
-import { KitX, merge } from '../world/hero/kitx';
-import { NoSigns, ndLook, need } from '../world/modelLook';
+import type { GateSpec } from '../world/specimenDims';
+import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/paifang.ts';
 
@@ -30,14 +28,9 @@ export const PAIFANG: Readonly<Record<'square' | 'stair' | 'well', Omit<GateSpec
 
 export interface PaifangParams { readonly kind: keyof typeof PAIFANG }
 
-function gate(ctx: ModelContext, kind: PaifangParams['kind']): readonly ModelPart[] {
-  const look = ndLook(ctx);
-  const geometry = ctx.once(`nds:paifang:${kind}`, () => {
-    const k = new Kit(), x = new KitX();
-    buildGate(k, x, new NoSigns(need(look.neon, 'the sign atlas').atlas), () => undefined, { x: 0, y: 0, z: 0, ...PAIFANG[kind] });
-    return merge([k.build(), x.build()]);
-  });
-  return [{ geometry, material: need(look.mat, 'the Jiehua program') }];
+/** a gate in its own space (G285: baked, ../generators/specimens.ts, as buildGate draws PAIFANG[kind] at the origin) */
+function gate(ctx: ModelContext, kind: PaifangParams['kind']): ModelBuild {
+  return withSpecimens(ctx, 'nine-dragon-stack/paifang', () => [{ geometry: specimen(ctx, `paifang:${kind}`), material: need(ndLook(ctx).mat, 'the Jiehua program') }]);
 }
 
 const variant = (kind: PaifangParams['kind'], label: string): ModelVariant<PaifangParams> => ({ id: kind, label, params: { kind } });

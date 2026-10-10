@@ -53,6 +53,6 @@ export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; cul
     if (name === 'balustrade-panel') out.square.push(placed); else market.push(placed);
   }
   // the square's night market, one place: its booths, parasol tables and dining pavilions (E306 M7's sets explorer)
-  if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/world/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });
+  if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });
   return out;
 }

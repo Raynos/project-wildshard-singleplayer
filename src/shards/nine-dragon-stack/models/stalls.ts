@@ -1,8 +1,8 @@
 /**
  * Lantern Square's two food stalls (大牌檔; dome B, E169; E306 / E315 second pass): the noodle stall at the banyan's foot
  * and the hawker stall at the spawn's right. Each is drawn into the square cluster's kit ('paifang': one merged mesh,
- * the neon spill baked in), so it costs no draw of its own; its builder (../world/stalls.ts) records where it stands —
- * its footprint's centre — and build.ts registers it there (`place` with `drawnInto`, ../world/inKit.ts). Built here in
+ * the neon spill baked in), so it costs no draw of its own; its builder (../generators/stalls.ts) records where it stands —
+ * its footprint's centre — and build.ts registers it there (`place` with `drawnInto`, ../world/inKit.ts). Built (baked) in
  * its own space (the footprint centred on the origin, the counter facing +z) for the Model Explorer:
  *  - the noodle stall: a green steel frame under an oxblood canvas roof, the striped scalloped awning, the lit back wall
  *    with its menu strips and jars, three stockpots and a wok on a glowing burner, the counter crowded with bowls, roast
@@ -13,27 +13,16 @@
  * paper-lantern and crowd copies placed beside them. Each collides as a box of its footprint.
  */
 import { HAWKER, STALL } from '../layout';
-import { Ctx } from '../world/ctx';
-import { merge } from '../world/hero/kitx';
-import { NoSigns, ndLook, need } from '../world/modelLook';
-import { type StallRect, centred, hawkerStall, noodleStall } from '../world/stalls';
-import { Rng } from '@wildshard/engine/core/rng';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
+import { type StallRect, centred } from '../world/specimenDims';
+import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 const FILE = 'src/shards/nine-dragon-stack/models/stalls.ts';
 
-/** a stall built alone at the origin (its own throwaway build context: the signs, lanterns and sitters go nowhere) */
-function stall(ctx: ModelContext, key: string, draw: (c: Ctx) => void): readonly ModelPart[] {
-  const look = ndLook(ctx);
-  const geometry = ctx.once(`nds:stall:${key}`, () => {
-    const c = new Ctx(new NoSigns(need(look.neon, 'the sign atlas').atlas));
-    draw(c);
-    const k = c.kits.get('paifang'), x = c.kitxs.get('paifang');
-    if (k === undefined || x === undefined) throw new Error(`nine-dragon: the ${key} stall drew nothing`);
-    return merge([k.build(), x.build()]);
-  });
-  return [{ geometry, material: need(look.mat, 'the Jiehua program') }];
+/** a stall built alone at the origin (G285: baked, ../generators/specimens.ts — its signs, lanterns and sitters went nowhere) */
+function stall(ctx: ModelContext, key: string): ModelBuild {
+  return withSpecimens(ctx, `nine-dragon-stack/${key}-stall`, () => [{ geometry: specimen(ctx, `stall:${key}`), material: need(ndLook(ctx).mat, 'the Jiehua program') }]);
 }
 
 /** a box from `y` 0 to `h` over a footprint in own space (x0 … x1, z0 … z1) */
@@ -45,7 +34,7 @@ const NOODLE = centred(STALL), HAWK = centred(HAWKER);
 
 export const noodleStallModel = defineModel({
   id: 'nine-dragon-stack/noodle-stall', name: 'Noodle stall (大牌檔)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => stall(ctx, 'noodle', (c) => { noodleStall(c, new Rng(301), NOODLE, 0); }),
+  build: (ctx) => stall(ctx, 'noodle'),
   specimenYaw: Math.PI, // (the Explorer's camera looks down +z: turned, its counter faces it)
   // the frame, the counter and the stools in front: 3.2 m up, 0.6 m past the counter
   colliders: () => [footprint(NOODLE, 3.2, 0.6)],
@@ -53,7 +42,7 @@ export const noodleStallModel = defineModel({
 
 export const hawkerStallModel = defineModel({
   id: 'nine-dragon-stack/hawker-stall', name: 'Hawker stall', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => stall(ctx, 'hawker', (c) => { hawkerStall(c, new Rng(302), HAWK, 0); }),
+  build: (ctx) => stall(ctx, 'hawker'),
   specimenYaw: Math.PI,
   colliders: () => [footprint(HAWK, 2.4)],
 });

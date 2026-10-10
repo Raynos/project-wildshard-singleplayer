@@ -8,10 +8,9 @@ import { type InstancedCuller, type Placed, place } from '@wildshard/engine/mode
 // E271/E272: facade multi-draw is prohibited on every platform/shard, not just phones.
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
 import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, type Object3D, PlaneGeometry, type ShaderMaterial } from 'three';
-import type { Builder } from './geo';
 import type { Dressing } from './dressing';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
-import { BAKED, DRAWN_AS, PIECES, SMALL, type PieceId } from './pieces';
+import { BAKED, DRAWN_AS, SMALL, type PieceId } from './pieceIds';
 import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';
 import type { NdLook } from '../modelLook';
 import { triCount } from '../lod';
@@ -54,16 +53,12 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
   models.look.facade = { mat, small: matSmall };
   // the kit: one instanced draw per drawn geometry; the baked pieces go into the shell first
   const byPiece = new Map<PieceId, Copy[]>();
-  /** the baked pieces' builders (built once a build, dropped with it) and copies, per piece (models/facade.ts
-   *  FACADE_BAKED: registered on the shell below) */
-  const bakeCache = new Map<PieceId, Builder>();
+  /** the copies of the pieces merged into the shell, per piece (G285: the layout bake merged them,
+   *  ../../generators/facadePieces.ts `mergeBakedPieces`; models/facade.ts FACADE_BAKED: registered on the shell below) */
   const baked = new Map<PieceId, Copy[]>();
   const tc = new Color();
   for (const p of d.pieces) {
     if (BAKED.has(p.piece)) {
-      let b = bakeCache.get(p.piece);
-      if (b === undefined) { b = PIECES[p.piece](); bakeCache.set(p.piece, b); }
-      d.shell.append(b, p.m, p.c);
       let l = baked.get(p.piece);
       if (l === undefined) { l = []; baked.set(p.piece, l); }
       l.push(p);
@@ -88,9 +83,9 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     // the pieces baked into it are models drawn there (their copies' boxes: each piece's own bounds at its placement)
     const box = new Box3();
     for (const [id, list] of baked) {
-      const model = FACADE_BAKED[id], b = bakeCache.get(id);
-      if (model === undefined || b === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
-      const own = b.bounds(new Box3()), boxes = new Float32Array(list.length * 6);
+      const model = FACADE_BAKED[id], own = d.merged.get(id);
+      if (model === undefined || own === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
+      const boxes = new Float32Array(list.length * 6);
       const placements: Placement<FacadeParams>[] = list.map((p, i) => {
         box.copy(own).applyMatrix4(p.m);
         boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], i * 6);
@@ -99,9 +94,6 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
       place(model, placements, { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes }, piece: { id: `nds-facade-${id}`, name: model.name } });
     }
   }
-  // (the baked pieces' builders are done: nothing keeps them past the build)
-  for (const b of bakeCache.values()) b.release();
-  bakeCache.clear();
   // the pieces: one `place` each (a task apart when a piece took long: the phone's ~30 ms tasks)
   let lastYield = performance.now();
   for (const [id, list] of byPiece) {

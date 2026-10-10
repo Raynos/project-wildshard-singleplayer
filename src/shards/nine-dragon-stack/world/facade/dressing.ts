@@ -1,9 +1,9 @@
 // The facade grammar's output (../../generators/facadeGrammar.ts `dressTower` / `dressWall` / `spanStreet` fill it at
 // layout time): the instanced pieces, the interior-mapped windows, the sign slots and the merged shell. The page reads it
 // back from the layout bake (../layoutBake.ts) and draws it (./batch.ts), so it stays with the runtime.
-import type { Color, Matrix4, Vector3, Vector4 } from 'three';
+import type { Box3, Color, Matrix4, Vector3, Vector4 } from 'three';
 import { Builder } from './geo';
-import type { PieceId } from './pieces';
+import type { PieceId } from './pieceIds';
 
 export interface Placement { piece: PieceId; m: Matrix4; c: Color }
 export interface WindowInst { m: Matrix4; win: Vector4; wall: Color; light: Color }
@@ -27,4 +27,7 @@ export class Dressing {
   /** merged opaque geometry: shells, galleries, parapets, cables, antennas (one draw) */
   shell = new Builder();
   towers = 0;
+  /** G285: each piece merged into the shell (BAKED) and its own bounds, in the order the layout merged them (batch.ts
+   *  registers its copies on the shell with them; ../../generators/facadePieces.ts `mergeBakedPieces`) */
+  readonly merged = new Map<PieceId, Box3>();
 }

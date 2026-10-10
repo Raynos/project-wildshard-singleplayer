@@ -3,8 +3,8 @@
 // pipes, roll shutters. Each is built once at the origin (local +z = out of the wall, y up) in the same Jiehua program,
 // then drawn as one InstancedMesh per piece and region (ctx.put).
 import { IcosahedronGeometry, Vector3 } from 'three';
-import type { Piece } from './ctx';
-import { E, K, Kit, type Look } from './kit';
+import type { Piece } from '../world/ctx';
+import { E, K, Kit, type Look } from '../world/kit';
 
 export interface PieceKits { opaque: Kit | null; alpha: Kit | null }
 

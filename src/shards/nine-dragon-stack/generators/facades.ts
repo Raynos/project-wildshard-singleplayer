@@ -5,7 +5,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { Color, Matrix4, Vector3 } from 'three';
 import type { Ctx } from '../world/ctx';
 import { E, K, type Look } from '../world/kit';
-import { hipRoof } from '../world/squareParts';
+import { hipRoof } from '../world/hipRoof';
 import { Y0 } from '../layout';
 import { SIGN_WORDS } from '../world/words';
 import { NEON, WALL, chars } from '../util';

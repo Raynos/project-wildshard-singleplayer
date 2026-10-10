@@ -5,15 +5,16 @@
 // stockpots and a wok on a glowing burner, a lit back wall of menu strips and shelves of jars, bare bulbs and lanterns,
 // cooks behind the counter, customers on stools and at two folding tables in front, gas bottles and crates at the side.
 import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
-import type { Ctx } from './ctx';
-import { E, K, Kit, type Look } from './kit';
+import type { Ctx } from '../world/ctx';
+import { E, K, Kit, type Look } from '../world/kit';
 import { HAWKER, STALL, Y0 } from '../layout';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { SURF } from '../look/paint';
-import { person } from './hero/figures';
-import { KitX, curve, merge } from './hero/kitx';
+import { person } from './heroFigures';
+import { KitX, curve, merge } from '../world/hero/kitx';
 import { curvedRoof } from './gate';
-import { placeSet } from './props3d';
+import { placeSet } from '../world/props3d';
+import { BOOTH, PAV, type StallRect } from '../world/specimenDims';
 
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 const STEEL: Look = { wash: 0x2c463a, line: 1, accent: true };
@@ -44,15 +45,6 @@ function quad2(k: Kit, a: Vector3, b: Vector3, c: Vector3, d: Vector3, w: number
   k.quad4(a, b, c, d, w, h, look, 0, 0, edges);
   k.quad4(b, a, d, c, w, h, look, 0, 0, edges);
 }
-
-/** a stall's footprint (x0 … x1 along its front, z0 its back, z1 its front) */
-export interface StallRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
-
-/** a stall's footprint about the origin (the stall models' own space, ../models/stalls.ts) */
-export const centred = (r: StallRect): StallRect => {
-  const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2;
-  return { x0: r.x0 - cx, x1: r.x1 - cx, z0: r.z0 - cz, z1: r.z1 - cz };
-};
 
 /** where a stall drawn into the square's kit stands (its footprint's centre): the stall models' placement */
 function standsAt(ctx: Ctx, model: string, r: StallRect, y: number, k: Kit, x: KitX, v0: number, w0: number): void {
@@ -370,8 +362,6 @@ function mid(a: number, b: number): number { return (a + b) / 2; }
 // a row of booths costs one draw and one copy of the geometry, not a kit's worth each (E264's memory caps). Instanced
 // sets miss the kits' neon-spill bake, so each carries its own lamp's warm light in aSpill (`warmSpill`).
 
-/** a booth's footprint: `w` along its counter, `d` deep behind its front */
-export const BOOTH = { w: 2.6, d: 1.7 } as const;
 /** the booths' front centres (x, z): their fronts face the square (west), their backs 1.7 m east, toward the shops */
 export const BOOTHS: readonly (readonly [number, number])[] = [[19.8, -9.8], [19.8, -6.6], [19.8, -3.4], [19.8, 12.4], [19.8, 15.6]];
 /** the parasol tables (x, z, quarter turns) */
@@ -379,10 +369,6 @@ export const PARASOLS: readonly (readonly [number, number, number])[] = [[17.5, 
 
 /** E281 round 2: the dining pavilions (x, z, yaw): a table of four under a plum canopy on four posts, in the south half */
 export const PAVILIONS: readonly (readonly [number, number, number])[] = [[7.6, 15.6, 0.2], [14.6, 10.2, -0.3], [4.1, 12.9, 0.5]];
-/** a dining pavilion's size: half its span between posts, its height to the eave (the dining pavilion model collides
- *  with its table and posts, ../models/market.ts) */
-export const PAV = { half: 1.3, h: 2.4 } as const;
-
 /** a lamp's warm light baked into a set's aSpill (the instanced sets miss bakeSpill): falls off over `r` m from `at` */
 function warmSpill(g: BufferGeometry, at: Vector3, color: Color, r: number, power: number, below = Number.POSITIVE_INFINITY): void {
   const pos = g.getAttribute('position'), sp = g.getAttribute('aSpill');

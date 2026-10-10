@@ -6,18 +6,19 @@
  * test/shards/nine-dragon-stack/layout-bake.test.ts re-runs it (the stale gate) and checks the restore against the
  * live builders.
  */
-import { BufferAttribute, type BufferGeometry, type Color, Float16BufferAttribute, type Matrix4, type Vector3 } from 'three';
+import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
 import { Ctx } from '../world/ctx';
 import { Kit } from '../world/kit';
 import { buildSquare } from './square';
 import { buildTowers } from './towers';
 import { buildWell } from './well';
+import { mergeBakedPieces } from './facadePieces';
 import { peekQueued, restoreQueued } from '../world/props3d';
 import { crossingColliders, wellSheets } from '../world/wellBounds';
-import { banyanOut } from '../world/banyan';
+import { banyanOut } from '../world/banyanPlan';
 import { type SignPlace, type SignSink, signBoard, signSize } from '../look/signs';
 import { NeonSigns } from '../look/neonsigns';
-import { BAKED_BYTES, type BakedType, pad4 } from '../world/bakedGeometry';
+import { geometryWriter } from './bakeWrite';
 import type { Placement } from '@wildshard/engine/models/model';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from '../world/layoutBake';
 import * as v from 'valibot';
@@ -44,25 +45,17 @@ export class SignRecorder implements SignSink {
   }
 }
 
-/** the layout step as build.ts ran it live: the square, the towers, the Well, into a fresh context */
-export function runLayout(signs: SignSink): Ctx {
+/** the layout step as build.ts ran it live: the square, the towers, the Well, into a fresh context; then the facade's
+ *  small pieces merged into the shell (`merge` false: left for the caller, as the page's batch did before G285 moved it) */
+export function runLayout(signs: SignSink, merge = true): Ctx {
   // (the lion and set queues fill across builds until the page's square props take them: start empty, as a page does)
   restoreQueued([], []);
   const ctx = new Ctx(signs);
   buildSquare(ctx);
   buildTowers(ctx);
   buildWell(ctx);
+  if (merge) mergeBakedPieces(ctx.fd);
   return ctx;
-}
-
-function bakedType(attr: BufferAttribute): BakedType {
-  if (attr instanceof Float16BufferAttribute) return 'f16';
-  const a = attr.array;
-  if (a instanceof Float32Array) return 'f32';
-  if (a instanceof Uint16Array) return 'u16';
-  if (a instanceof Int8Array) return 'i8';
-  if (a instanceof Uint8Array) return 'u8';
-  throw new Error('bake-nine-layout: an attribute type the bake does not store');
 }
 
 /** JSON keeps every double but -0 and the non-finite; those go as strings (world/layoutBake.ts `layoutReviver`) */
@@ -91,28 +84,8 @@ function bakedAt(model: string, at: Placement<object>): LayoutRows['inKit'][numb
 export function bakeNineLayout(): Uint8Array {
   const signs = new SignRecorder();
   const ctx = runLayout(signs);
-  const geometries: LayoutRows['geometries'] = [], blocks: Uint8Array[] = [];
-  const addGeometry = (g: BufferGeometry): number => {
-    const attrs: [string, BakedType, number, boolean][] = [];
-    for (const [name, attr] of Object.entries(g.attributes)) {
-      if (!(attr instanceof BufferAttribute)) throw new Error(`bake-nine-layout: '${name}' is interleaved`);
-      const type = bakedType(attr);
-      attrs.push([name, type, attr.itemSize, attr.normalized]);
-      const bytes = new Uint8Array(attr.array.buffer, attr.array.byteOffset, attr.count * attr.itemSize * BAKED_BYTES[type]);
-      const block = new Uint8Array(pad4(bytes.length));
-      block.set(bytes);
-      blocks.push(block);
-    }
-    const index = g.index;
-    if (index !== null) {
-      const deltas = new Int32Array(index.count);
-      let last = 0;
-      for (let i = 0; i < index.count; i++) { const x = index.getX(i); deltas[i] = x - last; last = x; }
-      blocks.push(new Uint8Array(deltas.buffer));
-    }
-    geometries.push({ attrs, count: g.getAttribute('position').count, index: index === null ? null : index.array instanceof Uint16Array ? 'u16' : 'u32', indexCount: index?.count ?? 0, box: g.boundingBox !== null });
-    return geometries.length - 1;
-  };
+  const geometries: LayoutRows['geometries'] = [], writer = geometryWriter('bake-nine-layout'), blocks = writer.blocks;
+  const addGeometry = (g: BufferGeometry): number => { geometries.push(writer.add(g)); return geometries.length - 1; };
   // the kits' names, the folded parts' too (a model drawn into a kit names its Kit object: build.ts `kitName`)
   const kitName = new Map<Kit, string>();
   for (const [name, k] of ctx.kits) {
@@ -154,6 +127,7 @@ export function bakeNineLayout(): Uint8Array {
     pieces: ctx.fd.pieces.map((p) => p.piece),
     slots: { early: ctx.fd.signs.map((s) => ({ at: tuple(s.at), normal: tuple(s.normal), size: s.size, color: s.color, blade: s.blade })), late: [] },
     shell, towers: ctx.fd.towers,
+    merged: [...ctx.fd.merged].map(([id, b]) => [id, [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]]),
     inst: [...ctx.inst].map(([key, list]) => [key, list.length]),
     rng: ctx.rng.snapshot(),
     signs: signs.calls,

@@ -11,33 +11,12 @@
 // - the black-and-gold 九龍 plaque in a raised gold frame (the old plaque sat INSIDE its own board and never showed),
 //   couplets, lanterns; a pair of stone lions (石獅) on plinths before the centre bay.
 import { Vector3 } from 'three';
-import { E, K, type Kit, type Look } from './kit';
+import { E, K, type Kit, type Look } from '../world/kit';
 import type { SignSink } from '../look/signs';
-import { type KitX, type XLook, curve } from './hero/kitx';
+import { type KitX, type XLook, curve } from '../world/hero/kitx';
 import { Rng } from '@wildshard/engine/core/rng';
 import { SURF } from '../look/paint';
-
-export interface GateSpec {
-  x: number;
-  y: number;
-  z: number;
-  posts: readonly [number, number, number, number];
-  s: number;
-  plaque: string;
-  /** the paper couplets on the inner posts (null: none — E281, style-A's and the A2 targets' posts are bare lacquer) */
-  couplets: readonly [string, string] | null;
-  neonEaves: number | null;
-  /** the lion pedestals before the centre bay (the organic lab's TRELLIS lions stand on them, props3d.ts) */
-  lions: boolean;
-  /**
-   * E281 (the mockup pass): the elevation's scale. Every height and detail is built at s × k while the posts stay on
-   * `posts` and the roofs keep their spans at s, so a k < 1 gate is lower and broader-roofed on the same footprint (style-A
-   * and the A1 / A2 targets: a ~13 m gate whose roofs reach well past the centre bay; at k = 1 it stood 18 m).
-   */
-  k?: number;
-  /** the paint: the hero lab's mineral blue-greens (the default) or style-A's cinnabar and gold (E281, Lantern Square) */
-  paint?: 'mineral' | 'cinnabar';
-}
+import type { GateSpec } from '../world/specimenDims';
 
 // the washes, fitted to the dome-B targets by ΔE00 (round 2: lacquer #a3463a vs #823c31, stone #636365 vs #544e4e)
 // the painted surfaces (paint.ts, lab P5): weathered lacquer on the posts and beams; the stone takes the broad, soft

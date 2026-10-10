@@ -11,13 +11,14 @@
 // - the planter: dark wet granite with carved panels, a moulded rim, soil; the shrine: a red lacquer cabinet under a
 //   little tiled hip roof, a gold-lit niche, candles, a censer with incense smoke, oranges on a plate, paper couplets.
 import { Box3, Color, Vector3 } from 'three';
-import type { Ctx } from './ctx';
+import type { Ctx } from '../world/ctx';
 import { curvedRoof, relief } from './gate';
-import { E, K, type Kit, type Look } from './kit';
+import { E, K, type Kit, type Look } from '../world/kit';
 import { BANYAN, Y0 } from '../layout';
 import { Rng } from '@wildshard/engine/core/rng';
 import { SURF } from '../look/paint';
-import { type KitX, curve } from './hero/kitx';
+import { type KitX, curve } from '../world/hero/kitx';
+import { type BanyanPlan, type CanopyLump, banyanOut } from '../world/banyanPlan';
 
 export interface BanyanSpec {
   x: number; y: number; z: number; r: number; seed: number; height: number; spread: number;
@@ -25,10 +26,6 @@ export interface BanyanSpec {
   leaves?: boolean;
 }
 
-/** one lump of foliage (the organic lab's `Lump` shape): centre, radii, how high it sits on its shelf, a seed, a wash */
-export interface CanopyLump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }
-/** what the tree hands on: the canopy's lumps (crown fill first, then the shelves), and where lanterns hang in it */
-export interface BanyanPlan { lumps: CanopyLump[]; hangs: Vector3[] }
 
 const BARK: Look = { wash: 0x4a3727, kind: K.bars, col: 0.09, row: 0, line: 0 };
 const BARK_DARK: Look = { wash: 0x392b21, kind: K.bars, col: 0.07, row: 0, line: 0 };
@@ -343,8 +340,6 @@ export const SHRINE_AT = [-3.2, 2.2] as const;
 export const STELE_AT = [-3.7, -1.1] as const;
 
 /** the banyan, its planter, the earth-god shrine and the 九龍城 stele */
-/** the tree's plan, for main.ts: the canopy's lumps, dressed by canopy.ts `buildCanopy` (the organic lab's cards) */
-export const banyanOut: { plan: BanyanPlan | null } = { plan: null };
 
 export function buildBanyan(ctx: Ctx, rng: Rng): void {
   // (the banyan draws in the square cluster's kit, 'paifang': one draw for the gate, the tree, the stalls; budget.md)

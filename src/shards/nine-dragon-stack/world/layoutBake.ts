@@ -13,13 +13,13 @@ import type { Ctx, InKit, MapRect } from './ctx';
 import { Kit } from './kit';
 import { KitX } from './hero/kitx';
 import { Builder } from './facade/geo';
-import { PIECES, type PieceId } from './facade/pieces';
+import { isPiece } from './facade/pieceIds';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { SignPlace, SignSink, SignStyle } from '../look/signs';
 import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from './bakedGeometry';
 import { restoreQueued } from './props3d';
 import { restoreCrossingColliders, wellSheets } from './wellBounds';
-import { banyanOut } from './banyan';
+import { banyanOut } from './banyanPlan';
 import rows from '../data/layout.json' with { type: 'json' };
 
 /** the bake's binary (`scripts/bake-nine-layout.mjs`); listed in the boot's world reads (../boot/files.ts) */
@@ -29,7 +29,6 @@ export const LAYOUT_STAMP = v.parse(v.strictObject({ version: v.literal(1), bin:
 
 const finite = v.number();
 const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
-const isPiece = (s: string): s is PieceId => s in PIECES;
 const V3 = v.tuple([finite, finite, finite]);
 const STYLES: readonly SignStyle[] = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'];
 const Spec = v.strictObject({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.picklist(STYLES), ink: v.exactOptional(v.string()) });
@@ -70,6 +69,7 @@ export const LayoutRowsSchema = v.strictObject({
   slots: v.strictObject({ early: v.array(Slot), late: v.array(Slot) }),
   shell: v.nullable(finite),
   towers: finite,
+  merged: v.array(v.tuple([v.string(), v.tuple([finite, finite, finite, finite, finite, finite])])),
   inst: v.array(v.tuple([v.string(), finite])),
   rng: v.strictObject({ version: finite, state: finite, initial: finite, scrambledFork: v.boolean() }),
   signs: v.array(SignCall),
@@ -186,6 +186,10 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   ctx.fd.late = false;
   if (r.shell !== null) ctx.fd.shell = Builder.fromBake(bake.geometry(r.shell));
   ctx.fd.towers = r.towers;
+  for (const [id, b] of r.merged) {
+    if (!isPiece(id)) throw new Error(`[nine-dragon] the layout bake merges no facade piece '${id}'`);
+    ctx.fd.merged.set(id, new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])));
+  }
   for (const k of r.inKit) {
     const kit = byName.get(k.kit);
     if (kit === undefined) throw new Error(`[nine-dragon] the layout bake draws '${k.model}' into no kit '${k.kit}'`);

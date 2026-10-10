@@ -1,6 +1,6 @@
 /**
  * The square's market sets (E281 round 2; E306 / E315 M4): the market booth, the parasol table and the dining pavilion —
- * each a Kit + KitX geometry in its own frame (../world/stalls.ts builds them: front on z = 0 facing +z / the table at
+ * each a Kit + KitX geometry in its own frame (../generators/stalls.ts builds them: front on z = 0 facing +z / the table at
  * the origin), drawn by the Jiehua program as ONE InstancedMesh per set, culled per copy by the fragment's culler. What a
  * copy cannot vary — its lanterns, signs, glow, steam, diners and customers — the market row places beside it.
  *
@@ -8,31 +8,30 @@
  * order): the square builds it there and hands the geometry over (../world/props3d.ts `placeSet`); a booth built for
  * any other reason (a tool, a test) seeds its own stream.
  */
-import type { BufferGeometry } from 'three';
-import { BOOTH, PAV, boothSet, parasolSet, pavilionSet } from '../world/stalls';
-import { ndLook, need } from '../world/modelLook';
-import { Rng } from '@wildshard/engine/core/rng';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { BOOTH, PAV } from '../world/specimenDims';
+import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
+import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 const FILE = 'src/shards/nine-dragon-stack/models/market.ts';
 
-/** the set's geometry as the square built it (`set:<name>` in the look), else built here once */
-function set(ctx: ModelContext, name: string, make: () => BufferGeometry): readonly ModelPart[] {
-  const look = ndLook(ctx);
-  return [{ geometry: look.geo.get(`set:${name}`) ?? ctx.once(`nds:set:${name}`, make), material: need(look.mat, 'the Jiehua program') }];
+/** the set's geometry as the square built it (`set:<name>` in the look), else its own baked one (../generators/specimens.ts) */
+function set(ctx: ModelContext, id: string, name: string): ModelBuild {
+  const look = ndLook(ctx), geometry = look.geo.get(`set:${name}`);
+  if (geometry !== undefined) return [{ geometry, material: need(look.mat, 'the Jiehua program') }];
+  return withSpecimens(ctx, id, () => [{ geometry: specimen(ctx, `set:${name}`), material: need(look.mat, 'the Jiehua program') }]);
 }
 
 export const marketBooth = defineModel({
   id: 'nine-dragon-stack/market-booth', name: 'Market booth (roast ducks, steamers, a cook)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => set(ctx, 'booth', () => boothSet(new Rng(4101))),
+  build: (ctx) => set(ctx, 'nine-dragon-stack/market-booth', 'booth'),
   // its footprint behind the counter, 2.4 m up
   colliders: () => [{ kind: 'box', x: 0, y: 1.2, z: -BOOTH.d / 2, hx: BOOTH.w / 2, hy: 1.2, hz: BOOTH.d / 2, surface: 'wood' }],
 });
 
 export const parasolTable = defineModel({
   id: 'nine-dragon-stack/parasol-table', name: 'Parasol table', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => set(ctx, 'parasol', parasolSet),
+  build: (ctx) => set(ctx, 'nine-dragon-stack/parasol-table', 'parasol'),
   // the table and its diners, 1.5 m square (the parasol is out of reach)
   colliders: () => [{ kind: 'box', x: 0, y: 0.4, z: 0, hx: 0.75, hy: 0.4, hz: 0.75, surface: 'metal' }],
 });
@@ -53,6 +52,6 @@ function pavilionColliders(p: PavilionParams): ColliderDesc[] {
 
 export const diningPavilion = defineModel<PavilionParams>({
   id: 'nine-dragon-stack/dining-pavilion', name: 'Dining pavilion (hot pot)', category: 'buildings', pipeline: 'code', file: FILE, defaults: { turn: 0 },
-  build: (ctx) => set(ctx, 'pavilion', pavilionSet),
+  build: (ctx) => set(ctx, 'nine-dragon-stack/dining-pavilion', 'pavilion'),
   colliders: (p) => pavilionColliders(p),
 });

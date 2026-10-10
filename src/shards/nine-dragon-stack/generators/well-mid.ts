@@ -10,7 +10,7 @@ import { Vector3 } from 'three';
 import { spanStreet } from './facadeGrammar';
 import { E, K, type Kit, type Look } from '../world/kit';
 import { WELL, Y0 } from '../layout';
-import { dragonHook } from '../world/props';
+import { dragonHook } from './props';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';
 import { NEON } from '../util';

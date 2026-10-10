@@ -6,9 +6,8 @@
  */
 import { Mesh, Vector3 } from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { droneKit, gondolaCabin as gondolaKit, trainKit } from '../world/moverKits';
 import { SignBuilder } from '../look/signs';
-import { ndLook, need } from '../world/modelLook';
+import { bakedSpecimen, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/movers.ts';
 
@@ -16,19 +15,19 @@ const mat = (ctx: ModelContext): ModelPart['material'] => need(ndLook(ctx).mat, 
 
 export const monorailTrain = defineModel({
   id: 'nine-dragon-stack/monorail-train', name: 'Monorail train (four cars)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => [{ geometry: trainKit().build(), material: mat(ctx) }],
+  build: (ctx) => [{ geometry: bakedSpecimen(ctx, 'mover:train'), material: mat(ctx) }],
 });
 
 export const cableGondola = defineModel({
   id: 'nine-dragon-stack/cable-gondola', name: 'Cable gondola', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => [{ geometry: gondolaKit().build(), material: mat(ctx) }],
+  build: (ctx) => [{ geometry: bakedSpecimen(ctx, 'mover:gondola'), material: mat(ctx) }],
 });
 
 export const drone = defineModel({
   id: 'nine-dragon-stack/drone', name: 'Surveillance drone', category: 'props', pipeline: 'code', file: FILE, defaults: {},
   build: (ctx) => {
     const neon = need(ndLook(ctx).neon, 'the neon program');
-    const body = new Mesh(droneKit().build(), mat(ctx));
+    const body = new Mesh(bakedSpecimen(ctx, 'mover:drone'), mat(ctx));
     const lb = new SignBuilder(neon.atlas);
     lb.light(new Vector3(1.3, 0.6, 1.3), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 0.35, 0.35, 0xff3b30, 10, 2, 0.1);
     lb.light(new Vector3(-1.3, 0.6, -1.3), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 0.35, 0.35, 0xffffff, 10, 2, 0.6);

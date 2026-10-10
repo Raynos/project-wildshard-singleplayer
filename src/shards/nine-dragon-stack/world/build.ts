@@ -40,7 +40,6 @@ import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
 import { Crowd, dealCrowd } from './crowd';
-import { banyanOut } from './banyan';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../look/signs';
@@ -63,6 +62,7 @@ import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
+import { loadSpecimens } from './specimens';
 import { buildEntryDecks } from './entries';
 import { CABLE, SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
@@ -168,6 +168,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
   progress(0, 'paint + fonts');
   const layoutReady = loadLayoutBake();
+  // G285: the code-built models' geometry and the canopy's (world/specimens.ts), fetched with the layout
+  const specimensReady = loadSpecimens('boot');
   const paintStart = performance.now();
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
@@ -199,6 +201,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
+  const specimens = await specimensReady;
+  nd.look.specimens = specimens;
   progress(0.2, 'layout: baked');
   restoreLayout(layout, ctx);
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
@@ -295,7 +299,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await bakeSpill(kitGeos.map(([, g]) => g), emitters);
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
-  const crown = await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters);
+  const crown = await buildCanopy(shared, specimens.has('canopy:cards') ? { cards: specimens.take('canopy:cards'), core: specimens.take('canopy:core') } : null, emitters);
   for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
   // (the banyan model's specimen wears the same crown, models/banyan.ts)
   const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));

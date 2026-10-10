@@ -10,7 +10,7 @@ import { Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
 import type { Ctx } from '../world/ctx';
 import { E, K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
-import { laundry, stool } from '../world/props';
+import { laundry, stool } from './props';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';
 import { Y0 } from '../layout';

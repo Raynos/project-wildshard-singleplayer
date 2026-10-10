@@ -3,7 +3,7 @@
 // (../generators/well-bridges.ts, well-lower-life.ts lay it out at build time, baked: ./layoutBake.ts); the models'
 // specimens and the layout both build them.
 import { Vector3 } from 'three';
-import { K, type Kit, type Look } from './kit';
+import { K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
 import type { Rng } from '@wildshard/engine/core/rng';
 

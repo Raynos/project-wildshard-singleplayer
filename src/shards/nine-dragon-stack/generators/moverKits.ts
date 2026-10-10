@@ -2,7 +2,7 @@
 // mesh the world moves (build.ts `update`). The runtime half of the towers and the Well's crossings
 // (../generators/towers.ts, well-bridges.ts lay those out at build time, baked: ./layoutBake.ts).
 import { Vector3 } from 'three';
-import { E, K, Kit, type Look } from './kit';
+import { E, K, Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
 
 /** the train (its own mesh; main.ts slides it along x) */

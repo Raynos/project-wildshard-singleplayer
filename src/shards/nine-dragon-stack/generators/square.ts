@@ -1,16 +1,17 @@
 // Lantern Square: wet granite, the Well's stone balustrade and sign masts, the cinnabar paifang (九龍疊城), the banyan
 // in its round planter with the earth-god shrine, mahjong tables, the noodle stall, lantern strings and the crowd.
 import { Box3, Matrix4, Quaternion, Vector3 } from 'three';
-import { buildBanyan } from '../world/banyan';
+import { buildBanyan } from './banyan';
 import { mahjongSeats } from './figures';
 import type { Ctx } from '../world/ctx';
-import { buildGate } from '../world/gate';
+import { buildGate } from './gate';
 import { SURF } from '../look/paint';
-import { BOOTH, BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from '../world/stalls';
+import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { K, type Kit, type Look } from '../world/kit';
 import { GATE, PLAZA, STALL, STREET, Y0, walkable } from '../layout';
-import { dragonHook, scooter } from '../world/props';
-import { WELL_BALUSTRADE_AT, WELL_RUNS, balustrade, mahjongTable } from '../world/squareParts';
+import { dragonHook, scooter } from './props';
+import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
+import { BOOTH, WELL_BALUSTRADE_AT } from '../world/specimenDims';
 import { Rng } from '@wildshard/engine/core/rng';
 
 const UPV = new Vector3(0, 1, 0);

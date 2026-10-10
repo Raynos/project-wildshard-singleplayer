@@ -2,7 +2,7 @@
 // (../models/landingPlanter.ts) and the stair's layout (../generators/stairstreet-upper.ts) draws its eight copies into the
 // terraces' kit, with the leaves, colours and stone it shares with the rest of the stair.
 import { Color, IcosahedronGeometry, Vector3 } from 'three';
-import { K, type Kit, type Look } from './kit';
+import { K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
 import type { Rng } from '@wildshard/engine/core/rng';
 
@@ -46,9 +46,6 @@ export function leafBush(k: Kit, rng: Rng, cx: number, cy: number, cz: number, r
     leafQuad(k, base, dir, side, L, L * narrow, leafLook(rng, Math.sin(ph)));
   }
 }
-
-/** a planter's size (w along the landing, d out from its wall) */
-export const PLANTER = { w: 1.1, d: 0.5 } as const;
 
 /** a stone planter in flower at (x, y, z): an ashlar trough, its coping, three leafy bushes, a spray of one flower's colour */
 export function landingPlanter(k: Kit, rng: Rng, p: { readonly x: number; readonly y: number; readonly z: number; readonly w: number; readonly d: number }): void {

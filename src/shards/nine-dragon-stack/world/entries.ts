@@ -10,7 +10,7 @@ import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
 import { K, type Look } from './kit';
-import { hipRoof } from './squareParts';
+import { hipRoof } from './hipRoof';
 import { CAP, DECK_DEPTH, FRAMES, OPENING_HALF, capParts, deckParts, inFrame, type Frame, type FrameBox } from './floorRows';
 
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };

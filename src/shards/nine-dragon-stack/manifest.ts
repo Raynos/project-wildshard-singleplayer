@@ -53,6 +53,8 @@ const FILES = [
   ...TEX.map((t) => `/assets/nine-dragon/paint/${t}.jpg`),
   // G285: the layout's offline bake (world/layoutBake.ts)
   '/assets/nine-dragon/baked/layout.bin',
+  // G285: the code-built models' and the canopy's geometry (world/specimens.ts)
+  '/assets/nine-dragon/baked/specimens.bin',
   '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
   '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
   ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),
