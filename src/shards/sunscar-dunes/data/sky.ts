@@ -34,7 +34,7 @@ export const SKY_STYLE: DuskDomeStyle = {
 
 /**
  * E407 row 5: the painted dusk sky at infinity (loaded by `@wildshard/sdk/looks/paintedStrips` in look/render.ts, drawn
- * by look/families.ts SKY_ENTRY), one seamless 360° strip per dusk stage (art/sunscar-dunes/round-25-sky: pano.py
+ * by the platform dusk look, data/renderLook.ts), one seamless 360° strip per dusk stage (art/sunscar-dunes/round-25-sky: pano.py
  * outpaints them with codex image_gen from the mockups' skies, prep.py crops and sizes them). x = heading (0 = the
  * spawn's forward view, -z; 90 = +x), the strip spans elevTop down to elevBottom degrees; above it the top row carries
  * on, darkening a little to the zenith. The dome blends the stages by the dusk (look/dusk.ts: Sefa 0.50, the waymarks

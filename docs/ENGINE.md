@@ -1870,6 +1870,16 @@ const view = installQuestPresentation(ctx, {
 view.quest.flags.set('template.bell.rung');
 ```
 
+**A quest's coin reward (SHARD-PLATFORM M3).** `@wildshard/game/quest/questReward` holds the reward plumbing every
+rewarded quest repeated. `questReward(ctx, { player, coins, amount, paid, markPaid, toast })` makes the `CoinBurst` (on
+the play scene, or a scene of its own headless) and `pay`, which pays `amount` coins once per save through the platform
+purse (`coins`, a `RuntimeCoins`) and toasts after the last lands; `paid` / `markPaid` are the save's record (a quest
+flag, a shard save). `presentRewardedQuest(ctx, quest, reward, { id, player, paidAtLoad, newQuest, presentation, beat })`
+installs the presentation (entered for a retained home, plain in play, none headless) with the held reward beat
+(`beat`: kicker, title, subtitle, optional pose; shown while the quest is complete and `paidAtLoad` was false) finishing
+in `pay`, pays at once on completion headless, toasts `newQuest` while the quest is open, animates the burst under the
+system `id` and frees it with the level; it returns the live view's getter. Signal Dunes' `quest/install.ts` uses both.
+
 ## 21. Shared content (the kit's, now the game's)
 
 SF54 dissolved `@wildshard/kit`: content that 2+ shards use (the rule of two) lives in `@wildshard/game`, its trusted
@@ -1888,6 +1898,16 @@ runtime facades in `@wildshard/sdk/runtime/*`, and content one shard uses stays 
 | declared items | `@wildshard/game/systems/items/declared` (`declaredKitItemFamilies`: `kit.melee`, `kit.lantern`) |
 | tools | `@wildshard/game/systems/tools/hoverboard` (`Hoverboard`, `HOVERBOARD_TOOL`; all shards; its `board` movement mode stays engine) |
 | viewmodel, looks, audio | `@wildshard/game/systems/{viewmodel,looks,audio}/*` (`@wildshard/sdk/runtime/{viewmodel,audio}/*`) |
+
+**A dusk look (SHARD-PLATFORM M3).** `@wildshard/game/systems/looks/duskLook` (`@wildshard/sdk/looks/duskLook`)
+`duskLook(row, parts)` is a whole `extend` look from one `DuskLookRow` (pure data: the scene fog, the key light's
+direction / colour / deepest-dusk colour / intensity, the held day clock, the dusk curves of the key, the sky fill, the
+fog's sun tint, the far rings' haze and the aerial fog, the sand's height tint `DuskTintRow`, the skirt's grid and
+swells, the procedural dusk dome, the sand and sky family rows and the painted sky stages that replace the dome once
+they load) and its live `DuskLookParts` (the dusk and fire-pool uniforms, the sand's wind, the analytic field built
+when the ground is, the sand maps, the `TintedTileGround` and the held `CubeSkirt`). `loadDuskSandMaps(rows, means,
+fault)` uploads the dune-shadow, trail and grain maps with the grain tile's means. Signal Dunes' `look/render.ts` is its
+binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 
 Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
 

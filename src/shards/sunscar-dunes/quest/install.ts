@@ -1,10 +1,10 @@
 import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
-import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
-import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from '@wildshard/game/quest/presentation';
+import type { CoinBurst } from '@wildshard/game/loot/CoinBurst';
+import type { QuestPresentation } from '@wildshard/game/quest/presentation';
+import { presentRewardedQuest, questReward } from '@wildshard/game/quest/questReward';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as v from 'valibot';
-import { Scene, type Vector3 } from 'three';
+import type { Vector3 } from 'three';
 import type { SignalWorld } from '../world/build';
 import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../data/layout';
 import { STRINGS } from '../data/strings';
@@ -62,32 +62,18 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // The declared quest (shard.config.ts, bound by this runtime): the platform builds its state over the world's flags and
   // emits its fact on completion, and on load for a save that finished it before facts existed.
   const bound = bindRuntimeQuest(ctx, source, 'sunscar.signal', { flags, facts, place: (marker) => placed[marker.id] });
-  const quest = bound.state, reward = bound.reward.coins;
-  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
-  const alreadyPaid = flags.has(PAID_FLAG);
-  // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins,
-  // the MAP card, saved discovery of the places, step toasts, and the held reward beat after the Matriarch falls.
-  const pay = (): undefined => {
-    if (flags.has(PAID_FLAG)) return undefined;
-    flags.set(PAID_FLAG);
-    burst.spawn(player, reward, coins, () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
-    return undefined;
-  };
+  const quest = bound.state, paidAtLoad = flags.has(PAID_FLAG);
+  // the 5-coin signal reward, once per save (PAID_FLAG), held for the beat after the Matriarch falls
+  const reward = questReward(ctx, { player, coins, amount: bound.reward.coins, paid: () => flags.has(PAID_FLAG), markPaid: () => { flags.set(PAID_FLAG); }, toast: STRINGS.reward });
   // Sefa, the caravan scout, starts the quest on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
   const figure = duneMesh(SCOUT_MODEL);
   const sefa = figure === null ? null : installPivotNpc(ctx, SCOUT_NPC, { source: figure, groundAt, player, met: () => flags.has(SCOUT_FLAG), file: 'src/shards/sunscar-dunes/quests/scout.ts',
     dress: (group) => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); } });
-  const live = runtime?.world && runtime.play ? runtime : null;
-  const presentation: QuestPresentationOptions = { places: [...PLACES], introTitle: STRINGS.quest,
-    ...(sefa === null ? {} : { npc: { npc: npcDef(SCOUT_NPC), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: SCOUT_NPC.talkRadius } }),
-    reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } };
-  const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
-  const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);
-  // Headless (no play host: tests, a node bake) the reward pays at once on completion.
-  ctx.scope.onDispose(quest.observe({ complete: () => { if (live === null) pay(); } }));
-  // On the first frame the goal is on screen: the chip, and a toast that names the quest.
-  if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(`${STRINGS.newQuest} · ${STRINGS.quest}`);
-  ctx.system({ id: 'sunscar.reward', phase: 'update', run: (dt) => { burst.update(dt, player); } });
-  ctx.scope.onDispose(() => { burst.update(3, player); burst.dispose(); });
-  return { quest, burst, facts, get view() { return entered === null ? view : entered(); } };
+  // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins, the
+  // MAP card, saved discovery of the places, step toasts, the held reward beat and, on the first frame, the quest's toast.
+  const view = presentRewardedQuest(ctx, quest, reward, { id: 'sunscar.reward', player, paidAtLoad, newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
+    presentation: { places: [...PLACES], introTitle: STRINGS.quest,
+      ...(sefa === null ? {} : { npc: { npc: npcDef(SCOUT_NPC), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: SCOUT_NPC.talkRadius } }) },
+    beat: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle } });
+  return { quest, burst: reward.burst, facts, get view() { return view(); } };
 }

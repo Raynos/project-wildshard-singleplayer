@@ -4,7 +4,7 @@ import type { DuskCurve, DuskRow } from '@wildshard/sdk/looks/duskCurves';
  * How Signal Dunes' light moves with the quest's dusk (`look/dusk.ts` DUSK, 0 the first frame's sunset … 1 the blue
  * hour), as curves on the SDK's dusk curves (`@wildshard/sdk/looks/duskCurves`): the key's dimming and the fill's
  * (`look/render.ts`), the fog's sun-side lift, the far rings' haze and the aerial fog, and the sand's ground-layer terms
- * (`look/families.ts`). The why of each number is in the council rounds the comments name.
+ * (`look/render.ts` on the platform dusk look). The why of each number is in the council rounds the comments name.
  */
 
 /** The key light's dimming (E407: a slower fall through the middle steps, still monotonic; the sun drops fast once the quest starts). */
@@ -26,7 +26,7 @@ export const AERIAL_FOG: DuskCurve = { scale: 0.0013, base: 1, terms: [{ gain: -
 
 /**
  * The sand's ground-layer terms at a dusk value (the PBR family's `GroundLayerParams`; the grain's map and means and the
- * afterglow's direction join them in `look/families.ts`).
+ * afterglow's direction join them in the platform dusk look, data/renderLook.ts).
  */
 export const SAND_DUSK: DuskRow = {
   // round 8 / 11: the ripples' contrast falls with the dusk (mockup B's late sand is dim and soft)

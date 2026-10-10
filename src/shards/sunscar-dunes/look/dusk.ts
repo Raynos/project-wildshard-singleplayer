@@ -1,6 +1,3 @@
-import { curveAt } from '@wildshard/sdk/looks/duskCurves';
-import { FILL, KEY_DIM } from '../data/dusk';
-
 /**
  * The dusk deepens as the quest goes on (E399, council round 1, D5 / D8: mockup A is the spawn at sunset, B the logbook
  * at dusk, C the lit waymarks in a dark violet dusk where the fire is the key light, D the blue hour). `DUSK.value` runs
@@ -25,7 +22,3 @@ export function stepDusk(dt: number): void {
   DUSK.value += Math.sign(d) * Math.min(Math.abs(d), RATE * dt);
 }
 
-/** The key light's dimming at a dusk value (look/render.ts; the curve is data/dusk.ts KEY_DIM). */
-export const keyAt = (d: number): number => curveAt(KEY_DIM, d);
-/** The sky fill's at a dusk value (look/render.ts; the curve is data/dusk.ts FILL). */
-export const fillAt = (d: number): number => curveAt(FILL, d);
