@@ -100,7 +100,8 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
     parts.skirt.hold(skirtMesh, (half) => skirtGrid(grid, swell, heightAt, skirtColour, half), scope);
   };
   const fog = row.fog;
-  return { mode: 'extend',
+  // the clean chain is declared as well as composed, so a grid cell carries it without composing (absent: cinematic)
+  return { mode: 'extend', chain: 'clean',
     compose: ({ engineChain, scene, scope }) => {
       // the scene's own fog is edited in place: a new Fog would orphan the one the backdrop bound
       if (scene.fog instanceof Fog) { scene.fog.color.set(fog.color); scene.fog.near = fog.near; scene.fog.far = fog.far; }
