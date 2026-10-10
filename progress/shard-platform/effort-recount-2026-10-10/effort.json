@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-10T10:45:00Z",
+  "method": "progress/shard-platform/effort-recount-2026-10-09/ re-run: port agent-hours from Codex + Claude session logs (active time, 15-min gap cap) credited to each commit's shard; share from scripts/shard-platform.mjs on git-archive exports of committed HEAD. Port now also counts 'M3:' and 'G285' commits.",
+  "shards": [
+    { "slug": "_template", "name": "Template 1", "hoursSpent": 57.6, "hoursSpent12h": 0.3, "hoursRemaining": 0, "effortPct": 100, "sharePct": 90.4, "share12hAgoPct": 90.4, "proofs": 6, "phase": "done" },
+    { "slug": "blender-template", "name": "Blender Template", "hoursSpent": 13.7, "hoursSpent12h": 0.0, "hoursRemaining": 3, "effortPct": 82, "sharePct": 90.2, "share12hAgoPct": 90.2, "proofs": 6, "phase": "flat", "note": "Part A extra (SF55); target 100 % public, 13 custom lines left; hours are all non-port" },
+    { "slug": "sunscar-dunes", "name": "Signal Dunes", "hoursSpent": 24.6, "hoursSpent12h": 6.1, "hoursRemaining": 8, "effortPct": 75, "sharePct": 58.4, "share12hAgoPct": 26.5, "proofs": 6, "phase": "jump" },
+    { "slug": "far-reach", "name": "Sky Reach", "hoursSpent": 26.8, "hoursSpent12h": 5.4, "hoursRemaining": 18, "effortPct": 60, "sharePct": 44.7, "share12hAgoPct": 18.5, "proofs": 5, "phase": "jump" },
+    { "slug": "pine-hollow", "name": "Pine Hollow", "hoursSpent": 40.7, "hoursSpent12h": 13.9, "hoursRemaining": 55, "effortPct": 43, "sharePct": 23.7, "share12hAgoPct": 8.0, "proofs": 3, "phase": "jump" },
+    { "slug": "driftwood-isle", "name": "Driftwood", "hoursSpent": 33.0, "hoursSpent12h": 14.6, "hoursRemaining": 70, "effortPct": 32, "sharePct": 19.1, "share12hAgoPct": 1.6, "proofs": 3, "phase": "jump" },
+    { "slug": "nalati-grasslands", "name": "Nalati", "hoursSpent": 37.6, "hoursSpent12h": 14.2, "hoursRemaining": 130, "effortPct": 22, "sharePct": 14.0, "share12hAgoPct": 0.4, "proofs": 0, "phase": "jump" },
+    { "slug": "nine-dragon-stack", "name": "Nine Dragon", "hoursSpent": 20.4, "hoursSpent12h": 9.3, "hoursRemaining": 12, "effortPct": 63, "sharePct": 70.2, "share12hAgoPct": 0.3, "proofs": 5, "phase": "tail" },
+    { "slug": "shared-systems", "name": "Shared systems", "hoursSpent": 59.2, "hoursSpent12h": 18.3, "hoursRemaining": 85, "effortPct": 41, "sharePct": null, "share12hAgoPct": null, "proofs": null, "phase": null }
+  ],
+  "overall": {
+    "m3HoursSpent": 300,
+    "m3EffortPct": 44,
+    "m3HoursRemaining": 378,
+    "m3HoursRemainingRange": [270, 550],
+    "m2HoursRemaining": 20,
+    "partAExtrasHoursRemaining": 24,
+    "partAHoursSpent": 630,
+    "partAHoursRemaining": 420,
+    "partAEffortPct": 60,
+    "portShareOfFleet": 0.73,
+    "fleetLanes12h": 9.4,
+    "finishRange": {
+      "todayPace": { "wallClockHours": [42, 80], "from": "2026-10-12T05:00:00Z", "to": "2026-10-13T19:00:00Z", "central": "2026-10-12T18:00:00Z" },
+      "allLanes": { "lanes": 10, "wallClockHours": [30, 58], "from": "2026-10-11T17:00:00Z", "to": "2026-10-13T09:00:00Z", "central": "2026-10-12T05:00:00Z" }
+    },
+    "excludes": "Jake's gates: three phone runs (SF22c), the G269 memory verdict and the open picks (SF67, SF63, Sky isles, SF59 looks, public Pine / Nalati flip)",
+    "confidence": "medium on hours spent; low-medium on hours remaining (bake-phase rates extrapolated into the behaviour tail; Nalati's witness not built)",
+    "date": "2026-10-10"
+  }
+}
