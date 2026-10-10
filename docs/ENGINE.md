@@ -2677,6 +2677,7 @@ same files while runtime consumers and sealed legacy copies migrate.
 | `plugin/director` | `DirectorInstallation`, `installDeclaredDirector` |
 | `plugin/ui` | entered quest and input presentation |
 | `plugin/clientScript` | `ClientScriptViews` over detached script frames |
+| `plugin/shaderFamily` | shared `ShaderFamily`, uniform rows and blending presets |
 
 All internal game callers use relative imports. Source relocation preserves
 implementations, constructor identity and installed behaviour; plugin paths do
@@ -2732,3 +2733,8 @@ shardfile schema key. Template 1 and Pastel Plain's actual authoring geometry an
 box rows pass through the reader and rebuild to identical compiled rows and GLB
 hashes. Existing authoring stair rows remain stairs, with no ramp approximation.
 The page-bound physics producers still need their G320 authoring-only conversion.
+
+`@wildshard/game/plugin/shaderFamily` publishes the shared shader-family implementation
+used by multiple shards. It resolves directly to `systems/looks/shaderFamily.ts`;
+the historical export and defining file remain intact for frozen consumers.
+Trusted `runtime/` consumers use the plugin key; no facade or duplicate implementation is installed.

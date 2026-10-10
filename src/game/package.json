@@ -227,6 +227,7 @@
     "./plugin/director": "./plugin/director.ts",
     "./plugin/ui": "./plugin/ui.ts",
     "./plugin/clientScript": "./plugin/clientScript.ts",
-    "./plugin/audio": "./plugin/audio.ts"
+    "./plugin/audio": "./plugin/audio.ts",
+    "./plugin/shaderFamily": "./systems/looks/shaderFamily.ts"
   }
 }
