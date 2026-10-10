@@ -2,18 +2,18 @@
   "slug": "driftwood-isle",
   "entry": "runtime/headless.ts",
   "compatible": false,
-  "scope": "Real Sealed Ring player tape, earned chest pack, Captain continuation and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "e70aa27f14c0b483c45c9c46a2d057cd0833ad9f6577d6335972a24844703e74",
+  "scope": "Real Sealed Ring and reef journeys, earned chest pack, Captain/swim continuations and emitted ledger facts; not whole-shard compatibility",
+  "inputs": "648a83fcdd938a8da7373679bd47fcabcc716e00518b1f084636093c68893837",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
-    "Chest contents, pack restore and the native zipline carry/landing continuation are reproduced; underwater travel to the optional reef treasure, travel to the zipline launch, reward camera/player carry and every sea-glass path are not covered by this tape.",
+    "Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, reward camera/player carry and every sea-glass path remain outside this witness.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
   ],
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "6c35acf6fd03f9192a55790448453b480d205d591f34411bf1447502b35b8ab3",
+    "hash": "853ad65614c35309dd029bb5dae1e0dab7c1d44ebf6e877ff9fda2a47df71b87",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -28,7 +28,7 @@
     },
     "facts": [
       {
-        "tick": 1011,
+        "tick": 1129,
         "effect": {
           "kind": "fact",
           "name": "driftwood.glass",
@@ -36,7 +36,7 @@
         }
       },
       {
-        "tick": 1499,
+        "tick": 1615,
         "effect": {
           "kind": "fact",
           "name": "driftwood.glass",
@@ -44,7 +44,7 @@
         }
       },
       {
-        "tick": 1777,
+        "tick": 1893,
         "effect": {
           "kind": "fact",
           "name": "driftwood.castaway",
@@ -52,7 +52,7 @@
         }
       },
       {
-        "tick": 5003,
+        "tick": 5182,
         "effect": {
           "kind": "fact",
           "name": "driftwood.glass",
@@ -60,7 +60,7 @@
         }
       },
       {
-        "tick": 6218,
+        "tick": 6397,
         "effect": {
           "kind": "fact",
           "name": "driftwood.shards",
@@ -76,7 +76,7 @@
     "resumedFrom": "captain",
     "prefixTicks": 0,
     "checkpointCaptured": true,
-    "checkpointTick": 18339,
+    "checkpointTick": 18898,
     "hp": 190,
     "encounter": {
       "boss": {
@@ -96,12 +96,12 @@
       "attempt": true,
       "waitForReturn": false
     },
-    "suffixTicksExecuted": 916,
-    "hash": "0c1fce1b9da312fba465303bb24936a28319fd41277a67b6098b40bbb8395614",
-    "replayHash": "0c1fce1b9da312fba465303bb24936a28319fd41277a67b6098b40bbb8395614",
+    "suffixTicksExecuted": 918,
+    "hash": "c3f697e836cd6cabfd2a767e114483dd70450ce80cad676bb6d97c572f472422",
+    "replayHash": "c3f697e836cd6cabfd2a767e114483dd70450ce80cad676bb6d97c572f472422",
     "effects": [
       {
-        "tick": 19120,
+        "tick": 19681,
         "effect": {
           "kind": "fact",
           "name": "driftwood.quest",
@@ -109,7 +109,7 @@
         }
       },
       {
-        "tick": 19120,
+        "tick": 19681,
         "effect": {
           "kind": "fact",
           "name": "driftwood.quest",
@@ -123,13 +123,13 @@
   },
   "ledger": {
     "status": "passed",
-    "resumedTick": 18339,
-    "ticksExecuted": 916,
+    "resumedTick": 18898,
+    "ticksExecuted": 918,
     "rules": 10,
     "facts": [
       {
         "name": "driftwood.glass",
-        "tick": 1011,
+        "tick": 1129,
         "entity": "glass:1",
         "origin": {
           "kind": "engine",
@@ -138,7 +138,7 @@
       },
       {
         "name": "driftwood.glass",
-        "tick": 1499,
+        "tick": 1615,
         "entity": "glass:2",
         "origin": {
           "kind": "engine",
@@ -147,7 +147,7 @@
       },
       {
         "name": "driftwood.castaway",
-        "tick": 1777,
+        "tick": 1893,
         "entity": "castaway:1",
         "origin": {
           "kind": "engine",
@@ -156,7 +156,7 @@
       },
       {
         "name": "driftwood.glass",
-        "tick": 5003,
+        "tick": 5182,
         "entity": "glass:3",
         "origin": {
           "kind": "engine",
@@ -165,7 +165,7 @@
       },
       {
         "name": "driftwood.shards",
-        "tick": 6218,
+        "tick": 6397,
         "entity": "shards:1",
         "origin": {
           "kind": "engine",
@@ -174,7 +174,7 @@
       },
       {
         "name": "driftwood.sailor",
-        "tick": 10704,
+        "tick": 10860,
         "entity": "sailor:1",
         "origin": {
           "kind": "engine",
@@ -183,7 +183,7 @@
       },
       {
         "name": "driftwood.shards",
-        "tick": 11101,
+        "tick": 11276,
         "entity": "shards:2",
         "origin": {
           "kind": "engine",
@@ -192,7 +192,7 @@
       },
       {
         "name": "driftwood.crab10",
-        "tick": 11386,
+        "tick": 11798,
         "entity": "crab10:1",
         "origin": {
           "kind": "engine",
@@ -201,7 +201,7 @@
       },
       {
         "name": "driftwood.crab10",
-        "tick": 11401,
+        "tick": 11853,
         "entity": "crab10:2",
         "origin": {
           "kind": "engine",
@@ -209,8 +209,17 @@
         }
       },
       {
+        "name": "driftwood.crab10",
+        "tick": 11910,
+        "entity": "crab10:3",
+        "origin": {
+          "kind": "engine",
+          "source": "actor.died"
+        }
+      },
+      {
         "name": "driftwood.shards",
-        "tick": 13160,
+        "tick": 13698,
         "entity": "shards:3",
         "origin": {
           "kind": "engine",
@@ -219,7 +228,7 @@
       },
       {
         "name": "driftwood.glass",
-        "tick": 16815,
+        "tick": 17374,
         "entity": "glass:4",
         "origin": {
           "kind": "engine",
@@ -228,7 +237,7 @@
       },
       {
         "name": "driftwood.quest",
-        "tick": 19120,
+        "tick": 19681,
         "entity": "quest:1",
         "origin": {
           "kind": "engine",
@@ -273,7 +282,7 @@
         "shard": "driftwood-isle",
         "id": "crab10",
         "title": "Crabby",
-        "count": 2,
+        "count": 3,
         "threshold": 10,
         "earned": false
       },
@@ -290,5 +299,21 @@
     "refusedWriteRetried": true,
     "durableReload": true,
     "duplicateStable": true
+  },
+  "reef": {
+    "status": "passed",
+    "journeyTicks": 10894,
+    "swimTicks": 9019,
+    "workerTicks": 60,
+    "restoreTick": 10939,
+    "suffixTicks": 137,
+    "workerExact": true,
+    "pack": {
+      "doubloon": 8
+    },
+    "surfaced": true,
+    "treasureCount": 1,
+    "durableReload": true,
+    "hash": "f4174c9b15eaccd766b4fd5970d6f4c3f50851fa12a906fbcdd4122848619dc2"
   }
 }

@@ -95,8 +95,13 @@ it('rides the actual baked zipline through one player owner and restores its exa
 it('keeps the optional reef chest in the pack across exact restore, with one treasure fact and no purse grant', () => {
   const original = boot(); let restored: SimHost | undefined;
   try {
-    // Focused prompt law at the real baked chest; underwater travel is deliberately not claimed by this fixture.
-    press(original, act('reef-treasure'), row('reef-treasure'), 0.3);
+    // Focused dive and prompt law at the real baked chest; the spawn-to-reef journey is a separate witness.
+    const chest = row('reef-treasure');
+    put(original, chest.x + 1, -0.9, chest.z); original.step(still);
+    expect(original.playerSwim.on).toBe(true);
+    for (let tick = 0; tick < 180; tick++) original.step({ ...still, dive: true });
+    expect(original.playerSwim.diving).toBe(true);
+    tape = [{ kind: 'script', actorId: ACTOR, value: act('reef-treasure') }]; original.step(still); tape = [];
     expect(original.flags.has('open:reef-treasure')).toBe(true);
     expect(original.flags.has('found:reef-treasure')).toBe(true);
     expect(pack(original)).toEqual({ counts: { doubloon: 8 }, order: ['doubloon'] });
@@ -104,7 +109,7 @@ it('keeps the optional reef chest in the pack across exact restore, with one tre
     expect(emitted.filter(e => e.kind === 'coins')).toEqual([]);
     restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
-    press(restored, act('reef-treasure'), row('reef-treasure'), 0.3);
+    tape = [{ kind: 'script', actorId: ACTOR, value: act('reef-treasure') }]; restored.step(still); tape = [];
     expect(pack(restored)).toEqual(pack(original));
     expect(facts().filter(f => f === 'driftwood.treasure@treasure:1')).toHaveLength(1);
   } finally { tape = []; restored?.dispose(); original.dispose(); }

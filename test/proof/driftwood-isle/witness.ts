@@ -7,7 +7,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/runtime/captain';
-import { QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
+import { DRIFTWOOD_ACT, DRIFTWOOD_INTERACT, driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
@@ -40,10 +40,10 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 export const OPEN = [
   'Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.',
   'Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.',
-  'Chest contents, pack restore and the native zipline carry/landing continuation are reproduced; underwater travel to the optional reef treasure, travel to the zipline launch, reward camera/player carry and every sea-glass path are not covered by this tape.',
+  'Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, reward camera/player carry and every sea-glass path remain outside this witness.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',
 ];
-export const SCOPE = 'Real Sealed Ring player tape, earned chest pack, Captain continuation and emitted ledger facts; not whole-shard compatibility';
+export const SCOPE = 'Real Sealed Ring and reef journeys, earned chest pack, Captain/swim continuations and emitted ledger facts; not whole-shard compatibility';
 export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   return createTrustedHeadlessResident({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
@@ -149,6 +149,81 @@ export function checkpointsFresh(inputs: string): { status: string; inputs: stri
   const m = manifest(); tape(m);
   for (const cp of m.checkpoints) if (hash(readFileSync(new URL(`${cp.name}.snap.gz`, DIR))) !== cp.sha) throw new Error(`Stale ${cp.name} checkpoint`);
   return { status: m.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: m.inputs, ticks: m.ticks };
+}
+
+/** A separate real spawn-to-reef swim, then the SDK workers dive, take the chest and surface from its earned checkpoint. */
+export async function reefProof(rapier: Rapier): Promise<object> {
+  const session = await boot(rapier), local = new ProfileStorage(), ledger = profile(local), ingress = new FactIngress(ledger);
+  let worker: HeadlessSimulation | undefined, fork: TrustedHeadlessResident | undefined, workerTicks = 0;
+  const still = { kind: 'player', moveX: 0, moveZ: 0, yaw: 0 } as const;
+  const treasure = driftwoodSpots().rows.findIndex(row => row.id === 'reef-treasure'), spot = driftwoodSpots().rows[treasure];
+  if (spot === undefined) { session.dispose(); throw new Error('Missing real reef treasure'); }
+  let swimTicks = 0;
+  const step = (commands: HeadlessCommand[]): void => {
+    session.step(commands); if (session.host.playerSwim.on) swimTicks++;
+    if (session.host.player.health.attributes.health <= 0) throw new Error('Reef journey player died');
+    ingress.ingest(session.host.state.tick, session.effects);
+    if (!ledger.flush()) throw new Error('Reef journey ledger write refused');
+  };
+  const go = (x: number, z: number): void => {
+    let best = Infinity, stalled = 0;
+    for (let frame = 0; frame < 10_000; frame++) {
+      const p = session.host.player.position, dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz);
+      if (d < 0.2) return;
+      if (d < best - 0.01) { best = d; stalled = 0; } else stalled++;
+      if (stalled > 240 || session.host.state.tick > 20_000) throw new Error(`Reef swim stuck at ${JSON.stringify(p.toArray())} toward ${String(x)},${String(z)}`);
+      const k = Math.min(1, d / 0.5) / d;
+      step([{ ...still, moveX: dx * k, moveZ: dz * k, yaw: Math.atan2(-dx, -dz), ...(stalled > 60 && stalled % 30 === 0 ? { jump: true } : {}) }]);
+    }
+    throw new Error('Reef journey exceeded its bounded waypoint');
+  };
+  try {
+    // East of the island, outside its rocks and the wreck hull: movement inputs alone, no granted poses or facts.
+    // Cross the east approach over its dry asphalt socket, avoiding the solid jetty and its shallow sandbar.
+    for (const [x, z] of [[28, -200], [215, -200], [240, -12], [240, 0], [240, 12], [spot.x + 1, spot.z]] as const) go(x, z);
+    for (let tick = 0; tick < 90; tick++) step([still]);
+    if (!session.host.playerSwim.on || swimTicks < 1000 || session.host.flags.has('open:reef-treasure')) throw new Error('Reef checkpoint was not earned by swimming');
+    const journeyTicks = session.host.state.tick;
+    for (let tick = 0; tick < 45; tick++) step([{ ...still, dive: true }]);
+    if (!session.host.playerSwim.diving) throw new Error('Real held DIVE never entered a dive');
+    const restoreTick = session.host.state.tick, checkpoint = save(session);
+    fork = await boot(rapier, checkpoint);
+    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } });
+    const initial = worker.checkpoint;
+    if (digest(fork) !== digest(session) || initial === undefined || canonicalSimDigest(initial.snapshot) !== digest(session)) throw new Error('Mid-dive restore was not exact');
+    const wetStep = async (commands: HeadlessCommand[]): Promise<void> => {
+      step(commands);
+      if (fork !== undefined) {
+        fork.step(commands);
+        if (!fork.host.player.position.equals(session.host.player.position) || JSON.stringify(fork.host.playerSwim) !== JSON.stringify(session.host.playerSwim)
+          || JSON.stringify(fork.effects) !== JSON.stringify(session.effects)) throw new Error('Restored reef gameplay diverged');
+      }
+      // As with the Captain witness, one 60-tick SDK window covers both held controls and the actual treasure pickup.
+      // The complete native original/restored continuation then carries on through surfacing, without IPC snapshots every tick.
+      const active = worker;
+      if (active !== undefined) {
+        const commit = await active.step([{ source: 'witness.reef', commands }]); workerTicks++;
+        sameEffects(commit.effects.map(effect => ({ tick: commit.tick, effect })), session.effects.map(effect => ({ tick: commit.tick, effect })));
+        if (workerTicks % 30 === 0 && canonicalSimDigest(commit.snapshot) !== digest(session)) throw simMismatchError('Reef worker diverged from real native play', snapshotSimHost(session.host), commit.snapshot);
+        if (workerTicks === 60) { await active.dispose(); worker = undefined; }
+      }
+    };
+    for (let tick = 0; tick < 45; tick++) await wetStep([{ ...still, dive: true, surface: false }]);
+    await wetStep([{ ...still, dive: false, surface: false }, { kind: 'script', actorId: DRIFTWOOD_INTERACT, value: DRIFTWOOD_ACT.row + treasure }]);
+    if (!session.host.flags.has('open:reef-treasure') || !session.host.flags.has('found:reef-treasure')) throw new Error('Real reef dive did not reach the treasure prompt');
+    const pack = v.parse(v.object({ pack: v.object({ counts: v.record(v.string(), v.number()) }) }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;
+    if (pack.counts['doubloon'] !== 8) throw new Error('Reef chest did not enter the actual pack');
+    for (let tick = 0; tick < 90; tick++) await wetStep([{ ...still, dive: false, surface: true }]);
+    await wetStep([{ ...still, dive: false, surface: false }]);
+    const end = save(session);
+    if (digest(fork) !== canonicalSimDigest(end)) throw new Error('Reef restore final native physics diverged');
+    const swim = snapshotSimHost(session.host).player.swim;
+    if (canonicalSimDigest(end) !== digest(session) || swim?.on !== true || swim.diving || session.host.player.position.y < -2) throw new Error('Reef worker did not surface exactly');
+    const reloaded = profile(local), earned = Object.values(reloaded.state().achievements).find(row => row.id === 'treasure');
+    if (earned?.count !== 1) throw new Error('Gameplay treasure fact was not durable');
+    return { status: 'passed', journeyTicks, swimTicks, workerTicks, restoreTick, suffixTicks: session.host.state.tick - restoreTick, workerExact: true, pack: pack.counts,
+      surfaced: true, treasureCount: earned.count, durableReload: true, hash: canonicalSimDigest(end) };
+  } finally { fork?.dispose(); await worker?.dispose(); session.dispose(); }
 }
 /** Fresh real runtime for exactly 10k ticks, including native navigation, then all 92 flared entry lanes. */
 export async function headlessProof(rapier: Rapier): Promise<object> {

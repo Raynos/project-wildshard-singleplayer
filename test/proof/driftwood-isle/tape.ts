@@ -50,7 +50,10 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   act('beacon', 'lit:beacon'); go(93.65, 95.2); act('shard-lookout', 'shard:lookout'); await mark('lookout');
   walk([[92.76, 92.18], [90.27, 88.55], [87.68, 84.76], [86.1, 82.45], [76, 76], [60, 60], [46, 46], [35.8, 33.8], [23.99, 21.99], [15.29, 13.29], [13.88, 11.88], [15.6, -7], [62, 0], [80, -1.5], [100, -2], [124, 1.5], [144, 0], [147, 0.8], [149, 1.2], [150.5, 1.8], [152, 2.5]]);
   const sailor = [...host.entities.values()].find(a => a.kind === 'sailor'); if (sailor === undefined) throw new Error('Missing sailor');
-  await fight(sailor.entityId, 1.4, 50); act('hold-key', 'key:hold');
+  await fight(sailor.entityId, 1.4, 50);
+  // The key follows the sailor's actual fall; water/wading can change where that fight ends.
+  const key = v.parse(v.object({ key: v.object({ x: v.number(), z: v.number() }) }), host.adapters.get(QUEST_STEP)?.snapshot()).key;
+  go(key.x, key.z); act('hold-key', 'key:hold');
   go(155.2, -1.3); act('hold-pump', 'lever:hold-pump');
   go(154.7, -1.3); act('hold-winch', 'winch:up'); act('strongbox', 'shard:wreck');
   doubloons(5);

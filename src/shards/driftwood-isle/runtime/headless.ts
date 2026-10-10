@@ -3,7 +3,8 @@ import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider } from '@wildshard/engine/physics/surface';
 import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
-import { LOWERED_SEA } from '../world/sea';
+import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
+import { waveHeight } from '@wildshard/engine/world/waves';
 import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captain';
@@ -90,6 +91,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveDriftwoodEntries(host.physics, shard.entryways), install: (host, context) => {
     // the page's own day clock, stepped by the host before every tick's steps (a restoring install builds it again)
     host.useDayClock(driftwoodDayClock());
+    // The registered sea's dry entry sockets and rest height, with the page's Gerstner swell on this host's own clock.
+    // Install before restore too: a saved swim cannot attach to a dry host. Never borrow the renderer's global wave clock.
+    host.useWater({ surfaceAt: DRIFTWOOD_SEA.restAt, bob: (x, z) => waveHeight(x, z, host.clock.now) });
     if (!context.restoring) addDriftwoodWorld(host, bake);
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     installCaptain(host, bake, island);
