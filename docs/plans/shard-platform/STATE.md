@@ -25,8 +25,6 @@
 | Driftwood | 19.1 % |
 | Nalati | 14.1 % |
 
-The metric now counts local `.json` imports (`64559e6b1`).
-
 **Lanes (Jake G289: 2 Opus + 5 Codex)**
 
 Opus: two lanes, graphics/UI only.
