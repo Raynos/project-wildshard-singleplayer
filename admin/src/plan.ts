@@ -74,6 +74,7 @@ function shardRow(r: ProgressShard, target: number): HTMLElement {
     shareBar(r.sharePct, r.effort?.pct ?? null, target),
     h('div', { class: 'pmeta' },
       h('span', {}, `proofs ${r.proofs}/6`),
+      h('span', {}, `legacy-share ${num(r.legacySharePct ?? r.sharePct)} %${r.measure === 'legacy-share' ? ' · no legacy folder' : ''}`),
       h('span', { class: over ? 'pover' : '' }, `runtime ${num(r.runtime)} / ${num(r.ceiling)}`),
       r.effort ? h('span', {}, hoursText(r.effort)) : h('span', {}, 'no recount row')));
 }
@@ -107,7 +108,7 @@ function progressCard(p: ProgressData, stateCount: PlanData['hardCount']): HTMLE
     h('div', { class: 'ptiles' }, ...r.totals.map(totalTile)),
     finish ? h('p', { class: 'small pfinish' }, `Part A finish, projected ${PACE[finish.label] ?? finish.label}: ${utc(finish.central)} (${utc(finish.from)} – ${utc(finish.to)}), before Jake’s gates.`) : null,
     h('div', { class: 'legend' },
-      h('span', {}, h('i', { class: 'sw', style: 'background:var(--accent)' }), 'public SDK share (measured)'),
+      h('span', {}, h('i', { class: 'sw', style: 'background:var(--accent)' }), 'runtime reduced vs frozen copy (no copy: legacy-share)'),
       h('span', {}, h('i', { class: 'sw', style: 'background:var(--warn)' }), 'effort done (projected)'),
       h('span', {}, h('i', { class: 'sw ptick' }), `${p.targetPct} % target`)),
     h('ul', { class: 'pshards' }, ...p.shipping.map((x) => shardRow(x, p.targetPct)), ...p.extra.map(extraRow)),
@@ -118,7 +119,7 @@ function progressCard(p: ProgressData, stateCount: PlanData['hardCount']): HTMLE
       onclick: () => { if (r.chart) openMedia({ kind: 'image', name: 'Share vs agent-hours', src: r.chart, poster: null }); } },
     h('img', { src: `/${r.chart}`, alt: 'Public SDK share against agent-hours spent, per shard', loading: 'lazy', decoding: 'async' })) : null,
     h('p', { class: 'small pnote' },
-      h('b', {}, 'Measured: '), `public share, proofs and runtime lines (scripts/shard-platform.mjs on ${p.revision}, this build) and hours spent (session logs, recount ${utc(r.asOf)}). `,
+      h('b', {}, 'Measured: '), `G291 runtime reduction, legacy-share, proofs and runtime lines (scripts/shard-platform.mjs on ${p.revision}, this build) and hours spent (session logs, recount ${utc(r.asOf)}). `,
       h('b', {}, 'Projected: '), 'hours left, so effort % (spent ÷ (spent + left)) and the finish. ',
       `Recount confidence: ${r.confidence}. `, h('code', {}, r.source)));
 }

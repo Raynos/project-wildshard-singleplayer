@@ -1149,6 +1149,117 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 6
+                  },
+                  "legacyShare": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "conversion": {
+                    "type": "object",
+                    "properties": {
+                      "metric": {
+                        "enum": [
+                          "runtime-vs-legacy",
+                          "legacy-share"
+                        ]
+                      },
+                      "customRuntimeLines": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "legacyLines": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "minimum": 1
+                      },
+                      "legacyFolder": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "legacyRevision": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "runtimeShare": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0
+                      },
+                      "passed": {
+                        "type": [
+                          "boolean",
+                          "null"
+                        ]
+                      },
+                      "gameSystemAttribution": {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "const": "import-graph"
+                          },
+                          "review": {
+                            "const": "pending-opus-audit"
+                          },
+                          "lines": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "modules": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "path": {
+                                  "type": "string",
+                                  "pattern": "^src/(game|sdk)/"
+                                },
+                                "lines": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "lines"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "status",
+                          "review",
+                          "lines",
+                          "modules"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "shardRuntimeLines": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "metric",
+                      "customRuntimeLines",
+                      "legacyLines",
+                      "legacyFolder",
+                      "legacyRevision",
+                      "runtimeShare",
+                      "passed",
+                      "gameSystemAttribution",
+                      "shardRuntimeLines"
+                    ],
+                    "additionalProperties": false
                   }
                 },
                 "required": [

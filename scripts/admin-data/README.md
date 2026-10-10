@@ -51,3 +51,8 @@ Write `progress/loading/sf67/<run>/report.json` with [loading.schema.json](loadi
 Times are milliseconds on one run's monotonic clock, relative to its navigation start. Durations are finite and nonnegative; every long task is **strictly >50 ms**. Phase ends cannot precede starts. Build/device are required. Unsupported long-task instrumentation goes into `missing`, never a claim of zero pauses. Cold/warm runs are separate entries; all share the report pin/device. The producer records failures/missing stages honestly; an empty report needs a missing reason. Nested run folders are accepted. Extra fields / unknown schema versions fail so changes are reviewed before consumption.
 
 Focused check: `pnpm exec vitest run test/admin-data.test.ts`. Fixtures use a temporary Git repository and synthetic reports; tests never depend on `progress/` surviving a Vercel game export.
+
+G291 changes the primary 80/20 measure to authored runtime TypeScript divided by each registered frozen legacy copy.
+The additive `conversion` object carries the exact numerator, denominator, frozen revision, ratio and pass; absent
+copies are explicitly null and keep the old measure. `legacyShare` preserves the public/custom share as secondary.
+G294 adds transitive game/SDK TS modules reached by exactly one primary shard, deduplicated by source path; two or more primary users, or _template, make a module public. Frozen copies never supply users. The exact module list is included for the pending Opus audit. G291/G294 is report-only; existing gate membership and legacy-share checks remain unchanged.

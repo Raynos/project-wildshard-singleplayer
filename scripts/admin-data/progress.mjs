@@ -20,6 +20,31 @@ function flag(value,where){
   return value;
 }
 
+/** Validate G291's additive measure; unavailable never becomes zero.
+ * @param {unknown} value @param {string} slug @returns {import('../shard-platform.mjs').ConversionMeasure} */
+function conversion(value,slug){
+  if(!isObject(value)||!['runtime-vs-legacy','legacy-share'].includes(String(value.metric)))throw new Error(`Share script output: ${slug}.conversion is invalid`);
+  const metric=value.metric==='runtime-vs-legacy'?'runtime-vs-legacy':'legacy-share';
+  const customRuntimeLines=count(value.customRuntimeLines,`${slug}.customRuntimeLines`);
+  const shardRuntimeLines=count(value.shardRuntimeLines,`${slug}.shardRuntimeLines`),attribution=value.gameSystemAttribution;
+  if(!isObject(attribution)||attribution.status!=='import-graph'||attribution.review!=='pending-opus-audit'||!Array.isArray(attribution.modules))throw new Error(`Share script output: ${slug} requires explicit game-system attribution`);
+  const modules=attribution.modules.map(module=>{
+    if(!isObject(module)||typeof module.path!=='string'||!/^src\/(?:game|sdk)\//u.test(module.path))throw new Error(`Share script output: ${slug} has invalid attributed module`);
+    return {path:module.path,lines:count(module.lines,`${slug}.${module.path}`)};
+  });
+  const lines=count(attribution.lines,`${slug}.gameSystemAttribution.lines`);
+  if(new Set(modules.map(module=>module.path)).size!==modules.length||lines!==modules.reduce((total,module)=>total+module.lines,0)||customRuntimeLines!==shardRuntimeLines+lines)throw new Error(`Share script output: ${slug} has inconsistent attributed lines`);
+  const gameSystemAttribution={status:/** @type {const} */('import-graph'),review:/** @type {const} */('pending-opus-audit'),lines,modules};
+  if(metric==='legacy-share'){
+    if([value.legacyLines,value.legacyFolder,value.legacyRevision,value.runtimeShare,value.passed].some(field=>field!==null))throw new Error(`Share script output: ${slug} without legacy must be explicitly unavailable`);
+    return {metric,customRuntimeLines,shardRuntimeLines,legacyLines:null,legacyFolder:null,legacyRevision:null,runtimeShare:null,passed:null,gameSystemAttribution};
+  }
+  const legacyLines=count(value.legacyLines,`${slug}.legacyLines`),runtimeShare=count(value.runtimeShare,`${slug}.runtimeShare`);
+  if(legacyLines===0||value.legacyFolder!==`${slug}-legacy`||typeof value.legacyRevision!=='string'||!/^[a-f0-9]{40}$/u.test(value.legacyRevision)
+    ||runtimeShare!==customRuntimeLines/legacyLines||value.passed!==(customRuntimeLines<=legacyLines*0.2))throw new Error(`Share script output: ${slug} has inconsistent G291 numbers`);
+  return {metric,customRuntimeLines,shardRuntimeLines,legacyLines,legacyFolder:value.legacyFolder,legacyRevision:value.legacyRevision,runtimeShare,passed:flag(value.passed,`${slug}.conversion.passed`),gameSystemAttribution};
+}
+
 /** `node scripts/shard-platform.mjs --json` → its rows, verbatim, with the six proofs counted.
  * @param {unknown} value @returns {import('./types.mjs').ShareReport} */
 export function readSharePlatform(value){
@@ -34,11 +59,15 @@ export function readSharePlatform(value){
       transitional:flag(milestones.transitional,`${slug}.transitional`)};
     const publicShare=count(row.publicShare,`${slug}.publicShare`);
     if(publicShare>1)throw new Error(`Share script output: ${slug}.publicShare exceeds 1`);
-    return {slug,publicLines:count(row.publicLines,`${slug}.publicLines`),customLines:count(row.customLines,`${slug}.customLines`),
+    /** @type {import('./types.mjs').ShardShare} */
+    const measured={slug,publicLines:count(row.publicLines,`${slug}.publicLines`),customLines:count(row.customLines,`${slug}.customLines`),
       runtimeLines:count(row.runtimeLines,`${slug}.runtimeLines`),trustedRuntimeLines:count(row.trustedRuntimeLines,`${slug}.trustedRuntimeLines`),
       publicShare,baseline:count(row.baseline,`${slug}.baseline (no baseline in lint/shard-platform.json?)`),
       ceiling:count(row.ceiling,`${slug}.ceiling`),enforced:flag(row.enforced,`${slug}.enforced`),proofs,
       proofsPassing:PROOFS.filter(name=>proofs[name]).length};
+    if(row.legacyShare!==undefined)measured.legacyShare=count(row.legacyShare,`${slug}.legacyShare`);
+    if(row.conversion!==undefined)measured.conversion=conversion(row.conversion,slug);
+    return measured;
   });
   if(shards.length===0)throw new Error(`Share script output lists no shards (${SHARE_COMMAND})`);
   return {command:SHARE_COMMAND,target:SHARE_TARGET,shards};

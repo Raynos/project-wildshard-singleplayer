@@ -151,6 +151,20 @@ describe('admin view mapping', () => {
     expect(plan.decisionRange).toBe('G248–G248');
   });
 
+  it('uses G291 for the hard count and keeps legacy-share separate', () => {
+    const data = structuredClone(ADMIN);
+    const pine = data.progress.share.shards.find(row => row.slug === 'pine-hollow');
+    if (pine === undefined) throw new Error('Missing Pine fixture');
+    pine.conversion = { metric: 'runtime-vs-legacy', customRuntimeLines: 20, shardRuntimeLines: 20, legacyLines: 100, legacyFolder: 'pine-hollow-legacy',
+      legacyRevision: 'a'.repeat(40), runtimeShare: 0.2, passed: true, gameSystemAttribution: { status: 'import-graph', review: 'pending-opus-audit', lines: 0, modules: [] } };
+    const result = toView(data, '', new Set()).plans.progress;
+    expect(result.hardCount).toEqual({ done: 2, total: 7 });
+    expect(result.shipping.find(row => row.slug === 'pine-hollow')).toMatchObject({ sharePct: 80, legacySharePct: 23.7,
+      measure: 'runtime-vs-legacy', runtime: 20, ceiling: 20, at8020: true });
+    pine.conversion = { ...pine.conversion, customRuntimeLines: 21, shardRuntimeLines: 21, runtimeShare: 0.21, passed: false };
+    expect(toView(data, '', new Set()).plans.progress.hardCount).toEqual({ done: 1, total: 7 });
+  });
+
   it('fails when the share script lost a shipping shard', () => {
     const data = structuredClone(ADMIN);
     data.progress.share.shards = data.progress.share.shards.filter((s) => s.slug !== 'nalati-grasslands');

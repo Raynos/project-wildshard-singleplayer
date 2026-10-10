@@ -266,3 +266,15 @@ Confidence is medium for the hours spent and low to medium for the hours left. T
   expect(parsed.totals).toEqual([{label:'M3',spentHours:300,remainingHours:380,remainingRange:null,effortPercent:44},{label:'Part A',spentHours:630,remainingHours:420,remainingRange:null,effortPercent:60}]);
   expect(()=>readSharePlatform([])).toThrow('not an object');
 });
+
+it('carries G291 numbers into the typed bundle and refuses invented unavailable denominators',()=>{
+  const conversion={metric:'runtime-vs-legacy',customRuntimeLines:20,shardRuntimeLines:20,legacyLines:100,legacyFolder:'far-reach-legacy',legacyRevision:pin,
+    runtimeShare:0.2,passed:true,gameSystemAttribution:{status:'import-graph',review:'pending-opus-audit',lines:0,modules:[]}};
+  const report={...share,'far-reach':{...share['far-reach'],legacyShare:0.4,conversion}};
+  const collected=collectAdminData({...tree(),platform:()=>report}).bundle;
+  expect(readAdminBundle(collected).progress.share.shards.find(row=>row.slug==='far-reach')?.conversion).toEqual(conversion);
+  expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...conversion,runtimeShare:0.3}}})).toThrow('inconsistent G291');
+  const missing={...conversion,metric:'legacy-share',legacyLines:null,legacyFolder:null,legacyRevision:null,runtimeShare:null,passed:null};
+  expect(readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:missing}}).shards.find(row=>row.slug==='far-reach')?.conversion?.legacyLines).toBeNull();
+  expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...missing,legacyLines:0}}})).toThrow('explicitly unavailable');
+});

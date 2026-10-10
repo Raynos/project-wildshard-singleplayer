@@ -159,14 +159,16 @@ export interface Milestone {
 export interface ProgressShard {
   slug: string;
   name: string;
-  /** Public SDK share, % (measured on this build's revision). */
+  /** G291 runtime reduction from frozen TS, or legacy-share without a copy, %. */
+  measure?: 'runtime-vs-legacy' | 'legacy-share';
+  legacySharePct?: number;
   sharePct: number;
   publicLines: number;
   customLines: number;
-  /** runtime/ + trusted-SDK lines, and the ceiling they must stay under (measure 2). */
+  /** Authored runtime TS / 20 % frozen TS ceiling; old measure when no frozen copy exists. */
   runtime: number;
   ceiling: number;
-  /** Both measures: share ≥ the target and runtime ≤ the ceiling. */
+  /** G291 passes at ≤20 % retained runtime; no-copy rows keep the old measure. */
   at8020: boolean;
   /** Of the six: boot, headless, replay, ledger, grid-ready, compatible. */
   proofs: number;

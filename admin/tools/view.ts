@@ -233,18 +233,23 @@ export function progress(p: Progress, revision: string, media: Map<string, Media
     used.add(row);
     return { name: row.name, pct: row.effortPercent, spent: row.spentHours, left: row.remainingHours, approx: row.approximate };
   };
-  const toShard = (row: ShardShare): ProgressShard => ({
+  const toShard = (row: ShardShare): ProgressShard => {
+    const runtimeShare = row.conversion?.runtimeShare ?? null, legacyLines = row.conversion?.legacyLines ?? null;
+    return {
     slug: row.slug,
     name: known(row.slug)?.name ?? shardName(row.slug),
-    sharePct: Math.round(row.publicShare * 1000) / 10,
+    measure: row.conversion?.metric ?? 'legacy-share',
+    legacySharePct: Math.round(row.publicShare * 1000) / 10,
+    sharePct: Math.round((runtimeShare === null ? row.publicShare : Math.max(0, 1 - runtimeShare)) * 1000) / 10,
     publicLines: row.publicLines,
     customLines: row.customLines,
-    runtime: row.runtimeLines,
-    ceiling: row.ceiling,
-    at8020: row.publicShare >= target && row.runtimeLines <= row.ceiling,
+    runtime: legacyLines === null ? row.runtimeLines : (row.conversion?.customRuntimeLines ?? row.runtimeLines),
+    ceiling: legacyLines === null ? row.ceiling : Math.floor(legacyLines * 0.2),
+    at8020: row.conversion?.passed ?? (row.publicShare >= target && row.runtimeLines <= row.ceiling),
     proofs: row.proofsPassing,
     effort: effortFor(row.slug),
-  });
+    };
+  };
   const shipping = SHIPPING.map(({ slug }) => {
     const row = p.share.shards.find((s) => s.slug === slug);
     if (!row) throw new Error(`Progress: ${p.share.command} has no row for the shipping shard ${slug}`);

@@ -1,3 +1,4 @@
+import type { ConversionMeasure } from '../shard-platform.mjs';
 import type { MemoryReport } from '../memory-report-data.mjs';
 
 export interface Source { path:string; sha256:string; bytes:number }
@@ -39,7 +40,12 @@ export interface ShareProofs { boot:boolean; headless:boolean; replay:boolean; l
 export interface ShardShare {
   slug:string; publicLines:number; customLines:number; runtimeLines:number; trustedRuntimeLines:number;
   /** public ÷ (public + custom), 0..1. */
-  publicShare:number; baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
+  publicShare:number;
+  /** Secondary historical public/custom share. Old report fixtures may omit the additive G291 fields. */
+  legacyShare?:number;
+  /** G291 frozen-runtime comparison, including explicit unavailable fields and the audit hook. */
+  conversion?:ConversionMeasure;
+  baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
   /** boot, headless, replay, ledger, grid-ready, compatible: how many of the six pass. */
   proofsPassing:number;
 }

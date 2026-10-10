@@ -50,6 +50,8 @@ export function comparePlatformList(list, baselineFile, candidateFile) {
   } else if (list === 'lint/edge-exemptions.json') {
     for (const slug of Object.keys(after.levels)) if (!Object.hasOwn(before.levels, slug)) failures.push(`${list}: new edge exemption ${slug}`);
   } else if (list === 'lint/shard-platform.json') {
+    // G291 changes the measured conversion ratio, not these historical no-copy policies.
+    // G291/G294 is report-only until reviewed; never rewrite or relax the predecessor baselines.
     for (const [slug, lines] of Object.entries(before.baseline)) {
       if (after.baseline[slug] !== lines) failures.push(`${list}: ${slug} baseline must stay ${lines}`);
     }

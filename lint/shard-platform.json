@@ -1,5 +1,5 @@
 {
-  "about": "SHARD-PLATFORM SF6: immutable physical TypeScript-line baseline from SP5 (the old ratio is now labelled legacy TS). Converted shards must reach public SDK share >=80 % and hold their logical runtime/ line ceiling <=20 % of this baseline. Ceilings only fall (scripts/shard-platform.mjs). A shard joins enforced at its conversion row (SF46\u2013SF51); Thin Ice (SF53) at its first commit. Milestone proofs follow test/proof/<slug>/ (scripts/README.md).",
+  "about": "G291/G294 report-only: authored shard runtime TS plus singly-reached game/SDK TS divided by its registered frozen legacy TS size; PASS <=20 %. Exclude generators/data from shard runtime, tests/generated/baked files from every count. A game/SDK module is public only when reached by >=2 primary shards or _template (frozen copies excluded). Classification awaits Opus audit. Secondary legacy-share and the immutable historical baseline/ceilings below keep their prior gate enforcement unchanged; no new failures from the definition change.",
   "baselineAt": "b96fed1a1",
   "baseline": {
     "_template": 550,
