@@ -26,7 +26,8 @@ import { installMatriarch } from '../../../src/shards/sunscar-dunes/combat/matri
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { DUNE_RAY } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
-import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from '../../../src/shards/sunscar-dunes/species/skitterer';
+import { SAND_SKITTERER_LOOK } from '../../../src/shards/sunscar-dunes/species/skitterer';
+import { SKITTERER_DATA } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
 import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/data/species/strider';
 import { DUNE_STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from '../../../src/shards/sunscar-dunes/species/matriarch';
@@ -46,7 +47,7 @@ it('restores a cold lit save after home respawn and boss retry without changing 
       app.levelScope = scope; configureLevel(toLevelSpec(SUNSCAR_DUNES));
       try {
         withOwner(scope, () => {
-          for (const row of [DUNE_RAY, SAND_SKITTERER, DUNE_STRIDER, DUNE_MATRIARCH]) app.species.registerRow(row, scope);
+          for (const row of [DUNE_RAY, SKITTERER_DATA, DUNE_STRIDER, DUNE_MATRIARCH]) app.species.registerRow(row, scope);
           for (const look of [DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]) {
             const { loadSkin, skin, preload, hasSkin, ...procedural } = look;
             void loadSkin; void skin; void preload; void hasSkin;

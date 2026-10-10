@@ -2258,6 +2258,22 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
+**Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
+(`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
+up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
+`mem`, with spawn values), `maxSpeed` / `maxTurnRate` and a catalogue of 1–8 `{ event, strike }`. `speciesBrains(species,
+strikes, modules)` takes the module as the base64 its bake wrote (`scripts/bake/species-scripts.mjs`), checks its hash
+(synchronous `sha256`) and admits it on its own `ScriptHost` under the unchanged ABI-v0 ceilings. Each think / act is one
+pure call (`ScriptHost.rewind` returns the module to its admitted memory and globals in place afterwards), its inputs the
+phase, alive, calm, clock, the distance and yaw to the player, both positions, the actor's yaw and `seedHash`, its strike
+phase and busy flag, its slots and memory; it answers field records (new slots, memory, one steer within the bounds) and
+at most one declared strike event, which the host turns into reach, then an attack token, then the trusted
+`StrikeRunner`'s pick and start. Trigonometry goes through the math query (kind 1, `SPECIES_MATH_QUERY`: sin, cos,
+atan2 on the host's Math, a large argument split at multiples of 8192), so a script matches the TypeScript policy it
+replaces bit for bit. `ScriptSpeciesPolicy` holds the slots and the strike clock; its continuation is those two, never
+module memory. Signal's skitterer is the first (`behaviour/skitterer.as`), held to its old policy by
+`test/shards/sunscar-dunes/skitterer-script.test.ts`.
+
 
 ### Exported creature skins and clips
 

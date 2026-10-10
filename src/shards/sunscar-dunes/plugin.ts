@@ -1,6 +1,7 @@
 import { standaloneEntry } from './runtime/standalone';
 import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
-import { SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
+import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
+import { SKITTERER_DATA } from './data/species/skitterer';
 import { DUNE_RAY } from './data/species/duneRay';
 import { DUNE_STRIDER } from './data/species/strider';
 import { installLoot } from '@wildshard/game/loot/runtime';
@@ -29,7 +30,7 @@ import { FACT, MATRIARCH_FLAG } from './quests/signal';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
-import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
+import { SAND_SKITTERER_LOOK } from './species/skitterer';
 import { DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
@@ -92,9 +93,9 @@ export class SignalDunesPlugin extends ShardPlugin {
   }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(WHIP_ROW);
-    // SF27: the ray and the strider run their rows' declared brains; the skitterer and the Matriarch their runtime policies
-    const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES); this.brains = brains;
-    ctx.rows.species([{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, SAND_SKITTERER, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
+    // SF27: the ray, the skitterer (an admitted species script) and the strider run their rows' declared brains; the Matriarch her runtime policy
+    const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES); this.brains = brains;
+    ctx.rows.species([{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
     ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);
     const rt = ctx.game.runtime;
     // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.

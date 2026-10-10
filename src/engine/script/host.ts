@@ -171,6 +171,17 @@ export class ScriptHost {
     for (const entry of staged) { entry.state.good = entry.good; entry.state.running = entry.running; entry.state.failures = entry.failures; entry.state.disabled = entry.disabled; entry.state.depth = 0; entry.state.busy = false; }
     this.tick = saved.tick; this.used = { ...saved.used }; this.pending = saved.pending.map((e) => ({ ...e }));
   }
+  /**
+   * Return a module to a snapshot of its own in place (a pure call's admitted state): the bytes are copied into the live
+   * memory and the globals set, with no new instance, when the memory has not grown; otherwise as `restore`.
+   */
+  rewind(name: string, saved: ScriptSnapshot): void {
+    const state = this.modules.get(name); if (!state || this.active) throw new Error('Unknown or active module');
+    const running = currentInstance(state);
+    if (running.memory.buffer.byteLength !== saved.memory.length || saved.globals.size !== state.admission.globals.length) { this.restore(name, saved); return; }
+    for (const [global, value] of saved.globals) { const live = running.instance.exports[global]; if (!(live instanceof WebAssembly.Global)) throw new Error('Missing saved global'); live.value = value; }
+    new Uint8Array(running.memory.buffer).set(saved.memory); state.good = clone(saved); state.remaining = this.limits.fuelPerCall; state.depth = 0;
+  }
   /** Restore complete state into a new instance without running initialization again. */
   restore(name: string, saved: ScriptSnapshot): void {
     const state = this.modules.get(name); if (!state || this.active) throw new Error('Unknown or active module');

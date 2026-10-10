@@ -921,7 +921,10 @@ or `patrol-diver`, its data the same strict schema as the `creatures.brains` fam
 `speciesBrains(species, strikes)` admits the catalogue before any row or policy is built
 (unknown archetype, failed schema or unresolved strike refuses); the client spreads
 `bind(kind)` onto the row and the headless host calls `installSpeciesHomes`, so one
-declaration drives both. Rows without a brain keep their runtime policy.
+declaration drives both. Rows without a brain keep their runtime policy. A `script`
+brain names an admitted AssemblyScript module by hash with parameters, up to 8 state
+slots, up to 4 actor memory fields, motion bounds and 1–8 declared strikes; its module
+comes to `speciesBrains` as the bake's base64 and is checked against the hash.
 
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,

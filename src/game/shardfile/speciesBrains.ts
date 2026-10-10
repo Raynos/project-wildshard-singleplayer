@@ -12,6 +12,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer } from './grazers';
 import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from './flyers';
+import { parseScriptSpecies, ScriptSpeciesPolicy, SpeciesScriptLane, type ScriptSpeciesData, type ScriptSpeciesSchema } from './speciesScripts';
 import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from './homeKeeper';
 
 /**
@@ -21,7 +22,8 @@ import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, 
  */
 export type SpeciesBrain =
   | { readonly archetype: 'challenge-grazer'; readonly data: v.InferInput<typeof ChallengeGrazerSchema>; readonly phaseSlots: number }
-  | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> };
+  | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
+  | { readonly archetype: 'script'; readonly data: v.InferInput<typeof ScriptSpeciesSchema> };
 /** A species' gameplay data with an optional declared brain; a row without one keeps its runtime's own policy. */
 export type BrainedSpecies = Omit<SpeciesRow, 'parent' | 'think' | 'act'> & { readonly brain?: SpeciesBrain };
 
@@ -41,7 +43,8 @@ export interface HomeObservation {
 
 type Admitted =
   | { readonly archetype: 'challenge-grazer'; readonly data: ShardChallengeGrazer; readonly phaseSlots: number; readonly charge: StrikeSpec; readonly close: StrikeSpec }
-  | { readonly archetype: 'patrol-diver'; readonly data: ShardPatrolDiver; readonly strike: StrikeSpec };
+  | { readonly archetype: 'patrol-diver'; readonly data: ShardPatrolDiver; readonly strike: StrikeSpec }
+  | { readonly archetype: 'script'; readonly data: ScriptSpeciesData; readonly lane: SpeciesScriptLane; readonly catalogue: readonly StrikeSpec[] };
 
 /** A stable small integer per actor (its seed hashed) in `[0, n)`: the slot a pack member takes round a ring. */
 export function seedSlot(seed: number, n: number): number { return Math.floor(Math.abs(Math.sin(seed * 12.9898 + 1.7) * 43758.5)) % n; }
@@ -66,7 +69,7 @@ export interface SpeciesBrains {
 function strikeOf(strikes: ReadonlyMap<string, StrikeSpec>, id: string, kind: string): StrikeSpec {
   const strike = strikes.get(id); if (strike === undefined) throw new Error(`Species ${kind}'s brain names an undeclared strike ${id}`); return strike;
 }
-function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, StrikeSpec>): Admitted {
+function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, StrikeSpec>, modules: ReadonlyMap<string, Uint8Array>): Admitted {
   switch (brain.archetype) {
     case 'challenge-grazer': {
       const data = parseChallengeGrazer(brain.data);
@@ -74,6 +77,11 @@ function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, S
       return { archetype: brain.archetype, data, phaseSlots: brain.phaseSlots, charge: strikeOf(strikes, data.charge, kind), close: strikeOf(strikes, data.close, kind) };
     }
     case 'patrol-diver': { const data = parsePatrolDiver(brain.data); return { archetype: brain.archetype, data, strike: strikeOf(strikes, data.strike, kind) }; }
+    case 'script': {
+      const data = parseScriptSpecies(brain.data), bytes = modules.get(data.module);
+      if (bytes === undefined) throw new Error(`Species ${kind}'s brain module ${data.module} was not supplied`);
+      return { archetype: brain.archetype, data, lane: new SpeciesScriptLane(data, bytes), catalogue: data.strikes.map(row => strikeOf(strikes, row.strike, kind)) };
+    }
     default: throw new Error(`Species ${kind} declares an unknown brain archetype`);
   }
 }
@@ -92,18 +100,24 @@ function browserCallbacks(brain: Admitted): { callbacks: Callbacks; live: (actor
       const of = (a: Animal): PatrolDiverBrain<Animal> => { let value = live.get(a); if (value === undefined) { value = new PatrolDiverBrain(a, brain.data, brain.data.home, brain.strike); live.set(a, value); } return value; };
       return { live: a => live.has(a), callbacks: { think: (a, c) => { of(a).think(c); }, act: (a, c) => { of(a).act(c); } } };
     }
+    case 'script': {
+      const live = new WeakMap<Animal, ScriptSpeciesPolicy<Animal>>();
+      const of = (a: Animal): ScriptSpeciesPolicy<Animal> => { let value = live.get(a); if (value === undefined) { value = new ScriptSpeciesPolicy(a, brain.lane, brain.catalogue); live.set(a, value); } return value; };
+      return { live: a => live.has(a), callbacks: { think: (a, c) => { of(a).think(c); }, act: (a, c) => { of(a).act(c); } } };
+    }
     default: throw new Error('Unknown admitted brain archetype');
   }
 }
 
 /**
  * Admit a species catalogue's declared brains (SF27) against its strike rows: every brain's data passes its archetype's
- * strict schema and every strike it names resolves, before any row, policy or actor exists. Duplicate kinds refuse.
+ * strict schema and every strike it names resolves, before any row, policy or actor exists; a script brain's module
+ * (`modules`, by hash) is checked against its hash and admitted on its own ScriptHost. Duplicate kinds refuse.
  */
-export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRows: readonly StrikeData[]): SpeciesBrains {
+export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRows: readonly StrikeData[], modules: ReadonlyMap<string, Uint8Array> = new Map()): SpeciesBrains {
   const strikes = new Map(strikeRows.map(row => [row.id, strikeFromData(row)] as const));
   if (strikes.size !== strikeRows.length || new Set(species.map(row => row.kind)).size !== species.length) throw new Error('Duplicate species kind or strike id');
-  const admitted = new Map(species.flatMap(row => row.brain === undefined ? [] : [[row.kind, admit(row.brain, row.kind, strikes)] as const]));
+  const admitted = new Map(species.flatMap(row => row.brain === undefined ? [] : [[row.kind, admit(row.brain, row.kind, strikes, modules)] as const]));
   const witnesses: { archetype: string; live: (actor: Animal) => boolean }[] = [];
   return {
     kinds: new Set(admitted.keys()),
@@ -116,8 +130,12 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
     policy: (kind, actor) => {
       const brain = admitted.get(kind);
       if (brain === undefined) return null;
-      return brain.archetype === 'challenge-grazer' ? new ChallengeGrazerBrain(actor, brain.data, brain.charge, brain.close)
-        : new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
+      switch (brain.archetype) {
+        case 'challenge-grazer': return new ChallengeGrazerBrain(actor, brain.data, brain.charge, brain.close);
+        case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
+        case 'script': return new ScriptSpeciesPolicy(actor, brain.lane, brain.catalogue);
+        default: throw new Error('Unknown admitted brain archetype');
+      }
     },
     phase: (kind, actor) => { const brain = admitted.get(kind); return brain?.archetype === 'challenge-grazer' ? seedSlot(actor.seed, brain.phaseSlots) : 0; },
   };

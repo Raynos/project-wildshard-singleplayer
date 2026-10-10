@@ -1,7 +1,7 @@
 {
   "audit": {
-    "sourceRevision": "601ed0299112c2befe6a88bb8e648d9414384853",
-    "candidate": "SF72 generic lash on current HEAD: headless light cracks now land after the browser unroll (0.12 s), and the crank reacts on the heavy second lash (0.32 s). Correct browser timing changes the real fight: ticks 12636 -> 12459, victory 12516 -> 12339, blows 15 -> 14, shoved ticks 165 -> 154, checkpoint 10710 -> 10680, suffix 1926 -> 1779. Browser 13-case pinned trace unchanged; 25 coins, both facts, 92 entry lanes / 46095 steps and one attempt unchanged.",
+    "sourceRevision": "5088efdbba7a0afe94bc35dc99c84e972f683ae9",
+    "candidate": "SF27 the skitterer's policy is an admitted species script (behaviour/skitterer.as): its continuation in the homes keeper is now {slots, strikes} where the TypeScript brain saved {state, clock, far, strikes}, so the end hash moves 378b7319… -> 4abe0860…. Behaviour is unchanged: the same tape digested every tick's whole sim snapshot with only that encoding normalized is identical on aa14e741e and the candidate over all 12,459 ticks (all four skitterer states visited); ticks, victory 12339, checkpoint 10680, blows 14, shoved ticks 154, suffix 1779, 25 coins, both facts, 92 entry lanes / 46095 steps and one attempt unchanged.",
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
     "exitStatus": 0,
     "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 12459,
-    "hash": "378b731986cf2d609e65071945937b78f76d4ab056f92b55fb541547efda6a81",
+    "hash": "4abe08602eb4d06eb10f1e0ef4829bb3bcee0fef61fb097d3d2f306508a325ee",
     "victoryTick": 12339,
     "attempts": 1,
     "questComplete": true,
@@ -41,8 +41,8 @@
     },
     "suffixTicksExecuted": 1779,
     "victoryTick": 12339,
-    "hash": "378b731986cf2d609e65071945937b78f76d4ab056f92b55fb541547efda6a81",
-    "replayHash": "378b731986cf2d609e65071945937b78f76d4ab056f92b55fb541547efda6a81",
+    "hash": "4abe08602eb4d06eb10f1e0ef4829bb3bcee0fef61fb097d3d2f306508a325ee",
+    "replayHash": "4abe08602eb4d06eb10f1e0ef4829bb3bcee0fef61fb097d3d2f306508a325ee",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [

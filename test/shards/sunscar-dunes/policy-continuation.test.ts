@@ -10,8 +10,10 @@ import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapsho
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { canReach } from '../../../src/engine/ai/reach';
-import { SkittererBrain, type SkittererPorts } from '../../../src/shards/sunscar-dunes/runtime/species/skitterer';
-import { MatriarchBrain, type MatriarchPorts } from '../../../src/shards/sunscar-dunes/runtime/species/matriarch';
+import { MatriarchBrain } from '../../../src/shards/sunscar-dunes/runtime/species/matriarch';
+import { speciesBrains } from '../../../src/sdk/speciesBrains';
+import type { HomeObservation, SpeciesPolicy } from '../../../src/game/shardfile/speciesBrains';
+import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../../src/shards/sunscar-dunes/data/brains';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { SIM_LEVEL } from '../../fixtures/sim-level/level';
 
@@ -26,10 +28,24 @@ function recipe(kind: Kind): SimSpawn {
     spec: { ...base.spec, kind: kind === 'skitterer' ? 'sandSkitterer' : 'duneMatriarch',
       ...(kind === 'matriarch' ? { flight: { altitude: 18, above: 'ground', climbRate: 7, diveRate: 20, lockRange: 60 } } : {}) } };
 }
-function install(host: SimHost, kind: Kind): SkittererBrain<AnimalSim> | MatriarchBrain<AnimalSim> {
-  const actor = host.spawn(recipe(kind)), policy = kind === 'skitterer' ? new SkittererBrain(actor) : new MatriarchBrain(actor);
-  const ports: MatriarchPorts<AnimalSim> & SkittererPorts<AnimalSim> = {
-    dt: 1 / 60, t: 0, player: host.player.position, calm: false,
+/** The skitterer's shipping policy is its admitted species script (SF27); the Matriarch's is her runtime brain. */
+function shipping(kind: Kind, actor: AnimalSim): SpeciesPolicy<HomeObservation> {
+  if (kind === 'matriarch') return new MatriarchBrain<AnimalSim>(actor);
+  const policy = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES).policy('sandSkitterer', actor);
+  if (policy === null) throw new Error('Missing skitterer script policy');
+  return policy;
+}
+/** A policy's state name: the script's first slot (0 buried … 3 retreat) or the Matriarch's state. */
+function stateOf(policy: SpeciesPolicy<HomeObservation>): string {
+  const saved = policy.snapshot(), value: unknown = typeof saved === 'string' ? JSON.parse(saved) : null;
+  if (typeof value !== 'object' || value === null) throw new Error('Expected policy object');
+  const slots: unknown = Reflect.get(value, 'slots'), state: unknown = Reflect.get(value, 'state');
+  return Array.isArray(slots) ? ['buried', 'burst', 'hunt', 'retreat'][Number(slots[0])] ?? 'unknown' : String(state);
+}
+function install(host: SimHost, kind: Kind): SpeciesPolicy<HomeObservation> {
+  const actor = host.spawn(recipe(kind)), policy = shipping(kind, actor);
+  const ports: HomeObservation = {
+    dt: 1 / 60, t: 0, player: host.player.position, calm: false, phaseOffset: 0,
     reach: a => canReach(a, host.player.position, host.physics), claim: () => true,
     hurt: damage => { host.combat.hit({ source: actor.combatActor(), sourceTags: ['creature.test'], target: host.player.health,
       amount: damage, point: host.player.position, dir: actor.position, from: actor.position, moveId: 'policy.contact' }); },
@@ -56,7 +72,7 @@ it.each(['skitterer', 'matriarch'] as const)('restores %s clocks, native motion 
       restored = restoreSimHost(level, { rapier }, saved, fresh => { install(fresh, kind); });
       expectSameSimSnapshot(snapshotSimHost(restored), saved);
       for (let tick = 0; tick < 600; tick++) {
-        original.step(); restored.step(); states.add(policy.state);
+        original.step(); restored.step(); states.add(stateOf(policy));
         const state = policy.snapshot();
         if (typeof state === 'string' && (state.includes('"phase":"windup"') || state.includes('"phase":"active"'))) pending = true;
         expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
