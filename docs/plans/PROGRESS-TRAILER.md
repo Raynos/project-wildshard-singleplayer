@@ -130,9 +130,11 @@ a later build reads worse, a verb missing), the beat changes to the nearest hone
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 
 The trailer agent landed what HEAD shots need in `64c6d84f0` (asked over herdr): `capture.mjs --shots-file`,
-`cut.mjs --cut-file`, InputService held movement in `lib.mjs`, real sub-steps. Asked of them next (PT7): **`titles.mjs
---titles-html=<path>`**, so this trailer's cards (the counter, the rail, the compressed clock, the end card) live in
-`scripts/progress-trailer/titles.html`; and the path of TR5's session recording (PT6). Mix and edit run unchanged.
+`cut.mjs --cut-file`, InputService held movement in `lib.mjs`, real sub-steps; then in `af87b952b`: **`titles.mjs
+--titles-html=<path>`** (the page defines `window.pose(card, t, opts)` and `window.setPortrait(on)`), so this trailer's
+cards (the counter, the rail, the compressed clock, the end card) live in `scripts/progress-trailer/titles.html`; and
+TR5's session in git, `progress/trailers/tr5-lookout-session.cast` (asciinema v3, its first user line is the original
+prompt; `build-beat.mjs` shows how it renders). Mix and edit run unchanged.
 
 ### 3.3 The authoring lapses
 
@@ -177,8 +179,8 @@ compress.
 | PT3 | **The play takes**: `speed` / `sub` and `edit.mjs` frame output in the adapter; every §2.2 play beat on its SHA; the rewind as one input track authored on the day-22 take at a real stag, replayed byte-identical on days 1, 8 and 15, hip-fire (day 1's sight zooms to 50°, later builds to 58°), each take logging the bolt's position per frame so each cut lands where the incoming bolt has flown the same distance | every take accepted by its receipt and checked; the rewind's four takes share one input track | progress-trailer agent |
 | PT4 | **HEAD shots** (the cold open `nd-grapple`, the grid `g-reveal`) through the trailer agent's `capture.mjs --shots-file` (`64c6d84f0`) | the takes exist at 1080p60, in-points as §2.2 | progress-trailer agent |
 | PT5 | **The lapses** (§3.3): day 1's 21 stills on their compressed clock (3 s, no camera); Driftwood (6 s) and Nine Dragon (5 s), moving camera, 5–6 stages; Sky Reach (8 s), the re-render ending on the week-3 take's frame 0 | each lapse plays at its §2.2 length in the authoring frame with the rail, counter and date | progress-trailer agent |
-| PT6 | **The Claude Code beat**: TR5's session (path from the trailer agent) showing its own first prompt, or a new session that opens with the words of the ask whose result is on screen next | 3 s, prompt ≥ 64 px cap height at 1080, cited in the receipt | progress-trailer agent |
-| PT7 | **Receipts and titles**: `titles.mjs --titles-html` from the trailer agent (§3.2); the cards, rail, counter and compressed clock in `scripts/progress-trailer/titles.html`; `dayOf`, counts, shards and spans computed (§2.3) | a test renders the cards from git and asserts 29 / 624 / 2,495 / 5,729, day 24 on 9 Oct and 6 shards at `c9aaa62ab` | progress-trailer agent, the trailer agent for the flag |
+| PT6 | **The Claude Code beat**: TR5's session (`progress/trailers/tr5-lookout-session.cast`) showing its own first prompt, or a new session that opens with the words of the ask whose result is on screen next | 3 s, prompt ≥ 64 px cap height at 1080, cited in the receipt | progress-trailer agent |
+| PT7 | **Receipts and titles**: `titles.mjs --titles-html` (`af87b952b`, §3.2); the cards, rail, counter and compressed clock in `scripts/progress-trailer/titles.html`; `dayOf`, counts, shards and spans computed (§2.3) | a test renders the cards from git and asserts 29 / 624 / 2,495 / 5,729, day 24 on 9 Oct and 6 shards at `c9aaa62ab` | progress-trailer agent |
 | PT8 | **Score and SFX** (§3.4) | the cue (picked of four seeds) and the SFX on disk with credits; the mix at −14 LUFS / −1 dBTP on the encoded file | progress-trailer agent |
 | PT9 | **Cut and conform** the master from one EDL through the shared `edit.mjs` (historical clips `grade: 'null'`) | the 16:9 master plays whole; a phone copy sent to Jake | progress-trailer agent |
 | PT10 | **Jake's verdict and where it goes** (YouTube, X, the site): his notes become rows here | his words recorded | Jake |
