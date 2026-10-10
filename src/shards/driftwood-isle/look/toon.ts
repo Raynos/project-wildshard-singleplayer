@@ -24,14 +24,14 @@
  * - **specular** from the sun: three's GGX times the lit band, skipped on rough materials (roughness > 0.72,
  *   which is every lowpolyKit model) — the phone pays a Lambert, not a GGX, for the island.
  *
- * SHARD-PLATFORM M3: the light model and the ramp fog are the SDK toon light (@wildshard/sdk/looks/toonLight); the GLSL is
- * data (data/toonGlsl.ts), the tunables' starting values too (data/toonLook.ts).
+ * The trusted runtime owns the light model and ramp fog. GLSL lives in runtime/glsl/toonGlsl.ts;
+ * tunable starting values remain data in data/toonLook.ts.
  *
  * Tunables are `toonUniforms` (the day / night clock drives them); they reach every material through
  * `attachFogUniforms` (the ramp fog's install adds them with `addFogUniforms`), which every fogged material already calls. A material that never attaches them gets zeros: no rim, no lift,
  * no cloud shadow — still the ramp.
  */
-import { ToonLight, type ToonLightUniforms } from '@wildshard/sdk/looks/toonLight';
+import { ToonLight, type ToonLightUniforms } from '../runtime/looks/toonLight';
 import { TOON_GLSL_ROWS } from '../runtime/glsl/toonGlsl';
 import { TOON_TUNE } from '../data/toonLook';
 

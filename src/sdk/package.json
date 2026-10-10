@@ -121,7 +121,6 @@
     "./looks/facetedSky": "./looks/facetedSky.ts",
     "./looks/gullFlock": "./looks/gullFlock.ts",
     "./viewmodel/toonArms": "./viewmodel/toonArms.ts",
-    "./looks/toonLight": "./looks/toonLight.ts",
     "./looks/bakedIsland": "./looks/bakedIsland.ts",
     "./looks/bakedGround": "./looks/bakedGround.ts",
     "./looks/mapPalette": "./looks/mapPalette.ts",
