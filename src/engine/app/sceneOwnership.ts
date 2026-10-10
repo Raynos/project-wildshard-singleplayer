@@ -2,8 +2,8 @@ import { BufferGeometry, Material, Texture, WebGLRenderTarget, Object3D, Instanc
 import type { Scope, Disposable3 } from './scope';
 import type { AssetService } from './assets';
 
-/** Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. */
-export function containerResources(container: unknown, excludeNodes?: ReadonlySet<object>): Set<Disposable3> {
+/** One capture-local walk: shared materials and uniforms are inspected once, without retaining resources afterward. */
+function resourceCollector(excludeNodes?: ReadonlySet<object>): { resources: Set<Disposable3>; visit: (value: unknown) => void } {
   const resources = new Set<Disposable3>(), visited = new Set<object>();
   const visit = (value: unknown): void => {
     if (typeof value !== 'object' || value === null || visited.has(value) || ArrayBuffer.isView(value)) return;
@@ -23,8 +23,12 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
     if (value instanceof Map || value instanceof Set) { for (const child of value.values()) visit(child); return; }
     for (const child of Object.values(value)) visit(child);
   };
-  visit(container);
-  return resources;
+  return { resources, visit };
+}
+
+/** Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. */
+export function containerResources(container: unknown, excludeNodes?: ReadonlySet<object>): Set<Disposable3> {
+  const collector = resourceCollector(excludeNodes); collector.visit(container); return collector.resources;
 }
 interface DelegatedScene { scope: Scope; capture: () => void }
 const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
@@ -107,7 +111,7 @@ function captureDelegatedScenes(root: Object3D): void {
 
 /** Resources a caller may own; explicit subtree owners are respected even when passed as the root. */
 export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> {
-  const resources = new Set<Disposable3>();
+  const { resources, visit: collect } = resourceCollector();
   const visit = (node: Object3D): void => {
     const delegated = delegatedScenes.get(node);
     if (delegated !== undefined && (node !== root || delegated.scope !== owner)) return;
@@ -115,7 +119,7 @@ export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> 
     for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
       // BatchedMesh.dispose owns its private aggregate geometry and internal textures.
       if (node instanceof BatchedMesh && key === 'geometry') continue;
-      for (const resource of containerResources(Reflect.get(node, key))) resources.add(resource);
+      collect(Reflect.get(node, key));
     }
     for (const child of node.children) visit(child);
   };

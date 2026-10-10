@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, WebGLRenderTarget } from 'three';
 import { AssetService } from '../src/engine/app/assets';
 import { Scope } from '../src/engine/app/scope';
-import { ownSceneResource, ownSceneTree, SceneOwnership } from '../src/engine/app/sceneOwnership';
+import { ownSceneResource, ownSceneTree, sceneResources, SceneOwnership } from '../src/engine/app/sceneOwnership';
 
 it.each(['outer-first', 'inner-first', 'page-first'] as const)('owns nested resources exactly once with %s disposal and a truthful page census', order => {
   const page = new Scope('page'), outer = page.child('outer'), inner = page.child('inner');
@@ -79,4 +79,23 @@ it('keeps distinct native render targets without UUIDs independent across two co
   first.dispose(); for (const freed of dispose) expect(freed).not.toHaveBeenCalled();
   second.dispose(); for (const freed of dispose) expect(freed).toHaveBeenCalledOnce();
   expect(assets.retained()).toEqual([]);
+});
+
+
+it('walks shared containers once per capture and discovers their changed late resources on the next capture', () => {
+  const page = new Scope('shared capture'), assets = new AssetService(), root = new Group();
+  const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), early = new Texture(), late = new Texture();
+  let reads = 0, texture = early;
+  Object.defineProperty(material, 'fixtureUniforms', { enumerable: true, get: () => { reads++; return { value: texture }; } });
+  for (let copy = 0; copy < 512; copy++) root.add(new Mesh(geometry, material));
+  expect(sceneResources(root)).toEqual(new Set([geometry, material, early])); expect(reads).toBe(1);
+  texture = late;
+  expect(sceneResources(root)).toEqual(new Set([geometry, material, late])); expect(reads).toBe(2);
+  const foreign = page.child('foreign'), subtree = new Group(), foreignMaterial = new MeshBasicMaterial();
+  subtree.add(new Mesh(new BoxGeometry(), foreignMaterial)); root.add(subtree); ownSceneTree(subtree, foreign, assets);
+  expect(sceneResources(root)).toEqual(new Set([geometry, material, late]));
+  const geometryDispose = vi.spyOn(geometry, 'dispose'), materialDispose = vi.spyOn(material, 'dispose'), lateDispose = vi.spyOn(late, 'dispose');
+  ownSceneTree(root, page, assets); page.dispose();
+  expect(geometryDispose).toHaveBeenCalledOnce(); expect(materialDispose).toHaveBeenCalledOnce(); expect(lateDispose).toHaveBeenCalledOnce();
+  early.dispose();
 });
