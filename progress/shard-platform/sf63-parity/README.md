@@ -147,3 +147,49 @@ waterline and sea while entered and drops them on leave; red without the fix) an
 without the fix). Full vitest on the clean export (`pnpm gen`, heavy lane, with tsc): 941 files, 5,401 tests passed. Boot smoke
 (standalone Driftwood, Pine, grid Driftwood) PASS, faults 0. `test-facade-instancing.mjs` PASS, 0 batches. WebKit render smoke:
 red on the Driftwood minimap share (27 % / 31 % against 42 %), identically on 5b86b0e without this change: pre-existing.
+
+## finish2 (op-sf63, e3137df46): Nalati graded once; HEAD re-read on all three (2026-10-09)
+
+The plan row's open list was stale: bloom (gap 3), the post chain (gap 1: Driftwood's is the page's clean chain), Pine's
+shafts / fringe / grain (gap 2, `e7f5e8b2a`), the cumulus ring and Nalati's grass (gap 4, `139182ea5`, `53bf5acab`) and
+the sailor / shallows (G254 `f92bc6a50`) had all landed. finish2 re-captured with `capture.mjs` (tag `finish2`; the
+Driftwood inside stop now rounds the wreck's hull, where the board stalls at x 157 on today's HEAD).
+
+| Gap | Cause | Fix |
+|---|---|---|
+| Nalati's cell darker, harder and bluer than standalone (entry-n Δ −10 / −11 / −5, inside-w +7 blue) | Nalati's sky rig (`look/skyRig.ts`) wrote the level's split tone, saturation 0.1, contrast 0.15 and the volumetric sun into `game.post` every frame. Standalone `game.post` is null (a `replace` chain), so that block never ran; in the cell `game.post` is the page shell's chain, which the frame carries neutral for a replace look, so the cell was graded twice | the block is gone (`e3137df46`; a standalone no-op). Carried saturation / contrast now read 0 / 0 in the cell |
+
+Nalati A/B (phone, the same base `855f0db8e` with and without the fix, since HEAD refused Nalati's cell, below; JSONs
+`parity-nalati-phone-finish2-parent.json` / `-finish2.json`, board `board-nalati-phone.jpg`):
+
+| Pose | MAE before | MAE after | grid mean colour after (standalone) |
+|---|---|---|---|
+| entry-e | 15.5 | 12.8 | 130 / 121 / 117 (141 / 130 / 122) |
+| entry-n | 21.7 | 20.3 | 108 / 107 / 92 (121 / 123 / 104) |
+| inside-e | 15.7 | 13.8 | 146 / 132 / 114 (151 / 135 / 110) |
+| inside-w | 17.5 | 15.2 | 137 / 131 / 125 (140 / 135 / 125) |
+
+HEAD re-read (build `4196242` = `5a831a554` + the fix; boards `board-driftwood-*.jpg`, `board-pine-*.jpg`; 0 shader /
+page errors in all 6 runs):
+
+| Shard | Tier | MAE per pose | Programs (entry → inside) |
+|---|---|---|---|
+| Driftwood | phone | entry-w 18.5 · wreck-w 19.5 · inside-w 20.2 · inside-n 24.3 (G254: 10.2 / 14.7 / 12.6 / 10.9) | 218 → 221 |
+| Driftwood | desktop | 20.9 · 21.1 · 28.1 · 25.7 (G254: 10.3 / 13.9 / 12.2 / 12.0) | 231 → 234 |
+| Pine | phone | entry-n 28.9 · forest-e 49.7 · forest-n 25.3 (cand3: 11.8 / 10.2 / 8.3) | 239 → 252 |
+| Pine | desktop | 30.7 · 54.2 · 28.3 (cand3: 9.4 / 6.4 / 4.7) | 244 → 257 |
+| Nalati | both | not entered: the cell is refused on approach (below) | |
+
+## Still open after finish2
+
+| Gap | Where | Finding |
+|---|---|---|
+| **Nalati refused in the grid on HEAD** (P0, not SF63) | Nalati, both tiers | `grid.state().live.live.issues`: first `Unknown input context: stealth` (Sky Reach `far.fan`), fixed by sp-x5 `b6833c9c1`; then `Nalati dialogue left its cell` (`runtime/enteredAdventure.ts:30`: the dialogue getter read before the entered service runs; SF22's deferred entered services against SF28 `27fe1ea5b`). Reported to sp-x5 and the coordinator. Nalati's finish2 parity must be re-run on HEAD once it enters |
+| **Pine's sky has no clouds in its cell, and a tree stands at the forest-e pose** (regressed since cand3) | Pine, both tiers | Grid sky plain blue at every pose; standalone shows its cirrus / cumulus. At (120, 0) the grid draws a conifer through the camera that SHARD SELECT does not. Programs inside rose 206 → 252 (phone). Carried chain is right (bloom 0.55 / 0.85 / 0.3, vignette 0.55, shafts / fringe / grain on, LUT on). Suspects: today's Pine sky / props work (op-pineperf, op-pinebake, G285 `8205f028b`) |
+| **Driftwood's shadows** (the largest look gap left) | Driftwood, both tiers | The page shell draws one 1024² cascade over ±88 m on the phone; Driftwood's own `phoneSplits` rig is three 2048² cascades to 7 / 22 / 80 m with the tent filter and the fade ghosts. So the pier posts, palms and ferns cast nothing visible in the cell. The cascade count is a page-wide shader define (a recompile per crossing, or ≈ +40 MB for the shell adopting the rig everywhere): a page-shell memory decision for Jake, not a carry. A cheaper option (no recompile): a resident Driftwood cell tightens the one cascade (≈ 22 m) at 2048², ≈ +12 MB while resident, losing far shadows; that would ship default-off behind a Debug row |
+| Driftwood's MAE rose since G254 (10–15 → 18–28) | Driftwood | Beyond the shadows, the gulls are missing, the ground cover differs, and the viewmodel arms differ (the page skin's gloved arms against Driftwood's bare toon arms) over a large part of each frame |
+| Nalati's entry-n slope darker; a dark slab floats at the cell edge in the grid | Nalati | Remains after the fix (MAE 20.3); haze over the far valley at inside-w is lighter in the grid |
+
+Programs: the finish2 counts are higher than finish's (Driftwood 185 → 221 phone, Pine 206 → 252) on today's HEAD, with or
+without `e3137df46` (which compiles nothing: Nalati's A/B reads 197 / 197). SF59's per-region budget was not re-measured
+in this lane; the rise comes from what landed since `a3442abae`, and is the coordinator's to attribute.

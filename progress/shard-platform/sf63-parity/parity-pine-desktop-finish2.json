@@ -1,0 +1,598 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "tag": "finish2",
+  "scene": "pine",
+  "tier": "desktop",
+  "grid": {
+    "stops": [
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 44.8,
+          "feet": {
+            "x": -0.0012800704345926825,
+            "y": 0.45000229637085787,
+            "z": 328.6636943174844
+          },
+          "current": "pine-hollow"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "Pass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[SMAAEffect]"
+          ],
+          "programs": 244,
+          "bloom": [
+            0.55,
+            0.85,
+            0.3
+          ],
+          "vignette": 0.55,
+          "saturation": 0.18,
+          "contrast": 0.2,
+          "brightness": -0.015,
+          "ao": {
+            "enabled": true,
+            "intensity": 2.5,
+            "radius": 2.5
+          },
+          "frame": {
+            "owner": "pine-hollow",
+            "weight": 1,
+            "lut": true,
+            "values": [
+              0.18,
+              -0.015,
+              0.2,
+              0.2,
+              0.2
+            ],
+            "post": [
+              0.55,
+              0.85,
+              0.3,
+              0.55,
+              0.8,
+              2.5
+            ],
+            "fx": {
+              "carrier": "pine-hollow",
+              "weight": 1,
+              "vol": [
+                1,
+                0.21
+              ],
+              "chroma": 0.0006,
+              "grain": 0.12,
+              "target": [
+                603,
+                1021
+              ],
+              "depth": "pass",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 4.4,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.788,
+                  -0.616
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -40.975,
+                  40.975,
+                  600
+                ],
+                "fromCam": 128.891
+              },
+              {
+                "name": "",
+                "intensity": 4.4,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.788,
+                  -0.616
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -89.48,
+                  89.48,
+                  600
+                ],
+                "fromCam": 147.941
+              },
+              {
+                "name": "",
+                "intensity": 4.4,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.788,
+                  -0.616
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -243.909,
+                  243.909,
+                  600
+                ],
+                "fromCam": 228.725
+              }
+            ],
+            "meshes": 280,
+            "cast": 34,
+            "receive": 250
+          }
+        }
+      },
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 26.3,
+          "feet": {
+            "x": 118.66732695845106,
+            "y": 0.8611176682672307,
+            "z": 554.5859103261928
+          },
+          "current": "pine-hollow"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "Pass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[SMAAEffect]"
+          ],
+          "programs": 257,
+          "bloom": [
+            0.55,
+            0.85,
+            0.3
+          ],
+          "vignette": 0.55,
+          "saturation": 0.18,
+          "contrast": 0.2,
+          "brightness": -0.015,
+          "ao": {
+            "enabled": true,
+            "intensity": 2.5,
+            "radius": 2.5
+          },
+          "frame": {
+            "owner": "pine-hollow",
+            "weight": 1,
+            "lut": true,
+            "values": [
+              0.18,
+              -0.015,
+              0.2,
+              0.2,
+              0.2
+            ],
+            "post": [
+              0.55,
+              0.85,
+              0.3,
+              0.55,
+              0.8,
+              2.5
+            ],
+            "fx": {
+              "carrier": "pine-hollow",
+              "weight": 1,
+              "vol": [
+                1,
+                0.21
+              ],
+              "chroma": 0.0006,
+              "grain": 0.12,
+              "target": [
+                603,
+                1021
+              ],
+              "depth": "pass",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 4.4,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.788,
+                  -0.616
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -40.975,
+                  40.975,
+                  600
+                ],
+                "fromCam": 128.896
+              },
+              {
+                "name": "",
+                "intensity": 4.4,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.788,
+                  -0.616
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -89.48,
+                  89.48,
+                  600
+                ],
+                "fromCam": 147.942
+              },
+              {
+                "name": "",
+                "intensity": 4.4,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.788,
+                  -0.616
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -243.909,
+                  243.909,
+                  600
+                ],
+                "fromCam": 228.65
+              }
+            ],
+            "meshes": 313,
+            "cast": 48,
+            "receive": 263
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "road": {
+      "chain": {
+        "passes": [
+          "RenderPass",
+          "Pass",
+          "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+          "EffectPass[SMAAEffect]"
+        ],
+        "programs": 83,
+        "bloom": [
+          0.4,
+          1,
+          0.08
+        ],
+        "vignette": 0.35,
+        "saturation": 0.3,
+        "contrast": 0.2,
+        "brightness": 0,
+        "ao": {
+          "enabled": true,
+          "intensity": 2.5,
+          "radius": 2.5
+        },
+        "frame": {
+          "owner": null,
+          "weight": 0,
+          "lut": false,
+          "values": [
+            0.3,
+            0,
+            0.2,
+            0,
+            0
+          ],
+          "post": [
+            0.4,
+            1,
+            0.08,
+            0.35,
+            0.12,
+            2.5
+          ],
+          "fx": {
+            "carrier": null,
+            "weight": 0,
+            "vol": [
+              0,
+              0.55
+            ],
+            "chroma": 0,
+            "grain": 0,
+            "target": [
+              1,
+              1
+            ],
+            "depth": "pass",
+            "sceneDepth": false
+          }
+        },
+        "shadows": {
+          "enabled": true,
+          "autoUpdate": true,
+          "lights": [
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -40.975,
+                40.975,
+                600
+              ],
+              "fromCam": 159.8
+            },
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -89.48,
+                89.48,
+                600
+              ],
+              "fromCam": 213.488
+            },
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -243.909,
+                243.909,
+                600
+              ],
+              "fromCam": 384.442
+            }
+          ],
+          "meshes": 0,
+          "cast": 0,
+          "receive": 0
+        }
+      }
+    }
+  },
+  "standalone": {
+    "shots": [
+      "pine-entry-n",
+      "pine-forest-e",
+      "pine-forest-n"
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "chain": {
+      "passes": [
+        "RenderPass",
+        "Pass",
+        "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,NoiseEffect]",
+        "EffectPass[SMAAEffect]"
+      ],
+      "programs": 114,
+      "bloom": [
+        0.55,
+        0.85,
+        0.3
+      ],
+      "vignette": 0.55,
+      "saturation": 0.18,
+      "contrast": 0.2,
+      "brightness": -0.015,
+      "ao": {
+        "enabled": true,
+        "intensity": 2.5,
+        "radius": 2.5
+      },
+      "frame": null,
+      "shadows": {
+        "enabled": true,
+        "autoUpdate": true,
+        "lights": [
+          {
+            "name": "",
+            "intensity": 4.4,
+            "cast": true,
+            "dir": [
+              0,
+              0.788,
+              -0.616
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -40.975,
+              40.975,
+              600
+            ],
+            "fromCam": 128.894
+          },
+          {
+            "name": "",
+            "intensity": 4.4,
+            "cast": true,
+            "dir": [
+              0,
+              0.788,
+              -0.616
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -89.48,
+              89.48,
+              600
+            ],
+            "fromCam": 147.94
+          },
+          {
+            "name": "",
+            "intensity": 4.4,
+            "cast": true,
+            "dir": [
+              0,
+              0.788,
+              -0.616
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -243.909,
+              243.909,
+              600
+            ],
+            "fromCam": 228.67
+          }
+        ],
+        "meshes": 395,
+        "cast": 61,
+        "receive": 297
+      }
+    }
+  },
+  "poses": [
+    [
+      "pine-entry-n",
+      0,
+      -224.96,
+      3.141592653589793,
+      0.05,
+      0.45
+    ],
+    [
+      "pine-forest-e",
+      119.98,
+      -0.01,
+      -1.5707963267948966,
+      0.05,
+      0.96
+    ],
+    [
+      "pine-forest-n",
+      119.98,
+      -0.01,
+      3.141592653589793,
+      0.05,
+      0.96
+    ]
+  ],
+  "diffs": [
+    {
+      "pose": "pine-entry-n",
+      "mae": 30.7,
+      "standalone": [
+        82.2,
+        95,
+        105.7
+      ],
+      "grid": [
+        93.5,
+        105,
+        115.1
+      ]
+    },
+    {
+      "pose": "pine-forest-e",
+      "mae": 54.2,
+      "standalone": [
+        76.1,
+        86.4,
+        87.3
+      ],
+      "grid": [
+        42.5,
+        43.2,
+        31
+      ]
+    },
+    {
+      "pose": "pine-forest-n",
+      "mae": 28.3,
+      "standalone": [
+        33.7,
+        47.1,
+        44.8
+      ],
+      "grid": [
+        25.5,
+        26.9,
+        13
+      ]
+    }
+  ],
+  "version": {
+    "build": "4196242-mv1om0ao",
+    "time": "2026-10-10T00:54:31.438Z"
+  }
+}

@@ -24,7 +24,8 @@ const SCENES = {
     { at: [{ x: 230, z: 0 }], shots: [['driftwood-entry-w', W, 0.05]] },
     // G254: beside the wreck's open hold over the shallows (where the earlier drives stalled: the board rode the seabed)
     { at: [{ x: 160, z: 0 }], shots: [['driftwood-wreck-w', W, 0.08]] },
-    { at: [{ x: 120, z: 0 }], shots: [['driftwood-inside-w', W, 0.08], ['driftwood-inside-n', N, 0.08]] },
+    // finish2: round the wreck's hull (the board no longer rides over it at z 0: it stalled at x 157)
+    { at: [{ x: 162, z: -14 }, { x: 120, z: -14 }, { x: 120, z: 0 }], shots: [['driftwood-inside-w', W, 0.08], ['driftwood-inside-n', N, 0.08]] },
   ] },
   pine: { card: 'Pine Hollow', road: { x: 0, z: 277.5, yaw: N }, stops: [
     { at: [{ x: 0, z: 330 }], shots: [['pine-entry-n', N, 0.05]] },

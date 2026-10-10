@@ -1,0 +1,436 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "tag": "b1",
+  "scene": "nalati",
+  "tier": "phone",
+  "grid": {
+    "stops": [
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 8.8,
+          "feet": {
+            "x": 320.6769403483918,
+            "y": 0.45000004381502284,
+            "z": 3.2147098455851066e-7
+          },
+          "current": "nalati-grasslands"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,BloomEffect,VignetteEffect,ToneMappingEffect,GradeV2Effect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[FXAAEffect]"
+          ],
+          "programs": 197,
+          "bloom": [
+            0,
+            1,
+            0.08
+          ],
+          "vignette": 0,
+          "saturation": 0,
+          "contrast": 0,
+          "brightness": 0,
+          "ao": null,
+          "frame": {
+            "owner": "nalati-grasslands",
+            "weight": 1,
+            "lut": false,
+            "values": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "post": [
+              0,
+              1,
+              0.08,
+              0,
+              -1,
+              -1
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "scene",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.8,
+                "cast": true,
+                "dir": [
+                  0.213,
+                  0.956,
+                  -0.201
+                ],
+                "map": [
+                  512,
+                  512
+                ],
+                "frustum": [
+                  -88.156,
+                  88.156,
+                  600
+                ],
+                "fromCam": 145.03
+              }
+            ],
+            "meshes": 103,
+            "cast": 3,
+            "receive": 84
+          }
+        }
+      },
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 11.9,
+          "feet": {
+            "x": 468.65228222640826,
+            "y": 26.95895051285692,
+            "z": 0.020726462796814227
+          },
+          "current": "nalati-grasslands"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,BloomEffect,VignetteEffect,ToneMappingEffect,GradeV2Effect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[FXAAEffect]"
+          ],
+          "programs": 197,
+          "bloom": [
+            0,
+            1,
+            0.08
+          ],
+          "vignette": 0,
+          "saturation": 0,
+          "contrast": 0,
+          "brightness": 0,
+          "ao": null,
+          "frame": {
+            "owner": "nalati-grasslands",
+            "weight": 1,
+            "lut": false,
+            "values": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "post": [
+              0,
+              1,
+              0.08,
+              0,
+              -1,
+              -1
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "scene",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.8,
+                "cast": true,
+                "dir": [
+                  0.213,
+                  0.956,
+                  -0.201
+                ],
+                "map": [
+                  512,
+                  512
+                ],
+                "frustum": [
+                  -88.156,
+                  88.156,
+                  600
+                ],
+                "fromCam": 143.66
+              }
+            ],
+            "meshes": 105,
+            "cast": 8,
+            "receive": 86
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "road": {
+      "chain": {
+        "passes": [
+          "RenderPass",
+          "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+          "EffectPass[FXAAEffect]"
+        ],
+        "programs": 70,
+        "bloom": [
+          0.4,
+          1,
+          0.08
+        ],
+        "vignette": 0.35,
+        "saturation": 0.3,
+        "contrast": 0.2,
+        "brightness": 0,
+        "ao": null,
+        "frame": {
+          "owner": null,
+          "weight": 0,
+          "lut": false,
+          "values": [
+            0.3,
+            0,
+            0.2,
+            0,
+            0
+          ],
+          "post": [
+            0.4,
+            1,
+            0.08,
+            0.35,
+            -1,
+            -1
+          ],
+          "fx": {
+            "carrier": null,
+            "weight": 0,
+            "vol": [
+              0,
+              0.55
+            ],
+            "chroma": 0,
+            "grain": 0,
+            "target": [
+              1,
+              1
+            ],
+            "depth": "scene",
+            "sceneDepth": false
+          }
+        },
+        "shadows": {
+          "enabled": true,
+          "autoUpdate": true,
+          "lights": [
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                1024,
+                1024
+              ],
+              "frustum": [
+                -88.156,
+                88.156,
+                600
+              ],
+              "fromCam": 67.129
+            }
+          ],
+          "meshes": 0,
+          "cast": 0,
+          "receive": 0
+        }
+      }
+    }
+  },
+  "standalone": {
+    "shots": [
+      "nalati-entry-e",
+      "nalati-entry-n",
+      "nalati-inside-e",
+      "nalati-inside-w"
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "chain": {
+      "passes": [
+        "RenderPass",
+        "EffectPass[GradeV2Effect]"
+      ],
+      "programs": 98,
+      "bloom": null,
+      "vignette": null,
+      "saturation": null,
+      "contrast": null,
+      "brightness": null,
+      "ao": null,
+      "frame": null,
+      "shadows": {
+        "enabled": true,
+        "autoUpdate": true,
+        "lights": [
+          {
+            "name": "",
+            "intensity": 2.8,
+            "cast": true,
+            "dir": [
+              0.213,
+              0.956,
+              -0.201
+            ],
+            "map": [
+              512,
+              512
+            ],
+            "frustum": [
+              -88.156,
+              88.156,
+              600
+            ],
+            "fromCam": 143.759
+          }
+        ],
+        "meshes": 127,
+        "cast": 9,
+        "receive": 97
+      }
+    }
+  },
+  "poses": [
+    [
+      "nalati-entry-e",
+      -232.95,
+      0,
+      -1.5707963267948966,
+      0.3,
+      0.45
+    ],
+    [
+      "nalati-entry-n",
+      -232.95,
+      0,
+      3.141592653589793,
+      0.03,
+      0.45
+    ],
+    [
+      "nalati-inside-e",
+      -84.97,
+      0,
+      -1.5707963267948966,
+      0.05,
+      27.01
+    ],
+    [
+      "nalati-inside-w",
+      -84.97,
+      0,
+      1.5707963267948966,
+      0.03,
+      27.01
+    ]
+  ],
+  "diffs": [
+    {
+      "pose": "nalati-entry-e",
+      "mae": 12.8,
+      "standalone": [
+        141.3,
+        129.6,
+        121.7
+      ],
+      "grid": [
+        130.1,
+        121.2,
+        117.1
+      ]
+    },
+    {
+      "pose": "nalati-entry-n",
+      "mae": 20.3,
+      "standalone": [
+        120.9,
+        123.3,
+        104.1
+      ],
+      "grid": [
+        107.9,
+        107.2,
+        91.8
+      ]
+    },
+    {
+      "pose": "nalati-inside-e",
+      "mae": 13.8,
+      "standalone": [
+        151.3,
+        135.3,
+        109.5
+      ],
+      "grid": [
+        145.5,
+        132.4,
+        113.9
+      ]
+    },
+    {
+      "pose": "nalati-inside-w",
+      "mae": 15.2,
+      "standalone": [
+        140.1,
+        134.6,
+        124.5
+      ],
+      "grid": [
+        136.5,
+        131,
+        124.5
+      ]
+    }
+  ],
+  "version": {
+    "build": "ed54fac-mv1oc7wj",
+    "time": "2026-10-10T00:46:54.448Z"
+  }
+}
