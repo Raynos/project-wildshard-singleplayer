@@ -1,0 +1,104 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "card": "Nalati Grasslands",
+  "version": {
+    "build": "3d8c2ef-mv2vpxe9",
+    "time": "2026-10-10T21:01:16.862Z"
+  },
+  "sides": {
+    "legacy": {
+      "mode": "legacy",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "nalati-grasslands-legacy",
+      "bootMs": 6723,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    },
+    "shardfile": {
+      "mode": "shardfile",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "nalati-grasslands",
+      "bootMs": 6626,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    }
+  },
+  "poses": [
+    {
+      "name": "view-1",
+      "x": 0,
+      "y": 0.02,
+      "z": 232,
+      "yaw": 0,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-2",
+      "x": 0,
+      "y": 0.02,
+      "z": 232,
+      "yaw": 2.0944,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-3",
+      "x": 0,
+      "y": 0.02,
+      "z": 232,
+      "yaw": 4.1888,
+      "pitch": -0.05
+    }
+  ],
+  "diffs": [
+    {
+      "pose": "view-1",
+      "mae": 0.3,
+      "legacy": [
+        138.6,
+        129.7,
+        123.6
+      ],
+      "shardfile": [
+        138.6,
+        129.7,
+        123.6
+      ]
+    },
+    {
+      "pose": "view-2",
+      "mae": 0.4,
+      "legacy": [
+        123,
+        119.8,
+        116.7
+      ],
+      "shardfile": [
+        123,
+        119.8,
+        116.7
+      ]
+    },
+    {
+      "pose": "view-3",
+      "mae": 0.5,
+      "legacy": [
+        138.9,
+        130.5,
+        114.7
+      ],
+      "shardfile": [
+        138.9,
+        130.5,
+        114.7
+      ]
+    }
+  ]
+}

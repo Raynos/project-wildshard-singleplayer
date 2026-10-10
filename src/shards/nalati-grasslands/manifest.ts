@@ -35,7 +35,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   load: () => import('./plugin'),
   gridShardfile: '/shardfiles/nalati-grasslands/shard.json',
   // SF65 (G237): SHARDFILE is the SF48 hybrid boot (shard.config.ts admitted over the trusted runtime); public stays LEGACY
-  entries: { legacy: true, shardfile: true, public: 'legacy' },
+  entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-ship38)
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: ['tool.hoverboard'], start: ['bow', 'sabre', 'spear', 'tool.hoverboard'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   budgets: NALATI_BUDGET_INPUTS,
