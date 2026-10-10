@@ -1,6 +1,6 @@
 # The shardfile design system (G299)
 
-**Status:** `unread` 2026-10-10, a proposal for Jake's review. When he signs it off, the coordinator turns the rows here into SF rows and updates §10.
+**Status:** **approved** 2026-10-10 (G319): the route for the rest of Part A. Its rows are SF79–SF86, and G312–G318 answer §8.
 **Plan:** [SHARD-PLATFORM](../SHARD-PLATFORM.md) (G290–G311, SF24–SF78)
 **Evidence:** [the as-built audit](../../reviews/shardfile-architecture-audit-2026-10-10.md), plus a fresh run of `node scripts/shard-platform.mjs` and an import walk of the six shardfile folders on `76ad95bb8`.
 **Made by:** design-system (Opus). This is a design document. It changes no code.
