@@ -11,7 +11,7 @@
  */
 import type { BufferGeometry } from 'three';
 import * as v from 'valibot';
-import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from './bakedGeometry';
+import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import stamp from '../data/specimens.json' with { type: 'json' };
 
 /** the two binaries: the page's own (listed in the world's files, ../manifest.ts) and the Explorer's */

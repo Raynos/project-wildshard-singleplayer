@@ -17,7 +17,7 @@ import { isPiece } from './facade/pieceIds';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { SignPlace, SignSink } from '../look/signs';
 import type { SignStyle } from '../data/signs';
-import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from './bakedGeometry';
+import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { restoreQueued } from './props3d';
 import { restoreCrossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyanPlan';

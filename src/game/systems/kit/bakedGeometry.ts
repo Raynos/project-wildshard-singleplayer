@@ -1,6 +1,6 @@
-// Built geometry as the layout bake stores it (G285, ../generators/layout.ts → world/layoutBake.ts): each attribute's
-// typed array exactly as the builder made it (float, half, normalized bytes), so a baked kit draws the same bytes the
-// page's own build would have; and `appendGeometry`, which puts what the page adds to a baked builder after its bake.
+// Built geometry as an offline bake stores it (SHARD-PLATFORM M3, the kit system): each attribute's typed array exactly
+// as the builder made it (float, half, normalized bytes), so a baked kit draws the same bytes the page's own build would
+// have; and `appendGeometry`, which puts what the page adds to a baked builder after its bake.
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute } from 'three';
 
 /** an attribute's element type in the bake ('f16' is a half float held in a Uint16Array, Float16BufferAttribute) */
@@ -60,7 +60,7 @@ function joined(a: BufferAttribute['array'], b: BufferAttribute['array']): Buffe
   if (a instanceof Uint32Array && b instanceof Uint32Array) { const o = new Uint32Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; }
   if (a instanceof Int8Array && b instanceof Int8Array) { const o = new Int8Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; }
   if (a instanceof Uint8Array && b instanceof Uint8Array) { const o = new Uint8Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; }
-  throw new Error('nine-dragon: a baked geometry and its additions differ in an attribute type');
+  throw new Error('kit: a baked geometry and its additions differ in an attribute type');
 }
 
 /**
@@ -72,7 +72,7 @@ export function appendGeometry(a: BufferGeometry, b: BufferGeometry): BufferGeom
   const g = new BufferGeometry();
   for (const [name, attr] of Object.entries(a.attributes)) {
     const tail = b.getAttribute(name);
-    if (!(attr instanceof BufferAttribute) || !(tail instanceof BufferAttribute) || tail.itemSize !== attr.itemSize) throw new Error(`nine-dragon: '${name}' does not append to its bake`);
+    if (!(attr instanceof BufferAttribute) || !(tail instanceof BufferAttribute) || tail.itemSize !== attr.itemSize) throw new Error(`kit: '${name}' does not append to its bake`);
     const array = joined(attr.array, tail.array);
     g.setAttribute(name, attr instanceof Float16BufferAttribute ? new Float16BufferAttribute(array, attr.itemSize, attr.normalized) : new BufferAttribute(array, attr.itemSize, attr.normalized));
   }
