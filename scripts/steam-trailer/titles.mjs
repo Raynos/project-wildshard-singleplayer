@@ -2,24 +2,31 @@
 //   node scripts/steam-trailer/titles.mjs <outDir> <cards.json>      cards.json: [{ id, card, dur, ...opts }]
 //   node scripts/steam-trailer/titles.mjs <outDir> --preview          one still per card at its settled time
 //   … [--portrait]   the phone cut's 1080×1920 frame (titles.html body.portrait)
+//   … [--titles-html=<path>]   another pipeline's cards page (e.g. scripts/progress-trailer/titles.html) in place of
+//        ./titles.html; it must define window.pose(card, t, opts) and window.setPortrait(on), its URLs resolve from its
+//        own folder
 import { chromium } from 'playwright';
 import { mkdirSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const FPS = 60;
-const OUT = process.argv[2];
-const here = new URL('.', import.meta.url).pathname;
-const preview = process.argv[3] === '--preview';
-const PORTRAIT = process.argv.includes('--portrait');
+const flag = process.argv.find((a) => a.startsWith('--titles-html='));
+const argv = process.argv.filter((a) => a !== flag);
+const HTML = flag ? pathToFileURL(resolve(flag.slice('--titles-html='.length))).href : new URL('titles.html', import.meta.url).href;
+const OUT = argv[2];
+const preview = argv[3] === '--preview';
+const PORTRAIT = argv.includes('--portrait');
 // --preview <cards.json>: one still per card at its `at` (the cards of a cut, e.g. the alpha trailer's)
-const cards = preview && process.argv[4] ? JSON.parse(readFileSync(process.argv[4], 'utf8')) : preview
+const cards = preview && argv[4] && argv[4] !== '--portrait' ? JSON.parse(readFileSync(argv[4], 'utf8')) : preview
   ? [{ id: 'p-shard', card: 'shard', dur: 3, kicker: 'Shard I', name: 'Driftwood Isle', sub: 'Sail · Dive · Fight', at: 1.6 },
      { id: 'p-line', card: 'line', dur: 2.5, text: 'Three shards of a broken world', at: 1.4 },
      { id: 'p-end', card: 'end', dur: 4, at: 3 }]
-  : JSON.parse(readFileSync(process.argv[3], 'utf8'));
+  : JSON.parse(readFileSync(argv[3], 'utf8'));
 
 const browser = await chromium.launch({ headless: true, args: ['--headless=new'] });
 const page = await browser.newPage({ viewport: PORTRAIT ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
-await page.goto(`file://${here}titles.html`);
+await page.goto(HTML);
 await page.evaluate((on) => { window.setPortrait(on); }, PORTRAIT);
 await page.evaluate(() => document.fonts.ready);
 for (const c of cards) {
