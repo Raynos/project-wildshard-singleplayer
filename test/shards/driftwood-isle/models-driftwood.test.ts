@@ -86,7 +86,7 @@ describe('Driftwood models (E315 M1)', () => {
       'src/shards/driftwood-isle/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/shards/driftwood-isle/world/BlenderIsland.ts': { why: 'the cove: its terrain tiles (world) and its tiles of prototype copies (drawnInto)', draws: { Mesh: 2 } },
       'src/shards/driftwood-isle/world/Trailside.ts': { why: 'the trail\'s weld: its ropes, rails and trestle stairs (world, piece `trailside`), and its posts / signposts / steps (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 }, registers: 1 },
-      'src/shards/driftwood-isle/world/Cove.ts': { why: 'the sea cave welded into the crag, the pools and the cascade (world, piece `cove`); its reef rocks drawnInto their smooth mesh', draws: { mergeGeometries: 2, Mesh: 4 }, registers: 1 },
+      'src/shards/driftwood-isle/world/Cove.ts': { why: 'the sea cave welded into the crag, the pools and the cascade (world, piece `cove`); its reef rocks drawnInto their baked smooth mesh', draws: { Mesh: 4 }, registers: 1 },
       'src/shards/driftwood-isle/world/GroundCover.ts': { why: 'a scatter field streamed round the viewer (world, §1): its kinds\' instanced tiers, its dune logs\' mesh (drift logs drawnInto it)', draws: { InstancedMesh: 1, Mesh: 1 } },
     };
     const strip = (s: string): string => s.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, '');

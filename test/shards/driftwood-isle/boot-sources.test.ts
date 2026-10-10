@@ -17,6 +17,10 @@ describe('Driftwood boot sources (E357 S4.1, 08 §6.1 step 7)', () => {
     const files = chunkFiles(manifest, tex);
     expect(files).toMatchObject({ sky: [], trees: [], cabins: [], props: Object.values(FIXED_MODEL_FILES), art: [], music: [], sfx: [] });
     expect(files.props).toEqual([
+      '/assets/driftwood-isle/baked/fixed-models/cove-structure.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cove-rocks.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cove-glow.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cove-pools.glb',
       '/assets/driftwood-isle/baked/fixed-models/iron-sword-blade.glb',
       '/assets/driftwood-isle/baked/fixed-models/iron-sword-fittings.glb',
       '/assets/driftwood-isle/baked/fixed-models/captain-hat.glb',

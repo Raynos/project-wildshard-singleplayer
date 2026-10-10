@@ -1,0 +1,303 @@
+{
+  "sourceBase": "1274e7352ffb1564774744d9575a95044c3e473a",
+  "scope": "Cove static structure, reef rocks, glow and indexed pools; native terrain, materials, shadows, animation, placements, collision and anchors retained; generator and runtime share one floor law; changed layouts refuse mismatched geometry",
+  "newGlbBytes": 2467780,
+  "metricsBefore": {
+    "publicLines": 1483,
+    "customLines": 15714,
+    "runtimeLines": 5781,
+    "trustedRuntimeLines": 3279,
+    "publicShare": 0.08623597139035878,
+    "legacy": {
+      "generators": 955,
+      "data": 1164,
+      "runtime": 21222
+    }
+  },
+  "metricsAfter": {
+    "publicLines": 1675,
+    "customLines": 15592,
+    "runtimeLines": 5781,
+    "trustedRuntimeLines": 3279,
+    "publicShare": 0.09700584930792842,
+    "legacy": {
+      "generators": 1170,
+      "data": 1168,
+      "runtime": 21082
+    }
+  },
+  "nativeParity": {
+    "build": "1274e73-mv1ul90e",
+    "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+    "method": "original versus baked geometry on the actual cove; native materials, pools, shadows, placement and frozen clock; exterior, cave floor and alcove views",
+    "rows": [
+      {
+        "part": "structure",
+        "pose": 0,
+        "eye": [
+          142,
+          5,
+          7
+        ],
+        "aim": [
+          142,
+          2,
+          16
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 572439
+      },
+      {
+        "part": "structure",
+        "pose": 1,
+        "eye": [
+          142,
+          1.8,
+          16.5
+        ],
+        "aim": [
+          142,
+          1.7,
+          19.2
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 711797
+      },
+      {
+        "part": "structure",
+        "pose": 2,
+        "eye": [
+          142,
+          2.6,
+          21.5
+        ],
+        "aim": [
+          142,
+          2.5,
+          23.3
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 495516
+      },
+      {
+        "part": "rocks",
+        "pose": 0,
+        "eye": [
+          130,
+          2,
+          1
+        ],
+        "aim": [
+          130,
+          0.6,
+          4
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 148532
+      },
+      {
+        "part": "rocks",
+        "pose": 1,
+        "eye": [
+          121,
+          5,
+          20
+        ],
+        "aim": [
+          123,
+          2,
+          21
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 5673
+      },
+      {
+        "part": "rocks",
+        "pose": 2,
+        "eye": [
+          133,
+          2,
+          -12
+        ],
+        "aim": [
+          133,
+          0.5,
+          -8
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 85994
+      },
+      {
+        "part": "glow",
+        "pose": 0,
+        "eye": [
+          142,
+          1.8,
+          17
+        ],
+        "aim": [
+          144.5,
+          2.2,
+          17.5
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 4184
+      },
+      {
+        "part": "glow",
+        "pose": 1,
+        "eye": [
+          142,
+          2.6,
+          21.5
+        ],
+        "aim": [
+          142,
+          2.3,
+          22.8
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 965
+      },
+      {
+        "part": "glow",
+        "pose": 2,
+        "eye": [
+          142,
+          1.8,
+          18.2
+        ],
+        "aim": [
+          139.6,
+          1.1,
+          18.1
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 2019
+      },
+      {
+        "part": "pools",
+        "pose": 0,
+        "eye": [
+          130,
+          3,
+          1
+        ],
+        "aim": [
+          130,
+          0.3,
+          4
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 343192
+      },
+      {
+        "part": "pools",
+        "pose": 1,
+        "eye": [
+          133,
+          3,
+          -11
+        ],
+        "aim": [
+          133,
+          0.2,
+          -8
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 285273
+      },
+      {
+        "part": "pools",
+        "pose": 2,
+        "eye": [
+          140.7,
+          1.8,
+          15.7
+        ],
+        "aim": [
+          140.7,
+          0.4,
+          16.7
+        ],
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 380545
+      }
+    ]
+  },
+  "bakes": {
+    "physics.baked.json": {
+      "payloadIdentical": true,
+      "recordedInputs": 134
+    },
+    "spots.baked.json": {
+      "payloadIdentical": true,
+      "recordedInputs": 84
+    }
+  },
+  "map": {
+    "rebaked": true,
+    "imageByteIdentical": false
+  },
+  "tables": {
+    "voxelAO": {
+      "rebaked": true,
+      "geometriesBothTiers": 5,
+      "verticesPerTier": 175206,
+      "bytes": 625229
+    },
+    "geometry": {
+      "rebaked": true,
+      "geometriesBothTiers": 526,
+      "verticesPerTier": 56176,
+      "bytes": 2039324
+    }
+  },
+  "checks": {
+    "focusedTests": 26,
+    "strict": true,
+    "touchedLint": true,
+    "committedOriginalGeometryPlacementsCollisionAnchorsFloorCutsExact": true,
+    "deterministicFixedModels": true
+  },
+  "downwardImports": {
+    "definingIntake": "@wildshard/sdk/modelGeometry",
+    "engineImportsMoved": "Cove geometry math, AO and light move to generator"
+  }
+}
