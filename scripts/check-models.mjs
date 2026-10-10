@@ -168,7 +168,7 @@ export const DONE = {
     'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
     'src/game/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
-    'src/game/systems/looks/windFx.ts': { why: "visible wind: an effect (SHARD-PLATFORM M3, moved from Sky Reach's world/windFx.ts): a gust's and an updraft's streaks and flakes, one instanced draw per kind", counts: { InstancedMesh: 2 } },
+    'src/shards/far-reach/runtime/looks/windFx.ts': { why: "visible wind: an effect (SHARD-PLATFORM M3, moved from Sky Reach's world/windFx.ts): a gust's and an updraft's streaks and flakes, one instanced draw per kind", counts: { InstancedMesh: 2 } },
     'src/shards/far-reach/runtime/looks/bakedInstances.ts': { why: 'a scatter baked offline drawn as one instanced draw per set (SHARD-PLATFORM M3, Sky Reach\'s island dressing): a generator\'s placed copies, their float32 instance matrices and colours, in the caller\'s geometry and material', counts: { InstancedMesh: 1 } },
     'src/sdk/bake/kinds.ts': { why: "SF72: the offline bake folds a shard's code-built world piece into instanced kinds (build time only, never in the client): world", counts: { InstancedMesh: 1 } },
     'src/game/shardfile/bakedKinds.ts': { why: "SF72: a shard's baked world piece drawn from its bake, one InstancedMesh per kind on the bake's own transforms (world, like the bake it draws)", counts: { InstancedMesh: 1 } },
