@@ -1,4 +1,4 @@
-import { SIGNAL_DUNES_RUNTIME_COST } from './budgets';
+import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { AUDIO } from './data/audio';

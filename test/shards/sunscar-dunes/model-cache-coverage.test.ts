@@ -10,7 +10,7 @@ import { cachedResourceAllocations } from '../../../src/engine/render/textureByt
 import { PageResidency } from '../../../src/game/grid/pageResidency';
 import { coverRuntimeAssets } from '../../../src/game/grid/assetResidency';
 import { runtimeAccountedBytes } from '../../../src/game/grid/runtimeCost';
-import { SIGNAL_DUNES_RUNTIME_COST } from '../../../src/shards/sunscar-dunes/budgets';
+import { SIGNAL_DUNES_RUNTIME_COST } from '../../../src/shards/sunscar-dunes/data/runtimeCost';
 import { duneHd, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
 
 // Node parses the actual GLBs and meshopt buffers. Only the image decoder is replaced: its real WebP
