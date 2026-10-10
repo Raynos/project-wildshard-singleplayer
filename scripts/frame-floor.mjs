@@ -64,11 +64,18 @@ const glTime = args.includes('--gl-time');
 if (glTime && gridScenario === 'baseline') throw new Error('--gl-time attributes grid drive long frames only');
 const GL_TIMED = ['texImage2D', 'texSubImage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'compressedTexImage3D', 'compressedTexSubImage3D', 'texStorage2D', 'texStorage3D', 'copyTexSubImage3D', 'generateMipmap', 'compileShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getUniformLocation', 'getActiveUniform', 'getActiveAttrib', 'bufferData', 'bufferSubData', 'readPixels', 'clientWaitSync', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'clear', 'blitFramebuffer', 'invalidateFramebuffer'];
 const GL_TIME_SCRIPT = !glTime ? '' : `(()=>{const W=window,acc=new Map();W.__frameFloorGlTake=()=>{if(acc.size===0)return null;const o={};for(const[k,v]of acc)o[k]=[Math.round(v[0]*10)/10,v[1]];acc.clear();return o;};for(const C of[W.WebGLRenderingContext,W.WebGL2RenderingContext]){if(!C)continue;const p=C.prototype;for(const n of ${JSON.stringify(GL_TIMED)}){const f=p[n];if(typeof f!=='function'||f.__ffTimed)continue;const up=/^tex(Sub)?Image[23]D$/.test(n);const w=function(...a){const t=performance.now();try{return f.apply(this,a);}finally{const d=performance.now()-t,e=acc.get(n);if(e){e[0]+=d;e[1]++;}else acc.set(n,[d,1]);if(up&&d>=3){const s=a[a.length-1],x=s&&typeof s==='object'?(s.naturalWidth||s.width||s.byteLength||0)+'x'+(s.naturalHeight||s.height||0):'null',k='slow '+n+' '+(s&&s.constructor?s.constructor.name:'?')+' '+x,g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}}};w.__ffTimed=true;p[n]=w;}}})();`;
+// op-hitch47: opt-in desktop Chrome trace of each grid drive (`--gpu-trace=<existing scratch dir>`): the GPU process's
+// own events (command buffer, shader compile / link, texture uploads, swap), so a long frame with an idle main thread says
+// what the GPU process was doing. Writes <plan>-<time>.json (Chrome trace) and <plan>-<time>.frames.json (the drive's long
+// frames on the page clock plus the trace-clock anchor) for scripts/gpu-trace-frames.mjs. Diagnostic: no timing credit.
+const gpuTraceDir = flag('gpu-trace', '');
+if (gpuTraceDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(gpuTraceDir))) throw new Error('--gpu-trace=<existing dir> traces desktop grid drives only');
+const GPU_TRACE_CATEGORIES = ['toplevel', 'gpu', 'gpu.service', 'gpu.decoder', 'gpu.angle', 'gpu.capture', 'viz', 'cc', 'blink', 'blink.user_timing', 'devtools.timeline', 'disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'disabled-by-default-gpu.service', 'disabled-by-default-gpu.device', 'disabled-by-default-gpu.decoder', 'disabled-by-default-gpu_cmd_queue', 'disabled-by-default-skia.gpu', 'v8.execute', 'scheduler', 'disabled-by-default-v8.cpu_profiler'];
 const LONGTASK_SCRIPT = cpuProfileDir === '' ? '' : `window.__frameFloorLongTasks=[];try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.__frameFloorLongTasks.push([e.startTime,e.duration]);}).observe({type:'longtask',buffered:true});}catch{}`;
 if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--cpu-profile=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -341,6 +348,7 @@ async function measureShard(driver, shard, deadline) {
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 130000);
         const profileStart = driver.profile ? await driver.profile.start() : null;
+        const traceAnchor = driver.trace ? await driver.trace.start(plan.name) : null;
         await driver.evaluate('(window.__frameFloorDriveDone = false, true)');
         // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
         const wholeDrive = (async () => {
@@ -357,6 +365,7 @@ async function measureShard(driver, shard, deadline) {
         await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
         const whole = await wholeDrive; if (whole.error) throw whole.error;
         const rawProfile = driver.profile && profileStart !== null ? await driver.profile.stop() : null;
+        if (driver.trace && traceAnchor !== null) await driver.trace.stop(traceAnchor, whole.value.longFrames.at, await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []'));
         if (rawProfile !== null) await saveProfileMaps(rawProfile);
         const cpuProfile = rawProfile === null ? null : summarizeTravelProfile(rawProfile, profileStart, await driver.evaluate('window.__frameFloorLongTasks ?? []'), plan.name);
         const witness = driven.value, failures = gridFloorWitnessFailures(witness);
@@ -528,6 +537,11 @@ async function worker() {
           start: async () => { profiler = await page.context().newCDPSession(page); await profiler.send('Profiler.enable'); await profiler.send('Profiler.setSamplingInterval', { interval: 250 }); await profiler.send('Profiler.start'); return page.evaluate('performance.now()'); },
           stop: async () => { const { profile } = await profiler.send('Profiler.stop'); await profiler.detach(); profiler = null; return profile; },
         },
+        trace: gpuTraceDir === '' ? null : {
+          // the anchor: a user-timing mark whose trace timestamp pins the page clock to the trace clock
+          start: async (name) => { const file = join(gpuTraceDir, `${name}-${Date.now()}`); await browser.startTracing(page, { path: `${file}.json`, categories: GPU_TRACE_CATEGORIES }); const [pageMs, wallMs] = await page.evaluate("(performance.mark('frameFloorTraceAnchor'), [performance.now(), Date.now()])"); return { file, pageMs, wallMs }; },
+          stop: async (anchor, longFrames, hooks) => { await browser.stopTracing(); writeFileSync(`${anchor.file}.frames.json`, JSON.stringify({ anchorPageMs: anchor.pageMs, anchorWallMs: anchor.wallMs, longFrames, hooks })); console.log(`GPU trace ${anchor.file}.json`); },
+        },
       };
     } else {
       const udid = process.env.SIM_UDID;
@@ -621,7 +635,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));

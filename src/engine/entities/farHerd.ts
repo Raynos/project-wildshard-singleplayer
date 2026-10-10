@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { markGpuOnly } from '../core/gpuOnly';
+import { presenting } from '../core/framePacing';
 
 /**
  * The far herd: every animal past TIER_CONFIG.animalFarBatchDist drawn in ONE draw per model (a kind:variant: its own
@@ -27,7 +28,17 @@ import { markGpuOnly } from '../core/gpuOnly';
  * variant is the rigs' own skinned depth program) — one shadow draw per hull per cascade instead of one per animal. It
  * carries only the attributes that program reads, and its bounding sphere follows its members, so a cascade that none of
  * them can shadow skips it (cascadeCull.ts).
+ *
+ * Paced (op-hitch47, the `buildPacing` Developer tool: `presenting()`): a model's members fill fixed pages of `PAGE_SLOTS`
+ * slots, one draw each, and a herd opens at most one new page a drawn frame; a member with no room yet keeps drawing its own
+ * rig (the same pixels) until a page has one. Unpaced, one batch a model grows as members arrive, as before. Pine Hollow's
+ * entry frame took every far animal at once: the batches grew 8 → 12 → 18 … slots in one flush (each grow re-copies every
+ * slot and repaints every member, 50-70 ms of main thread) and the next frame uploaded tens of MB of new batch geometry
+ * (a 100-130 ms GPU-process frame on the desktop).
  */
+
+/** A paced page's slots: a hull is ~7k vertices × ~80 bytes, so a page is ~9 MB of geometry, uploaded in its first frame. */
+export const PAGE_SLOTS = 16;
 
 /** what a batch needs from an animal */
 export interface FarMember {
@@ -58,6 +69,8 @@ class FarBatch {
   private owners: (FarMember | null)[] = [];
   private readonly slotOf = new Map<FarMember, number>();
   private pending: FarMember[] = [];
+  /** members added this frame that hold no slot yet (`room`) */
+  private admitted = 0;
   private readonly seen = new Set<FarMember>();
   /** per slot: the tint its colours were written with (r, g, b), in doubles: a float32 copy of the Color's doubles never
    *  compares equal, and every member repainted its slot every frame (a third of Pine Hollow's gate frame, SF22d) */
@@ -68,7 +81,7 @@ class FarBatch {
 
   private readonly src: THREE.BufferGeometry;
   private readonly shadow: boolean;
-  constructor(src: THREE.BufferGeometry, material: THREE.Material, bones: number, shadow: boolean) {
+  constructor(src: THREE.BufferGeometry, material: THREE.Material, bones: number, shadow: boolean, cap = 8) {
     this.src = src;
     this.shadow = shadow;
     this.bones = bones;
@@ -89,12 +102,19 @@ class FarBatch {
     this.mesh.boundingSphere = shadow ? this.sphere : new THREE.Sphere(new THREE.Vector3(), Infinity);
     this.mesh.boundingBox = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
     this.mesh.visible = false; // until its first members
-    this.grow(8);
+    this.grow(cap);
   }
+
+  /** Whether `m` holds a slot (from an earlier frame). */
+  has(m: FarMember): boolean { return this.slotOf.has(m); }
+
+  /** Slots a new member may still take this frame without a grow: every slot held last frame stays reserved until `flush`. */
+  room(): number { return this.cap - this.slotOf.size - this.admitted; }
 
   add(m: FarMember, position: THREE.Vector3, radius: number): void {
     if (this.pending.length === 0) this.bounds.makeEmpty();
     this.pending.push(m);
+    if (!this.slotOf.has(m)) this.admitted++;
     this.bounds.expandByPoint(_v.set(position.x - radius, position.y - radius, position.z - radius));
     this.bounds.expandByPoint(_v.set(position.x + radius, position.y + radius * 2, position.z + radius));
   }
@@ -108,6 +128,11 @@ class FarBatch {
       const o = this.owners[s];
       if (o !== null && o !== undefined && !seen.has(o)) this.free(s);
     }
+    // one grow to fit every newcomer (op-hitch47): growing a step per newcomer re-copied every slot each time
+    let free = 0;
+    for (const o of this.owners) if (o === null) free++;
+    if (this.admitted > free) this.grow(Math.max(Math.ceil(this.cap * 1.5), this.cap + this.admitted - free));
+    this.admitted = 0;
     for (const m of this.pending) {
       const at = this.slotOf.get(m);
       if (at !== undefined) {
@@ -236,8 +261,10 @@ function release(this: THREE.BufferAttribute): void {
 
 export class FarHerd<M extends FarMember = FarMember> {
   readonly group = new THREE.Group();
-  /** per batch key (keyOf): its batch, or null when it cannot be batched (no material / no vertex colours) */
-  private readonly batches = new Map<object, FarBatch | null>();
+  /** per batch key (keyOf): its pages, or null when it cannot be batched (no material / no vertex colours) */
+  private readonly batches = new Map<object, FarPages | null>();
+  /** pages opened since the last `end` while paced (at most one a frame) */
+  private opened = 0;
   /** the view's azimuth / pitch and its half-width at the horizon (rad), from begin(); cull = false: every far animal */
   private cull = false;
   private yaw = 0;
@@ -288,10 +315,9 @@ export class FarHerd<M extends FarMember = FarMember> {
     if (b === undefined) {
       const shadow = this.opts.shadow === true;
       const mat = shadow || mesh.geometry.hasAttribute('color') ? this.materialFor(m) : null;
-      b = mat === null ? null : new FarBatch(mesh.geometry, mat, mesh.skeleton.bones.length, shadow);
+      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, pages: [], pageOf: new WeakMap() };
       if (b !== null && !shadow) markGpuOnly('the far herd');
       this.batches.set(key, b);
-      if (b !== null) this.group.add(b.mesh);
     }
     if (b === null) return false;
     if (this.cull) {
@@ -301,11 +327,47 @@ export class FarHerd<M extends FarMember = FarMember> {
       if (da > Math.PI) da = 2 * Math.PI - da;
       if (d > radius && da - Math.asin(Math.min(1, radius / d)) > this.halfW) return true; // outside the view: not drawn
     }
-    b.add(m, position, radius);
+    const page = this.pageFor(b, m);
+    if (page === null) return false;
+    page.add(m, position, radius);
     return true;
   }
 
-  end(): void { for (const b of this.batches.values()) b?.flush(); }
+  /** The page `m` draws in this frame: its own, else one with room, else a new one; null = no room this frame (paced). */
+  private pageFor(b: FarPages, m: M): FarBatch | null {
+    const held = b.pageOf.get(m);
+    if (held?.has(m) === true) return held;
+    let page = b.pages.find((p) => p.room() > 0);
+    if (page === undefined) {
+      const paced = presenting(), last = b.pages.at(-1);
+      if (!paced && last !== undefined) page = last; // unpaced: the batch grows to fit in `flush`, as it always did
+      else if (paced && this.opened >= 1) return null; // a page a frame: the rig draws itself until there is room
+      else {
+        page = new FarBatch(b.src, b.material, b.bones, this.opts.shadow === true, paced ? PAGE_SLOTS : 8);
+        b.pages.push(page); this.group.add(page.mesh);
+        if (paced) this.opened++;
+      }
+    }
+    b.pageOf.set(m, page);
+    return page;
+  }
 
-  dispose(): void { for (const b of this.batches.values()) b?.dispose(); this.batches.clear(); }
+  end(): void {
+    for (const b of this.batches.values()) for (const page of b?.pages ?? []) page.flush();
+    this.opened = 0;
+  }
+
+  /** The draws the herd holds (its pages), for tests and the budget readouts. */
+  pageCount(): number { let n = 0; for (const b of this.batches.values()) n += b?.pages.length ?? 0; return n; }
+
+  dispose(): void { for (const b of this.batches.values()) for (const page of b?.pages ?? []) page.dispose(); this.batches.clear(); }
+}
+
+/** One batch key's pages: the source every page copies, and which page each member last took. */
+interface FarPages {
+  readonly src: THREE.BufferGeometry;
+  readonly material: THREE.Material;
+  readonly bones: number;
+  readonly pages: FarBatch[];
+  readonly pageOf: WeakMap<FarMember, FarBatch>;
 }
