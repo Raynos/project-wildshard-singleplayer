@@ -123,7 +123,7 @@ The image → 3D path that shipped Pine Hollow's hero props, Nalati's 18 models 
 | render–inspect loops | captures in the **real game** at fixed cameras (LOOK-LOOP), the Explorers, plus walking | judges what ships, on the phone tier |
 | Blender scene output | committed data + code: spec, region weights, GLBs, `layout.ts`, models, sets | reproducible: commit outputs, never regenerate at build |
 | (none: WorldClaw has no content) | quests as data (`src/game/quest/quest.ts`), interactables as JSON rows (`src/world/interact/`), `Boss.ts` / `Elite.ts` (normalized: `EncounterService`, 01 §19), spawns (`HerdPlan`) | content is designed and built with the world (plan D37); happenings are an engine mechanism with a row verb (plan R12, E7) |
-| (none: no director) | the director's design + verdict log ([GW2-ZONES](../gw2-zones/GW2-ZONES.md) §4.4, then called CONTENT-GAP, puts it in the shard's `docs/SHARDS.md` section; this plan puts `design.md` in the shard folder, linked from there: plan §7 Q2) | WorldClaw's spec is `design.md`'s machine twin (plan D52) |
+| (none: no director) | the director's design + verdict log ([GW2-ZONES](../../plans/GW2-ZONES.md) §4.4, then called CONTENT-GAP, puts it in the shard's `docs/SHARDS.md` section; this plan puts `design.md` in the shard folder, linked from there: plan §7 Q2) | WorldClaw's spec is `design.md`'s machine twin (plan D52) |
 
 ## 7. After GAME-NORMALIZATION (what changes, what doesn't)
 

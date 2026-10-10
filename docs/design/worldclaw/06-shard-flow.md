@@ -3,7 +3,7 @@
 The flow the plan ([WORLDCLAW-SHARD](../../plans/WORLDCLAW-SHARD.md), ledger D1–D74, resolutions R1–R33) and the
 three skills (`worldclaw-interactive`, guided; `worldclaw-auto`, zero-shot; `worldclaw-sketch`: D62) execute. It comes from:
 - Jake's grill (2026-10-01);
-- the GW2 content audit's play-first director loop ([GW2-ZONES](../gw2-zones/GW2-ZONES.md) §4.3, first written as CONTENT-GAP);
+- the GW2 content audit's play-first director loop ([GW2-ZONES](../../plans/GW2-ZONES.md) §4.3, first written as CONTENT-GAP);
 - council rounds 1–4 (finding IDs in the [register](../../plans/worldclaw/reviews/register.md));
 - the fjord dry run (Thin Ice, now the pilot: D74), which added the map waves, the blockout, the content boards and the
   mechanics lists (D66–D73).

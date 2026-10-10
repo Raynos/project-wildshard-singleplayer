@@ -1,6 +1,6 @@
 # Content audit: Nalati Grasslands and Nine Dragon Stack (tag `pre-normalization`, 2026-09-30)
 
-> **State:** evidence for [../GW2-ZONES.md](../GW2-ZONES.md), written 2026-10-01 from singleplayer at tag `pre-normalization` (`dcd6a29a`, 2026-09-30). Read from code and docs; nothing was played, so every minute figure is an estimate.
+> **State:** evidence for [../GW2-ZONES.md](../../GW2-ZONES.md), written 2026-10-01 from singleplayer at tag `pre-normalization` (`dcd6a29a`, 2026-09-30). Read from code and docs; nothing was played, so every minute figure is an estimate.
 
 This audit covers game content, not tech. Paths are in the singleplayer repo at tag `pre-normalization` (read with `git show pre-normalization:<path>`). Archived plans that were not exported were read with
 `git show pre-normalization:project/archive/…`. I read the code and the docs. I did not play the build, so anything

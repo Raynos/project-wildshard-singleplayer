@@ -84,7 +84,7 @@ Superseded rows stay, struck through by the row that replaced them, so the histo
 | D38 | **Run scope per shard**: the run's first questions ask how far it goes (world + all content; world + one slice; …) | Jake |
 | D39 | **Slop is: things don't sit right, no composition, style drift.** It is worst in Pine Hollow and Nalati | Jake |
 | D40 | **The slop score is Jake's first-walk notes**: he walks the result once on the phone, and the count and size of his notes is the score | Jake |
-| D41 | **Images, then play gates**: after the visual front, Jake plays (1) the verb greybox when the pitch has a new verb and (2) a 10–15 min session slice in grey; only then is the look built (the first two of the GW2 director loop's three play gates, [GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) §4.3; P17 is the third, the arc) | Jake |
+| D41 | **Images, then play gates**: after the visual front, Jake plays (1) the verb greybox when the pitch has a new verb and (2) a 10–15 min session slice in grey; only then is the look built (the first two of the GW2 director loop's three play gates, [GW2-ZONES](GW2-ZONES.md) §4.3; P17 is the third, the arc) | Jake |
 | D42 | **WorldClaw and the director loop are separate tools used together**: a director may call WorldClaw stages, and a WorldClaw run follows the director's gates | Jake |
 | D43 | **The detail budget: beats + every route.** Full polish where a beat is and wherever a route can see; off-route land is coherent terrain + scatter that never needs hand polish | Jake |
 | D44 | **Happenings are designed with the world**: events with a spot, a trigger, an objective, a timer, outcomes and a signal visible from afar | Jake |
@@ -201,7 +201,7 @@ The council's round-1 finding IDs are in brackets; [the register](worldclaw/revi
 5. The pilot is **Thin Ice** (D74): it is the shard Done-when 1 describes.
 
 **Non-goals:**
-- return loops (daily seed, currency, medals; [GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) §7, a later plan);
+- return loops (daily seed, currency, medals; [GW2-ZONES](GW2-ZONES.md) §7, a later plan);
 - neighbouring shards (D55);
 - multiplayer;
 - the sketch flow beyond its outline (the sketch look and kit, E8a, and the grey builder, T17, are in scope because the gates need them);
@@ -280,7 +280,7 @@ A checkpoint grows one place of a new shard's build (P12) while the rest stays p
    captures within noise.
 4. **Every tool has a test** (vitest for pure code, a fixture run for scripts).
 5. **Every row ends with evidence:** a commit, a number, an image path.
-6. **Hard gates are hard** (R16). **Frame rate** (phone tier) is reported at every gate ([GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) §4.3).
+6. **Hard gates are hard** (R16). **Frame rate** (phone tier) is reported at every gate ([GW2-ZONES](GW2-ZONES.md) §4.3).
 7. **The status line**: `set-label.sh` once per stage, from the main session only, with a tag ≤ 24 chars.
 
 ## 4. Rows

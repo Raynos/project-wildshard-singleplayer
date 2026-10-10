@@ -1,6 +1,6 @@
 # Content audit: Driftwood Isle and Pine Hollow at the `pre-normalization` tag (2026-09-30)
 
-> **State:** evidence for [../GW2-ZONES.md](../GW2-ZONES.md), written 2026-10-01 from singleplayer at tag `pre-normalization` (`dcd6a29a`, 2026-09-30). Read from code and docs; nothing was played, so every minute figure is an estimate.
+> **State:** evidence for [../GW2-ZONES.md](../../GW2-ZONES.md), written 2026-10-01 from singleplayer at tag `pre-normalization` (`dcd6a29a`, 2026-09-30). Read from code and docs; nothing was played, so every minute figure is an estimate.
 
 Read-only audit of the game content (not the tech). Every path is in the singleplayer repo at tag `pre-normalization` (read with `git show pre-normalization:<path>`)
 unless it is an archived plan, which was read with `git show pre-normalization:project/archive/<file>`.

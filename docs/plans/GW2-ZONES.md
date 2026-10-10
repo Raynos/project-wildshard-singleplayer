@@ -1,8 +1,8 @@
 # Shards as fun as Guild Wars 2 zones
 
 > **State:** review, 2026-10-01; moved into this repo on 2026-10-03 (E430). Its council's files
-> are archived in `project/archive/2026-10-01-gw2-zones-council/`. It went through a three-round [council](../../process/COUNCIL.md) (Codex + Claude seats), and every
-> finding is fixed or parked in the [register](../../../project/archive/2026-10-01-gw2-zones-council/register.md).
+> are archived in `project/archive/2026-10-01-gw2-zones-council/`. It went through a three-round [council](../process/COUNCIL.md) (Codex + Claude seats), and every
+> finding is fixed or parked in the [register](../../project/archive/2026-10-01-gw2-zones-council/register.md).
 >
 > **Jake decided the four "decide now" questions on 2026-10-01** (§14):
 > - the director loop, with taste picks as boards;
@@ -13,7 +13,7 @@
 > The rest is a proposal, not scheduled.
 >
 > **Where it landed (2026-10-03).** The director loop now lives in singleplayer's
-> [WORLDCLAW-SHARD plan](../../plans/WORLDCLAW-SHARD.md)
+> [WORLDCLAW-SHARD plan](WORLDCLAW-SHARD.md)
 > (a draft):
 > - D41: images, then the verb and session-slice play gates;
 > - D42: WorldClaw and the director loop are separate tools used together;
@@ -34,14 +34,14 @@
 >
 > It deliberately lives here, not in singleplayer, which keeps its small, incremental plans.
 >
-> **Evidence**, in [`evidence/`](evidence/):
-> - [shard-content-driftwood-pine.md](evidence/shard-content-driftwood-pine.md): an inventory of Driftwood Isle and
+> **Evidence**, in [`evidence/`](gw2-zones/evidence/):
+> - [shard-content-driftwood-pine.md](gw2-zones/evidence/shard-content-driftwood-pine.md): an inventory of Driftwood Isle and
 >   Pine Hollow, with paths.
-> - [shard-content-nalati-ninedragon.md](evidence/shard-content-nalati-ninedragon.md): the same for Nalati Grasslands
+> - [shard-content-nalati-ninedragon.md](gw2-zones/evidence/shard-content-nalati-ninedragon.md): the same for Nalati Grasslands
 >   and Nine Dragon Stack.
-> - [gw2-zone-research.md](evidence/gw2-zone-research.md): GW2 zone anatomy, metas, currencies and resets, with
+> - [gw2-zone-research.md](gw2-zones/evidence/gw2-zone-research.md): GW2 zone anatomy, metas, currencies and resets, with
 >   per-shard numbers and every source URL.
-> - The council's reviews are in [the council archive](../../../project/archive/2026-10-01-gw2-zones-council/). Seat C's review adds Zelda, Monster
+> - The council's reviews are in [the council archive](../../project/archive/2026-10-01-gw2-zones-council/). Seat C's review adds Zelda, Monster
 >   Hunter, Destiny, Sea of Thieves, Hunt: Showdown, Spelunky and Fortnite Discover, with sources.
 >
 > **How sure:**
@@ -271,7 +271,7 @@ evidence for it:
      Jake's 47 steering prompts between 01:00 and 02:44.
   - Nine Dragon did only the first half (24+ art rounds). Pine shows the cost of a look chosen without a frame budget:
     its fights run at 35–48 ms on the phone.
-- **BotW** (CEDEC 2017, in [the research](evidence/gw2-zone-research.md#52-breath-of-the-wild--tears-of-the-kingdom)):
+- **BotW** (CEDEC 2017, in [the research](gw2-zones/evidence/gw2-zone-research.md#52-breath-of-the-wild--tears-of-the-kingdom)):
   - The map is shaped so points of interest pull the player ("gravity"), and hills hide and reveal on purpose.
   - Playtest heat maps checked that it worked.
   - Shrines were sized to **about 10 minutes** because long dungeons kept players out of the world (Fujibayashi; seat
@@ -381,7 +381,7 @@ Rules:
 
 **How fun gets tested: bots measure, Jake judges.**
 - **The density rule** is a working hypothesis from
-  [the research](evidence/gw2-zone-research.md#53-density-rules-of-thumb), measured from play traces at each speed
+  [the research](gw2-zones/evidence/gw2-zone-research.md#53-density-rules-of-thumb), measured from play traces at each speed
   the shard allows:
   - a **notice** every 20–40 s;
   - an **interaction** every 1–2 min;
@@ -822,7 +822,7 @@ remove the genre variety that UGC discovery runs on. So the grammar has two laye
 
 ## 12. What this changes in the platform plan
 
-[SHARD-PLATFORM-PLAN](../mmo/SHARD-PLATFORM-PLAN.md) is about code safety and shape. It is silent on content shape. Additions
+[SHARD-PLATFORM-PLAN](../design/mmo/SHARD-PLATFORM-PLAN.md) is about code safety and shape. It is silent on content shape. Additions
 to consider when phase 2 is written:
 
 1. **Content types as engine data, next to the devices:**
@@ -930,10 +930,10 @@ the loot plan left it open, and §9 proposes rank and medals instead.
   finish);
 - the code paths cited in §8 and in the inventories; commits `c7a5cfbc`, `4770c648` and `baa205c8`.
 
-**The MMO docs:** [VISION.md](../mmo/VISION.md), [SHARD-PLATFORM-PLAN.md](../mmo/SHARD-PLATFORM-PLAN.md),
-[SHARD-IDEAS.md](../mmo/SHARD-IDEAS.md), [ONE-SHOT-REVIEW.md](../mmo/ONE-SHOT-REVIEW.md), [COUNCIL.md](../../process/COUNCIL.md).
+**The MMO docs:** [VISION.md](../design/mmo/VISION.md), [SHARD-PLATFORM-PLAN.md](../design/mmo/SHARD-PLATFORM-PLAN.md),
+[SHARD-IDEAS.md](../design/mmo/SHARD-IDEAS.md), [ONE-SHOT-REVIEW.md](../design/mmo/ONE-SHOT-REVIEW.md), [COUNCIL.md](../process/COUNCIL.md).
 
-**GW2:** the full list is at the end of [evidence/gw2-zone-research.md](evidence/gw2-zone-research.md):
+**GW2:** the full list is at the end of [evidence/gw2-zone-research.md](gw2-zones/evidence/gw2-zone-research.md):
 - the GW2 wiki (Queensdale, Silverwastes, Dry Top, Bloodstone Fen, Event timers, Map bonus reward, Wizard's Vault,
   Adventure, Mastery insight, Megaserver);
 - the GW2 API map rectangles;
@@ -942,7 +942,7 @@ the loot plan left it open, and §9 proposes rank and medals instead.
 - the BotW CEDEC 2017 talk.
 
 **Other games:** the list with URLs is at the end of
-[council/round-1-seat-C.md](../../../project/archive/2026-10-01-gw2-zones-council/round-1-seat-C.md):
+[council/round-1-seat-C.md](../../project/archive/2026-10-01-gw2-zones-council/round-1-seat-C.md):
 - Fujibayashi on shrines;
 - Monster Hunter Now;
 - Destiny 2 patrol;
@@ -950,4 +950,4 @@ the loot plan left it open, and §9 proposes rank and medals instead.
 - Hunt: Showdown;
 - Spelunky's daily;
 - Fortnite Discover;
-- Trackmania's Track of the Day ([round-2 seat C](../../../project/archive/2026-10-01-gw2-zones-council/round-2-seat-C.md#sources)).
+- Trackmania's Track of the Day ([round-2 seat C](../../project/archive/2026-10-01-gw2-zones-council/round-2-seat-C.md#sources)).

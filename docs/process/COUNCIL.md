@@ -3,7 +3,7 @@
 > **State:** process, written 2026-10-01 (E361). It generalises the council that GAME-NORMALIZATION ran
 > ([12-process §1](../../project/archive/game-normalization/12-process.md); decisions 81–83, 92–93, 97, 100 in ask E357), so that any
 > plan or design doc can be put through it. Its first use outside
-> normalization was [GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) (moved into `docs/design/` by
+> normalization was [GW2-ZONES](../plans/GW2-ZONES.md) (moved into `docs/plans/` by
 > E430); its round files are archived in
 > [`project/archive/2026-10-01-gw2-zones-council/`](../../project/archive/2026-10-01-gw2-zones-council/).
 

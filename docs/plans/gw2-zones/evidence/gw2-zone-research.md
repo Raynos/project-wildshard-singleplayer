@@ -1,6 +1,6 @@
 # What makes a Guild Wars 2 zone dense, replayable and "living": numbers for a 500 m shard
 
-> **State:** evidence for [../GW2-ZONES.md](../GW2-ZONES.md), web research done 2026-10-01. GW2 wiki and API figures are cited; anything marked synthesis or inference is not.
+> **State:** evidence for [../GW2-ZONES.md](../../GW2-ZONES.md), web research done 2026-10-01. GW2 wiki and API figures are cited; anything marked synthesis or inference is not.
 
 Research for Wildshard, 2026-10-01. The primary source is the GW2 wiki. Map sizes come from the official GW2 API (`api.guildwars2.com/v2/maps/<id>`). The API's continent units convert to metres with the wiki's rule, "one coordinate unit is equivalent to a distance of 24 inches". The [Sources](#sources) list is at the end.
 

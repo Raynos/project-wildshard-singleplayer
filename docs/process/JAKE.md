@@ -42,7 +42,7 @@ Each line is a rule; the date or ask id is where he said it.
   Sky Reach content is built by Opus subagents only, never a GPT Sol builder.
 - **MMO docs live in this repo, self-contained** (2026-10-03, E431: "requirements goes into wildshard singleplayer repo";
   E433: "a hard copy … not to leak any reference" to another repo): the vision, glossary, requirements, platform thinking
-  and shard ideas in `docs/design/mmo/`, GW2-ZONES in `docs/design/gw2-zones/`, the route in
+  and shard ideas in `docs/design/mmo/`, GW2-ZONES in `docs/plans/GW2-ZONES.md`, the route in
   `docs/plans/SHARD-PLATFORM.md`. Never link or name a private planning repo from here.
 - **Clef / decision-model research is closed** (E394: "That's enough experimentation"). Using `decide.sh qa` in capture
   work is fine; don't propose new pilots.
