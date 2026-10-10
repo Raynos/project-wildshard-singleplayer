@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "7654632bada4bda29b791749795e65f773fd819343ffcc3dba286fecd2122e2d",
+  "inputs": "eb6f22a2210f0a87fedb81bdf2ec74a6ce2551c6506e6f45cf2fbe02dcc76b9f",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,7 +12,7 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "37e3f98a14f651454be56381ae45db9c5531f7aa3317cbc4ec0073e082c76b98",
+    "hash": "10086c444a91e3cd19f1259d11bb9f5a48341606d62e9b58f09475b2403d77a5",
     "pack": {
       "counts": {
         "amber-resin": 5
@@ -773,8 +773,8 @@
     "duplicateStable": true
   },
   "outcomeDifferences": [
-    "Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.",
-    "All three NPC readings, completion flags, Brandt's once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott's trades.",
+    "Native projectile gusts, rainy bolt flight, moving spread, longbow recovery and special-ammunition stacks/launch kinds are hosted; variable page-frame clocks and aimed/mounted input remain unproved. Stopped crossbow bolts are visual-only on the page.",
+    "All three NPC readings, completion flags, Brandt's once-only thanks, lodge rewards/streak and Mott's pack/ammunition/finish trades are hosted; named prompt commands still omit nearest/line-of-sight selection.",
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
     "King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.",
@@ -783,17 +783,19 @@
   ],
   "coverageGaps": [
     "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",
+    "Mott swaps and special-ammunition cycling/flight have native rule and restore fixtures, but no dedicated uninterrupted quest tape.",
     "The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape."
   ],
   "open": [
-    "Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.",
-    "All three NPC readings, completion flags, Brandt's once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott's trades.",
+    "Native projectile gusts, rainy bolt flight, moving spread, longbow recovery and special-ammunition stacks/launch kinds are hosted; variable page-frame clocks and aimed/mounted input remain unproved. Stopped crossbow bolts are visual-only on the page.",
+    "All three NPC readings, completion flags, Brandt's once-only thanks, lodge rewards/streak and Mott's pack/ammunition/finish trades are hosted; named prompt commands still omit nearest/line-of-sight selection.",
     "Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.",
     "Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.",
     "King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.",
     "Rain wander goals are null: creature positions can differ.",
     "The page King record uses pine.bosses instead of host flags; browser-save interoperability for refights is not proved.",
     "Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.",
+    "Mott swaps and special-ammunition cycling/flight have native rule and restore fixtures, but no dedicated uninterrupted quest tape.",
     "The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape."
   ]
 }

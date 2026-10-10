@@ -500,8 +500,8 @@ export function gameplayProof(rapier: Rapier, from?: 'night'): ReturnType<typeof
 
 /** These omissions can change damage, inventory, quest/ledger outcomes or persistence relative to the browser. */
 export const OUTCOME_DIFFERENCES = [
-  'Native projectile gusts, rainy iron-bolt flight, moving spread and longbow recovery are hosted; variable page-frame clocks, aimed/mounted input and special-ammunition selection remain unproved. Stopped crossbow bolts are visual-only on the page.',
-  'All three NPC readings, completion flags, Brandt\'s once-only thanks and lodge rewards/streak are hosted; named prompt commands still omit nearest/line-of-sight selection and Mott\'s trades.',
+  'Native projectile gusts, rainy bolt flight, moving spread, longbow recovery and special-ammunition stacks/launch kinds are hosted; variable page-frame clocks and aimed/mounted input remain unproved. Stopped crossbow bolts are visual-only on the page.',
+  'All three NPC readings, completion flags, Brandt\'s once-only thanks, lodge rewards/streak and Mott\'s pack/ammunition/finish trades are hosted; named prompt commands still omit nearest/line-of-sight selection.',
   'Resin walk-in takes, the eight carved tokens, lookout bench and seven-kind pack are hosted; hollow-log/islet secrets and journal discovery remain unhosted, so their ledger outcomes are absent.',
   'Night-roaming thralls and the millrace combat/errand completion are hosted on the shared population law; page Math.random placement and variable-frame scheduling are not matched native inputs. Mill wheel/hinged-door access remains absent.',
   'King victories pay three resin through the real pack; the first bow waits at the shared settled orb until in-range visible USE. Cross-prompt nearest selection and browser boss-save interoperability remain unproved.',
@@ -511,6 +511,7 @@ export const OUTCOME_DIFFERENCES = [
 /** Missing recorded paths alone do not establish a difference in the already-hosted rule. */
 export const COVERAGE_GAPS = [
   'Alternate routes, other elite encounters and repeat fights lack their own uninterrupted recorded tapes.',
+  'Mott swaps and special-ammunition cycling/flight have native rule and restore fixtures, but no dedicated uninterrupted quest tape.',
   'The recorded tape is standalone; grid entry walls are removed in a separate native entry proof, not a recorded grid quest tape.',
 ];
 export const OPEN = [...OUTCOME_DIFFERENCES, ...COVERAGE_GAPS];
