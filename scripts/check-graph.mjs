@@ -97,7 +97,15 @@ function sourceFiles() {
   return files.sort((a, b) => a.localeCompare(b));
 }
 
-/** the counts of cross-layer edges: { 'shards/pine-hollow → engine': 230, … } and the reach violations */
+/**
+ * Jake, G288 (2026-10-09): a shard's downward imports (shard → engine / game / sdk / commons) are standing-approved
+ * (.git/generated-approval.json), so they are not counted in lint/layer-edges.json: their rises made ~80 regeneration
+ * commits a day and stalled the pusher on receipts. Direction stays enforced where it always was: the `wildshard/layer`
+ * and `shard-sandbox` lint rules refuse upward imports, the reach check below refuses one shard reaching into another,
+ * and the two-way (cycle) check still sees every edge. Every other pair (game → engine, sdk → game, root → …) is counted.
+ */
+export const APPROVED_DOWNWARD = /^shards\/[^ ]+ → (engine|game|sdk|commons)$/u;
+/** the counts of cross-layer edges: { 'game → engine': 887, … } (minus APPROVED_DOWNWARD) and the reach violations */
 const EMPTY_FROZEN = { shards: {} };
 /** Frozen sources remain in every reach/cycle check; only reviewed file identities leave the measured counts. */
 export function graph(files, read, exists, frozen = EMPTY_FROZEN) {
@@ -114,7 +122,7 @@ export function graph(files, read, exists, frozen = EMPTY_FROZEN) {
       if (toLayer === fromLayer || (from === GENERATED_TABLE && reachViolation(from, to, dynamic) === null && toLayer.startsWith('shards/'))) continue;
       const key = `${fromLayer} → ${toLayer}`;
       hardEdges[key] = (hardEdges[key] ?? 0) + 1;
-      if (!registeredLegacyFile(frozen, from)) edges[key] = (edges[key] ?? 0) + 1;
+      if (!registeredLegacyFile(frozen, from) && !APPROVED_DOWNWARD.test(key)) edges[key] = (edges[key] ?? 0) + 1;
     }
   }
   violations.push(...compareEdges(hardEdges, hardEdges).failures);

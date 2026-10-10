@@ -14,7 +14,7 @@ import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
 import { CAPTURE_SHELL_FILES, SIM_DIRS, TIME_ALLOW, VIEW_PATHS } from '../lint/wildshard-plugin.js';
-import { compareEdges, graph, layerOf, reachViolation } from '../scripts/check-graph.mjs';
+import { APPROVED_DOWNWARD, compareEdges, graph, layerOf, reachViolation } from '../scripts/check-graph.mjs';
 import { layoutBlock, withLayout } from '../scripts/gen-shard-layout-doc.mjs';
 
 interface Case { id: string; file: string; rule: string; code: string; count: number }
@@ -264,6 +264,21 @@ describe('AG7 layer graph', () => {
     expect(compareEdges({}, { 'game → sdk': 1 }).failures[0]).toMatch(/new layer pair/u);
     expect(compareEdges({ 'game → engine': 1, 'engine → game': 1 }, { 'game → engine': 1, 'engine → game': 1 }).failures[0]).toMatch(/cycle/u);
     expect(compareEdges({ 'game → engine': 3 }, { 'game → engine': 2 }).fell).toEqual(['game → engine fell 3 → 2']);
+  });
+  it('leaves standing-approved downward shard imports out of the counts (G288) and still counts every other pair', () => {
+    const files: Record<string, string> = {
+      'src/shards/x/a.ts': "import { e } from '@wildshard/engine/e'; import { g } from '@wildshard/game/g'; import { s } from '@wildshard/sdk/s'; import { c } from '@wildshard/commons/c';",
+      'src/shards/x/b.ts': "import { a } from '../../shards/y/a';",
+      'src/shards/y/a.ts': 'export const a = 1;',
+      'src/engine/e.ts': "import { g } from '@wildshard/game/g'; export const e = 1;",
+      'src/game/g.ts': 'export const g = 1;', 'src/sdk/s.ts': 'export const s = 1;', 'src/commons/c.ts': 'export const c = 1;',
+    };
+    const g = graph(Object.keys(files), (p) => files[p] ?? '', (p) => p in files);
+    expect(g.edges).toEqual({ 'engine → game': 1, 'shards/x → shards/y': 1 });
+    expect(g.violations.some((v) => v.includes('reaches into src/shards/y/a.ts'))).toBe(true);
+    expect(APPROVED_DOWNWARD.test('shards/pine-hollow → engine')).toBe(true);
+    expect(APPROVED_DOWNWARD.test('game → engine')).toBe(false);
+    expect(APPROVED_DOWNWARD.test('shards/x → shards/y')).toBe(false);
   });
   it('holds the real tree against lint/layer-edges.json', () => {
     const r = spawnSync(execPath, ['scripts/check-graph.mjs'], { encoding: 'utf8' });

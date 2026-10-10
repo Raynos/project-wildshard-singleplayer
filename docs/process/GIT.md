@@ -69,9 +69,12 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `approver: "wildshard-new"` and the exact `increases` list printed by the runner; it refuses absent, duplicate,
   extra or stale entries. The generated commit records `Generated-Source`, `Generated-Approver` and each
   canonical `Generated-Increase` trailer. The receipt may also carry standing rules,
-  `"standing": [{ "kind": "graph", "key": "<RegExp source>" }]` (e.g. a shard's downward imports): a measured row a rule
-  covers needs no exact entry, so a count that keeps moving (811 → 813 → 816) does not stall the push; the trailers
-  still list the exact rows. The auto-pusher passes the coordinator's `.git/generated-approval.json`. Hard rules,
+  `"standing": [{ "kind": "graph", "key": "<RegExp source>" }]`: a measured row a rule covers needs no exact entry,
+  so a count that keeps moving does not stall the push; the trailers still list the exact rows. **A shard's downward
+  imports (shard → engine / game / sdk / commons) are not counted at all** (Jake, G288, 2026-10-09:
+  `APPROVED_DOWNWARD` in `scripts/check-graph.mjs`; their rises made ~80 regeneration commits a day): upward imports stay
+  refused by the `layer` / `shard-sandbox` lint rules, one shard reaching into another by the reach check, and
+  every other layer pair is still counted. The auto-pusher passes the coordinator's `.git/generated-approval.json`. Hard rules,
   zero-debt promotion and ambient checks stay fatal.
 - **No tree-wide destructive git, no escape:** `git restore .` / `checkout .`, a bare `git stash`, `git reset --hard`
   and `git clean -f` without paths are blocked. Name the paths you authored.
