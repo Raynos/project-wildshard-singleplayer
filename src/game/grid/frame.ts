@@ -95,6 +95,9 @@ export interface FrameCinematic {
   readonly take: (instance: string, start: { readonly strength: number; readonly sunColor: readonly [number, number, number]; readonly sunDir?: Vector3 | undefined; readonly fog?: Color | undefined }) => void;
   readonly weight: (w: number) => void;
   readonly release: () => void;
+  /** G321 part 5: god rays for a page whose chain has none (null: none), and a region whose chain draws rays taking them */
+  readonly rays?: Effect | null;
+  readonly takeRays?: (instance: string) => void;
   readonly state: () => FrameCinematicState;
   readonly dispose: () => void;
 }
@@ -233,12 +236,14 @@ export function passEffects(pass: EffectPass): Effect[] | null {
  * a value written since the last frame is the region's own and is kept. `restore` puts the page's values back. Null when
  * the region carries no knobs (a 'replace' look).
  */
-export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined): { readonly weight: (w: number) => void; readonly restore: () => void } | null {
+export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined, pageRays?: number): { readonly weight: (w: number) => void; readonly restore: () => void } | null {
   if (knobs === undefined) return null;
   const bloom = post.bloom, vignette = post.vignette, rays = post.rays ?? null, ao = post.ao ?? null;
   const read = (u: Uniform): number => { const v: unknown = u.value; return typeof v === 'number' ? v : 1; };
+  // `pageRays` (G321 part 5): the page's own rays value when the rays are carried ones (0: the page draws none), never read
+  // back from an effect a region's clock may have written first
   const page = { intensity: bloom?.intensity ?? 0, threshold: bloom?.luminanceMaterial.threshold ?? 0, smoothing: bloom?.luminanceMaterial.smoothing ?? 0,
-    darkness: vignette?.darkness ?? 0, rays: rays === null ? 0 : read(rays.blendMode.opacity), ao: ao?.configuration.intensity ?? 0, aoOn: ao?.enabled ?? false };
+    darkness: vignette?.darkness ?? 0, rays: rays === null ? 0 : pageRays ?? read(rays.blendMode.opacity), ao: ao?.configuration.intensity ?? 0, aoOn: ao?.enabled ?? false };
   // the rays' full value: the region's chain's own, or what its clock wrote since the last frame
   let raysOwn = knobs.rays, raysWritten = Number.NaN;
   const mix = (a: number, b: number, w: number): number => a + (b - a) * w;
@@ -349,6 +354,8 @@ export class GridFrame {
   private chainLut = false;
   /** SF63 follow-up: a cinematic region's shafts, fringe and grain, compiled into the shell's colour pass at install */
   private cine: FrameCinematic | null = null;
+  /** G321 part 5: the chain's god rays are the carried ones (`FrameCinematic.rays`), at 0 on the page */
+  private carriedRays = false;
   /** SF63: the shell's colour pass and its effect list (set at install), where a resident region's display transform goes */
   private colour: { readonly composer: EffectComposer; readonly pass: EffectPass; readonly effects: Effect[]; readonly tone: Effect } | null = null;
   /** SF63 / G158: each resident region's own composite side passes (`ExtendLook.cell`), before the colour pass */
@@ -572,6 +579,9 @@ export class GridFrame {
         effects.splice(at, 0, this.lookEffect, this.lutEffect);
         // SF63 follow-up: a cinematic region's shafts, fringe and grain, neutral until one carries them
         const unplace = this.placeCinematic(composer, pass, effects);
+        // G321 part 5: a shell whose chain leaves its god rays out carries a region's in the rays placed with them
+        const carriedRays = (post.rays ?? null) === null ? this.cine?.rays ?? null : null;
+        if (carriedRays !== null && effects.includes(carriedRays)) { this.chainPost = { ...post, rays: carriedRays }; this.carriedRays = true; }
         // SF63: a 'replace' region's display transform takes over the tone mapping by its weight: the tone mapping blends
         // (NORMAL at opacity 1 draws exactly what SRC drew) and the regions resident before the install are placed now
         const tone = post.tone, toneBlend = tone?.blendMode.blendFunction;
@@ -582,7 +592,7 @@ export class GridFrame {
           for (const passes of this.cellPasses.values()) this.placePasses(passes);
         }
         unstack = () => {
-          this.drop(); this.chainPost = null; this.chainFade = null; carried.dispose(); rest.dispose();
+          this.drop(); this.chainPost = null; this.chainFade = null; this.carriedRays = false; carried.dispose(); rest.dispose();
           for (const effect of [this.lookEffect, this.lutEffect, ...this.displays.values()]) { const i = effects.indexOf(effect); if (i !== -1) effects.splice(i, 1); }
           if (tone !== undefined && toneBlend !== undefined) { tone.blendMode.blendFunction = toneBlend; tone.blendMode.opacity.value = 1; }
           for (const passes of this.cellPasses.values()) for (const p of passes) composer.removePass(p);
@@ -685,10 +695,12 @@ export class GridFrame {
     post.saturation.saturation = g.saturation; post.contrast.brightness = g.brightness; post.contrast.contrast = g.contrast;
     post.grade.set({ shadowTint: rgb(g.shadowTint), highTint: rgb(g.highTint), lift: rgb(g.lift), gain: rgb(g.gain), gamma: g.gamma });
     this.lookEffect.set(chain.look);
-    const knobs = chainKnobs(post, chain.post), display = this.displays.get(instance) ?? null, tone = this.colour?.tone ?? null;
+    const knobs = chainKnobs(post, chain.post, this.carriedRays ? 0 : undefined), display = this.displays.get(instance) ?? null, tone = this.colour?.tone ?? null;
     // SF63 follow-up: a cinematic chain's shafts, fringe and grain, its clock driving the shafts
     const volumetric = chain.post?.volumetric;
     if (volumetric !== undefined) this.cine?.take(instance, { strength: volumetric.strength, sunColor: volumetric.sunColor, sunDir: this.host.sunDir?.(), fog: this.live.get(instance)?.fog?.color });
+    // G321 part 5: a region whose chain draws god rays takes the carried ones (their depth), the knobs turning their opacity
+    if (this.carriedRays && (chain.post?.rays ?? 0) > 0) this.cine?.takeRays?.(instance);
     // SF63: its own display transform in by the weight, the page's tone mapping out
     // SF63 / G158: its own composite's side passes run only while it carries the frame
     const passes = this.cellPasses.get(instance) ?? [];

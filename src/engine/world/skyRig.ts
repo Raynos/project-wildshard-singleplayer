@@ -1,6 +1,6 @@
-import { PLANET_DIST, SkyBackdropView, cloudLayer } from './skyBackdrop';
+import { PLANET_DIST, SkyBackdropView, cloudLayer, paintedSkyEnvironment } from './skyBackdrop';
 import { ownSceneResource } from '../app/sceneOwnership';
-import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets } from './backdropLayer';
+import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets, type LayeredSkyBackdrop, type LayerEnvironmentOnly } from './backdropLayer';
 import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
@@ -231,7 +231,7 @@ export class SkyRig {
    * and drawn under, every other layer, at its weight's share of what they leave (`applyLayers`). Null before the sky is
    * built.
    */
-  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean; readonly origin?: () => THREE.Vector3 } = {}): BackdropLayer | null {
+  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean; readonly origin?: () => THREE.Vector3; readonly environment?: LayerEnvironmentOnly } = {}): BackdropLayer | null {
     const targets = this.targets;
     if (targets === null) return null;
     const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, assets: app.assets, onDispose: () => { this.layers.delete(layer); } });
@@ -263,6 +263,32 @@ export class SkyRig {
       if (options.clouds !== false && backdrop.clouds === undefined) this.layerClouds(layer, options.level);
       return { layer, backdrop };
     } catch (error) { layer.dispose(); throw error; }
+  }
+
+  /**
+   * SHARD-PLATFORM G321 part 5: a backdrop-less level's default sky environment as an environment-only layer over this sky
+   * (`BackdropLayer`'s `environment`): its painted sky PMREM-filtered as its own page would light with it
+   * (`paintedSkyEnvironment`), swapped in at half the layer's weight, its intensity `intensity()` blended by the weight. Null
+   * before the sky is built, for a level whose sky is not painted, or when `scope` ends first. The caller attaches the
+   * returned backdrop once its memory is admitted (its `gpuCeiling`: the PMREM target), or disposes both.
+   */
+  async layeredEnvironment(options: { readonly level: Pick<LevelSpec, 'sky'>; readonly scope?: Scope; readonly intensity: () => number }): Promise<{ layer: BackdropLayer; backdrop: LayeredSkyBackdrop & { readonly gpuCeiling: () => number } } | null> {
+    if (this.targets === null || options.level.sky.painted === undefined) return null;
+    const live = (): boolean => options.scope?.disposed !== true;
+    const env = await paintedSkyEnvironment(options.level, this.renderer, live);
+    if (env === null) return null;
+    const layer = this.layerBackdrop({ environment: { intensity: options.intensity }, ...(options.scope === undefined ? {} : { owner: options.scope }) });
+    if (layer === null) { env.dispose(); return null; }
+    const holder = layer.holder;
+    holder.environment = env.texture;
+    let freed = false;
+    const backdrop = {
+      lut: null, bind: (): void => undefined, update: (): void => undefined,
+      rebuild: (): void => { void (async (): Promise<void> => { await env.rebuild(); if (!freed) holder.environment = env.texture; })(); },
+      gpuBytes: (): number => (freed ? 0 : env.bytes), gpuCeiling: (): number => env.bytes,
+      dispose: (): void => { if (freed) return; freed = true; holder.environment = null; env.dispose(); },
+    };
+    return { layer, backdrop };
   }
 
   /**

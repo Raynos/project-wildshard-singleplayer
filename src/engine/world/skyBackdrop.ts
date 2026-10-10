@@ -120,24 +120,7 @@ export class SkyBackdropView {
     const [hdr, , baked, lut] = await Promise.all([loadSky, preloadBakedTextures(), painted ? Promise.resolve(null) : loadBakedSky(id, hdriName), loadLUT(id)]);
     this.lut = lut; // the level's learned LUT (lut.ts): no file, no fetch, no pass
     if (!S.sun) { if (baked) this.sunDir.fromArray(baked.sunDir).normalize(); else this.findSun(hdr); }
-    hdr.mapping = THREE.EquirectangularReflectionMapping;
-    // three tasks, not one 130 ms one at 4x CPU: the PMREM program compile, the 2048x1024 half-float upload, then the
-    // cube-UV render + blur passes. WebKit additionally prepares the exact offscreen variants and
-    // paints between their original draws; the output and desktop factory calls are unchanged.
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    pmrem.compileEquirectangularShader();
-    await macrotask();
-    this.renderer.initTexture(hdr);
-    await macrotask();
-    const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
-    let env: THREE.Texture;
-    try {
-      const target = await prepareOffscreenBuild(this.renderer, commands => {
-        prepared.generator = commands === this.renderer ? pmrem : new THREE.PMREMGenerator(commands);
-        return prepared.generator.fromEquirectangular(hdr);
-      }, () => !this.scope.disposed, { webKitOnly: true });
-      env = target.texture;
-    } finally { prepared.generator?.dispose(); if (prepared.generator !== pmrem) pmrem.dispose(); }
+    const env = (await pmremOf(this.renderer, hdr, () => !this.scope.disposed)).texture;
     this.scene.environment = env;
     this.scene.environmentIntensity = S.envIntensity;
     this.scene.background = hdr;
@@ -434,6 +417,61 @@ function compassDir(azimuth: number, elevation: number): THREE.Vector3 {
  * sun, the ground colour below the skyline. It is the background and the PMREM environment, so it replaces the
  * HDRI entirely (~2 ms to paint, nothing to download).
  */
+/** an equirect sky's PMREM environment target (its mapping set here) */
+async function pmremOf(renderer: Renderer, hdr: THREE.Texture, live: () => boolean): Promise<THREE.WebGLRenderTarget> {
+  hdr.mapping = THREE.EquirectangularReflectionMapping;
+  // three tasks, not one 130 ms one at 4x CPU: the PMREM program compile, the 2048x1024 half-float upload, then the
+  // cube-UV render + blur passes. WebKit additionally prepares the exact offscreen variants and
+  // paints between their original draws; the output and desktop factory calls are unchanged.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  await macrotask();
+  renderer.initTexture(hdr);
+  await macrotask();
+  const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
+  try {
+    return await prepareOffscreenBuild(renderer, commands => {
+      prepared.generator = commands === renderer ? pmrem : new THREE.PMREMGenerator(commands);
+      return prepared.generator.fromEquirectangular(hdr);
+    }, live, { webKitOnly: true });
+  } finally { prepared.generator?.dispose(); if (prepared.generator !== pmrem) pmrem.dispose(); }
+}
+
+/** A level's default sky as an environment alone (`paintedSkyEnvironment`): the PMREM texture, its GPU bytes, its free. */
+export interface SkyEnvironment {
+  readonly texture: THREE.Texture;
+  /** the GPU bytes the PMREM target holds (its half-float RGBA texels) */
+  readonly bytes: number;
+  /** render it again after an in-place WebGL restore (the target came back empty) */
+  readonly rebuild: () => Promise<void>;
+  readonly dispose: () => void;
+}
+
+/**
+ * SHARD-PLATFORM G321 part 5: the environment a backdrop-less level with a painted sky (`sky.painted`) lights with on its own
+ * page (`setupHDRI`: the same gradient around its sun, PMREM-filtered), built without touching any page: a grid cell of
+ * that level carries it (`SkyRig.layeredEnvironment`). The painted equirect is freed once filtered (only the environment is
+ * needed). Null for a level whose sky is an HDRI file (not carried: a download and a 2k texture) or when `live` turns false.
+ */
+export async function paintedSkyEnvironment(level: Pick<LevelSpec, 'sky'>, renderer: Renderer, live: () => boolean): Promise<SkyEnvironment | null> {
+  const S = level.sky, painted = S.painted;
+  if (painted === undefined) return null;
+  // its own page paints round its fixed sun, else round the rig's starting sun (`SkyRig.sunDir`)
+  const sun = S.sun ? compassDir(S.sun.azimuth, S.sun.elevation) : new THREE.Vector3(0.3, 0.6, 0.4).normalize();
+  const filter = async (): Promise<THREE.WebGLRenderTarget> => {
+    const hdr = paintSky(painted, sun);
+    try { return await pmremOf(renderer, hdr, live); } finally { hdr.dispose(); }
+  };
+  let target = await filter();
+  if (!live()) { target.dispose(); return null; }
+  return {
+    get texture() { return target.texture; },
+    get bytes() { return target.width * target.height * 8; },
+    rebuild: async () => { const old = target; target = await filter(); old.dispose(); },
+    dispose: () => { target.dispose(); },
+  };
+}
+
 function paintSky(P: NonNullable<SkySpec['painted']>, sun: THREE.Vector3): THREE.DataTexture {
   const W = 512, H = 256;
   const data = new Uint16Array(W * H * 4);

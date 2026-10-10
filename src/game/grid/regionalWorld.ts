@@ -20,7 +20,9 @@
  * - its light on the page's one sky (`regionLight.ts`, G223): whatever its runtime lights (the key light, fill, sun disc,
  *   shadow maps, painterly / fog uniforms, volumetric light, engine grade) is held on each entry and put back on leave.
  * - its own sky (`regionSky.ts`, G223 / G232): its level's sky backdrop laid
- *   over the page's one sky by its owner weight, charged under its own `sim-sky:` claim beside the runtime's.
+ *   over the page's one sky by its owner weight, charged under its own `sim-sky:` claim beside the runtime's. A level with
+ *   no backdrop and a painted sky (G321 part 5, Debug ▸ Grid cell sky light, default off) lays its standalone sky
+ *   environment there instead (`SkyRig.layeredEnvironment`: swapped in at half weight, under the same claim).
  * - its own look parts (SF63): its level's grass driver (`LookStrategy.grass`) is bound with its level frame, so its
  *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
  *   its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
@@ -66,7 +68,8 @@ import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
-import { buildRegionSky } from './regionSky';
+import { buildRegionSky, type RegionBackdrop } from './regionSky';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
 
@@ -118,6 +121,8 @@ export function regionalWorldCensus(foundation: RegionalRuntimeFoundation): Regi
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
 /** a level's sky backdrop as the page's sky layers it (G223) */
 type LayeredBackdrop = NonNullable<Awaited<ReturnType<SkyRig['layeredBackdrop']>>>['backdrop'];
+/** what a page sky's layer attaches: a level's backdrop, or (G321 part 5) its default sky's environment alone */
+type LayerAttachable = Parameters<NonNullable<ReturnType<SkyRig['layerBackdrop']>>['attach']>[0] & RegionBackdrop;
 /** a layered sky's volumetric light: the page's chain never has one to hand (G232 hands a region's clock the page's saturation, SF63 its god rays) */
 const NO_VOL: Parameters<LayeredBackdrop['attachPost']>[0]['vol'] = { setSun: () => undefined, setFogColor: () => undefined, setStrength: () => undefined };
 
@@ -254,17 +259,32 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               // G321: a level whose world draws its own whole sky (`SkyDressing.ownSky`: a painted dome in its scene, no
               // backdrop) owns the horizon in its cell as a backdrop does; its sky fades with its world, so the layer only
               // tells the frame its weight (the road's void floor stands down by it)
+              // (hung below unless its environment layer, G321 part 5, hangs the same weight with its environment)
               const hang = look.sky;
-              if (levelLook?.backdrop === undefined && levelLook?.sky?.ownSky === true && hang !== undefined && !left()) {
+              let hungOwn = false;
+              const hangOwnSky = (): void => {
+                if (hungOwn || levelLook?.backdrop !== undefined || levelLook?.sky?.ownSky !== true || hang === undefined || left()) return;
+                hungOwn = true;
                 let drawn = 0;
                 resident.onDispose(hang(cell.instance, { weight: (w) => { drawn = w; }, state: () => ({ weight: drawn, drawn: drawn > 0, bytes: 0, reserved: 0 }) }));
-              }
+              };
               const made: { backdrop: LayeredBackdrop | null; environment: (() => Texture | null) | null } = { backdrop: null, environment: null };
               const measured = textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
-              const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
+              const outcome = await buildRegionSky<LayerAttachable>({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
                 const make = levelLook?.backdrop;
-                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false, sun: levelLook?.sky?.sun,
+                // G321 part 5 (Debug row, default off): a level with no backdrop lights with its painted sky's environment on
+                // its own page; its cell lays that environment alone, its intensity what its clock writes on its own scene
+                // (seeded with its declared one), so its world is lit as standalone. Everything else stays its world's own.
+                if (make === undefined) {
+                  if (setting('gridSkyEnvironment') !== 'on' || level.sky.painted === undefined) return null;
+                  scene.environmentIntensity = level.sky.envIntensity;
+                  const env = await sky.layeredEnvironment({ level, scope: resident, intensity: () => scene.environmentIntensity });
+                  if (env === null) return null;
+                  made.environment = () => env.layer.holder.environment;
+                  return { ...env, prepare: () => game.warmSkyLayer(env.layer) };
+                }
+                const layered = await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false, sun: levelLook?.sky?.sun,
                   // G321: its world-anchored sky pieces stand at the region's root, where its level's frame is drawn
                   origin: () => regionOrigin.setFromMatrixPosition(view.root.matrixWorld) });
                 if (layered === null) return null;
@@ -277,15 +297,17 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 if (post !== null) layered.backdrop.attachPost({ vol: post.vol ?? NO_VOL, rays: post.rays, hueSat: post.hueSat });
                 return { ...layered, prepare: () => game.warmSkyLayer(layered.layer) };
               } });
+              // an environment-only sky draws no backdrop: its own sky stands as without one
+              if (outcome !== 'drawn') hangOwnSky();
               // its LUT: the drawn backdrop's (it loaded the level's), else the level's own file when it has no backdrop
               if (outcome === 'drawn') {
-                lut = made.backdrop?.lut ?? null;
                 // The subtree is not a render target. Warm-up borrows the same sky environment the page will draw
                 // on entry, after the real sky build and its unchanged residency admission have finished.
                 scene.environment = made.environment?.() ?? null;
                 resident.onDispose(() => { scene.environment = null; }); // borrowed: the sky layer owns its disposal
               }
-              else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
+              if (outcome === 'drawn' && made.backdrop !== null) lut = made.backdrop.lut;
+              else if ((outcome === 'off' || levelLook?.backdrop === undefined) && !left() && (look.post?.() ?? null) !== null) {
                 const own = await loadLUT(level.id);
                 if (own !== null && left()) own.dispose();
                 else if (own !== null) { lut = own; ownSceneResource(own, resident); resident.onDispose(() => { lut = null; }); }

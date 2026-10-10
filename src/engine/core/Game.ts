@@ -663,8 +663,19 @@ export class Game {
   aoLeanTransparency = true;
   /** skip both n8ao transparency pre-passes when nothing would draw in them (aoTransparency.ts; SF69) — a live switch for A/B captures */
   aoSkipEmptyTransparency = true;
-  /** A cinematic chain's shafts, fringe and grain for a page that runs another chain (`regionCinematic.ts`; the grid's frame). */
-  regionCinematic(): RegionCinematic { return new RegionCinematic(this.camera, this.renderer); }
+  /**
+   * A cinematic chain's shafts, fringe and grain for a page that runs another chain (`regionCinematic.ts`; the grid's frame);
+   * where this page's own chain leaves its god rays out (its tier's `godRays: false`), god rays built as the chain builds its
+   * own, for a region whose chain draws them (G321 part 5), their passes skipped while at 0 or with the sun out of view.
+   */
+  regionCinematic(): RegionCinematic {
+    const rays = this.post?.rays === null ? new GodRaysEffect(this.camera, this.sky.sunDisc, {
+      blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
+      exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
+    }) : null;
+    if (rays !== null) skipRaysOffscreen(rays, this.camera, this.sky.sunDisc);
+    return new RegionCinematic(this.camera, this.renderer, TIER_CONFIG, rays);
+  }
   /** the scene pass draws the viewmodels into the depth slices (E142): the scene target's own depth is the world's */
   get depthSlices(): boolean { return this.renderPass instanceof WorldRenderPass && this.renderPass.slices; }
   /** the PBR chain's split-tone / look grade (buildComposer; its uniforms are live — the look loop tunes them in place) */

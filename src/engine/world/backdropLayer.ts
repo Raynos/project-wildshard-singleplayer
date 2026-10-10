@@ -43,6 +43,12 @@
  *
  * The post effects a backdrop drives (`attachPost`) stay the page's: a layered backdrop is never handed them.
  *
+ * **An environment-only layer** (SHARD-PLATFORM G321 part 5, `environment`): a level with no backdrop whose standalone page
+ * lights with its default sky's environment (its painted sky, PMREM-filtered) and whose world draws, lights and fogs the rest
+ * of its sky itself (its own light swap holds the page's). The layer then moves nothing but the environment: the texture,
+ * swapped at half weight like any layer's, and its intensity, read from `environment.intensity` (the level's clock writes it
+ * where its own page would) and blended by the weight. Every light, fog, disc and cloud value stays whoever wrote it.
+ *
  * **A base layer** (SHARD-PLATFORM G242, `base: true`): a sky that stands in for the page's own backdrop by its weight (the
  * grid road's dome and key light, outside every cell). It is applied first, before every other layer, and its dome is drawn
  * under theirs (`BASE_SKY_ORDER`), at a weight taken from the share the other layers leave (`applyLayers`): its weight `w`
@@ -181,6 +187,12 @@ export function levelFrameSource(source: string, stage: 'vertex' | 'fragment', w
   return `${prepend(source.replace(MAIN, 'void wsLayerMain()'), own)}\nvoid main() { wsLayerMain(); gl_FragColor${whole ? '' : '.a'} *= ${DRESS_FADE}; }\n`;
 }
 
+/** G321 part 5: an environment-only layer's intensity source (`BackdropLayer`'s `environment` option). */
+export interface LayerEnvironmentOnly {
+  /** the environment intensity the level's own page would draw at now (its clock's, else its declared `envIntensity`) */
+  readonly intensity: () => number;
+}
+
 /** What the layer reads: the rig's live targets and the page scene it draws into. */
 export interface BackdropLayerHost {
   readonly targets: SkyBackdropTargets;
@@ -226,7 +238,7 @@ export class BackdropLayer {
   private readonly dressFade = { value: 0 };
   private readonly dressShift = new Matrix4();
 
-  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean; readonly origin?: () => Vector3 }) {
+  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean; readonly origin?: () => Vector3; readonly environment?: LayerEnvironmentOnly }) {
     this.host = host;
     const zero = new Vector3();
     this.origin = options.origin ?? ((): Vector3 => zero);
@@ -254,8 +266,16 @@ export class BackdropLayer {
       get fog() { return air?.() ?? ownFog; },
       fogU, underwater: real.underwater, disc, halo, cloud, far, planet, shadowBusy: real.shadowBusy,
     };
-    const own = this.targets, holder = this.holder, scene = host.scene;
-    this.slots = [
+    const own = this.targets, holder = this.holder, scene = host.scene, only = options.environment;
+    // its environment: the intensity blended by the weight, the PMREM texture swapped at half weight (a cube cannot be mixed)
+    const environment: Slot[] = [
+      scalar(() => scene.environmentIntensity, (v) => { scene.environmentIntensity = v; }, only?.intensity ?? ((): number => holder.environmentIntensity)),
+      ((): Slot => {
+        let held: Scene['environment'] = null;
+        return { save: () => { held = scene.environment; }, blend: (w) => { if (w >= 0.5 && holder.environment !== null) scene.environment = holder.environment; }, undo: () => { scene.environment = held; } };
+      })(),
+    ];
+    this.slots = only !== undefined ? environment : [
       direction(real.sunDir, own.sunDir), colour(() => real.sunColor, own.sunColor), direction(real.lightDirection, own.lightDirection),
       ...real.lights.flatMap((l, i) => {
         const o = lights[i];
@@ -277,11 +297,7 @@ export class BackdropLayer {
       direction(real.planet.uSunDir.value, planet.uSunDir.value), colour(() => real.planet.uHaze.value, planet.uHaze.value),
       scalar(() => real.planet.uCrisp.value, (v) => { real.planet.uCrisp.value = v; }, () => planet.uCrisp.value),
       ...(air === undefined ? [colour(() => real.fog.color, ownFog.color)] : []),
-      scalar(() => scene.environmentIntensity, (v) => { scene.environmentIntensity = v; }, () => holder.environmentIntensity),
-      ((): Slot => {
-        let held: Scene['environment'] = null;
-        return { save: () => { held = scene.environment; }, blend: (w) => { if (w >= 0.5 && holder.environment !== null) scene.environment = holder.environment; }, undo: () => { scene.environment = held; } };
-      })(),
+      ...environment,
     ];
   }
 

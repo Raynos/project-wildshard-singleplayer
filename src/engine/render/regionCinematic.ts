@@ -16,10 +16,16 @@
  *   size becomes a depth texture: a target re-set-up, never a recompile). A page with neither keeps the shafts off.
  * - **The region's clock.** `port` is the `SkyBackdropPost.vol` a region's sky backdrop drives; writes are kept per region,
  *   and only the carrying region's reach the march (a neighbour's clock writing too never takes over the page's shafts).
+ * - **God rays** (SHARD-PLATFORM G321 part 5): a page whose own chain leaves its god rays out (its tier's `godRays: false`:
+ *   the grid shell) is handed a rays effect built as the engine chain builds its own (`rays`). It joins the colour pass right
+ *   after the shafts at opacity 0, and its passes run only while its opacity is above 0 and the sun is in view
+ *   (`skipRaysOffscreen`). A region whose own chain draws rays (any chain kind) carries them (`takeRays`): the rays read the
+ *   same scene depth as the shafts, attached while either is carried, and the frame turns their opacity as the region's
+ *   chain and clock set it. Released with the carrier, back at 0.
  *
  * Generic engine code (E405): no level is named here.
  */
-import { BlendFunction, ChromaticAberrationEffect, NoiseEffect, type Effect } from 'postprocessing';
+import { BlendFunction, ChromaticAberrationEffect, NoiseEffect, type Effect, type GodRaysEffect } from 'postprocessing';
 import { Color, DepthTexture, FloatType, Vector2, Vector3, type PerspectiveCamera, type Texture, type WebGLRenderTarget } from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { VolumetricsEffect, makeNoiseTexture } from '../core/Volumetrics';
@@ -50,6 +56,8 @@ export interface RegionCinematicState {
   /** where the march reads depth, and whether the scene target's depth texture is attached now */
   readonly depth: 'pass' | 'scene' | 'none';
   readonly sceneDepth: boolean;
+  /** G321 part 5: the carried god rays' carrier and opacity (absent: the page has no carried rays) */
+  readonly rays?: readonly [string | null, number];
 }
 
 interface VolWrites { sunDir?: Vector3; sunColor?: Color; fog?: Color; strength?: number }
@@ -69,10 +77,18 @@ export class RegionCinematic {
   private sceneDepth: DepthTexture | null = null;
 
   private readonly renderer: Renderer | null;
+  /** G321 part 5: the god rays for a page whose chain has none (null: the page draws its own, or none to carry) */
+  readonly rays: GodRaysEffect | null;
+  private raysCarrier: string | null = null;
 
-  /** `renderer`: the page's (it compiles the march at `warm`); `tier`: the march's steps and scale (the tier's) */
-  constructor(camera: PerspectiveCamera, renderer: Renderer | null = null, tier: { readonly volumetricSteps: number; readonly volumetricScale: number } = TIER_CONFIG) {
+  /**
+   * `renderer`: the page's (it compiles the march at `warm`); `tier`: the march's steps and scale (the tier's); `rays`: a god
+   * rays effect for a page whose own chain has none (G321 part 5), its passes skipped while its opacity is 0
+   */
+  constructor(camera: PerspectiveCamera, renderer: Renderer | null = null, tier: { readonly volumetricSteps: number; readonly volumetricScale: number } = TIER_CONFIG, rays: GodRaysEffect | null = null) {
     this.renderer = renderer;
+    this.rays = rays;
+    if (rays !== null) rays.blendMode.opacity.value = 0;
     this.noise = makeNoiseTexture();
     this.vol = new VolumetricsEffect(camera, this.noise, tier.volumetricSteps, tier.volumetricScale, { prepass: true, parked: true });
     this.chroma = new ChromaticAberrationEffect({ offset: new Vector2(0, 0), radialModulation: true, modulationOffset: CINEMATIC_FX.chromaModulation });
@@ -88,6 +104,7 @@ export class RegionCinematic {
    */
   place(effects: Effect[], grainAfter: Effect, hasConvolution: boolean): () => void {
     const added: Effect[] = hasConvolution ? [this.vol] : [this.chroma, this.vol];
+    if (this.rays !== null) added.push(this.rays); // the god rays right after the shafts, as the cinematic chain orders them
     effects.splice(0, 0, ...added);
     effects.splice(effects.indexOf(grainAfter) + 1, 0, this.grain);
     added.push(this.grain);
@@ -99,11 +116,39 @@ export class RegionCinematic {
    * scene target of a page on the depth slices, given a depth texture while carried; neither: no shafts.
    */
   depthFrom(source: { readonly pass: Texture | null; readonly scene: WebGLRenderTarget | null }): void {
-    if (source.pass !== null) { this.vol.setDepthTexture(source.pass); this.depth = 'pass'; return; }
+    if (source.pass !== null) { this.vol.setDepthTexture(source.pass); this.rays?.setDepthTexture(source.pass); this.depth = 'pass'; return; }
     // a scene target that already has a depth texture would have handed the pass its depth: none to give it here
     if ((source.scene?.depthTexture ?? null) !== null || source.scene === null) { this.depth = 'none'; return; }
     this.scene = source.scene; this.depth = 'scene';
     this.vol.setDepthTexture(new DepthTexture(1, 1, FloatType)); // the packing define now; the texture itself at take
+  }
+
+  /** the scene target's depth as a texture, for the march and the rays (attached while either is carried) */
+  private attachSceneDepth(): void {
+    const scene = this.scene;
+    if (this.depth !== 'scene' || scene === null || (scene.depthTexture ?? null) !== null) return;
+    const depth = new DepthTexture(scene.width, scene.height, FloatType);
+    depth.name = 'RegionCinematic.SceneDepth';
+    scene.depthTexture = depth; scene.dispose(); // set up again at the next draw, with its depth as this texture
+    this.sceneDepth = depth;
+    this.vol.setDepthTexture(depth);
+    this.rays?.setDepthTexture(depth);
+  }
+  private detachSceneDepth(): void {
+    if (this.carrier !== null || this.raysCarrier !== null) return;
+    const scene = this.scene, depth = this.sceneDepth;
+    if (scene !== null && depth !== null && scene.depthTexture === depth) { scene.depthTexture = null; scene.dispose(); }
+    depth?.dispose(); this.sceneDepth = null;
+  }
+
+  /**
+   * G321 part 5: region `instance`'s own chain draws god rays: the page's carried rays are its (the frame turns their
+   * opacity), reading the scene depth. Nothing without carried rays or a depth to mask the sun with.
+   */
+  takeRays(instance: string): void {
+    if (this.rays === null || this.depth === 'none' || this.raysCarrier === instance) return;
+    this.raysCarrier = instance;
+    this.attachSceneDepth();
   }
   /** compile the march's program now (install), never at a crossing */
   warm(): void { if (this.depth !== 'none' && this.renderer !== null) this.vol.warm(this.renderer); }
@@ -118,7 +163,7 @@ export class RegionCinematic {
     };
   }
   /** a region leaves the page: its kept writes go */
-  forget(instance: string): void { this.writes.delete(instance); if (this.carrier === instance) this.release(); }
+  forget(instance: string): void { this.writes.delete(instance); if (this.carrier === instance || this.raysCarrier === instance) this.release(); }
 
   /** Region `instance` carries the effects: the march's target is sized, its level's start values then its clock's writes applied. */
   take(instance: string, start: RegionCinematicStart): void {
@@ -135,14 +180,7 @@ export class RegionCinematic {
     if (w?.fog !== undefined) this.vol.setFogColor(w.fog);
     if (w?.strength !== undefined) this.vol.setStrength(w.strength);
     if (this.depth === 'none') return; // no scene depth to march against: the fringe and the grain only
-    const scene = this.scene;
-    if (this.depth === 'scene' && scene !== null && (scene.depthTexture ?? null) === null) {
-      const depth = new DepthTexture(scene.width, scene.height, FloatType);
-      depth.name = 'RegionCinematic.SceneDepth';
-      scene.depthTexture = depth; scene.dispose(); // set up again at the next draw, with its depth as this texture
-      this.sceneDepth = depth;
-      this.vol.setDepthTexture(depth);
-    }
+    this.attachSceneDepth();
     this.vol.setParked(false);
   }
   /** The carrier's weight (0..1, its cell's owner weight): the shafts' opacity, the fringe's offset and the grain's opacity. */
@@ -152,23 +190,23 @@ export class RegionCinematic {
     this.chroma.offset.set(CINEMATIC_FX.chroma * this.w, CINEMATIC_FX.chroma * this.w);
     this.grain.blendMode.opacity.value = CINEMATIC_FX.grain * this.w;
   }
-  /** The carrier leaves: the march parks (its target freed), every effect neutral, the march's light back. */
+  /** The carrier leaves: the march parks (its target freed), every effect neutral (the rays at 0), the march's light back. */
   release(): void {
-    if (this.carrier === null) return;
-    this.carrier = null;
-    this.weight(0);
-    this.vol.setParked(true);
-    this.restoreLight?.(); this.restoreLight = null;
-    const scene = this.scene, depth = this.sceneDepth;
-    if (scene !== null && depth !== null && scene.depthTexture === depth) { scene.depthTexture = null; scene.dispose(); }
-    depth?.dispose(); this.sceneDepth = null;
+    if (this.raysCarrier !== null) { this.raysCarrier = null; if (this.rays !== null) this.rays.blendMode.opacity.value = 0; }
+    if (this.carrier !== null) {
+      this.carrier = null;
+      this.weight(0);
+      this.vol.setParked(true);
+      this.restoreLight?.(); this.restoreLight = null;
+    }
+    this.detachSceneDepth();
   }
 
   state(): RegionCinematicState {
     const r = (n: number): number => Math.round(n * 1e5) / 1e5, num = (v: unknown): number => (typeof v === 'number' ? v : 0);
     return { carrier: this.carrier, weight: r(this.w), vol: [r(num(this.vol.blendMode.opacity.value)), r(this.vol.strength())], chroma: r(this.chroma.offset.x), grain: r(num(this.grain.blendMode.opacity.value)), target: this.vol.targetSize(),
-      depth: this.depth, sceneDepth: this.sceneDepth !== null };
+      depth: this.depth, sceneDepth: this.sceneDepth !== null, ...(this.rays === null ? {} : { rays: [this.raysCarrier, r(num(this.rays.blendMode.opacity.value))] as const }) };
   }
 
-  dispose(): void { this.release(); this.writes.clear(); this.vol.dispose(); this.chroma.dispose(); this.grain.dispose(); this.noise.dispose(); }
+  dispose(): void { this.release(); this.writes.clear(); this.vol.dispose(); this.chroma.dispose(); this.grain.dispose(); this.rays?.dispose(); this.noise.dispose(); }
 }
