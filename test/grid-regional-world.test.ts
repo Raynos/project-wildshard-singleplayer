@@ -257,9 +257,11 @@ it('hands the same resolved look backdrop to the regional sky and keeps it alive
   const resolveLook = vi.fn(() => Promise.resolve({ compose: () => ({}), backdrop, dispose }));
   const level: LevelSpec = { ...f.region, look: resolveLook };
   let delivered: SkyBackdropFactory | undefined;
+  let finishSky = (): void => { throw new Error('Sky build has not started'); };
+  const skyBuilt = new Promise<null>(resolve => { finishSky = () => { resolve(null); }; });
   Object.setPrototypeOf(f.world.sky, SkyRig.prototype);
   Reflect.set(f.world.sky, 'scopeLevelLook', () => null);
-  Reflect.set(f.world.sky, 'layeredBackdrop', (factory: SkyBackdropFactory) => { delivered = factory; return Promise.resolve(null); });
+  Reflect.set(f.world.sky, 'layeredBackdrop', (factory: SkyBackdropFactory) => { delivered = factory; return skyBuilt; });
   const look: FrameLookPort = { contribute: () => noop, sky: () => noop };
   const foundation = createRegionalWorldFoundation({ rapier, level: () => level, terrain: drawnGround,
     pause: () => Promise.resolve(), checkpoint: () => true, light: null, look });
@@ -270,6 +272,10 @@ it('hands the same resolved look backdrop to the regional sky and keeps it alive
     prepared.world(view);
     await vi.waitFor(() => { expect(delivered).toBe(backdrop); });
     expect(resolveLook).toHaveBeenCalledOnce(); expect(dispose).not.toHaveBeenCalled();
+    let warmed = false;
+    const warm = Promise.resolve(prepared.beforeWarm?.()).then(() => { warmed = true; return true; });
+    await Promise.resolve(); expect(warmed).toBe(false);
+    finishSky(); await warm; expect(warmed).toBe(true);
     prepared.region.dispose(); expect(dispose).toHaveBeenCalledOnce();
   } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });

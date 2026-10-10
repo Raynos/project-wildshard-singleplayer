@@ -197,6 +197,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       let world: ShardWorld | null = null;
       // SF63 part 2: the region's scoped look, whose per-frame parts run only while its cell is entered
       let regionLook: ReturnType<SkyRig['scopeLevelLook']> = null;
+      let skyReady = Promise.resolve();
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
       const foundation: RegionalRuntimeFoundation = {
@@ -213,9 +214,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           let lut: Texture | null = null;
           if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut, lookChainKind(levelLook), { ao: level.tiers?.[TIER]?.ao ?? TIER_CONFIG.ao, godRays: level.tiers?.[TIER]?.godRays }, replacedKnobs(levelLook, TIER)) }));
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
-          if (look !== null && sky instanceof SkyRig) void (async () => {
+          if (look !== null && sky instanceof SkyRig) skyReady = (async () => {
             try {
-              const made: { backdrop: LayeredBackdrop | null } = { backdrop: null };
+              const made: { backdrop: LayeredBackdrop | null; environment: Texture | null } = { backdrop: null, environment: null };
               const measured = textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
@@ -223,6 +224,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
+                made.environment = layered.layer.holder.environment;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain
                 // and its shafts where the page carries a cinematic chain's (SF63 follow-up)
                 const post = look.post?.(cell.instance) ?? null;
@@ -230,7 +232,12 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 return layered;
               } });
               // its LUT: the drawn backdrop's (it loaded the level's), else the level's own file when it has no backdrop
-              if (outcome === 'drawn') lut = made.backdrop?.lut ?? null;
+              if (outcome === 'drawn') {
+                lut = made.backdrop?.lut ?? null;
+                // The subtree is not a render target. Warm-up borrows the same sky environment the page will draw
+                // on entry, after the real sky build and its unchanged residency admission have finished.
+                scene.environment = made.environment;
+              }
               else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
                 const own = await loadLUT(level.id);
                 if (own !== null && left()) own.dispose();
@@ -284,7 +291,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         checkpoint: () => !resident.disposed && ports.checkpoint(host, request),
         // rt3-crossing2: the look's per-frame sweep never ran on what the entered hooks added (no frame draws while they
         // install), so the warm-up compiled the page-look programs and the first frame after it the region-look ones
-        beforeWarm: () => { if (!resident.disposed) regionLook?.sweep(); },
+        beforeWarm: async () => { await skyReady; if (!resident.disposed) regionLook?.sweep(); },
       };
       census.set(foundation, () => {
         const native = resident.disposed ? { bodies: 0, colliders: 0 } : { bodies: host.physics.world.bodies.len(), colliders: host.physics.world.colliders.len() };

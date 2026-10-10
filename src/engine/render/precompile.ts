@@ -55,6 +55,8 @@ export interface CompileJob {
   rt: THREE.WebGLRenderTarget | null;
   /** compile with the target scene's fog cleared (the shadow pass and the background box see no fog) */
   fogOff?: boolean;
+  /** Borrowed environment of a parked world's first draw. Applied only during synchronous compile, never a paint. */
+  environment?: THREE.Texture;
   /** Release only stand-in resources, after their owner's real draws no longer need the cached programs. */
   dispose?: () => void;
 }
@@ -137,14 +139,18 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
 /** Compile a parked subtree against the light counts its first visible frame will have. Three gathers visible lights
  * from both the target scene and each job root. Detached light clones add only the future lights absent from the
  * target's visible traversal; live visibility, intensity, parents and the page's drawn light count stay unchanged.
- * Post/background jobs targeting another scene keep that scene's lighting. */
+ * A future scene's environment is likewise borrowed during compile: a parked sky can have a different PMREM layout
+ * from the road. Post/background jobs targeting another scene keep that scene's lighting. */
 export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.Scene, future: THREE.Object3D): void {
   if (future === target) return;
   const visible = new Set<THREE.Light>();
   target.traverseVisible(object => { if (object instanceof THREE.Light) visible.add(object); });
   const added: THREE.Light[] = [];
   future.traverseVisible(object => { if (object instanceof THREE.Light && !visible.has(object)) added.push(object); });
-  for (const job of jobs) if (job.target === target) for (const light of added) job.root.add(light.clone(false));
+  for (const job of jobs) if (job.target === target) {
+    for (const light of added) job.root.add(light.clone(false));
+    if (future instanceof THREE.Scene && future.environment !== null) job.environment = future.environment;
+  }
 }
 
 /**
@@ -300,6 +306,7 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   for (const job of jobs) {
     job.root.traverse((o) => { for (const m of materialsOf(o)) fromMaterial(m); });
     if (job.target) { add(job.target.background); add(job.target.environment); }
+    add(job.environment);
   }
   return [...out];
 }
@@ -328,13 +335,16 @@ export async function runPrecompile(
     checkCurrent();
     const prevRt = renderer.getRenderTarget();
     const fog = job.target?.fog ?? null;
+    const environment = job.target?.environment ?? null;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
+      if (job.environment !== undefined && job.target) job.target.environment = job.environment;
       renderer.setRenderTarget(job.rt);
       renderer.compile(job.root, camera, job.target ?? undefined);
     } finally {
       renderer.setRenderTarget(prevRt);
       if (job.fogOff && job.target) job.target.fog = fog;
+      if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
     // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above

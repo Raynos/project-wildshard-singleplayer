@@ -774,6 +774,10 @@ with a descriptive error rather than attempting an upload from released pixels.
 that parked scene's future lights through detached light clones in compile jobs targeting the rendered root. This
 warms the first visible frame's light-count variants without showing the parked world, changing live light counts,
 or adding per-frame lighting work. Visible lights are not counted twice; unrelated post targets keep their own lighting.
+An admitted regional sky finishes before warm-up. Its parked scene carries the sky's borrowed environment;
+compile jobs temporarily use that exact PMREM mapping and cube-UV height, then restore the road environment
+in `finally` before yielding or drawing. This changes compilation inputs only, with no new sky allocation,
+visibility change or disposal ownership. Cancellation and driver errors restore the page too.
 
 ## 9. Saves
 
