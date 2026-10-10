@@ -126,3 +126,10 @@ A Steam page trailer (FINISH-LINE SC4 keeps the 45 s cut), the app-store preview
 - **Image models for the cinematic: Qwen-Image-2.1 and OpenAI Image 2.5** (Jake, 2026-10-09: *"Use qwen image it's a
   trailer fuck off with non commercial"*, *"you can use OpenAI image 2.5 as well as qwen image 2.1"*). No licence caveat
   on the trailer's image model.
+- **The cinematic's method: keyframe → LTX-2.5** (Jake, 2026-10-10, on the CT1 board: *"Experiment 10 looks surprisingly
+  good"*; *"Experiment 8 failed, experiment 7 barely moves"*). Keyframes by OpenAI Image 2.5 (his pick).
+- **The look follows the engine, not the concept art** (Jake, 2026-10-10): *"way too heavily built around the concept art …
+  What we actually did in the alpha in-game is we have the road network instead … the fact that there is a highway and not
+  this blue is really important"*. Shards are our real ones in their own styles, divided by the 15 m server-owned highway
+  (VISION.md), with road entries at each edge's midpoint; no glowing lattice walls.
+- **On the site: beside the alpha trailer** (Jake, 2026-10-10), in "The world"; the alpha trailer stays the main one.
