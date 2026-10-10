@@ -4,7 +4,7 @@ import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink, type ReadinessTicket } from '@wildshard/engine/sim/readiness';
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './allocator';
 import type { PreparedGridCrossing } from './crossing';
@@ -82,6 +82,21 @@ const COLD_DWELL_TICKS = 5 * 60;
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
 const APPROACH_TRAVEL_METRES = 0.1;
+const entryAxes = [['x', 'z'], ['z', 'x']] as const;
+// Distance can decrease while passing parallel to a cell. Only a ray into its first boundary's midpoint mouth
+// predicts entry; product downloads remain radial, but an unrelated native world must not block the real turn-in.
+function headsToEntry(cell: GridCell, feet: GridPoint, previous: GridPoint): boolean {
+  const delta = { x: feet.x - previous.x, z: feet.z - previous.z };
+  let first = Infinity, offset = Infinity;
+  for (const [axis, other] of entryAxes) for (const side of [-1, 1]) {
+    const direction = delta[axis]; if (direction === 0) continue;
+    const time = (cell.origin[axis] + side * CHUNK_HALF - feet[axis]) / direction;
+    if (time < 0 || time >= first) continue;
+    const lateral = Math.abs(feet[other] + time * delta[other] - cell.origin[other]);
+    if (lateral <= CHUNK_HALF) { first = time; offset = lateral; }
+  }
+  return offset <= ENTRY_WIDTH / 2;
+}
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
  * owned homes begin on neutral page physics and transfer the sole preallocation claim to their first runtime. */
@@ -362,7 +377,8 @@ export class LiveGridHost {
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
     if (this.ports.home.mode === 'owned' && this.active === null && this.requests.size === 0) {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
-      const moving = !travelled ? undefined : candidates.find(cell => this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
+      const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
+        && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
       const approach = moving ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
         const reach = moving === undefined ? wallReach : Math.max(wallReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance);

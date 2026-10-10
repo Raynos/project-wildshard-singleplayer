@@ -201,6 +201,37 @@ it('uses the network approach bound after source disposal, without rebuilding th
   } finally { f.finish(); }
 });
 
+it('downloads nearby products without building worlds along parallel roads, then prepares the midpoint turn-in', async () => {
+  const f = await open(undefined, undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    const entered = await f.registry.prepare(null, 'driftwood-isle'); entered.commit();
+    const road = await f.registry.prepare('driftwood-isle', null); road.commit();
+    expect(f.registry.unload('driftwood-isle')).toBe(true);
+    // Returning from the west cell: heading north gets closer to Pine but can never enter its south mouth.
+    f.player.position.set(-277.5, 0.5, 0); f.registry.beforeFixed(); await settle();
+    for (let tick = 0; tick < 20; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.5 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.modules).toContain('driftwood-isle');
+    expect(f.creates).toEqual(['driftwood-isle']); expect(f.hosts.size).toBe(0);
+    // Crossing the northern boulevard also runs parallel to both cell borders.
+    f.player.position.set(-20, 0.5, 277.5); f.registry.beforeFixed(); await settle();
+    for (let tick = 0; tick < 20; tick++) {
+      f.player.motor.move(f.player.position, { x: 0.5, y: -0.05, z: 0 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.creates).toEqual(['driftwood-isle']);
+    f.player.position.set(0, 0.5, 277.5); f.registry.beforeFixed(); await settle();
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle', 'driftwood-isle']);
+    expect(f.registry.ready('driftwood-isle')).toBe(true); expect(f.registry.current()).toBeNull();
+    expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false);
+  } finally { f.finish(); }
+});
+
 it('keeps a prepared approach across readiness-wall capsule recoil, then honours an actual road U-turn', async () => {
   const f = await open(undefined, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
