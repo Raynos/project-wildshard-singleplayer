@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 14:20 CT.** Councils done. Part A only. **G303–G306 (Jake): move the one-user systems back now (SF76), content gate (SF77), SDK authoring-only (SF78), raw GLSL is trusted custom.**
+**2026-10-10 14:20 CT.** Councils done. Part A only. **G308 (Jake): fix the base first.** Move one-user systems back (SF76), delete the SDK facades and publish game plugin exports (SF78/G307), fix the metric (SF77). Only bakes-at-build and Nalati's witness continue; new porting paused. G309 AssemblyScript stays; G310 commons = 2+-user build-time pieces.
 
 **Milestones**
 - **M1:** done.
@@ -29,13 +29,13 @@
 
 | Lane | Work |
 |---|---|
-| op-hitch27 | Pine afterPlay freeze · long-frame gate (`500765f22`) |
+| op-hitch31 | Simulator activate spikes (Sky 1011, Nalati 615 ms) · shader links |
 | op-hitch29 | Nine sliced placement (`674ce1c17`) · pacing floor |
 | op-look30 | Nine composite chain leak · Signal horizon · template |
-| sp-x1 | SF76 Nalati + Sky move-back · SF77 content gate + GLSL in metric |
+| sp-x1 | SF76 Nalati + Sky move-back · Nalati witness |
 | sp-x2 | SF76 Pine move-back |
 | sp-x4 | SF76 Driftwood + Signal move-back |
-| sp-x5 | SF22 Safari (2 ms over) · then SF78 |
+| sp-x5 | SF78 game plugin exports + guard · SF77 metric (SF22 Safari paused, 2 ms over) |
 | sp-x6 | SF76 Nine move-back |
 
 **Decisions**
