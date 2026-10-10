@@ -3,6 +3,7 @@ import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Move, SwordRig, SwordWorld } from '@wildshard/engine/combat/view/melee';
 import { Sword } from '../../weapons/Sword';
+import type { WeaponHooks } from './weaponHooks';
 
 /**
  * The mounted sword family (SHARD-PLATFORM SF36): the starter sword's on-foot combo, heavy, lunge, hit-stop and trail
@@ -13,6 +14,10 @@ import { Sword } from '../../weapons/Sword';
  * lunge (the horse does the moving). The heavy still works in the saddle. Mounted hits within `mounted.chainWindow` s chain:
  * `+mounted.chainStep` per link up to `× mounted.chainMax`; `passChain` (hits in the running chain, 0 = none) and
  * `passChainLeft` (s until it lapses) feed the HUD's chain chip.
+ *
+ * HOOKS (`hooks`, null by default): a shard's admitted AssemblyScript may answer the pass damage (`damage`, phase `pass`,
+ * facts `speed` = the horse's ground speed ≥ 0 and `links` = the live chain's hits, 0 when it has lapsed); a declined or
+ * failed call keeps the row rule above. A reward replacement does not carry the hooks (they are declared per weapon id).
  *
  * A reward that upgrades the sword is a `power`: `apply(sword)` once the sword is built, `onSwingStart(move)` at every
  * swing's input edge (in place of the family's own no-op hook).
@@ -61,6 +66,8 @@ export class MountedSword<P extends MountedSwordProfile = MountedSwordProfile> e
   mount: MountedSwordMount | null = null;
   /** mounted hits in the running pass chain (0 = none) — the HUD's "2 HIT" chip */
   passChain = 0;
+  /** the shard's admitted weapon hooks (`@wildshard/game/shardfile/weaponHooksClient`); null = the row rule */
+  hooks: WeaponHooks | null = null;
   private chainT = 0;
   private mountCd = 0;
   private readonly swordProfile: P;
@@ -99,8 +106,9 @@ export class MountedSword<P extends MountedSwordProfile = MountedSwordProfile> e
     if (this.mountCd > 0 || this.chargingHeavy) return;
     const side = this.passSide(m);
     const mounted = this.swordProfile.mounted;
-    const chainMul = Math.min(mounted.chainMax, 1 + mounted.chainStep * (this.chainT > 0 ? this.passChain : 0));
-    this.damage = Math.round(this.swordProfile.damage * (1 + Math.max(0, m.speed) / mounted.speedDivisor) * chainMul);
+    const links = this.chainT > 0 ? this.passChain : 0, speed = Math.max(0, m.speed);
+    const scripted = this.hooks?.damage({ phase: 'pass', base: this.swordProfile.damage, facts: { speed, links } }) ?? null;
+    this.damage = scripted ?? Math.round(this.swordProfile.damage * (1 + speed / mounted.speedDivisor) * Math.min(mounted.chainMax, 1 + mounted.chainStep * links));
     if (this.strikeMove(side < 0 ? this.passes.left : this.passes.right, false)) this.mountCd = mounted.cooldown;
   }
 

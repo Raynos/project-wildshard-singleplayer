@@ -1,0 +1,35 @@
+{
+  "id": "nalati.weapons",
+  "entity": 1,
+  "module": "141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac",
+  "parameters": [
+    12,
+    0.1,
+    1.4
+  ],
+  "weapons": [
+    {
+      "weapon": "weapon.sabre",
+      "damage": {
+        "event": 1,
+        "phases": [
+          "pass"
+        ],
+        "facts": [
+          {
+            "key": "speed",
+            "min": 0,
+            "max": 1000
+          },
+          {
+            "key": "links",
+            "min": 0,
+            "max": 100000
+          }
+        ],
+        "min": 0,
+        "max": 100000
+      }
+    }
+  ]
+}

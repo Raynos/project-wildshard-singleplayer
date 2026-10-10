@@ -795,6 +795,13 @@ do not grant a lamp or fuel mechanic to the native family. Declared UI, view,
 identity and loadout rules remain the same. External products cannot acquire
 runtime ownership by declaring this shape.
 
+**Admitted weapon hooks (SF36).** A trusted runtime's weapon family may ask an admitted AssemblyScript module for a
+number (today the mounted sword's pass damage) through a declaration beside the shard's director, not a Shardfile field:
+`{ id, entity, module, parameters, weapons: [{ weapon, damage: { event, phases, facts, min, max } }] }`
+(`@wildshard/game/shardfile/weaponHooks`). The module is hash-checked and runs under the same ABI-v0 ceilings; each call
+answers one declared event with an integer in bounds or declines to the family's row rule, and returns to its admitted
+memory afterwards. Inputs and the install path are in ENGINE.md § 18 (Declared items).
+
 First-party picker manifests may carry a built `shardfile` URL. The normal entry
 admits that same-origin source before starting the session, retaining the manifest's
 canonical slug, picker art and catalogue save instance. Offline admission reads the

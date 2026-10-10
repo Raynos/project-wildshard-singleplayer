@@ -41,7 +41,8 @@ it('adopts the four existing native weapons without allocation, identity, ammo, 
   const before = Object.values(weapons).map((weapon) => ({ weapon, row: weapon.row, model: weapon.model, state: weapon.state, id: weapon.id }));
   try {
     for (const row of INPUT_CONTEXTS) app.input.register(row, scope);
-    bindNalatiItems({ app, scope, game: { shard: manifest, rows: new Map(), bag: new TabRegistry() } }, weapons);
+    // the weapon-hook row stays at its default (off): nothing is fetched and the sabre keeps its row rule
+    bindNalatiItems({ app, scope, game: { shard: manifest, rows: new Map(), bag: new TabRegistry() }, debugRow: () => undefined }, weapons);
     for (const { weapon, row, model, state, id } of before) {
       expect(weapon.id).toBe(id); expect(weapon.row.legacySlot).toBe(id); expect(weapon.row.id).toBe(row.id);
       expect(weapon.row.meta).toBe(row.meta); expect(weapon.model).toBe(model); expect(weapon.state).toBe(state);

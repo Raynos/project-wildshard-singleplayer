@@ -2151,6 +2151,22 @@ projectile or script lane. Existing families without it keep their previous row.
 
 `@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry.
 
+`@wildshard/game/systems/items/weaponHooks` is the weapon families' hook surface (SF36). A family holds
+`hooks: WeaponHooks | null` (null, the default, is its row rule) and asks `hooks.damage({ phase, base, facts })` where it
+computes a number a shard may own; a null answer keeps the row rule, so a hook can never stop a weapon working. The
+mounted sword asks at its pass slash (phase `pass`, facts `speed` and `links`). `@wildshard/game/shardfile/weaponHooks`
+validates a shard's declaration (`{ id, entity, module, parameters, weapons: [{ weapon, damage: { event, phases, facts,
+min, max } }] }`), checks the module's SHA-256 and admits it on its own `ScriptHost` under the unchanged ABI-v0 fuel,
+memory, event, query and failure ceilings; `WeaponHookLane.hooks(weaponId)` refuses an undeclared weapon. Each call is its
+own script tick with the inputs `[tick, 0, 1 (damage), entity, phase, weapon, base, ...facts]`, and must answer one
+declared event whose integer value lies in `[min, max]`; a trap, a fuel overrun, a stray effect or an out-of-bounds fact
+declines. `parameters` reach the module through the parameter query (410). The module's memory and globals return to their
+admitted snapshot after every call, so a hook is pure and carries no continuation. `installWeaponHooks`
+(`@wildshard/game/shardfile/weaponHooksClient`) fetches and admits behind the default-off Developer "Shard directors
+(data)" row and clears the hooks with the level scope. Nalati's sabre is the first: `behaviour/weapons.as`,
+`behaviour/weapons.json` (rebuilt by `node scripts/bake/weapon-hooks.mjs` in a clean export), and
+`test/combat/mounted-sword-parity.test.ts` plays its twenty-second trace identically on the hook.
+
 `@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
 
 
