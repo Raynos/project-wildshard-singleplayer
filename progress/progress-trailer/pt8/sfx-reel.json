@@ -1,0 +1,181 @@
+{
+ "_doc": "What plays when in sfx-reel.mp3 (seconds); levels normalised for listening (one-shots −3 dBFS peak, beds −20 dB RMS, 4 s each).",
+ "index": [
+  {
+   "at": 0,
+   "id": "d01/bed/rewind@pine-hollow"
+  },
+  {
+   "at": 4,
+   "id": "d08/bed/rewind@pine-hollow"
+  },
+  {
+   "at": 8,
+   "id": "d15/bed/rewind@pine-hollow"
+  },
+  {
+   "at": 12,
+   "id": "d22/bed/rewind@pine-hollow"
+  },
+  {
+   "at": 16,
+   "id": "d01/oneshot/crossbowFire@pine-hollow"
+  },
+  {
+   "at": 17.54,
+   "id": "d01/oneshot/boltImpact-flesh@pine-hollow"
+  },
+  {
+   "at": 19.1,
+   "id": "d01/oneshot/kill@pine-hollow"
+  },
+  {
+   "at": 20.86,
+   "id": "d01/oneshot/reload@pine-hollow"
+  },
+  {
+   "at": 23.41,
+   "id": "d01/oneshot/footsteps-walk@pine-hollow"
+  },
+  {
+   "at": 27.36,
+   "id": "d01/oneshot/deer_call@pine-hollow"
+  },
+  {
+   "at": 29.32,
+   "id": "d08/bed/bed@driftwood-isle"
+  },
+  {
+   "at": 33.32,
+   "id": "d08/oneshot/whoosh-1@driftwood-isle"
+  },
+  {
+   "at": 34.87,
+   "id": "d08/oneshot/whoosh-finisher@driftwood-isle"
+  },
+  {
+   "at": 36.54,
+   "id": "d08/oneshot/impact-flesh-combo@driftwood-isle"
+  },
+  {
+   "at": 38.09,
+   "id": "d08/oneshot/boar-vocal@driftwood-isle"
+  },
+  {
+   "at": 40.03,
+   "id": "d08/lunge/lunge-3-be45ba7a"
+  },
+  {
+   "at": 40.81,
+   "id": "d08/boar_squeal/boar_squeal-1-6415e380"
+  },
+  {
+   "at": 42.86,
+   "id": "d08/oneshot/footsteps-sand@driftwood-isle"
+  },
+  {
+   "at": 46.8,
+   "id": "d08/crossbowFire/crossbowFire-1-40af4c48"
+  },
+  {
+   "at": 47.8,
+   "id": "d15/swordSwing/swordSwing-1-6303fc5d"
+  },
+  {
+   "at": 48.51,
+   "id": "d15/footstep-litter/footstep-litter-1-fe9cd8d9"
+  },
+  {
+   "at": 49.63,
+   "id": "d15/steppe-wind/bed-steppe-wind-3-51fa5a78"
+  },
+  {
+   "at": 53.63,
+   "id": "d15/hoof-gravel/hoof-gravel-1-44e6b20f"
+  },
+  {
+   "at": 55.11,
+   "id": "d15/crossbowFire/crossbowFire-3-18ccf9f0"
+  },
+  {
+   "at": 56.68,
+   "id": "d22/oneshot/whip-1@sunscar-dunes"
+  },
+  {
+   "at": 58.64,
+   "id": "d22/oneshot/whip-impact@sunscar-dunes"
+  },
+  {
+   "at": 60.4,
+   "id": "d22/crossbowFire/crossbowFire-3-18ccf9f0"
+  },
+  {
+   "at": 61.96,
+   "id": "d22/boltImpact-flesh/boltImpact-flesh-2-13ed7f2c"
+  },
+  {
+   "at": 63.1,
+   "id": "d22/hitMarker/hitMarker-1-46ef1236"
+  },
+  {
+   "at": 64.11,
+   "id": "d22/kill/kill-3-5f7ea225"
+  },
+  {
+   "at": 65.51,
+   "id": "head/nd.market/bed.nd.market-1-71d8fdc0"
+  },
+  {
+   "at": 69.51,
+   "id": "head/feizhua.fire/feizhua.fire-2-b084bf8c"
+  },
+  {
+   "at": 70.45,
+   "id": "head/feizhua.zip/feizhua.zip-3-00c1262f"
+  },
+  {
+   "at": 72.45,
+   "id": "head/feizhua.reel/feizhua.reel-1-62feefcb"
+  },
+  {
+   "at": 74.45,
+   "id": "head/feizhua.dock/feizhua.dock-2-6669a863"
+  },
+  {
+   "at": 75.33,
+   "id": "head/land/land-2-773487f2"
+  },
+  {
+   "at": 76.64,
+   "id": "trailer/subswell"
+  },
+  {
+   "at": 82.55,
+   "id": "trailer/tick"
+  },
+  {
+   "at": 83.37,
+   "id": "trailer/keyclick"
+  },
+  {
+   "at": 84.2,
+   "id": "trailer/typing"
+  },
+  {
+   "at": 86.88,
+   "id": "trailer/whoosh"
+  },
+  {
+   "at": 90.1,
+   "id": "trailer/riser"
+  },
+  {
+   "at": 95.46,
+   "id": "trailer/impact"
+  },
+  {
+   "at": 100.96,
+   "id": "trailer/subdrop"
+  }
+ ]
+}

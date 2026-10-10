@@ -1,0 +1,2469 @@
+{
+ "_doc": "PROGRESS-TRAILER PT8 (E468, §3.4): every sound the film may use. `file` is relative to the SFX scratch folder (`root`). recorded = the build's own AudioContext output (era-audio.mjs; lead = seconds of pre-roll before the call / the take's frame 0); extracted = the file that build played, from its own tree (`source` = sha:path); generated = MOSS-SoundEffect v2 vs Stable Audio 3 Medium, CLAP-picked (sfx_pick.py). Days 1 and 8 synthesise what has no file; days 8, 15 and 22 play the files listed under each recording.",
+ "root": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/c26141a0-60eb-42d7-a8fe-a999c31d4795/scratchpad/sfx",
+ "head": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+ "builds": {
+  "d01": "568a1463",
+  "d08": "2d2c5815",
+  "d15": "19a43463",
+  "d22": "c9aaa62a"
+ },
+ "credits": [
+  "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI"
+ ],
+ "notes": [
+  "Day 8 (2d2c5815a) DOES ship SFX files: public/assets/sfx/best (81 files, the default 'best' set). Its Pine Hollow sounds are those files; Driftwood's sword whooshes, blade impacts and boar barks are the procedural IslandSfx bank and its ambience is IslandAmbience (synth) over the bed-island loop, so day 8 is both recorded (era-audio.mjs) and extracted.",
+  "Day 15 (19a434635) Nine Dragon Stack has no audio of its own: the rain square plays the engine defaults (the forest bed, pine-litter footsteps, the generic swordSwing); there is no rain or crowd sound on that build.",
+  "Day 22 (c9aaa62ab) Sky Reach (far-reach) is silent: no ambience, a 'silent' score, no hover sound (data/audio.ts routes only kit sword voices); the w3-hover take records -91 dBFS. Sunscar Dunes has no ambience; the whip's crack is the routed kit voice (cue.fire -> kit.swordSwing) synthesised in WebAudio, recorded.",
+  "The real-time rewind takes on days 15 and 22 missed the stag (boltImpact-ground); the day-22 impact and kill were recorded through the crossbow's own handlers (weapons.onImpact('flesh') / weapons.onHit(..., killed)) and their files extracted. The day-22 isolated recordings carry Pine Hollow's zoned beds at about -35 dBFS under them (setAmbient does not mute them): use the extracted files as stems.",
+  "Generated families: MOSS-SoundEffect v2 could not run on 2026-10-10: its memory gate (~/ml/music/mem-ok2.sh) refused for 50+ min (swap used 51 GB, fseventsd at 44 GB) while the model held the machine lock, so it was stopped; the picks are Stable Audio 3 Medium only (3 seeds). Re-roll MOSS with scripts/music/gen/gen_sfx_moss.py --jobs scripts/progress-trailer/sfx-jobs.json when the gate opens, then re-run sfx_pick.py.",
+  "tr-subswell: all three Stable Audio takes are a decaying sub boom, not a rising swell; sfx-best/tr-subswell-rev.wav is the pick reversed (a swell into the drop). The alpha trailer's tr-subdrop (MOSS seed 2) is also on disk in trailer-reuse/."
+ ],
+ "recorded": [
+  {
+   "id": "d01/bed/bed@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "bed",
+   "file": "era/568a1463/bed.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at undefined",
+   "lead": 0,
+   "sec": 20,
+   "maxDb": -24.2,
+   "meanDb": -44.9,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/bed/rewind@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "bed",
+   "file": "era/568a1463/bed-rewind.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at [230,0,1.13]",
+   "lead": 0,
+   "sec": 24,
+   "maxDb": -24.9,
+   "meanDb": -45.2,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/boltImpact-flesh@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/boltImpact-flesh.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.boltImpact('flesh', 0, 1)",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -8.4,
+   "meanDb": -32.5,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/boltImpact-ground@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/boltImpact-ground.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.boltImpact('ground', 0, 1)",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -9.6,
+   "meanDb": -34.3,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/boltImpact-wood@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/boltImpact-wood.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.boltImpact('wood', 0, 1)",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -7.6,
+   "meanDb": -35.1,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/crossbowFire@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/crossbowFire.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.crossbowFire()",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -2.5,
+   "meanDb": -27,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/deer_call@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/deer_call.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.animal('deer_call', ahead(15), P.position, P.yaw)",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -17.3,
+   "meanDb": -34.8,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/footsteps-walk@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/footsteps-walk.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: for (let i = 0; i < 6; i++) setTimeout(() => a.footstep(false), i * 450)",
+   "lead": 0.25,
+   "sec": 3.2,
+   "maxDb": -17.1,
+   "meanDb": -42.9,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/hitMarker@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/hitMarker.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.hitMarker()",
+   "lead": 0.25,
+   "sec": 0.6,
+   "maxDb": -18.9,
+   "meanDb": -43.9,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/hoofsteps@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/hoofsteps.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.animal('hoofsteps', ahead(15), P.position, P.yaw)",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -23.4,
+   "meanDb": -44.9,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/kill@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/kill.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.kill()",
+   "lead": 0.25,
+   "sec": 1,
+   "maxDb": -14.8,
+   "meanDb": -35.8,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/oneshot/reload@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "oneshot",
+   "file": "era/568a1463/reload.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: a.reload()",
+   "lead": 0.25,
+   "sec": 1.8,
+   "maxDb": -10.3,
+   "meanDb": -38.7,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d01/take/d01-hunt@pine-hollow",
+   "kind": "recorded",
+   "build": "d01",
+   "sha": "568a1463fab58679af76af13af711bb678a19581",
+   "type": "take",
+   "file": "era/568a1463/take-d01-hunt.wav",
+   "query": "nolock=1&skipintro=1",
+   "how": "era-audio.mjs take: shots/d01-hunt.mjs in real time",
+   "lead": 0.5,
+   "maxDb": -1.6,
+   "meanDb": -33.2,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "events": [
+    {
+     "t": 0.407,
+     "e": "step"
+    },
+    {
+     "t": 1.276,
+     "e": "fire"
+    },
+    {
+     "t": 1.277,
+     "e": "aim",
+     "ndc": [
+      0,
+      -0.06
+     ]
+    },
+    {
+     "t": 1.672,
+     "e": "kill",
+     "kind": "deer"
+    },
+    {
+     "t": 1.672,
+     "e": "hit",
+     "headshot": true,
+     "killed": true
+    },
+    {
+     "t": 1.673,
+     "e": "impact",
+     "surface": "flesh"
+    }
+   ],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/bed/bed@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "bed",
+   "file": "era/2d2c5815/bed.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at undefined",
+   "lead": 0,
+   "sec": 20,
+   "maxDb": -1.6,
+   "meanDb": -17.9,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/bed/bed@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "bed",
+   "file": "era/pine/2d2c5815/bed.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs bed at undefined",
+   "lead": 0,
+   "sec": 12,
+   "maxDb": -30.6,
+   "meanDb": -51.3,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/bed/rewind@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "bed",
+   "file": "era/2d2c5815/bed-rewind.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at [230,0,1.13]",
+   "lead": 0,
+   "sec": 24,
+   "maxDb": -22.1,
+   "meanDb": -48.4,
+   "filesPlayed": [
+    "boar_grunt-3-4e4a9bec.m4a",
+    "deer_call-3-1d601bb4.m4a",
+    "deer_call-1-7cd35867.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d08/oneshot/boar_grunt@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/boar_grunt.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.animal('boar_grunt', ahead(2.4)) || a.animal('boar_grunt', ahead(2.4), P.position, P.yaw)",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -12.3,
+   "meanDb": -30,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/boar_squeal@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/boar_squeal.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.animal('boar_squeal', ahead(2.4)) || a.animal('boar_squeal', ahead(2.4), P.position, P.yaw)",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -19,
+   "meanDb": -34.2,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/boar-vocal@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/boar-vocal.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.vocal('boar', ahead(2.4), 1)",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -12.3,
+   "meanDb": -29.4,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/boar-windup@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/boar-windup.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.windup('boar', ahead(2.4))",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -12.7,
+   "meanDb": -30.8,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/boltImpact-flesh@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/pine/2d2c5815/boltImpact-flesh.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs calls: a.boltImpact('flesh', 0, 1)",
+   "lead": 0.25,
+   "sec": 1,
+   "maxDb": -4.6,
+   "meanDb": -25.8,
+   "filesPlayed": [
+    "boltImpact-flesh-3-da30d4fb.m4a"
+   ],
+   "loopsPlaying": [],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d08/oneshot/crossbowFire@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/pine/2d2c5815/crossbowFire.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs calls: a.crossbowFire()",
+   "lead": 0.25,
+   "sec": 1,
+   "maxDb": -3.5,
+   "meanDb": -31.7,
+   "filesPlayed": [
+    "crossbowFire-1-40af4c48.m4a"
+   ],
+   "loopsPlaying": [],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d08/oneshot/footsteps-litter@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/pine/2d2c5815/footsteps-litter.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs calls: for (let i = 0; i < 6; i++) setTimeout(() => a.footstep(false, 'litter'), i * 450)",
+   "lead": 0.25,
+   "sec": 3.2,
+   "maxDb": -12.9,
+   "meanDb": -41.5,
+   "filesPlayed": [
+    "footstep-litter-2-19b0df36.m4a",
+    "footstep-litter-1-b1476674.m4a"
+   ],
+   "loopsPlaying": [],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d08/oneshot/footsteps-sand@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/footsteps-sand.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: for (let i = 0; i < 6; i++) setTimeout(() => W.islandSfx.footstep('sand', 4.3), i * 450)",
+   "lead": 0.25,
+   "sec": 3.2,
+   "maxDb": -18.1,
+   "meanDb": -38.4,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/hitMarker@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/pine/2d2c5815/hitMarker.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs calls: a.hitMarker()",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -5.4,
+   "meanDb": -35.5,
+   "filesPlayed": [
+    "hitMarker-1-46ef1236.m4a"
+   ],
+   "loopsPlaying": [],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d08/oneshot/impact-flesh-combo@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/impact-flesh-combo.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.impact('flesh', 0.5, ahead(2.4))",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -13.6,
+   "meanDb": -28.3,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/impact-flesh-finisher@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/impact-flesh-finisher.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.impact('flesh', 0.75, ahead(2.4))",
+   "lead": 0.25,
+   "sec": 0.9,
+   "maxDb": -12.2,
+   "meanDb": -28.3,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/kill@pine-hollow",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/pine/2d2c5815/kill.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs calls: a.kill()",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -6.5,
+   "meanDb": -23.5,
+   "filesPlayed": [
+    "kill-2-5e4acc1b.m4a"
+   ],
+   "loopsPlaying": [],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d08/oneshot/whoosh-1@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/whoosh-1.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.whoosh(0.7, { heavy: false, dir: -1 })",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -13.7,
+   "meanDb": -33.8,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/whoosh-2@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/whoosh-2.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.whoosh(0.7, { heavy: false, dir: 1 })",
+   "lead": 0.25,
+   "sec": 0.8,
+   "maxDb": -13.3,
+   "meanDb": -34.9,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/oneshot/whoosh-finisher@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "oneshot",
+   "file": "era/2d2c5815/whoosh-finisher.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.islandSfx.whoosh(0.85, { heavy: false, dir: -1 })",
+   "lead": 0.25,
+   "sec": 0.9,
+   "maxDb": -12.4,
+   "meanDb": -32.2,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d08/take/w1-combo@driftwood-isle",
+   "kind": "recorded",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "type": "take",
+   "file": "era/2d2c5815/take-w1-combo.wav",
+   "query": "chunk=driftwood-isle&nolock=1&skipintro=1",
+   "how": "era-audio.mjs take: shots/w1-combo.mjs in real time",
+   "lead": 0.5,
+   "maxDb": -2.5,
+   "meanDb": -17.7,
+   "filesPlayed": [
+    "lunge-3-be45ba7a.m4a",
+    "boar_squeal-1-6415e380.m4a",
+    "hitMarker-1-46ef1236.m4a",
+    "hoofsteps-1-9580d36a.m4a",
+    "land-2-773487f2.m4a",
+    "hoofsteps-3-f1c11f8f.m4a",
+    "land-3-eebff605.m4a",
+    "gull-1-5fa9130b.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-island-1-4611714d.m4a"
+   ],
+   "events": [
+    {
+     "t": 0.252,
+     "e": "swing"
+    },
+    {
+     "t": 0.516,
+     "e": "swing"
+    },
+    {
+     "t": 0.767,
+     "e": "swing"
+    }
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d15/bed/rewind@pine-hollow",
+   "kind": "recorded",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "type": "bed",
+   "file": "era/19a43463/bed-rewind.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at [230,0,1.13]",
+   "lead": 0,
+   "sec": 24,
+   "maxDb": -12.2,
+   "meanDb": -36.6,
+   "filesPlayed": [
+    "oneshots-362ce515.m4a",
+    "deer_call-3-1d601bb4.m4a",
+    "boar_grunt-3-4e4a9bec.m4a",
+    "deer_call-1-7cd35867.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d15/take/d15-square@nine-dragon-stack",
+   "kind": "recorded",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "type": "take",
+   "file": "era/19a43463/take-d15-square.wav",
+   "query": "chunk=nine-dragon-stack&nolock=1&skipintro=1",
+   "how": "era-audio.mjs take: shots/d15-square.mjs in real time",
+   "lead": 0.5,
+   "maxDb": -4.2,
+   "meanDb": -27,
+   "filesPlayed": [
+    "footstep-litter-1-fe9cd8d9.m4a",
+    "footstep-litter-3-09ceed7a.m4a",
+    "swordSwing-1-6303fc5d.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a"
+   ],
+   "events": [
+    {
+     "t": 2.929,
+     "e": "attack"
+    },
+    {
+     "t": 3.681,
+     "e": "attack"
+    },
+    {
+     "t": 4.379,
+     "e": "attack"
+    }
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d15/take/rewind@pine-hollow",
+   "kind": "recorded",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "type": "take",
+   "file": "era/19a43463/take-rewind.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs take: shots/rewind.mjs in real time --opt={\"aim\":[222.39,1.8,-9.47]}",
+   "lead": 0.5,
+   "maxDb": -5.8,
+   "meanDb": -30,
+   "filesPlayed": [
+    "bed-oldgrowth-3-abf1ab68.m4a",
+    "crossbowFire-3-18ccf9f0.m4a",
+    "boltImpact-ground-2-5e8a3076.m4a",
+    "oneshots-362ce515.m4a",
+    "reload-1-d3e6d32a.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "events": [
+    {
+     "t": 1.009,
+     "e": "fire",
+     "head": [
+      222.479,
+      0.632,
+      -9.586
+     ]
+    }
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d15/take/w2-gallop@nalati-grasslands",
+   "kind": "recorded",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "type": "take",
+   "file": "era/19a43463/take-w2-gallop.wav",
+   "query": "chunk=nalati-grasslands&ride=gallop&nolock=1&skipintro=1",
+   "how": "era-audio.mjs take: shots/w2-gallop.mjs in real time",
+   "lead": 0.5,
+   "maxDb": -5.3,
+   "meanDb": -24.1,
+   "filesPlayed": [
+    "hoof-gravel-1-44e6b20f.m4a",
+    "hoof-gravel-2-ee23d114.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-steppe-wind-3-51fa5a78.m4a",
+    "bed-steppe-larks-2-b0d20bcd.m4a",
+    "bed-river-1-beb1a9a8.m4a",
+    "bed-highwind-1-95937f84.m4a"
+   ],
+   "events": [],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/bed/bed@pine-hollow",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "bed",
+   "file": "era/pine/c9aaa62a/bed.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at undefined",
+   "lead": 0,
+   "sec": 8,
+   "maxDb": -15.9,
+   "meanDb": -37.9,
+   "filesPlayed": [
+    "oneshots-362ce515.m4a",
+    "deer_call-1-7cd35867.m4a",
+    "deer_call-3-1d601bb4.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/bed/bed@sunscar-dunes",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "bed",
+   "file": "era/whip/c9aaa62a/bed.wav",
+   "query": "chunk=sunscar-dunes&nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at undefined",
+   "lead": 0,
+   "sec": 8,
+   "maxDb": -91,
+   "meanDb": -91,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d22/bed/rewind@pine-hollow",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "bed",
+   "file": "era/c9aaa62a/bed-rewind.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs bed at [230,0,1.13]",
+   "lead": 0,
+   "sec": 24,
+   "maxDb": -11.8,
+   "meanDb": -33.1,
+   "filesPlayed": [
+    "oneshots-362ce515.m4a",
+    "hoofsteps-1-9580d36a.m4a",
+    "deer_call-1-7cd35867.m4a",
+    "deer_call-3-1d601bb4.m4a",
+    "hoofsteps-3-f1c11f8f.m4a",
+    "boar_grunt-3-4e4a9bec.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/oneshot/boltImpact-flesh@pine-hollow",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "oneshot",
+   "file": "era/pine/c9aaa62a/boltImpact-flesh.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.weapons.onImpact('flesh', ahead(12))",
+   "lead": 0.25,
+   "sec": 1,
+   "maxDb": -12.3,
+   "meanDb": -31.2,
+   "filesPlayed": [
+    "boltImpact-flesh-2-13ed7f2c.m4a",
+    "oneshots-362ce515.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/oneshot/crossbowFire@pine-hollow",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "oneshot",
+   "file": "era/pine/c9aaa62a/crossbowFire.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.weapons.onFire?.()",
+   "lead": 0.25,
+   "sec": 1,
+   "maxDb": -7.3,
+   "meanDb": -32.2,
+   "filesPlayed": [
+    "crossbowFire-3-18ccf9f0.m4a",
+    "deer_call-1-7cd35867.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/oneshot/hit-kill@pine-hollow",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "oneshot",
+   "file": "era/pine/c9aaa62a/hit-kill.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.weapons.onHit('deer', true, true)",
+   "lead": 0.25,
+   "sec": 1.5,
+   "maxDb": -6.5,
+   "meanDb": -24.8,
+   "filesPlayed": [
+    "hitMarker-1-46ef1236.m4a",
+    "kill-3-5f7ea225.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/oneshot/whip-1@sunscar-dunes",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "oneshot",
+   "file": "era/whip/c9aaa62a/whip-1.wav",
+   "query": "chunk=sunscar-dunes&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.weapons.tryFire()",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -17.5,
+   "meanDb": -42.2,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d22/oneshot/whip-2@sunscar-dunes",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "oneshot",
+   "file": "era/whip/c9aaa62a/whip-2.wav",
+   "query": "chunk=sunscar-dunes&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.weapons.tryFire()",
+   "lead": 0.25,
+   "sec": 1.2,
+   "maxDb": -16.5,
+   "meanDb": -42.1,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d22/oneshot/whip-impact@sunscar-dunes",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "oneshot",
+   "file": "era/whip/c9aaa62a/whip-impact.wav",
+   "query": "chunk=sunscar-dunes&nolock=1&skipintro=1",
+   "how": "era-audio.mjs calls: W.weapons.onImpact?.('flesh', ahead(5))",
+   "lead": 0.25,
+   "sec": 1,
+   "maxDb": -8.3,
+   "meanDb": -32.3,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d22/take/rewind@pine-hollow",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "take",
+   "file": "era/c9aaa62a/take-rewind.wav",
+   "query": "chunk=pine-hollow&nolock=1&skipintro=1&tracer=0",
+   "how": "era-audio.mjs take: shots/rewind.mjs in real time --opt={\"aim\":[222.39,1.8,-9.47]}",
+   "lead": 0.5,
+   "maxDb": -5.4,
+   "meanDb": -30.6,
+   "filesPlayed": [
+    "bed-oldgrowth-3-abf1ab68.m4a",
+    "crossbowFire-3-18ccf9f0.m4a",
+    "boltImpact-ground-2-5e8a3076.m4a",
+    "oneshots-362ce515.m4a",
+    "reload-3-d81ab6e2.m4a"
+   ],
+   "loopsPlaying": [
+    "bed-forest-2-0cd11be5.m4a",
+    "bed-hollow-1-17c54253.m4a",
+    "bed-oldgrowth-3-abf1ab68.m4a"
+   ],
+   "events": [
+    {
+     "t": 1.012,
+     "e": "fire",
+     "head": [
+      222.376,
+      1.789,
+      -9.514
+     ]
+    }
+   ],
+   "credit": "the build's own mix: its synth plus the files listed (see their extracted rows for licences)"
+  },
+  {
+   "id": "d22/take/w3-hover@far-reach",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "take",
+   "file": "era/c9aaa62a/take-w3-hover.wav",
+   "query": "chunk=far-reach&nolock=1&skipintro=1",
+   "how": "era-audio.mjs take: shots/w3-hover.mjs in real time",
+   "lead": 0.5,
+   "maxDb": -91,
+   "meanDb": -91,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "events": [],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  },
+  {
+   "id": "d22/take/w3-whip@sunscar-dunes",
+   "kind": "recorded",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "type": "take",
+   "file": "era/c9aaa62a/take-w3-whip.wav",
+   "query": "chunk=sunscar-dunes&nolock=1&skipintro=1",
+   "how": "era-audio.mjs take: shots/w3-whip.mjs in real time --opt={\"prey\":\"strider\"}",
+   "lead": 0.5,
+   "maxDb": -9,
+   "meanDb": -28,
+   "filesPlayed": [],
+   "loopsPlaying": [],
+   "events": [
+    {
+     "t": 0.51,
+     "e": "whip"
+    },
+    {
+     "t": 1.259,
+     "e": "whip"
+    },
+    {
+     "t": 2.176,
+     "e": "whip"
+    }
+   ],
+   "credit": "the build's own procedural WebAudio code (no third-party audio); no credit needed"
+  }
+ ],
+ "extracted": [
+  {
+   "id": "d08/boar_grunt/boar_grunt-3-4e4a9bec",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "boar_grunt",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/boar_grunt--boar_grunt-3-4e4a9bec.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d08/boar_squeal/boar_squeal-1-6415e380",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "boar_squeal",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/boar_squeal--boar_squeal-1-6415e380.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/boltImpact-flesh/boltImpact-flesh-3-da30d4fb",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "boltImpact-flesh",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/boltImpact-flesh--boltImpact-flesh-3-da30d4fb.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "boltImpact-flesh"
+   ]
+  },
+  {
+   "id": "d08/crossbowFire/crossbowFire-1-40af4c48",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "crossbowFire",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/crossbowFire--crossbowFire-1-40af4c48.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "crossbowFire"
+   ]
+  },
+  {
+   "id": "d08/deer_call/deer_call-1-7cd35867",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "deer_call",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/deer_call--deer_call-1-7cd35867.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d08/deer_call/deer_call-3-1d601bb4",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "deer_call",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/deer_call--deer_call-3-1d601bb4.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d08/footstep-litter/footstep-litter-1-b1476674",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "footstep-litter",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/footstep-litter--footstep-litter-1-b1476674.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "footsteps-litter"
+   ]
+  },
+  {
+   "id": "d08/footstep-litter/footstep-litter-2-19b0df36",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "footstep-litter",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/footstep-litter--footstep-litter-2-19b0df36.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "footsteps-litter"
+   ]
+  },
+  {
+   "id": "d08/forest/bed-forest-2-0cd11be5",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "forest",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/forest--bed-forest-2-0cd11be5.wav",
+   "gain": 0.5,
+   "loopStart": 12.75,
+   "loopEnd": 26.75,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d08/gull/gull-1-5fa9130b",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "gull",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/gull--gull-1-5fa9130b.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/hitMarker/hitMarker-1-46ef1236",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "hitMarker",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/hitMarker--hitMarker-1-46ef1236.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo",
+    "hitMarker"
+   ]
+  },
+  {
+   "id": "d08/hoofsteps/hoofsteps-1-9580d36a",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "hoofsteps",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/hoofsteps--hoofsteps-1-9580d36a.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/hoofsteps/hoofsteps-3-f1c11f8f",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "hoofsteps",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/hoofsteps--hoofsteps-3-f1c11f8f.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/island/bed-island-1-4611714d",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "island",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d08/island--bed-island-1-4611714d.wav",
+   "gain": 0.5,
+   "loopStart": 2.25,
+   "loopEnd": 15.25,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/kill/kill-2-5e4acc1b",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "kill",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/kill--kill-2-5e4acc1b.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "kill"
+   ]
+  },
+  {
+   "id": "d08/land/land-2-773487f2",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "land",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/land--land-2-773487f2.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/land/land-3-eebff605",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "land",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/land--land-3-eebff605.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d08/lunge/lunge-3-be45ba7a",
+   "kind": "extracted",
+   "build": "d08",
+   "sha": "2d2c5815ade9427770418e43da99f8bc7ec90e8f",
+   "set": "best",
+   "family": "lunge",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d08/lunge--lunge-3-be45ba7a.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w1-combo"
+   ]
+  },
+  {
+   "id": "d15/boar_grunt/boar_grunt-3-4e4a9bec",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "boar_grunt",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/boar_grunt--boar_grunt-3-4e4a9bec.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d15/boltImpact-ground/boltImpact-ground-2-5e8a3076",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "boltImpact-ground",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/boltImpact-ground--boltImpact-ground-2-5e8a3076.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/crossbowFire/crossbowFire-3-18ccf9f0",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "crossbowFire",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/crossbowFire--crossbowFire-3-18ccf9f0.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/deer_call/deer_call-1-7cd35867",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "deer_call",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/deer_call--deer_call-1-7cd35867.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d15/deer_call/deer_call-3-1d601bb4",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "deer_call",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/deer_call--deer_call-3-1d601bb4.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d15/deer_snort/deer_snort-2-29cb5be9",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "pine-hollow",
+   "family": "deer_snort",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/deer_snort--deer_snort-2-29cb5be9.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/footstep-litter/footstep-litter-1-fe9cd8d9",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "footstep-litter",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/footstep-litter--footstep-litter-1-fe9cd8d9.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-d15-square"
+   ]
+  },
+  {
+   "id": "d15/footstep-litter/footstep-litter-3-09ceed7a",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "footstep-litter",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/footstep-litter--footstep-litter-3-09ceed7a.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-d15-square"
+   ]
+  },
+  {
+   "id": "d15/forest/bed-forest-2-0cd11be5",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "forest",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/forest--bed-forest-2-0cd11be5.wav",
+   "gain": 0.5,
+   "loopStart": 12.75,
+   "loopEnd": 26.75,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-d15-square",
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/highwind/bed-highwind-1-95937f84",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "highwind",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/highwind--bed-highwind-1-95937f84.wav",
+   "gain": 0.5,
+   "loopStart": 2.5,
+   "loopEnd": 12.5,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w2-gallop"
+   ]
+  },
+  {
+   "id": "d15/hollow/bed-hollow-1-17c54253",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "pine-hollow",
+   "family": "hollow",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/hollow--bed-hollow-1-17c54253.wav",
+   "gain": 0.5,
+   "loopStart": 2.25,
+   "loopEnd": 17.25,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/hoof-gravel/hoof-gravel-1-44e6b20f",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "hoof-gravel",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/hoof-gravel--hoof-gravel-1-44e6b20f.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w2-gallop"
+   ]
+  },
+  {
+   "id": "d15/hoof-gravel/hoof-gravel-2-ee23d114",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "hoof-gravel",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/hoof-gravel--hoof-gravel-2-ee23d114.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w2-gallop"
+   ]
+  },
+  {
+   "id": "d15/oldgrowth/bed-oldgrowth-3-abf1ab68",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "pine-hollow",
+   "family": "oldgrowth",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/oldgrowth--bed-oldgrowth-3-abf1ab68.wav",
+   "gain": 0.5,
+   "loopStart": 11.75,
+   "loopEnd": 22.75,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/raven_pair/raven_pair-1-f8070ef6",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "pine-hollow",
+   "family": "raven_pair",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/raven_pair--raven_pair-1-f8070ef6.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d15/reload/reload-1-d3e6d32a",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "reload",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/reload--reload-1-d3e6d32a.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d15/river/bed-river-1-beb1a9a8",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "river",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/river--bed-river-1-beb1a9a8.wav",
+   "gain": 0.5,
+   "loopStart": 6.25,
+   "loopEnd": 21.25,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w2-gallop"
+   ]
+  },
+  {
+   "id": "d15/steppe-larks/bed-steppe-larks-2-b0d20bcd",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "steppe-larks",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/steppe-larks--bed-steppe-larks-2-b0d20bcd.wav",
+   "gain": 0.5,
+   "loopStart": 2.75,
+   "loopEnd": 17.75,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w2-gallop"
+   ]
+  },
+  {
+   "id": "d15/steppe-wind/bed-steppe-wind-3-51fa5a78",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "steppe-wind",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d15/steppe-wind--bed-steppe-wind-3-51fa5a78.wav",
+   "gain": 0.5,
+   "loopStart": 2,
+   "loopEnd": 12,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-w2-gallop"
+   ]
+  },
+  {
+   "id": "d15/swordSwing/swordSwing-1-6303fc5d",
+   "kind": "extracted",
+   "build": "d15",
+   "sha": "19a4346350fa1c82dbc0710d06564c26acaa5894",
+   "set": "best",
+   "family": "swordSwing",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d15/swordSwing--swordSwing-1-6303fc5d.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-d15-square"
+   ]
+  },
+  {
+   "id": "d22/boar_grunt/boar_grunt-3-4e4a9bec",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "boar_grunt",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/boar_grunt--boar_grunt-3-4e4a9bec.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d22/boltImpact-flesh/boltImpact-flesh-2-13ed7f2c",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "boltImpact-flesh",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/boltImpact-flesh--boltImpact-flesh-2-13ed7f2c.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "boltImpact-flesh"
+   ]
+  },
+  {
+   "id": "d22/boltImpact-ground/boltImpact-ground-2-5e8a3076",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "boltImpact-ground",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/boltImpact-ground--boltImpact-ground-2-5e8a3076.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "d22/crossbowFire/crossbowFire-3-18ccf9f0",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "crossbowFire",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/crossbowFire--crossbowFire-3-18ccf9f0.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind",
+    "crossbowFire"
+   ]
+  },
+  {
+   "id": "d22/deer_call/deer_call-1-7cd35867",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "deer_call",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/deer_call--deer_call-1-7cd35867.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "bed",
+    "crossbowFire"
+   ]
+  },
+  {
+   "id": "d22/deer_call/deer_call-3-1d601bb4",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "deer_call",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/deer_call--deer_call-3-1d601bb4.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "bed"
+   ]
+  },
+  {
+   "id": "d22/deer_snort/deer_snort-2-29cb5be9",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "pine-hollow",
+   "family": "deer_snort",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/deer_snort--deer_snort-2-29cb5be9.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-rewind",
+    "boltImpact-flesh"
+   ]
+  },
+  {
+   "id": "d22/forest/bed-forest-2-0cd11be5",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "forest",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/forest--bed-forest-2-0cd11be5.wav",
+   "gain": 0.5,
+   "loopStart": 12.75,
+   "loopEnd": 26.75,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-rewind",
+    "bed",
+    "boltImpact-flesh",
+    "crossbowFire",
+    "hit-kill"
+   ]
+  },
+  {
+   "id": "d22/hitMarker/hitMarker-1-46ef1236",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "hitMarker",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/hitMarker--hitMarker-1-46ef1236.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "hit-kill"
+   ]
+  },
+  {
+   "id": "d22/hollow/bed-hollow-1-17c54253",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "pine-hollow",
+   "family": "hollow",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/hollow--bed-hollow-1-17c54253.wav",
+   "gain": 0.5,
+   "loopStart": 2.25,
+   "loopEnd": 17.25,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-rewind",
+    "bed",
+    "boltImpact-flesh",
+    "crossbowFire",
+    "hit-kill"
+   ]
+  },
+  {
+   "id": "d22/hoofsteps/hoofsteps-1-9580d36a",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "hoofsteps",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/hoofsteps--hoofsteps-1-9580d36a.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d22/hoofsteps/hoofsteps-3-f1c11f8f",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "hoofsteps",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/hoofsteps--hoofsteps-3-f1c11f8f.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d22/kill/kill-3-5f7ea225",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "kill",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/kill--kill-3-5f7ea225.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "hit-kill"
+   ]
+  },
+  {
+   "id": "d22/oldgrowth/bed-oldgrowth-3-abf1ab68",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "pine-hollow",
+   "family": "oldgrowth",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/oldgrowth--bed-oldgrowth-3-abf1ab68.wav",
+   "gain": 0.5,
+   "loopStart": 11.75,
+   "loopEnd": 22.75,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind",
+    "take-rewind",
+    "bed",
+    "boltImpact-flesh",
+    "crossbowFire",
+    "hit-kill"
+   ]
+  },
+  {
+   "id": "d22/raven_pair/raven_pair-1-f8070ef6",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "pine-hollow",
+   "family": "raven_pair",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/raven_pair--raven_pair-1-f8070ef6.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed-rewind"
+   ]
+  },
+  {
+   "id": "d22/raven_pair/raven_pair-2-d6566778",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "pine-hollow",
+   "family": "raven_pair",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/d22/raven_pair--raven_pair-2-d6566778.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "bed"
+   ]
+  },
+  {
+   "id": "d22/reload/reload-3-d81ab6e2",
+   "kind": "extracted",
+   "build": "d22",
+   "sha": "c9aaa62abec9e08392155793a21d33f75ced3bbc",
+   "set": "best",
+   "family": "reload",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/d22/reload--reload-3-d81ab6e2.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "take-rewind"
+   ]
+  },
+  {
+   "id": "head/feizhua.bite/feizhua.bite-1-cf340fc8",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "feizhua.bite",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/head/feizhua.bite--feizhua.bite-1-cf340fc8.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/feizhua.dock/feizhua.dock-2-6669a863",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "feizhua.dock",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/head/feizhua.dock--feizhua.dock-2-6669a863.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/feizhua.fire/feizhua.fire-2-b084bf8c",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "feizhua.fire",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/feizhua.fire--feizhua.fire-2-b084bf8c.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/feizhua.reel/feizhua.reel-1-62feefcb",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "feizhua.reel",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/feizhua.reel--feizhua.reel-1-62feefcb.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/feizhua.zip/feizhua.zip-3-00c1262f",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "feizhua.zip",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/feizhua.zip--feizhua.zip-3-00c1262f.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/jian.swing/jian.swing-3-35be6573",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "jian.swing",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/jian.swing--jian.swing-3-35be6573.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/land-hard/land-hard-3-5aed2a6b",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "best",
+   "family": "land-hard",
+   "type": "oneshot",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/land-hard--land-hard-3-5aed2a6b.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/land/land-2-773487f2",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "best",
+   "family": "land",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/head/land--land-2-773487f2.wav",
+   "gain": 1,
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+   "seed": 2,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/lantern/hum.lantern-1-d0f0aab8",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "lantern",
+   "type": "hum",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/lantern--hum.lantern-1-d0f0aab8.wav",
+   "gain": 0.5,
+   "loopStart": 2.75,
+   "loopEnd": 4.75,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/nd.market/bed.nd.market-1-71d8fdc0",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "nd.market",
+   "type": "bed",
+   "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+   "file": "files/head/nd.market--bed.nd.market-1-71d8fdc0.wav",
+   "gain": 0.5,
+   "loopStart": 7.75,
+   "loopEnd": 16.75,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/nd.well/bed.nd.well-1-ccb30904",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "nd.well",
+   "type": "bed",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/head/nd.well--bed.nd.well-1-ccb30904.wav",
+   "gain": 0.5,
+   "loopStart": 11.75,
+   "loopEnd": 23.75,
+   "licence": null,
+   "seed": 1,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  },
+  {
+   "id": "head/step.stone.1/step.stone.1-3-d2e5f930",
+   "kind": "extracted",
+   "build": "head",
+   "sha": "d842621d44cdd972fda2e6144aceed9f772f74e0",
+   "set": "nine-dragon-stack",
+   "family": "step.stone.1",
+   "type": "oneshot",
+   "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+   "file": "files/head/step.stone.1--step.stone.1-3-d2e5f930.wav",
+   "gain": 1,
+   "licence": null,
+   "seed": 3,
+   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+   "playedBy": [
+    "cold open (by family, sfx.json)"
+   ]
+  }
+ ],
+ "generated": [
+  {
+   "id": "trailer/subswell",
+   "kind": "generated",
+   "file": "sfx-best/tr-subswell.wav",
+   "engine": "Stable Audio 3 Medium",
+   "seed": 3,
+   "clapRank": 1,
+   "clapP": 0.672,
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": null,
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 0.672
+    }
+   },
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use) + Gemma terms (T5Gemma encoder)",
+   "credit": "Sound effects: Stable Audio 3 Medium — Powered by Stability AI"
+  },
+  {
+   "id": "trailer/tick",
+   "kind": "generated",
+   "file": "sfx-best/tr-tick.wav",
+   "engine": "Stable Audio 3 Medium",
+   "seed": 1,
+   "clapRank": 1,
+   "clapP": 0.971,
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": null,
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 0.971
+    }
+   },
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use) + Gemma terms (T5Gemma encoder)",
+   "credit": "Sound effects: Stable Audio 3 Medium — Powered by Stability AI"
+  },
+  {
+   "id": "trailer/keyclick",
+   "kind": "generated",
+   "file": "sfx-best/tr-keyclick.wav",
+   "engine": "Stable Audio 3 Medium",
+   "seed": 3,
+   "clapRank": 1,
+   "clapP": 0.959,
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": null,
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 0.959
+    }
+   },
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use) + Gemma terms (T5Gemma encoder)",
+   "credit": "Sound effects: Stable Audio 3 Medium — Powered by Stability AI"
+  },
+  {
+   "id": "trailer/typing",
+   "kind": "generated",
+   "file": "sfx-best/tr-typing.wav",
+   "engine": "Stable Audio 3 Medium",
+   "seed": 3,
+   "clapRank": 1,
+   "clapP": 0.834,
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": null,
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 0.834
+    }
+   },
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use) + Gemma terms (T5Gemma encoder)",
+   "credit": "Sound effects: Stable Audio 3 Medium — Powered by Stability AI"
+  },
+  {
+   "id": "trailer/whoosh",
+   "kind": "generated",
+   "file": "trailer-reuse/tr-whoosh.wav",
+   "engine": "MOSS-SoundEffect v2.0",
+   "seed": 2,
+   "clapRank": 1,
+   "clapP": 1,
+   "reusedFrom": "scripts/steam-trailer/sfx-jobs.json (the alpha trailer's pick, E466)",
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": {
+     "rank": 1,
+     "p": 1
+    },
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 1
+    }
+   },
+   "licence": "Apache-2.0 (MOSS-SoundEffect v2.0)",
+   "credit": "Sound effects: MOSS-SoundEffect v2"
+  },
+  {
+   "id": "trailer/riser",
+   "kind": "generated",
+   "file": "trailer-reuse/tr-riser.wav",
+   "engine": "MOSS-SoundEffect v2.0",
+   "seed": 2,
+   "clapRank": 1,
+   "clapP": 1,
+   "reusedFrom": "scripts/steam-trailer/sfx-jobs.json (the alpha trailer's pick, E466)",
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": {
+     "rank": 1,
+     "p": 1
+    },
+    "Stable Audio 3 Medium": {
+     "rank": 2,
+     "p": 0.287
+    }
+   },
+   "licence": "Apache-2.0 (MOSS-SoundEffect v2.0)",
+   "credit": "Sound effects: MOSS-SoundEffect v2"
+  },
+  {
+   "id": "trailer/impact",
+   "kind": "generated",
+   "file": "trailer-reuse/tr-impact.wav",
+   "engine": "Stable Audio 3 Medium",
+   "seed": 3,
+   "clapRank": 1,
+   "clapP": 0.956,
+   "reusedFrom": "scripts/steam-trailer/sfx-jobs.json (the alpha trailer's pick, E466)",
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": {
+     "rank": 1,
+     "p": 0.756
+    },
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 0.956
+    }
+   },
+   "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use) + Gemma terms (T5Gemma encoder)",
+   "credit": "Sound effects: Stable Audio 3 Medium — Powered by Stability AI"
+  },
+  {
+   "id": "trailer/subdrop",
+   "kind": "generated",
+   "file": "trailer-reuse/tr-subdrop.wav",
+   "engine": "MOSS-SoundEffect v2.0",
+   "seed": 2,
+   "clapRank": 1,
+   "clapP": 0.998,
+   "reusedFrom": "scripts/steam-trailer/sfx-jobs.json (the alpha trailer's pick, E466)",
+   "perModelBest": {
+    "MOSS-SoundEffect v2.0": {
+     "rank": 1,
+     "p": 0.998
+    },
+    "Stable Audio 3 Medium": {
+     "rank": 1,
+     "p": 0.757
+    }
+   },
+   "licence": "Apache-2.0 (MOSS-SoundEffect v2.0)",
+   "credit": "Sound effects: MOSS-SoundEffect v2"
+  }
+ ]
+}

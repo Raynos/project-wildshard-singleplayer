@@ -152,6 +152,7 @@ const manifest = {
   _doc: 'PROGRESS-TRAILER PT8 (E468, §3.4): every sound the film may use. `file` is relative to the SFX scratch folder (`root`). recorded = the build\'s own AudioContext output (era-audio.mjs; lead = seconds of pre-roll before the call / the take\'s frame 0); extracted = the file that build played, from its own tree (`source` = sha:path); generated = MOSS-SoundEffect v2 vs Stable Audio 3 Medium, CLAP-picked (sfx_pick.py). Days 1 and 8 synthesise what has no file; days 8, 15 and 22 play the files listed under each recording.',
   root: SFX, head: HEAD, builds: Object.fromEntries(Object.entries(BUILDS).map(([k, v]) => [v.label, k])),
   credits: ['Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI'],
+  notes: existsSync(join(SFX, 'notes.json')) ? json(join(SFX, 'notes.json')) : [],
   recorded, extracted: ext, generated,
 };
 mkdirSync(join(MANIFEST, '..'), { recursive: true });
