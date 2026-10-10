@@ -495,5 +495,23 @@ export class SkyRig {
     };
   }
 
+  /**
+   * SF63: on a one-cascade rig (the phone's tier table), pull the one cascade in to `far` metres at `size`² texels: crisp
+   * near shadows (a level whose own rig is the phone's split cascades, inside its grid cell) for the far ones, with no
+   * shader recompile (the cascade count and filter stay; only the frustum and the map change). Null on a rig with more
+   * than one cascade. The returned function puts the reach and the map size back (a changed map is freed and redrawn).
+   */
+  focusCascade(far: number, size: number): (() => void) | null {
+    const csm = this.csm, light = csm.lights[0];
+    if (csm.lights.length !== 1 || light === undefined) return null;
+    const maxFar = csm.maxFar, mapSize = csm.shadowMapSize, held = light.shadow.mapSize.clone();
+    const resize = (to: THREE.Vector2): void => {
+      if (light.shadow.mapSize.equals(to)) return;
+      light.shadow.mapSize.copy(to); light.shadow.map?.dispose(); light.shadow.map = null;
+    };
+    csm.maxFar = far; csm.shadowMapSize = size; resize(new THREE.Vector2(size, size)); csm.updateFrustums();
+    return () => { csm.maxFar = maxFar; csm.shadowMapSize = mapSize; resize(held); csm.updateFrustums(); };
+  }
+
 
 }

@@ -26,7 +26,7 @@ import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../b
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { lastEndLine, markReload } from '../boot/lastEnd';
 import { onSettingChange, saveSetting, setting, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
-import { MOBILE_DEVICE } from '../core/tier';
+import { MOBILE_DEVICE, TIER } from '../core/tier';
 import { tierPickLine } from '../render/tierBoot';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
@@ -168,6 +168,7 @@ const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['s
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('graphMaterials', 'look', engineString('s_graph_materials'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_materials_note') }),
+  opt('regionShadowFocus', 'look', engineString('s_region_shadow_focus'), [['off', engineString('s_region_shadow_focus_off')], ['tight', engineString('s_region_shadow_focus_tight')]], { when: () => TIER === 'phone', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_region_shadow_focus_note') }),
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.
