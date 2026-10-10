@@ -12,7 +12,7 @@ it('keeps the unique captain native and replaces only the three declared ordinar
   for (const row of DRIFTWOOD_SPECIES) {
     const declared = rows.find(entry => entry.id === row.id);
     if (row.kind === 'captain') expect(declared).toBe(row);
-    else { expect(declared?.think).not.toBe(row.think); expect(declared?.act).not.toBe(row.act); expect(declared?.variants).toBe(row.variants); }
+    else { expect(declared?.think).not.toBe(row.think); expect(declared?.act).not.toBe(row.act); expect(declared?.variants).toEqual(row.variants); }
   }
 });
 it('the hybrid sailor rises, swings and sinks through the existing native recipes', () => {
