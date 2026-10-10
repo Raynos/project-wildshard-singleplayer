@@ -35,13 +35,15 @@
  */
 import {
   BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Mesh,
-  MeshBasicMaterial, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Object3D, type PerspectiveCamera,
+  MeshBasicMaterial, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Object3D, type PerspectiveCamera, type WebGLRenderTarget,
 } from 'three';
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
 import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
+import type { Renderer } from '../render/renderer';
+import { runPrecompile, sceneJobs } from '../render/precompile';
 
 /**
  * the layered dome's render order: after the page's sky pieces (−20 … −10), before the grid road sky (−9); a backdrop
@@ -241,6 +243,18 @@ export class BackdropLayer {
       this.domes.push(child);
     }
     backdrop.bind(this.targets);
+  }
+
+  /** Prepare final page variants before this attached layer's first visible frame on WebKit.
+   * Borrow the actual materials and page lighting; preserve visibility, parents, blending,
+   * uniforms and target. The resident scope fences every painted slice. Other browsers
+   * retain the existing whole-world warm-up path. */
+  async prepare(renderer: Renderer, camera: PerspectiveCamera, target: WebGLRenderTarget | null): Promise<void> {
+    if (this.disposed || this.scope.disposed) throw new Error('Backdrop layer left before preparation');
+    if (this.backdrop === null) throw new Error('Backdrop layer preparation requires attachment');
+    if (!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
+    const { jobs, materials } = sceneJobs(this.host.scene, target, 1, this.domes);
+    await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, () => !this.disposed && !this.scope.disposed);
   }
 
   /**

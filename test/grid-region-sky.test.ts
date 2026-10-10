@@ -16,6 +16,38 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import type { FrameSkyLayer } from '../src/game/grid/frameLook';
 import { buildRegionSky, regionSkyClaimId } from '../src/game/grid/regionSky';
 
+it('prepares attached materials before exposing frame weight and releases a sky retired while yielding', async () => {
+  for (const leave of [false, true]) {
+    const allocator = new ResidencyAllocator(), scope = new Scope('preparing sky'), sky = fakeSky(new Scene());
+    let complete: () => void = () => undefined;
+    const pending = new Promise<void>(resolve => { complete = resolve; });
+    const hung: FrameSkyLayer[] = [];
+    let attached = false;
+    const result = buildRegionSky({ instance: 'cell-a', allocator, scope,
+      look: { contribute: () => () => undefined, sky: (_id, layer) => { hung.push(layer); return () => undefined; } },
+      layered: () => {
+        const layer = sky.layerBackdrop({}), backdrop = regionBackdrop(layer.holder);
+        return Promise.resolve({ layer, backdrop, prepare: async () => { attached = backdrop.bound !== null; await pending; } });
+      } });
+    await Promise.resolve(); await Promise.resolve();
+    expect(attached).toBe(true); expect(hung).toHaveLength(0); expect(allocator.has(regionSkyClaimId('cell-a'))).toBe(true);
+    if (leave) scope.dispose();
+    complete();
+    expect(await result).toBe(leave ? 'left' : 'drawn'); expect(hung).toHaveLength(leave ? 0 : 1);
+    scope.dispose(); expect(allocator.has(regionSkyClaimId('cell-a'))).toBe(false); expect(sky.layers.size).toBe(0);
+  }
+});
+
+it('releases a failed attached-sky preparation once without exposing frame weight', async () => {
+  const allocator = new ResidencyAllocator(), scope = new Scope('failed preparation'), sky = fakeSky(new Scene());
+  const layer = sky.layerBackdrop({}), backdrop = regionBackdrop(layer.holder), hang = vi.fn();
+  await expect(buildRegionSky({ instance: 'cell-a', allocator, scope,
+    look: { contribute: () => () => undefined, sky: hang },
+    layered: () => Promise.resolve({ layer, backdrop, prepare: () => Promise.reject(new Error('Driver failed')) }) })).rejects.toThrow('Driver failed');
+  expect(hang).not.toHaveBeenCalled(); expect(allocator.has(regionSkyClaimId('cell-a'))).toBe(false);
+  scope.dispose(); expect(backdrop.disposed).toBe(1); expect(sky.layers.size).toBe(0);
+});
+
 /** a page's shared sky state, as SkyRig binds it */
 function pageTargets(): SkyBackdropTargets {
   return {

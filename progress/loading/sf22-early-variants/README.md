@@ -13,3 +13,14 @@ march target, restoring the caller target on success or failure. No shader,
 uniform, target format, frame clock or rendered pass changes. The focused
 fixture checks the actual effect's owned target and both restoration paths.
 Matched cadence / compilation remains open; no new performance pass claimed.
+
+
+The layered sky now prepares its final attached materials against the actual
+page lights / composer target before registering visible frame weight on
+WebKit. The dome, clouds and planet retain their original geometry, material,
+blend parameters, uniform identities and render order. Chromium retains its
+existing preparation path. Ownership cleanup is registered before preparation:
+retirement or failure releases the admitted sky instead of exposing it.
+Focused fixtures cover ordering / retirement and the limited material
+inventory against unchanged page lighting. A matched route is still needed
+for performance credit; this scheduling slice adds no shader or look variant.

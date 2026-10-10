@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { DirectionalLight, Group, Light, PointLight, Scene, PerspectiveCamera, BoxGeometry, Mesh, MeshDepthMaterial, MeshStandardMaterial, WebGLRenderer, DataTexture, Fog, type Object3D } from 'three';
-import { includeFutureLights, precompileLevel, registerExteriorLighting, type CompileJob } from '../src/engine/render/precompile';
+import { includeFutureLights, precompileLevel, registerExteriorLighting, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
 
 import { Scope } from '../src/engine/app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
@@ -17,6 +17,19 @@ function lightInputs(target: Scene, root: Object3D, camera: PerspectiveCamera): 
   if (root !== target) root.traverseVisible(collect);
   return result.sort();
 }
+
+it('limits a staged inventory to borrowed roots while retaining page lighting and hidden source state', () => {
+  const page = new Scene(), sky = new Group(), other = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+  const mesh = new Mesh(new BoxGeometry(), new MeshStandardMaterial()); sky.add(mesh); sky.visible = false;
+  const sun = new DirectionalLight(); sun.castShadow = true; page.add(sun, sky, other);
+  try {
+    const { jobs, materials } = sceneJobs(page, null, 1, [sky]);
+    expect(materials).toBe(1); expect(jobs).toHaveLength(1); expect(jobs[0]?.target).toBe(page);
+    const picked: unknown[] = []; jobs[0]?.root.traverse(object => { if (object instanceof Mesh) picked.push(object.material); });
+    expect(picked).toHaveLength(1); expect(picked[0]).toBe(mesh.material);
+    expect(mesh.parent).toBe(sky); expect(sky.visible).toBe(false); expect(sun.parent).toBe(page);
+  } finally { mesh.geometry.dispose(); mesh.material.dispose(); other.geometry.dispose(); other.material.dispose(); }
+});
 
 it('warms the exact post-entry light counts without exposing or changing the parked world', () => {
   const page = new Scene(), parked = new Group(), future = new Scene(), camera = new PerspectiveCamera();

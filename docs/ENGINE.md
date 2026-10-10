@@ -2548,3 +2548,15 @@ claims. A regional runtime marks its own `sim:<instance>` lease as measured only
 and bytes have been admitted. Its sky keeps an exact visible `sim-sky:<instance>` page claim covered by that same live parent;
 it receives no engine-base credit, and becomes independently charged if the parent retires first. Estimated runtime rows and
 other instances cannot cover it. The claim uses the largest paired worst-entered-pose increment across three cold runs.
+
+
+### Attached sky preparation (SF22)
+
+`BackdropLayer.prepare(renderer, camera, target)` prepares its attached dome and
+followers against the page's real lighting and the world's real render target
+on WebKit, before the grid exposes the layer. It borrows existing materials,
+keeps live parents, visibility, uniforms and blending unchanged, and fences
+every painted slice to the layer owner. Chromium retains its ordinary
+whole-world preparation. `sceneJobs(scene, target, per, roots)` can restrict the
+material inventory to explicit roots without replacing the target scene's
+lighting, fog or environment; omitted roots keep the whole-scene inventory.

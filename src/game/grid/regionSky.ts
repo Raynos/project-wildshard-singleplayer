@@ -40,7 +40,9 @@ export interface RegionSkyRequest<B extends RegionBackdrop> {
    * the level's backdrop built as a layer on the page's one sky (`SkyRig.layeredBackdrop`); null when the level's look has
    * no backdrop or the page sky cannot take one
    */
-  readonly layered: () => Promise<{ readonly layer: RegionSkyLayer<B>; readonly backdrop: B } | null>;
+  readonly layered: () => Promise<{ readonly layer: RegionSkyLayer<B>; readonly backdrop: B;
+    /** Final attached-material preparation before visible frame weight can reach the layer. */
+    readonly prepare?: () => Promise<void> } | null>;
   readonly look: FrameLookPort | null;
   readonly allocator: Pick<ResidencyAllocator, 'reserve' | 'entries'>;
   /** Exact sky bytes already present in this instance's reviewed runtime increment; never another region or an estimate. */
@@ -84,11 +86,19 @@ export async function buildRegionSky<B extends RegionBackdrop>(request: RegionSk
       ...(request.coveredBy === undefined ? {} : { coveredBy: request.coveredBy }) });
   } catch (error) { backdrop.dispose?.(); layer.dispose(); throw error; }
   if (lease === null) { backdrop.dispose?.(); layer.dispose(); return 'refused'; }
-  layer.attach(backdrop);
-  const release = hang(instance, {
+  let release: (() => void) | null = null;
+  let disposed = false;
+  const dispose = (): void => {
+    if (disposed) return;
+    disposed = true; release?.(); layer.dispose(); lease.release();
+  };
+  scope.onDispose(dispose);
+  try { layer.attach(backdrop); await built.prepare?.(); }
+  catch (error) { dispose(); throw error; }
+  if (left()) return 'left';
+  release = hang(instance, {
     weight: (w) => { layer.weight = w; },
     state: () => { const s = layer.state(); return { weight: s.weight, drawn: s.drawn, bytes: s.bytes, reserved }; },
   });
-  scope.onDispose(() => { release(); layer.dispose(); lease.release(); });
   return 'drawn';
 }

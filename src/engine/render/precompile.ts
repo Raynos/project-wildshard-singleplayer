@@ -149,12 +149,13 @@ function standIn(mesh: MeshLike): MeshLike {
  * One detached clone per distinct (material, object-flags) pair, grouped `per` clones a job.
  * `clone(false)` keeps the instancing / skinning / morph flags and the geometry that pick the
  * variant, without touching live visibility or parents (gauntlet's compileMaterials).
+ * `roots` restricts the borrowed inventory while retaining the target scene's lights, fog and environment.
  */
-export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6): { jobs: CompileJob[]; materials: number } {
+export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, roots: readonly THREE.Object3D[] = [scene]): { jobs: CompileJob[]; materials: number } {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
   const clones: THREE.Object3D[] = [];
-  scene.traverse((o) => {
+  for (const root of roots) root.traverse((o) => {
     const mesh = o as MeshLike;
     const list = materialsOf(mesh);
     if (list.length === 0) return;
