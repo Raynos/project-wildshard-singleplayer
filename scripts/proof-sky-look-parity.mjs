@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM M3: Sky Reach's look, a base build against a candidate on identical world pixels (modelled on
-// scripts/proof-sky-look-parity.mjs). One run captures one served build: per tier (phone, desktop), six poses round the
+// scripts/proof-nalati-look-parity.mjs). One run captures one served build: per tier (phone, desktop), six poses round the
 // archipelago (Sunrest toward the low sun and the crown, Sunrest east and back, the windmill isle down onto the cloud sea,
 // the storm crown, the roost), each a plain scene render (no post) with every material's time and cloud time at 10 and the sun shafts' pulse at 1, the
 // viewmodel hidden, read back whole and hashed, with the render's draws and triangles; the WebGL allocation census's total
 // GPU bytes; the linked program count and a hash of every shader source the page compiled; any shader compile error;
 // every registered piece's colliders, hashed. The harness init pins Math.random (scripts/parity/init.mjs), so the
-// session's seeded choices repeat. Creatures keep moving between captures, so two runs of one build can differ by a few
-// hundred pixels: `--raw=<dir>` keeps each frame's RGBA so `--compare` can count the differing pixels.
+// session's seeded choices repeat, and runs the page on the capture clock (30 fps, as scripts/parity.mjs and
+// scripts/proof-nalati-look-parity.mjs): the one frame drawn before the harness gate holds the world advances 1/30 s, not
+// the wall-clock gap since the clock's last read (0.1 ms steps), which moved the horizon's time-driven pixels from run to
+// run (6-87 desktop pixels before op-sky81). `--raw=<dir>` keeps each frame's RGBA so `--compare` counts differing pixels.
 //   scripts/browser-lane.sh node scripts/proof-sky-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>]
 //   node scripts/proof-sky-look-parity.mjs --compare=<base.json>,<candidate.json>
 import { chromium, devices } from 'playwright';
@@ -61,7 +63,7 @@ const browser = await chromium.launch({ headless: true, args: ['--use-angle=meta
 try {
   for (const tier of ['phone', 'desktop']) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-    await installInit(context, { lane: 'sky-look-parity', sha: version.build, browser: 'chromium', tier });
+    await installInit(context, { lane: 'sky-look-parity', sha: version.build, browser: 'chromium', capture: 30, tier });
     // every shader source the page compiles, hashed (a byte that moved in any program shows here)
     await context.addInitScript(() => {
       const seen = new Set();

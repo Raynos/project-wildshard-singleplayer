@@ -114,6 +114,13 @@ function bake(arg) {
   if (Color !== undefined) scene.background = new Color(arg.bg[0], arg.bg[1], arg.bg[2]);
   let colour, height = null;
   try {
+    // every material's clock held (as scripts/proof-*-look-parity.mjs hold it): swaying grass and drifting paint drew
+    // wherever the wall clock had them when the bake ran
+    scene.traverse((o) => {
+      for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) {
+        for (const key of ['uTime', 'time', 'uCloudTime']) if (typeof m.uniforms?.[key]?.value === 'number') m.uniforms[key].value = 10;
+      }
+    });
     rest(); colour = pass();
     // height pass: every mesh in its world height (16 bit over R, G; B = 1 where anything is), cleared to black; the sky / sea
     // backdrops (> 800 m across), ghosts (invisible, colour-off or depth-off transparent) and the shard's "heightHide" left out
@@ -155,6 +162,9 @@ try {
     const settings = mapSettings(dir);
     const context = await browser.newContext({ viewport: { width: TILE + 100, height: TILE + 100 }, deviceScaleFactor: 1, serviceWorkers: 'block' });
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // Developer-only shards boot too
+    // the session's seed pinned as the parity harness pins it (scripts/parity/init.mjs): a live page salts its seed from
+    // crypto, so a shard's cosmetic stream (Sky Reach's island meshes) drew a different world, and map, on every bake (op-sky81)
+    await context.addInitScript(() => { window.__wildshardHarness = { seed: 0x2545f491, capture: null }; });
     const page = await context.newPage();
     try {
       await page.goto(`${base}?chunk=${encodeURIComponent(slug)}&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });

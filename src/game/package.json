@@ -22,6 +22,7 @@
     "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",
     "./systems/looks/cardField": "./systems/looks/cardField.ts",
     "./systems/looks/discLayer": "./systems/looks/discLayer.ts",
+    "./systems/looks/tileField": "./systems/looks/tileField.ts",
     "./systems/looks/shaderEdits": "./systems/looks/shaderEdits.ts",
     "./systems/looks/rainFx": "./systems/looks/rainFx.ts",
     "./systems/species/herdShelter": "./systems/species/herdShelter.ts",
