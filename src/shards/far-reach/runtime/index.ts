@@ -41,7 +41,8 @@ import { setMillTextures } from '../world/mill';
 import { FAN_LEAF_URL, TEX_URL } from '../boot/files';
 import { loadPainted } from '../look/image';
 import { setStormPaint } from '../world/storm';
-import { rayWake } from '../world/rayWake';
+import { wakeRibbon } from '@wildshard/sdk/looks/wakeRibbon';
+import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs, loadSkyDressing } from '../world/dressing';
 import { SUN_DIR } from '../look/sun';
@@ -258,8 +259,8 @@ export class SkyReachPlugin extends ShardPlugin {
     const animals = rt.play?.animals;
     const rayHomes = boundedRows(RAY_HOMES);
     for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = rayHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.ray.${String(i)}`, home).spawn(); if (a) this.rays.push(a); }
-    // each free ray trails its luminous wake (world/rayWake.ts; proposal B's ray beside the mill)
-    const wakes = this.rays.map((ray) => { const w = rayWake(); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
+    // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
+    const wakes = this.rays.map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
