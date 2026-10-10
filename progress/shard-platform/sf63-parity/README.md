@@ -239,3 +239,45 @@ without a bisect.
 phone; JSON `parity-pine-phone-finish3.json`, board `board-pine-phone.jpg`: MAE entry-n 28.9 → **20.9**, forest-e 49.7 →
 **12.2**, forest-n 25.3 → **10.9**. Both sides now draw the same baked forest, so the conifer through the camera at forest-e
 is in both (as at cand3). What is left at entry-n is the grid sky's missing cirrus and cumulus.
+
+## finish4 (op-sf63c, `c784f7151`, 2026-10-09): Pine's clouds in its cell, Nalati lit with its own day; gulls and programs explained
+
+Phone parity with `capture.mjs` (tag `finish4`) on `9eb72af21` (HEAD `4e86a612f` + the fix); parent runs on HEAD `cf9611b79`
+(Nalati `parity-nalati-phone-finish4-parent.json`, Driftwood the control). 0 page and 0 shader errors on every side. Boards
+`board-<shard>-phone.jpg` (SHARD SELECT | grid parent | grid finish4).
+
+| Gap | Cause | Fix |
+|---|---|---|
+| Pine's grid sky had no cirrus / cumulus | Its photographic dome was drawn (keys resident), but the clouds are the engine's cloud layer, which standalone `SkyRig.build` gives any backdrop without its own sky layer; a layered backdrop carried only the dome | `SkyRig.layeredBackdrop` builds that layer on the layer as well (`layerClouds`; skipped for `sky.clouds: false` or a backdrop with its own `clouds`): the same program (`cloudLayer`, shader text unchanged), on the layer's cloud targets so Pine's clock tints and fades it, opacity × owner weight, after the dome. Its fbm is the page's `cloudField` |
+| Nalati's cell paler, yellower, bluer; entry-n slope darker | Nalati's sky rig took its "day" (key colour and intensity, fill, environment, fog sun) off the live shared light when built; inside the grid that is still the road's (key 2.4, not its 2.8) | it reads those from its def: what `SkyRig.build` had set standalone at that moment (`look/skyRig.ts`) |
+
+| Shard | Pose | MAE parent → finish4 | notes |
+|---|---|---|---|
+| Nalati | entry-e · entry-n · inside-e · inside-w | 13.4 → 13.0 · 17.1 → 15.2 · 19.4 → **13.6** · 18.5 → **14.5** | grid key 2.406 → 2.8; standalone means unchanged (±0.3) |
+| Pine | entry-n · forest-e · forest-n | 20.9 → 22.3 · 12.2 → 11.3 · 10.9 → 11.2 (finish3 → finish4) | clouds drawn; the two cloud fields drift on different clocks, so entry-n's per-pixel MAE does not credit them |
+| Driftwood | entry-w · wreck-w · inside-w · inside-n | 18.6 / 20.2 / 17.5 / 19.5 → 18.8 / 20.6 / 18.5 / 19.3 | control (unchanged path); programs 218 / 219 / 221 both |
+
+Programs (grid, phone, inside): Pine 252 → 254 (+1 the cloud layer, +1 from the newer HEAD), Nalati 242 → 243, Driftwood 221
+→ 221; SHARD SELECT 108 / 98 / 96 unchanged.
+
+**The dark slab at Nalati's cell edge** now stands in SHARD SELECT too (same rock, same place: board row entry-n), so it is
+no longer a grid gap.
+
+**Driftwood's gulls are not a registration gap.** In the grid cell all 36 are built, registered (`region:driftwood-isle`),
+visible and simulated, their perches identical to standalone. What the standalone shot has and the grid's lacks is the
+E309 gull guide (`quest/gullGuide.ts`): three gulls fly a V past a player who has stood still for 10 s. SHARD SELECT poses
+and waits 8 + 6 + 2.5 s, so the guide flies; the grid side drives in and waits 8.5 s, so it has not yet. A capture-timing
+difference that inflates Driftwood's MAE, not a bug.
+
+**Program counts (Pine 206 → 252 since `64a1f0b4b`).** A dump of the grid's 252 programs inside Pine: 140 are held by no
+mesh in the scene, and ~95 of those differ from a live program only in `numPointLights` (0 / 1 / 2 / 5). Each region scene
+has its own LightPool (`region-scene:<instance>` › `light-pool`: Pine's holds 3, the page's 2), so the page's visible
+point-light count changes as cells come and go (road 2, inside Pine 5), and three keeps one program per light count for
+every lit material drawn under each. It is not a define / onBeforeCompile duplicate a key fix can merge: the fix is a fixed
+page-wide point-light count (region pools drawing from the page's pool, or the page padding to the largest region's count),
+a rendering and memory decision with a per-fragment cost on the phone, so it was not made here. The rest: ~8 `envMapCubeUVHeight`
+256 / 512 (Pine's small layered environment against the page's) and a few material-key variants.
+
+Still open: the conifer through the camera at Pine's forest-e (in both sides since SHARD SELECT reads its bake again; a
+camera-collision change, not generic and cheap); Nalati's fog colour still starts from the road's fog object (its air is
+its own, but its day fog is captured from the clone), the haze over the far valley at inside-w a little lighter.
