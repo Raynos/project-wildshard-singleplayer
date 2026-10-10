@@ -91,10 +91,6 @@ in Claude Code
 
 The alpha trailer: gameplay captured in engine from every shard, looping without sound
 
-## Trailer · tag
-
-Alpha · captured in engine
-
 # What is Wildshard
 
 ## What · question
