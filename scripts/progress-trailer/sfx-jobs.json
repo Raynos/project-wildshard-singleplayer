@@ -1,0 +1,29 @@
+{
+  "_doc": "PROGRESS-TRAILER PT8 (E468, §3.4): the only generated sounds in the film. The play takes carry their own build's sound (era-true, sfx-manifest.json); the trailer families whoosh, riser and impact reuse the alpha trailer's picks of scripts/steam-trailer/sfx-jobs.json (MOSS-SoundEffect v2 + Stable Audio 3 Medium, CLAP-picked), so this file holds only what that set lacks: the sub swell under the rewind's slow section, the lapse tick (one per stage swap) and the breath's keyclicks. Each family is generated with MOSS-SoundEffect v2 (gen_sfx_moss.py) and Stable Audio 3 Medium (gen_sfx.py --model medium) and sfx_pick.py keeps the better take by CLAP rank; it writes tr-<family>.wav. `desc` is the CLAP ranking text.",
+  "families": {
+    "subswell": {
+      "kind": "oneshot",
+      "duration": 6,
+      "desc": "a deep sub bass swell slowly rising in volume",
+      "prompt": "A deep cinematic sub-bass swell: a low rumbling drone that starts almost silent and grows steadily louder and fuller for five seconds, then cuts off. Trailer sound design, no melody, no drums."
+    },
+    "tick": {
+      "kind": "oneshot",
+      "duration": 1,
+      "desc": "a single soft clock tick",
+      "prompt": "One single soft, dry tick of a small mechanical clock, close up, very short, then silence. Clean studio recording, nothing else."
+    },
+    "keyclick": {
+      "kind": "oneshot",
+      "duration": 1,
+      "desc": "a single keyboard key click",
+      "prompt": "One single key press on a laptop keyboard: a soft, crisp plastic click, close up, then silence. Clean studio recording, nothing else."
+    },
+    "typing": {
+      "kind": "oneshot",
+      "duration": 3,
+      "desc": "fast typing on a computer keyboard",
+      "prompt": "Someone typing a short sentence quickly on a quiet laptop keyboard: soft crisp key clicks in a steady burst for two seconds, one spacebar thump, then silence. Close, clean studio recording, no music."
+    }
+  }
+}
