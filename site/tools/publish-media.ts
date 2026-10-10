@@ -2,7 +2,8 @@
 //
 //   node site/tools/publish-media.ts <folder>
 //
-// <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-720.mp4` and, for any shards whose loops
+// <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-1080.mp4` (the phone copy, 1920 × 1080;
+// an older folder's `trailer-720.mp4` is taken when there is none) and, for any shards whose loops
 // change, `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
 // public, under a content-hashed name (`site/media/<name>-<hash8>.mp4`), so a re-run with unchanged files uploads
 // nothing and a changed file gets a new URL (the Blob CDN caches a year). The poster is a small WebP in
@@ -97,7 +98,8 @@ async function main(): Promise<void> {
   const media: Media = {
     trailer: {
       mp4: await publish(dir, 'trailer-1280.mp4', token, known),
-      mp4Phone: await publish(dir, 'trailer-720.mp4', token, known),
+      // the phone copy: 1080p since MS24 (a 720 px copy upscaled ~2x on a 3x phone); an older folder's 720 still works
+      mp4Phone: await publish(dir, existsSync(join(dir, 'trailer-1080.mp4')) ? 'trailer-1080.mp4' : 'trailer-720.mp4', token, known),
       poster: POSTER,
     },
     // start from the loops the manifest already names: the folder only replaces the shards it holds (the page looks
