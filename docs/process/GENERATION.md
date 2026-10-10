@@ -59,3 +59,15 @@ A standalone browser-backed generator declares `browser: true` even when it need
 Its Chromium executable digest participates in the key; it uses exact bytes for both cache and committed comparisons.
 Run these jobs through `scripts/browser-lane.sh` too. This differs from `capture`, which fences a page build and has the
 explicit top-level capture-provenance comparison described above.
+
+Shared root tooling declares `shard: null`, with its real `scripts/bake-*.mjs` entry; it never receives a synthetic shard
+identity. Discovery also reports undeclared root bakers. The explicit helper list excludes only the loader, check runner,
+input-hash reader and output writer. Shared producers use the same cache, isolation, hash verification and failure rules.
+Those that query the complete level registry explicitly preload `scripts/generation-registry.mjs` after the TypeScript
+loader. Its generated manifest list and all source manifests belong to the input closure.
+
+A shared browser producer with raw binary/image outputs declares `browser: true, preview: true`, and places
+`<preview-url>` in its command argument at the producer's actual URL position. Pass `--url` and `--revision` to the runner;
+it substitutes the URL, binds the preview build and Chromium digest in the key, and checks the build again after baking.
+This grants no provenance exclusion: every output byte must match. Only `capture: true` has the existing, narrowly
+defined physics/spots JSON provenance comparison. All browser producer commands run through `scripts/browser-lane.sh`.

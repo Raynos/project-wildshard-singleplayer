@@ -5,6 +5,8 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync,
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths are checked against the generator's isolated root.
 import { dirname, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- A local scalar preview fixture tests the build fence without a game browser.
+import { createServer } from 'node:http';
 import { discoverGeneration, generationInputs, generateShardJob, reportGeneration, type ShardGenerationJob } from '../scripts/generate.mjs';
 
 const roots:string[]=[];
@@ -42,6 +44,40 @@ describe('G292 shard generation entry',()=>{
     const {root,job}=fixture();writeFileSync(resolve(root,job.outputs[0] ?? ''),'old bytes');
     await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache')})).rejects.toThrow('Committed generated output differs');
     expect(readFileSync(resolve(root,job.outputs[0] ?? ''),'utf8')).toBe('old bytes');
+  });
+  it('discovers and runs explicitly shared producers without inventing a shard or accepting helpers',async()=>{
+    const {root,job}=fixture(),entry='scripts/bake-shared.mjs';
+    writeFileSync(resolve(root,entry),`import {readFileSync,writeFileSync} from 'node:fs';writeFileSync('public/out/value.bin',readFileSync('src/shards/sample/data/value.txt'));`);
+    const shared={...job,id:'shared',shard:null,entry,command:[entry],inputRoots:[...job.inputRoots,entry]};
+    writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[shared]}));
+    writeFileSync(resolve(root,'scripts/bake-next.mjs'),'// undeclared producer');
+    expect(discoverGeneration(root).unregistered).toContain('scripts/bake-next.mjs');
+    expect(discoverGeneration(root).unregistered).not.toContain('scripts/bake-input-hashes.mjs');
+    const cold=await generateShardJob(root,shared,{cacheDir:resolve(root,'cache')});
+    const warm=await generateShardJob(root,shared,{cacheDir:resolve(root,'cache')});
+    const forced=await generateShardJob(root,shared,{cacheDir:resolve(root,'cache'),forceCompare:true});
+    expect(warm.hit).toBe(true);expect(forced.hashes).toEqual(cold.hashes);
+    await expect(generateShardJob(root,{...shared,entry:'scripts/bake-input-hashes.mjs',command:['scripts/bake-input-hashes.mjs']},{cacheDir:resolve(root,'cache')})).rejects.toThrow('Generator must be owned');
+    await expect(generateShardJob(root,{...shared,entry:job.entry,command:[job.entry]},{cacheDir:resolve(root,'cache')})).rejects.toThrow('Generator must be owned');
+  });
+  it('fences shared browser commands without exempting their raw output bytes',async()=>{
+    const {root,job}=fixture(),revision='1'.repeat(40);
+    const server=createServer((request,response)=>{
+      if(request.url==='/version.json') response.end(JSON.stringify({build:`${revision.slice(0,7)}-fixture`}));
+      else response.end('bit-exact');
+    });
+    await new Promise<void>(_resolve=>{server.listen(0,'127.0.0.1',_resolve);});
+    try {
+      const address=server.address();if(address===null || typeof address==='string') throw new Error('Missing fixture port');
+      const url=`http://127.0.0.1:${address.port}/`;
+      writeFileSync(resolve(root,job.entry),`import {writeFileSync} from 'node:fs';const url=process.argv.find(arg=>arg.startsWith('--url=')).slice(6);writeFileSync('public/out/value.bin',await (await fetch(new URL('input',url))).text());`);
+      const previewJob={...job,browser:true,preview:true,command:[job.entry,'--url=<preview-url>']};
+      const result=await generateShardJob(root,previewJob,{cacheDir:resolve(root,'cache'),preview:{url,revision}});
+      expect(result.hit).toBe(false);
+      writeFileSync(resolve(root,job.outputs[0] ?? ''),'changed');
+      await expect(generateShardJob(root,previewJob,{cacheDir:resolve(root,'cache'),preview:{url,revision}})).rejects.toThrow('Committed generated output differs');
+      await expect(generateShardJob(root,{...previewJob,preview:false},{cacheDir:resolve(root,'cache')})).rejects.toThrow('Undeclared preview command');
+    } finally {await new Promise<void>((_resolve,reject)=>{server.close(error=>{if(error===undefined)_resolve();else reject(error);});});}
   });
   it('does not mistake copied schema seeds for fresh generated outputs',async()=>{
     const {root,job}=fixture();
