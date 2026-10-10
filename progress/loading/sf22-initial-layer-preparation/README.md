@@ -21,7 +21,29 @@ zero, unchanged clocks/cascade cadence, and the real grid frame's road weights.
 Touched typed lint and strict checking against committed public package exports
 pass. No new import edge, collider, map or witness payload change.
 
-Browser re-measurement remains open. The source fix is not a measured boot-time
-pass. Signal's 54.3 ms native upload is now before entry but still exceeds the
-50 ms loading-task budget; audio and fingerprint owners remain open too. See
-the material-readiness receipt for the preceding run and its raw evidence hash.
+The matched diagnostic on f39297f33 reduced the first-live task from 394 to
+69 ms. It is still not a loading-budget pass: an earlier 175 ms preparation task
+contains a 162.5 ms native `getProgramInfoLog` call; the harness fingerprint costs
+134 ms and audio construction 111 ms. Signal's book upload was 40.7 ms before
+activation in this run; the preceding 54.3 ms upload remains an open budget gap.
+
+Five of six shaped-network routes completed. The Signal → Driftwood return
+refused with graphics error 1281 after a compressed upload, then its cleanup
+threw “Regional construction requires a live resident and owner”. Nalati later
+reported the same graphics message. 37808 is the ASTC 4×4 format, not a texture
+identity: these messages do not establish one shared texture, nor that initTexture
+originated the GL error (getError was only checked afterward). Resource attribution
+and a run without the extra upload/program-query diagnostics remain open.
+
+The cleanup failure is independently reproduced and fixed: construction restoration
+now belongs to the runtime child, which can retire while its resident parent lives.
+A real factory regression fails before the fix with an aggregate cleanup error,
+then preserves the exact original upload refusal and permits a subsequent honest
+retry. Four focused files / 42 tests, touched typed lint, and strict checking of
+committed HEAD plus the two owned hunks pass. No import, collider or witness change.
+
+This attempt is a completed FAIL, not a six-route pass. Route median machine loads
+were 19.72, 12.76, 9.58, 8.46 and 6.77 for the five completed routes; the first is
+under load (>15). Evidence SHA-256:
+`79685f1385a84e8cd1017b5bb862e3a9da9dd8193ab0c80b516a7009d8b978ef`.
+Raw evidence stays in the lane scratchpad, not git.

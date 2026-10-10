@@ -227,7 +227,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           return { ...installation, context,
             ...(prepareFrame === undefined ? {} : { prepareConstruction: () => {
               preparing = true;
-              const leave = bindConstructionEnvironment(scope, () => {
+              // The resident can outlive a failed runtime child. Never restore that child's frame during its teardown.
+              const leave = bindConstructionEnvironment(owner, () => {
                 const frameScope = owner.child('runtime.construction');
                 try {
                   prepareFrame(frameScope); app.bindPlayerServices(pageScope, frameScope); view.prepare(frameScope);

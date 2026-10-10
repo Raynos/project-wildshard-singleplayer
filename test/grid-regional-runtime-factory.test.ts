@@ -81,7 +81,9 @@ function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
       } });
       return { ...world, physics: host.physics, registry: view.registry, game: regionalGame };
     },
-    prepare: construction => { const prior = app.levelScope; app.levelScope = prepared.scope;
+    prepare: construction => {
+      if (prepared.scope.disposed || construction.disposed) throw new Error('Regional construction requires a live resident and owner');
+      const prior = app.levelScope; app.levelScope = prepared.scope;
       construction.onDispose(() => { app.levelScope = prior; }); },
     enter: entry => { calls.push('binding.enter'); const prior = app.levelScope; app.levelScope = prepared.scope;
       entry.onDispose(() => { app.levelScope = prior; calls.push('binding.leave'); }); },
@@ -376,4 +378,31 @@ it('keeps entered gameplay and checkpoint unready until the real page warm-up fi
     session.leave(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
     expect(warm).toHaveBeenCalledOnce(); // Retained programs are reused without replaying the trusted hooks.
   } finally { release(); prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+});
+
+it('retires failed road construction with its runtime owner while keeping the resident alive and the refusal exact', async () => {
+  const f = fixture(), prepared = await f.regional(f.request), failure = new Error('Forced compressed upload refusal');
+  vi.spyOn(f.world.game, 'warmEnteredFrame').mockRejectedValue(failure);
+  let cleanup = 0;
+  class Runtime extends ShardPlugin {
+    override world(ctx: ShardContext): void {
+      // Resource disposal callbacks can re-enter the page while the runtime child retires.
+      // The still-live resident must not re-install that child's construction frame afterward.
+      ctx.scope.onDispose(() => { withOwner(f.scope, () => { cleanup++; }); });
+    }
+    override kit(ctx: ShardContext): void { emptyKit(ctx); }
+  }
+  const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+    { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+  ], f.scope);
+  try {
+    await expect(session.installAhead('pine-hollow')).rejects.toBe(failure);
+    expect(cleanup).toBe(1); expect(prepared.resident.scope.disposed).toBe(false);
+    expect(session.state()).toEqual({ instance: null, ready: false });
+    expect(f.app.registry).toBe(f.homeRegistry); expect(f.app.levelScope).toBe(f.scope);
+    expect(() => withOwner(f.scope, noop)).not.toThrow();
+    // The slot is free for the next honest admission, not left attached to a retired runtime child.
+    await expect(session.installAhead('pine-hollow')).rejects.toBe(failure);
+    expect(cleanup).toBe(2);
+  } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
 });
