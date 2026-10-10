@@ -14,8 +14,8 @@ import { SUNSCAR_DUNES } from '../src/shards/sunscar-dunes/manifest';
 import { NINE_DRAGON_STACK } from '../src/shards/nine-dragon-stack/manifest';
 
 const cases = [
-  { Plugin: SkyPlugin, manifest: SKY_REACH, publicEntry: 'legacy' },
-  // G326: a public card flips to its shardfile entry once boot, a walk and parity with legacy pass (op-ship38)
+  // G326: a public card flips to its shardfile entry once boot, a walk and parity with legacy pass (op-ship38, op-flip39)
+  { Plugin: SkyPlugin, manifest: SKY_REACH, publicEntry: 'shardfile' },
   { Plugin: SignalPlugin, manifest: SUNSCAR_DUNES, publicEntry: 'shardfile' },
   { Plugin: NinePlugin, manifest: NINE_DRAGON_STACK, publicEntry: 'shardfile' },
 ] as const;
