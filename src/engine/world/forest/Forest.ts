@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { ColliderDesc } from '../registry';
 import { CHUNK_HALF, CHUNK_SIZE } from '../../core/config';
-import { placeForest, TreeGrid, treeGridOf, type TreeInstance } from './placement';
+import { placeForestSteps, TreeGrid, treeGridOf, type TreeInstance } from './placement';
 import { type TreeFactory, forestFade } from '../TreeFactory';
 import { updateWind } from '../wind';
 import type { SkyRig as Sky } from '../skyRig';
@@ -106,19 +106,34 @@ export class Forest {
    * forest spec; everything after placement (bands, canopy map, colliders, the model's culler) is the same.
    */
   build(o: { readonly drawnBy?: 'self' | 'model'; readonly instances?: readonly TreeInstance[] } = {}): this {
+    const steps = this.buildSteps(o);
+    while (steps.next().done !== true) { /* every tree now */ }
+    return this;
+  }
+
+  /** `build`, pausing whenever `due` says the task is over budget (SF67: the placement was one ~200 ms task at 4x CPU on
+   *  Nalati); the same trees from the same stream */
+  async buildSliced(o: { readonly drawnBy?: 'self' | 'model'; readonly instances?: readonly TreeInstance[] }, due: () => Promise<void> | null): Promise<this> {
+    const steps = this.buildSteps(o);
+    while (steps.next().done !== true) { const pause = due(); if (pause !== null) await pause; }
+    return this;
+  }
+
+  private *buildSteps(o: { readonly drawnBy?: 'self' | 'model'; readonly instances?: readonly TreeInstance[] }): Generator<void, void> {
     this.drawnBy = o.drawnBy ?? 'self';
-    if (o.instances === undefined) this.place();
+    if (o.instances === undefined) { const placed = yield* placeForestSteps(this.factory.variants); this.trees = placed.trees; this.grid = placed.grid; }
     else { this.trees = [...o.instances]; this.grid = treeGridOf(this.trees); }
+    yield;
     const F = this.factory.fade;
     F.cards.value.set(this.farDist - FAR_FADE, this.farDist, 1); F.trunk.value.set(this.farDist - FAR_FADE, this.farDist, 1);
     F.far.value.set(this.farDist - FAR_FADE, this.farDist, -1); F.twigs.value.set(this.twigDist - TWIG_FADE, this.twigDist, 1);
     this.canopyMap = this.buildCanopyMap();
+    yield;
     this.sky.setupMaterial(this.factory.barkMaterial);
     this.sky.setupMaterial(this.factory.needleMaterial);
     this.sky.setupMaterial(this.factory.twigMaterial);
     this.sky.setupMaterial(this.factory.farMaterial);
     if (this.drawnBy === 'self') this.drawItself();
-    return this;
   }
 
   /** who draws the trees: `'model'` until a shard that said so hands them to its model, or draws them itself after all */
@@ -213,11 +228,6 @@ export class Forest {
   }
 
   /** where the trees go: src/engine/world/forest/placement.ts (pure, shared with the build's placement bake) */
-  private place() {
-    const { trees, grid } = placeForest(this.factory.variants);
-    this.trees = trees; this.grid = grid;
-  }
-
   private buildCanopyMap() {
     const N = 256, data = new Float32Array(N * N);
     const toCell = (v: number) => ((v + CHUNK_HALF) / CHUNK_SIZE) * N;

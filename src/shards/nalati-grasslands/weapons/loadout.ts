@@ -50,6 +50,21 @@ export function buildNalatiLoadout(world: NalatiWorld, targets: Targets, allowUn
   const sabre = new Sabre(world, targets, { allowUnlocked });
   const spear = new Spear(world, targets, { allowUnlocked });
   const bow = new Bow(world, targets, { row: BOW, profile: NALATI_BOW, allowUnlocked });
+  return loadoutOf(world, targets, allowUnlocked, sabre, spear, bow);
+}
+
+/** `buildNalatiLoadout`, a task apart per weapon (SF67: the three viewmodels and the arms were one ~300 ms task at 4x CPU);
+ *  the same weapons built in the same order */
+export async function buildNalatiLoadoutSliced(world: NalatiWorld, targets: Targets, allowUnlocked: boolean, yieldTask: () => Promise<void>): Promise<NalatiLoadout> {
+  const sabre = new Sabre(world, targets, { allowUnlocked });
+  await yieldTask();
+  const spear = new Spear(world, targets, { allowUnlocked });
+  await yieldTask();
+  const bow = new Bow(world, targets, { row: BOW, profile: NALATI_BOW, allowUnlocked });
+  return loadoutOf(world, targets, allowUnlocked, sabre, spear, bow);
+}
+
+function loadoutOf(world: NalatiWorld, targets: Targets, allowUnlocked: boolean, sabre: Sabre, spear: Spear, bow: Bow): NalatiLoadout {
   const kit: NalatiLoadout = {
     base: sabre, bow, sabre, spear,
     extras: [bow, spear],

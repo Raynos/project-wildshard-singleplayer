@@ -31,7 +31,7 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 import { NalatiWater } from '../water';
 import { buildOutcropsSliced } from '../outcrops';
-import { buildCragRock } from '../cragRock';
+import { buildCragRockSliced } from '../cragRock';
 import { NalatiPOIs } from '../world/index';
 import { NalatiDressing } from '../world/dressing/index';
 import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
@@ -90,6 +90,8 @@ export interface Nalati {
   /** the creatures (creatures agent, B4; src/engine/entities/Wildlife.ts): wolf packs, the horse herd + stallion, the sheep flock +
    *  its dog, marmots, the camp's saddled horses. main.ts calls `attachAnimals(animals)` right after its animals step. */
   attachAnimals: (animals: AnimalManager) => Wildlife;
+  /** `attachAnimals`, a task apart per wildlife group and before the night enemies' models (SF67: the shard's boot) */
+  attachAnimalsSliced: (animals: AnimalManager, yieldTask: () => Promise<void>) => Promise<Wildlife>;
   wildlife: Wildlife | null;
   /** main.ts once the kit + HUD exist: knock-downs, howl / stampede toasts */
   bindPlay: (play: NalatiPlay) => void;
@@ -155,13 +157,15 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `its registry piece`) —
   // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
   const rockCtx = modelContext(sky);
+  await macrotask(); // the merged mesh and the first hulls a task apart (SF67)
   const rockPlaced = [...await outcrops.register(plugin.app.registry, rockCtx, macrotask)];
   await slice(++completed, total, 'Outcrops');
   groups['outcrops'] = outcrops.mesh;
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
-  const crags = buildCragRock(sky);
+  const crags = await buildCragRockSliced(sky, slicer(30).due); // SF67: ~30 ms a task, the same pieces
   game.scene.add(crags.group);
+  await macrotask(); // the quadrant meshes and the first hulls a task apart (SF67)
   rockPlaced.push(...await crags.register(plugin.app.registry, rockCtx, macrotask));   // the crag rock model (fins, ribs, towers), drawnInto its quadrants
   await slice(++completed, total, 'Crag rocks');
   groups['crags'] = crags.group;
@@ -307,22 +311,36 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
   let devMode: string | null = null, devT = 0, devNext: (() => void) | null | undefined;
   let painter: NalatiSkinPainter | null = null, syncT = 0;
+  const prepareWildlife = (animals: AnimalManager): Wildlife => {
+    attachedAnimals = animals;
+    plugin.scope.onDispose(bindFallbackGroupHost(APP_GROUP_HOST)); // the manager-only fallback groups' decision stream and director
+    animals.wetAt = nalatiWetAt;
+    animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
+    declaredCrowds = crowdVariant ? createNativeFlocks(sky, ctx.chunk.seed) : null;
+    return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed,
+      ...(declaredCrowds !== null ? { flock: declaredCrowds.factory } : {}) });
+  };
+  const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {
+    wildlife = w;
+    night.attach(animals);
+    weather.bind({ scare: (x, z) => { w.scare(x, z, 60); } }); // a lightning strike breaks a pack / stampedes a herd within 60 m
+    return w;
+  };
   const nalati: Nalati = {
     persistence, water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
     skins: new NalatiSkinLocker(persistence === undefined ? undefined : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
     attachAnimals(animals) {
-      attachedAnimals = animals;
-      plugin.scope.onDispose(bindFallbackGroupHost(APP_GROUP_HOST)); // the manager-only fallback groups' decision stream and director
-      animals.wetAt = nalatiWetAt;
-      animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
-      declaredCrowds = crowdVariant ? createNativeFlocks(sky, ctx.chunk.seed) : null;
-      const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed,
-        ...(declaredCrowds !== null ? { flock: declaredCrowds.factory } : {}) });
+      const w = prepareWildlife(animals);
       w.build();
-      wildlife = w; nalati.wildlife = w;
-      night.attach(animals);
-      weather.bind({ scare: (x, z) => { w.scare(x, z, 60); } }); // a lightning strike breaks a pack / stampedes a herd within 60 m
-      return w;
+      nalati.wildlife = w;
+      return finishWildlife(animals, w);
+    },
+    async attachAnimalsSliced(animals, yieldTask) {
+      const w = prepareWildlife(animals);
+      await w.buildSliced(yieldTask);
+      await yieldTask();
+      nalati.wildlife = w;
+      return finishWildlife(animals, w);
     },
     bindPlay(p) {
       play = p;

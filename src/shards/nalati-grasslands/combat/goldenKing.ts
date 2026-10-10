@@ -676,7 +676,8 @@ export class KurganBoss {
   /** `build`, the hidden static interior a few tasks later (SF67); the same dungeon */
   async buildSliced(yieldTask: () => Promise<void>): Promise<this> {
     const lazy = memorySaverOn();
-    this.dungeon.build(true);
+    await this.dungeon.buildSliced(true, yieldTask); // its movables a piece a task, then the sand, FX and colliders
+    await yieldTask();
     this.attach();
     if (!lazy) { await yieldTask(); await this.dungeon.buildStaticSliced(yieldTask); }
     return this;

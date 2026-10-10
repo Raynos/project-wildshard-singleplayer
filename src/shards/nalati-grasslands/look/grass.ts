@@ -458,11 +458,47 @@ let heightTex: THREE.DataTexture | null = null;
 export function terrainHeightTexture(): THREE.DataTexture {
   if (heightTex) return heightTex;
   const hd = new Uint16Array(HN * HN);
-  for (let j = 0; j < HN; j++) for (let i = 0; i < HN; i++) hd[j * HN + i] = THREE.DataUtils.toHalfFloat(heightAt(H_ORG + i + 0.5, H_ORG + j + 0.5));
+  for (let j = 0; j < HN; j++) heightRow(hd, j);
+  return heightTexture(hd);
+}
+function heightRow(hd: Uint16Array, j: number): void { for (let i = 0; i < HN; i++) hd[j * HN + i] = THREE.DataUtils.toHalfFloat(heightAt(H_ORG + i + 0.5, H_ORG + j + 0.5)); }
+/** the prepared rows as the cached texture, unless a carpet built it meanwhile */
+function adoptHeightTexture(hd: Uint16Array): THREE.DataTexture { return heightTex ?? heightTexture(hd); }
+function heightTexture(hd: Uint16Array): THREE.DataTexture {
   const t = new THREE.DataTexture(hd, HN, HN, THREE.RedFormat, THREE.HalfFloatType);
   t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
   heightTex = cacheUntilDisposed(t, () => { if (heightTex === t) heightTex = null; });
   return t;
+}
+
+/** the field lattice's two maps (height, tone, bloom, species; the painted ground colour), one lattice row at a time */
+function fieldRow(fd: Uint8Array, gd: Uint8Array, j: number, rgb: [number, number, number]): void {
+  for (let i = 0; i < LN; i++) {
+    const x = i * LAT - CHUNK_HALF, z = j * LAT - CHUNK_HALF, k = (j * LN + i) * 4;
+    // the field's own height (no trail: tMask carries the roads at 1 m)
+    fd[k] = Math.round(Math.min(1, grassBaseHeightAt(x, z, Infinity) / 1.5) * 255);
+    fd[k + 1] = Math.round(Math.min(1, Math.max(0, grassToneAt(x, z))) * 255);
+    fd[k + 2] = Math.round(Math.min(1, Math.max(0, grassBloomAt(x, z))) * 255);
+    fd[k + 3] = Math.round(Math.min(1, Math.max(0, flowerSpeciesAt(x, z))) * 255);
+    groundColorAt(x, z, rgb);
+    gd[k] = Math.round(Math.min(1, rgb[0]) * 255); gd[k + 1] = Math.round(Math.min(1, rgb[1]) * 255); gd[k + 2] = Math.round(Math.min(1, rgb[2]) * 255); gd[k + 3] = 255;
+  }
+}
+let preparedField: { fd: Uint8Array; gd: Uint8Array } | null = null;
+/**
+ * SF67: the height texture and the field lattice the next `GrassV2` reads, computed ahead a slice at a time (they were
+ * most of one ~230 ms task at 4x CPU inside the grass step). The same bytes as the constructor computes; the next
+ * carpet takes the prepared field (once), the height texture stays cached as before.
+ */
+export async function prepareGrassV2(yieldTask: () => Promise<void>): Promise<void> {
+  if (!heightTex) {
+    const hd = new Uint16Array(HN * HN);
+    for (let j = 0; j < HN; j++) { heightRow(hd, j); if ((j & 63) === 63) await yieldTask(); }
+    adoptHeightTexture(hd);
+  }
+  const fd = new Uint8Array(LN * LN * 4), gd = new Uint8Array(LN * LN * 4), rgb: [number, number, number] = [0, 0, 0];
+  for (let j = 0; j < LN; j++) { fieldRow(fd, gd, j, rgb); if ((j & 31) === 31) await yieldTask(); }
+  preparedField = { fd, gd };
 }
 
 const instances = new Set<GrassV2>();
@@ -487,19 +523,16 @@ export class GrassV2 {
   constructor(private readonly sky: Sky, private readonly forest: Forest) {
     instances.add(this);
     const tHeight = terrainHeightTexture();
-    // the field: GrassField's own 4 m lattice (height, tone, bloom, species) and the painted ground colour
-    const fd = new Uint8Array(LN * LN * 4), gd = new Uint8Array(LN * LN * 4);
-    const rgb: [number, number, number] = [0, 0, 0];
-    for (let j = 0; j < LN; j++) for (let i = 0; i < LN; i++) {
-      const x = i * LAT - CHUNK_HALF, z = j * LAT - CHUNK_HALF, k = (j * LN + i) * 4;
-      // the field's own height (no trail: tMask carries the roads at 1 m)
-      fd[k] = Math.round(Math.min(1, grassBaseHeightAt(x, z, Infinity) / 1.5) * 255);
-      fd[k + 1] = Math.round(Math.min(1, Math.max(0, grassToneAt(x, z))) * 255);
-      fd[k + 2] = Math.round(Math.min(1, Math.max(0, grassBloomAt(x, z))) * 255);
-      fd[k + 3] = Math.round(Math.min(1, Math.max(0, flowerSpeciesAt(x, z))) * 255);
-      groundColorAt(x, z, rgb);
-      gd[k] = Math.round(Math.min(1, rgb[0]) * 255); gd[k + 1] = Math.round(Math.min(1, rgb[1]) * 255); gd[k + 2] = Math.round(Math.min(1, rgb[2]) * 255); gd[k + 3] = 255;
+    // the field: GrassField's own 4 m lattice (height, tone, bloom, species) and the painted ground colour — prepared
+    // ahead a slice at a time by the shard's boot (`prepareGrassV2`), else now
+    let field = preparedField;
+    preparedField = null;
+    if (field === null) {
+      field = { fd: new Uint8Array(LN * LN * 4), gd: new Uint8Array(LN * LN * 4) };
+      const rgb: [number, number, number] = [0, 0, 0];
+      for (let j = 0; j < LN; j++) fieldRow(field.fd, field.gd, j, rgb);
     }
+    const { fd, gd } = field;
     const tField = new THREE.DataTexture(fd, LN, LN, THREE.RGBAFormat); tField.magFilter = tField.minFilter = THREE.LinearFilter; tField.needsUpdate = true;
     const tGround = new THREE.DataTexture(gd, LN, LN, THREE.RGBAFormat); tGround.magFilter = tGround.minFilter = THREE.LinearFilter; tGround.needsUpdate = true;
     this.maskData.fill(255);
@@ -601,6 +634,8 @@ export class GrassV2 {
    */
   private async bakeMask(): Promise<void> {
     const run = ++this.baking;
+    await macrotask(); // not inside the caller's task (SF67: the first rows were the grass step's)
+    if (run !== this.baking) return;
     const d = new Uint8Array(HN * HN * 4);
     for (let j = 0; j < HN; j++) {
       const z = H_ORG + j + 0.5;

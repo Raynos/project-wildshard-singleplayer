@@ -38,6 +38,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
     return a;
   });
   boot.runtime.hooks.animalsReady?.(animals);
+  await boot.runtime.hooks.animalsBuilt?.(animals);
   // the shard's models, for Explore World's catalog and tap-to-select (src/engine/explore/registry.ts: a shard registers what it built);
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
   // the core fields' copies drawn as the shard's models (ShardManifest.fieldModels, E349: Pine Hollow's trees and forest-floor kinds, E315 M2)

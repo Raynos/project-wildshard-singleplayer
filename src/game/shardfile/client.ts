@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
+import { macrotask } from '@wildshard/engine/boot/plan';
 import { Object3D, Vector3 } from 'three';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
@@ -183,12 +185,24 @@ export class ShardfileClient {
     };
   }
 
-  play(ctx: ShardContext): void {
+  /** SF67: the installation a part a task (the page's play stage, the views, the sim and the restore were one 170-270 ms
+   *  task at 4x CPU). Each part runs under the owner the call began with, and the sim does not step until the last part. */
+  async play(ctx: ShardContext): Promise<void> {
+    const own = enteredOwner(), steps = this.playSteps(ctx);
+    for (;;) {
+      if ((own === null ? steps.next() : withOwner(own, () => steps.next())).done === true) return;
+      await macrotask();
+      if (ctx.scope.disposed) throw new Error('Shardfile left during play installation');
+    }
+  }
+
+  private *playSteps(ctx: ShardContext): Generator<void, void> {
     if (this.emptyTrustedData) return;
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, items = this.items, tiles = this.worldTiles;
     const health = ctx.app.player;
     if (runtime === undefined || world === null || world === undefined || play === null || play === undefined || items === undefined || tiles === undefined || health === null) throw new Error('Shardfile requires the normal play stage');
     const source = this.source, identity = { instance: this.bindings.instance, shard: source.identity.slug, revision: source.identity.revision };
+    yield;
     const equipmentHost = ctx.app.equipmentHost;
     if (equipmentHost === null) throw new Error('Declared items require the normal equipment view host');
     for (const item of [items.primary, items.secondary, ...items.extras, ...items.tools]) {
@@ -234,8 +248,9 @@ export class ShardfileClient {
     const ui = mountDeclaredUi(source.ui, { hud: ctx.hud, system: ctx.system, scope: ctx.scope, bag: ctx.bag,
       read: (name) => { const scope = source.state.shared.some((row) => row.name === name) ? 'shared' : 'player', field = source.state[scope].find((row) => row.name === name); if (field === undefined) throw new Error('Missing declared counter field'); return read(scope, field.id); },
     });
+    yield;
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
-    let simulationActive = true;
+    let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
     const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
@@ -245,7 +260,7 @@ export class ShardfileClient {
       scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
-      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
+      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive && !installing, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
       quest: { fact: (name, entity) => { fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
         if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }
         const host = this.sim?.host; if (host === undefined) throw new Error('Missing local coin host');
@@ -256,6 +271,7 @@ export class ShardfileClient {
       }),
     });
     this.sim = sim;
+    yield;
     // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
     this.presentation?.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
       const value = sim.lane?.world.view(health.id)[scope][name]; return typeof value === 'number' ? value : undefined;
@@ -302,6 +318,7 @@ export class ShardfileClient {
       const lane = sim.lane, player = sim.actors.get(health.id);
       if (lane !== undefined && player !== undefined) projectItemFields(source, items.runtimes, lane, player);
     });
+    yield;
     const continuation = instanceSave(ctx.app.saves, clientStateSave, { id: identity.instance, shard: identity.shard });
     const prior = continuation.read();
     if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) throw new Error('Saved progress requires an admitted checkpoint migration');
@@ -333,5 +350,6 @@ export class ShardfileClient {
       ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
       checkpoint: () => !ctx.scope.disposed && checkpoint(), suppressCheckpoint: saver.suppress, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
     });
+    installing = false;
   }
 }

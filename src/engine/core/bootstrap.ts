@@ -15,7 +15,7 @@ import { Player } from '../player/Player';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
-import type { StepRunner } from '../boot/plan';
+import { slicer, type StepRunner } from '../boot/plan';
 import { needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
@@ -81,8 +81,9 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
     return t;
   });
   const factory = await step('cards', async () => typeof def.trees?.factory === 'function' ? (await def.trees.factory())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty());
-  const forest = await step('forest', (p) => {
-    const f = new Forest(factory, sky).build({ drawnBy: def.trees?.drawnBy ?? 'self' }); // 'model': the shard's tree model draws them (E315)
+  const forest = await step('forest', async (p) => {
+    // 'model': the shard's tree model draws them (E315); SF67: the placement ~30 ms a task
+    const f = await new Forest(factory, sky).buildSliced({ drawnBy: def.trees?.drawnBy ?? 'self' }, slicer(30).due);
     if (f.trees.length === 0) f.group.visible = false; // an ocean shard: the empty needle / twig batches still cost 24k tris + shadow draws on the phone
     else game.scene.add(f.group);
     terrain.applyCanopy(f.canopyMap);

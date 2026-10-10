@@ -17,6 +17,7 @@
  * POI clearings, the glacier and the ledges' spots.
  *
  *   const crags = buildCragRock(sky);   scene.add(crags.group);   await crags.register(registry, ctx, yieldTask);
+ *   (the boot: `await buildCragRockSliced(sky, slicer(30).due)`, the same ring a slice at a time — SF67)
  *   (NALATI-MERGE P1: every fin, rib and tower as the hull of what it draws — the fins and ribs had no collision before)
  *
  * E306 / E315 second pass: the pieces are the crag rock model (src/shards/nalati-grasslands/models/cragRock.ts: the
@@ -52,6 +53,21 @@ export interface CragRock {
 const RING = 7; // the crest test's radius (m)
 
 export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
+  const steps = cragRockSteps(sky, seed);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildCragRock`, a task apart whenever `due` says the task is over budget (SF67: one ~180 ms task at 4x CPU); the same
+ *  pieces from the same rng stream in the same order */
+export async function buildCragRockSliced(sky: Sky, due: () => Promise<void> | null, seed = 0xc4a9): Promise<CragRock> {
+  const steps = cragRockSteps(sky, seed);
+  for (;;) {
+    const step = steps.next(); if (step.done === true) return step.value;
+    const pause = due(); if (pause !== null) await pause;
+  }
+}
+
+function* cragRockSteps(sky: Sky, seed: number): Generator<void, CragRock> {
   const rng = new Rng(seed), jitter = new Noise2D(seed + 3);
   const colliders: Collider[] = [];
   const descs: ColliderDesc[] = [];
@@ -97,59 +113,62 @@ export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
 
   const phone = isPhoneTier();
   const step = 4.5;
-  for (let gx = -246; gx <= 246; gx += step) for (let gz = -246; gz <= 60; gz += step) {
-    const x = gx + rng.range(-step * 0.45, step * 0.45), z = gz + rng.range(-step * 0.45, step * 0.45);
-    const roll = rng.next();
-    const zs = zoneAt(x, z)[2];
-    if (zs < 0.55) continue;
-    const h = heightAt(x, z);
-    if (h < 6) continue;
-    // the local shape: the mean of a ring round the point (a crest stands above it), the gradient
-    let sum = 0, bestPair = -Infinity, ridgeYaw = 0;
-    const around: number[] = [];
-    for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; const v = heightAt(x + Math.cos(t) * RING, z + Math.sin(t) * RING); around.push(v); sum += v; }
-    for (let k = 0; k < 4; k++) { const pair = (around[k] ?? 0) + (around[k + 4] ?? 0); if (pair > bestPair) { bestPair = pair; ridgeYaw = -(k / 8) * Math.PI * 2; } }
-    const crest = h - sum / 8;
-    const gxh = heightAt(x + 1.5, z) - heightAt(x - 1.5, z), gzh = heightAt(x, z + 1.5) - heightAt(x, z - 1.5);
-    const grad = Math.hypot(gxh, gzh) / 3; // rise per metre
-    const downYaw = Math.atan2(-gxh, -gzh); // three.js yaw whose local +z points downhill … (sin, cos) of the fall line
-    const dens = 0.55 + 0.45 * smoothstep(-0.3, 0.4, jitter.fbm(x * 0.02, z * 0.02, 2));
-
-    const band = smoothstep(-0.1, 0.35, jitter.fbm(x * 0.017 + 9, z * 0.017 - 5, 3)); // where the cliff bands run
-
-    if (crest > 1.6 && h > 46 && roll < 0.2 * dens * (phone ? 0.75 : 1)) {
-      // ── a fin on the crest: a broad castellated tower, long axis along the ridge ──
-      const hh = rng.range(3, 6) + smoothstep(50, 110, h) * rng.range(2, 6) + Math.min(4, crest * 0.5);
-      const w = rng.range(7, 14), d = rng.range(4, 7.5);
-      if (blocked(x, z, w * 0.5) || !free(x, z, w * 0.42)) continue;
-      claim(x, z, w * 0.42);
-      const base = lowest(x, z, w * 0.4) - 1.2;
-      add('fin', finGeometry(rng, w, d, hh + (h - base)), x, base, z, ridgeYaw + rng.range(-0.2, 0.2), rng.range(-0.05, 0.05), rng.range(-0.06, 0.06));
-      count.fins++;
-    } else if (grad > 0.8 && roll < (0.15 + 0.85 * band) * 0.65 * (phone ? 0.75 : 1)) {
-      // ── a rib against a steep face (≥ ~39°), long axis down the fall line, its top just proud of the slope above: side
-      //    by side where a cliff band runs they make one vertical wall with clefts between the buttresses ──
-      const len = rng.range(5, 10), thick = rng.range(3.5, 6.5);
-      if (blocked(x, z, thick * 0.6) || !free(x, z, thick * 0.42)) continue;
-      claim(x, z, thick * 0.42);
-      const ux = x - Math.sin(downYaw) * len * 0.45, uz = z - Math.cos(downYaw) * len * 0.45;
-      const topY = heightAt(ux, uz) + rng.range(0.3, 1.8) + band * 1.2;
-      const base = lowest(x, z, len * 0.5) - 1.5;
-      if (topY - base < 4) continue;
-      // its top slants down the fall line with the face (a rib, not a flat-topped block), the downhill end still a
-      // sheer drop
-      add('rib', ribGeometry(rng, thick, len, topY - base, grad), x, base, z, downYaw + rng.range(-0.12, 0.12), 0, 0);
-      count.ribs++;
-    } else if (grad > 0.5 && grad <= 0.8 && h > 32 && roll > 0.95 - 0.04 * dens) {
-      // ── a broken tower on a steep shoulder ──
-      const sz = rng.range(4, 8);
-      if (blocked(x, z, sz * 0.6) || !free(x, z, sz * 0.6)) continue;
-      claim(x, z, sz * 0.6);
-      const base = lowest(x, z, sz * 0.5) - 1;
-      const top = h + rng.range(2.5, 6);
-      add('tower', towerGeometry(rng, sz, top - base), x, base, z, rng.range(0, Math.PI * 2), 0, 0);
-      if (grad < 0.7) colliders.push({ x, z, hw: sz * 0.4, hd: sz * 0.3, rot: 0, yBottom: base, yTop: top });
-      count.blocks++;
+  for (let gx = -246; gx <= 246; gx += step) {
+    yield; // a column of the grid at a time (the yield draws nothing)
+    for (let gz = -246; gz <= 60; gz += step) {
+      const x = gx + rng.range(-step * 0.45, step * 0.45), z = gz + rng.range(-step * 0.45, step * 0.45);
+      const roll = rng.next();
+      const zs = zoneAt(x, z)[2];
+      if (zs < 0.55) continue;
+      const h = heightAt(x, z);
+      if (h < 6) continue;
+      // the local shape: the mean of a ring round the point (a crest stands above it), the gradient
+      let sum = 0, bestPair = -Infinity, ridgeYaw = 0;
+      const around: number[] = [];
+      for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; const v = heightAt(x + Math.cos(t) * RING, z + Math.sin(t) * RING); around.push(v); sum += v; }
+      for (let k = 0; k < 4; k++) { const pair = (around[k] ?? 0) + (around[k + 4] ?? 0); if (pair > bestPair) { bestPair = pair; ridgeYaw = -(k / 8) * Math.PI * 2; } }
+      const crest = h - sum / 8;
+      const gxh = heightAt(x + 1.5, z) - heightAt(x - 1.5, z), gzh = heightAt(x, z + 1.5) - heightAt(x, z - 1.5);
+      const grad = Math.hypot(gxh, gzh) / 3; // rise per metre
+      const downYaw = Math.atan2(-gxh, -gzh); // three.js yaw whose local +z points downhill … (sin, cos) of the fall line
+      const dens = 0.55 + 0.45 * smoothstep(-0.3, 0.4, jitter.fbm(x * 0.02, z * 0.02, 2));
+  
+      const band = smoothstep(-0.1, 0.35, jitter.fbm(x * 0.017 + 9, z * 0.017 - 5, 3)); // where the cliff bands run
+  
+      if (crest > 1.6 && h > 46 && roll < 0.2 * dens * (phone ? 0.75 : 1)) {
+        // ── a fin on the crest: a broad castellated tower, long axis along the ridge ──
+        const hh = rng.range(3, 6) + smoothstep(50, 110, h) * rng.range(2, 6) + Math.min(4, crest * 0.5);
+        const w = rng.range(7, 14), d = rng.range(4, 7.5);
+        if (blocked(x, z, w * 0.5) || !free(x, z, w * 0.42)) continue;
+        claim(x, z, w * 0.42);
+        const base = lowest(x, z, w * 0.4) - 1.2;
+        add('fin', finGeometry(rng, w, d, hh + (h - base)), x, base, z, ridgeYaw + rng.range(-0.2, 0.2), rng.range(-0.05, 0.05), rng.range(-0.06, 0.06));
+        count.fins++;
+      } else if (grad > 0.8 && roll < (0.15 + 0.85 * band) * 0.65 * (phone ? 0.75 : 1)) {
+        // ── a rib against a steep face (≥ ~39°), long axis down the fall line, its top just proud of the slope above: side
+        //    by side where a cliff band runs they make one vertical wall with clefts between the buttresses ──
+        const len = rng.range(5, 10), thick = rng.range(3.5, 6.5);
+        if (blocked(x, z, thick * 0.6) || !free(x, z, thick * 0.42)) continue;
+        claim(x, z, thick * 0.42);
+        const ux = x - Math.sin(downYaw) * len * 0.45, uz = z - Math.cos(downYaw) * len * 0.45;
+        const topY = heightAt(ux, uz) + rng.range(0.3, 1.8) + band * 1.2;
+        const base = lowest(x, z, len * 0.5) - 1.5;
+        if (topY - base < 4) continue;
+        // its top slants down the fall line with the face (a rib, not a flat-topped block), the downhill end still a
+        // sheer drop
+        add('rib', ribGeometry(rng, thick, len, topY - base, grad), x, base, z, downYaw + rng.range(-0.12, 0.12), 0, 0);
+        count.ribs++;
+      } else if (grad > 0.5 && grad <= 0.8 && h > 32 && roll > 0.95 - 0.04 * dens) {
+        // ── a broken tower on a steep shoulder ──
+        const sz = rng.range(4, 8);
+        if (blocked(x, z, sz * 0.6) || !free(x, z, sz * 0.6)) continue;
+        claim(x, z, sz * 0.6);
+        const base = lowest(x, z, sz * 0.5) - 1;
+        const top = h + rng.range(2.5, 6);
+        add('tower', towerGeometry(rng, sz, top - base), x, base, z, rng.range(0, Math.PI * 2), 0, 0);
+        if (grad < 0.7) colliders.push({ x, z, hw: sz * 0.4, hd: sz * 0.3, rot: 0, yBottom: base, yTop: top });
+        count.blocks++;
+      }
     }
   }
 
@@ -157,8 +176,9 @@ export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
   group.name = 'nalati-crag-rock';
   const mat = cragMaterial(sky);
   let triangles = 0;
-  parts.forEach((list, i) => {
-    if (list.length === 0) return;
+  for (const [i, list] of parts.entries()) {
+    if (list.length === 0) continue;
+    yield;
     const geo = mergeGeometries(list, false);
     for (const g of list) g.dispose();
     geo.computeBoundingSphere(); geo.computeBoundingBox();
@@ -167,7 +187,7 @@ export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
     m.name = `nalati-crag-rock-${i}`;
     m.castShadow = true; m.receiveShadow = true;
     group.add(m);
-  });
+  }
   return {
     group, colliders, descs, count, triangles: Math.round(triangles),
     register: async (registry, ctx, yieldTask) => {

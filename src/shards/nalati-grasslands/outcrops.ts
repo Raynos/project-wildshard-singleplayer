@@ -195,7 +195,7 @@ function* outcropSteps(sky: Sky, seed: number): Generator<void, Outcrops> {
   }
   yield;
   const triangles = Math.round(kit.triangleCount);
-  const mesh = kit.mesh(sky, { ground: heightAt, ao: false, aoH: 0.8, aoMin: 0.6 });
+  const mesh = yield* kit.meshSteps(sky, { ground: heightAt, ao: false, aoH: 0.8, aoMin: 0.6 });
   mesh.name = 'nalati-outcrops';
   return {
     mesh, colliders, descs, count, triangles,

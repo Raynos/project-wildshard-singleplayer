@@ -76,14 +76,29 @@ export class Wildlife {
   }
 
   build(controllers = this.opts.controllers): this {
+    const steps = this.buildSteps(controllers);
+    while (steps.next().done !== true) { /* every group now */ }
+    return this;
+  }
+
+  /** `build`, a task apart per pack, herd, flock, the camp horses and the marmots (SF67: one ~370 ms task at 4x CPU); the
+   *  same spawns in the same order from the same streams */
+  async buildSliced(yieldTask: () => Promise<void>, controllers = this.opts.controllers): Promise<this> {
+    const steps = this.buildSteps(controllers);
+    while (steps.next().done !== true) await yieldTask();
+    return this;
+  }
+
+  private *buildSteps(controllers: WildlifeControllers | undefined): Generator<void, void> {
     this.controllers = controllers ?? this.declaredControllers();
     const layout = this.opts.layout ?? NALATI_WILDLIFE;
-    for (const p of layout.packs) this.spawnPack(p.x, p.z, p.variants);
-    for (const h of layout.herds) this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion);
-    for (const f of layout.flocks) this.spawnFlock(f.x, f.z, f.count, f.dog, f.range);
+    for (const p of layout.packs) { this.spawnPack(p.x, p.z, p.variants); yield; }
+    for (const h of layout.herds) { this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion); yield; }
+    for (const f of layout.flocks) { this.spawnFlock(f.x, f.z, f.count, f.dog, f.range); yield; }
     if (layout.campHorses === true) {
       // tied at the rail, saddled (the tamed horse B8 hands the player waits here too); no herd → they stand and idle
       HITCH_HORSE_SPOTS.forEach((h, i) => { const a = this.animals.spawn('horse', h.x, h.z, Math.atan2(h.face.x, h.face.z), i === 0 ? 'camp-bay' : 'camp-black'); this.campHorses.push(a); });
+      yield;
     }
     if (layout.marmots !== undefined) {
       const m = new Marmots(this.opts.sky, this.opts.seed).build(Marmots.scatter(this.opts.seed, layout.marmots.sites, layout.marmots.box));
@@ -96,7 +111,6 @@ export class Wildlife {
       };
       this.marmots = m;
     }
-    return this;
   }
 
   /** the shared placement (wildPlacement.ts) over this world: Wildlife's stream, the page's ground, the manager's bodies */

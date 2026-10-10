@@ -46,6 +46,9 @@ export interface ShardPlayHooks {
   updatePickups?: (dt: number, t: number) => void;
   disposeRifleDrop?: () => void;
   animalsReady?: (animals: AnimalManager) => void;
+  /** Awaited right after `animalsReady`: a shard whose creature build is longer than a task builds it here, a task apart per
+   *  group (SF67), before the boot moves on (the same spawns in the same order as a one-task build). */
+  animalsBuilt?: (animals: AnimalManager) => Promise<void>;
   worldUpdate?: (dt: number, t: number) => void;
   equipmentUpdate?: (dt: number) => void;
   audioUpdate?: (dt: number) => void;

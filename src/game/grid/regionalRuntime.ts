@@ -248,6 +248,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               if (left()) throw new Error('Regional runtime left while building creatures');
               for (const animal of regional.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               runtime.hooks.animalsReady?.(regional.animals);
+              await runtime.hooks.animalsBuilt?.(regional.animals);
+              if (left()) throw new Error('Regional runtime left while building creatures');
               app.effects?.registerDefinitions(app.levelRegistrations.list('effect'));
               const targets = authoredTargets(app.events, regional.animals, () => null);
               const build = runtime.buildEquipment;

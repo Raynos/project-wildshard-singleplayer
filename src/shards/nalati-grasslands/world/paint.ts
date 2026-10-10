@@ -177,12 +177,19 @@ export class PaintKit {
   }
 
   private static shade(parts: THREE.BufferGeometry[], o: FinishOpts): THREE.BufferGeometry {
+    const steps = PaintKit.shadeSteps(parts, o);
+    for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+  }
+
+  /** `shade` as steps (SF67): the merge, then the shading a slice of vertices a step; the same bytes */
+  private static *shadeSteps(parts: THREE.BufferGeometry[], o: FinishOpts): Generator<void, THREE.BufferGeometry> {
     const geo = mergeGeometries(parts, false);
     for (const p of parts) p.dispose();
     if (o.ao !== false) bakeSmoothAO(geo, { ...o.ao, ...(o.ground ? { ground: o.ground } : {}) });
     const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
     const tint = SHADE_TINT, aoH = o.aoH ?? 0.9, aoMin = o.aoMin ?? 0.55;
     for (let i = 0; i < pos.count; i++) {
+      if ((i & 16383) === 0) yield; // the yield shades nothing
       const ny = nrm.getY(i);
       let k = ny > 0 ? 1 + ny * 0.07 : 1 + ny * 0.2;
       if (o.ground) {
@@ -197,6 +204,15 @@ export class PaintKit {
     geo.computeBoundingSphere();
     geo.computeBoundingBox();
     return geo;
+  }
+
+  /** `mesh` as steps (SF67: a big kit's merge and shading were one ~110 ms task at 4x CPU); the same mesh */
+  *meshSteps(sky: Sky, o: FinishOpts = {}): Generator<void, THREE.Mesh> {
+    const geo = yield* PaintKit.shadeSteps(this.parts, o);
+    this.parts = [];
+    const m = new THREE.Mesh(geo, poiMaterial(sky));
+    m.castShadow = true; m.receiveShadow = true;
+    return m;
   }
 
   /** finish() + a shadow-casting mesh on the shared POI material */

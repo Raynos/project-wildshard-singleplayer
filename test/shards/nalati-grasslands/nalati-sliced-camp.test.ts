@@ -54,4 +54,4 @@ it('builds the dressing props and the camp clutter in slices with the one-task b
   const clutter = buildCampClutter(sky, avoid), clutterSliced = await buildCampClutterSliced(sky, avoid, sliceEvery(2).due);
   const printClutter = (c: typeof clutter): string => fingerprint(c.mesh === null ? [] : [c.mesh], [c.colliders, c.tris, c.spots]);
   expect(printClutter(clutterSliced)).toBe(printClutter(clutter));
-});
+}, 60_000); // two dressing builds: ~17 s alone at load, past the 20 s default beside the other Nalati builders

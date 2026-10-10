@@ -62,6 +62,13 @@ export class TreeGrid<T extends { readonly x: number; readonly z: number; readon
 
 /** The active chunk's trees for these variants (none for an empty list: a treeless shard). */
 export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstance[]; grid: TreeGrid } {
+  const steps = placeForestSteps(variants);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `placeForest` as steps (SF67: `Forest.buildSliced` pauses between them): a yield every 256 candidates, which draws
+ *  nothing, so the same trees from the same stream */
+export function* placeForestSteps(variants: readonly PlantSpec[]): Generator<void, { trees: TreeInstance[]; grid: TreeGrid }> {
   const trees: TreeInstance[] = [];
   const grid = new TreeGrid();
   if (variants.length === 0) return { trees, grid };
@@ -120,7 +127,9 @@ export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstan
       if (Math.hypot(jx - fill.x, jz - fill.z) < fill.r) infill.push([jx, jz]);
     }
   }
+  let tested = 0;
   for (const [x, z] of [...candidates, ...infill]) {
+    if ((++tested & 255) === 0) yield;
     if (trees.length >= TREE_COUNT) break;
     if (!inChunk(x, z, 4)) continue;
     const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves

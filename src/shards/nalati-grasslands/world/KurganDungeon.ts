@@ -1,4 +1,5 @@
 import { app } from '@wildshard/engine/app/runtime';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { Rng } from '@wildshard/engine/core/rng';
 import { fxMaterial, annulus, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -196,9 +197,9 @@ function lightAt(x: number, y: number, z: number, n: THREE.Vector3, out: THREE.C
 }
 
 /** multiply a merged geometry's vertex colours by the baked light (positions are chamber-local) */
-function bake(geo: THREE.BufferGeometry): void {
+function bake(geo: THREE.BufferGeometry, from = 0, to = Infinity): void {
   const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
-  for (let i = 0; i < pos.count; i++) {
+  for (let i = from, end = Math.min(to, pos.count); i < end; i++) {
     _n.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
     lightAt(pos.getX(i), pos.getY(i), pos.getZ(i), _n, _l);
     col.setXYZ(i, col.getX(i) * _l.r, col.getY(i) * _l.g, col.getZ(i) * _l.b);
@@ -266,19 +267,35 @@ export class KurganDungeon {
   inVolume(p: THREE.Vector3): boolean { return this.inChamber(p) || this.inDromos(p); }
 
   build(lazyStatic = false): this {
-    const t0 = performance.now();
+    const steps = this.buildSteps(lazyStatic);
+    while (steps.next().done !== true) { /* every part now */ }
+    return this;
+  }
+
+  /** `build`, a task apart per movable piece and per part (SF67: the lazy boot's movables, sand, FX and colliders were one
+   *  ~250 ms task at 4x CPU); the same rng stream, the same pieces and child order */
+  async buildSliced(lazyStatic: boolean, yieldTask: () => Promise<void>): Promise<this> {
+    const steps = this.buildSteps(lazyStatic);
+    while (steps.next().done !== true) await yieldTask();
+    return this;
+  }
+
+  private *buildSteps(lazyStatic: boolean): Generator<void, void> {
+    let ms = 0, t0 = diagnosticNow();
     const kit = lazyStatic ? null : new PaintKit(0xb0551);
     const rng = kit?.rng ?? new Rng(0xb0551);
     const mat = interiorMaterial();
     this.staticMaterial = mat;
     if (kit) this.buildStatic(kit);
     else { rng.restore(POST_STATIC_RNG); this.tris = STATIC_TRIANGLES; }
-    this.buildMovables(mat, rng);
+    const pause = function* pause(): Generator<void, void> { ms += diagnosticNow() - t0; yield; t0 = diagnosticNow(); };
+    for (const _ of this.movableSteps(mat, rng)) yield* pause();
+    yield* pause();
     this.buildSand(mat);
     this.buildFx();
     this.buildColliders();
-    this.buildMs = Math.round(performance.now() - t0);
-    return this;
+    ms += diagnosticNow() - t0;
+    this.buildMs = Math.round(ms);
   }
 
   private buildStatic(kit: PaintKit): void {
@@ -300,14 +317,17 @@ export class KurganDungeon {
     const mat = this.staticMaterial;
     if (mat === null) throw new Error('The dungeon must build before entry');
     const rng = kit.rng;
-    this.buildChamber(kit, rng);
+    yield* this.chamberSteps(kit, rng);
     yield;
     this.buildDromos(kit, rng);
     yield;
     this.buildGraveGoods(kit, rng);
     yield;
     const geo = kit.finish();
-    bake(geo);
+    yield;
+    // the bake is per vertex: a third of them a task (SF67: the finish and the bake were one ~190 ms task at 4x CPU)
+    const count = geo.getAttribute('position').count, third = Math.ceil(count / 3);
+    for (let from = 0; from < count; from += third) { bake(geo, from, from + third); if (from + third < count) yield; }
     const mesh = new THREE.Mesh(geo, mat);
     mesh.name = 'kurgan-interior';
     mesh.frustumCulled = false;
@@ -319,7 +339,7 @@ export class KurganDungeon {
   }
   buildMs = 0; tris = 0;
 
-  private buildChamber(kit: PaintKit, rng: Rng): void {
+  private *chamberSteps(kit: PaintKit, rng: Rng): Generator<void, void> {
     // ── floor: long larch boards, dusty toward the walls ──
     for (let i = 0; i < 40; i++) {
       const z = -CH + 0.25 + i * 0.5;
@@ -360,6 +380,7 @@ export class KurganDungeon {
       for (const dz of [-1.2, 1.2]) kit.add(new THREE.BoxGeometry(1.3, 3.8, 0.2), C.earth.clone().multiplyScalar(0.6), { matrix: M(x + sx * 0.6, 1.8, n.z + dz), flat: true });
       kit.add(new THREE.BoxGeometry(1.3, 0.1, 2.4), C.earth, { matrix: M(x + sx * 0.6, 0.0, n.z), flat: true });
     }
+    yield; // the walls and niches, then the ceiling a task later (the yield draws nothing)
     // ── the ceiling: massive beams across, a plank deck above them, the looter's hole over the coffin ──
     const hole = (x: number, z: number) => Math.hypot((x - 0.3) / 1.45, (z - COFFIN.z - 0.1) / 1.25) < 1 + 0.12 * Math.sin(Math.atan2(z, x) * 5);
     for (let k = 0; k < 13; k++) {
@@ -567,7 +588,7 @@ export class KurganDungeon {
   }
 
   /** the pieces that move or come and go: the coffin lid, the four niche balbals, the heap of plaques */
-  private buildMovables(mat: THREE.MeshBasicMaterial, rng: Rng): void {
+  private *movableSteps(mat: THREE.MeshBasicMaterial, rng: Rng): Generator<void, void> {
     {
       const kit = new PaintKit(0x11d);
       kit.add(new THREE.BoxGeometry(COFFIN.wid + 0.14, 0.18, COFFIN.len + 0.14, 2, 1, 40), (p, n) => (n.y > 0.5 && horseMask(p.z / COFFIN.len * 3 % 1 + 0.5, p.x / COFFIN.wid + 0.5) ? C.larchOld : C.larch), { flat: true, brush: 0.1 });
@@ -580,6 +601,7 @@ export class KurganDungeon {
       this.group.add(this.lid);
     }
     for (const [i, n] of NICHES.entries()) {
+      yield;
       const kit = new PaintKit(0x2b + i);
       const g0 = balbalGeometry(i % 2, 0xba7 + i * 3);
       g0.applyMatrix4(M(0, 0, 0, 0, 1.2));
@@ -592,6 +614,7 @@ export class KurganDungeon {
       m.frustumCulled = false;
       this.statues.push(m); this.group.add(m);
     }
+    yield;
     {
       const kit = new PaintKit(0x4ea9);
       for (let i = 0; i < 70; i++) {

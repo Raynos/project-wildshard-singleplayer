@@ -125,8 +125,9 @@ export async function planDressing(forest: Forest | null, yieldTask: () => Promi
   // (forest.nearby() is a generous broad phase — it pads by the trunk radius + 3 m — so test the real distance)
   const nearTree = (x: number, z: number, r: number): boolean => (forest ? forest.nearby(x, z, r).some((t) => Math.hypot(t.x - x, t.z - z) < r + t.r) : false);
 
-  campAndBanks(plan, occ, nearTree);
-  rocks(plan, occ, nearTree); await yieldTask();
+  campAndBanks(plan, occ, nearTree); await yieldTask();
+  for (const _ of rocks(plan, occ, nearTree)) await yieldTask(); // SF67: a tenth of the candidates a task (one ~150 ms task at 4x CPU)
+  await yieldTask();
   scree(plan, occ); await yieldTask();
   roadStones(plan);
   gravelBars(plan); await yieldTask();
@@ -243,10 +244,11 @@ function campAndBanks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: 
 
 // ── rocks ───────────────────────────────────────────────────────────────────────────────────────────
 
-function rocks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number, r: number) => boolean): void {
+function* rocks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number, r: number) => boolean): Generator<void, void> {
   const rng = new Rng(SEED + 11), clump = new Noise2D(SEED + 12);
   const N = 60000;
   for (let i = 0; i < N; i++) {
+    if (i > 0 && i % 6000 === 0) yield; // a slice of the candidates (the yield draws nothing)
     const x = rng.range(-247, 247), z = rng.range(-247, 247);
     // cheap first: the clumping field and a coin (≤ 1 in 3 candidates reaches the terrain queries)
     const cl = 0.2 + 1.4 * smoothstep(-0.25, 0.55, clump.fbm(x * 0.012, z * 0.012, 2));
