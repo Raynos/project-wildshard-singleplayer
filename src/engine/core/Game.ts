@@ -678,6 +678,14 @@ export class Game {
     if (composer !== null) await layer.prepare(this.renderer, this.camera, composer.inputBuffer);
   }
 
+  /** Hide newly constructed models from this owner's asynchronous preparation until entry on WebKit.
+   * The existing whole-world warm-up still sees them under the camera. Early boot has no live composer to draw,
+   * and other browsers retain their ordinary path. The returned identity group is owned by the supplied scope. */
+  stageViewmodels(owner: Scope): THREE.Group | null {
+    if (this._composer === null || !navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return null;
+    return this.viewmodel.stage(owner);
+  }
+
   /** Prepare newly streamed roots before exposure on WebKit, using the allocated composer target.
    * Early boot retains ordinary whole-world preparation; other browsers retain their existing path. */
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {

@@ -1,9 +1,13 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Material, type Object3D } from 'three';
 
+import { currentOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
+
 const viewMesh = (part: Object3D): part is Mesh => part instanceof Mesh;
 
 /** One camera-space transparent pass, shared by every equipped weapon. */
 export class ViewmodelRoot extends Group {
+  private readonly preparations = new Map<Scope, Group>();
   private readonly transparentCopies = new WeakMap<Material, Material>();
   private readonly clearer = new Mesh(new BoxGeometry(0.001, 0.001, 0.001), new MeshBasicMaterial({
     colorWrite: false, depthWrite: false, transparent: true, fog: false,
@@ -16,7 +20,21 @@ export class ViewmodelRoot extends Group {
   }
   override add(...objects: Object3D[]): this {
     for (const object of objects) this.prepare(object);
-    return super.add(...objects);
+    const owner = this.preparations.size === 0 ? null : currentOwner();
+    const preparation = [...this.preparations].find(([scope]) => owner?.belongsTo(scope) === true)?.[1];
+    if (preparation === undefined) return super.add(...objects);
+    preparation.add(...objects); return this;
+  }
+  /** Keep this owner's newly constructed models hidden until their ordinary shader preparation finishes.
+   * The group stays under the same camera pass with identity transform; other owners mount normally. Geometry,
+   * materials and authored visibility stay unchanged. The owner removes the group without disposing borrowed models. */
+  stage(owner: Scope): Group {
+    if (owner.disposed) throw new Error('Viewmodel preparation requires a live owner');
+    if (this.preparations.has(owner)) throw new Error('Viewmodel owner is already preparing');
+    const group = new Group(); group.visible = false;
+    this.preparations.set(owner, group); super.add(group);
+    owner.onDispose(() => { this.preparations.delete(owner); group.removeFromParent(); });
+    return group;
   }
   private transparent(material: Material): Material {
     // Kit families already configure these exact materials for the transparent queue; retain their identity.

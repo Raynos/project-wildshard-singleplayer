@@ -49,3 +49,15 @@ Chromium's existing path stays unchanged. The attached-sky inventory shares
 this bounded preparation primitive. Focused lifecycle and lighting fixtures
 cover the ordering, resource identity and owner fences. Matched route results
 remain open; this slice claims no new cadence pass.
+
+
+The sword constructor mounts its model before the asynchronous equipment
+factory finishes; the road frame could draw it before `afterPlay` warm-up.
+WebKit regional construction now routes only that owner's additions into a
+hidden identity group under the same shared camera. Ordinary warm-up still
+inventories the actual materials. Entry exposes it, leave hides it, and the
+runtime owner removes it. Other owners and Chromium keep their existing path.
+The native fixture covers awaited additions, unrelated page callbacks, exact
+material/geometry identity, unchanged camera transforms, depth-clear order
+and cancellation. No shader, clock, equipment or gameplay rule changes;
+matched performance remains open.

@@ -1,5 +1,8 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, type Material, type WebGLRenderer } from 'three';
+import { Scope } from '../../src/engine/app/scope';
+import { withOwner } from '../../src/engine/app/ownership';
+import { sceneJobs } from '../../src/engine/render/precompile';
 import { ViewmodelRoot } from '../../src/engine/render/viewmodel';
 import { legacyDouble } from '../fake/FakeGame';
 
@@ -47,4 +50,38 @@ it('clones shared opaque materials and prepares a part attached after mounting',
   const copy = late.material; root.updateMatrixWorld(true); expect(late.material).toBe(copy);
   const ready = new MeshBasicMaterial({ transparent: true }), kit = new Mesh(new BoxGeometry(), ready);
   root.add(kit); root.updateMatrixWorld(true); expect(kit.material).toBe(ready);
+});
+
+
+it('keeps asynchronous construction hidden while warming exact models, then exposes identical camera transforms', async () => {
+  const scene = new Scene(), camera = new PerspectiveCamera(), root = new ViewmodelRoot();
+  scene.add(camera); camera.add(root); camera.position.set(2, 3, 4);
+  const owner = new Scope('preparing'), other = new Scope('page'), group = root.stage(owner);
+  const material = new MeshBasicMaterial({ transparent: true }), geometry = new BoxGeometry();
+  const model = new Mesh(geometry, material); model.position.set(1, 0, -2);
+  const pageModel = new Mesh(geometry, material);
+  try {
+    withOwner(owner, () => { root.add(model); });
+    // A page callback and an awaited construction continuation retain separate routing.
+    withOwner(other, () => { root.add(pageModel); });
+    await Promise.resolve();
+    const late = new Mesh(geometry, material);
+    withOwner(owner, () => { root.add(late); });
+    scene.updateMatrixWorld(true);
+    expect(model.parent).toBe(group); expect(late.parent).toBe(group); expect(pageModel.parent).toBe(root);
+    expect(group.visible).toBe(false); expect(model.visible).toBe(true); expect(model.material).toBe(material);
+    const before = model.matrixWorld.elements.slice();
+    const { jobs } = sceneJobs(scene, null, 1, [group]);
+    expect(jobs).toHaveLength(1); // shared material/object variant, original geometry and flags
+    const compiled: Mesh[] = []; for (const job of jobs) job.root.traverse(part => { if (part instanceof Mesh) compiled.push(part); });
+    expect(compiled[0]?.material).toBe(material); expect(compiled[0]?.geometry).toBe(geometry);
+    group.visible = true; scene.updateMatrixWorld(true);
+    expect(model.matrixWorld.elements).toEqual(before); expect(model.renderOrder).toBe(1000);
+    expect(root.children.filter(part => part.renderOrder === 999)).toHaveLength(1);
+    group.visible = false; pageModel.visible = false; root.updateMatrixWorld(true);
+    expect(root.children.find(part => part.renderOrder === 999)?.visible).toBe(false);
+    owner.dispose(); expect(group.parent).toBe(null);
+    const normal = new Mesh(geometry, material); withOwner(other, () => { root.add(normal); }); expect(normal.parent).toBe(root);
+    expect(() => root.stage(owner)).toThrow('live owner');
+  } finally { owner.dispose(); other.dispose(); material.dispose(); geometry.dispose(); }
 });

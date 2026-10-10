@@ -224,9 +224,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             skinRows.push(...list);
           } } };
           const prepareFrame = foundation.prepare;
+          let preparedModels: Object3D | null = null;
           return { ...installation, context,
             ...(prepareFrame === undefined ? {} : { prepareConstruction: () => {
               preparing = true;
+              preparedModels = request.page.world.game.stageViewmodels(owner);
               // The resident can outlive a failed runtime child. Never restore that child's frame during its teardown.
               const leave = bindConstructionEnvironment(owner, () => {
                 const frameScope = owner.child('runtime.construction');
@@ -240,6 +242,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             } }),
             beforeWorld: entered => { enteredContext = entered; installEnteredRuntimeService(entered, entry => {
               foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);
+              if (preparedModels !== null) {
+                const models = preparedModels; models.visible = true;
+                entry.onDispose(() => { models.visible = false; });
+              }
               app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
             }); },
             afterWorld: entered => foundation.afterWorld?.(entered, world),

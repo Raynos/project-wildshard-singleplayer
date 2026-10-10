@@ -2575,3 +2575,14 @@ on WebKit; early boot and Chromium retain ordinary whole-world preparation.
 The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.
+
+
+`ViewmodelRoot.stage(owner)` routes only that owner's newly added models into
+an initially hidden identity-transform group under the existing camera pass.
+Other owners retain normal mounting; geometry, material identity, authored
+visibility and the shared depth-clear order stay unchanged. The owner removes
+the group without disposing its models, whose equipment/resource owners keep
+cleanup. `Game.stageViewmodels(owner)` enables this on WebKit with a live
+composer (otherwise returns `null`). Regional preparation keeps the group
+hidden through ordinary whole-world shader warm-up, exposing it only during
+entry and hiding it again on leave.
