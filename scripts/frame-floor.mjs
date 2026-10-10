@@ -173,7 +173,7 @@ function sample(n) {
   if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
   meter.enabled = true;
   return new Promise((resolve, reject) => {
-    const interval = [], longAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
+    const interval = [], longAt = [], glAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
     let idleChecks = 0, checkedAt = -1;
     const finished = () => {
       if (!whole) return interval.length >= n;
@@ -191,6 +191,7 @@ function sample(n) {
       const now = performance.now();
       if (g.frameCount !== count) {
         const delta = g.frameCount - count, glFrame = window.__frameFloorGlTake?.() ?? null; // --gl-time: this interval's GL calls
+        if (whole && glFrame !== null && !first && glAt.length < 8000) glAt.push([Math.round(last), glFrame]);
         if (!first) {
           // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.
           interval.push(timestamp - last); if (timestamp - last > 50 && longAt.length < 400) longAt.push(glFrame === null ? [Math.round(last), Math.round(timestamp - last)] : [Math.round(last), Math.round(timestamp - last), glFrame]); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
@@ -215,7 +216,7 @@ function sample(n) {
         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames
-        longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length, at: longAt },
+        longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length, at: longAt }, ...(glAt.length === 0 ? {} : { glFrames: glAt }),
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
         cpu: { enabled: meter.snapshot().enabled, frames: cpuFrames, owners: [...cpuOwners].map(([id, row]) => ({ id, samples: row.ms.length, p95Ms: pct(row.ms, 0.95), maxMs: pct(row.ms, 1), calls: row.calls })) },
@@ -361,7 +362,9 @@ async function measureShard(driver, shard, deadline) {
         scenarios.push(witness);
         rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface) });
         const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
-        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...whole.value, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), ...(cpuProfile === null ? {} : { cpuProfile }) };
+        const { glFrames, ...wholeValue } = whole.value;
+        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
+          ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }) };
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));
         await sleep(settleMs);
         const standing = await driver.evaluate(`(${sample.toString()})(${frames})`);
@@ -422,6 +425,20 @@ async function saveProfileMaps(profile) {
     try { const response = await fetch(`${url}.map`); if (response.ok) writeFileSync(out, await response.text()); }
     catch { /* a script without a map stays minified in offline resolution */ }
   }
+}
+/** --gl-time: every frame's GL calls ([startMs, {method: [ms, calls]}]) summed by the runtime hook it fell in (`between
+ *  hooks` otherwise): what a hook uploaded, compiled and drew, frame by frame, on either surface. */
+function glByHook(glFrames, completed) {
+  const out = {};
+  for (const [start, gl] of glFrames) {
+    const hit = completed.find((t) => start >= t.start && start < t.end);
+    const key = hit === undefined ? 'between hooks' : `${hit.instance}:${hit.hook}`;
+    out[key] ??= { frames: 0, gl: {} };
+    const row = out[key];
+    row.frames++;
+    for (const [method, [ms, calls]] of Object.entries(gl)) { const sum = row.gl[method] ?? [0, 0]; row.gl[method] = [Math.round((sum[0] + ms) * 10) / 10, sum[1] + calls]; }
+  }
+  return out;
 }
 function summarizeTravelProfile(profile, startedAt, longTasks, name) {
   const file = join(cpuProfileDir, `${name}-${Date.now()}.cpuprofile`); writeFileSync(file, JSON.stringify(profile));
