@@ -2,7 +2,7 @@
  * Boat — where the sailboat you arrived in is moored, and how it rides (E306 / E315 M1: the boat itself is the model
  * src/shards/driftwood-isle/models/boat.ts; this is the world side). It places the dinghy beside the pier, runs its
  * mooring lines to the pier's bollards (world geometry between two placed models: a separate static mesh, so they don't
- * bob) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
+ * bob; SHARD-PLATFORM M3: @wildshard/sdk/props/mooringLines from data/boatLook.ts) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
  *
  *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moorTo: pier.mooringsFor(-4.2, -244) }).place(registry);
  *   const boat = new Boat(sky, { … }).build();                       // a dev page: not registered
@@ -14,7 +14,6 @@
  * `heading` is radians about +y (0 = bow toward −z, i.e. out to sea when moored at the south pier).
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -23,6 +22,8 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
+import { MooringLines, type MooringLinesSet } from '@wildshard/sdk/props/mooringLines';
+import { BOAT_MOORING } from '../data/boatLook';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../models/boat';
 
@@ -34,8 +35,6 @@ export interface BoatSpec {
   /** world xz of posts to run mooring lines to (bow → first, stern → second) */
   moorTo?: { x: number; z: number }[];
 }
-
-const ROPE = new THREE.Color('#d2bd85');
 
 export class Boat {
   /** the placed boat (the hull with its gear, the sail): posed on the swell every frame */
@@ -66,42 +65,11 @@ export class Boat {
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
     if (this.spec.moorTo?.length) {
-      const ropeParts: THREE.BufferGeometry[] = [];
       const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h);
       const cleat = (lz: number, ly: number): THREE.Vector3 => new THREE.Vector3(this.spec.x + lz * sn, this.spec.waterY + ly, this.spec.z + lz * cs);
       const ends = [cleat(-LENGTH / 2 + 0.3, BOAT_CLEATS[0]?.y ?? 0.7), cleat(LENGTH / 2 - 0.3, BOAT_CLEATS[1]?.y ?? 0.7)];
-      this.spec.moorTo.slice(0, 2).forEach((post, i) => {
-        const a = ends[i];
-        if (a === undefined) return;
-        const b = new THREE.Vector3(post.x, this.spec.waterY + 1.9, post.z);
-        const mid = a.clone().lerp(b, 0.5); mid.y -= 0.35; // sag
-        const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
-        const g = new THREE.TubeGeometry(curve, 8, 0.03, 4, false);
-        g.deleteAttribute('uv'); g.deleteAttribute('normal');
-        const ni = g.toNonIndexed(); const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
-        for (let k = 0; k < n; k++) { c[k * 3] = ROPE.r; c[k * 3 + 1] = ROPE.g; c[k * 3 + 2] = ROPE.b; }
-        ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
-        ropeParts.push(ni);
-      });
-      const ropeGeo = mergeGeometries(ropeParts, false);
-      // each rope vertex remembers its rest position, which rope it is and how far along it lies (1 at the cleat, 0 at
-      // the post), so update() can lift the cleat end with the boat on the swell and leave the post end tied
-      const rp = ropeGeo.getAttribute('position');
-      this.ropeRest = new Float32Array(rp.array);
-      this.ropeW = new Float32Array(rp.count);
-      this.ropeWhich = new Uint8Array(rp.count);
-      const perRope = rp.count / ropeParts.length;
-      for (let k = 0; k < rp.count; k++) {
-        const which = Math.min(ropeParts.length - 1, Math.floor(k / perRope)), a = ends[which], post = this.spec.moorTo[which];
-        if (a === undefined || post === undefined) continue;
-        const bx = post.x, bz = post.z, dx = bx - a.x, dz = bz - a.z, len2 = dx * dx + dz * dz || 1;
-        const t = Math.min(1, Math.max(0, ((rp.getX(k) - a.x) * dx + (rp.getZ(k) - a.z) * dz) / len2));
-        this.ropeW[k] = 1 - t; this.ropeWhich[k] = which;
-      }
-      this.cleatZ = [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3];
-      const ropes = new THREE.Mesh(ropeGeo, mat);
-      ropes.castShadow = true;
-      this.ropes = ropes;
+      this.moorings = new MooringLines(BOAT_MOORING, ends, this.spec.moorTo.slice(0, 2), this.spec.waterY, [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], mat);
+      this.ropes = this.moorings.mesh;
     }
     // gunwales + bow / stern as thin walls: they keep you in the boat once you're in, and keep a swimmer out
     // of the hull; from the pier deck (above yTop) you step over them and drop onto the floor
@@ -149,11 +117,7 @@ export class Boat {
     return this.floorY;
   }
 
-  private ropeRest: Float32Array | null = null;
-  private ropeW = new Float32Array(0);
-  private ropeWhich = new Uint8Array(0);
-  private cleatZ = [0, 0];
-  private cleatDy = [0, 0];
+  private moorings: MooringLinesSet | null = null;
 
   /**
    * Ride the shared swell (W3, src/engine/world/waves.ts — the same Gerstner sum the ocean shader draws): heave from the wave
@@ -183,14 +147,6 @@ export class Boat {
   private updateMoorings(): void {
     const g = this.group, w = this.spec.waterY;
     // the mooring lines: lift each rope's cleat end with the hull (heave + pitch at that cleat), the post end stays put
-    const rest = this.ropeRest;
-    if (this.ropes && rest) {
-      const heave = g.position.y - w, s = Math.sin(g.rotation.x);
-      for (let i = 0; i < 2; i++) this.cleatDy[i] = heave - (this.cleatZ[i] ?? 0) * s;
-      const pos = this.ropes.geometry.getAttribute('position') as THREE.BufferAttribute;
-      const arr = pos.array as Float32Array;
-      for (let k = 0; k < this.ropeW.length; k++) arr[k * 3 + 1] = (rest[k * 3 + 1] ?? 0) + (this.cleatDy[this.ropeWhich[k] ?? 0] ?? 0) * (this.ropeW[k] ?? 0);
-      pos.needsUpdate = true;
-    }
+    this.moorings?.lift(g.position.y - w, Math.sin(g.rotation.x));
   }
 }
