@@ -33,9 +33,9 @@ import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { PANO_HORIZON_V, PANO_DEG_PER_V, PANO_RIDGE_V } from './panoramaData';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { SKY_GLSL } from '../runtime/shaders/skyGlsl';
+import { SKY_GLSL } from '../runtime/looks/skyGlsl';
 
-/** the GLSL below is trusted custom code (runtime/shaders/skyGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/looks/skyGlsl.ts); `@{name}` splices the fragments this module passes */
 const SKY_GLSL_FAMILY = new ShaderFamily(SKY_GLSL, {});
 
 /** inside the camera's far plane (2600) with room; the vertex shader puts it at the far plane anyway */

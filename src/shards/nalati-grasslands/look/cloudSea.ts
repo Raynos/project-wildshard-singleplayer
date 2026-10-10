@@ -15,9 +15,9 @@ import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { fogLut } from './fog';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { CLOUD_SEA_GLSL } from '../runtime/shaders/cloudSeaGlsl';
+import { CLOUD_SEA_GLSL } from '../runtime/looks/cloudSeaGlsl';
 
-/** the GLSL below is trusted custom code (runtime/shaders/cloudSeaGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/looks/cloudSeaGlsl.ts); `@{name}` splices the fragments this module passes */
 const CLOUD_SEA_GLSL_FAMILY = new ShaderFamily(CLOUD_SEA_GLSL, {});
 
 /** the deck's height (m, world): under the valley floor (−10) and well over the slab's floor (−100) */

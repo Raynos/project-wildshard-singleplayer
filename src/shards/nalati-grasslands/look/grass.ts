@@ -50,9 +50,9 @@ import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { GRASS_GLSL } from '../runtime/shaders/grassGlsl';
+import { GRASS_GLSL } from '../runtime/looks/grassGlsl';
 
-/** the GLSL below is trusted custom code (runtime/shaders/grassGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/looks/grassGlsl.ts); `@{name}` splices the fragments this module passes */
 const GRASS_GLSL_FAMILY = new ShaderFamily(GRASS_GLSL, {});
 
 const PHONE = TIER === 'phone';

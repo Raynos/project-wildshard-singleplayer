@@ -19,9 +19,9 @@ import type { SkyLook } from './skyRig';
 import { gradeUniforms } from './grade';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { LIGHT_GLSL } from '../runtime/shaders/lightGlsl';
+import { LIGHT_GLSL } from '../runtime/looks/lightGlsl';
 
-/** the GLSL below is trusted custom code (runtime/shaders/lightGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/looks/lightGlsl.ts); `@{name}` splices the fragments this module passes */
 const LIGHT_GLSL_FAMILY = new ShaderFamily(LIGHT_GLSL, {});
 
 const D2R = Math.PI / 180;

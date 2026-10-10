@@ -14,9 +14,9 @@
 import * as THREE from 'three';
 import type { SkyLook } from './skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { TINT_GLSL } from '../runtime/shaders/tintGlsl';
+import { TINT_GLSL } from '../runtime/looks/tintGlsl';
 
-/** the GLSL below is trusted custom code (runtime/shaders/tintGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/looks/tintGlsl.ts); `@{name}` splices the fragments this module passes */
 const TINT_GLSL_FAMILY = new ShaderFamily(TINT_GLSL, {});
 
 /** the key light the panorama was painted under (the def's late-afternoon sun, ChunkSky.sunColor) */

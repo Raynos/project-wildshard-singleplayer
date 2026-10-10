@@ -17,9 +17,9 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { WATER_GLSL } from './runtime/shaders/waterGlsl';
+import { WATER_GLSL } from './runtime/looks/waterGlsl';
 
-/** the GLSL below is trusted custom code (runtime/shaders/waterGlsl.ts); `@{name}` splices the fragments this module passes */
+/** the GLSL below is trusted custom code (runtime/looks/waterGlsl.ts); `@{name}` splices the fragments this module passes */
 const WATER_GLSL_FAMILY = new ShaderFamily(WATER_GLSL, {});
 
 const VERT = WATER_GLSL_FAMILY.glsl(WATER_GLSL.VERT);
