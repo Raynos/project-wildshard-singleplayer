@@ -423,3 +423,41 @@ Raw scratch `attempt-c29b-game-raf.json`, SHA-256
 `e339eae8dd98eb74130dbf4fe9070f670399de2d1064ef760abcff821a5db4f5`.
 Proof `.git/proofs/20261010T122109-sf22-game-loop-delivery-47457.json`.
 All owned preview / browser / Simulator / Inspector / proxy resources closed.
+
+## Actual-clock matched verification: both cadence verdicts remain open
+
+Runtime `6d4bf911b`, 2026-10-10. Quiet marker 17:39:02–17:49:57 UTC,
+removed in finally, no expiry. Desktop full G270 route 17:39:59–17:48:03:
+all six routes complete, zero errors/refusals; 13,311 measured draws,
+zero missing counter increments. Actual draw-start p95/p99 34.3/35.4 ms;
+standing p95 34.8/34.6 ms, observed quantum 0.1 ms. **Cadence FAIL**:
+standing itself exceeds the unchanged 33.3 ms limit plus one quantum.
+The retained polling p95/p99 is 33.4/33.4 ms; that earlier polling pass
+is not a pass for the corrected actual-clock measurement. Route load
+medians 4.60/3.72/7.39/5.26/4.62/4.34, all maxima below 9.47.
+
+Desktop crossing synchronous maximum 21.5 ms, demanded wait 3.1 ms,
+activation 6.5 ms: install PASS. First crossroads shader calls zero.
+All 2,380 calls in the explicit-warm-up gate are explicit; maximum
+invocation 6.3 ms, whole-task observer upper bound 50 ms. This does
+not classify calls outside that explicit-warm-up gate as zero.
+
+Safari Auto Driftwood→Signal→Driftwood subset 17:48:08–17:49:50:
+both routes complete, zero errors/refusals; 1,739 draws and no missing
+counter increments. Actual draw-start p95/p99 36/50 ms, standing 34 ms,
+observed quantum 1 ms: **cadence FAIL**, one millisecond beyond the
+permitted same-session quantum. Retained polling p95/p99 46/60 ms.
+Crossing sync 16/0/9/0 ms, demanded wait at most 4 ms, activation 2 ms:
+install PASS. 394 explicit warm-ups, zero draw/driver or unclassified
+compiles; maximum invocation 5 ms. Safari whole-task bound remains
+unavailable, not zero. Route load medians 13.50/11.36; the forward
+route briefly reaches 15.40 and is flagged under load. Memory remains
+G269 phone runs; this subset is not the full G270 phone verdict.
+
+No callback/CPU/GL diagnostic wrappers were enabled. All owned preview,
+browser, Simulator, Inspector and proxy resources closed. Raw scratch
+`attempt-6d4b-desktop.json` SHA-256
+`261e6e3050e30c2dbb5473f0bb9a5efb9885326d17fe7d3d3f588700a269aed3`;
+`attempt-6d4b-safari.json`
+`1bfd33a6c5afe0eb2be7edd235649b431637b6658609b049fdfb44d6a07bc946`.
+Proof `.git/proofs/20261010T123512-sf22-actual-clock-matched-90693.json`.
