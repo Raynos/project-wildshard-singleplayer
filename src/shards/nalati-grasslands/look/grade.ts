@@ -16,6 +16,11 @@ import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass }
 import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
 import type { EngineKnobs, LookReplaceContext } from '@wildshard/engine/render/look';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { GRADE_GLSL } from '../data/gradeGlsl';
+
+/** the GLSL below is data (data/gradeGlsl.ts); `@{name}` splices the fragments this module passes */
+const GRADE_GLSL_FAMILY = new ShaderFamily(GRADE_GLSL, {});
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
 export const gradeUniforms = {
@@ -32,40 +37,7 @@ const LIGHT = [1.07, 0.99, 0.84] as const;
 const LUM = [0.2126, 0.7152, 0.0722] as const;
 
 /** GLSL: `vec3 v2Grade(vec3 sceneLinear)` → display-linear, `vec3 v2Ungrade(vec3 displayLinear)` → scene-linear */
-export const V2_GRADE_GLSL = /* glsl */`
-uniform float uV2Exposure;
-uniform float uV2Sat;
-uniform float uV2LookSat;
-const vec3 V2_LUM = vec3(0.2126, 0.7152, 0.0722);
-const vec3 V2_SHADOW = vec3(${SHADOW.join(', ')});
-const vec3 V2_LIGHT = vec3(${LIGHT.join(', ')});
-vec3 v2Grade(vec3 x) {
-  x = max(x, vec3(0.0)) * 1.12 * uV2Exposure;
-  vec3 c = x * (1.0 + x / 9.0) / (1.0 + x);
-  float l = dot(c, V2_LUM);
-  c = mix(vec3(l), c, uV2Sat);
-  c *= mix(V2_SHADOW, V2_LIGHT, smoothstep(0.05, 0.6, l));
-  c = clamp(c, 0.0, 1.0);
-  c = c * c * (3.0 - 2.0 * c) * 0.35 + c * 0.65;
-  return mix(vec3(dot(c, V2_LUM)), c, uV2LookSat);
-}
-vec3 v2Ungrade(vec3 y) {
-  y = clamp(y, 0.0, 1.0);
-  vec3 c = y;
-  for (int i = 0; i < 3; i++) {
-    vec3 f = c * c * (3.0 - 2.0 * c) * 0.35 + c * 0.65 - y;
-    c = clamp(c - f / (2.1 * c * (1.0 - c) + 0.65), 0.0, 1.0);
-  }
-  vec3 t = mix(V2_SHADOW, V2_LIGHT, smoothstep(0.05, 0.6, dot(c, V2_LUM)));
-  vec3 b = c / t;
-  t = mix(V2_SHADOW, V2_LIGHT, smoothstep(0.05, 0.6, dot(b, V2_LUM)));
-  b = c / t;
-  float l = dot(b, V2_LUM);
-  b = max(vec3(l) + (b - vec3(l)) / uV2Sat, vec3(0.0));
-  vec3 x = 4.5 * (-(1.0 - b) + sqrt((1.0 - b) * (1.0 - b) + 4.0 * b / 9.0));
-  return x / (1.12 * uV2Exposure);
-}
-`;
+export const V2_GRADE_GLSL = GRADE_GLSL_FAMILY.glsl(GRADE_GLSL.V2_GRADE_GLSL, { SHADOW_TONE: SHADOW.join(', '), LIGHT_TONE: LIGHT.join(', ') });
 
 const lum = (c: readonly [number, number, number]): number => c[0] * LUM[0] + c[1] * LUM[1] + c[2] * LUM[2];
 
@@ -96,11 +68,7 @@ export function ungrade(y: [number, number, number]): [number, number, number] {
 export class GradeV2Effect extends Effect {
   /** `blendFunction`: SRC in its own chain; NORMAL where another chain fades it in (`lookV2EngineKnobs`) */
   constructor(blendFunction: BlendFunction = BlendFunction.SRC) {
-    super('GradeV2Effect', /* glsl */`
-      ${V2_GRADE_GLSL}
-      void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-        outputColor = vec4(v2Grade(inputColor.rgb), inputColor.a);
-      }`, {
+    super('GradeV2Effect', GRADE_GLSL_FAMILY.glsl(GRADE_GLSL.effect, { V2_GRADE_GLSL }), {
       blendFunction,
       uniforms: new Map<string, THREE.Uniform>([
         ['uV2Exposure', gradeUniforms.uV2Exposure as THREE.Uniform],

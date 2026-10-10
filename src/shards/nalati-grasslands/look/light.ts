@@ -18,6 +18,11 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { SkyLook } from './skyRig';
 import { gradeUniforms } from './grade';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { LIGHT_GLSL } from '../data/lightGlsl';
+
+/** the GLSL below is data (data/lightGlsl.ts); `@{name}` splices the fragments this module passes */
+const LIGHT_GLSL_FAMILY = new ShaderFamily(LIGHT_GLSL, {});
 
 const D2R = Math.PI / 180;
 /** the cheat: degrees further round (compass, clockwise) and higher than the sun */
@@ -29,13 +34,7 @@ const HEMI_GROUND = new THREE.Color(0.30, 0.30, 0.16);
  * GLSL: `vec3 v2Olive(vec3 albedo)` — green-dominant albedo (the lime valley grass) pulled toward olive / gold and lifted
  * (the meadow seen from afar and above is the mockups' sunlit gold-green, not a dull lawn); neutral / warm / blue paint (felt, dirt, gravel, rock, snow) is left alone.
  */
-export const V2_OLIVE_GLSL = /* glsl */`
-vec3 v2Olive(vec3 c) {
-  float gr = smoothstep(0.02, 0.45, (c.g - max(c.r, c.b)) / max(c.g, 1e-3));
-  vec3 olive = vec3(c.r * 1.12, mix(c.g, c.r * 1.2, 0.68), c.b * 0.7) * 1.3;
-  return mix(c, olive, gr);
-}
-`;
+export const V2_OLIVE_GLSL = LIGHT_GLSL_FAMILY.glsl(LIGHT_GLSL.V2_OLIVE_GLSL);
 
 const _dir = new THREE.Vector3(), _c = new THREE.Color();
 

@@ -40,6 +40,11 @@ import { place as placeModel } from '@wildshard/engine/models/place';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { BOWL_GLSL } from '../data/bowlGlsl';
+
+/** the GLSL below is data (data/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
+const BOWL_GLSL_FAMILY = new ShaderFamily(BOWL_GLSL, {});
 
 const PHONE = TIER === 'phone';
 
@@ -82,23 +87,7 @@ const GALLOP_HZ = 2.2 * Math.PI * 2, GALLOP_SPREAD = 1.7;
  * apart and the left leading, each hoof lifting on its swing; the head and neck pump with the stride; the rider sits
  * into it and leans forward. The body's own rise / rock / lean is the instance matrix (buildKokpar's update).
  */
-const GALLOP_GLSL = /* glsl */`
-#ifdef USE_INSTANCING
-{
-  float gPh = uPTime * ${GALLOP_HZ.toFixed(4)} + float( gl_InstanceID ) * ${GALLOP_SPREAD.toFixed(2)};
-  float legK = 1.0 - smoothstep( 0.35, 0.9, position.y );
-  float lp = gPh + step( 0.0, position.z ) * 3.1416 + sign( position.x ) * 0.45;
-  float fromHip = max( 0.0, 0.95 - position.y );
-  transformed.z += sin( lp ) * 0.5 * legK * fromHip;
-  transformed.y += max( 0.0, cos( lp ) ) * 0.22 * legK * fromHip;
-  float neck = smoothstep( 0.8, 1.35, position.z ) * smoothstep( 0.9, 1.3, position.y );
-  transformed.y += sin( gPh * 2.0 + 0.8 ) * 0.06 * neck;
-  float rid = smoothstep( 1.5, 1.8, position.y );
-  transformed.z += ( 0.08 + sin( gPh * 2.0 - 0.6 ) * 0.05 ) * rid * ( position.y - 1.5 );
-  transformed.y -= ( 0.5 + 0.5 * sin( gPh * 2.0 + 0.9 ) ) * 0.05 * rid;
-}
-#endif
-`;
+const GALLOP_GLSL = BOWL_GLSL_FAMILY.glsl(BOWL_GLSL.GALLOP_GLSL, { GALLOP_HZ: GALLOP_HZ.toFixed(4), GALLOP_SPREAD: GALLOP_SPREAD.toFixed(2) });
 
 /** a painterly material for the riders with the gallop bent in (one extra program, for the six riders) */
 function gallopMaterial(sky: Sky, like: THREE.MeshLambertMaterial): THREE.MeshLambertMaterial {

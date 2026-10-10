@@ -13,6 +13,11 @@
  */
 import * as THREE from 'three';
 import type { SkyLook } from './skyRig';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { TINT_GLSL } from '../data/tintGlsl';
+
+/** the GLSL below is data (data/tintGlsl.ts); `@{name}` splices the fragments this module passes */
+const TINT_GLSL_FAMILY = new ShaderFamily(TINT_GLSL, {});
 
 /** the key light the panorama was painted under (the def's late-afternoon sun, ChunkSky.sunColor) */
 const PAINTED_KEY = new THREE.Color(1.0, 0.85, 0.64);
@@ -27,22 +32,7 @@ export const tintUniforms = {
   uV2Flash: { value: 0 },
 };
 
-export const V2_TINT_GLSL = /* glsl */`
-uniform vec3 uV2KeyTint;
-uniform float uV2Moon;
-uniform vec3 uV2Light;
-uniform float uV2Veil;
-uniform vec3 uV2VeilCol;
-uniform float uV2Flash;
-vec3 v2Regrade(vec3 c) {
-  c *= uV2KeyTint;
-  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  c = mix(c, l * vec3(0.5, 0.62, 1.0), uV2Moon * 0.8);
-  c *= uV2Light;
-  c = mix(c, uV2VeilCol, uV2Veil);
-  return c + uV2Flash * l * vec3(0.8, 0.85, 1.0);
-}
-`;
+export const V2_TINT_GLSL = TINT_GLSL_FAMILY.glsl(TINT_GLSL.V2_TINT_GLSL);
 
 /** the weather's share of the re-grade (src/shards/nalati-grasslands/world/Weather.ts fields) */
 export interface TintWeather { overcast: number; rain: number; flash: number }
