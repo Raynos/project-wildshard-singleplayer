@@ -19,7 +19,13 @@ Readouts after (inside the cell): Nalati env 0.6 on a 384×512 PMREM, ground ban
 carrier pine-hollow, post knob rays −1 → 0.88. With the row on A nothing changes for Nalati / Nine (no layer is built).
 
 Boards (SHARD SELECT · grid before · grid after, same pose): `nalati-grasslands-board.jpg`, `nine-dragon-stack-board.jpg`,
-`pine-hollow-board.jpg`; `pine-hollow-sun-board.jpg` faces the sun.
+`pine-hollow-board.jpg`; `pine-hollow-sun-board.jpg` faces the sun; `pine-hollow-rays-probe.jpg` is the cell facing the sun
+(disc at NDC 0.02, 0.11, shown) with the carried rays at 0.87 against the same view with them forced to 0 (`PROBE=rays`).
+
+Memory with the row (`MEM=1`, the candidate build, row A vs B, inside each cell): A builds nothing (`envMap: null`, claim 0);
+B holds one 384×512 RGBA16F PMREM target per cell, **1,572,864 B**, reserved = held on `sim-sky:<cell>` for Nalati and for
+Nine (the 512×256 painted equirect is freed once filtered). The probe's `gpuBytes` reads 0 outside a harness build. The
+frame floor on Nalati's cell entry with the row on was not run: no push-free quiet window freed (`.git/quiet` held).
 
 ## Left as is
 
