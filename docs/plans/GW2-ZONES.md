@@ -1,6 +1,8 @@
 # Shards as fun as Guild Wars 2 zones
 
-> **State:** review, 2026-10-01; moved into this repo on 2026-10-03 (E430). Its council's files
+**State:** `draft` 2026-10-10 — moved into docs/plans/ (E470); its decided rules live in [WORLDCLAW-SHARD](WORLDCLAW-SHARD.md) (D41 play gates) and [FINISH-LINE](FINISH-LINE.md) S8; nothing built from it directly.
+
+> **Was:** review, 2026-10-01; moved into this repo on 2026-10-03 (E430). Its council's files
 > are archived in `project/archive/2026-10-01-gw2-zones-council/`. It went through a three-round [council](../process/COUNCIL.md) (Codex + Claude seats), and every
 > finding is fixed or parked in the [register](../../project/archive/2026-10-01-gw2-zones-council/register.md).
 >
