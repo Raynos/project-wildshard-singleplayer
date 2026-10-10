@@ -116,3 +116,52 @@ cancel the surviving texture. Five focused files / 51 tests, strict committed
 HEAD + own hunks, and touched lint pass. No new public API, import edge, collider,
 input manifest, or visual change. Native error clearance and performance remain
 pending the quiet matched desktop/Safari run; this is not a pass receipt.
+
+
+## Quiet normative run on 5ee864810
+
+The matched Chromium phone-tier G270 circuit PASS: all six real-input routes
+completed at 5 Mbit/s with the unchanged 3 / 10 s stalls, zero refusals, page errors,
+or native WebGL warnings. In particular, the return no longer reports invalid
+canvas uploads or the subsequent 1281 compressed-upload refusal. This run has no
+extra GL mutation wrappers, program-query wrappers, or error drains.
+
+| Crossing owner | Departure synchronous ms | Entry synchronous ms |
+| --- | ---: | ---: |
+| Driftwood → Pine | 17.7 | 0.2 |
+| Pine → Nalati | 16.8 | 0.1 |
+| Nalati → Template 1 | 15.2 | 0.1 |
+| Template 1 → Sky Reach | 30.1 | 0.1 |
+| Sky Reach → Signal Dunes | 13.9 | 0.1 |
+| Signal Dunes → Driftwood | 5.7 | 0.0 |
+
+The largest demand wait is 3.5 ms; the largest activation is 3.5 ms. The maximum
+30.1 ms departure includes a 29.6 ms template checkpoint and stays below 33 ms.
+Drawn-frame p95 is 33.4 ms, exactly the same session's standing p95 (33.4 ms);
+p99 is 33.5 ms. The measured timestamp quantum is 0.1 ms: this passes the explicit
+same-session resolution rule, with the raw figures retained. No draw-time, driver,
+or unclassified compilation occurred. There were 1,876 explicit compileShader
+warm-up calls in 556 renderer.compile invocations; the largest invocation is
+7.4 ms. None overlaps an observed >50 ms task, so its observed task upper bound
+is 50 ms, not an invented exact zero. The first crossroads window has zero
+compilation calls of any class.
+
+Route one-minute load medians are 5.35 / 4.74 / 4.57 / 3.40 / 2.54 / 2.71
+(range 2.46–6.35). The owned quiet marker ran 09:15:27–09:32:35 UTC on
+2026-10-10, below its 25-minute ceiling, and was removed in finally. The preview,
+browsers, Simulator, Inspector and proxy also closed. Desktop evidence SHA-256:
+`b2a1bbf2f992e10208a636837478e6b5f02d26fb61e913a2b118169bd35ced67`.
+
+The same-pin Simulator Safari Auto Driftwood/Signal subset is a completed FAIL
+before measurement: public home never became grid-ready, final grid state is
+null, and no route, crossing, activation or drawn-frame sample exists. Auto chose
+images because Driftwood's KTX2 set was not cached. No page error was captured;
+that does not establish the missing boot cause. Its load median is 5.81
+(range 4.68–18.76). No Simulator cadence/install pass is claimed. Evidence SHA-256:
+`631fc736ec9e4439606c2a3b00ccdd5ad572fea4cb4b0d92a80f63ad40261ec1`.
+The Simulator subset still needs a boot-diagnosed run. Phone memory remains G269.
+
+This closes the disposed-inventory native GL fault and the desktop SF22 gates,
+not the loading budget: the initial boot still contains a 129 ms task, and a
+208 ms route task outside the measured crossing install remains open. Raw evidence
+stays in the lane scratchpad; only this summary is committed.
