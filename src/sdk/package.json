@@ -89,6 +89,7 @@
     "./looks/renderPass": "./looks/renderPass.ts",
     "./looks/weave": "./looks/weave.ts",
     "./looks/strandCloth": "./looks/strandCloth.ts",
+    "./looks/canvasAtlas": "./looks/canvasAtlas.ts",
     "./cull/instanceCuller": "./cull/instanceCuller.ts",
     "./cull/meshLod": "./cull/meshLod.ts",
     "./cull/figureCrowd": "./cull/figureCrowd.ts",

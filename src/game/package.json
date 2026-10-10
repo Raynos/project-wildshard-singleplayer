@@ -28,6 +28,7 @@
     "./systems/looks/renderPass": "./systems/looks/renderPass.ts",
     "./systems/looks/weave": "./systems/looks/weave.ts",
     "./systems/looks/strandCloth": "./systems/looks/strandCloth.ts",
+    "./systems/looks/canvasAtlas": "./systems/looks/canvasAtlas.ts",
     "./systems/cull/instanceCuller": "./systems/cull/instanceCuller.ts",
     "./systems/cull/meshLod": "./systems/cull/meshLod.ts",
     "./systems/cull/figureCrowd": "./systems/cull/figureCrowd.ts",

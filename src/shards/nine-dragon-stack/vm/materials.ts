@@ -18,143 +18,23 @@
 // - The hull (inkHullMaterial): back faces pushed out a constant pixel width along an averaged normal; living classes
 //   swell and thin along the stroke (a dry brush), built classes stay ruled. The glow gets none.
 import {
-  BackSide, CanvasTexture, type Color, DataTexture, LinearMipmapLinearFilter, Matrix3, SRGBColorSpace, ShaderMaterial, type Texture,
+  BackSide, type Color, DataTexture, Matrix3, ShaderMaterial, type Texture,
   type Vector2, type Vector3, Vector4,
 } from 'three';
 import { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } from '../data/vmLook';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
+import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
+import { JIAN_DECALS, JIAN_DECAL_UV } from '../data/decals';
 import { decalScale, type NdTier } from '../tier';
 
-
-const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
-const SEAL = '"Noto Serif TC", "Songti TC", serif';
-
-/** a 祥云 scroll: three curls on a flat tail, one stroke */
-function cloud(g: CanvasRenderingContext2D, x: number, y: number, s: number, flip: boolean): void {
-  g.save();
-  g.translate(x, y);
-  if (flip) g.scale(-1, 1);
-  g.beginPath();
-  g.moveTo(-s * 2.6, s * 0.6);
-  g.lineTo(-s * 0.6, s * 0.6);
-  g.arc(-s * 0.6, 0, s * 0.6, Math.PI / 2, -Math.PI / 2, true);
-  g.arc(-s * 0.6, -s * 0.3, s * 0.3, -Math.PI / 2, Math.PI / 2, true);
-  g.moveTo(-s * 0.2, s * 0.6);
-  g.arc(s * 0.4, -s * 0.1, s * 0.8, Math.PI * 0.8, -Math.PI * 0.2, false);
-  g.arc(s * 0.55, -s * 0.25, s * 0.35, -Math.PI * 0.2, Math.PI * 0.8, false);
-  g.moveTo(s, s * 0.6);
-  g.arc(s * 1.35, s * 0.15, s * 0.45, Math.PI * 0.75, -Math.PI * 0.4, false);
-  g.lineTo(s * 3.0, s * 0.6);
-  g.stroke();
-  // the inner echo line (engravers double the scroll)
-  g.globalAlpha = 0.55;
-  g.beginPath();
-  g.arc(s * 0.4, -s * 0.1, s * 0.55, Math.PI * 0.85, -Math.PI * 0.1, false);
-  g.stroke();
-  g.globalAlpha = 1;
-  g.restore();
-}
 
 /** the decal atlas: the blade etch strip (top 256 px of 2048) and the fu talisman cell */
 export interface Decals { tex: Texture; etch: Vector4; fu: Vector4 }
 
+/** the jian's decal atlas (data/decals.ts JIAN_DECALS), painted at the tier's decal scale */
 export function decalAtlas(tier: NdTier): Decals {
-  const W = 2048, H = 1024;
-  const scale = decalScale(tier);
-  const cv = document.createElement('canvas');
-  cv.width = W * scale;
-  cv.height = H * scale;
-  const g = cv.getContext('2d');
-  if (g === null) throw new Error('2d canvas unavailable');
-  g.scale(scale, scale); // preserve all authored UVs and drawing coordinates at phone resolution
-  g.fillStyle = '#000';
-  g.fillRect(0, 0, W, H);
-  // ── the etch strip (x 0..2048 = blade root → tip, y 0..256 = across one flat, the ridge at y 128) ──
-  const EH = 256;
-  g.strokeStyle = '#fff';
-  g.lineCap = 'round';
-  g.lineJoin = 'round';
-  // the fuller rulings: two engraved lines either side of the ridge, fading out toward the tip
-  g.lineWidth = 2.2;
-  for (const y of [104, 152]) {
-    g.beginPath();
-    g.moveTo(40, y);
-    g.lineTo(1500, y + (y < 128 ? 10 : -10));
-    g.stroke();
-  }
-  // clouds along the fuller, alternating sides, shrinking toward the tip
-  g.lineWidth = 3;
-  for (let i = 0; i < 9; i++) {
-    const x = 330 + i * 150 + (i % 2) * 30;
-    const s = 17 - i * 1.1;
-    cloud(g, x, i % 2 === 0 ? 70 : 190, s, i % 2 === 1);
-  }
-  // circuit rulings (the neon jian's traces): stepped lines toward the tip
-  g.lineWidth = 1.8;
-  g.beginPath();
-  g.moveTo(1450, 118); g.lineTo(1640, 118); g.lineTo(1662, 100); g.lineTo(1860, 100);
-  g.moveTo(1500, 140); g.lineTo(1700, 140); g.lineTo(1720, 156); g.lineTo(1900, 156);
-  g.stroke();
-  for (const [x, y] of [[1860, 100], [1900, 156], [1640, 118]] as const) {
-    g.beginPath();
-    g.arc(x, y, 4, 0, Math.PI * 2);
-    g.stroke();
-  }
-  // the 卍-knot medallion near the guard (x ≈ 150) and two seal characters under it
-  g.lineWidth = 4;
-  g.beginPath(); g.arc(150, 128, 58, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 2.5;
-  g.beginPath(); g.arc(150, 128, 44, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 3.5;
-  g.strokeRect(128, 106, 44, 44);
-  g.beginPath();
-  g.moveTo(150, 90); g.lineTo(150, 166); g.moveTo(112, 128); g.lineTo(188, 128);
-  g.stroke();
-  g.fillStyle = '#fff';
-  g.font = `900 38px ${SEAL}`;
-  g.textAlign = 'center';
-  g.textBaseline = 'middle';
-  g.save();
-  g.translate(268, 128);
-  g.rotate(Math.PI / 2);
-  g.fillText('九龍', 0, 0);
-  g.restore();
-  // ── the talisman cell (x 0..384, y 256..1024): gamboge paper, red borders, red kai 鎮邪, a seal ──
-  const fx = 0, fy = EH, fw = 384, fh = 768;
-  g.fillStyle = '#e8c261';
-  g.fillRect(fx, fy, fw, fh);
-  let s = 11;
-  const rnd = (): number => { s = (s * 16807) % 2147483647; return s / 2147483647; };
-  for (let i = 0; i < 1400; i++) {
-    g.fillStyle = rnd() < 0.5 ? 'rgba(255,240,190,0.35)' : 'rgba(150,100,30,0.12)';
-    g.fillRect(fx + rnd() * fw, fy + rnd() * fh, 1 + rnd() * 5, 1 + rnd() * 2);
-  }
-  // age: a darker rim, a water stain
-  const grd = g.createRadialGradient(fx + fw / 2, fy + fh / 2, fw * 0.2, fx + fw / 2, fy + fh / 2, fh * 0.62);
-  grd.addColorStop(0, 'rgba(0,0,0,0)');
-  grd.addColorStop(1, 'rgba(120,70,20,0.35)');
-  g.fillStyle = grd;
-  g.fillRect(fx, fy, fw, fh);
-  g.strokeStyle = '#9f2217';
-  g.lineWidth = 6;
-  g.strokeRect(fx + 22, fy + 22, fw - 44, fh - 44);
-  g.lineWidth = 3;
-  g.strokeRect(fx + 38, fy + 38, fw - 76, fh - 76);
-  g.fillStyle = '#ad2418';
-  g.font = `700 150px ${KAI}`;
-  g.fillText('鎮', fx + fw / 2, fy + 190);
-  g.fillText('邪', fx + fw / 2, fy + 360);
-  g.font = `700 64px ${KAI}`;
-  g.fillText('敕令', fx + fw / 2, fy + 490);
-  g.fillRect(fx + fw / 2 - 48, fy + 560, 96, 96);
-  g.fillStyle = '#e8c261';
-  g.font = `700 56px ${SEAL}`;
-  g.fillText('印', fx + fw / 2, fy + 610);
-  const tex = new CanvasTexture(cv);
-  tex.colorSpace = SRGBColorSpace;
-  tex.minFilter = LinearMipmapLinearFilter;
-  tex.anisotropy = 8;
-  return { tex, etch: new Vector4(0, 1 - EH / H, 1, 1), fu: new Vector4(fx / W, 1 - (fy + fh) / H, (fx + fw) / W, 1 - fy / H) };
+  const e = JIAN_DECAL_UV.etch, f = JIAN_DECAL_UV.fu;
+  return { tex: paintCanvasAtlas(JIAN_DECALS, decalScale(tier)), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
 }
 
 

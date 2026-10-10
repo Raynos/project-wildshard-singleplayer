@@ -10,10 +10,12 @@
 // - Matte is 3 hard bands of a key light from the upper left + a thin rim on the lit side (a painter's reflected light).
 // - Built parts keep the Kit's ruled face edges (aMisc.y weight, aMisc.w edge bits) in 焦墨; living parts (matte, silk)
 //   get none — their outline is the hull's brush line.
-// The classes, the GLSL and the tuning are data (data/heroVm.ts); this module draws the decal atlas and makes the material.
-import { CanvasTexture, type Color, type DataTexture, LinearMipmapLinearFilter, SRGBColorSpace, ShaderMaterial, type Texture, type Vector3 } from 'three';
+// The classes, the GLSL and the tuning are data (data/heroVm.ts); the decal atlas is rows (data/decals.ts); this module makes the material.
+import { type Color, type DataTexture, ShaderMaterial, type Texture, type Vector3 } from 'three';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { plainWeaveTexture } from '@wildshard/sdk/looks/weave';
+import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
+import { HERO_DECALS, HERO_DECAL_UV } from '../../data/decals';
 import { HERO_VM, HERO_VM_FS, HERO_VM_UNIFORMS, HERO_VM_VS } from '../../data/heroVm';
 
 /** material classes (the Kit's `kind` slot, aPat.x); values clear of the architecture kinds 0–8 */
@@ -27,76 +29,9 @@ export function weaveTexture(): DataTexture {
 /** the decal atlas: the blade's etched cloud scrolls (top half) and the fu talisman (bottom-left cell) */
 export interface Decals { tex: Texture; etch: readonly [number, number, number, number]; fu: readonly [number, number, number, number] }
 
-const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
-
-function cloud(g: CanvasRenderingContext2D, x: number, y: number, s: number): void {
-  // a 祥云 scroll: three curls on a flat tail, drawn as one stroke
-  g.beginPath();
-  g.moveTo(x - s * 2.2, y + s * 0.6);
-  g.lineTo(x - s * 0.6, y + s * 0.6);
-  g.arc(x - s * 0.6, y, s * 0.6, Math.PI / 2, -Math.PI / 2, true);
-  g.arc(x - s * 0.6, y - s * 0.3, s * 0.3, -Math.PI / 2, Math.PI / 2, true);
-  g.moveTo(x - s * 0.2, y + s * 0.6);
-  g.arc(x + s * 0.4, y - s * 0.1, s * 0.8, Math.PI * 0.8, -Math.PI * 0.2, false);
-  g.arc(x + s * 0.55, y - s * 0.25, s * 0.35, -Math.PI * 0.2, Math.PI * 0.8, false);
-  g.moveTo(x + s, y + s * 0.6);
-  g.arc(x + s * 1.35, y + s * 0.15, s * 0.45, Math.PI * 0.75, -Math.PI * 0.4, false);
-  g.lineTo(x + s * 2.6, y + s * 0.6);
-  g.stroke();
-}
-
+/** the hero lab's decal atlas (data/decals.ts HERO_DECALS) */
 export function decalAtlas(): Decals {
-  const W = 1024, H = 512;
-  const cv = document.createElement('canvas');
-  cv.width = W;
-  cv.height = H;
-  const g = cv.getContext('2d');
-  if (g === null) throw new Error('2d canvas unavailable');
-  // etch strip (y 0..128): pale engraved lines on transparent black; the shader lightens the steel by its red channel
-  g.fillStyle = '#000';
-  g.fillRect(0, 0, W, H);
-  g.strokeStyle = '#fff';
-  g.lineCap = 'round';
-  g.lineWidth = 2.2;
-  for (let i = 0; i < 6; i++) cloud(g, 90 + i * 150 + (i % 2) * 30, 64 + (i % 2 === 0 ? -14 : 16), 15 + (i % 3) * 4);
-  // circuit ruling: the "neon" jian's engraved traces along the fuller
-  g.lineWidth = 1.6;
-  g.beginPath();
-  g.moveTo(10, 60); g.lineTo(300, 60); g.lineTo(320, 44); g.lineTo(520, 44);
-  g.moveTo(560, 80); g.lineTo(760, 80); g.lineTo(780, 64); g.lineTo(1010, 64);
-  g.stroke();
-  // the 卍-knot medallion near the guard end (x ≈ 980)
-  g.lineWidth = 3;
-  g.beginPath(); g.arc(975, 64, 34, 0, Math.PI * 2); g.stroke();
-  g.beginPath(); g.arc(975, 64, 24, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 2.5;
-  g.strokeRect(962, 51, 26, 26);
-  // the talisman (x 0..256, y 128..512 as one tall cell): gamboge paper, a red border, red kai characters, a seal
-  const fx = 0, fy = 128, fw = 192, fh = 384;
-  g.fillStyle = '#ecc766';
-  g.fillRect(fx, fy, fw, fh);
-  g.fillStyle = 'rgba(255,240,190,0.35)';
-  for (let i = 0; i < 90; i++) g.fillRect(fx + ((i * 53) % fw), fy + ((i * 97) % fh), 2 + (i % 4), 1 + (i % 3));
-  g.strokeStyle = '#a3241a';
-  g.lineWidth = 3;
-  g.strokeRect(fx + 12, fy + 12, fw - 24, fh - 24);
-  g.lineWidth = 2;
-  g.strokeRect(fx + 22, fy + 22, fw - 44, fh - 44);
-  g.fillStyle = '#b3261a';
-  g.font = `700 92px ${KAI}`;
-  g.textAlign = 'center';
-  g.textBaseline = 'middle';
-  g.fillText('鎮', fx + fw / 2, fy + 108);
-  g.fillText('邪', fx + fw / 2, fy + 214);
-  g.fillRect(fx + fw / 2 - 26, fy + 280, 52, 52);
-  g.fillStyle = '#ecc766';
-  g.font = `700 34px ${KAI}`;
-  g.fillText('敕', fx + fw / 2, fy + 306);
-  const tex = new CanvasTexture(cv);
-  tex.colorSpace = SRGBColorSpace;
-  tex.minFilter = LinearMipmapLinearFilter;
-  tex.anisotropy = 8;
-  return { tex, etch: [0, 1 - 128 / H, 1, 1], fu: [fx / W, 1 - (fy + fh) / H, (fx + fw) / W, 1 - fy / H] };
+  return { tex: paintCanvasAtlas(HERO_DECALS), etch: HERO_DECAL_UV.etch, fu: HERO_DECAL_UV.fu };
 }
 
 export interface VmUniforms {
