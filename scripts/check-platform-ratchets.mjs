@@ -1,15 +1,68 @@
 // SF1b: immutable predecessor lists, never the candidate's own allowance, set the limit.
 import { compareCoupling, compareWeaponTransfers, WEAPON_TRANSFER_BOOTSTRAP, WEAPON_TRANSFER_LIST } from './shard-coupling.mjs';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareLegacyInventory, LEGACY_INVENTORY } from './legacy-shards.mjs';
 
 export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
 
-/** Explicit file inputs work in an index export and in a post-commit export with no .git. */
-export function comparePlatformList(list, baselineFile, candidateFile) {
+// Consume removed predecessor syntax once, across all destinations. Immutable source trees establish
+// whether an implementation actually moved; neither the new allowance nor a review label can grant debt.
+function siteCounts(source, filename) {
+  const counts = new Map();
+  for (const site of runtimePerformanceSites(source, filename)) {
+    if (site.kind === 'syntax') continue;
+    const key = `${site.kind}:${site.site}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+function removedPlatformSites(baselineRoot, candidateRoot) {
+  const removed = new Map();
+  const walk = dir => {
+    if (!existsSync(join(baselineRoot, dir))) return;
+    for (const entry of readdirSync(join(baselineRoot, dir), { withFileTypes: true })) {
+      const file = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) { walk(file); continue; }
+      if (!entry.isFile() || !file.endsWith('.ts') || file.endsWith('.d.ts')) continue;
+      const before = readFileSync(join(baselineRoot, file), 'utf8'), next = join(candidateRoot, file);
+      const after = existsSync(next) ? readFileSync(next, 'utf8') : '';
+      if (before === after) continue;
+      const remaining = siteCounts(after, file);
+      for (const [key, count] of siteCounts(before, file)) {
+        const gone = count - (remaining.get(key) ?? 0);
+        if (gone > 0) removed.set(key, (removed.get(key) ?? 0) + gone);
+      }
+    }
+  };
+  for (const layer of ['game', 'sdk', 'engine']) walk(`src/${layer}`);
+  return removed;
+}
+function verbatimRuntimeMoves(before, after, trees) {
+  const admitted = new Set();
+  if (trees === undefined) return admitted;
+  const newSites = Object.entries(after.sites).filter(([key]) => !Object.hasOwn(before.sites, key));
+  if (newSites.length === 0) return admitted;
+  const removed = removedPlatformSites(trees.baselineRoot, trees.candidateRoot), targets = new Map();
+  for (const [site, item] of newSites) {
+    const match = /^(src\/shards\/[^/]+\/[^:]+\.ts):([^:]+):([a-f0-9]{64})$/u.exec(site);
+    if (match === null || !Number.isSafeInteger(item.count) || item.count <= 0) continue;
+    const [, file, rule, hash] = match, key = `${rule}:${hash}`, target = join(trees.candidateRoot, file);
+    if (file.split('/').includes('..')) continue;
+    if (!existsSync(target)) continue;
+    if (!targets.has(file)) targets.set(file, siteCounts(readFileSync(target, 'utf8'), file));
+    if ((targets.get(file).get(key) ?? 0) < item.count || (removed.get(key) ?? 0) < item.count) continue;
+    removed.set(key, removed.get(key) - item.count);
+    admitted.add(site);
+  }
+  return admitted;
+}
+
+/** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only. */
+export function comparePlatformList(list, baselineFile, candidateFile, trees) {
   if (list === LEGACY_INVENTORY) {
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: frozen policy removed; retire its rows instead`] : [];
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : { version: 1, sealed: false, shards: {} };
@@ -30,10 +83,11 @@ export function comparePlatformList(list, baselineFile, candidateFile) {
       return digest === '77308f0fdfbbb38ae8d19cd97d5d9940a396fd1f16edf1a009ef878f5aace0de' && after.baselineAt === 'fadcee06196f345f706aa9f7e01a3bb027968a20' ? [] : [`${list}: bootstrap differs from the reviewed inventory`];
     }
     const before = JSON.parse(readFileSync(baselineFile, 'utf8')), failures = [];
+    const migrated = verbatimRuntimeMoves(before, after, trees);
     if (after.baselineAt !== before.baselineAt || after.about !== before.about || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
     for (const [site, item] of Object.entries(after.sites)) {
       const previous = before.sites[site];
-      if (!previous) failures.push(`${list}: new runtime site ${site}`);
+      if (!previous) { if (!migrated.has(site)) failures.push(`${list}: new runtime site ${site}`); }
       else {
         if (item.count > previous.count) failures.push(`${list}: ${site} count rose`);
         if (item.row !== previous.row) failures.push(`${list}: ${site} retirement owner changed`);
@@ -91,7 +145,7 @@ export function comparePlatformList(list, baselineFile, candidateFile) {
 }
 
 export function checkPlatformRatchets(baselineRoot, candidateRoot) {
-  return PLATFORM_LISTS.flatMap((list) => comparePlatformList(list, resolve(baselineRoot, list), resolve(candidateRoot, list)));
+  return PLATFORM_LISTS.flatMap((list) => comparePlatformList(list, resolve(baselineRoot, list), resolve(candidateRoot, list), { baselineRoot, candidateRoot }));
 }
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [baseline, candidate] = process.argv.slice(2);
