@@ -18,11 +18,33 @@ import { Terrain, terrainChunkGeometry } from '../src/engine/world/Terrain';
 import { bakedSamplers, bakedUndergrowth } from '../src/engine/world/BakedTerrain';
 import { heightAt } from '../src/engine/world/Heightfield';
 import { prepareNativeTerrain } from '../scripts/bake/nativeWorld.mjs';
+import { shardEntry } from '../src/game/shard/entryMode';
 
 const source = () => emptyShardfileSource(emptyShardfile({ slug: 'bake-host-fixture', name: 'Bake host fixture', author: 'Fixture', revision: 1, seed: 73 }));
 const root = cwd();
 
 describe('shared authored world capture guard', () => {
+  it('builds the authored plugin independently of the public product entry and saved Developer choice', async () => {
+    const { sky } = fakeWorld();
+    const entries = { legacy: true, shardfile: true, public: 'shardfile' } as const;
+    const choices = () => ({ read: () => 'shardfile' as const, choose: () => undefined });
+    let builds = 0;
+    const manifest = { ...source(), entries, load: () => Promise.resolve({ default: class {
+      world(ctx: ShardContext): void {
+        expect(shardEntry(ctx.manifest, false)).toBe('legacy');
+        expect(shardEntry(ctx.manifest, true, choices)).toBe('legacy');
+        ctx.piece({ id: 'authored-floor', name: 'Floor', category: 'ground', file: 'test/bake-world-host.test.ts',
+          colliders: [{ kind: 'box', x: 0, y: -0.5, z: 0, hx: 2, hy: 0.5, hz: 2 }] });
+        builds++;
+      }
+    } }) };
+    const result = await visitAuthoredWorld(manifest, { root, sky, element: () => document.createElement('canvas') });
+    expect(builds).toBe(1); expect(result.counts).toEqual({ 'authored-floor': 1 });
+    expect(result.colliders).toEqual([{ kind: 'box', x: 0, y: -0.5, z: 0, hx: 2, hy: 0.5, hz: 2 }]);
+    expect(manifest.entries).toBe(entries); expect(shardEntry(manifest, false)).toBe('shardfile');
+    expect(app.levelScope).toBeNull(); expect(app.physics).toBeNull();
+  });
+
   it('refuses mismatched native identity and unbounded placement data before changing the selected samplers', async () => {
     const bytes = readFileSync('public/assets/baked/pine-hollow/terrain.bin');
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), seed = view.getUint32(16, true);
