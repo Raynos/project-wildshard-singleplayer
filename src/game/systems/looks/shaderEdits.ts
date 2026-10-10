@@ -1,4 +1,5 @@
 import { ShaderChunk } from 'three';
+import { ShaderFamily } from './shaderFamily';
 
 /**
  * Shader edits as declared rows (SHARD-PLATFORM M3, look-family rows): a shard that re-dresses a stock material (a
@@ -12,6 +13,7 @@ import { ShaderChunk } from 'three';
  *   with a factor on every directional light. A text edit whose `flags` are set finds a regular expression (its source in
  *   `find`), so `'g'` replaces every match and `$1` puts a group back.
  * - Rows run in their written order, each on the source the previous row left.
+ * - `spliceEdits` fills a row list's `@{name}` splices (the numbers a caller formats) before `editShader` applies it.
  */
 
 /** One text edit: `find` (a string, or a RegExp source when `flags` is set) replaced by `put`. */
@@ -63,4 +65,12 @@ export function editShader(shader: ShaderStages, rows: readonly ShaderEditRow[])
     if (row.stage === 'vertex') shader.vertexShader = shader.vertexShader.replace(row.find, put);
     else shader.fragmentShader = shader.fragmentShader.replace(row.find, put);
   }
+}
+
+const SPLICER = new ShaderFamily({}, {});
+
+/** `rows` with every `@{name}` in their text puts replaced from `extra` (recursively, as `ShaderFamily.glsl` splices);
+ *  a chunk put is kept as it is. A shard's data rows hold the GLSL, the caller formats the numbers. */
+export function spliceEdits(rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] {
+  return rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICER.glsl(r.put, extra) } : r));
 }

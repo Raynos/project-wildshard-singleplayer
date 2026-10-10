@@ -1,15 +1,9 @@
 import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { FAN_SILK_EDITS } from '../data/paintLook';
 import { gloveHand, heroHand } from './glove';
-
-const SPLICE = new ShaderFamily({}, {});
-/** `rows` with every `@{name}` in their text replaced from `extra`. */
-const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
-  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
 
 /**
  * The war fan to mockup C (round-18-council-mockups; E399 seats: "the fan is plain and bright, thin gold ribs on flat
@@ -139,7 +133,7 @@ export function fanParts(): FanParts {
   // the painted silk toward the mockups' muted, lighter teal (E399 round 6, measured in the leaf region: mockup C's median
   // 47,91,97 and A's 55,71,77 against ours 2,48,49, its red channel at 0-2): part-way to grey, then lifted
   patchShader(silk, 'far.fan-silk', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, spliced(FAN_SILK_EDITS, { saturation: SILK.saturation.toFixed(2), lift: SILK.lift.toFixed(2), tint: SILK.tint.map((v) => v.toFixed(2)).join(', ') }));
+    editShader(shader, spliceEdits(FAN_SILK_EDITS, { saturation: SILK.saturation.toFixed(2), lift: SILK.lift.toFixed(2), tint: SILK.tint.map((v) => v.toFixed(2)).join(', ') }));
   }, { key: (prior) => `${prior}|far.fan-silk` });
   const lacquer = new MeshStandardMaterial({ vertexColors: true, roughness: 0.36, metalness: 0.1, side: 2 });
   const bronze = new MeshStandardMaterial({ color: 0x7a5c32, roughness: 0.42, metalness: 0.55, emissive: 0x0a0602 });

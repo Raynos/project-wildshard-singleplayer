@@ -1,18 +1,12 @@
 import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../data/bridgeLook';
 import { ropeSag } from '../layout';
 import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
 import { towerMill } from './mill';
 import { skyBakedGeometry } from './baked';
-
-const SPLICE = new ShaderFamily({}, {});
-/** `rows` with every `@{name}` in their text replaced from `extra`. */
-const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
-  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
@@ -123,7 +117,7 @@ const WEATHER = { deck: 0.6, post: 0.8 } as const;
 function deckWood(): MeshStandardMaterial {
   const m = flat(0xffffff, { vertexColors: true, flatShading: false, roughness: 0.9 });
   patchShader(m, 'far.deck-wood', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, spliced(DECK_WOOD_EDITS, { weather: WEATHER.deck.toFixed(2) }));
+    editShader(shader, spliceEdits(DECK_WOOD_EDITS, { weather: WEATHER.deck.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.deck-wood` });
   return m;
 }
@@ -155,7 +149,7 @@ function hdPosts(width: number, length: number): InstancedMesh | null {
   // the timber weathered to the mockups' silver-grey (its paint came out orange-brown); the gold hemp and the iron band,
   // brighter or bluer than the wood, kept
   patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, spliced(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
+    editShader(shader, spliceEdits(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.post-weather` });
   const g = fit(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, material, 4);
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), one = new Vector3(1, 1, 1);

@@ -1,7 +1,6 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { ISLE_PAINT, ISLE_PAINT_EDITS } from '../data/isleLook';
 import type { Isle } from '../data/layout';
 import { apothem } from '../layout';
@@ -152,11 +151,6 @@ export function islandMesh(isle: Isle, random: () => number): Mesh<BufferGeometr
   return new Mesh(g, material);
 }
 
-const SPLICE = new ShaderFamily({}, {});
-/** `rows` with every `@{name}` in their text replaced from `extra`. */
-const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
-  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
-
 /**
  * The islands' paint (E392), on any vertex-coloured material (the islands, the boulders): green faces get the painted
  * meadow, tonal patches and daisies; the rest the painted cliff rock, triplanar in world space. `rockMix` is how much of
@@ -169,7 +163,7 @@ export function paintIsleMaterial(material: MeshStandardMaterial, rockMix = 0.85
   patchShader(material, 'far.isle-meadow', PATCH_ORDER.decorate, (shader) => {
     if (rock !== null) shader.uniforms['farRock'] = { value: rock };
     if (meadow !== null) shader.uniforms['farMeadow'] = { value: meadow };
-    editShader(shader, spliced(ISLE_PAINT_EDITS, { textures: `${rock !== null ? ISLE_PAINT.rockTex : ''}${meadow !== null ? ISLE_PAINT.meadowTex : ''}`, rockMix: rockMix.toFixed(2) }));
+    editShader(shader, spliceEdits(ISLE_PAINT_EDITS, { textures: `${rock !== null ? ISLE_PAINT.rockTex : ''}${meadow !== null ? ISLE_PAINT.meadowTex : ''}`, rockMix: rockMix.toFixed(2) }));
   // its own program key: three caches programs by the last patch's text, and the scene-wide fog patch (look/render.ts)
   // is the same text on every material, so without a key the islands reuse an unpatched program
   }, { key: (prior) => `${prior}|far.isle-meadow:${rock !== null ? 'r' : ''}${meadow !== null ? 'm' : ''}:${rockMix}` });

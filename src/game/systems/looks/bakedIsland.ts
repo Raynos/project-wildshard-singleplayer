@@ -5,8 +5,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { CELL } from '@wildshard/engine/world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { editShader, type ShaderEditRow } from './shaderEdits';
-import { ShaderFamily } from './shaderFamily';
+import { editShader, spliceEdits, type ShaderEditRow } from './shaderEdits';
 
 /**
  * A baked island's generic parts (SHARD-PLATFORM M3; ex a shard's Blender-island install): an area of the world rebuilt
@@ -61,18 +60,11 @@ export interface BakedPropsRow {
  *  colour over the `grow` m before it; `key` is its program key */
 export interface IslandCoverFade { readonly near: number; readonly far: number; readonly grow: number; readonly key: string }
 
-const SPLICE = new ShaderFamily({}, {});
-
-/** `rows` with every `@{name}` in their text replaced from `extra` */
-function spliced(rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] {
-  return rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
-}
-
 /** The baked terrain's toon material: vertex colours, flat shading, the baked AO and the bounce lightmap (intensity 0
  *  until `sunBounceLevel` sets it), fog and the sky rig's setup. */
 export function bakedTerrainMaterial(row: BakedTerrainRow, ao: THREE.Texture, bounce: THREE.Texture, sky: Sky): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0, aoMap: ao, aoMapIntensity: 1, lightMap: bounce, lightMapIntensity: 0 });
-  const edits = spliced(row.edits, { aoDirect: row.aoDirect.toFixed(2) });
+  const edits = spliceEdits(row.edits, { aoDirect: row.aoDirect.toFixed(2) });
   patchShader(mat, row.patch, PATCH_ORDER.material, (sh) => {
     attachFogUniforms(sh);
     editShader(sh, edits);
@@ -86,7 +78,7 @@ export function bakedTerrainMaterial(row: BakedTerrainRow, ao: THREE.Texture, bo
 export function bakedPropsMaterial(row: BakedPropsRow, sky: Sky, cover: IslandCoverFade | null, tinted = true): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0, side: THREE.DoubleSide });
   const edits = [...row.ao, ...(tinted ? row.tint : [])];
-  if (cover !== null) edits.push(...spliced(row.fade, { edgeNear: (cover.near + cover.grow).toFixed(1), far: cover.far.toFixed(1), grow: cover.grow.toFixed(1) }));
+  if (cover !== null) edits.push(...spliceEdits(row.fade, { edgeNear: (cover.near + cover.grow).toFixed(1), far: cover.far.toFixed(1), grow: cover.grow.toFixed(1) }));
   patchShader(mat, row.patch, PATCH_ORDER.material, (s) => {
     attachFogUniforms(s);
     editShader(s, edits);
@@ -99,7 +91,7 @@ export function bakedPropsMaterial(row: BakedPropsRow, sky: Sky, cover: IslandCo
  *  `@{x0}` … `@{z1}` splice the rect to three decimals; the program key gains `|<row.key>`. */
 export function clipInstancedRect(mat: THREE.Material, rect: IslandRect, row: IslandPatchRow): void {
   const f = (v: number) => v.toFixed(3);
-  const edits = spliced(row.edits, { x0: f(rect.x0), x1: f(rect.x1), z0: f(rect.z0), z1: f(rect.z1) });
+  const edits = spliceEdits(row.edits, { x0: f(rect.x0), x1: f(rect.x1), z0: f(rect.z0), z1: f(rect.z1) });
   patchShader(mat, row.patch, PATCH_ORDER.decorate, (shader) => {
     editShader(shader, edits);
   }, { key: (k) => `${k}|${row.key}` });

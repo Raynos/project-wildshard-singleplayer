@@ -2,17 +2,12 @@ import { BackSide, Box3, Color, DoubleSide, FrontSide, Group, InstancedMesh, Mat
 import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../data/layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
 import { hdMaterial, skyHd } from './meshes';
 import type { SkyIsle } from './skyIsles';
 import { SKY, SUN_DIR } from '../look/sun';
 
-const SPLICE = new ShaderFamily({}, {});
-/** `rows` with every `@{name}` in their text replaced from `extra`. */
-const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
-  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
 function linear(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
 
@@ -221,7 +216,7 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     // the rock grey-brown, the turf kept green (E399: from below the paint read olive-yellow; the mockups' undersides are
     // sandy-grey stone with darker crevices)
     patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
-      editShader(shader, spliced(clipTop ? [...SKY_ISLE_ROCK_EDITS, ...SKY_ISLE_CLIP_EDITS] : SKY_ISLE_ROCK_EDITS, { turf: clipTop ? '0.0' : SKY_ISLE_ROCK.turf,
+      editShader(shader, spliceEdits(clipTop ? [...SKY_ISLE_ROCK_EDITS, ...SKY_ISLE_CLIP_EDITS] : SKY_ISLE_ROCK_EDITS, { turf: clipTop ? '0.0' : SKY_ISLE_ROCK.turf,
         sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), shadeLo: SKY_ISLE_HD.shade[0].toFixed(2), shadeHi: SKY_ISLE_HD.shade[1].toFixed(2),
         hazeColor: linear(SKY_ISLE_HAZE.color), hazeNear: SKY_ISLE_HAZE.near.toFixed(1), hazeSpan: (SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1), hazeMax: SKY_ISLE_HAZE.max.toFixed(2) }));
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
