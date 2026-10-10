@@ -1,0 +1,97 @@
+{
+  "ask": "E435",
+  "slice": "G285 remaining Driftwood static geometry cost screen",
+  "base": "e6fcd7d93ae8a5b3f42ad83ec49cf3ba9970ac79",
+  "method": "Node v24 on the shared Mac; native phone-tier WSTR terrain, authored placements and sequential model RNG; first invocation plus median of three warm builds; geometry construction only, excluding encoding, fetch, decode, upload and placement weld. GLB bytes counted in memory, no assets written. Rope bridge includes its tiny shared instance templates; zipline uses its Explorer specimen. These are a refusal screen, not measured phone CPU or end-to-end loading savings.",
+  "decision": "No new bake: the remaining screened geometry does not demonstrate enough CPU savings to justify the bytes. Do not infer a phone performance improvement from these timings.",
+  "rows": [
+    {
+      "candidate": "entry decks",
+      "copies": 4,
+      "firstBuildMs": 3.72,
+      "warmMedianBuildMs": 0.63,
+      "estimatedFourTimesWarmMs": 2.52,
+      "uncompressedGlbBytes": 90688,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "piers and jetties",
+      "copies": 4,
+      "firstBuildMs": 22.45,
+      "warmMedianBuildMs": 16.77,
+      "estimatedFourTimesWarmMs": 67.08,
+      "uncompressedGlbBytes": 3334300,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "palms",
+      "copies": 204,
+      "firstBuildMs": 27.55,
+      "warmMedianBuildMs": 20.67,
+      "estimatedFourTimesWarmMs": 82.68,
+      "uncompressedGlbBytes": 9044948,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "hibiscus bushes",
+      "copies": 170,
+      "firstBuildMs": 22.14,
+      "warmMedianBuildMs": 17.18,
+      "estimatedFourTimesWarmMs": 68.72,
+      "uncompressedGlbBytes": 8827780,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "zipline specimen",
+      "copies": 1,
+      "firstBuildMs": 3.35,
+      "warmMedianBuildMs": 1.45,
+      "estimatedFourTimesWarmMs": 5.8,
+      "uncompressedGlbBytes": 116048,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "rope bridge",
+      "copies": 1,
+      "firstBuildMs": 2.5,
+      "warmMedianBuildMs": 0.77,
+      "estimatedFourTimesWarmMs": 3.08,
+      "uncompressedGlbBytes": 12496,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "reef coral",
+      "copies": 167,
+      "firstBuildMs": 8.93,
+      "warmMedianBuildMs": 6.32,
+      "estimatedFourTimesWarmMs": 25.28,
+      "uncompressedGlbBytes": 1631616,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "reef seaweed",
+      "copies": 161,
+      "firstBuildMs": 3.15,
+      "warmMedianBuildMs": 1.21,
+      "estimatedFourTimesWarmMs": 4.84,
+      "uncompressedGlbBytes": 950660,
+      "decision": "refused at preliminary cost screen"
+    },
+    {
+      "candidate": "reef starfish",
+      "copies": 32,
+      "firstBuildMs": 0.23,
+      "warmMedianBuildMs": 0.13,
+      "estimatedFourTimesWarmMs": 0.52,
+      "uncompressedGlbBytes": 104448,
+      "decision": "refused at preliminary cost screen"
+    }
+  ],
+  "excluded": {
+    "shrineAndShipwreck": "Coordinator reports refused after op-drift87 phone measurements: shrine ~204 ms / 2.77 MB; shipwreck ~162 ms / ~3 MB.",
+    "rocks": "Painted input geometry already answered by the resident geometry bake; remaining finish arithmetic does not warrant full non-indexed GLBs.",
+    "existingFixedBakes": "Hat, chime, boat, cape, trophy/counter, sword, cover templates, Cove, Trailside, hut and lookout already landed.",
+    "movingAndViewSystems": "Rope-chain poses, moving actors, GPU systems and NPC kits remain live systems; not static world geometry candidates."
+  },
+  "resources": "No browsers, previews or builds started for this screen; all geometries disposed."
+}
