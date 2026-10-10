@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { frameDue, frameInterval, nextDrawnFrame, noteFrameDrawn, paceYield, presenting, setFramePacing } from '@wildshard/engine/core/framePacing';
+import { frameBudgetSpent, frameDue, frameInterval, nextDrawnFrame, noteFrameDrawn, paceYield, presenting, setFramePacing } from '@wildshard/engine/core/framePacing';
 
 // op-hitch26 (E435 frame floor): sliced builds in play leave a drawn frame between stretches when one is due.
 describe('framePacing', () => {
@@ -23,6 +23,17 @@ describe('framePacing', () => {
     for (let i = 0; i <= 10; i++) noteFrameDrawn(t + i * 1000 / 60);
     expect(presenting(t + 10 * 1000 / 60 + 5)).toBe(false);
     expect(frameDue(t + 10 * 1000 / 60 + 16)).toBe(false);
+  });
+  it('shares one frame\'s budget among concurrent builds: spent once the work since the last drawn frame has used it (op-hitch44)', () => {
+    setFramePacing(true);
+    const t = 3_000_000;
+    for (let i = 0; i <= 10; i++) noteFrameDrawn(t + i * 1000 / 60);
+    const last = t + 10 * 1000 / 60;
+    expect(frameBudgetSpent(8, last + 5)).toBe(false);
+    expect(frameBudgetSpent(8, last + 9)).toBe(true);
+    expect(frameBudgetSpent(8, last + 300)).toBe(false); // not presenting: the caller's own budget only
+    setFramePacing(false);
+    expect(frameBudgetSpent(8, last + 9)).toBe(false);
   });
   it('yields through the caller\'s own hop when no frame is due, and never waits without a frame loop', async () => {
     let plain = 0;

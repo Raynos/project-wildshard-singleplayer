@@ -46,6 +46,15 @@ export function frameDue(now: number = diagnosticNow()): boolean {
   return presenting(now) && now - lastDrawn >= interval - DUE_SLACK_MS;
 }
 
+/**
+ * Whether a presenting page's build work since its last drawn frame has used `budgetMs` (op-hitch44): the budget is the
+ * frame's, shared by every sliced build running at once. Each slice's own clock alone let several builds (a herd's coats,
+ * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
+ */
+export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
+  return presenting(now) && now - lastDrawn >= budgetMs;
+}
+
 /** The smoothed interval between drawn frames (ms). */
 export function frameInterval(): number { return interval; }
 
@@ -64,8 +73,10 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
 
 /**
  * End a build stretch: when presenting and a frame is due, wait for the loop to draw it; otherwise `plain()` (the caller's
- * own macrotask hop: a timer, a MessageChannel).
+ * own macrotask hop: a timer, a MessageChannel). `budgetMs`: also wait once the builds since the last drawn frame have used
+ * that much of it (`frameBudgetSpent`), so concurrent sliced builds share one frame's budget.
  */
-export function paceYield(plain: () => Promise<void>, owner?: Scope): Promise<void> {
-  return frameDue() ? nextDrawnFrame(owner) : plain();
+export function paceYield(plain: () => Promise<void>, owner?: Scope, budgetMs?: number): Promise<void> {
+  const now = diagnosticNow();
+  return frameDue(now) || (budgetMs !== undefined && frameBudgetSpent(budgetMs, now)) ? nextDrawnFrame(owner) : plain();
 }

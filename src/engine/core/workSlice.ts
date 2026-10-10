@@ -13,7 +13,7 @@
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { diagnosticNow } from './clock';
-import { paceYield } from './framePacing';
+import { frameBudgetSpent, paceYield } from './framePacing';
 
 /** The longest synchronous stretch a sliced builder runs before it lets a frame through (ms). */
 export const WORK_SLICE_MS = 8;
@@ -43,9 +43,11 @@ export function yieldTask(owner?: Scope): Promise<void> {
 export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): WorkSlice {
   let start = diagnosticNow();
   const slice: WorkSlice = {
-    due: () => diagnosticNow() - start >= budgetMs,
+    // in play the budget is also the frame's (op-hitch44): every build running at once shares it, so a second build's
+    // stretch never follows the first one's before the frame they both owe is drawn
+    due: () => { const now = diagnosticNow(); return now - start >= budgetMs || frameBudgetSpent(budgetMs, now); },
     // in play with a frame due, the stretch ends only once the loop has drawn it (op-hitch26: timer tasks ran back to back)
-    yield: async () => { await paceYield(() => yieldTask(owner), owner); start = diagnosticNow(); },
+    yield: async () => { await paceYield(() => yieldTask(owner), owner, budgetMs); start = diagnosticNow(); },
     check: () => (slice.due() ? slice.yield() : undefined),
   };
   return slice;
