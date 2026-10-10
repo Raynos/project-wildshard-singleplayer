@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
+// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate runs on the platform the bake was recorded on.
+import { platform } from 'node:process';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { LOOKOUT_ROWS, lookoutParts } from '../../../src/shards/pine-hollow/models/fireLookout';
 import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
@@ -12,7 +14,9 @@ import { bakeLookoutRows } from '../../../scripts/bake-pine-lookout.mjs';
 const shipped = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/pine-hollow/baked/lookout.bin', import.meta.url)))));
 
 describe('Pine Hollow bakes its fire lookout offline (G285)', () => {
-  it('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-lookout.mjs)', () => {
+  // Exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381, the crag bake's gate),
+  // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-lookout.mjs)', () => {
     const { rows, bin } = bakeLookoutRows();
     // the timber's stream is the level seed's, as the page's engine SEED is while the landmarks build
     expect(rows.seed).toBe(PINE_HOLLOW.seed);
