@@ -161,9 +161,9 @@ describe('AG20 staged content isolation', () => {
     put(f.root, file, JSON.stringify(doc)); f.git('add', '--', file);
     const config = f.run(); expect(config.status).toBe(1); expect(config.stderr).toContain('ctx.app rose');
     const code = repo();
-    put(code.root, 'src/game/shard/context.ts', 'export interface ShardContext { app: { tick: () => void } }');
-    put(code.root, 'src/shards/brand-new/plugin.ts', "import type { ShardContext } from '../../game/shard/context'; export function use(ctx: ShardContext): void { ctx.app.tick(); }");
-    code.git('add', '--', 'src/game/shard/context.ts', 'src/shards/brand-new/plugin.ts');
+    put(code.root, 'src/game/plugin/context.ts', 'export interface ShardContext { app: { tick: () => void } }');
+    put(code.root, 'src/shards/brand-new/plugin.ts', "import type { ShardContext } from '../../game/plugin/context'; export function use(ctx: ShardContext): void { ctx.app.tick(); }");
+    code.git('add', '--', 'src/game/plugin/context.ts', 'src/shards/brand-new/plugin.ts');
     const reach = code.run(); expect(reach.status).toBe(1); expect(reach.stderr).toContain('brand-new: ctx.app rose 0 → 1');
   });
   it('rejects matching code and allowance growth after commit using explicit predecessor files', () => {

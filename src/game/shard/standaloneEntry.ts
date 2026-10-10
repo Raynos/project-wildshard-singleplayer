@@ -1,4 +1,5 @@
-import { type ShardContext, ShardPlugin } from '../plugin/context';
+import type { ShardContext } from '../plugin/context';
+import { ShardPlugin } from '../plugin/shardPlugin';
 import { shardfileEntry } from './runtimeVariant';
 import type { Shardfile } from '../shardfile/schema';
 import type { TrustedRuntimeEntry } from '../shardfile/runtime';

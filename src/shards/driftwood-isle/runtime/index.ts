@@ -1,4 +1,5 @@
-import { buildProgress, ShardPlugin, type ShardContext } from '@wildshard/game/plugin/context';
+import { buildProgress, type ShardContext } from '@wildshard/game/plugin/context';
+import { ShardPlugin } from '@wildshard/game/plugin/shardPlugin';
 import { STRINGS } from '../strings';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';

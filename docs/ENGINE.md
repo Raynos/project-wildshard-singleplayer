@@ -2639,12 +2639,11 @@ root config after the move-backs; its tests already exercise enforcement.
 
 ## Trusted plugin definitions (SF79 DS0.2)
 
-`@wildshard/game/plugin/context` defines `ShardContext`, `shardContext` and the staged
-`ShardPlugin` base class in one module. It contains their implementations, not
-re-export wrappers. Internal game consumers import this module relatively.
-The old `./shard/context` and `./shard/plugin` export keys temporarily point at
-the same defining module so sealed legacy consumers keep the same constructor
-identity. They retire with the old consumers; no duplicate class or service
+`@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
+`@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class.
+Internal game consumers import these defining modules relatively. The frozen
+`./shard/context` and `./shard/plugin` export keys point to those distinct modules,
+preserving the exact constructor identity without collapsing distinct frozen imports. They retire with the old consumers; no duplicate class or service
 registry exists. The remaining exports are transitional while the schema and
 app-shell consumers migrate. DS0.2's final ≤20, `./plugin/*`-only surface is not
 yet claimed.
@@ -2678,7 +2677,8 @@ same files while runtime consumers and sealed legacy copies migrate.
 
 | Public definition | Existing API |
 |---|---|
-| `plugin/context` | `ShardContext`, `shardContext`, `ShardPlugin` |
+| `plugin/context` | `ShardContext`, `shardContext` |
+| `plugin/shardPlugin` | staged `ShardPlugin` constructor |
 | `plugin/lifecycle` | retained context and entered-service/input lifetime hooks |
 | `plugin/headless` | runtime row bindings for quests, items, ledger, state and spawns |
 | `plugin/brain` | `SpeciesBrains` and the shared home/brain installers |

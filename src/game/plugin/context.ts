@@ -87,10 +87,3 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
 
 /** Read the current counted world-step sink through the defining game context port. */
 export function buildProgress(context: Pick<ShardContext, 'progress'>): ShardContext['progress'] { return context.progress; }
-
-/** Staged trusted plugin hooks; invoked only by the owning session. */
-export abstract class ShardPlugin {
-  world?(ctx: ShardContext): Promise<void> | void;
-  kit?(ctx: ShardContext): Promise<void> | void;
-  play?(ctx: ShardContext): Promise<void> | void;
-}

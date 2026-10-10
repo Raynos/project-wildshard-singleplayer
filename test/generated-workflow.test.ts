@@ -33,7 +33,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
       for (const layer of ['engine', 'game', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : {} }));
       put('src/engine/clock.ts', '/** Authoritative time. */\nexport const tick = 1;\n');
       put('src/engine/level/context.ts', '/** Generic context. */\nexport interface LevelContext {}\n');
-      put('src/game/shard/context.ts', '/** Content context. */\nexport interface ShardContext {}\n');
+      put('src/game/plugin/context.ts', '/** Content context. */\nexport interface ShardContext {}\n');
       put('src/game/shardfile/schema.ts', "import * as v from 'valibot';\nexport const ShardfileSchema = v.strictObject({ version: v.literal('0.1') });\n");
       put('src/engine/script/abi.ts', 'export const SCRIPT_IMPORTS = { fuel: [127, 0] };\nexport const SCRIPT_EXPORTS = { on_tick: [] };\nexport const SCRIPT_ABI = { version: 0 };\n');
       put('lint/api-undocumented.json', '{"max":0}'); put('lint/layer-edges.json', '{"edges":{}}');
