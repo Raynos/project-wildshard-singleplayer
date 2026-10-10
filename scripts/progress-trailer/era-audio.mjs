@@ -305,7 +305,7 @@ try {
     }
   } else if (MODE === 'bed') {
     const [x, z, yaw] = arg('spot').split(',').map(Number);
-    await page.evaluate(withScope(`P.spawn(${x}, ${z}, ${yaw ?? 0}); P.pitch = 0`));
+    await page.evaluate(withScope(`P.spawn(${x}, ${z}, ${Number.isFinite(yaw) ? yaw : 0}); P.pitch = 0`));
     await sleep(6);
     const sec = Number(arg('sec', '24'));
     await page.evaluate('window.__eraRecStart()');
