@@ -8,8 +8,7 @@
 // the instanced ones are handed to the fragment's own cullers (the SDK's instance culler and figure crowd, look/lanterns.ts
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  BufferGeometry, Color, Float32BufferAttribute, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
-  SphereGeometry, Uint32BufferAttribute, Vector3, Vector4,
+  type BufferGeometry, Color, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import { Ctx, type Piece } from './ctx';
 import { Kit } from './kit';
@@ -69,7 +68,12 @@ import { loadSpecimens } from './specimens';
 import { buildEntryDecks } from './entries';
 import { CABLE, SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
-import { type InstanceCullerView, type InstanceLevel, InstanceCuller } from '@wildshard/sdk/cull/instanceCuller';
+import { type InstanceCullerView, InstanceCuller } from '@wildshard/sdk/cull/instanceCuller';
+import { cullHandedBatches } from '@wildshard/sdk/cull/handedBatches';
+import { convertKits } from '@wildshard/sdk/kit/kitConvert';
+import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
+import { mistSheetsGeometry, steamPuffsGeometry } from '@wildshard/sdk/looks/mistGeometry';
+import { FONT_LOAD, KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '@wildshard/sdk/cull/meshLod';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
@@ -85,60 +89,6 @@ const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<object>>>> = { plant: ga
 const at = (m: Matrix4, color?: Color): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
 
 const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
-
-/** the sign faces are drawn into canvases: their fonts must be in before the atlas is (9 s cap, then system fallbacks) */
-async function loadFonts(): Promise<void> {
-  const specs = ['700 64px "LXGW WenKai TC"', '900 64px "Noto Serif TC"'];
-  const all = Promise.all(specs.map((s) => document.fonts.load(s, FONT_CHARS)));
-  await Promise.race([all.then(() => undefined), new Promise<void>((resolve) => { resourceScope().timeout(9000, resolve); })]);
-}
-
-/** the silk fog sheets across the Well at each stratum gap (their heights come from the layout bake), over its rects —
- *  the main shaft and the canyon's run north (dome C's WELL_RECTS) */
-function sheetsGeometry(): BufferGeometry {
-  const pos: number[] = [], uv: number[] = [], band: number[] = [], alpha: number[] = [], idx: number[] = [];
-  let n = 0;
-  for (const s of wellSheets) {
-    for (const r of WELL_RECTS) {
-      for (const dy of [0, -5]) {
-        const y = s.y + dy;
-        const pts: [number, number, number, number][] = [[r.x0, r.z1, 0, 0], [r.x1, r.z1, 1, 0], [r.x1, r.z0, 1, 1], [r.x0, r.z0, 0, 1]];
-        for (const [x, z, u, v] of pts) { pos.push(x, y, z); uv.push(u, v); band.push(s.band); alpha.push(s.a * (dy === 0 ? 1 : 0.7)); }
-        idx.push(n, n + 1, n + 2, n, n + 2, n + 3);
-        n += 4;
-      }
-    }
-  }
-  const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
-  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
-  g.setAttribute('aBand', new Float32BufferAttribute(band, 1));
-  g.setAttribute('aAlpha', new Float32BufferAttribute(alpha, 1));
-  g.setIndex(new Uint32BufferAttribute(idx, 1));
-  g.computeBoundingSphere();
-  return g;
-}
-
-/** soft steam billboards over the noodle stall's pots */
-function steamGeometry(points: readonly Vector3[]): BufferGeometry {
-  const center: number[] = [], corner: number[] = [], seed: number[] = [], pos: number[] = [], idx: number[] = [];
-  let n = 0;
-  points.forEach((p, pi) => {
-    for (let j = 0; j < 6; j++) {
-      const sd = (pi * 0.37 + j / 6) % 1;
-      for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) { center.push(p.x, p.y, p.z); corner.push(cx, cy); seed.push(sd); pos.push(p.x, p.y, p.z); }
-      idx.push(n, n + 1, n + 2, n, n + 2, n + 3);
-      n += 4;
-    }
-  });
-  const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
-  g.setAttribute('aCenter', new Float32BufferAttribute(center, 3));
-  g.setAttribute('aCorner', new Float32BufferAttribute(corner, 2));
-  g.setAttribute('aSeed', new Float32BufferAttribute(seed, 1));
-  g.setIndex(new Uint32BufferAttribute(idx, 1));
-  return g;
-}
 
 export interface NineDragonWorld {
   /** everything the fragment draws (add it to the engine's scene) */
@@ -177,7 +127,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
   const fontsStart = performance.now();
-  const fontsReady = loadFonts().then(() => { phaseDone('fonts', fontsStart); return undefined; });
+  const fontsReady = waitForFonts(FONT_LOAD.specs, FONT_CHARS, FONT_LOAD.capMs).then(() => { phaseDone('fonts', fontsStart); return undefined; });
   const [paint] = await Promise.all([paintReady, fontsReady]);
   shared.u.uPaint.value = paint.tex;
   progress(0.15, 'layout: square');
@@ -245,52 +195,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const emitters: Emitter[] = [...neonSigns.emitters, ...signs.lights, ...paper.emitters, ...ctx.emitters];
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
-  const kitGeos: [string, BufferGeometry][] = [];
-  const kitProfile: { name: string; ms: number; vertices: number }[] = [];
-  const processed = new Set<string>();
-  const kitTotal = ctx.kits.size + ctx.kitxs.size + ctx.alphaKits.size;
-  let kitsDone = 0;
-  let lastYield = performance.now();
-  const converted = async (): Promise<void> => {
-    kitsDone++;
-    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone}/${kitTotal}`);
-    if (performance.now() - lastYield < 30) return;
-    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-    lastYield = performance.now();
-  };
-  for (const [name, kit] of ctx.kits) {
-    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone + 1}/${kitTotal}: ${name}`);
-    const tKit = performance.now();
-    const kx = ctx.kitxs.get(name);
-    if (kx !== undefined && kx.vertexCount > 0) kitGeos.push([name, kit.vertexCount > 0 ? merge([kit.build(), kx.build()]) : kx.build()]);
-    else if (kit.vertexCount > 0) kitGeos.push([name, kit.build()]);
-    processed.add(name);
-    kitProfile.push({ name, ms: Math.round(performance.now() - tKit), vertices: kit.vertexCount + (kx?.vertexCount ?? 0) });
-    kit.release();
-    kx?.release();
-    ctx.kits.delete(name);
-    ctx.kitxs.delete(name);
-    await converted();
-  }
-  for (const [name, kx] of ctx.kitxs) {
-    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone + 1}/${kitTotal}: ${name}`);
-    const tKit = performance.now();
-    if (!processed.has(name) && kx.vertexCount > 0) kitGeos.push([name, kx.build()]);
-    kitProfile.push({ name, ms: Math.round(performance.now() - tKit), vertices: kx.vertexCount });
-    kx.release();
-    ctx.kitxs.delete(name);
-    await converted();
-  }
-  const alphaGeos: [string, BufferGeometry][] = [];
-  for (const [name, kit] of ctx.alphaKits) {
-    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone + 1}/${kitTotal}: ${name}`);
-    const tKit = performance.now();
-    if (kit.vertexCount > 0) alphaGeos.push([name, kit.build()]);
-    kitProfile.push({ name, ms: Math.round(performance.now() - tKit), vertices: kit.vertexCount });
-    kit.release();
-    ctx.alphaKits.delete(name);
-    await converted();
-  }
+  const { solid: kitGeos, alpha: alphaGeos, profile: kitProfile } = await convertKits({ solid: ctx.kits, swept: ctx.kitxs, alpha: ctx.alphaKits }, merge, (done, total, name) => {
+    progress(0.4 + 0.12 * done / Math.max(1, total), name === undefined ? `geometry ${done}/${total}` : `geometry ${done + 1}/${total}: ${name}`);
+  }, KIT_YIELD_MS);
   // Each Kit/KitX still owns its large JS number[] buffers after build() copies them into typed geometry.
   // No later phase reads the builders; release them before the facade and texture uploads add to the peak.
   ctx.kits.clear();
@@ -441,9 +348,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
   // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
   root.add(named(screen, 'screens'));
-  const sheets = new Mesh(sheetsGeometry(), sheetMaterial(shared));
+  const sheets = new Mesh(mistSheetsGeometry(wellSheets, WELL_RECTS, SHEET_LAYERS), sheetMaterial(shared));
   sheets.renderOrder = 2;
-  const steam = new Mesh(steamGeometry(ctx.steam), steamMaterial(shared));
+  const steam = new Mesh(steamPuffsGeometry(ctx.steam, STEAM_PUFFS.perPoint, STEAM_PUFFS.stride), steamMaterial(shared));
   steam.frustumCulled = false;
   steam.renderOrder = 3;
   root.add(named(sheets, 'sheets'), named(steam, 'steam'));
@@ -488,15 +395,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // whatever its size (the culler deals its instances out to the copies); one without, within CULL_R, three culls whole.
   // (The crowd and the paper lanterns cull themselves; the facade's windows are drawn whole — E283: packing and
   // re-uploading the ~4 k one-quad windows in view cost more than drawing all ~10 k.)
-  for (const b of handed) {
-    const base = b.levels[0]?.mesh ?? null;
-    if (base === null || !base.frustumCulled) continue;
-    // (a sculpt's LOD without the simplifier is its full geometry: left out, as before)
-    const lods: InstanceLevel[] = b.levels.slice(1).flatMap((l) => (l.mesh !== null && l.mesh.geometry !== base.geometry ? [{ mesh: l.mesh, from: l.from }] : []));
-    if (base.boundingSphere === null) base.computeBoundingSphere();
-    if ((base.boundingSphere?.radius ?? 0) < CULL_R && lods.length === 0) continue;
-    culler.add(base, b.cull.far ?? Number.POSITIVE_INFINITY, lods);
-  }
+  cullHandedBatches(culler, handed, CULL_R);
   for (const [mesh, far] of farKits) culler.addFar(mesh, far);
   progress(1, 'world ready');
   Reflect.set(window, '__ndPhaseProfile', phaseProfile);

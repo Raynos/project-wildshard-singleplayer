@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "tilesHash": "b2093076955ceca8b9691cc132383a9ceb346d278fffc69df3b1c10acb1a417b",
+  "tilesHash": "7f9f58f9b449f3d2dca9441890424f4636aca7a4e320490b60ca8772fc96ddca",
   "image": "/assets/nine-dragon-stack/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 13434
+  "bytes": 13432
 }
