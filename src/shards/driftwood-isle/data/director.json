@@ -20,13 +20,13 @@
     },
     {
       "key": "player-x",
-      "min": -250,
-      "max": 250
+      "min": -10000,
+      "max": 10000
     },
     {
       "key": "player-z",
-      "min": -250,
-      "max": 250
+      "min": -10000,
+      "max": 10000
     },
     {
       "key": "reward-x",

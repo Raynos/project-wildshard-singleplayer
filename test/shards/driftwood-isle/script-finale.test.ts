@@ -5,8 +5,11 @@ import { Scope } from '../../../src/engine/app/scope';
 import { withOwner } from '../../../src/engine/app/ownership';
 import { app } from '../../../src/engine/app/runtime';
 import { Flags } from '../../../src/engine/world/interact/flags';
-import { DriftwoodScriptFinale, prepareDriftwoodDirector } from '../../../src/shards/driftwood-isle/runtime/scriptFinale';
+import { DriftwoodScriptFinale, prepareDriftwoodDirector, driftwoodDirectorBytes } from '../../../src/shards/driftwood-isle/runtime/scriptFinale';
 import { installLegacyFinale, type FinaleWorld } from '../../fixtures/quest-oracle/driftwood-finale';
+import { prepareDirectorModule } from '../../../src/game/shardfile/directorRuntime';
+import { director } from '../../../src/sdk/director';
+import declaration from '../../../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
 import type { AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
 
 it('preserves ten thousand shipping phase decisions and restores full author state without publishing or stepping', async () => {
@@ -51,3 +54,25 @@ it('preserves ten thousand shipping phase decisions and restores full author sta
     expect(suffix).toEqual(['640:reward.finish']);
   } finally { off(); scope.dispose(); document.body.replaceChildren(); }
 }, 60_000);
+
+
+it('admits real road-side pre-entry and re-entry observations without starting the reward early', async () => {
+  const create = await prepareDriftwoodDirector();
+  const prior = await prepareDirectorModule(director({ ...declaration, inputs: declaration.inputs.map(row => row.key === 'player-x' || row.key === 'player-z' ? { key: row.key, min: -250, max: 250 } : row) }), driftwoodDirectorBytes());
+  // Exact failed return: only player-x lies outside the former cell-only observation range.
+  expect(() => new DriftwoodScriptFinale(prior(357), { observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': -256.631, 'player-z': -0.066, 'reward-x': -96.21572111113656, 'reward-z': 105.52632596242425 }), publish: () => undefined })).toThrow('Invalid director observation');
+  for (const [x, z] of [[-256.631, -0.066], [256.631, 0.066], [0, -256.631], [0, 256.631], [-10000, 10000]]) {
+    const events: string[] = [];
+    const observe = () => ({ altar: 1, dead: 0, seen: 0, 'player-x': x ?? 0, 'player-z': z ?? 0, 'reward-x': -96.21572111113656, 'reward-z': 105.52632596242425 });
+    const clock = new DriftwoodScriptFinale(create(), { observe, publish: event => { events.push(event); } });
+    expect(events).toEqual(['captain.restore']);
+    clock.update(1 / 30);
+    expect(events).toEqual(['captain.restore']);
+    const completed = new DriftwoodScriptFinale(create(), { observe: () => ({ ...observe(), dead: 1 }), publish: event => { events.push(event); } });
+    completed.update(1 / 30);
+    expect(events).toEqual(['captain.restore']);
+  }
+  for (const x of [Number.NaN, Infinity, 10001, -10001]) {
+    expect(() => new DriftwoodScriptFinale(create(), { observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': x, 'player-z': 0, 'reward-x': -96, 'reward-z': 105 }), publish: () => undefined })).toThrow('Invalid director observation');
+  }
+});
