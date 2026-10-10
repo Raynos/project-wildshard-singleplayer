@@ -12,6 +12,8 @@ import { pineTable, RESIN_COUNT, TOKEN_NAMES } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, recordPineFeatKill, syncPineFlagFeats, isPineThrall } from '../quest/featLaw';
+import { PineScriptClock } from './scriptClock';
+import type { DirectorLane } from '@wildshard/game/shardfile/directorRuntime';
 import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
@@ -59,7 +61,7 @@ const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite
 const TradeSaved = v.strictObject({ modal: v.strictObject({ version: v.literal(1), open: v.boolean() }),
   skins: v.pipe(v.array(v.picklist(['hollow-ash', 'scarback-furnace'])), v.maxLength(2), v.check(skins => new Set(skins).size === skins.length)) });
 const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
-  dawn: finite, fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
+  dawn: v.union([finite, v.pipe(v.string(), v.maxLength(1000000))]), fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false),
   trader: v.optional(TradeSaved), ammunition: v.optional(PINE_AMMO_SAVED) });
@@ -82,6 +84,8 @@ export interface PineQuestPorts {
   readonly canSelectAmmo?: () => boolean;
   /** the host's day clock (null: none, as a page without a sky clock: no fast-forward, no night wait) */
   readonly day: () => PineQuestDay | null;
+  /** An admitted script instance owned by this quest, never shared across hosts or driven by a second step. */
+  readonly director?: DirectorLane;
   /** PineDayNight's night (0 day … 1 night) */
   readonly night: () => number;
 }
@@ -249,7 +253,13 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     else if (event === 'dawn.lanterns') raiseAll(LANTERN_FLAGS, true);
     else if (event === 'dawn.finish') flags.set('seen:dawn');
   };
-  const clock = new LegacyPineClock({ seen: () => flags.has('seen:dawn'), hasClock: () => ports.day() !== null, night: ports.night, publish });
+  const clockPorts = { seen: () => flags.has('seen:dawn'), hasClock: () => ports.day() !== null, night: ports.night, publish };
+  const clock = ports.director === undefined ? new LegacyPineClock(clockPorts) : new PineScriptClock(ports.director, clockPorts, () => !host.scope.disposed);
+  const restoreClock = (saved: number | string): void => {
+    if (clock instanceof PineScriptClock && typeof saved === 'string') clock.load(saved);
+    else if (clock instanceof LegacyPineClock && typeof saved === 'number') clock.load(saved);
+    else throw new Error('Pine saved clock requires its original owner');
+  };
 
   // ── the ride down the wire (the page's ZipRide law, quest/zipWire.ts) ──
   const cable = new ZipWire(spots.zip.top, spots.zip.bottom), landing = spots.zip.landing;
@@ -363,7 +373,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       const finish = v.parse(v.object({ board: v.object({ claimed: v.number() }), open: v.boolean() }), lodgeState);
       if (saved.hollowAsh !== (finish.board.claimed >= 3) || (finish.open && saved.dialogue !== null)) throw new RangeError('Invalid Pine lodge/modal ownership');
       if (saved.trader?.modal.open === true && (finish.open || saved.dialogue !== null || saved.zip !== null || ports.ammunition === undefined)) throw new RangeError('Invalid Pine trader/modal ownership');
-      stag.load(saved.stag); clock.load(saved.dawn); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
+      restoreClock(saved.dawn); stag.load(saved.stag); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
       counts = { ...saved.counts };
       pack.restore(saved.pack);
       restoreDialogue(); restoreLodge(); restoreTrader(); restoreAmmo?.(); hollowAsh = saved.hollowAsh; tradeSkins = new Set(saved.trader?.skins);

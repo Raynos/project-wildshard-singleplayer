@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import type { DebugRowSpec } from '../src/engine/level/context';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { parseDirector } from '../src/game/shardfile/director';
-import { createDirectorLane } from '../src/game/shardfile/directorRuntime';
+import { createDirectorLane, prepareDirectorModule } from '../src/game/shardfile/directorRuntime';
 import { LegacyPineClock, type PineClockPorts, type PineClockEvent } from '../src/shards/pine-hollow/runtime/questClock';
 import { pineDirectorRecipe, installPineClock } from '../src/shards/pine-hollow/runtime/questDirector';
 import declaration from '../src/shards/pine-hollow/data/director.json';
@@ -41,6 +41,36 @@ describe('SF24 Pine script against the actual shipping night/dawn clock', () => 
     for (let tick = 1; tick <= 10000; tick++) { legacy.tick(tick); directed.tick(tick); clock.tick(1 / 60); for (const event of lane.step(tick, recipe.observe())) recipe.publish(event.key, event.value); }
     expect(directed.events).toEqual(legacy.events);
   });
+  it('dispatches at zero elapsed time without resetting tick fuel or query allowances', async () => {
+    const native = fixture(true), recipe = pineDirectorRecipe(native.ports), lane = await createDirectorLane(data, bytes, 357);
+    expect(() => lane.dispatch(recipe.observe())).toThrow('initialized');
+    lane.step(0, recipe.observe());
+    lane.enqueue('night.request');
+    expect(lane.dispatch(recipe.observe()).map(event => event.key)).toEqual(['night.consume', 'night.start']);
+    expect(lane.tick).toBe(0);
+    const used = lane.host.checkpoint().used;
+    expect(used.queries).toBe(2); expect(used.fuel).toBeGreaterThan(0);
+    for (let i = used.queries; i < lane.host.limits.queries; i++) lane.dispatch(recipe.observe());
+    lane.dispatch(recipe.observe());
+    expect(lane.host.checkpoint().modules[0]?.failures).toBe(1);
+    lane.step(1, recipe.observe());
+    expect(lane.host.checkpoint().used.queries).toBe(0); // Exhaustion freezes; advancing time must not bypass quarantine.
+    lane.host.resume(data.module, data.entity);
+    lane.step(2, recipe.observe());
+    expect(lane.host.checkpoint().used.queries).toBe(1);
+    const before = lane.snapshot();
+    expect(() => lane.step(3, recipe.observe(), Infinity)).toThrow('delta');
+    expect(lane.snapshot()).toBe(before);
+  });
+  it('hash-admits a reusable factory with independent author states and immutable input bytes', async () => {
+    const input = Uint8Array.from(bytes), contract = parseDirector(declaration), create = await prepareDirectorModule(contract, input);
+    input.fill(0); contract.parameters[0] = 99;
+    const left = create(357), right = create(357), recipe = pineDirectorRecipe(fixture(true).ports);
+    left.step(0, recipe.observe()); right.step(0, recipe.observe());
+    left.enqueue('dawn.request'); expect(left.dispatch(recipe.observe()).map(event => event.key)).toEqual(['dawn.start']);
+    expect(right.dispatch(recipe.observe())).toEqual([]);
+    expect(left.data.parameters[0]).toBe(2.5);
+  });
   it('snapshots pending typed requests and rejects undeclared input events', async () => {
     const native = fixture(true), recipe = pineDirectorRecipe(native.ports), lane = await createDirectorLane(data, bytes, 357);
     lane.step(0, recipe.observe()); recipe.bind((key) => { lane.enqueue(key); }); recipe.night(); recipe.dawn();
@@ -48,7 +78,7 @@ describe('SF24 Pine script against the actual shipping night/dawn clock', () => 
     expect(restored.step(1, recipe.observe())).toEqual(lane.step(1, recipe.observe())); expect(restored.snapshot()).toBe(lane.snapshot());
     expect(() => lane.enqueue('arbitrary.call')).toThrow('subscribed');
   });
-  it('installs the saved shared setting, with no script fetch on the legacy path and fixed next-tick requests on Script', async () => {
+  it('installs the saved shared setting, with no legacy fetch or duplicate clock, and immediate Script requests', async () => {
     const previous = isDev(); setDev(false);
     const native = fixture(true), systems: SystemSpec[] = [], scope = new Scope('pine.clock.fixture');
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(Uint8Array.from(bytes))));
@@ -62,11 +92,10 @@ describe('SF24 Pine script against the actual shipping night/dawn clock', () => 
       expect(fetch).not.toHaveBeenCalled(); expect(systems).toEqual([]);
       setDev(true);
       const scripted = await installPineClock(selected, native.ports, false);
-      expect(fetch).toHaveBeenCalledTimes(1); expect(systems[0]?.phase).toBe('fixed.post');
-      scripted.night(); scripted.dawn(); expect(native.events).toEqual([]);
-      native.tick(1); systems[0]?.run(1 / 60, 1 / 60);
+      expect(fetch).toHaveBeenCalledTimes(1); expect(systems).toEqual([]);
+      scripted.night(); scripted.dawn();
       expect(native.events.map((event) => event.key)).toEqual(['night.consume', 'night.start', 'dawn.start']);
-      scope.dispose(); native.events.length = 0; systems[0]?.run(1 / 60, 2 / 60); expect(native.events).toEqual([]);
+      scope.dispose(); native.events.length = 0; scripted.night(); scripted.dawn(); scripted.tick(1 / 60); expect(native.events).toEqual([]);
     } finally { scope.dispose(); setDev(previous); }
   });
   it('restores full author state in the middle of dawn and exactly repeats a 10,000-tick suffix', async () => {

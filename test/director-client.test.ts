@@ -50,6 +50,17 @@ describe('SF24 director installation lifecycle', () => {
     lane.restore(saved); scope.dispose(); systems[0]?.run(1 / 60, 3 / 60);
     expect(lane.snapshot()).toBe(saved);
   });
+  it('admits an external clock without registering a second fixed callback', async () => {
+    const scope = new Scope('director.external'), systems: SystemSpec[] = [], events: DirectorEvent[] = [];
+    try {
+      const lane = await installDeclaredDirector({ scope, system: system => { systems.push(system); } }, {
+        data, bytes: () => Promise.resolve(bytes), seed: 357, systemId: 'fixture.external', clock: 'external',
+        observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': 20, 'player-z': 0, 'reward-x': 0, 'reward-z': 0 }),
+        publish: event => { events.push(event); },
+      });
+      expect(lane.tick).toBe(0); expect(systems).toEqual([]); expect(events).toEqual([]);
+    } finally { scope.dispose(); }
+  });
   it('rejects async admission after unload and rejects undeclared subscriptions before fetching', async () => {
     const scope = new Scope('director.cancel'); let published = 0, fetched = 0;
     const options = { data, bytes: () => { fetched++; scope.dispose(); return Promise.resolve(bytes); }, seed: 357, systemId: 'fixture.director', observe: () => ({}), publish: () => { published++; } };

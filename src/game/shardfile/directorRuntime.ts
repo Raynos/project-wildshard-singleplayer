@@ -51,14 +51,28 @@ export class DirectorLane {
     this.pending.push({ type: row.id, value });
   }
   /** Stable input ordering and the engine's unchanged fuel, event, query and memory ceilings. */
-  step(tick: number, observation: Readonly<Record<string, number>>): readonly DirectorEvent[] {
+  step(tick: number, observation: Readonly<Record<string, number>>, dt = 1 / 60): readonly DirectorEvent[] {
+    const input = this.observation(observation, dt);
+    this.host.beginTick(tick);
+    this.currentTick = tick;
+    return this.call(input, dt);
+  }
+  /** Deliver an immediate trusted request at zero elapsed time, sharing this tick's remaining allowances. */
+  dispatch(observation: Readonly<Record<string, number>>): readonly DirectorEvent[] {
+    if (this.currentTick < 0) throw new Error('Director is not initialized');
+    return this.call(this.observation(observation, 0), 0);
+  }
+  private observation(observation: Readonly<Record<string, number>>, dt: number): number[] {
+    if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid director delta');
     const input = this.data.inputs.map((row) => {
       const value = observation[row.key]; if (value === undefined || !Number.isFinite(value) || value < row.min || value > row.max) throw new Error('Invalid director observation'); return value;
     });
-    this.host.beginTick(tick);
-    this.currentTick = tick;
+    return input;
+  }
+  private call(input: readonly number[], dt: number): readonly DirectorEvent[] {
+    const tick = this.currentTick;
     const events = this.pending.flatMap((row) => [row.type, this.data.entity, row.value, 0, 0, 0]); this.pending = [];
-    const call = this.host.call(this.data.module, this.data.entity, [tick, 1 / 60, 0, this.data.entity, 0, 0, ...input], events);
+    const call = this.host.call(this.data.module, this.data.entity, [tick, dt, 0, this.data.entity, 0, 0, ...input], events);
     if (!call.ok) return [];
     return call.events.map((event) => {
       const row = this.data.events.find((entry) => entry.id === event.type); if (row === undefined) throw new Error('Undeclared director output');
@@ -88,10 +102,15 @@ export class DirectorLane {
   }
 }
 
-/** Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. */
-export async function createDirectorLane(data: DirectorData, bytes: Uint8Array, seed: number, query?: ScriptQuery): Promise<DirectorLane> {
+/** Admit immutable module bytes once; each invocation installs fresh author state with the unchanged engine ceilings. */
+export async function prepareDirectorModule(data: DirectorData, bytes: Uint8Array): Promise<(seed: number, query?: ScriptQuery) => DirectorLane> {
   const checked = parseDirector(data), copy = Uint8Array.from(bytes);
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
   if ([...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('') !== checked.module) throw new Error('Director module hash mismatch');
-  return new DirectorLane(checked, copy, seed, query);
+  return (seed, query) => new DirectorLane(checked, copy, seed, query);
+}
+
+/** Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. */
+export async function createDirectorLane(data: DirectorData, bytes: Uint8Array, seed: number, query?: ScriptQuery): Promise<DirectorLane> {
+  return (await prepareDirectorModule(data, bytes))(seed, query);
 }

@@ -132,7 +132,11 @@ script allowances, and restores full author memory, mutable globals, quota histo
 Shard subscriptions deliver declared payloads on the next fixed tick; grid subscriptions are reserved
 data and reject delivery in v1. `installDeclaredDirector` owns fixed-step and scope lifetime while
 trusted runtime recipes observe combat and render the published events. `directorVariant` requires
-a default-off reload row. `@wildshard/sdk/director` validates author declarations without installing code.
+a default-off reload row. `@wildshard/sdk/director` validates author declarations without installing code. An external director borrows the existing
+owner's clock instead of registering a second fixed callback. `DirectorLane.dispatch` delivers at
+zero elapsed time on the current tick and shares its remaining allowances; `step` accepts a bounded
+elapsed delta (the default remains 1/60). `prepareDirectorModule` verifies the hash once and returns
+a factory of independent author-state instances. Full snapshots remain the only continuation.
 
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
 shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.

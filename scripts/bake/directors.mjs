@@ -14,5 +14,6 @@ for (const slug of ['driftwood-isle', 'nalati-grasslands', 'pine-hollow']) {
   writeFileSync(resolve(directory, 'assets', module), bytes);
   const file = resolve(directory, 'data/director.json'), data = JSON.parse(readFileSync(file, 'utf8'));
   data.module = module; writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`);
+  if (slug === 'pine-hollow') writeFileSync(resolve(directory, 'behaviour/director.json'), `${JSON.stringify({ module, bytes: Buffer.from(bytes).toString('base64') }, null, 2)}\n`);
   process.stdout.write(`${slug} ${module} ${bytes.length} bytes\n`);
 }

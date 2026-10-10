@@ -28,6 +28,8 @@ export interface DirectorInstallation {
   observe: () => Readonly<Record<string, number>>;
   publish: (event: DirectorEvent) => void;
   afterStep?: () => void;
+  /** External callers supply their existing clock and publish lane outputs; no second fixed callback is installed. */
+  clock?: 'fixed' | 'external';
   subscriptions?: readonly { key: string; subscribe: (receive: (value: number) => void) => () => void }[];
   query?: Parameters<typeof createDirectorLane>[3];
 }
@@ -43,7 +45,7 @@ export async function installDeclaredDirector(context: Pick<LevelContext, 'scope
     for (const source of options.subscriptions ?? []) scope.onDispose(source.subscribe((value) => { if (live()) lane.enqueue(source.key, value); }));
     for (const event of lane.step(0, options.observe())) if (live()) options.publish(event);
     if (!live()) throw new Error('Director scope left during initialization');
-    context.system({ id: options.systemId, phase: 'fixed.post', run: () => {
+    if (options.clock !== 'external') context.system({ id: options.systemId, phase: 'fixed.post', run: () => {
       if (!live()) return;
       for (const event of lane.step(lane.tick + 1, options.observe())) if (live()) options.publish(event);
       if (live()) options.afterStep?.();
