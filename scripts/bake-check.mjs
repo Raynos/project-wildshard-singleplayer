@@ -26,7 +26,12 @@ if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n'));
 const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
 if (only !== undefined && !nodeOnly) { console.error('bake-check: --only needs --node-only'); process.exit(64); }
-for (const baker of NODE_BAKERS) if (only === undefined || only === baker) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
+for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
+  // Fixed-model metadata retains unrounded doubles; libm can differ by a final ulp from the macOS-authored bake.
+  if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
+    console.info('bake-check: driftwood-fixed-models skipped (byte-exact on macOS, where the bake is made)');
+  } else run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
+}
 
 const metal = only === undefined && process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
 if (only !== undefined) { /* one node baker: no GPU bakers */ }
