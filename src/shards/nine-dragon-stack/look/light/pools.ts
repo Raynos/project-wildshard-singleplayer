@@ -1,9 +1,9 @@
 // Copied from the light lab (the dev labs (deleted in E357 F7), round-9-lab-light) into the clean room.
 // Lab P6 "light" (E169): which lights cast pools, and how hard. Turns the clean room's emitters (lanterns, lit
 // shopfronts, lamps, neon signs, lightboxes) and its lit interior-mapped windows into PoolLights for the light volume
-// (lightvol.ts). Every number here was tuned in the loop against the round-8 targets (round-9-lab-light/README.md).
+// (@wildshard/sdk/looks/lightVolume). Every number here was tuned in the loop against the round-8 targets (round-9-lab-light/README.md).
 import { Color, type Matrix4, Vector3, type Vector4 } from 'three';
-import type { PoolLight } from './lightvol';
+import type { PoolLight } from '@wildshard/sdk/looks/lightVolume';
 import { POOL } from '../../data/light';
 // SHARD-PLATFORM M3: the pools' tuning is data (data/light.ts POOL, colours as hex).
 

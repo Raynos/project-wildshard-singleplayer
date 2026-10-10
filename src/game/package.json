@@ -274,6 +274,7 @@
     "./systems/signs/fontWait": "./systems/signs/fontWait.ts",
     "./systems/props/pathMovers": "./systems/props/pathMovers.ts",
     "./systems/looks/emitterCards": "./systems/looks/emitterCards.ts",
+    "./systems/looks/lightVolume": "./systems/looks/lightVolume.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./shard/list": "./shard/list.ts",

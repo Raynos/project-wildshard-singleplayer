@@ -2,11 +2,12 @@
 // light-pool volumes from every emitter and lit window, wire the window glow and the learned LUT, and apply the lab's
 // HEAD tuning. No global of its own and no URL switches: `__nd.light({...})` sets a variant for A/B captures.
 import type { Color, Data3DTexture, Vector3, Vector4 } from 'three';
-import { SQUARE_BOX, WELL_BOX, bakeVolume, type BakeStats } from './lightvol';
+import { SQUARE_BOX, WELL_BOX } from './lightvol';
+import { type BakeStats, bakeLightVolume } from '@wildshard/sdk/looks/lightVolume';
 import { type EmitterLike, type WindowLike, gatherPools, isLamp } from './pools';
 import { loadLut } from './grade';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { LIGHT_DEFAULTS, LUT_URL, type LightSettings } from '../../data/light';
+import { LIGHT_DEFAULTS, LP_MAX, LUT_URL, type LightSettings } from '../../data/light';
 // SHARD-PLATFORM M3: the settings, the lab's tuning and the LUT's URL are data (data/light.ts).
 
 interface LightUniforms {
@@ -38,9 +39,9 @@ export function installLight(opt: {
   const shops = opt.ctxEmitters.filter((e) => !isLamp(e));
   const lamps = opt.ctxEmitters.filter(isLamp).map((e) => e.at);
   const lights = gatherPools({ lanterns: opt.lanterns, shops, lamps, signs: opt.signs, windows: opt.windows });
-  const a = bakeVolume(lights, SQUARE_BOX, u.uLpMinA.value, u.uLpInvA.value);
+  const a = bakeLightVolume(lights, SQUARE_BOX, LP_MAX, u.uLpMinA.value, u.uLpInvA.value);
   u.uLpVolA.value = a.tex;
-  const b = bakeVolume(lights, WELL_BOX, u.uLpMinB.value, u.uLpInvB.value);
+  const b = bakeLightVolume(lights, WELL_BOX, LP_MAX, u.uLpMinB.value, u.uLpInvB.value);
   u.uLpVolB.value = b.tex;
   // (E264) the volumes are baked once: their texels are on the GPU after the first draw (6.3 MB of RGBA8 in JS)
   gpuOnlyTexture(a.tex, 'Nine Dragon light volumes (GPU only)');
