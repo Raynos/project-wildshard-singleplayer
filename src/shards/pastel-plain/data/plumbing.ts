@@ -1,0 +1,6 @@
+import { parsePlumbing } from '@wildshard/sdk/plumbing';
+
+export const PASTEL_PLUMBING = parsePlumbing({ namespace: 'pastel', input: [{ id: 'pastel.lantern', priority: 20,
+  actions: [{ id: 'pastel.lantern.toggle', keys: ['KeyL'], scene: 'pastel.lantern.toggle' }],
+  touch: { slot: 'verb.1', action: 'pastel.lantern.toggle', label: 'LANTERN', icon: '' },
+}], knobs: [{ id: 'pastel.propCount', phone: 10, desktop: 20 }], debug: [] });

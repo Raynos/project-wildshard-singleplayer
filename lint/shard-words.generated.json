@@ -5,6 +5,7 @@
     "far-reach",
     "nalati-grasslands",
     "nine-dragon-stack",
+    "pastel-plain",
     "pine-hollow",
     "sunscar-dunes"
   ],
@@ -22,6 +23,8 @@
     "nalati-grasslands",
     "Nine Dragon Stack",
     "nine-dragon-stack",
+    "Pastel Plain",
+    "pastel-plain",
     "Pine Hollow",
     "pine-hollow",
     "pine.creature.bear",
@@ -155,6 +158,14 @@
         "public/assets/sfx/nine-dragon-stack/**",
         "public/assets/title/nine-dragon-stack-portrait.jpg",
         "public/assets/nine-dragon-stack/map/**"
+      ]
+    },
+    "pastel-plain": {
+      "name": "Pastel Plain",
+      "ids": [],
+      "settings": [],
+      "assets": [
+        "public/assets/pastel-plain/map/**"
       ]
     },
     "pine-hollow": {

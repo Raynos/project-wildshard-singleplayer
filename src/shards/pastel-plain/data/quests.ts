@@ -1,0 +1,13 @@
+import { parseQuestData } from '@wildshard/sdk/quests';
+
+export const PASTEL_QUESTS = parseQuestData({
+  flags: ['pastel.hut', 'pastel.blob', 'pastel.complete'],
+  quests: [{ id: 'pastel.quest', title: 'A first adventure', track: false, completeFlag: 'pastel.complete', steps: [
+    { id: 'hut', objective: 'Reach the hut', done: { all: ['pastel.hut'] } },
+    { id: 'blob', objective: 'Beat the blob', done: { all: ['pastel.blob'] } },
+  ], onComplete: { coins: 5, fact: 'pastel.quest' } }],
+  triggers: [
+    { id: 'hut', kind: 'region', flag: 'pastel.hut', x: 0, z: -9, radius: 3 },
+    { id: 'blob', kind: 'death', flag: 'pastel.blob', tag: 'creature.greyBlob' },
+  ], dialogue: [],
+});

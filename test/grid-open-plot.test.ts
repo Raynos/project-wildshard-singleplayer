@@ -23,9 +23,9 @@ it('keeps the three open plots while G258 / G270 open the five real public shard
   expect(kinds).toEqual(['plot', 'shard', 'template', 'shard', 'plot', 'shard', 'plot', 'shard']);
   // a plot is never a shard cell: no slug, no `at` hit, no instance lookup
   for (const plot of grid.plots) { expect(grid.at(plot.origin.x, plot.origin.z)).toBeUndefined(); expect(() => grid.cell(plot.instance)).toThrow(); }
-  // Developer fills the SW plot with Blender Template; DEVSERVER also replaces the SE plot.
-  expect(new GridAssembly({ developer: true, devserver: false }).plots.map((row) => row.instance)).toEqual(['open-plot-nw', 'open-plot-se']);
-  expect(new GridAssembly({ developer: true, devserver: true }).plots.map((row) => row.instance)).toEqual(['open-plot-nw']);
+  // Developer fills the SW plot with Blender Template and the NW plot with Pastel Plain (SF59); DEVSERVER also replaces the SE plot.
+  expect(new GridAssembly({ developer: true, devserver: false }).plots.map((row) => row.instance)).toEqual(['open-plot-se']);
+  expect(new GridAssembly({ developer: true, devserver: true }).plots.map((row) => row.instance)).toEqual([]);
 });
 
 it('refuses a base layout that leaves a place empty, fills one twice or overrides nothing', () => {

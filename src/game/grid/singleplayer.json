@@ -104,6 +104,19 @@
         500,
         500
       ]
+    },
+    {
+      "instance": "pastel-plain-solo",
+      "slug": "pastel-plain",
+      "cell": [
+        -1,
+        1
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
     }
   ],
   "grid": {
@@ -275,6 +288,14 @@
         "cell": [
           -1,
           -1
+        ]
+      },
+      {
+        "instance": "pastel-plain-1",
+        "slug": "pastel-plain",
+        "cell": [
+          -1,
+          1
         ]
       }
     ],

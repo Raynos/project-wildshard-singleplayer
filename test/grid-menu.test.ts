@@ -41,15 +41,15 @@ describe('§3.3 table: the assembly per mode and both switches together', () => 
     const rows = cells(mode, cell);
     return { shards: rows.filter((row) => row.slug !== '_template').length, templates: rows.filter((row) => row.slug === '_template').length };
   };
-  it('shipped: G270 opens 5 shards + Template 1 (+ 3 open plots); Developer: 6 + 1 (Blender Template); DEVSERVER adds its cell at (+1, −1), and its row swaps it back', () => {
+  it('shipped: G270 opens 5 shards + Template 1 (+ 3 open plots); Developer: 7 + 1 (Blender Template, Pastel Plain); DEVSERVER adds its cell at (+1, −1), and its row swaps it back', () => {
     expect(count(MODES.shipped)).toEqual({ shards: 5, templates: 1 });
-    expect(count(MODES.developer)).toEqual({ shards: 6, templates: 1 });
+    expect(count(MODES.developer)).toEqual({ shards: 7, templates: 1 });
     expect(count(MODES.devserver)).toEqual({ shards: 6, templates: 1 });
-    expect(count(MODES.both)).toEqual({ shards: 7, templates: 1 });
-    expect(count(MODES.both, false)).toEqual({ shards: 6, templates: 1 });
+    expect(count(MODES.both)).toEqual({ shards: 8, templates: 1 });
+    expect(count(MODES.both, false)).toEqual({ shards: 7, templates: 1 });
     expect(cells(MODES.both).find((row) => row.cell[0] === 1 && row.cell[1] === -1)?.slug).toBe('nine-dragon-stack');
     expect(cells(MODES.both, false).find((row) => row.cell[0] === 1 && row.cell[1] === -1)?.slug).toBeUndefined();
-    expect(new GridAssembly(gridMode(false, MODES.both)).plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', 'open-plot-se']);
+    expect(new GridAssembly(gridMode(false, MODES.both)).plots.map((plot) => plot.instance)).toEqual(['open-plot-se']);
   });
   it('the grid always boots into the catalogue home cell (0, 0)', () => {
     for (const mode of Object.values(MODES)) expect(gridHome(mode).instance).toBe('driftwood-isle');
@@ -189,7 +189,7 @@ describe('a DEVSERVER build (§3.3)', () => {
       expect(deck.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled, card.slug).toBe(false);
       expect(deck.root.querySelector<HTMLButtonElement>('.ws-menu-explore')?.disabled, card.slug).toBe(false);
     }
-    expect([...deck.root.querySelectorAll('.ws-menu-card-exp')].filter((el) => el.textContent === 'DEVELOPER ONLY')).toHaveLength(2);
+    expect([...deck.root.querySelectorAll('.ws-menu-card-exp')].filter((el) => el.textContent === 'DEVELOPER ONLY')).toHaveLength(3);
     deck.dispose(); deck.root.remove();
     const menu = buildTitleMenu({ cards: titleCards(true), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, onGrid: () => undefined, mode: () => MODES.devserver, screen: 'main' });
     expect(menu.root.querySelector('.ws-main-grid')).toBeNull();

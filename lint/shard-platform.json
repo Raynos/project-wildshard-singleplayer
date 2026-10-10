@@ -9,10 +9,12 @@
     "nine-dragon-stack": 25166,
     "pine-hollow": 21698,
     "sunscar-dunes": 4825,
-    "blender-template": 90
+    "blender-template": 90,
+    "pastel-plain": 550
   },
   "enforced": {
     "_template": 0,
-    "blender-template": 0
+    "blender-template": 0,
+    "pastel-plain": 0
   }
 }

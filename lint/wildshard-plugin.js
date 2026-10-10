@@ -816,7 +816,7 @@ const shardSandbox = rule('Shard services, globals, settings and assets stay ins
 // distinctive slug stems, and the ids a shard declares in its own namespace. Comments are not counted.
 const camelOf = (s) => s.toLowerCase().replaceAll(/[-\s]+([a-z])/gu, (_m, c) => c.toUpperCase());
 const SHARD_DISPLAY = shardWords.words.filter((w) => /\s/u.test(w));
-const COMMON_STEMS = new Set(['driftwood', 'far', 'nine', 'pine', 'blender']);   // ordinary words: shared content may say them
+const COMMON_STEMS = new Set(['driftwood', 'far', 'nine', 'pine', 'blender', 'pastel']);   // ordinary words: shared content may say them
 const SHARD_STEMS = [...new Set(shardWords.slugs.map((s) => s.split('-')[0] ?? ''))].filter((s) => s.length >= 6 && !COMMON_STEMS.has(s));
 const SHARD_IDS = shardWords.words.filter((w) => w.includes('.') && !w.startsWith('weapon.'));
 const SHARD_NAME_TERMS = [...shardWords.slugs, ...shardWords.slugs.map((s) => s.replaceAll('-', ' ')), ...SHARD_DISPLAY, ...shardWords.slugs.map(camelOf), ...SHARD_DISPLAY.map(camelOf), ...SHARD_STEMS, ...SHARD_IDS];

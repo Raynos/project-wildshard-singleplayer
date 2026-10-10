@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "tilesHash": "3ddb2eb2b1a31d1508c537a6b4a0dca8d8d4eb4cb3867d62e1e4b9b646479084",
+  "image": "/assets/pastel-plain/map/top.webp",
+  "size": 1000,
+  "metres": 500,
+  "north": "+z",
+  "east": "-x",
+  "style": "stylized:ground",
+  "bytes": 28498
+}

@@ -26,6 +26,7 @@ import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/
 import { CROSSBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { Bullwhip } from '../../src/shards/sunscar-dunes/weapons/Bullwhip';
 import { ITEMS } from '../../src/shards/_template/data/items';
+import { ITEMS as PASTEL_ITEMS } from '../../src/shards/pastel-plain/data/items';
 import { fakeWorld } from '../fake/world';
 import { legacyDouble } from '../fake/FakeGame';
 import { buildSword as buildOriginalSword } from '../../src/game/systems/items/declaredSword';
@@ -73,18 +74,22 @@ const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
   'sunscar-dunes': ({ services }) => callerWeapons('src/shards/sunscar-dunes/plugin.ts', 'Bullwhip', {
     Bullwhip, ctx: { app: services }, targets: emptyTargets,
   }),
-  '_template': ({ services, scope }) => {
-    const actor: Actor = { id: 'actor.player', tags: ['actor.player'], state: [], attributes: { health: 100, maxHealth: 100 },
-      alive: true, applyDamage: () => false };
-    services.input.register({ id: 'weapon.melee', actions: ['attack', 'heavy', 'lock'], keys: { attack: ['Mouse0'], heavy: ['Mouse2'] } }, scope);
-    const equipment = installDeclaredItems(ITEMS, { scope, actorId: actor.id, input: services.input,
-      aim: () => ({ origin: { x: 0, y: 1.6, z: 0 }, direction: { x: 0, y: 0, z: -1 } }),
-      families: declaredKitItemFamilies(), icon: (id) => { if (id === 'sword' || id === 'glyph') return id; throw new Error(`Unknown icon ${id}`); },
-      runtime: () => ({ actor, combat: services.combat, targets: () => [], hook: (input) => input.action, effect: () => undefined }) });
-    if (equipment.primary === null) throw new Error('Template primary missing');
-    return [equipment.primary, ...(equipment.secondary === null ? [] : [equipment.secondary])];
-  },
+  '_template': (fixture) => declaredPrimary(ITEMS, fixture),
+  // SF59's pastel fixture is a template copy: the same declared whip and lantern rows under its own ids
+  'pastel-plain': (fixture) => declaredPrimary(PASTEL_ITEMS, fixture),
 };
+/** a template-style shard's primary and secondary, installed from its declared item rows */
+function declaredPrimary(items: typeof ITEMS | typeof PASTEL_ITEMS, { services, scope }: Fixture): readonly Weapon[] {
+  const actor: Actor = { id: 'actor.player', tags: ['actor.player'], state: [], attributes: { health: 100, maxHealth: 100 },
+    alive: true, applyDamage: () => false };
+  services.input.register({ id: 'weapon.melee', actions: ['attack', 'heavy', 'lock'], keys: { attack: ['Mouse0'], heavy: ['Mouse2'] } }, scope);
+  const equipment = installDeclaredItems(items, { scope, actorId: actor.id, input: services.input,
+    aim: () => ({ origin: { x: 0, y: 1.6, z: 0 }, direction: { x: 0, y: 0, z: -1 } }),
+    families: declaredKitItemFamilies(), icon: (id) => { if (id === 'sword' || id === 'glyph') return id; throw new Error(`Unknown icon ${id}`); },
+    runtime: () => ({ actor, combat: services.combat, targets: () => [], hook: (input) => input.action, effect: () => undefined }) });
+  if (equipment.primary === null) throw new Error('Template primary missing');
+  return [equipment.primary, ...(equipment.secondary === null ? [] : [equipment.secondary])];
+}
 
 // happy-dom has no 2D raster backend. Keep its DOM and execute the real procedural texture generator against a
 // pixel-buffer canvas port; stroke/fill presentation is outside this constructor/rig check, not a texture parity claim.
