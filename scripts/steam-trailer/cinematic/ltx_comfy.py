@@ -161,7 +161,8 @@ def http(path, data=None, port=8199):
                                  data=json.dumps(data).encode() if data is not None else None,
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read())
+        body = r.read()
+        return json.loads(body) if body.strip() else {}  # /free answers with an empty body
 
 
 def ffmpeg(*a):
