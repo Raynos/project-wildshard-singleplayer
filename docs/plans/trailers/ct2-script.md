@@ -58,6 +58,12 @@ gallop, R1A-2); big rigid things hold. Shot 14 is generated as a **push-in and p
 best at a clip's start); its keyframe has no water or smoke to run backwards (R2B-8). Light changes (streetlights coming on) are untested in CT1 (R1B-5): a re-roll, then a cut on
 the change if it doesn't land.
 
+**Draft 1 cut (2026-10-10)** — 67 s, sent to Jake; the board `art/trailers/round-3-draft1/board-draft1.jpg`. Gate per
+shot: 1, 2, 4, 5, 7–11, 13, 14 pass on the first take; 6 passes on re-roll 1 (image-to-video from `b06look`: the
+Layout-To-Render take kept the look ~2 s, then the highway grey's cones and boxes took over — style drift, so the still,
+not the seed, R1A-8); 12 passes with a note (the bridge figure reads as riding a board, not walking; re-roll in draft 2);
+5's last second softens. Driver fix: a stalled ComfyUI `/history` poll no longer orphans the server (5c8e62796).
+
 ## The shots
 
 | # | t (s) | Shot | Kind | What we see / the motion |

@@ -2,7 +2,8 @@
 
 **State:** `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). **Part B: CT1 done**
 (ten experiments, Jake's verdicts: LTX Layout-To-Render on a Blender grey (#9) and LTX from a Qwen keyframe (#10b) win);
-**CT2 draft 2** of the cinematic plan is being reviewed by a council (the highway look, our six shards). Open: TR9, CT2–CT6.
+**CT2** script draft 4 after council rounds 1–2; **draft 1 of the cinematic trailer is cut** (67 s, every shot LTX-2.5,
+sent to Jake 2026-10-10; `art/trailers/round-3-draft1/`). Next: council round 3 on the cut, Jake's notes, draft 2. Open: TR9, CT2–CT6.
 
 ## 0. Why
 
@@ -107,8 +108,8 @@ always an overlay.
 | CT2 | ◐ **Script, look and storyboard, draft 2** — rebuilt on the highway (ct2-script.md), the round-2 look (`art/trailers/round-2-highway/`: three references, six shard concept paintings from in-engine views, the storyboard), put through a council (`trailers/council/`) | Jake has read the draft | trailer agent + Jake |
 | CT3 | **The blockout kit** — `scripts/steam-trailer/cinematic/dock_blockout.py --highway` (the engine's grid: flat roads, roundabouts, road entries, the hero shard with four roads; no lattice, no beacons) grows into a kit with one blockout per directed shot (1, 6, 9, 14); shot 6's is done (draft 1) | each directed shot has grey / depth / normal at 1280 × 704 | trailer agent |
 | CT4 | **Look stills and keyframes** — directed shots: a still painted from the grey's first frame (OpenAI or Qwen; Qwen only repaints grey: on finished frames it failed the gate, night → day, R2B-5); atmosphere shots: the storyboard frame itself, re-made from `hero-shard.jpg` wherever the new shard shows; every still passes the keyframe gate (composition, the hero's tower, Driftwood's facets, time of day, no lattice) | every shot has a gated still | trailer agent |
-| CT5 | **The shots** — LTX Layout-To-Render (directed) or image-to-video (atmosphere), 4–6 s each, critical shots first (6, 5, 7, 1); one take + two re-rolls by failure kind, then a stable insert (ct2-script §Gates) | 14 shots at 1280 × 704 | trailer agent |
-| CT6 | **Score, cut, ship** — MiniMax take 404 of `concept-jobs.json` (its big hit on the cut into shot 6), trailer SFX, `cuts/concept.mjs` + `cinematic/prep_concept.sh` (1920 × 1080 crop, b14 reversed, b03 a wipe, b15 a hold), overlays (the concept tag on every frame, five captions, the end card), the site's slot beside the alpha trailer | wildshard.io plays it | trailer agent |
+| CT5 | **The shots** — LTX Layout-To-Render (directed) or image-to-video (atmosphere), 4–6 s each, critical shots first (6, 5, 7, 1); one take + two re-rolls by failure kind, then a stable insert (ct2-script §Gates) | 14 shots at 1280 × 704 — **draft 1: all 13 generated shots pass the gate**, b06 on its re-roll (the Layout-To-Render take lost the look after ~2 s to the grey's style; image-to-video from its look still held it) | trailer agent |
+| CT6 | **Score, cut, ship** — MiniMax take 404 of `concept-jobs.json` (its big hit on the cut into shot 6), trailer SFX, `cuts/concept.mjs` + `cinematic/prep_concept.sh` (1920 × 1080 crop, b14 reversed, b03 a wipe, b15 a hold), overlays (the concept tag on every frame, five captions, the end card), the site's slot beside the alpha trailer | wildshard.io plays it — draft 1 cut (temp mix, the stills-built b03 / b15) | trailer agent |
 
 ## 4. Not in this plan
 
