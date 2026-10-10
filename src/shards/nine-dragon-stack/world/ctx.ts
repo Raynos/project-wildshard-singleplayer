@@ -1,13 +1,14 @@
 // The build context every world module writes into: named kits (one merged mesh each), instance lists, sign quads,
 // the grapple's dragon hooks and the minimap's floor plan.
-import { type Box3, Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
 import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
 import { Dressing } from './facade/dressing';
 import { KitX } from './hero/kitx';
+import { KitSet } from '@wildshard/sdk/kit/kitSet';
+import type { DrawnCopy } from '@wildshard/sdk/kit/drawnInto';
 import type { SignSink } from '../look/signs';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { Placement } from '@wildshard/engine/models/model';
 import { WELL, Y0 } from '../layout';
 
 /** instanced kit pieces (dressing.ts builds their geometry) */
@@ -18,25 +19,17 @@ export interface Instance { m: Matrix4; c: Color }
 const WHITE = new Color(1, 1, 1);
 const ZAX = new Vector3(0, 0, 1);
 
-/**
- * A model drawn into a kit (E306 M4, models/inKit.ts): its geometry is the kit's (merged with the region, the neon spill
- * baked in), so the world records where each copy stands and registers them on the kit's mesh once it is built
- * (build.ts, `place` with `drawnInto`)
- */
-export interface InKit { readonly model: string; readonly kit: Kit; readonly at: Placement<object>; /** the copy's world bounds as drawn (else from its own build) */ readonly box?: Box3 }
+/** a model drawn into a kit (E306 M4, models/inKit.ts): the world records where each copy stands and registers them on the
+ *  kit's mesh once it is built (world/inKit.ts, @wildshard/sdk/kit/drawnInto) */
+export type InKit = DrawnCopy<Kit>;
 
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }
 
-export class Ctx {
-  readonly kits = new Map<string, Kit>();
-  readonly alphaKits = new Map<string, Kit>();
-  /** the hero lab's curved pieces, merged with the kit of the same name */
-  readonly kitxs = new Map<string, KitX>();
+/** the build context: the named kits (the SDK's kit set: `kit`, `alpha`, `kitx`, `far`, `cell`) and the layout's records */
+export class Ctx extends KitSet<Kit, KitX> {
   /** the TRELLIS crowd: walkers (umbrellas) and mahjong sitters, instanced by main.ts */
   readonly walkers: Matrix4[] = [];
   readonly sitters: Matrix4[] = [];
-  /** kits drawn into the wet-ground reflection */
-  readonly reflective = new Set<string>();
   readonly lanterns: Matrix4[] = [];
   readonly acs: Matrix4[] = [];
   readonly hooks: Vector3[] = [];
@@ -54,42 +47,12 @@ export class Ctx {
   readonly inst = new Map<string, Instance[]>();
   readonly rng = new Rng(9);
 
-  constructor(readonly signs: SignSink) {}
+  /** where the layout's signs go (look/signs.ts) */
+  readonly signs: SignSink;
 
-  kit(name: string, reflective = false): Kit {
-    let k = this.kits.get(name);
-    if (k === undefined) { k = new Kit(); this.kits.set(name, k); }
-    if (reflective) this.reflective.add(name);
-    return k;
-  }
-
-  /** kits drawn only within a distance (m) of the camera: `far(name, m)` (@wildshard/sdk/cull/instanceCuller `addFar`) */
-  readonly farOf = new Map<string, number>();
-
-  /**
-   * THE PER-REGION LOD SWITCH (the phone budget): draw the kit `name` (opaque, alpha or kitx of that name) only while the
-   * camera is within `metres` of its bounding box. Pair it with `cell` so a region's detail is its own kits: what lies
-   * deep in the Well or far up the stair then costs nothing from the square.
-   */
-  far(name: string, metres: number): void { this.farOf.set(name, metres); }
-
-  /**
-   * A kit name per `size`-metre cell of the ground plan (`<name>#<i>,<k>`): a region's kit split so each cell is its own
-   * mesh, which three's per-object frustum test can drop (one merged kit spanning the whole Well never is). Each cell is
-   * a draw when in view, so cells of 24–40 m for dense detail, not finer.
-   */
-  cell(name: string, x: number, z: number, size = 32): string { return `${name}#${Math.floor(x / size)},${Math.floor(z / size)}`; }
-
-  kitx(name: string): KitX {
-    let k = this.kitxs.get(name);
-    if (k === undefined) { k = new KitX(); this.kitxs.set(name, k); }
-    return k;
-  }
-
-  alpha(name: string): Kit {
-    let k = this.alphaKits.get(name);
-    if (k === undefined) { k = new Kit(); this.alphaKits.set(name, k); }
-    return k;
+  constructor(signs: SignSink) {
+    super(() => new Kit(), () => new KitX());
+    this.signs = signs;
   }
 
   lantern(x: number, y: number, z: number, s = 1, rot = 0): void {
