@@ -38,6 +38,7 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
       '../src/engine/audio/aacSource.ts',
       '../src/engine/audio/synth.ts',
+      '../src/game/systems/audio/synthBeds.ts',
       '../src/shards/driftwood-isle/runtime/audio/ambience.ts', '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
       '../src/shards/nalati-grasslands/runtime/audio/synth.ts',
       '../src/shards/pine-hollow/life/index.ts',

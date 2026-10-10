@@ -3,7 +3,7 @@ import { AmbienceZones } from '@wildshard/engine/audio/ambience';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import { audioRandom } from '@wildshard/engine/audio/util';
-import { ambientTick } from '@wildshard/engine/core/harnessTap';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { SynthBeds, type SynthBedsSet } from '@wildshard/sdk/audio/synthBeds';
 import { ISLAND_BEDS } from '../../data/islandBeds';
@@ -229,6 +229,7 @@ export class IslandAmbience {
   /** an exotic jungle call from a random side: a hollow two-note "toucan" croak, or a falling whistle phrase */
   private bird(level: number): void {
     const a = this.audio, c = a.ctx, t = c.currentTime, jb = this.zones.beds.get('jungle'); if (!jb) return;
+    tap.sound?.('island.bird');
     const pan = c.createStereoPanner(); pan.pan.value = Math.random() * 1.6 - 0.8;
     const out = c.createGain(); out.gain.value = 0.35 * (0.5 + Math.random() * 0.5); out.connect(pan).connect(jb.gain);
     const note = (t0: number, f0: number, f1: number, dur: number, type: OscillatorType, g: number, lp: number): void => {
@@ -248,6 +249,7 @@ export class IslandAmbience {
         const cave = this.diag.cave;
         if (cave > 0.05 && !this.underwater) {
           const c = this.audio.ctx, t = c.currentTime, f = 1300 + Math.random() * 1400;
+          tap.sound?.('island.drip');
           const o = ownAudioSource(c.createOscillator()); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.7, t + 0.05);
           const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.12 * cave, t + 0.003); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
           o.connect(e).connect(this.audio.sfx); o.start(t); o.stop(t + 0.12); // on the sfx bus: it rings in the cave reverb
