@@ -1,5 +1,5 @@
 import { Group, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry, type ShaderMaterial } from 'three';
-import { uniformsFrom, type ShaderFamily, type UniformMap, type UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import { uniformsFrom, type ShaderFamily, type UniformMap, type UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * Camera-facing cards drawn by a shard's own programs, as declared rows (SHARD-PLATFORM M3, look-family rows): a sun's
