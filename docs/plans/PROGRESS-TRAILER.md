@@ -171,6 +171,10 @@ says so.
   0.3 s cut while the spawn settles) and `shots/w3-whip.mjs` with `prey: strider` (three cracks at a dune strider that
   charges the camera; the Matriarch version passes overhead too fast to read at dusk, so the whip's target moved, as
   §2.2's last paragraph allows).
+- **Today's-build shots (PT4)**: `scripts/progress-trailer/head-shots.mjs` through the trailer agent's `capture.mjs
+  --shots-file` on a clean HEAD export (`scripts/serve-build.sh --head`): `pt-grapple`, the teaser's real grapple from a
+  start look 6° right and 3° up (a new frame 0: the rail and the stone lion), landing on the lower gallery; `pt-grid`, the
+  grid's own sky-down reveal for 8.5 s (the 3 × 3 world from above, then down to Driftwood's pier under the end cards).
 
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 
