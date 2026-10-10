@@ -1127,8 +1127,11 @@ parents, lights and environment stay unchanged; retiring the owner removes the d
 `@wildshard/sdk/looks/offscreenPreparation`. Register an existing override pass
 with its resource owner; the ordinary sliced precompile gathers the current,
 visible caster variants in the pass camera's layers and borrows the exact material,
-camera and render target. It does not draw the pass, advance a clock, rewrite shader
-sources, or change caster visibility/parents. Disposal unregisters before resources
+camera and render target. It does not advance a clock, rewrite shader sources, or change
+caster visibility/parents. An entered frame's warm-up (`Game.warmEnteredFrame`) then draws
+each pass once, one caster per program-and-layout key, into a 1×1 stand-in with its
+target's formats (`warmOffscreenPasses` in `render/parkedDraws`), so the pass's first real
+update builds no driver pipeline; the real target is never written. Disposal unregisters before resources
 retire. `offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene)`
 collects detached compile jobs across the page's nested scenes. `CompileJob.camera?`
 overrides the page camera for those jobs, keeping light-layer program keys exact. Set `positionOnly: true` only when the authored vertex shader reads no normal, colour or UV attributes; preparation then keeps the real draw cache's one representative per object flag set, including instancing, batching and skinning, without adding unused attribute programs.

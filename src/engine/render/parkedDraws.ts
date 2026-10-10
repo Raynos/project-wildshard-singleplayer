@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { Renderer } from './renderer';
 import { dropShadowColour, shadowColourDropped } from '../world/shadowVariants';
 import { SHADOW_LAYER } from '../core/shadowLayer';
+import { offscreenPreparations, type OffscreenPreparation } from './offscreenPreparation';
+import { programObjectKey } from './precompile';
 
 /**
  * Draw a parked (hidden) subtree once, a few objects per painted slice, before it is first shown (op-hitch31, E435).
@@ -75,6 +77,28 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
 }
 
 /**
+ * A `width`×`height` render target with `real`'s attachment formats (colour type and format, depth buffer or depth
+ * texture, stencil, samples, mipmaps): a draw into it builds the driver pipelines a draw into `real` builds, and
+ * `real` is never written. The caller disposes it (and its depth texture).
+ */
+export function standInTarget(real: THREE.RenderTarget, width: number, height: number): THREE.WebGLRenderTarget {
+  const texture = real.texture;
+  const target = new THREE.WebGLRenderTarget(width, height, { type: texture.type, depthBuffer: real.depthBuffer,
+    stencilBuffer: real.stencilBuffer, samples: real.samples, generateMipmaps: texture.generateMipmaps,
+    minFilter: texture.minFilter, magFilter: texture.magFilter });
+  target.texture.format = texture.format;
+  target.texture.name = `${texture.name}.warm`;
+  const depth = real.depthTexture;
+  if (depth !== null) {
+    const copy = new THREE.DepthTexture(width, height, depth.type);
+    copy.format = depth.format; copy.compareFunction = depth.compareFunction;
+    copy.minFilter = depth.minFilter; copy.magFilter = depth.magFilter; copy.name = `${depth.name}.warm`;
+    target.depthTexture = copy;
+  }
+  return target;
+}
+
+/**
  * Stand-in shadow maps for the slices' depth draws (op-hitch33): one per shadow-casting light, with the light's own
  * map's attachment formats (so the depth pipelines equal the entry frame's) but one texel per cascade viewport. The
  * light's real map is never written, so a cascade that is not redrawn on the next frame (the far cascade every other
@@ -93,18 +117,7 @@ export class ShadowStandIns {
     let target = this.targets.get(shadow);
     if (target === undefined || target.width !== extents.x || target.height !== extents.y) {
       target?.dispose(); target?.depthTexture?.dispose();
-      const texture = real.texture;
-      target = new THREE.WebGLRenderTarget(extents.x, extents.y, { type: texture.type,
-        depthBuffer: real.depthBuffer, stencilBuffer: real.stencilBuffer, samples: real.samples, generateMipmaps: false });
-      target.texture.format = texture.format;
-      target.texture.name = `${texture.name}.warm`;
-      const depth = real.depthTexture;
-      if (depth !== null) {
-        const copy = new THREE.DepthTexture(extents.x, extents.y, depth.type);
-        copy.format = depth.format; copy.compareFunction = depth.compareFunction;
-        copy.minFilter = depth.minFilter; copy.magFilter = depth.magFilter; copy.name = `${depth.name}.warm`;
-        target.depthTexture = copy;
-      }
+      target = standInTarget(real, extents.x, extents.y);
       // a depth-only real map (E174 / the Memory saver) has no colour attachment: neither may its stand-in
       if (this.renderer !== null && shadowColourDropped(real)) { this.renderer.initRenderTarget(target); dropShadowColour(this.renderer, target); }
       this.targets.set(shadow, target);
@@ -224,4 +237,80 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
     renderer.setScissor(canvasScissor); renderer.setScissorTest(canvasScissorTest);
     renderer.setRenderTarget(priorTarget, priorFace, priorMip);
   }
+}
+
+/** The renderer calls an offscreen pass warm makes (a WebGLRenderer). */
+export type OffscreenWarmRenderer = Pick<Renderer, 'render' | 'getRenderTarget' | 'setRenderTarget' | 'getActiveCubeFace' | 'getActiveMipmapLevel'> & {
+  readonly shadowMap: { autoUpdate: boolean; needsUpdate: boolean } };
+
+/**
+ * Draw one registered offscreen override pass (`registerOffscreenPreparation`: a look bake, a height or contact map) once,
+ * into a 1×1 stand-in of its target, before its owner's first real update (op-hitch37, E435).
+ *
+ * Precompile links the pass's programs, but its first real draw still built a driver pipeline for every caster layout
+ * it drew (Nalati's static look bake: about 11 between hooks right after entry, on its RGBA8 + depth-texture target).
+ * This draws the pass the way its owner does (its scene, its camera and layers, its material as the scene's override, no
+ * background, shadow maps not redrawn), but only one caster per program-and-layout key, unculled, with an instanced
+ * caster's count cut to one, into a stand-in with the target's formats (`standInTarget`). The real target is never
+ * written; every flag is restored before it returns. Returns how many casters it drew.
+ */
+export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.Scene, pass: OffscreenPreparation): number {
+  const layers = pass.camera.layers, seen = new Set<string>();
+  const drawn: Drawable[] = [], benched: THREE.Object3D[] = [];
+  for (const root of pass.roots()) root.traverseVisible(object => {
+    if (!isDrawable(object) || !object.layers.test(layers)) return;
+    const key = programObjectKey(object, pass.positionOnly === true);
+    if (seen.has(key) || !drawableMaterials(object).some(material => material.visible && material.allowOverride)) { benched.push(object); return; }
+    seen.add(key); drawn.push(object);
+  });
+  if (drawn.length === 0) return 0;
+  const benchedMasks = benched.map(object => object.layers.mask);
+  const drawnState = drawn.map(object => ({ culled: object.frustumCulled, count: object instanceof THREE.InstancedMesh ? object.count : -1 }));
+  const priorOverride = scene.overrideMaterial, priorBackground = scene.background;
+  const priorTarget = renderer.getRenderTarget(), priorFace = renderer.getActiveCubeFace(), priorMip = renderer.getActiveMipmapLevel();
+  const shadowAuto = renderer.shadowMap.autoUpdate, shadowNeeds = renderer.shadowMap.needsUpdate;
+  const target = standInTarget(pass.target, 1, 1);
+  try {
+    for (const object of benched) object.layers.mask &= ~layers.mask;
+    for (const object of drawn) {
+      object.frustumCulled = false;
+      if (object instanceof THREE.InstancedMesh && object.count > 1) object.count = 1;
+    }
+    scene.overrideMaterial = pass.material; scene.background = null;
+    renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = false;
+    renderer.setRenderTarget(target);
+    renderer.render(scene, pass.camera);
+  } finally {
+    for (const [i, object] of benched.entries()) object.layers.mask = benchedMasks[i] ?? object.layers.mask;
+    for (const [i, object] of drawn.entries()) {
+      const state = drawnState[i];
+      if (state === undefined) continue;
+      object.frustumCulled = state.culled;
+      if (object instanceof THREE.InstancedMesh && state.count >= 0) object.count = state.count;
+    }
+    scene.overrideMaterial = priorOverride; scene.background = priorBackground;
+    renderer.shadowMap.autoUpdate = shadowAuto; renderer.shadowMap.needsUpdate = shadowNeeds;
+    renderer.setRenderTarget(priorTarget, priorFace, priorMip);
+    target.depthTexture?.dispose(); target.dispose();
+  }
+  return drawn.length;
+}
+
+/**
+ * Warm every offscreen override pass registered on a scene under `root` (`warmOffscreenPass`), one pass per `pause()`.
+ * `current` fences every pass; a pass that throws ends the warm-up (logged), never the entry, like `warmParkedDraws`.
+ */
+export async function warmOffscreenPasses(renderer: OffscreenWarmRenderer, root: THREE.Object3D, current: () => boolean,
+  pause: () => Promise<void>): Promise<number> {
+  const passes: { scene: THREE.Scene; pass: OffscreenPreparation }[] = [];
+  const isScene = (object: THREE.Object3D): object is THREE.Scene => object instanceof THREE.Scene;
+  root.traverse(object => { if (isScene(object)) for (const pass of offscreenPreparations(object)) passes.push({ scene: object, pass }); });
+  let drawn = 0;
+  for (const { scene, pass } of passes) {
+    if (!current()) throw new Error('Offscreen warm owner left');
+    try { drawn += warmOffscreenPass(renderer, scene, pass); }
+    catch (error) { console.error(`[parked draws] the ${pass.label} pass warm stopped; its first update draws the rest`, error); return drawn; }
+    await pause();
+  }
+  return drawn;
 }

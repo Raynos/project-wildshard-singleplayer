@@ -1,6 +1,6 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Material, type Object3D } from 'three';
 
-import { currentOwner } from '../app/ownership';
+import { constructionOwner, currentOwner, enteredOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
 
 const viewMesh = (part: Object3D): part is Mesh => part instanceof Mesh;
@@ -20,7 +20,10 @@ export class ViewmodelRoot extends Group {
   }
   override add(...objects: Object3D[]): this {
     for (const object of objects) this.prepare(object);
-    const owner = this.preparations.size === 0 ? null : currentOwner();
+    // op-hitch37: a sliced build's later weapons are made in an `await` continuation, where the ambient owner is the
+    // page's: the construction it belongs to still holds them back (Nalati's spear drew live mid-afterKit, a 23 ms
+    // blocking link of its two programs on the Simulator). An explicit owner section keeps its own owner.
+    const owner = this.preparations.size === 0 ? null : enteredOwner() ?? constructionOwner() ?? currentOwner();
     const preparation = [...this.preparations].find(([scope]) => owner?.belongsTo(scope) === true)?.[1];
     if (preparation === undefined) return super.add(...objects);
     preparation.add(...objects); return this;

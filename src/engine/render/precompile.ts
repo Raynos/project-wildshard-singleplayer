@@ -118,8 +118,9 @@ export async function warmComposerFrame(composer: Pick<EffectComposer, 'render'>
 /** any scene object, with the mesh-ish fields the program key reads (all optional: lights, groups and bones have none) */
 type MeshLike = THREE.Object3D & { isMesh?: boolean; geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[]; isInstancedMesh?: boolean; instanceColor?: THREE.InstancedBufferAttribute | null; isSkinnedMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
 
-/** The parts of an object that change its material's program (WebGLPrograms.getParameters). */
-function objectKey(o: BatchedLike, positionOnly = false): string {
+/** The parts of an object that change its material's program (WebGLPrograms.getParameters); `positionOnly` drops the
+ * attribute bits a position-only override pass never reads. */
+export function programObjectKey(o: BatchedLike, positionOnly = false): string {
   const g = o.geometry;
   const a: THREE.NormalBufferAttributes = g?.attributes ?? {};
   const morph = g?.morphAttributes ? Object.keys(g.morphAttributes).map((k) => `${k}${g.morphAttributes[k as 'position']?.length ?? 0}`).join('') : '';
@@ -136,6 +137,13 @@ function currentProgram(renderer: Renderer, material: THREE.Material): unknown {
   const get: unknown = typeof store === 'object' && store !== null ? Reflect.get(store, 'get') : undefined;
   const properties: unknown = typeof get === 'function' ? Reflect.apply(get, store, [material]) : undefined;
   return typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined;
+}
+
+/** How many programs the renderer holds (0 for a test double without `info.programs`). */
+function programCount(renderer: Renderer): number {
+  const info: unknown = Reflect.get(renderer, 'info');
+  const programs: unknown = typeof info === 'object' && info !== null ? Reflect.get(info, 'programs') : undefined;
+  return Array.isArray(programs) ? programs.length : 0;
 }
 
 const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; };
@@ -170,7 +178,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
     const mesh = o as MeshLike;
     const list = materialsOf(mesh);
     if (list.length === 0) return;
-    const ok = objectKey(mesh);
+    const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
     const first = wanted[0];
     if (first === undefined) return;
@@ -220,7 +228,7 @@ export function offscreenJobs(scene: THREE.Scene, per = 1): CompileJob[] {
           ? mesh.geometry?.groups.some(group => drawable(materials[group.materialIndex ?? 0])) === true
           : materials.some(drawable);
         if (!eligible) return;
-        const key = objectKey(mesh, pass.positionOnly);
+        const key = programObjectKey(mesh, pass.positionOnly);
         if (seen.has(key)) return;
         seen.add(key);
         const copy = standIn(mesh);
@@ -286,7 +294,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
   scene.traverse((o) => {
     const mesh = o as MeshLike;
     if (!mesh.castShadow || !mesh.isMesh && !mesh.isPoints && !mesh.isLine) return;
-    const ok = objectKey(mesh);
+    const ok = programObjectKey(mesh);
     for (const m of materialsOf(mesh)) {
       const mat = m as THREE.MeshStandardMaterial;
       let depth: THREE.Material;
@@ -440,6 +448,9 @@ export interface UploadBudget {
 /** The Developer tool's budget for isolated (WebKit) uploads: about a quarter of a 30 fps frame, 8 MiB of decoded texels. */
 export const LIVE_UPLOAD_BUDGET: UploadBudget = { ms: 8, bytes: 8 * 1024 * 1024 };
 
+/** A live WebKit warm-up issues (about) and resolves at most this many programs per painted slice (op-hitch37). */
+export const LIVE_PROGRAMS_PER_FRAME = 4;
+
 /** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
 export const SLICED_UPLOAD_BUDGET: UploadBudget = { ms: 10, bytes: 64 * 1024 * 1024 };
 
@@ -547,7 +558,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const jobPrograms = new Set<unknown>();
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
-  let tFrame = performance.now();
+  let tFrame = performance.now(), programsAtFrame = programCount(renderer);
   for (const [i, job] of jobs.entries()) {
     checkCurrent();
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
@@ -566,8 +577,12 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
+    // op-hitch37: a live WebKit warm-up also yields once a slice has issued LIVE_PROGRAMS_PER_FRAME programs: WebKit
+    // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
+    // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
+    const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= LIVE_PROGRAMS_PER_FRAME;
     // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
-    if (performance.now() - tFrame > 12 || i === jobs.length - 1) { await pause(); tFrame = performance.now(); }
+    if (performance.now() - tFrame > 12 || capped || i === jobs.length - 1) { await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
@@ -591,12 +606,15 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // is also where the link itself blocks. The resolve is three's own first use (`getUniforms()`: the
   // link-status + info-log checks, every uniform / attribute location), which the first draw of each
   // program otherwise ran inside the first frame (~45 ms of onFirstUse at 4x CPU).
-  let tSlice = performance.now();
+  // op-hitch37: a live WebKit warm-up resolves at most LIVE_PROGRAMS_PER_FRAME a slice. Its queries return quickly on the
+  // main thread, so the 12 ms box never closed, but the frame waited for every library they forced (Nine Dragon's entry:
+  // 759 uniforms resolved in one 699 ms Simulator frame of afterPlay).
+  let tSlice = performance.now(), resolvedInSlice = 0;
   for (const [i, p] of created.entries()) {
     checkCurrent();
-    p.getUniforms();
+    p.getUniforms(); resolvedInSlice++;
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
-    if (performance.now() - tSlice > 12) { await pause(); tSlice = performance.now(); }
+    if (performance.now() - tSlice > 12 || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];

@@ -35,6 +35,12 @@ export function enteredOwner(): Scope | null { return entered > 0 ? owner : null
 /** The owner an enclosing `withOwner` section set (null included: `asShell` means no owner), or `fallback` outside any
  *  section. A service with a lifetime of its own (a region's physics world) passes its scope; never a stray read (SF57). */
 export function ownerOr(fallback: Scope): Scope | null { return entered > 0 ? owner : fallback; }
+/** The scope of the background construction whose frame is installed now (`bindConstructionEnvironment`): an unwrapped
+ *  `await` continuation of that construction runs in it. Null outside one, and while an unrelated `withOwner` section
+ *  (a road or UI callback) has suspended it. Never a stray read (op-hitch37). */
+export function constructionOwner(): Scope | null {
+  return construction !== null && construction.leave !== null && !construction.changing && !construction.scope.disposed ? construction.scope : null;
+}
 export function enterOwner(next: Scope | null): void { owner = next; }
 export function withOwner<T>(scope: Scope | null, fn: () => T): T {
   // A background construction's ambient frame is for its unwrapped await continuations. Road/UI callbacks carry

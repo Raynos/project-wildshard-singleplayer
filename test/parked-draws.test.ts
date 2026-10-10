@@ -1,7 +1,9 @@
 import { expect, it, vi } from 'vitest';
-import { BoxGeometry, DepthTexture, DirectionalLight, Group, Mesh, MeshStandardMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, UnsignedIntType, WebGLRenderTarget, type Camera, type Object3D, type Texture, type Vector4 } from 'three';
+import { BoxGeometry, Color, DepthTexture, DirectionalLight, Group, HalfFloatType, InstancedMesh, Mesh, MeshStandardMaterial, OrthographicCamera, PCFShadowMap, PerspectiveCamera, PointLight, Scene, ShaderMaterial, UnsignedIntType, WebGLRenderTarget, type Camera, type Material, type Object3D, type Texture, type Vector4 } from 'three';
 import { SHADOW_LAYER } from '../src/engine/core/shadowLayer';
-import { parkedDrawSlices, warmParkedDraws, type ParkedDrawRenderer } from '../src/engine/render/parkedDraws';
+import { parkedDrawSlices, standInTarget, warmOffscreenPasses, warmParkedDraws, type OffscreenWarmRenderer, type ParkedDrawRenderer } from '../src/engine/render/parkedDraws';
+import { registerOffscreenPreparation } from '../src/engine/render/offscreenPreparation';
+import { Scope } from '../src/engine/app/scope';
 
 const mesh = (material = new MeshStandardMaterial()): Mesh => new Mesh(new BoxGeometry(), material);
 
@@ -118,4 +120,61 @@ it('a slice that throws ends the warm-up with a logged error, never the entry, a
     // a left owner still rejects: that is the entry being abandoned, not a failed warm-up
     await expect(warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root, () => false, () => Promise.resolve())).rejects.toThrow('Parked draw owner left');
   } finally { log.mockRestore(); }
+});
+
+it('a stand-in target copies the real target\'s attachment formats at its own size', () => {
+  const real = new WebGLRenderTarget(1024, 1024, { type: HalfFloatType, generateMipmaps: true, samples: 4 });
+  real.depthTexture = new DepthTexture(1024, 1024, UnsignedIntType);
+  const copy = standInTarget(real, 1, 1);
+  expect([copy.width, copy.height]).toEqual([1, 1]);
+  expect([copy.texture.type, copy.texture.format, copy.texture.generateMipmaps, copy.samples]).toEqual([HalfFloatType, real.texture.format, true, 4]);
+  expect([copy.depthTexture?.type, copy.depthTexture?.format]).toEqual([UnsignedIntType, real.depthTexture.format]);
+  expect(copy.depthTexture).not.toBe(real.depthTexture);
+});
+
+it('draws each offscreen pass once, one caster per program key, into a stand-in, and restores every flag', async () => {
+  const LAYER = 7, scene = new Scene(), outer = new Scene(), casters = new Group();
+  const shared = new BoxGeometry(), material = new ShaderMaterial(), owner = new Scope('offscreen-warm');
+  const a = new Mesh(shared, new MeshStandardMaterial()), twin = new Mesh(shared, new MeshStandardMaterial()), off = new Mesh(shared, new MeshStandardMaterial());
+  const herd = new InstancedMesh(shared, new MeshStandardMaterial(), 50);
+  for (const m of [a, twin, herd]) { m.layers.enable(LAYER); m.frustumCulled = true; }
+  casters.add(a, twin, herd, off); scene.add(casters); outer.add(scene);
+  const red = new Color(1, 0, 0);
+  scene.background = red;
+  const camera = new OrthographicCamera(); camera.layers.set(LAYER);
+  const real = new WebGLRenderTarget(2048, 2048); real.depthTexture = new DepthTexture(2048, 2048, UnsignedIntType);
+  registerOffscreenPreparation(scene, owner, { label: 'static shadow', camera, material, target: real, positionOnly: true, roots: () => [casters] });
+  const shadowMap = { autoUpdate: true, needsUpdate: true };
+  let bound: unknown = null;
+  const seen: { drawn: Object3D[]; override: Material | null; background: unknown; target: unknown; auto: boolean; herdCount: number; culled: boolean[] }[] = [];
+  const renderer: OffscreenWarmRenderer = {
+    shadowMap,
+    render: (drawn: Object3D, view: Camera) => {
+      const visible: Object3D[] = [];
+      drawn.traverseVisible(object => { if (object instanceof Mesh && object.layers.test(view.layers)) visible.push(object); });
+      seen.push({ drawn: visible, override: scene.overrideMaterial, background: scene.background, target: bound, auto: shadowMap.autoUpdate,
+        herdCount: herd.count, culled: [a.frustumCulled, herd.frustumCulled] });
+    },
+    getRenderTarget: () => null, setRenderTarget: (next) => { bound = next; },
+    getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0,
+  };
+  let pauses = 0;
+  const drawn = await warmOffscreenPasses(renderer, outer, () => true, () => { pauses++; return Promise.resolve(); });
+  // a and its twin share a program key (one draws); the instanced herd is its own key; `off` is not on the pass layer
+  expect(drawn).toBe(2); expect(pauses).toBe(1); expect(seen).toHaveLength(1);
+  const s = seen[0];
+  expect(s?.drawn.map(o => o.id).sort((x, y) => x - y)).toEqual([a.id, herd.id].sort((x, y) => x - y));
+  expect(s?.override).toBe(material); expect(s?.background).toBe(null); expect(s?.auto).toBe(false);
+  const standIn = s?.target;
+  if (!(standIn instanceof WebGLRenderTarget)) throw new Error('Expected a stand-in target');
+  expect(standIn).not.toBe(real); expect([standIn.width, standIn.height]).toEqual([1, 1]);
+  expect(standIn.depthTexture?.type).toBe(UnsignedIntType);
+  expect(s?.herdCount).toBe(1); expect(s?.culled).toEqual([false, false]);
+  expect(scene.overrideMaterial).toBe(null); expect(scene.background).toBe(red); expect(bound).toBe(null);
+  expect([shadowMap.autoUpdate, shadowMap.needsUpdate]).toEqual([true, true]);
+  expect(herd.count).toBe(50); expect([a.frustumCulled, herd.frustumCulled]).toEqual([true, true]);
+  expect(twin.layers.isEnabled(LAYER)).toBe(true);
+  await expect(warmOffscreenPasses(renderer, outer, () => false, () => Promise.resolve())).rejects.toThrow('Offscreen warm owner left');
+  owner.dispose();
+  expect(await warmOffscreenPasses(renderer, outer, () => true, () => Promise.resolve())).toBe(0);
 });

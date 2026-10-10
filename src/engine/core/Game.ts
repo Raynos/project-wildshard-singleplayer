@@ -719,13 +719,16 @@ export class Game {
     const uploadBudget = setting('buildPacing') !== 'uploads' ? undefined : isolateImageUploads ? LIVE_UPLOAD_BUDGET : SLICED_UPLOAD_BUDGET;
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads,
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
+    const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
+    const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
     if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
-      const { warmParkedDraws } = await import('../render/parkedDraws');
-      const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
       await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current, drawnPause, { environment: futureEnvironment });
     }
+    // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real
+    // update, after entry; draw each once into a 1×1 stand-in of its target first.
+    await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause);
   }
 
   /**
