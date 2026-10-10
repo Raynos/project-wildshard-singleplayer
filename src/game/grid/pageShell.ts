@@ -1,7 +1,6 @@
 import type { LevelSpec } from '@wildshard/engine/level/spec';
-import type { ShardContext } from '../shard/context';
+import { type ShardContext, ShardPlugin } from '../plugin/context';
 import type { ShardManifest } from '../shard/manifest';
-import { ShardPlugin } from '../shard/plugin';
 import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';

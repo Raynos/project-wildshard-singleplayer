@@ -1,11 +1,10 @@
 import { expect, it, vi } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
-import { shardContext, type ShardContext } from '../../../src/game/shard/context';
+import { shardContext, type ShardContext, ShardPlugin } from '../../../src/game/plugin/context';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
-import { ShardPlugin } from '../../../src/game/shard/plugin';
 import Plugin from '../../../src/shards/nalati-grasslands/plugin';
 import { NALATI_RUNTIME_COST } from '../../../src/shards/nalati-grasslands/data/runtimeCost';
 import { NALATI_RUNTIME_SPAWNS } from '../../../src/shards/nalati-grasslands/data/spawns';

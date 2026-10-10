@@ -8,7 +8,7 @@ import type { LevelDriver } from '../../../src/engine/level/load';
 import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { bossesSave, inventorySave, ownedSave, progressSave, purseSave, shardSave } from '../../../src/game/saves';
-import { shardContext, type GameServices, type ShardContext } from '../../../src/game/shard/context';
+import { shardContext, type GameServices, type ShardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { Vector3 } from 'three';

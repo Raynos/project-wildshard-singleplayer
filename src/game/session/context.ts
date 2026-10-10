@@ -1,4 +1,4 @@
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { StepProgress } from '@wildshard/engine/boot/plan';

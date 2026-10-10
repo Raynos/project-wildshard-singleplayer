@@ -9,7 +9,7 @@ import { AnimalFactory } from '../../../src/engine/entities/AnimalFactory';
 import { CaptainMesh } from '../../../src/shards/driftwood-isle/species/captainMesh';
 import { CAPTAIN, captainLook } from '../../../src/shards/driftwood-isle/species/captain';
 import { installDriftwoodAdventure } from '../../../src/shards/driftwood-isle/quest/install';
-import type { ShardContext } from '../../../src/game/shard/context';
+import type { ShardContext } from "../../../src/game/plugin/context";
 import { fakeWorld } from '../../fake/world';
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (reason: Error) => void } {

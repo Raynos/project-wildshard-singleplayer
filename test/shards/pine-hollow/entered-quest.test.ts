@@ -6,7 +6,7 @@ import { createLevelInstallation } from '../../../src/engine/level/installation'
 import { DialogueBox, RewardCaption, ObjectiveLine } from '../../../src/engine/quest/view/ui';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { ShopPanel } from '../../../src/game/loot/ui/ShopPanel';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';

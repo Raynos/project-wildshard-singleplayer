@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext } from '../src/game/shard/context';
+import { shardContext } from "../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import type { ShardRuntime, ShardPlayHost } from '../src/game/shard/runtime';
 import { bindRuntimeBoss } from '../src/game/shardfile/hybridRows';

@@ -1,6 +1,6 @@
 import { bagMenu } from '../bag/tabs';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import { app } from '@wildshard/engine/app/runtime';
 import { perfLap } from '@wildshard/engine/core/perfLap';

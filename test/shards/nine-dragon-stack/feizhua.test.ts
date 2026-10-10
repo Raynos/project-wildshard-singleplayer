@@ -11,7 +11,7 @@ import { Tool } from '../../../src/engine/combat/Tool';
 import type { EquipmentHost } from '../../../src/engine/combat/view/EquipmentHost';
 import type { HudVerbs } from '../../../src/engine/level/context';
 import type { DiscSpot, TouchRelabel } from '../../../src/engine/ui/hudSlots';
-import type { ShardContext } from '../../../src/game/shard/context';
+import type { ShardContext } from "../../../src/game/plugin/context";
 import { FeiZhua } from '../../../src/shards/nine-dragon-stack/grapple/FeiZhua';
 import { FEI_ZHUA_ROW } from '../../../src/shards/nine-dragon-stack/grapple/row';
 import { toolEntries } from '../../../src/game/bag/equipment';

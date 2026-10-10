@@ -15,7 +15,7 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { SaveStore } from '../../../src/engine/saves/store';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { regionalRuntimeCheckpoint } from '../../../src/game/grid/runtimeCheckpoint';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import type { ShardRuntime, ShardPlayHost } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';

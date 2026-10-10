@@ -1,11 +1,10 @@
 import { expect, it, vi } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
-import { shardContext, type ShardContext } from '../../../src/game/shard/context';
+import { shardContext, type ShardContext, ShardPlugin } from '../../../src/game/plugin/context';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import source from '../../../src/shards/pine-hollow/shard.config';
-import { ShardPlugin } from '../../../src/game/shard/plugin';
 import Plugin, { preparePineHybrid } from '../../../src/shards/pine-hollow/plugin';
 import type { prepareHybridShard } from '../../../src/game/shardfile/hybrid';
 import { PINE_RUNTIME_SPAWNS } from '../../../src/shards/pine-hollow/data/spawns';

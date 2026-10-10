@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../src/engine/app/app';
 import type { LevelDriver } from '../src/engine/level/load';
 import { SaveStore } from '../src/engine/saves/store';
-import { shardContext, type GameServices } from '../src/game/shard/context';
+import { shardContext, type GameServices } from "../src/game/plugin/context";
 import { toLevelSpec } from '../src/game/shard/spec';
 import manifest from '../src/shards/nine-dragon-stack/manifest';
 import { Inventory } from '../src/game/Inventory';

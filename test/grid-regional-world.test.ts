@@ -30,7 +30,7 @@ import { createRegionalView } from '../src/game/grid/regionalView';
 import { createRegionalWorldFoundation, regionalWorldCensus } from '../src/game/grid/regionalWorld';
 import { regionGrade, type FrameLookContribution, type FrameLookPort } from '../src/game/grid/frameLook';
 import type { SkyBackdropFactory, TerrainPainter } from '../src/engine/render/look';
-import { shardContext } from '../src/game/shard/context';
+import { shardContext } from "../src/game/plugin/context";
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import { toLevelSpec } from '../src/game/shard/spec';

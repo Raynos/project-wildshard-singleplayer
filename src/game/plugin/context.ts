@@ -1,20 +1,24 @@
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
-import { registerItemRow } from '../bag/itemCatalog';
-import { registerAchievements, type AchievementDef } from '../achievements';
-import { registerCompendium } from '../compendium/registry';
-import type { ShardCompendium } from '../compendium/types';
-import type { ShardRuntime } from './runtime';
-import { normalizeItemRow, type ItemRow } from '../bag/items';
+import { registerItemRow } from "../bag/itemCatalog";
+import { registerAchievements, type AchievementDef } from "../achievements";
+import { registerCompendium } from "../compendium/registry";
+import type { ShardCompendium } from "../compendium/types";
+import type { ShardRuntime } from "../shard/runtime";
+import { normalizeItemRow, type ItemRow } from "../bag/items";
 import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import type { ShardManifest } from './manifest';
-import type { PageResidency } from '../grid/pageResidency';
+import type { ShardManifest } from "../shard/manifest";
+import type { PageResidency } from "../grid/pageResidency";
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { pageMode } from '../grid/boot';
+import { pageMode } from "../grid/boot";
 
+/** Scoped bag registration verbs supplied to trusted plugins. */
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
+/** Content rows a trusted plugin may register through its owned context. */
 export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: AchievementDef; shop: ContentRow; compendium: ShardCompendium & { id: string }; places: ContentRow }
+/** Typed registration verbs for game content rows. */
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };
+/** Game services provided by the composition root, scoped to one shard. */
 export interface GameServices {
   /** The composition root's pre-bootstrap residency owner, shared with trusted hybrid data and the grid. */
   readonly residency?: PageResidency;
@@ -26,6 +30,7 @@ export interface GameServices {
     fragment: (tab: BagTabId, fragment: BagFragment) => () => void;
   };
 }
+/** A trusted plugin's owned engine and game context. */
 export interface ShardContext extends LevelContext {
   /** the shard's own manifest */
   readonly manifest: ShardManifest;
@@ -47,6 +52,7 @@ export interface ShardContext extends LevelContext {
 export interface ShardCube { readonly half: number }
 const GRID_CUBE: ShardCube = Object.freeze({ half: CHUNK_HALF });
 
+/** Construct the owned game context without installing services at import time. */
 export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: GameServices): ShardContext {
   const live = (): void => { if (ctx.scope.disposed) throw new Error('The shard scope is disposed'); };
   const add = <K extends keyof GameRowMap>(kind: K, values: GameRowMap[K] | readonly GameRowMap[K][]): void => {
@@ -81,3 +87,10 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
 
 /** Read the current counted world-step sink through the defining game context port. */
 export function buildProgress(context: Pick<ShardContext, 'progress'>): ShardContext['progress'] { return context.progress; }
+
+/** Staged trusted plugin hooks; invoked only by the owning session. */
+export abstract class ShardPlugin {
+  world?(ctx: ShardContext): Promise<void> | void;
+  kit?(ctx: ShardContext): Promise<void> | void;
+  play?(ctx: ShardContext): Promise<void> | void;
+}

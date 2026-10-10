@@ -144,10 +144,10 @@
     "./quest/reward": "./quest/reward.ts",
     "./quest/rewardMotion": "./quest/rewardMotion.ts",
     "./saves": "./saves.ts",
-    "./shard/context": "./shard/context.ts",
+    "./shard/context": "./plugin/context.ts",
     "./shard/retainedHooks": "./shard/retainedHooks.ts",
     "./shard/manifest": "./shard/manifest.ts",
-    "./shard/plugin": "./shard/plugin.ts",
+    "./shard/plugin": "./plugin/context.ts",
     "./shard/registry": "./shard/registry.ts",
     "./shard/runtime": "./shard/runtime.ts",
     "./travel/travel": "./travel/travel.ts",
@@ -320,6 +320,7 @@
     "./shardfile/sourceManifest": "./shardfile/sourceManifest.ts",
     "./shardfile/presentation": "./shardfile/presentation.ts",
     "./shardfile/stillImage": "./shardfile/stillImage.ts",
-    "./quest/headlessPrompts": "./quest/headlessPrompts.ts"
+    "./quest/headlessPrompts": "./quest/headlessPrompts.ts",
+    "./plugin/context": "./plugin/context.ts"
   }
 }

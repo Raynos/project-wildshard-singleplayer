@@ -3,8 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import * as boot from '../src/game/grid/boot';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { ShardPlugin } from '../src/game/shard/plugin';
-import type { ShardContext } from '../src/game/shard/context';
+import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { prepareHybridShard } from '../src/game/shardfile/hybrid';
 

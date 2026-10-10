@@ -1,4 +1,4 @@
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
 import { assetCost } from './assets';
 import { admitScript } from '@wildshard/engine/script/admission';

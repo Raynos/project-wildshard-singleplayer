@@ -1,5 +1,5 @@
 import { isDev } from '@wildshard/engine/core/devMode';
-import type { ShardContext } from './context';
+import type { ShardContext } from "../plugin/context";
 import { currentPageMode } from '../grid/pageMode';
 import { shardEntry } from './entryMode';
 

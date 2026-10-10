@@ -16,7 +16,7 @@ import { installCompendium } from '../../src/game/compendium/install';
 import { registerCompendium } from '../../src/game/compendium/registry';
 import { Inventory } from '../../src/game/Inventory';
 import { Progress } from '../../src/game/Progress';
-import { shardContext } from '../../src/game/shard/context';
+import { shardContext } from "../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../src/sdk/author';

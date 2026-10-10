@@ -3,7 +3,7 @@ import { Scene } from 'three';
 import { app } from '../../../src/engine/app/runtime';
 import { appIdentity } from '../../../src/engine/app/identity';
 import type { Weapon } from '../../../src/engine/combat/Weapon';
-import type { GameServices, ShardContext } from '../../../src/game/shard/context';
+import type { GameServices, ShardContext } from "../../../src/game/plugin/context";
 import { installDeclaredItems, type DeclaredItemPorts } from '../../../src/game/shardfile/items';
 import { declaredKitItemFamilies } from '../../../src/game/systems/items/declared';
 import type { ItemFamilyPorts } from '../../../src/engine/combat/itemFamilies';

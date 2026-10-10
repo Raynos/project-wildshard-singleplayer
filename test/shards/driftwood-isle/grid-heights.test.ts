@@ -33,7 +33,7 @@ import { regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../.
 import { createRegionalWorldFoundation } from '../../../src/game/grid/regionalWorld';
 import { Inventory } from '../../../src/game/Inventory';
 import { Progress } from '../../../src/game/Progress';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import type { ShardPlayHost, ShardRuntime } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import type { ShardWorld } from '../../../src/game/shard/world';

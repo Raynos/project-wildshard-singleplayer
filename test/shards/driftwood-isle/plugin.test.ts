@@ -1,4 +1,4 @@
-import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { shardContext, type GameServices } from "../../../src/game/plugin/context";
 import type { ShardRuntime } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import type { ShardWorld as World } from '../../../src/game/shard/world';

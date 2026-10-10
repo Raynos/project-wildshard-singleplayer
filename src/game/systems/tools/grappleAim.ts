@@ -22,7 +22,7 @@ import type { EquipmentHost } from '@wildshard/engine/combat/view/EquipmentHost'
 import type { InputContextDef } from '@wildshard/engine/level/context';
 import { playerModes } from '@wildshard/engine/player/modes';
 import type { DiscSpot, TouchRelabel } from '@wildshard/engine/ui/hudSlots';
-import type { ShardContext } from '../../shard/context';
+import type { ShardContext } from "../../plugin/context";
 import { Filament, Rope } from '../looks/ropeFilament';
 import { Flash, Sparks } from '../looks/burstFx';
 

@@ -10,7 +10,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import { gridCreatureConstraint } from '@wildshard/engine/physics/gridBorders';
-import { shardContext, type ShardContext } from '../shard/context';
+import { shardContext, type ShardContext } from "../plugin/context";
 import type { ShardManifest } from '../shard/manifest';
 import type { ShardPlayHost, ShardRuntime } from '../shard/runtime';
 import type { ShardWorld } from '../shard/world';

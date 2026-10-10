@@ -1,5 +1,5 @@
 import type { ShardManifest } from '../shard/manifest';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import { parseShardSlug } from '../shard/slug';
 import type { Shardfile } from './schema';
 import { presentationCard } from './presentation';

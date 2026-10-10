@@ -12,7 +12,7 @@ import { Bounty } from './Bounty';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { isCosmetic, isOwnedId, type Owned, type OwnedId } from './Owned';
 import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 
 export interface LootShop { readonly isOpen: boolean; render: () => void; dispose: () => void }
 export interface LootPresentation {

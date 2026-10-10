@@ -13,7 +13,7 @@ import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoi
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from './reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import './presentation.css';
 

@@ -6,7 +6,7 @@ import { emptyShardfileSource, installShardfileProduct, shardfileSource } from '
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext } from '../src/game/shard/context';
+import { shardContext } from "../src/game/plugin/context";
 
 const empty = () => emptyShardfile({ slug: 'runtime-format', name: 'Runtime fixture', author: 'Fixture', revision: 1, seed: 1 });
 const options: ProductOptions = { base: 'https://fixture.test/runtime/', firstParty: true, offline: false,

@@ -7,7 +7,7 @@ import { createLevelInstallation } from '../../../src/engine/level/installation'
 import { QuestChip } from '../../../src/engine/quest/view';
 import { RewardCaption } from '../../../src/engine/quest/view/ui';
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installEnteredAdventure } from '../../../src/shards/nalati-grasslands/runtime/enteredAdventure';

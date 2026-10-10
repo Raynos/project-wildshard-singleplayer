@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { ShardPlugin } from '../shard/plugin';
+import type { ShardPlugin } from "../plugin/context";
 import { RuntimeCostSchema, runtimeAccountedBytes } from '../grid/runtimeCost';
 import { RuntimeBindsSchema } from './runtimeBinds';
 import { RuntimeSpawnsSchema } from './runtimeSpawns';

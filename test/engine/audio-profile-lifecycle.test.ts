@@ -5,7 +5,7 @@ import type { LevelDriver } from '../../src/engine/level/load';
 import { Audio } from '../../src/engine/audio/Audio';
 import { Music } from '../../src/engine/audio/Music';
 import { WorldRegistry } from '../../src/engine/world/registry';
-import { shardContext, type GameServices } from '../../src/game/shard/context';
+import { shardContext, type GameServices } from "../../src/game/plugin/context";
 import { toLevelSpec } from '../../src/game/shard/spec';
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
 import { installAudio } from '../../src/shards/nine-dragon-stack/runtime/audio/ambience';

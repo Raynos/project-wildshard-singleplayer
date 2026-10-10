@@ -16,9 +16,9 @@ function fixture(): string {
   put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, target: 'ES2022', module: 'ESNext' } }));
   put('src/engine/combat/Weapon.ts', 'export class Weapon { hit(): void {} }');
   put('src/engine/app/app.ts', 'export class App { tick(): void {} }');
-  put('src/game/shard/context.ts', "import type { App } from '../../engine/app/app'; export interface GameServices { runtime: { tick: () => void } } export interface ShardContext { app: App; game: GameServices; title: string; act: () => void }");
+  put('src/game/plugin/context.ts', "import type { App } from '../../engine/app/app'; export interface GameServices { runtime: { tick: () => void } } export interface ShardContext { app: App; game: GameServices; title: string; act: () => void }");
   put('src/game/wrapped.ts', "import { Weapon } from '../engine/combat/Weapon'; export class Wrapped extends Weapon {}");
-  put('src/shards/alpha/plugin.ts', `import type { ShardContext } from '../../game/shard/context';
+  put('src/shards/alpha/plugin.ts', `import type { ShardContext } from '../../game/plugin/context';
 import { Wrapped as Blade } from '../../game/wrapped';
 // ctx.app and ctx.game.runtime in comments buy no allowance.
 export const label = 'ctx.app';
@@ -51,11 +51,11 @@ describe('SF2 measured shard coupling', () => {
   }, 60_000);
   it('keeps repeated shared data pure and rejects recursive context types after caching', () => {
     const root = fixture();
-    writeFileSync(join(root, 'src/game/shard/context.ts'), `interface Shared { value: string }
+    writeFileSync(join(root, 'src/game/plugin/context.ts'), `interface Shared { value: string }
 interface Recursive { next: Recursive | null }
 export interface ShardContext { data: { left: Shared; right: Shared }; recursive: Recursive }
 `);
-    writeFileSync(join(root, 'src/shards/alpha/plugin.ts'), `import type { ShardContext } from '../../game/shard/context';
+    writeFileSync(join(root, 'src/shards/alpha/plugin.ts'), `import type { ShardContext } from '../../game/plugin/context';
 export function use(ctx: ShardContext): void {
   void ctx.data; void ctx['data']; const { data } = ctx; void data.left.value;
   void ctx.recursive; void ctx['recursive']; const { recursive } = ctx; void recursive.next;

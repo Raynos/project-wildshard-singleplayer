@@ -4,7 +4,7 @@ import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
 import { retried } from '@wildshard/engine/boot/retry';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { shardContext, type GameServices, type ShardContext } from '../shard/context';
+import { shardContext, type GameServices, type ShardContext } from "../plugin/context";
 import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import { playable, findChunk } from '../shard/registry';

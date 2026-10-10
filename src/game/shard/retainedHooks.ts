@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
-import type { ShardContext } from './context';
+import type { ShardContext } from "../plugin/context";
 import { bindPlayerEffects } from '@wildshard/engine/combat/effects/EffectService';
 import type { Vector3 } from 'three';
 

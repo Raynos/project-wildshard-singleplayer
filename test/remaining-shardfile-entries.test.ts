@@ -1,8 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext, type ShardContext } from '../src/game/shard/context';
-import { ShardPlugin } from '../src/game/shard/plugin';
+import { shardContext, type ShardContext, ShardPlugin } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { shardEntries } from '../src/game/shard/entryMode';

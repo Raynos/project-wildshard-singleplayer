@@ -24,7 +24,7 @@ export function compareWeaponTransfers(before, after) {
   }
   return failures;
 }
-const CONTEXT_FILES = new Set(['src/game/shard/context.ts', 'src/engine/level/context.ts']);
+const CONTEXT_FILES = new Set(['src/game/plugin/context.ts', 'src/engine/level/context.ts']);
 const initial = () => ({ 'ctx.app': 0, 'ctx.game': 0, 'ctx.game.runtime': 0, engineSubclasses: 0 });
 
 export function shardCoupling(root = ROOT) {

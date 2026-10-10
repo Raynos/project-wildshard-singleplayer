@@ -18,7 +18,7 @@ import { createPineFacts, recordPineFeatKill } from '../../../src/shards/pine-ho
 import { bindPineItems } from '../../../src/shards/pine-hollow/runtime/items';
 import { CROSSBOW, LEVER, LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
 import type { Weapon } from '../../../src/engine/combat/Weapon';
-import type { GameServices } from '../../../src/game/shard/context';
+import type { GameServices } from "../../../src/game/plugin/context";
 import { legacyDouble } from '../../fake/FakeGame';
 import { FakeStorage } from '../../fake/fakeStorage';
 

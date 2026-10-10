@@ -3,7 +3,7 @@ import { Group } from 'three';
 import { App } from '../../../src/engine/app/app';
 import type { LevelContext } from '../../../src/engine/level/context';
 import type { LevelDriver } from '../../../src/engine/level/load';
-import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { shardContext, type GameServices } from "../../../src/game/plugin/context";
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { resolveLevelBounds, type ShardPlayHooks } from '../../../src/game/shard/runtime';
 import manifest from '../../../src/shards/nine-dragon-stack/manifest';

@@ -8,7 +8,7 @@ import { GridHomeHandoff } from '../src/game/grid/boot';
 import { installGridReveal } from '../src/game/grid/reveal';
 import { shardfileSource } from '../src/game/shardfile/loader';
 import { prepareHybridShard } from '../src/game/shardfile/hybrid';
-import { ShardPlugin } from '../src/game/shard/plugin';
+import { ShardPlugin } from "../src/game/plugin/context";
 import type { Shardfile } from '../src/game/shardfile/schema';
 import { emptyShardfile } from '../src/sdk/author';
 import driftwood from '../src/shards/driftwood-isle/shard.config';

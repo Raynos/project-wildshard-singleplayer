@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';

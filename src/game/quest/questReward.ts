@@ -1,7 +1,7 @@
 import { Scene, type Vector3 } from 'three';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { CoinBurst } from '../loot/CoinBurst';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import { retainsRuntimeServices } from '../shard/retainedHooks';
 import type { RuntimeCoins } from '../shardfile/hybridRows';
 import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from './presentation';

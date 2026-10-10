@@ -5,7 +5,7 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
 import { CoinBurst } from '../loot/CoinBurst';
 import { bossesSave, shardSave } from '../saves';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import type { RuntimeBoss, RuntimeCoins } from './hybridRows';
 import { bossFlagRecord, type BossRowFlagNames, type BossRowFlags } from './bossRow';
 import { markedBossFight, type MarkedBossFightRow } from './bossFight';

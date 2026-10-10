@@ -17,7 +17,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../src/game/grid/regionalRuntime';
 import { createRegionalWorldFoundation } from '../src/game/grid/regionalWorld';
-import { shardContext, type ShardContext } from '../src/game/shard/context';
+import { shardContext, type ShardContext } from "../src/game/plugin/context";
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import { toLevelSpec } from '../src/game/shard/spec';

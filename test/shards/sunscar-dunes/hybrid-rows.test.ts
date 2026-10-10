@@ -3,7 +3,7 @@ import { App } from '../../../src/engine/app/app';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { TabRegistry } from '../../../src/engine/ui/tabs';
 import type { ItemFamily } from '../../../src/engine/combat/itemFamilies';
-import type { GameServices } from '../../../src/game/shard/context';
+import type { GameServices } from "../../../src/game/plugin/context";
 import { Ledger } from '../../../src/game/ledger';
 import { bindRuntimeCoins, runtimeSpawnRows, bindRuntimeItems, bindRuntimeLedger, bindRuntimeQuest, withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
 import { purseSave, shardSave } from '../../../src/game/saves';

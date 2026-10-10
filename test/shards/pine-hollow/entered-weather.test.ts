@@ -9,7 +9,7 @@ import { fogUniforms, weatherUniforms, volumetricFog } from '../../../src/engine
 import { waterWeather } from '../../../src/engine/world/waterSurface';
 import { windBoost } from '../../../src/engine/world/wind';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';

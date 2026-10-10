@@ -13,7 +13,7 @@ import { app } from '../src/engine/app/runtime';
 import { Physics } from '../src/engine/physics/Physics';
 import { configureLevel } from '../src/engine/level/selection';
 import { toLevelSpec } from '../src/game/shard/spec';
-import type { ShardContext } from '../src/game/shard/context';
+import type { ShardContext } from "../src/game/plugin/context";
 import { Terrain, terrainChunkGeometry } from '../src/engine/world/Terrain';
 import { bakedSamplers, bakedUndergrowth } from '../src/engine/world/BakedTerrain';
 import { heightAt } from '../src/engine/world/Heightfield';

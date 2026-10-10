@@ -2,7 +2,7 @@ import { afterAll, afterEach, expect, it, vi } from 'vitest';
 import { Mesh, PlaneGeometry, Vector3, type Material } from 'three';
 import * as boot from '../src/game/grid/boot';
 import { gridLevel } from '../src/game/grid/session';
-import { shardContext, type GameServices } from '../src/game/shard/context';
+import { shardContext, type GameServices } from "../src/game/plugin/context";
 import type { LevelContext } from '../src/engine/level/context';
 import { Horizon } from '../src/engine/world/Horizon';
 import { configureLevel } from '../src/engine/level/selection';

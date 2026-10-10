@@ -5,7 +5,7 @@ import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import type { ShardContext } from '../shard/context';
+import type { ShardContext } from "../plugin/context";
 import { installEnteredRuntimeInput, retainsRuntimeServices } from '../shard/retainedHooks';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../ledger';
 import { Purse } from '../loot/Purse';

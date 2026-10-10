@@ -2626,3 +2626,15 @@ report-only mode during SF76. It flags imports outside `runtime/`, unpublished
 modules, relative bypasses, and computed game module names. Existing layer,
 public-index and sandbox checks remain active. Promote this rule to `error` in the
 root config after the move-backs; its tests already exercise enforcement.
+
+## Trusted plugin definitions (SF79 DS0.2)
+
+`@wildshard/game/plugin/context` defines `ShardContext`, `shardContext` and the staged
+`ShardPlugin` base class in one module. It contains their implementations, not
+re-export wrappers. Internal game consumers import this module relatively.
+The old `./shard/context` and `./shard/plugin` export keys temporarily point at
+the same defining module so sealed legacy consumers keep the same constructor
+identity. They retire with the old consumers; no duplicate class or service
+registry exists. The remaining exports are transitional while the schema and
+app-shell consumers migrate. DS0.2's final ≤20, `./plugin/*`-only surface is not
+yet claimed.

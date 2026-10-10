@@ -6,7 +6,7 @@ import { withOwner } from '../../../src/engine/app/ownership';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { BossBar } from '../../../src/engine/ui/BossBar';
 import { EliteBar } from '../../../src/engine/ui/EliteBar';
-import { shardContext } from '../../../src/game/shard/context';
+import { shardContext } from "../../../src/game/plugin/context";
 import { installEnteredRuntimeAttachment, RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
