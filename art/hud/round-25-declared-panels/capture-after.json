@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:4405",
+  "tag": "after",
+  "started": "2026-10-09T23:58:31.785Z",
+  "pine-board": {
+    "board": "The hunting lodgeContractsClaimed 0In a row 0Best 0GameVenison for the lodgeTake 3 deer0 / 3Pays 1 lodge ribbon · 10 boltsTear downRare coatSomething unusualTake 2 uncommon animals0 / 2Pays 2 lodge ribbonsTear downCullCull the moss-grownPut down 3 thralls0 / 3Pays 2 lodge ribbons · 3 amber resinTear downA filled notice is claimed here. Tearing one down posts the next and ends your run.Close",
+    "errors": []
+  },
+  "nalati-stealth": {
+    "states": {
+      "detected": {
+        "layer": 661,
+        "state": "detected",
+        "label": "Detected"
+      },
+      "noticed": {
+        "layer": 791,
+        "state": "noticed",
+        "label": "Noticed"
+      }
+    },
+    "errors": []
+  }
+}

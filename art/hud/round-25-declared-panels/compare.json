@@ -1,0 +1,47 @@
+{
+  "nalati-stealth-detected": {
+    "pixels": 3162132,
+    "changed": 0,
+    "bbox": null
+  },
+  "nalati-stealth-detected.hint": {
+    "pixels": 19872,
+    "changed": 0,
+    "bbox": null
+  },
+  "nalati-stealth-detected.row": {
+    "pixels": 33660,
+    "changed": 0,
+    "bbox": null
+  },
+  "nalati-stealth-noticed": {
+    "pixels": 3162132,
+    "changed": 95,
+    "bbox": null
+  },
+  "nalati-stealth-noticed.hint": {
+    "pixels": 19872,
+    "changed": 0,
+    "bbox": null
+  },
+  "nalati-stealth-noticed.row": {
+    "pixels": 33660,
+    "changed": 0,
+    "bbox": null
+  },
+  "pine-board-closed": {
+    "pixels": 3162132,
+    "changed": 0,
+    "bbox": null
+  },
+  "pine-board-open": {
+    "pixels": 3162132,
+    "changed": 0,
+    "bbox": null
+  },
+  "pine-board-open.frame": {
+    "pixels": 3162132,
+    "changed": 0,
+    "bbox": null
+  }
+}
