@@ -1,0 +1,420 @@
+{
+  "schema": 2,
+  "sha": "23938a9809363357d9a8024ae6c79c530a620cd3",
+  "runId": "43428-1791618259478",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-10T07:46:15.127Z",
+  "elapsedSeconds": 115.66,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "driftwood-isle"
+  ],
+  "surface": "desktop",
+  "developer": "on",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "glObserver": "off",
+  "travelGlCensus": false,
+  "harnessRevision": "bb674dad273ed0c7ab3433ff285a2618b040ce98",
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "driftwood-isle",
+          "complete": true,
+          "pass": true,
+          "seconds": 20.19,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "a07461b1-c85f-481b-96db-bbd4651982c6",
+              "telemetry.heartbeat": {
+                "session": "50cac43e-aaed-445b-8cf1-c762b9bf7ca7",
+                "build": "23938a9-mv23awfo",
+                "level": "",
+                "stage": "boot",
+                "at": 1791618355002,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "02:45:55 7czy +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "02:45:56 7czy +2s world ready · first-paint 60ms, first-contentful-paint 60ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791618355204,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 12.699999809265137,
+                  "sky": 75.69999980926514,
+                  "terrain": 34.5,
+                  "cards": 0.6999998092651367,
+                  "forest": 2.700000286102295,
+                  "physics": 3,
+                  "edge": 7.099999904632568,
+                  "grass": 0,
+                  "cabins": 0,
+                  "props": 554.9000000953674,
+                  "animals": 15.300000190734863,
+                  "weapon": 11.400000095367432,
+                  "menu": 6,
+                  "shaders": 297.8999996185303,
+                  "firstFrame": 130.90000009536743,
+                  "audio": 195.40000009536743
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "info",
+                "text": "[island] blender: terrain 89496 tris, props 963473 tris in 66 meshes, 16675/16675 placements (desktop)"
+              },
+              {
+                "level": "info",
+                "text": "[shadow] 9 casters in 287 pieces (466760 tris)"
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "shard.driftwood.movers",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "shard.driftwood.bridge.capture",
+              "player.update",
+              "main.2",
+              "shard.driftwood.cover",
+              "shard.driftwood.blenderIsland",
+              "shard.driftwood.ocean",
+              "shard.driftwood.palms",
+              "shard.driftwood.gulls",
+              "shard.driftwood.bridge.pose",
+              "shard.driftwood.seabed",
+              "shard.driftwood.cove",
+              "shard.driftwood.shrine",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "shard.driftwood.dusk",
+              "shard.driftwood.adventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "shard.driftwood.adventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "shard.driftwood.adventure.3",
+              "shard.driftwood.adventure.4",
+              "game.loot",
+              "body-shadow",
+              "keepsakes",
+              "hud.combat",
+              "last place",
+              "shard.driftwood.firstMinutes",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "shard.driftwood.shrineHum",
+              "shard.driftwood.ambience",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "shard.driftwood.blenderIsland.instances",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": -0.0000038667315568341465,
+              "y": 1.2125999940864858,
+              "z": -194.0000011601637,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 7.1,
+              "calls": 847,
+              "triangles": 4243114
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 6.8,
+              "calls": 625,
+              "triangles": 3107200
+            },
+            {
+              "pose": {
+                "name": "wreck",
+                "x": 105,
+                "z": 0,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 5.8,
+              "calls": 405,
+              "triangles": 1968378
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": -0.0000038667315568341465,
+                "y": 1.2125999940864858,
+                "z": -194.0000011601637,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.3,
+              "callbackP99Ms": 18.8,
+              "callbackMaxMs": 18.8,
+              "gameP95Ms": 17.8,
+              "workP95Ms": 6.9,
+              "calls": 677,
+              "triangles": 3506867,
+              "position": {
+                "x": -0.000012394664476306216,
+                "y": 1.2152564028576307,
+                "z": -194.0000369427573
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 0.7000007629394531,
+                    "maxMs": 0.9000000953674316,
+                    "calls": 4680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.4,
+              "callbackP99Ms": 19.5,
+              "callbackMaxMs": 19.7,
+              "gameP95Ms": 17.8,
+              "workP95Ms": 6.6,
+              "calls": 676,
+              "triangles": 3505795,
+              "position": {
+                "x": -0.000012481510193042278,
+                "y": 1.2141831397128406,
+                "z": -194.00001912878014
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 0.7000002861022949,
+                    "maxMs": 0.8000006675720215,
+                    "calls": 4680
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.2,
+              "callbackP99Ms": 19.4,
+              "callbackMaxMs": 21,
+              "gameP95Ms": 18,
+              "workP95Ms": 6.6,
+              "calls": 615,
+              "triangles": 3088641,
+              "position": {
+                "x": -9.999323311583339,
+                "y": 0.7071864718287539,
+                "z": -150.0001457688002
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 0.6999998092651367,
+                    "maxMs": 1,
+                    "calls": 4678
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}

@@ -6,6 +6,7 @@
     "./combat/collisionPose": "./combat/collisionPose.ts",
     "./combat/clipTiming": "./combat/clipTiming.ts",
     "./systems/audio/combatCues": "./systems/audio/combatCues.ts",
+    "./systems/audio/synthBeds": "./systems/audio/synthBeds.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
     "./systems/looks/grassField": "./systems/looks/grassField.ts",
     "./systems/looks/particles": "./systems/looks/particles.ts",

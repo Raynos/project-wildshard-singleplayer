@@ -147,6 +147,7 @@
     "./kit/primitiveParts": "./kit/primitiveParts.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
     "./kit/kitParts": "./kit/kitParts.ts",
+    "./audio/synthBeds": "./audio/synthBeds.ts",
     "./looks/keyedSkyDay": "./looks/keyedSkyDay.ts",
     "./looks/keyedSky": "./looks/keyedSky.ts",
     "./looks/keyedSkyRows": "./looks/keyedSkyRows.ts",

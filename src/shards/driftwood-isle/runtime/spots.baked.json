@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "c989ff72960a57f2dde7f3e4ef5ecaf5325db31a",
- "build": "c989ff7-mv224obm",
+ "revision": "23938a9809363357d9a8024ae6c79c530a620cd3",
+ "build": "23938a9-mv233bb2",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -25,6 +25,7 @@
   "src/shards/driftwood-isle/data/groundLook.ts": "96da20b512b079b43f9913f028116e335c7af9e67911de034b4313421dd1f23e",
   "src/shards/driftwood-isle/data/gullsGlsl.ts": "8eaf5ccfb8eda7ae9aa82f1b651ec518206bb17bd21e0b46d66b0a573f46e72d",
   "src/shards/driftwood-isle/data/gullsLook.ts": "ae3bf24877223088f3450c0198852963f8c82668ea7803f76bb52d6a1fe07c08",
+  "src/shards/driftwood-isle/data/islandBeds.ts": "76e37e6381f65c9ebcb2fb25a1267dd038b3a1a2ae2c173847f42f6e44734233",
   "src/shards/driftwood-isle/data/islandLook.ts": "e5accdd588373eddf2063ca6e2b4195a6f19df80f801b2ac614ac71869ae005b",
   "src/shards/driftwood-isle/data/items.ts": "198fcb5fa13d3061adadc97ae09fccea392a06aace78649183839bbb73802e64",
   "src/shards/driftwood-isle/data/ledger.ts": "8cae1a67ef0b84feb291803461f5a683ac28cac5a0fc7c715765d8d4dcb0f257",

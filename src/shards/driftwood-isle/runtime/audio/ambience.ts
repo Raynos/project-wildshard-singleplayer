@@ -3,8 +3,10 @@ import { AmbienceZones } from '@wildshard/engine/audio/ambience';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import { audioRandom } from '@wildshard/engine/audio/util';
-import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { ambientTick } from '@wildshard/engine/core/harnessTap';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
+import { SynthBeds, type SynthBedsSet } from '@wildshard/sdk/audio/synthBeds';
+import { ISLAND_BEDS } from '../../data/islandBeds';
 import { IslandBed, ISLAND_BED } from './sfx';
 /**
  * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md;
@@ -88,11 +90,16 @@ export class IslandAmbience {
   };
 
   private built = false; private warming = false;
-  private poolW: AudioBufferSourceNode[] = []; private poolP: AudioBufferSourceNode[] = []; private poolN = 0;
   private shore = new Float32Array(SHORE_RAYS * 2);
   private surfPan: PannerNode | undefined; private fallPan: PannerNode | undefined;
   /** the beds (gain → its output), built once in build(); `level` is the target the mix last set */
   private readonly zones: AmbienceZones;
+  /** the synth beds' builder and noise pool (data/islandBeds.ts), the nodes they feed and the schedulers' marks */
+  private readonly synth: SynthBedsSet;
+  private readonly bedOuts: Record<string, AudioNode> = {};
+  private readonly bedMarks: Readonly<Record<string, () => void>> = {
+    swell: () => { this.scheduleSwell(); }, birds: () => { this.scheduleBird(); }, drips: () => { this.scheduleDrip(); },
+  };
   /** the schedulers (swells, birds, drips) and the synth bed's registration: disposed with the profile */
   private readonly scope = new Scope('audio.island.ambience');
   private readonly islandBed: IslandBed;
@@ -108,6 +115,7 @@ export class IslandAmbience {
 
   constructor(private readonly audio: Audio, private readonly o: IslandAmbienceOpts) {
     this.zones = new AmbienceZones(audio, audioRandom);
+    this.synth = new SynthBeds(audio, this.zones, Math.random);
     // the synth island bed (breeze, surf hiss, swells) until the zoned graph is built (build: `islandBed.zone()`)
     this.islandBed = new IslandBed(audio);
     audio.installSynthBed(ISLAND_BED, this.islandBed, this.scope);
@@ -148,29 +156,6 @@ export class IslandAmbience {
   private readonly _q = new Float32Array(2);
 
   // ─────────────── build ───────────────
-  /** a looping noise source from a small pool (two white, two pink — each fans out to several beds' filters) */
-  private src(name: 'noise-white' | 'noise-pink'): AudioBufferSourceNode | undefined {
-    const list = name === 'noise-white' ? this.poolW : this.poolP;
-    this.poolN++;
-    if (list.length >= 2) return list[this.poolN % 2];
-    const buf = this.audio.voices.buffer(name); if (!buf) return undefined;
-    const c = this.audio.ctx, s = ownAudioSource(c.createBufferSource()); s.buffer = buf; s.loop = true; s.playbackRate.value = 0.97 + Math.random() * 0.06;
-    s.start(c.currentTime, Math.random() * buf.duration);
-    list.push(s);
-    return s;
-  }
-  private filter(type: BiquadFilterType, f: number, q = 0.7): BiquadFilterNode {
-    const b = this.audio.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b;
-  }
-  private bed(name: string, out: AudioNode): GainNode {
-    tap.sound?.(`island.bed:${name}`);
-    return this.zones.ensure({ id: name, out: () => out, started: () => { /* no sampled loop: a synth bed's gain */ } }).gain;
-  }
-  private lfo(rate: number, depth: number, param: AudioParam, type: OscillatorType = 'sine'): OscillatorNode {
-    const c = this.audio.ctx, o = ownAudioSource(c.createOscillator()); o.type = type; o.frequency.value = rate;
-    const g = c.createGain(); g.gain.value = depth; o.connect(g).connect(param); o.start();
-    return o;
-  }
   private panner(ref: number, rolloff: number, max: number): PannerNode {
     const p = this.audio.ctx.createPanner();
     p.panningModel = 'equalpower'; p.distanceModel = 'inverse'; p.refDistance = ref; p.rolloffFactor = rolloff; p.maxDistance = max;
@@ -184,68 +169,15 @@ export class IslandAmbience {
     a.underwaterCutoff = 500; a.underwaterRamp = 0.15;
     a.voices.prewarm(['bubble-bed', 'ir-shrine', 'ir-cave', 'ir-hold']);
     // outdoor beds → occlusion low-pass (walls of the hold / cave) → the ambient bus
-    const occl = this.filter('lowpass', 20000, 0.5); occl.connect(a.ambient); this.occl = occl;
-    const W = () => this.src('noise-white'), P = () => this.src('noise-pink');
+    const occl = this.synth.biquad('lowpass', 20000, 0.5); occl.connect(a.ambient); this.occl = occl;
 
-    // ── surf: one emitter on the shoreline (body + hiss share the panner), swells scheduled on its own timer ──
+    // ── the beds (data/islandBeds.ts): surf on its shoreline emitter, lapping, breeze, palms, lookout wind, jungle,
+    // waterfall on its own emitter at the plunge pool (not occluded: you hear it from inside the cave), cove, bubbles ──
     const surfPan = this.panner(12, 1, 400); surfPan.connect(occl); this.surfPan = surfPan;
-    const surf = this.bed('surf', surfPan);
-    const body = this.bed('surfBody', surf), hiss = this.bed('surfHiss', surf);
-    body.gain.value = 0.35; hiss.gain.value = 0.12;
-    P()?.connect(this.filter('lowpass', 700, 0.6)).connect(body);
-    W()?.connect(this.filter('bandpass', 2400, 0.5)).connect(hiss);
-    this.scheduleSwell();
-    // lapping under a pier / in the shallows: pink through a low band-pass, a slow irregular slosh
-    const lap = this.bed('lap', occl), lapAm = c.createGain(); lapAm.gain.value = 0.6; lapAm.connect(lap);
-    P()?.connect(this.filter('bandpass', 520, 1.2)).connect(lapAm);
-    this.lfo(0.55, 0.35, lapAm.gain); this.lfo(0.83, 0.2, lapAm.gain);
-
-    // ── breeze (everywhere, more with height) ──
-    const breeze = this.bed('breeze', occl);
-    P()?.connect(this.filter('bandpass', 260, 0.5)).connect(this.filter('lowpass', 900)).connect(breeze);
-    // ── palm rustle: bright leaf noise through a flutter (a gain driven by low-passed noise), panned toward the palms ──
-    const palms = this.bed('palms', occl), flutter = c.createGain(); flutter.gain.value = 0.55;
-    const fp = c.createStereoPanner(); this.flutterPan = fp; flutter.connect(fp).connect(palms);
-    W()?.connect(this.filter('highpass', 2200)).connect(this.filter('bandpass', 5200, 0.6)).connect(flutter);
-    { const n = W(); if (n) { const d = c.createGain(); d.gain.value = 3.5; n.connect(this.filter('lowpass', 9, 0.7)).connect(d).connect(flutter.gain); } }
-    // ── lookout high wind: a hollow roar, a whistle wandering through the frame, the pennant flapping ──
-    const high = this.bed('lookout', occl);
-    P()?.connect(this.filter('bandpass', 480, 0.7)).connect(this.filter('lowpass', 2000)).connect(high);
-    { const wh = this.filter('bandpass', 1150, 14), g = c.createGain(); g.gain.value = 0.5; W()?.connect(wh).connect(g).connect(high); this.lfo(0.13, 220, wh.frequency); this.lfo(0.31, 0.35, g.gain); }
-    { const fl = c.createGain(); fl.gain.value = 0.25; W()?.connect(this.filter('bandpass', 900, 1)).connect(fl).connect(high); this.lfo(7.3, 0.25, fl.gain, 'square'); }
-
-    // ── jungle: two pulsing insect bands (day), crickets (night), a humid low bed; birds on a timer ──
-    const jungle = this.bed('jungle', occl);
-    const day = this.bed('jungleDay', jungle), nite = this.bed('jungleNight', jungle);
-    for (const [f, q, am, lvl] of [[4700, 7, 38, 0.5], [6600, 9, 53, 0.3]] as const) {
-      const g = c.createGain(); g.gain.value = lvl; W()?.connect(this.filter('bandpass', f, q)).connect(g).connect(day);
-      this.lfo(am, lvl * 0.9, g.gain); this.lfo(0.05 + f * 0.00001, lvl * 0.5, g.gain);
-    }
-    { const g = c.createGain(); g.gain.value = 0.4; P()?.connect(this.filter('lowpass', 320)).connect(g).connect(jungle); }
-    // crickets: a 4.4 kHz tone chopped at 32 Hz into chirps, gated in trills at ~1.7 Hz; a second one detuned and slower
-    for (const [f, trill, lvl] of [[4400, 1.7, 0.16], [4900, 1.1, 0.1]] as const) {
-      const o = ownAudioSource(c.createOscillator()); o.frequency.value = f; o.start();
-      const chop = c.createGain(); chop.gain.value = 0.5; const gate = c.createGain(); gate.gain.value = 0.5;
-      const g = c.createGain(); g.gain.value = lvl;
-      o.connect(chop).connect(gate).connect(g).connect(nite);
-      this.lfo(32, 0.5, chop.gain, 'square'); this.lfo(trill, 0.5, gate.gain, 'square');
-    }
-    this.scheduleBird();
-
-    // ── cove: the waterfall on its own panner (not occluded: you hear it from inside the cave), drips in the cave ──
     const fallPan = this.panner(6, 1.1, 250); fallPan.positionX.value = this.fall.x; fallPan.positionY.value = this.fall.y; fallPan.positionZ.value = this.fall.z;
     fallPan.connect(a.ambient); this.fallPan = fallPan;
-    const fall = this.bed('waterfall', fallPan);
-    P()?.connect(this.filter('lowpass', 2400)).connect(this.filter('highpass', 140)).connect(fall);
-    { const g = c.createGain(); g.gain.value = 0.9; P()?.connect(this.filter('lowpass', 110, 0.9)).connect(g).connect(fall); }
-    { const g = c.createGain(); g.gain.value = 0.35; W()?.connect(this.filter('bandpass', 3200, 0.7)).connect(g).connect(fall); const n = W(); if (n) { const d = c.createGain(); d.gain.value = 0.3; n.connect(this.filter('lowpass', 14)).connect(d).connect(g.gain); } }
-    const cove = this.bed('cove', a.ambient);
-    { const g = c.createGain(); g.gain.value = 0.5; P()?.connect(this.filter('bandpass', 700, 0.8)).connect(g).connect(cove); this.lfo(0.21, 0.25, g.gain); }
-    this.scheduleDrip();
-
-    // ── underwater: the bubble bed ──
-    const uw = this.bed('underwater', a.ambient);
-    { const b = a.voices.buffer('bubble-bed'); if (b) { const s = ownAudioSource(c.createBufferSource()); s.buffer = b; s.loop = true; s.start(c.currentTime, Math.random() * b.duration); s.connect(uw); } }
+    const outs = this.bedOuts; outs['occl'] = occl; outs['ambient'] = a.ambient; outs['surfPan'] = surfPan; outs['fallPan'] = fallPan;
+    this.flutterPan = this.synth.assemble(ISLAND_BEDS, outs, this.bedMarks).pans.get('flutter');
 
     // ── reverb sends: tap the sfx bus once; a send + convolver per room is built on first approach ──
     const sendIn = c.createGain(); sendIn.gain.value = 1; a.sfx.connect(sendIn); this.sendIn = sendIn;
