@@ -131,7 +131,7 @@ export const DONE = {
     'src/shards/pine-hollow/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow/world/streams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
     'src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 4 } },
-    'src/shards/pine-hollow/weapons/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
+    'src/shards/pine-hollow-legacy/weapons/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
   },
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
