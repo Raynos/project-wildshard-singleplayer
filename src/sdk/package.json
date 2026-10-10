@@ -155,6 +155,7 @@
     "./compendium/trophyWall": "./compendium/trophyWall.ts",
     "./species/riggedHullRows": "./species/riggedHullRows.ts",
     "./items/lashView": "./items/lashView.ts",
+    "./items/lashHold": "./items/lashHold.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",
     "./items/magazineFirearm": "./items/magazineFirearm.ts",
     "./items/boltCrossbow": "./items/boltCrossbow.ts",

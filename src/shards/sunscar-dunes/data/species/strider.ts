@@ -1,6 +1,7 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
 import { STRINGS } from '../strings';
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
+import type { QuadrupedLookRow } from '@wildshard/sdk/looks/fittedHull';
 
 export const STRIDE = { notice: 24, charge: 17, walk: 1.1, approach: 2.4, homeR: 16, lose: 40, face: 0.7 } as const;
 
@@ -35,3 +36,8 @@ export const STRIDER_CLIPS: SpeciesClips = [
     { when: { alive: true }, sum: [{ when: PAWING, of: [0.35] }, { of: [{ mem: 'winded' }, 0.5] }, { of: [{ wave: 't', rate: 1.3 }, 0.05] }] }, { sum: [0.7] }] },
   { bone: 'tail', channel: 'rotation.y', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 2.1 }, 0.3] }] }, { sum: [0] }] },
 ];
+
+/** The strider's look on its fitted hull (data/species/hulls.ts STRIDER_HULL): its rig contract and dims (body height and leg length as shares of the hull's height). */
+export const STRIDER_LOOK: QuadrupedLookRow = { id: 'sunscar.look.duneStrider', species: DUNE_STRIDER.id, kind: 'duneStrider',
+  skeleton: 'sunscar.duneStrider', sockets: ['body', 'head', 'legFL', 'legFR', 'legBL', 'legBR', 'tail'], clipNames: ['idle', 'walk', 'attack', 'hit', 'die'],
+  dims: { bodyY: 0.7, bodyHalfLen: 1.3, bodyRadius: 0.75, headRadius: 0.4, legLen: 0.5, halfWidth: 0.7 } };

@@ -1,4 +1,4 @@
-import { bandSkin as platformBandSkin, quadrupedHull as platformQuadrupedHull, type BandSkinRow as PlatformBandSkinRow, type FittedHull as PlatformFittedHull, type HullBand as PlatformHullBand, type HullBone as PlatformHullBone, type HullTint as PlatformHullTint, type QuadrupedHullRow as PlatformQuadrupedHullRow } from '@wildshard/game/systems/looks/fittedHull';
+import { bandSkin as platformBandSkin, loftedBandHull as platformLoftedBandHull, quadrupedHull as platformQuadrupedHull, quadrupedLook as platformQuadrupedLook, type BandSkinRow as PlatformBandSkinRow, type FittedHull as PlatformFittedHull, type HullBand as PlatformHullBand, type HullBone as PlatformHullBone, type HullTint as PlatformHullTint, type LoftedBandHullRow as PlatformLoftedBandHullRow, type QuadrupedHullRow as PlatformQuadrupedHullRow, type QuadrupedLookRow as PlatformQuadrupedLookRow } from '@wildshard/game/systems/looks/fittedHull';
 
 /** One bone of a hull's skeleton (absolute bind space). */
 export type HullBone = PlatformHullBone;
@@ -16,3 +16,11 @@ export type HullTint = PlatformHullTint;
 export const quadrupedHull: typeof platformQuadrupedHull = platformQuadrupedHull;
 /** A generated winged body fitted and band-skinned from its rows, tinted when a tint is given. */
 export const bandSkin: typeof platformBandSkin = platformBandSkin;
+/** A code-built winged body as rows: its mirrored outline, rim lift, centres, shades, bands and spine tail. */
+export type LoftedBandHullRow = PlatformLoftedBandHullRow;
+/** A four-legged hull's species look as rows: ids, rig contract and dims. */
+export type QuadrupedLookRow = PlatformQuadrupedLookRow;
+/** A code-built winged body lofted and band-skinned from its rows (the stand-in for a generated one). */
+export const loftedBandHull: typeof platformLoftedBandHull = platformLoftedBandHull;
+/** A species look on a fitted four-legged hull, animated by its clip rows. */
+export const quadrupedLook: typeof platformQuadrupedLook = platformQuadrupedLook;

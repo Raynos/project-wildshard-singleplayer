@@ -1,3 +1,4 @@
+import type { LashHoldRow } from '@wildshard/sdk/items/lashHold';
 import type { LashView } from '@wildshard/sdk/items/lashWeapon';
 
 /**
@@ -48,3 +49,47 @@ export const WHIP_VIEW: LashView = {
   flick: { lift: 0.03, push: -0.04, drop: 1.5, back: 2, lead: 0.42, loosen: 0.35, sag: [0.25, 0.4], tautSag: 0.05, overlap: 0.08 },
   wrap: { r: 0.06, h: 0.24, turns: 4, cord: 0.018, hold: 0.9, samples: 40, segments: 80, sides: 5 },
 };
+
+/**
+ * The held whip (E374 polish, after Jake's "the custom whip we built was a lot better") on the lash item's held view
+ * (`@wildshard/sdk/items/lashHold`): the first build's warm brown code fist and hand-sized loop, the rebuild's braided
+ * coil; the generated gloved fist on the braided handle (loop 2, P3: `art/sunscar-dunes/round-11-loop-2/ref-glove.jpg` →
+ * Hunyuan3D-2, painted facets) replacing the code fist when its file loads, and the textured hero glove-and-coiled-whip
+ * (loop 6, mockup D) replacing both, its coil the plaited LOOP.
+ *
+ * - glove: its file lies with the handle along +X from the butt, the knuckles toward +Z and the cuff up; stood on the
+ *   grip's +Y (the fist at the origin), scaled to a hand's size and turned so the cuff runs back down toward the
+ *   lower-right corner and the fingers wrap away. Round 1 (R1A-2 / R1C-4): the flat facets read as a decimated scan, so
+ *   its normals are averaged; check pass: fully averaged colours were a clay mitt, half keeps the seams, knuckles and
+ *   braid. Loop 4 / 5 (mockup D): dark worn brown leather, a touch of warm self-light, the rim picks out its edges.
+ * - code / made: round 1 (R1C-4) the handle tilts forward and toward the crosshair; loop 5 (mockup D) it runs down and
+ *   back into the palm, the fist holding two big braided loops up beside it, the fall hanging below; with the code fist
+ *   a small loop and a half hanging toward the bottom-right edge.
+ * - coil: loop 3, the lash's own dark braid a shade lighter (the handle's pale strands read cream in the sun).
+ * - hd: rounds 9-21 (the council and the lead: every mockup holds a coil hanging LOW in the lower-right corner, the
+ *   handle inside the fist), glove-hd4 (`art/sunscar-dunes/round-27-glove`) lower and pitched forward; council round 2
+ *   (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally.
+ */
+export const WHIP_HOLD: LashHoldRow = {
+  radial: RADIAL,
+  leathers: { glove: 0x7a4a28, cuff: 0x5a3219, knob: 0x3a2214, roughness: 0.62, emissive: GLOW },
+  braid: { a: STRAND_A, b: STRAND_B, popper: POPPER, roughness: 0.55 },
+  wrap: { colour: 0x7a4a26, roughness: 0.85 },
+  handle: { top: 0.017, bottom: 0.021, length: 0.26, segments: 12, y: 0.02 },
+  knob: { r: 0.025, widthSegments: 10, heightSegments: 8, y: -0.115, squash: 0.8 },
+  palm: { r: 0.04, length: 0.05, cap: 4, radial: 10, pos: [0.012, -0.04, 0.008], scale: [1.05, 1, 1.15] },
+  fingers: { count: 4, r: 0.013, length: 0.03, cap: 3, radial: 8, pos: [-0.012, -0.002, -0.034], step: 0.022 },
+  thumb: { r: 0.012, length: 0.038, cap: 3, radial: 8, pos: [-0.03, 0.01, -0.006], rot: [0.2, 0, 0.45] },
+  cuff: { top: 0.046, bottom: 0.06, h: 0.11, radial: 12, pos: [0.02, -0.12, 0.016] },
+  glove: { collar: [0.16, 0.1], fist: 0.48, turn: -2.06, scale: 0.55, keeper: 0.06, smooth: 0.45, colour: [0.42, 0.32, 0.25], roughness: 0.7 },
+  code: { grip: [-1.2, 0, -0.25], tip: 0.15, coil: { turns: 3.2, loopR: 0.064, cord: 0.0085, pos: [0, 0.1, -0.02], rot: [0.1, 0.4, 0.1] } },
+  made: { grip: [-0.9, 0, -0.55], coil: { turns: 2.2, loopR: 0.05, cord: 0.006, pos: [0.01, -0.02, -0.01], rot: [0.05, 0.35, 0.12] } },
+  coil: { points: 80, tubular: 140, shrink: 0.12, squash: 0.85, origin: [-0.005, -0.01, -0.02], drift: [0.03, 0.03],
+    fall: [[-0.02, -0.06, -0.04], [0.0, -0.2, -0.05], [0.02, -0.36, -0.06]], a: COIL_A, b: COIL_B, roughness: 0.75 },
+  coilUserData: { sunscarNoRim: true },
+  hd: { pos: [0.02, -0.19, 0], rot: [-0.5, 0.5, 0.2] },
+  loop: LOOP, plait: PLAIT, lash: LASH_CORD,
+};
+
+/** The hero glove's span in the hold's frame (metres; the model library fits it by its span). */
+export const HD_GLOVE_SIZE = 0.14;

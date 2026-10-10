@@ -250,6 +250,7 @@
     "./systems/items/declared": "./systems/items/declared.ts",
     "./systems/items/lash": "./systems/items/lash.ts",
     "./systems/items/lashView": "./systems/items/lashView.ts",
+    "./systems/items/lashHold": "./systems/items/lashHold.ts",
     "./systems/items/lashWeapon": "./systems/items/lashWeapon.ts",
     "./systems/items/magazineFirearm": "./systems/items/magazineFirearm.ts",
     "./systems/items/boltCrossbow": "./systems/items/boltCrossbow.ts",
