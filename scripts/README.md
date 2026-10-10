@@ -262,6 +262,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generated-files.mjs](./generated-files.mjs)
 - [generated-policy.d.mts](./generated-policy.d.mts)
 - [generated-policy.mjs](./generated-policy.mjs)
+- [green-prefix.d.mts](./green-prefix.d.mts)
+- [green-prefix.mjs](./green-prefix.mjs)
 - [guard-counts.d.mts](./guard-counts.d.mts)
 - [guard-counts.mjs](./guard-counts.mjs)
 - [guard-snapshot.mjs](./guard-snapshot.mjs)
