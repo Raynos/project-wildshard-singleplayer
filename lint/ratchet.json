@@ -265,7 +265,7 @@
     "src/shards/pine-hollow/species/rigs.ts": 1,
     "src/shards/pine-hollow/world/heroFiles.ts": 3,
     "src/shards/pine-hollow/world/homestead.ts": 1,
-    "src/shards/pine-hollow/world/treeFactory.ts": 2,
+    "src/shards/pine-hollow/world/treeFactory.ts": 1,
     "src/shards/pine-hollow/world/weather.ts": 1
   },
   "wildshard/shard-services": {

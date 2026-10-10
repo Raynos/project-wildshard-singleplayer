@@ -42,7 +42,11 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-pine-crags.mjs](./bake-pine-crags.mjs)
 - [bake-pine-king-collision.d.mts](./bake-pine-king-collision.d.mts)
 - [bake-pine-king-collision.mjs](./bake-pine-king-collision.mjs)
+- [bake-pine-lookout.d.mts](./bake-pine-lookout.d.mts)
+- [bake-pine-lookout.mjs](./bake-pine-lookout.mjs)
 - [bake-pine-physics.mjs](./bake-pine-physics.mjs)
+- [bake-pine-props.d.mts](./bake-pine-props.d.mts)
+- [bake-pine-props.mjs](./bake-pine-props.mjs)
 - [bake-pine-spots.mjs](./bake-pine-spots.mjs)
 - [bake-pine-streams.d.mts](./bake-pine-streams.d.mts)
 - [bake-pine-streams.mjs](./bake-pine-streams.mjs)
@@ -365,6 +369,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [wildshard.mjs](./wildshard.mjs)
 - [witness-manifests.d.mts](./witness-manifests.d.mts)
 - [witness-manifests.mjs](./witness-manifests.mjs)
+- [x64-vitest.sh](./x64-vitest.sh)
 
 ## Folders
 
@@ -389,6 +394,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [palette-regions/](./palette-regions/)
 - [parity/](./parity/)
 - [practice/](./practice/)
+- [progress-trailer/](./progress-trailer/)
 - [skin-playback/](./skin-playback/)
 - [soak/](./soak/)
 - [steam-trailer/](./steam-trailer/)
