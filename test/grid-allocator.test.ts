@@ -1,6 +1,7 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { CONTENT_CAPS as C, CONTENT_MB as MB } from '../src/engine/core/config';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { ResidencyAllocator, type ResidencyLease } from '../src/game/grid/allocator';
+import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 
 it('charges every category through the SF22a cost model and refuses what cannot fit', () => {
   const allocator = new ResidencyAllocator();
@@ -64,4 +65,53 @@ it('two-phase eviction: a late victim that refuses at prepare aborts the earlier
   expect(allocator.reserve({ id: 'sim:small', category: 'sim', bytes: 10 * MB, owner: 'small', distance: 0, needed: true })).not.toBeNull();
   expect(log).toEqual(['prepare sim:far', 'commit sim:far']);
   expect(allocator.has('sim:far')).toBe(false);
+});
+
+
+it('retires unreported cache claims without deriving an unread full-page total for every allocation', () => {
+  const allocator = new ResidencyAllocator(), leases: ResidencyLease[] = [];
+  for (let index = 0; index < 64; index++) {
+    const lease = allocator.reserve({ id: `cache:${String(index)}`, category: 'commons', bytes: MB, owner: 'page', distance: 0, needed: true });
+    if (lease === null) throw new Error('fixture admission');
+    leases.push(lease);
+  }
+  const totals = vi.spyOn(allocator, 'cost');
+  for (const lease of [...leases].reverse()) lease.release();
+  expect(totals).not.toHaveBeenCalled();
+  expect(allocator.entries()).toEqual([]);
+  expect(allocator.cost().input.commons).toBe(0);
+  expect(allocator.reserve({ id: 'too-large', category: 'commons', bytes: 1_000 * MB, owner: 'page', distance: 0, needed: true })).toBeNull();
+});
+
+it('still updates every retained Developer warning at each release and clears the final warning', () => {
+  const memory = new MemoryAdmission(() => true), allocator = new ResidencyAllocator({ memory, playing: C.engineBase + C.overlap + 1 });
+  const leases = ['a', 'b', 'c'].map(id => {
+    const lease = allocator.reserve({ id, category: 'commons', bytes: MB, owner: id, distance: 0, needed: true });
+    if (lease === null) throw new Error('fixture admission');
+    return lease;
+  });
+  expect(memory.hasResidentWarnings).toBe(true);
+  const totals = vi.spyOn(allocator, 'cost');
+  leases[2]?.release();
+  expect(totals).toHaveBeenCalledOnce();
+  expect(memory.reports().map(row => row.id)).toEqual(['a', 'b']);
+  expect(memory.reports().every(row => row.accountedBytes === 2 * MB && row.categories?.commons === 2 * MB)).toBe(true);
+  leases[1]?.release(); leases[0]?.release();
+  expect(totals).toHaveBeenCalledTimes(3);
+  expect(memory.reports()).toEqual([]); expect(memory.hasResidentWarnings).toBe(false);
+});
+
+
+it('still validates page calibration immediately when an unwarned measured parent retires', () => {
+  const allocator = new ResidencyAllocator({ playing: 8 * C.engineBase }), parents: ResidencyLease[] = [];
+  for (const id of ['a', 'b']) {
+    const parent = allocator.reserve({ id, category: 'sim', bytes: 2 * C.engineBase, owner: id, distance: 0, needed: true });
+    if (parent === null) throw new Error('fixture admission');
+    allocator.markMeasuredPage(id);
+    expect(allocator.reservePageComponent(`page:${id}`, C.engineBase, C.engineBase, id)).not.toBeNull();
+    parents.push(parent);
+  }
+  expect(allocator.memory.hasResidentWarnings).toBe(false);
+  parents[0]?.release();
+  expect(() => parents[1]?.release()).toThrow('Page calibration exceeds the engine baseline');
 });

@@ -60,6 +60,11 @@ export class MemoryAdmission {
   subscribe(read: () => void): () => void { this.listeners.add(read); read(); return () => { this.listeners.delete(read); }; }
   /** Remove warnings for released resident claims after the total falls back under the envelope. */
   clearResidents(): void { let changed = false; for (const [key, row] of this.warnings) if (row.stage === 'resident') { this.warnings.delete(key); changed = true; } if (changed) this.notify(); }
+  /** Whether a resident warning needs the allocator's current totals; other report stages keep their own ruler. */
+  get hasResidentWarnings(): boolean {
+    for (const row of this.warnings.values()) if (row.stage === 'resident') return true;
+    return false;
+  }
   /** Released claims stop warning; retained claims report the current full page total even while it remains over cap. */
   syncResidents(ids: ReadonlySet<string>, cost: { accounted: number; playing: number; loading: number; input: ContentCostInput }): void {
     let changed = false;

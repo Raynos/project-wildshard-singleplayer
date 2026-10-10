@@ -30,3 +30,14 @@ it('preserves strict refusal with the existing finite fractional allocator ceili
   expect(policy.accept({ ...request, playingCap: 413_300_000.5 })).toBe(false);
   expect(policy.reports()).toEqual([]);
 });
+
+
+it('requests resident synchronization only while that report stage has a live warning', () => {
+  const policy = new MemoryAdmission(() => true);
+  policy.accept({ ...request, stage: 'runtime' }); expect(policy.hasResidentWarnings).toBe(false);
+  policy.accept(request); expect(policy.hasResidentWarnings).toBe(true);
+  policy.clearResidents(); expect(policy.hasResidentWarnings).toBe(false);
+  policy.accept(request); expect(policy.hasResidentWarnings).toBe(true);
+  policy.accept({ ...request, playingBytes: 900_000_000 }); expect(policy.hasResidentWarnings).toBe(false);
+  policy.accept(request); policy.dispose(); expect(policy.hasResidentWarnings).toBe(false);
+});

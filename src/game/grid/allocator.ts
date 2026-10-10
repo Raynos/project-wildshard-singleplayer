@@ -195,7 +195,11 @@ export class ResidencyAllocator {
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
     this.entries_.delete(entry.id); this.measured.delete(entry.id);
-    this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
+    // The table is already authoritative. Derive warning totals only when a resident report can consume them,
+    // rather than re-walking every remaining cache allocation after each individual release.
+    // Parent/page retirement can expose calibrated page coverage and must still validate that input immediately.
+    if (this.memory.hasResidentWarnings || entry.category === 'sim' || entry.category === 'page')
+      this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
   }
   private lease(entry: Entry): ResidencyLease {
     let released = false;
