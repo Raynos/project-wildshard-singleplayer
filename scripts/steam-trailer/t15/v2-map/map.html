@@ -1,0 +1,502 @@
+<!doctype html>
+<!-- T15-2 "The map that draws itself" (E471, TRAILERS §3b). Ink on paper, drawn stroke by stroke in 12 s.
+     Every frame is a pure function of t: titles.mjs calls window.pose('main', t) per 60 fps frame and screenshots it.
+     The drawings and words are revealed through masks drawn along their own skeletons in drawing order (build/data.js,
+     made by prep.py), so every mark draws on along its path; the roads, plot borders and the cartouche are hand-ruled
+     vector lines generated here with seeded jitter. Two inks (iron-black, indigo) + one accent (vermilion). -->
+<html><head><meta charset="utf-8">
+<style>
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #efebe2; }
+canvas { display: block; }
+</style>
+<script src="build/data.js"></script>
+</head><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+'use strict';
+const D = window.MAPDATA;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingQuality = 'high';
+
+// ---------- palette and layout ----------
+const INK_A = '#211b16';      // iron-gall black
+const INK_B = '#24406b';      // indigo
+const GRAPHITE = '#3e3c3a';   // the pencil hand (ink A, lighter)
+const ACC = '#c2432c';        // vermilion: the road's centre line and "yours"
+const P = 710, H = 300;       // grid pitch, plot half-size (world units)
+const ROAD_EDGE = 38, RING = 62, ISLAND = 24;
+const EDGE_TRIM = Math.sqrt(RING * RING - ROAD_EDGE * ROAD_EDGE);
+
+// ---------- small maths ----------
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const ease = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+function rnd(seed) { let s = (seed * 2654435761) >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+function hash(...v) { let h = 2166136261; for (const x of v) { h ^= Math.round(x * 1000) | 0; h = Math.imul(h, 16777619) >>> 0; } return h; }
+const span = (t, a, b) => clamp((t - a) / (b - a));
+// drawing progress: a hand starts carefully, speeds up, slows for the last details
+const penCurve = (x) => { x = clamp(x); return 0.45 * x + 0.55 * smooth(x); };
+
+// monotone cubic interpolation through keyframes (no overshoot)
+function monotone(ts, ys) {
+  const n = ts.length, d = [], m = new Array(n).fill(0);
+  for (let i = 0; i < n - 1; i++) d.push((ys[i + 1] - ys[i]) / (ts[i + 1] - ts[i]));
+  m[0] = 0; m[n - 1] = 0;
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : 3 * (ts[i + 1] - ts[i - 1]) / ((2 * ts[i + 1] - ts[i] - ts[i - 1]) / d[i - 1] + (ts[i + 1] + ts[i] - 2 * ts[i - 1]) / d[i]);
+  return (t) => {
+    if (t <= ts[0]) return ys[0];
+    if (t >= ts[n - 1]) return ys[n - 1];
+    let i = 0; while (t > ts[i + 1]) i++;
+    const h = ts[i + 1] - ts[i], s = (t - ts[i]) / h, s2 = s * s, s3 = s2 * s;
+    return (2 * s3 - 3 * s2 + 1) * ys[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * ys[i + 1] + (s3 - s2) * h * m[i + 1];
+  };
+}
+
+// ---------- camera: close on the first plot, then follow the pen out while pulling back ----------
+const CAM = [ // t, cx, cy, scale
+  [0.0, 0, 8, 1.44], [2.5, 0, 0, 1.38], [4.4, -340, -120, 0.76], [5.6, -200, -300, 0.62],
+  [6.9, 250, -120, 0.52], [8.2, 200, 140, 0.45], [10.2, 100, 170, 0.42], [12.0, 96, 172, 0.414],
+];
+const camX = monotone(CAM.map(k => k[0]), CAM.map(k => k[1]));
+const camY = monotone(CAM.map(k => k[0]), CAM.map(k => k[2]));
+const camS = monotone(CAM.map(k => k[0]), CAM.map(k => Math.log(k[3])));
+function camera(t) {
+  const s = Math.exp(camS(t)), r = (-0.9 * Math.PI / 180) * (1 - smooth(t / 10.5));
+  const cx = camX(t), cy = camY(t), a = s * Math.cos(r), b = s * Math.sin(r);
+  return { s, cx, cy, m: [a, b, -b, a, 960 - (a * cx - b * cy), 540 - (b * cx + a * cy)] };
+}
+
+// ---------- assets ----------
+const imgs = {};
+function loadImg(src) { return new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; }); }
+const tinted = {};   // key|colour -> canvas holding the full ink in that colour
+function tint(key, colour) {
+  const id = key + '|' + colour;
+  if (tinted[id]) return tinted[id];
+  const im = imgs[key], c = document.createElement('canvas');
+  c.width = im.width; c.height = im.height;
+  const g = c.getContext('2d');
+  g.drawImage(im, 0, 0);
+  g.globalCompositeOperation = 'source-in';
+  g.fillStyle = colour; g.fillRect(0, 0, c.width, c.height);
+  return (tinted[id] = c);
+}
+let paperPat = null;
+const toothPat = {};
+function tooth(colour) {
+  if (toothPat[colour]) return toothPat[colour];
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.drawImage(imgs.tooth, 0, 0);
+  g.globalCompositeOperation = 'source-in'; g.fillStyle = colour; g.fillRect(0, 0, 512, 512);
+  return (toothPat[colour] = ctx.createPattern(c, 'repeat'));
+}
+
+// cumulative lengths of every stroke of every ink item, for partial strokes
+function prepStrokes(key) {
+  const d = D[key];
+  if (d.ready) return d;
+  for (const s of d.strokes) {
+    const p = s.p, n = p.length / 2, cum = new Float32Array(n);
+    for (let i = 1; i < n; i++) cum[i] = cum[i - 1] + Math.hypot(p[2 * i] - p[2 * i - 2], p[2 * i + 1] - p[2 * i - 1]);
+    s.cum = cum; s.len = cum[n - 1];
+  }
+  d.ready = true;
+  return d;
+}
+
+// ---------- ink items revealed along their skeletons ----------
+const pool = [];
+let poolUsed = 0;
+function workCanvas(w, h) {
+  let c = pool[poolUsed];
+  if (!c) { c = document.createElement('canvas'); pool.push(c); }
+  poolUsed++;
+  if (c.width < w || c.height < h) { c.width = Math.max(c.width, w); c.height = Math.max(c.height, h); }
+  return c;
+}
+// returns a canvas with the ink of `key` in `colour` drawn up to progress p (0..1)
+function reveal(key, colour, p) {
+  const full = tint(key, colour);
+  if (p >= 1) return full;
+  const d = prepStrokes(key);
+  const c = workCanvas(d.w, d.h), g = c.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalCompositeOperation = 'source-over';
+  g.globalAlpha = 1;
+  g.clearRect(0, 0, d.w, d.h);
+  g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#000';
+  let curW = -1;
+  g.beginPath();
+  for (const s of d.strokes) {
+    if (s.t0 >= p) break;
+    const w = Math.round(s.r * 4) / 2;
+    if (w !== curW) { g.stroke(); g.beginPath(); g.lineWidth = w; curW = w; }
+    const pts = s.p, n = pts.length / 2;
+    if (n === 1) { g.moveTo(pts[0], pts[1]); g.lineTo(pts[0] + 0.01, pts[1]); continue; }
+    const want = s.t1 <= p ? s.len + 1 : s.len * (p - s.t0) / (s.t1 - s.t0);
+    g.moveTo(pts[0], pts[1]);
+    for (let i = 1; i < n; i++) {
+      if (s.cum[i] <= want) { g.lineTo(pts[2 * i], pts[2 * i + 1]); continue; }
+      const k = (want - s.cum[i - 1]) / Math.max(1e-6, s.cum[i] - s.cum[i - 1]);
+      g.lineTo(lerp(pts[2 * i - 2], pts[2 * i], k), lerp(pts[2 * i - 1], pts[2 * i + 1], k));
+      break;
+    }
+  }
+  g.stroke();
+  // the faint pixels no skeleton reached (pencil tone, anti-aliasing) settle in during the last tenth
+  if (p > 0.9) { g.globalAlpha = (p - 0.9) / 0.1; g.fillRect(0, 0, d.w, d.h); g.globalAlpha = 1; }
+  g.globalCompositeOperation = 'source-in';
+  g.drawImage(full, 0, 0);
+  return c;
+}
+// draw an ink item into the world: centre (x, y), width in world units
+function drawInk(key, colour, p, x, y, width, opts = {}) {
+  if (p <= 0) return;
+  const d = D[key], c = reveal(key, colour, p), k = width / d.w;
+  ctx.save();
+  ctx.translate(x, y);
+  if (opts.rot) ctx.rotate(opts.rot);
+  if (opts.mirror) ctx.scale(-1, 1);
+  ctx.scale(k, k);
+  ctx.globalAlpha = opts.alpha ?? 1;
+  const ax = opts.anchor === 'left' ? 0 : opts.anchor === 'right' ? -d.w : -d.w / 2;
+  const ay = opts.base ? -d.base : -d.h / 2;
+  ctx.drawImage(c, 0, 0, d.w, d.h, ax, ay, d.w, d.h);
+  ctx.restore();
+}
+
+// ---------- hand-ruled lines ----------
+const HANDS = {
+  quill:  { w: 2.6, v: 0.45, wob: 1.1, over: 7 },
+  brush:  { w: 8.0, v: 0.55, wob: 1.9, over: 2, bristles: 5 },
+  tech:   { w: 1.7, v: 0.04, wob: 0.35, over: 13 },
+  pencil: { w: 1.9, v: 0.2, wob: 1.5, over: 17, passes: 2, alpha: 0.62, grain: true },
+  crayon: { w: 6.0, v: 0.25, wob: 1.9, over: 5, grain: true },
+  marker: { w: 4.8, v: 0.05, wob: 1.0, over: 2 },
+  ball:   { w: 1.3, v: 0.12, wob: 1.2, over: 9, passes: 2 },
+  fine:   { w: 1.6, v: 0.2, wob: 0.8, over: 5 },
+  yours:  { w: 3.4, v: 0.18, wob: 0.9, over: 6 },
+  road:   { w: 2.1, v: 0.08, wob: 0.5, over: 0 },
+  dash:   { w: 2.4, v: 0.1, wob: 0.4, over: 0 },
+};
+const geomCache = new Map();
+// resample an ideal polyline into a jittered, pressure-varying stroke (cached per key)
+function geom(key, pts, hand, seed, closed) {
+  let g = geomCache.get(key);
+  if (g) return g;
+  const R = rnd(seed), ph = [0, 0, 0, 0, 0, 0].map(() => R() * 6.283);
+  let path = pts.slice();
+  if (hand.over && !closed) { // overshoot past the ends, as a ruled hand does
+    const o1 = hand.over * (0.3 + 0.7 * R()), o2 = hand.over * (0.3 + 0.7 * R());
+    const [a, b] = [path[0], path[1]], [y, z] = [path[path.length - 2], path[path.length - 1]];
+    const l1 = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, l2 = Math.hypot(z[0] - y[0], z[1] - y[1]) || 1;
+    path[0] = [a[0] - (b[0] - a[0]) / l1 * o1, a[1] - (b[1] - a[1]) / l1 * o1];
+    path[path.length - 1] = [z[0] + (z[0] - y[0]) / l2 * o2, z[1] + (z[1] - y[1]) / l2 * o2];
+  }
+  const xs = [], ys = [], nx = [], ny = [], cum = [];
+  let tot = 0;
+  for (let i = 0; i < path.length - 1; i++) {
+    const [x0, y0] = path[i], [x1, y1] = path[i + 1];
+    const L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(L / 5));
+    for (let j = (i === 0 ? 0 : 1); j <= n; j++) {
+      const k = j / n;
+      xs.push(lerp(x0, x1, k)); ys.push(lerp(y0, y1, k));
+      cum.push(tot + L * k);
+    }
+    tot += L;
+  }
+  const N = xs.length, ws = new Float32Array(N), ox = new Float32Array(N), oy = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const a = Math.max(0, i - 1), b = Math.min(N - 1, i + 1);
+    let dx = xs[b] - xs[a], dy = ys[b] - ys[a]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+    nx.push(-dy); ny.push(dx);
+    const s = cum[i];
+    const off = hand.wob * (0.6 * Math.sin(s / 83 + ph[0]) + 0.4 * Math.sin(s / 31 + ph[1]) + 0.18 * Math.sin(s / 7.3 + ph[2]));
+    ox[i] = xs[i] + nx[i] * off; oy[i] = ys[i] + ny[i] * off;
+    const press = 1 + hand.v * (0.6 * Math.sin(s / 57 + ph[3]) + 0.4 * Math.sin(s / 19 + ph[4]));
+    const taper = (0.55 + 0.45 * Math.min(1, s / 14)) * (0.6 + 0.4 * Math.min(1, (tot - s) / 18));
+    ws[i] = hand.w * press * (closed ? 1 : taper);
+  }
+  g = { N, x: ox, y: oy, nx, ny, w: ws, cum, len: tot, R: R() };
+  geomCache.set(key, g);
+  return g;
+}
+// fill the stroke from length a to length b (0..len), offset sideways by `off`, width scaled by ws
+function fillSpan(g, a, b, off = 0, ws = 1) {
+  if (b <= a) return;
+  const L = [], Rr = [];
+  const at = (s) => { // interpolated sample at length s
+    let i = 1; while (i < g.N - 1 && g.cum[i] < s) i++;
+    const k = clamp((s - g.cum[i - 1]) / Math.max(1e-6, g.cum[i] - g.cum[i - 1]));
+    return [lerp(g.x[i - 1], g.x[i], k), lerp(g.y[i - 1], g.y[i], k), lerp(g.nx[i - 1], g.nx[i], k), lerp(g.ny[i - 1], g.ny[i], k), lerp(g.w[i - 1], g.w[i], k)];
+  };
+  const push = (x, y, nx, ny, w) => { const h = w * ws / 2; L.push([x + nx * (off + h), y + ny * (off + h)]); Rr.push([x + nx * (off - h), y + ny * (off - h)]); };
+  push(...at(a));
+  for (let i = 0; i < g.N; i++) if (g.cum[i] > a && g.cum[i] < b) push(g.x[i], g.y[i], g.nx[i], g.ny[i], g.w[i]);
+  push(...at(b));
+  ctx.beginPath();
+  ctx.moveTo(L[0][0], L[0][1]);
+  for (let i = 1; i < L.length; i++) ctx.lineTo(L[i][0], L[i][1]);
+  for (let i = Rr.length - 1; i >= 0; i--) ctx.lineTo(Rr[i][0], Rr[i][1]);
+  ctx.closePath();
+  ctx.fill();
+}
+// draw a hand-ruled stroke up to progress p (0..1)
+function handStroke(key, pts, handName, colour, p, opts = {}) {
+  if (p <= 0) return;
+  const hand = HANDS[handName];
+  const g = geom(key + handName, pts, hand, hash(key.length, ...pts.flat()), opts.closed);
+  const end = g.len * clamp(p);
+  ctx.save();
+  ctx.globalAlpha = hand.alpha ?? 1;
+  ctx.fillStyle = hand.grain ? tooth(colour) : colour;
+  const passes = hand.passes || 1;
+  for (let k = 0; k < passes; k++) {
+    const off = passes > 1 ? (k - 0.5) * hand.w * 0.9 : 0;
+    if (hand.bristles) { // the brush: several bristle lines, each running dry at its own point
+      const R = rnd(hash(g.R * 1e6, 3));
+      for (let b = 0; b < hand.bristles; b++) {
+        const o = (b / (hand.bristles - 1) - 0.5) * hand.w * 0.62, dry = 1 - R() * 0.22;
+        fillSpan(g, 0, Math.min(end, g.len * dry), o, 0.36);
+      }
+    } else if (opts.dash) {
+      const [on, offL] = opts.dash;
+      for (let s = opts.dashPhase || 0; s < end; s += on + offL) fillSpan(g, s, Math.min(end, s + on), off);
+    } else {
+      // a faint wet rim first, then the line
+      if (!hand.grain) { ctx.globalAlpha = (hand.alpha ?? 1) * 0.16; fillSpan(g, 0, end, off, 1 + 2.4 / hand.w); ctx.globalAlpha = hand.alpha ?? 1; }
+      fillSpan(g, 0, end, off);
+    }
+  }
+  ctx.restore();
+}
+function circlePts(cx, cy, r, a0, sweep, seed) {
+  const R = rnd(seed), pts = [], n = 40, wob = r * 0.04, ph = R() * 6.28;
+  for (let i = 0; i <= n; i++) {
+    const a = a0 + sweep * i / n, rr = r + wob * Math.sin(a * 2 + ph) + (i / n) * r * 0.05;
+    pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]);
+  }
+  return pts;
+}
+// a plot's border: four sides in the plot's hand, drawn one after another from the top-left corner
+function plotBorder(id, x, y, handName, colour, p, opts = {}) {
+  if (p <= 0) return;
+  const R = rnd(hash(x, y, 11)), j = () => (R() - 0.5) * 7, h = H - (opts.inset || 0);
+  const c = [[x - h + j(), y - h + j()], [x + h + j(), y - h + j()], [x + h + j(), y + h + j()], [x - h + j(), y + h + j()]];
+  for (let i = 0; i < 4; i++) handStroke(`b${id}${i}`, [c[i], c[(i + 1) % 4]], handName, colour, clamp(p * 4 - i), opts);
+}
+
+// ---------- the map ----------
+const MAIN = [ // id, cell, hand, ink, handle, outline start, art start, art end
+  { id: 'driftwood', c: [0, 0], hand: 'quill', ink: INK_B, handle: 'h-mara', b0: 0.15, a0: 0.55, a1: 3.0 },
+  { id: 'nalati', c: [-1, 0], hand: 'brush', ink: INK_A, handle: 'h-juno', b0: 3.3, a0: 3.5, a1: 5.4 },
+  { id: 'pine', c: [0, -1], hand: 'tech', ink: INK_A, handle: 'h-kofi', b0: 4.4, a0: 4.6, a1: 6.4 },
+  { id: 'dunes', c: [1, 0], hand: 'pencil', ink: GRAPHITE, handle: 'h-lev', b0: 5.5, a0: 5.7, a1: 7.3 },
+  { id: 'ninedragon', c: [0, 1], hand: 'crayon', ink: INK_B, handle: 'h-ines', b0: 6.5, a0: 6.7, a1: 8.2 },
+];
+const YOURS = [1, 1];
+const CART = { x0: -2071, x1: -414, y0: 765, y1: 1350 };
+const EXTRA_ART = [
+  ['farm', 'ball'], ['castle', 'marker'], ['volcano', 'fine'], ['canyon', 'crayon'],
+  ['harbour', 'quill'], ['glacier', 'ball'], ['ruins', 'fine'], ['rice', 'brush'],
+  ['stones', 'pencil'], ['stilts', 'quill'], ['observatory', 'tech'], ['fair', 'marker'],
+  ['bamboo', 'brush'], ['oasis', 'crayon'], ['quarry', 'ball'], ['swamp', 'crayon'],
+].filter(([k]) => D[k]);
+const HANDLES = ['h-tove', 'h-ash', 'h-rin', 'h-oso', 'h-pia', 'h-sam', 'h-noor'];
+
+// the road front: how far out from the first plot the roads are drawn at time t
+const FRONT = [[2.0, 0], [3.2, 500], [4.0, 900], [5.0, 1300], [6.0, 1650], [7.0, 2000], [8.0, 2400], [9.0, 2850], [10.0, 3350], [11.0, 3900], [12, 4400]];
+function front(t) {
+  if (t <= FRONT[0][0]) return 0;
+  for (let i = 1; i < FRONT.length; i++) if (t <= FRONT[i][0]) return lerp(FRONT[i - 1][1], FRONT[i][1], (t - FRONT[i - 1][0]) / (FRONT[i][0] - FRONT[i - 1][0]));
+  return FRONT[FRONT.length - 1][1];
+}
+function frontTime(d) {
+  for (let i = 1; i < FRONT.length; i++) if (d <= FRONT[i][1]) return lerp(FRONT[i - 1][0], FRONT[i][0], (d - FRONT[i - 1][1]) / (FRONT[i][1] - FRONT[i - 1][1]));
+  return 12;
+}
+
+// extra plots: everyone else's, in their own hands, filling in as the map runs off the page
+const EXTRAS = [];
+(function buildExtras() {
+  const R = rnd(4242);
+  let n = 0;
+  const cells = [];
+  for (let r = -3; r <= 3; r++) for (let c = -4; c <= 5; c++) {
+    if (MAIN.some(m => m.c[0] === c && m.c[1] === r) || (c === YOURS[0] && r === YOURS[1])) continue;
+    const x = c * P, y = r * P;
+    if (x - H > CART.x0 && x + H < CART.x1 && y - H > CART.y0 && y + H < CART.y1) continue;
+    cells.push({ col: c, row: r, x, y, d: Math.hypot(x, y) });
+  }
+  cells.sort((a, b) => a.d - b.d);
+  const placed = new Map(); // "c,r" -> art
+  const uses = {};
+  for (const cell of cells) {
+    const ring = Math.max(Math.abs(cell.col), Math.abs(cell.row));
+    const near = new Set();
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) near.add(placed.get(`${cell.col + dx},${cell.row + dy}`));
+    // each drawing once before any repeats; a repeat is mirrored and never sits next to itself
+    const pool = EXTRA_ART.filter(([k]) => !near.has(k));
+    const least = Math.min(...pool.map(([k]) => uses[k] || 0));
+    const pick = pool.filter(([k]) => (uses[k] || 0) === least);
+    const [art, hand] = pick[Math.floor(R() * pick.length)];
+    const mirror = (uses[art] || 0) % 2 === 1;
+    uses[art] = (uses[art] || 0) + 1;
+    placed.set(`${cell.col},${cell.row}`, art);
+    const ink = R() < 0.5 ? INK_A : INK_B;
+    // the outer ring is still being drawn as the shot ends: the map keeps going past the page
+    const start = ring >= 3 ? 8.6 + (cell.d - 2000) / 1600 * 1.6 + R() * 0.8
+      : Math.max(frontTime(cell.d) + 0.15, 7.0 + (cell.d - 1000) / 2600 * 2.6) + R() * 0.35;
+    const dur = ring >= 3 ? 1.8 + R() * 1.0 : 0.95 + R() * 0.4;
+    EXTRAS.push({ ...cell, art, hand, ink, mirror, handle: HANDLES[n % HANDLES.length], b0: start, a0: start + 0.18, a1: start + 0.18 + dur });
+    n++;
+  }
+})();
+
+// road pieces: every segment between neighbouring roundabouts, split where it passes closest to the first plot, so
+// each piece is drawn outward from the centre; the four around the first plot are drawn by hand, clockwise
+const PIECES = [], RINGS = [];
+(function buildRoads() {
+  const I = (i) => (i + 0.5) * P;
+  const isRing0 = (x, y) => Math.abs(Math.abs(x) - P / 2) < 1 && Math.abs(Math.abs(y) - P / 2) < 1;
+  const segs = [];
+  for (let j = -5; j <= 4; j++) for (let i = -6; i <= 5; i++) {
+    segs.push([[I(i), I(j)], [I(i + 1), I(j)]]);
+    segs.push([[I(i), I(j)], [I(i), I(j + 1)]]);
+    RINGS.push({ x: I(i), y: I(j), d: Math.hypot(I(i), I(j)), ring0: isRing0(I(i), I(j)) });
+  }
+  for (const [a, b] of segs) {
+    if (isRing0(...a) && isRing0(...b)) continue;
+    const da = Math.hypot(...a), db = Math.hypot(...b);
+    // closest point to the origin on the segment
+    const dx = b[0] - a[0], dy = b[1] - a[1], k = clamp(-(a[0] * dx + a[1] * dy) / (dx * dx + dy * dy));
+    const m = [a[0] + dx * k, a[1] + dy * k];
+    if (k > 0.01 && k < 0.99) {
+      PIECES.push({ a: m, b: a, trimA: false, trimB: true, dn: Math.hypot(...m), df: da });
+      PIECES.push({ a: m, b, trimA: false, trimB: true, dn: Math.hypot(...m), df: db });
+    } else if (da <= db) PIECES.push({ a, b, trimA: true, trimB: true, dn: da, df: db });
+    else PIECES.push({ a: b, b: a, trimA: true, trimB: true, dn: db, df: da });
+  }
+})();
+const RING0_ORDER = [ // clockwise from the top-left roundabout, t 2.35..3.35
+  { ring: [-1, -1] }, { side: [[-1, -1], [1, -1]] }, { ring: [1, -1] }, { side: [[1, -1], [1, 1]] },
+  { ring: [1, 1] }, { side: [[1, 1], [-1, 1]] }, { ring: [-1, 1] }, { side: [[-1, 1], [-1, -1]] },
+];
+
+function roadLines(key, a, b, trimA, trimB, p) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+  for (const side of [-1, 1]) {
+    const s0 = trimA ? EDGE_TRIM : 0, s1 = L - (trimB ? EDGE_TRIM : 0);
+    const o = side * ROAD_EDGE;
+    handStroke(`${key}e${side}`, [[a[0] + ux * s0 + nx * o, a[1] + uy * s0 + ny * o], [a[0] + ux * s1 + nx * o, a[1] + uy * s1 + ny * o]], 'road', INK_A, p);
+  }
+  const c0 = trimA ? RING + 6 : 0, c1 = L - (trimB ? RING + 6 : 0);
+  if (c1 > c0) handStroke(`${key}c`, [[a[0] + ux * c0, a[1] + uy * c0], [a[0] + ux * c1, a[1] + uy * c1]], 'dash', ACC, p, { dash: [15, 13], dashPhase: trimA ? 0 : 6 });
+}
+function roundabout(x, y, p, a0) {
+  if (p <= 0) return;
+  handStroke(`r${x},${y}o`, circlePts(x, y, RING, a0, Math.PI * 2.12, hash(x, y)), 'road', INK_A, p, { closed: true });
+  handStroke(`r${x},${y}i`, circlePts(x, y, ISLAND, a0 + 1, Math.PI * 2.15, hash(y, x)), 'road', INK_A, clamp(p * 1.3 - 0.3), { closed: true });
+}
+
+function drawRoads(t) {
+  const R0 = 2.35, step = 1.0 / RING0_ORDER.length;
+  RING0_ORDER.forEach((it, i) => {
+    const p = span(t, R0 + i * step, R0 + (i + 1) * step + 0.04);
+    if (it.ring) { const [sx, sy] = it.ring; roundabout(sx * P / 2, sy * P / 2, p, Math.atan2(-sy, -sx) + Math.PI); }
+    else { const [[ax, ay], [bx, by]] = it.side; roadLines(`s0${i}`, [ax * P / 2, ay * P / 2], [bx * P / 2, by * P / 2], true, true, p); }
+  });
+  for (const pc of PIECES) {
+    const delay = rnd(hash(pc.a[0], pc.a[1], pc.b[0], pc.b[1]))() * 0.25;
+    const f = front(t - delay);
+    if (f <= pc.dn) continue;
+    roadLines(`p${pc.a}|${pc.b}`, pc.a, pc.b, pc.trimA, pc.trimB, ease(clamp((f - pc.dn) / (pc.df - pc.dn))) );
+  }
+  for (const rg of RINGS) {
+    if (rg.ring0) continue;
+    const delay = rnd(hash(rg.x, rg.y, 9))() * 0.25;
+    const f = front(t - delay);
+    roundabout(rg.x, rg.y, clamp((f - (rg.d - 70)) / 140), Math.atan2(-rg.y, -rg.x));
+  }
+}
+
+function drawPlot(it, t) {
+  const x = it.c ? it.c[0] * P : it.x, y = it.c ? it.c[1] * P : it.y;
+  plotBorder(it.id || `${it.col},${it.row}`, x, y, it.hand, it.ink, span(t, it.b0, it.b0 + 0.38));
+  const art = it.art || it.id;
+  const p = penCurve(span(t, it.a0, it.a1));
+  drawInk(art, it.ink, p, x, y, 2 * H - 8, { mirror: it.mirror });
+  // the author's handle, small, in the corner, in the same ink, written last
+  const hp = span(t, it.a1 - 0.15, it.a1 + 0.3);
+  if (hp > 0) { const hd = D[it.handle]; drawInk(it.handle, it.ink, hp, x + H - 16, y + H - 12, hd.w * (40 / hd.h), { anchor: 'right', base: true, rot: -0.05 }); }
+}
+
+function visible(cam, x, y, r) {
+  const sx = cam.m[0] * x + cam.m[2] * y + cam.m[4], sy = cam.m[1] * x + cam.m[3] * y + cam.m[5], rr = r * cam.s * 1.1;
+  return sx + rr > 0 && sx - rr < 1920 && sy + rr > 0 && sy - rr < 1080;
+}
+
+function draw(t) {
+  poolUsed = 0;
+  const cam = camera(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.setTransform(...cam.m);
+  ctx.fillStyle = paperPat;
+  ctx.fillRect(-8000, -8000, 16000, 16000);
+  ctx.globalCompositeOperation = 'multiply';
+
+  // everything on the map stops at the cartouche
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(-8000, -8000, 16000, 16000);
+  ctx.rect(CART.x0, CART.y0, CART.x1 - CART.x0, CART.y1 - CART.y0);
+  ctx.clip('evenodd');
+  drawRoads(t);
+  for (const it of EXTRAS) if (t > it.b0 && visible(cam, it.x, it.y, H * 1.45)) drawPlot(it, t);
+  for (const it of MAIN) if (t > it.b0) drawPlot(it, t);
+  // the one plot nobody has drawn: a dashed vermilion border, and "yours"
+  const yx = YOURS[0] * P, yy = YOURS[1] * P;
+  plotBorder('yours', yx, yy, 'yours', ACC, span(t, 8.5, 9.3), { dash: [26, 14], inset: 14 });
+  const yd = D.yours;
+  drawInk('yours', ACC, penCurve(span(t, 9.1, 9.85)), yx - 4, yy + 50, 470, { base: true, rot: -0.07 });
+  ctx.restore();
+
+  // the cartouche: a ruled double frame, then the caption written in it
+  const { x0, x1, y0, y1 } = CART, fp = span(t, 6.55, 7.15);
+  const fr = (k, o, hand) => {
+    const c = [[x0 + o, y0 + o], [x1 - o, y0 + o], [x1 - o, y1 - o], [x0 + o, y1 - o]];
+    for (let i = 0; i < 4; i++) handStroke(`cart${o}${i}`, [c[i], c[(i + 1) % 4]], hand, INK_A, clamp(k * 4 - i));
+  };
+  fr(fp, 6, 'tech');
+  fr(span(t, 6.85, 7.45), 22, 'fine');
+  const capW = (key) => D[key].w * 0.86;
+  drawInk('cap1', INK_A, penCurve(span(t, 9.9, 10.55)), x0 + 70, y0 + 235, capW('cap1'), { anchor: 'left', base: true });
+  drawInk('cap2', INK_A, penCurve(span(t, 10.45, 11.35)), x0 + 70, y0 + 470, capW('cap2'), { anchor: 'left', base: true });
+
+  // soft overcast light: a faint fall-off to the corners
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const vg = ctx.createRadialGradient(900, 480, 300, 960, 540, 1250);
+  vg.addColorStop(0, 'rgba(255,255,255,1)');
+  vg.addColorStop(1, 'rgba(222,218,210,1)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, 1920, 1080);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+const ready = (async () => {
+  const keys = Object.keys(D);
+  await Promise.all(keys.map(async (k) => { imgs[k] = await loadImg(`build/ink/${k}.png`); }));
+  imgs.paper = await loadImg('build/paper.jpg');
+  imgs.tooth = await loadImg('build/tooth.png');
+  paperPat = ctx.createPattern(imgs.paper, 'repeat');
+})();
+
+window.pose = (card, t) => ready.then(() => draw(t));
+window.setPortrait = () => {};
+</script>
+</body></html>
