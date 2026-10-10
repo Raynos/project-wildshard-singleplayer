@@ -21,6 +21,7 @@
     "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",
     "./systems/looks/renderPass": "./systems/looks/renderPass.ts",
     "./systems/looks/weave": "./systems/looks/weave.ts",
+    "./systems/looks/strandCloth": "./systems/looks/strandCloth.ts",
     "./systems/looks/keyedSkyDay": "./systems/looks/keyedSkyDay.ts",
     "./systems/looks/keyedSky": "./systems/looks/keyedSky.ts",
     "./systems/looks/keyedSkyRows": "./systems/looks/keyedSkyRows.ts",

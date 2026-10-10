@@ -83,6 +83,7 @@
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
     "./looks/renderPass": "./looks/renderPass.ts",
     "./looks/weave": "./looks/weave.ts",
+    "./looks/strandCloth": "./looks/strandCloth.ts",
     "./looks/keyedSkyDay": "./looks/keyedSkyDay.ts",
     "./looks/keyedSky": "./looks/keyedSky.ts",
     "./looks/keyedSkyRows": "./looks/keyedSkyRows.ts",
